@@ -1,0 +1,23 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: with jdk ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '11', '13' ]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+            java-version: ${{ matrix.java }}
+      - name: Run Maven build
+        run: ./mvnw --no-transfer-progress clean verify

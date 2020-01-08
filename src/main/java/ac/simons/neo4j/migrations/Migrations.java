@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
+import java.lang.reflect.Constructor;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -130,7 +131,9 @@ public final class Migrations {
 				.stream()
 				.map(c -> {
 					try {
-						return (Migration) c.getDeclaredConstructor().newInstance();
+						Constructor<Migration> ctr = (Constructor<Migration>) c.getDeclaredConstructor();
+						ctr.setAccessible(true);
+						return ctr.newInstance();
 					} catch (Exception e) {
 						throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 					}

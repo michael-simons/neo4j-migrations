@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 
 /**
@@ -38,6 +39,20 @@ class MigrationsTest extends TestBase {
 			() -> Assertions.assertEquals(2, listOfMigrations.size()),
 			() -> Assertions.assertEquals("V001__FirstMigration", listOfMigrations.get(0).getName()),
 			() -> Assertions.assertEquals("V002__AnotherMigration", listOfMigrations.get(1).getName())
+		);
+	}
+
+	@Test
+	void shouldFindStaticInnerClasses() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+			"ac.simons.neo4j.migrations.test_migrations.changeset3").build(), driver);
+
+		List<Migration> listOfMigrations;
+		listOfMigrations = migrations.findMigrations();
+		Assertions.assertAll(
+			() -> Assertions.assertEquals(1, listOfMigrations.size()),
+			() -> Assertions.assertEquals("V003__InnerMigration", listOfMigrations.get(0).getName())
 		);
 	}
 

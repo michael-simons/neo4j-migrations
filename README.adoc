@@ -1,0 +1,47 @@
+= Neo4j Migrations
+Michael Simons <michael.simons@neo4j.com>
+:doctype: article
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:latest_version: 0.0.1
+
+image::https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/junit-jupiter-causal-cluster-testcontainer-extension]
+
+[abstract]
+--
+This is a tool for defining Java based migrations that should be applied and recorded against a Neo4j instance.
+The only dependencies are the Neo4j Java driver and https://github.com/classgraph/classgraph[ClassGraph], the later being used to find migrations on the classpath.
+--
+
+== Usage
+
+Declare the extension as Maven dependency:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+Put your migrations as Java classes into your project:
+
+[source,java]
+----
+import org.neo4j.driver.Driver;
+
+import ac.simons.neo4j.migrations.JavaBasedMigration;
+
+public class V001__MyFirstMigration implements JavaBasedMigration {
+
+	@Override
+	public void apply(Driver driver) {
+		// Steps necessary for a migration
+	}
+}
+----
+

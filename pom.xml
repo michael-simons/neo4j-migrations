@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>Neo4j Migrations</name>
 	<description>Simple, Flyway DB inspired migrations for Neo4j.</description>
 	<url>https://github.com/michael-simons/neo4j-migrations</url>
@@ -41,7 +41,7 @@
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git
 		</developerConnection>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
-		<tag>0.0.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>

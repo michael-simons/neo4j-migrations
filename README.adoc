@@ -12,7 +12,9 @@ image::https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/
 [abstract]
 --
 This is a tool for defining Java based migrations that should be applied and recorded against a Neo4j instance.
-The only dependencies are the Neo4j Java driver and https://github.com/classgraph/classgraph[ClassGraph], the later being used to find migrations on the classpath.
+The only dependencies are the https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver] and https://github.com/classgraph/classgraph[ClassGraph], the later being used to find migrations on the classpath.
+
+Neo4j Migrations is inspired by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
 --
 
 == Usage

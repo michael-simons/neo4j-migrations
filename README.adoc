@@ -7,7 +7,7 @@ Michael Simons <michael.simons@neo4j.com>
 :icons: font
 :latest_version: 0.0.1
 
-image::https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/junit-jupiter-causal-cluster-testcontainer-extension]
+image::https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations]
 
 [abstract]
 --

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>Neo4j Migrations</name>
 	<description>Simple, Flyway DB inspired migrations for Neo4j.</description>
 	<url>https://github.com/michael-simons/neo4j-migrations</url>
@@ -42,7 +41,7 @@
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git
 		</developerConnection>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
-		<tag>HEAD</tag>
+		<tag>0.0.1</tag>
 	</scm>
 
 	<properties>

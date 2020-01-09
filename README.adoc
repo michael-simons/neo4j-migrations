@@ -40,10 +40,27 @@ import ac.simons.neo4j.migrations.JavaBasedMigration;
 
 public class V001__MyFirstMigration implements JavaBasedMigration {
 
-	@Override
-	public void apply(Driver driver) {
-		// Steps necessary for a migration
-	}
+    @Override
+    public void apply(Driver driver) {
+        // Steps necessary for a migration
+    }
 }
 ----
 
+The class names must start with a `V` followed by digits followed by `__` and than some valid Java class name.
+
+To use them create a `Migrations` instance to scan your project and apply all found migrations:
+
+[source,java]
+----
+Migrations migrations = new Migrations(
+    MigrationsConfig.builder().withPackagesToScan("org.company.changeset1").build(),
+    GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
+);
+
+migrations.apply();
+----
+
+You're migrations will be recorded as a chain of applied migrations (as nodes with the label `__Neo4jMigration`). They can use the driver any way they like.
+
+There's no rollback yet. If any migration fails, the chain will stop, but will not rollback previous migrations.

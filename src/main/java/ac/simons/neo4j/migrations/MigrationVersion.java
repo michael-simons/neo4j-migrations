@@ -52,7 +52,7 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 		return BASELINE;
 	}
 
-	public MigrationVersion(String value) {
+	private MigrationVersion(String value) {
 		this.value = value;
 	}
 

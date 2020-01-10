@@ -19,8 +19,11 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +88,7 @@ public final class Migrations {
 			if (previousVersion != MigrationVersion.baseline()
 				&& migration.getVersion().compareTo(previousVersion) <= 0) {
 				LOGGER.log(Level.INFO, "Skipping already applied migration {0} (\"{1}\")",
-					new Object[] { migration.getVersion(), migration.getName() });
+					new Object[] { migration.getVersion(), migration.getDescription() });
 				continue;
 			}
 			try {
@@ -93,9 +96,9 @@ public final class Migrations {
 				previousVersion = recordApplication(previousVersion, migration);
 
 				LOGGER.log(Level.INFO, "Applied migration {0} (\"{1}\")",
-					new Object[] { migration.getVersion(), migration.getName() });
+					new Object[] { migration.getVersion(), migration.getDescription() });
 			} catch (Exception e) {
-				throw new MigrationsException("Could not apply migration: " + migration.getName(), e);
+				throw new MigrationsException("Could not apply migration: " + migration.getDescription(), e);
 			}
 		}
 	}
@@ -105,18 +108,36 @@ public final class Migrations {
 		try (Session session = driver.session()) {
 			session.writeTransaction(t ->
 				{
-					Value parameters = Values.parameters("previousVersion", previousVersion.getValue(), "version",
-						appliedMigration.getVersion().getValue(), "name", appliedMigration.getName());
+					Value parameters = Values.parameters(
+						"previousVersion", previousVersion.getValue(),
+						"appliedMigration", toProperties(appliedMigration),
+						"osUser", System.getProperty("user.name")
+					);
 					return t.run(""
+						+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
+						+ "WITH neo4jUser "
 						+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
-						+ "CREATE (c:__Neo4jMigration {version: $version, name: $name}) "
-						+ "MERGE (p) - [:MIGRATED_TO {at: datetime()}] -> (c)", parameters)
+						+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
+						+ "MERGE (p) - [:MIGRATED_TO {at: datetime(), by: $osUser, connectedAs: neo4jUser}] -> (c)", parameters)
 						.consume();
 				}
 			);
 		}
 
 		return appliedMigration.getVersion();
+	}
+
+	private static Map<String, Object> toProperties(Migration migration) {
+
+		Map<String, Object> properties = new HashMap<>();
+
+		properties.put("version", migration.getVersion().getValue());
+		properties.put("description", migration.getDescription());
+		properties.put("type", migration.getType().getValue().name());
+		properties.put("source", migration.getSource());
+		migration.getChecksum().ifPresent(checksum -> properties.put("checksum", checksum));
+
+		return Collections.unmodifiableMap(properties);
 	}
 
 	List<Migration> findMigrations() {

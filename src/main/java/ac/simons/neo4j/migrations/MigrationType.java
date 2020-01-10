@@ -16,29 +16,35 @@
 package ac.simons.neo4j.migrations;
 
 /**
- * Interface to be implemented for Java based migrations.
+ * Type of a migration.
  *
  * @author Michael J. Simons
  */
-public interface JavaBasedMigration extends Migration {
+public final class MigrationType {
 
-	@Override
-	default MigrationVersion getVersion() {
-		return MigrationVersion.of(getClass());
+	/**
+	 * The reason not making the type a top level enum is simple: I don't want it to be used outside our package.
+	 */
+	enum Value {
+		JAVA, CYPHER;
 	}
 
-	@Override
-	default String getDescription() {
-		return getClass().getSimpleName();
+	/**
+	 * Indicates a Java based migration.
+	 */
+	static final MigrationType JAVA = new MigrationType(Value.JAVA);
+	/**
+	 * Indicates a Cypher based migration.
+	 */
+	static final MigrationType CYPHER = new MigrationType(Value.CYPHER);
+
+	private final Value value;
+
+	private MigrationType(final Value value) {
+		this.value = value;
 	}
 
-	@Override
-	default MigrationType getType() {
-		return MigrationType.JAVA;
-	}
-
-	@Override
-	default String getSource() {
-		return getClass().getName();
+	Value getValue() {
+		return value;
 	}
 }

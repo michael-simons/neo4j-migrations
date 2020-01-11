@@ -19,6 +19,7 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -140,7 +141,26 @@ public final class Migrations {
 		return Collections.unmodifiableMap(properties);
 	}
 
+	/**
+	 * @return An unmodifiable list of migrations sorted by version.
+	 */
 	List<Migration> findMigrations() {
+
+		List<Migration> migrations = new ArrayList<>();
+		migrations.addAll(findJavaBasedMigrations());
+
+		Collections.sort(migrations, Comparator.comparing(Migration::getVersion));
+		return Collections.unmodifiableList(migrations);
+	}
+
+	/**
+	 * @return All Java based migrations. Empty list if no package to scan is configured.
+	 */
+	List<Migration> findJavaBasedMigrations() {
+
+		if (config.getPackagesToScan().length == 0) {
+			return Collections.emptyList();
+		}
 
 		try (ScanResult scanResult = new ClassGraph()
 			.enableAllInfo()

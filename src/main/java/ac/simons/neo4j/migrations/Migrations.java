@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations;
 
+import ac.simons.neo4j.migrations.Location.LocationType;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
@@ -148,6 +149,7 @@ public final class Migrations {
 
 		List<Migration> migrations = new ArrayList<>();
 		migrations.addAll(findJavaBasedMigrations());
+		migrations.addAll(findCypherBasedMigrations());
 
 		Collections.sort(migrations, Comparator.comparing(Migration::getVersion));
 		return Collections.unmodifiableList(migrations);
@@ -156,7 +158,7 @@ public final class Migrations {
 	/**
 	 * @return All Java based migrations. Empty list if no package to scan is configured.
 	 */
-	List<Migration> findJavaBasedMigrations() {
+	private List<Migration> findJavaBasedMigrations() {
 
 		if (config.getPackagesToScan().length == 0) {
 			return Collections.emptyList();
@@ -180,5 +182,41 @@ public final class Migrations {
 					}
 				}).sorted(Comparator.comparing(Migration::getVersion)).collect(Collectors.toList());
 		}
+	}
+
+	/**
+	 * @return All Cypher based migrations. Empty list if no package to scan is configured.
+	 */
+	private List<Migration> findCypherBasedMigrations() {
+
+		if (config.getLocationsToScan().length == 0) {
+			return Collections.emptyList();
+		}
+
+		List<Migration> listOfMigrations = new ArrayList<>();
+
+		List<String> classpathLocations = new ArrayList<>();
+		List<String> filesystemLocations = new ArrayList<>();
+
+		for (String prefixAndLocation : config.getLocationsToScan()) {
+
+			Location location = Location.of(prefixAndLocation);
+			if (location.getType() == LocationType.CLASSPATH) {
+				classpathLocations.add(location.getName());
+			} else if (location.getType() == LocationType.FILESYSTEM) {
+				filesystemLocations.add(location.getName());
+			}
+		}
+
+		try (ScanResult scanResult = new ClassGraph()
+			.whitelistPaths(classpathLocations.toArray(new String[classpathLocations.size()])).scan()) {
+
+			scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
+				.stream()
+				.map(resource -> new CypherBasedMigration(resource.getURL()))
+				.forEach(listOfMigrations::add);
+		}
+
+		return listOfMigrations;
 	}
 }

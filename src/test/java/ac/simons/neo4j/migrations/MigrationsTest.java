@@ -56,6 +56,22 @@ class MigrationsTest extends TestBase {
 	}
 
 	@Test
+	void shouldFindClasspathResources() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
+			"classpath:my/awesome/migrations").build(), driver);
+
+		List<Migration> listOfMigrations;
+		listOfMigrations = migrations.findMigrations();
+		Assertions.assertAll(
+			() -> Assertions.assertEquals(3, listOfMigrations.size()),
+			() -> Assertions.assertEquals("BondTheNameIsBond", listOfMigrations.get(0).getDescription()),
+			() -> Assertions.assertEquals("Die halbe Wahrheit", listOfMigrations.get(1).getDescription()),
+			() -> Assertions.assertEquals("MirFallenKeineNamenEin", listOfMigrations.get(2).getDescription())
+		);
+	}
+
+	@Test
 	void shouldApplyMigrations() {
 
 		Migrations migrations;

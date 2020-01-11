@@ -1,0 +1,1 @@
+CREATE (agent:`007`) RETURN agent;

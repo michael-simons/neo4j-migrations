@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations;
 
+import static ac.simons.neo4j.migrations.Defaults.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +28,11 @@ import java.util.regex.Pattern;
 public final class MigrationVersion implements Comparable<MigrationVersion> {
 
 	private static final MigrationVersion BASELINE = withValue("BASELINE");
+	private static final Pattern VERSION_PATTERN = Pattern
+		.compile("V(\\d+)__([\\w ]+)(?:\\." + CYPHER_SCRIPT_EXTENSION + ")?");
+
 	private final String value;
+	private final String description;
 
 	static MigrationVersion of(Class<?> clazz) {
 		return parse(clazz.getSimpleName());
@@ -34,17 +40,17 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 
 	static MigrationVersion parse(String simpleName) {
 
-		Matcher matcher = Pattern.compile("V(\\d+)__\\w+").matcher(simpleName);
+		Matcher matcher = VERSION_PATTERN.matcher(simpleName);
 		if (!matcher.matches()) {
 			throw new MigrationsException("Invalid class name for a migration: " + simpleName);
 		}
 
-		return new MigrationVersion(matcher.group(1));
+		return new MigrationVersion(matcher.group(1), matcher.group(2).replaceAll("_", " "));
 	}
 
 	static MigrationVersion withValue(String value) {
 
-		return new MigrationVersion(value);
+		return new MigrationVersion(value, null);
 	}
 
 	static MigrationVersion baseline() {
@@ -52,12 +58,20 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 		return BASELINE;
 	}
 
-	private MigrationVersion(String value) {
+	private MigrationVersion(String value, String description) {
 		this.value = value;
+		this.description = description;
 	}
 
 	public String getValue() {
 		return value;
+	}
+
+	/**
+	 * @return The extracted description. Maybe null.
+	 */
+	String getDescription() {
+		return description;
 	}
 
 	@Override

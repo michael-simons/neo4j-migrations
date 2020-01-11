@@ -36,8 +36,8 @@ class MigrationsTest extends TestBase {
 		listOfMigrations = migrations.findMigrations();
 		Assertions.assertAll(
 			() -> Assertions.assertEquals(2, listOfMigrations.size()),
-			() -> Assertions.assertEquals("V001__FirstMigration", listOfMigrations.get(0).getDescription()),
-			() -> Assertions.assertEquals("V002__AnotherMigration", listOfMigrations.get(1).getDescription())
+			() -> Assertions.assertEquals("FirstMigration", listOfMigrations.get(0).getDescription()),
+			() -> Assertions.assertEquals("AnotherMigration", listOfMigrations.get(1).getDescription())
 		);
 	}
 
@@ -51,7 +51,7 @@ class MigrationsTest extends TestBase {
 		listOfMigrations = migrations.findMigrations();
 		Assertions.assertAll(
 			() -> Assertions.assertEquals(1, listOfMigrations.size()),
-			() -> Assertions.assertEquals("V003__InnerMigration", listOfMigrations.get(0).getDescription())
+			() -> Assertions.assertEquals("InnerMigration", listOfMigrations.get(0).getDescription())
 		);
 	}
 

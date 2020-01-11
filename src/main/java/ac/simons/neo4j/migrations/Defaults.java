@@ -15,32 +15,26 @@
  */
 package ac.simons.neo4j.migrations;
 
-import java.util.Optional;
-
 /**
- * Interface to be implemented for Java based migrations.
+ * Defaults for Migrations configuration.
  *
  * @author Michael J. Simons
  */
-public interface JavaBasedMigration extends Migration {
+final class Defaults {
 
-	@Override
-	default MigrationVersion getVersion() {
-		return MigrationVersion.of(getClass());
-	}
+	/**
+	 * Default script extension to look for.
+	 */
+	static final String CYPHER_SCRIPT_EXTENSION = "cypher";
+	/**
+	 * Default packages to scan.
+	 */
+	static final String[] PACKAGES_TO_SCAN = new String[0];
+	/**
+	 * Default locations to scan.
+	 */
+	static final String[] LOCATIONS_TO_SCAN = new String[] { "classpath:neo4j/migrations" };
 
-	@Override
-	default String getDescription() {
-		return Optional.ofNullable(getVersion().getDescription()).orElseGet(() -> getClass().getSimpleName());
-	}
-
-	@Override
-	default MigrationType getType() {
-		return MigrationType.JAVA;
-	}
-
-	@Override
-	default String getSource() {
-		return getClass().getName();
+	private Defaults() {
 	}
 }

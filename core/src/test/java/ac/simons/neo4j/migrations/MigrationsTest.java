@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
 
@@ -61,6 +62,13 @@ class MigrationsTest extends TestBase {
 
 	@Test
 	void shouldFindClasspathResources() {
+
+		// Make sure we run in a Maven or CI build. When run via IDEA (and probably other IDEs, dependencies
+		// are usually resolved via an internal reactor and thus not being JAR urls, which defeats the purpose
+		// of this test.
+
+		Assumptions.assumeTrue(
+			"jar".equals(getClass().getResource("/some/changeset/V0001__delete_old_data.cypher").getProtocol()));
 
 		Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);

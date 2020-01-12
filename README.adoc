@@ -76,7 +76,11 @@ Here's an example:
 [source,cypher]
 .neo4j/migrations/V007__BondTheNameIsBond.cypher
 ----
-include::src/test/resources/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher[]
+CREATE (agent:`007`) RETURN agent;
+UNWIND RANGE(1,6) AS i
+WITH i CREATE (n:OtherAgents {idx: '00' + i})
+RETURN n
+;
 ----
 
 Scripts can contain multiple statements, separated by a `;` followed by a newline.

@@ -15,6 +15,10 @@
  */
 package ac.simons.neo4j.migrations;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -59,20 +63,60 @@ class MigrationsTest extends TestBase {
 	void shouldFindClasspathResources() {
 
 		Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
-			"classpath:my/awesome/migrations").build(), driver);
+			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 
-		List<Migration> listOfMigrations;
-		listOfMigrations = migrations.findMigrations();
+		List<Migration> listOfMigrations = migrations.findMigrations();
 		Assertions.assertAll(
-			() -> Assertions.assertEquals(3, listOfMigrations.size()),
-			() -> Assertions.assertEquals("BondTheNameIsBond", listOfMigrations.get(0).getDescription()),
-			() -> Assertions.assertEquals("Die halbe Wahrheit", listOfMigrations.get(1).getDescription()),
-			() -> Assertions.assertEquals("MirFallenKeineNamenEin", listOfMigrations.get(2).getDescription())
+			() -> Assertions.assertEquals(5, listOfMigrations.size()),
+			() -> Assertions.assertEquals("delete old data", listOfMigrations.get(0).getDescription()),
+			() -> Assertions.assertEquals("create new data", listOfMigrations.get(1).getDescription()),
+			() -> Assertions.assertEquals("BondTheNameIsBond", listOfMigrations.get(2).getDescription()),
+			() -> Assertions.assertEquals("Die halbe Wahrheit", listOfMigrations.get(3).getDescription()),
+			() -> Assertions.assertEquals("MirFallenKeineNamenEin", listOfMigrations.get(4).getDescription())
 		);
 	}
 
 	@Test
+	void shouldFindFileSystemResources() throws IOException {
+
+		List<File> files = new ArrayList<>();
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		File subDir = new File(dir, "subdir");
+		subDir.mkdir();
+		files.add(new File(dir, "V1__One.cypher"));
+		files.add(new File(subDir, "V2__Two.cypher"));
+
+		File dir2 = Files.createTempDirectory("neo4j-migrations2").toFile();
+		files.add(new File(dir, "V3__Three.cypher"));
+
+		for (File file : files) {
+			file.createNewFile();
+		}
+
+		try {
+			Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
+				"filesystem:" + dir.getAbsolutePath(), "filesystem:" + dir2.getAbsolutePath()).build(), driver);
+
+			List<Migration> listOfMigrations = migrations.findMigrations();
+			Assertions.assertAll(
+				() -> Assertions.assertEquals(3, listOfMigrations.size()),
+				() -> Assertions.assertEquals("One", listOfMigrations.get(0).getDescription()),
+				() -> Assertions.assertEquals("Two", listOfMigrations.get(1).getDescription()),
+				() -> Assertions.assertEquals("Three", listOfMigrations.get(2).getDescription())
+			);
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+			subDir.delete();
+		}
+	}
+
+	@Test
 	void shouldApplyMigrations() {
+
+		clearDatabase();
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
@@ -82,11 +126,32 @@ class MigrationsTest extends TestBase {
 		Assertions.assertEquals(2, lengthOfMigrations());
 
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-			"ac.simons.neo4j.migrations.test_migrations.changeset1", "ac.simons.neo4j.migrations.test_migrations.changeset2")
+			"ac.simons.neo4j.migrations.test_migrations.changeset1",
+			"ac.simons.neo4j.migrations.test_migrations.changeset2")
 			.build(), driver);
 		migrations.apply();
 
 		Assertions.assertEquals(3, lengthOfMigrations());
+	}
+
+	@Test
+	void shouldApplyCypherBasedMigrations() {
+
+		clearDatabase();
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
+			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
+		migrations.apply();
+
+		Assertions.assertEquals(5, lengthOfMigrations());
+	}
+
+	void clearDatabase() {
+
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n");
+		}
 	}
 
 	int lengthOfMigrations() {

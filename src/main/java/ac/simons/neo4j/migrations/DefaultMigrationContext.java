@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.test_migrations.changeset3;
+package ac.simons.neo4j.migrations;
 
-import ac.simons.neo4j.migrations.JavaBasedMigration;
-import ac.simons.neo4j.migrations.MigrationContext;
+import org.neo4j.driver.Driver;
 
 /**
  * @author Michael J. Simons
  */
-public final class SomeMigrations {
+final class DefaultMigrationContext implements MigrationContext {
 
-	static class V003__InnerMigration implements JavaBasedMigration {
+	private final MigrationsConfig config;
 
-		@Override
-		public void apply(MigrationContext context) {
-		}
+	private final Driver driver;
+
+	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
+		this.config = config;
+		this.driver = driver;
 	}
 
-	private SomeMigrations() {
+	@Override
+	public MigrationsConfig getConfig() {
+		return config;
+	}
+
+	@Override
+	public Driver getDriver() {
+		return driver;
 	}
 }

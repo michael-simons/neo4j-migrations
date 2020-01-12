@@ -15,37 +15,22 @@
  */
 package ac.simons.neo4j.migrations;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import org.neo4j.driver.Driver;
 
 /**
- * Defaults for Migrations configuration.
+ * Parameter object / context for migrations to be applied.
  *
  * @author Michael J. Simons
  */
-final class Defaults {
+public interface MigrationContext {
 
 	/**
-	 * Default script extension to look for.
+	 * @return The configuration of this migration instance.
 	 */
-	static final String CYPHER_SCRIPT_EXTENSION = "cypher";
-	/**
-	 * Default encoding for Cypher scripts.
-	 */
-	static final Charset DEFAULT_CYPHER_SCRIPT_ENCODING = StandardCharsets.UTF_8;
-	/**
-	 * Cypher delimiter
-	 */
-	static final String CYPHER_STATEMENT_DELIMITER = ";\r?\n";
-	/**
-	 * Default packages to scan.
-	 */
-	static final String[] PACKAGES_TO_SCAN = new String[0];
-	/**
-	 * Default locations to scan.
-	 */
-	static final String[] LOCATIONS_TO_SCAN = new String[] { "classpath:neo4j/migrations" };
+	MigrationsConfig getConfig();
 
-	private Defaults() {
-	}
+	/**
+	 * @return The driver to be used inside migrations.
+	 */
+	Driver getDriver();
 }

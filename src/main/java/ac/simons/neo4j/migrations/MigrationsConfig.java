@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations;
 
+import java.util.Optional;
+
 /**
  * Configuration for Migrations.
  *
@@ -25,6 +27,23 @@ public final class MigrationsConfig {
 	static final String PREFIX_FILESYSTEM = "filesystem";
 	static final String PREFIX_CLASSPATH = "classpath";
 
+	/**
+	 * Used for configuring the transaction mode in Cypher based transactions.
+	 */
+	public enum TransactionMode {
+
+		/**
+		 * Run all statements in one transactions. May need more memory, but it's generally safer. Either the
+		 * migration runs as a whole or not not at all.
+		 */
+		PER_MIGRATION,
+		/**
+		 * Runs each statement in a separate transaction. May leave your database in an inconsistent state when
+		 * one statement fails.
+		 */
+		PER_STATEMENT
+	}
+
 	public static Builder builder() {
 
 		return new Builder();
@@ -34,11 +53,17 @@ public final class MigrationsConfig {
 
 	private final String[] locationsToScan;
 
+	private final TransactionMode transactionMode;
+
+	private final String database;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN : builder.packagesToScan;
 		this.locationsToScan =
 			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN : builder.locationsToScan;
+		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
+		this.database = builder.database;
 	}
 
 	public String[] getPackagesToScan() {
@@ -49,11 +74,23 @@ public final class MigrationsConfig {
 		return locationsToScan;
 	}
 
+	public TransactionMode getTransactionMode() {
+		return transactionMode;
+	}
+
+	public String getDatabase() {
+		return database;
+	}
+
 	public static class Builder {
 
 		private String[] packagesToScan;
 
 		private String[] locationsToScan;
+
+		private TransactionMode transactionMode;
+
+		private String database;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -77,6 +114,31 @@ public final class MigrationsConfig {
 		public Builder withLocationsToScan(String... locations) {
 
 			this.locationsToScan = locations;
+			return this;
+		}
+
+		/**
+		 * Configures the transaction mode. Please have a look at {@link TransactionMode} regarding advantages and
+		 * disadvantages of each mode.
+		 *
+		 * @param transactionMode The new transaction mode.
+		 * @return The builder for further customization
+		 */
+		public Builder withTransactionMode(TransactionMode transactionMode) {
+
+			this.transactionMode = transactionMode;
+			return this;
+		}
+
+		/**
+		 * Configures the database to apply cypher based migrations too. Leave null for the default database.
+		 *
+		 * @param database The database to use
+		 * @return The builder for further customization
+		 */
+		public Builder withDatabase(String database) {
+
+			this.database = database;
 			return this;
 		}
 

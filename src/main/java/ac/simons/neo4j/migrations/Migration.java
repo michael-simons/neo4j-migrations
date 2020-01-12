@@ -17,8 +17,6 @@ package ac.simons.neo4j.migrations;
 
 import java.util.Optional;
 
-import org.neo4j.driver.Driver;
-
 /**
  * Base interface for any migration.
  *
@@ -56,8 +54,8 @@ public interface Migration {
 	/**
 	 * Implement your migration code here.
 	 *
-	 * @param driver A ready to use driver.
+	 * @param context The migrations context.
 	 * @throws Exception Throw anything you like.
 	 */
-	void apply(Driver driver) throws Exception;
+	void apply(MigrationContext context) throws Exception;
 }

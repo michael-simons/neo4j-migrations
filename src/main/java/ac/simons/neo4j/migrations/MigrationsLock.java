@@ -71,7 +71,6 @@ final class MigrationsLock {
 		LOGGER.log(Level.FINE, "Acquiring lock {0} on database", id);
 
 		createUniqueConstraintIfNecessary();
-		Runtime.getRuntime().addShutdownHook(cleanUpTask);
 
 		try (Session session = driver.session()) {
 
@@ -81,6 +80,7 @@ final class MigrationsLock {
 					.single().get("l").asNode().id()
 			);
 			LOGGER.log(Level.FINE, "Acquired lock {0} with internal id {1}", new Object[] { id, internalId });
+			Runtime.getRuntime().addShutdownHook(cleanUpTask);
 			return id;
 		} catch (Neo4jException e) {
 			throw new MigrationsException(

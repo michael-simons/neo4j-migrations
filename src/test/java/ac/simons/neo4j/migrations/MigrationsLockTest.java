@@ -79,8 +79,8 @@ class MigrationsLockTest extends TestBase {
 			Assertions.assertEquals(2, cnt);
 		}
 
+		MigrationsLock lock = new MigrationsLock(driver);
 		try {
-			MigrationsLock lock = new MigrationsLock(driver);
 			lock.lock();
 			Assertions.fail();
 		} catch (MigrationsException e) {
@@ -95,6 +95,8 @@ class MigrationsLockTest extends TestBase {
 						.consume().counters().nodesDeleted());
 				Assertions.assertTrue(cnt >= 2);
 			}
+			// Remove the shutdown hook to avoid error messages in test because junit already closed the driver
+			lock.unlock();
 		}
 	}
 

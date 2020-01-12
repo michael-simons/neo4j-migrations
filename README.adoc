@@ -34,6 +34,7 @@ Put your migrations as Java classes into your project:
 
 [source,java]
 ----
+import ac.simons.neo4j.migrations.MigrationContext;
 import org.neo4j.driver.Driver;
 
 import ac.simons.neo4j.migrations.JavaBasedMigration;
@@ -41,7 +42,7 @@ import ac.simons.neo4j.migrations.JavaBasedMigration;
 public class V001__MyFirstMigration implements JavaBasedMigration {
 
     @Override
-    public void apply(Driver driver) {
+    public void apply(MigrationContext context) {
         // Steps necessary for a migration
     }
 }
@@ -64,3 +65,47 @@ migrations.apply();
 You're migrations will be recorded as a chain of applied migrations (as nodes with the label `__Neo4jMigration`). They can use the driver any way they like.
 
 There's no rollback yet. If any migration fails, the chain will stop, but will not rollback previous migrations.
+
+=== Cypher script based migrations
+
+You can put Cypher scripts ending with `.cypher` inside your classpath resources under `neo4j/migrations`.
+From there on they'll be picked up automatically.
+
+Here's an example:
+
+[source,cypher]
+.neo4j/migrations/V007__BondTheNameIsBond.cypher
+----
+include::src/test/resources/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher[]
+----
+
+Scripts can contain multiple statements, separated by a `;` followed by a newline.
+Statements will be executed in one transaction by default.
+That behaviour can be changed as follows:
+
+[source,java]
+----
+Migrations migrations= new Migrations(
+    MigrationsConfig.builder()
+        .withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+        .build(),
+    driver
+);
+migrations.apply();
+----
+
+If you want Migrations to look at other places, configure it as follows:
+
+[source,java]
+----
+Migrations migrations = new Migrations(
+    MigrationsConfig.builder()
+        .withLocationsToScan(
+            "classpath:my/awesome/migrations",
+            "filesystem:/path/to/migration"
+        ).build(),
+    GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
+);
+
+migrations.apply();
+----

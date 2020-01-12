@@ -121,6 +121,12 @@
 			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j.neo4j-migrations</groupId>
+			<artifactId>test-migrations</artifactId>
+			<version>1.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -219,4 +225,11 @@
 			</build>
 		</profile>
 	</profiles>
+
+	<repositories>
+		<repository>
+			<id>local-test-repo</id>
+			<url>file://${basedir}/src/test/local-test-repo</url>
+		</repository>
+	</repositories>
 </project>

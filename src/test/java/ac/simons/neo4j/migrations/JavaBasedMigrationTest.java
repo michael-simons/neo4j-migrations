@@ -40,7 +40,7 @@ class JavaBasedMigrationTest {
 	private static class V001__SomeMigration implements JavaBasedMigration {
 
 		@Override
-		public void apply(Driver driver) {
+		public void apply(MigrationContext context) {
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -53,7 +53,7 @@ class JavaBasedMigrationTest {
 		}
 
 		@Override
-		public void apply(Driver driver) {
+		public void apply(MigrationContext context) {
 			throw new UnsupportedOperationException();
 		}
 	}

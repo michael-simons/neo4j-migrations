@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.test_migrations.changeset3;
+package ac.simons.neo4j.migrations;
 
-import ac.simons.neo4j.migrations.JavaBasedMigration;
-import ac.simons.neo4j.migrations.MigrationContext;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Michael J. Simons
  */
-public final class SomeMigrations {
+class MigrationsConfigTest {
 
-	static class V003__InnerMigration implements JavaBasedMigration {
+	@Test
+	void shouldConfigureDefaultClasspathPackage() {
 
-		@Override
-		public void apply(MigrationContext context) {
-		}
-	}
-
-	private SomeMigrations() {
+		Assertions
+			.assertArrayEquals(Defaults.LOCATIONS_TO_SCAN, MigrationsConfig.builder().build().getLocationsToScan());
 	}
 }

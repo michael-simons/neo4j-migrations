@@ -99,17 +99,17 @@ final class CypherBasedMigration implements Migration {
 	@Override
 	public Optional<String> getChecksum() {
 
-		String availableStatements = this.checksum;
-		if (availableStatements == null) {
+		String availableChecksum = this.checksum;
+		if (availableChecksum == null) {
 			synchronized (this) {
-				availableStatements = this.checksum;
-				if (availableStatements == null) {
+				availableChecksum = this.checksum;
+				if (availableChecksum == null) {
 					this.checksum = computeChecksum();
-					availableStatements = this.checksum;
+					availableChecksum = this.checksum;
 				}
 			}
 		}
-		return Optional.of(availableStatements);
+		return Optional.of(availableChecksum);
 	}
 
 	String computeChecksum() {

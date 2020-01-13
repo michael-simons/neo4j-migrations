@@ -153,6 +153,13 @@ class MigrationsTest extends TestBase {
 		migrations.apply();
 
 		Assertions.assertEquals(5, lengthOfMigrations());
+
+		try (Session session = driver.session()) {
+			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
+				.list(r -> r.get("checksum").asString());
+			Assertions.assertArrayEquals(new String[] { "1100083332", "3226785110", "1236540472", "200310393", "2884945437" },
+				checksums.subList(1, checksums.size()).toArray(new String[0]));
+		}
 	}
 
 	void clearDatabase() {

@@ -29,13 +29,13 @@ import org.junit.jupiter.api.Test;
 class CypherBasedMigrationTest {
 
 	@Test
-	void shouldBeAbleToReadFromJar() throws IOException {
+	void shouldBeAbleToReadFromJar() {
 
 		// Those are in eu.michael-simons.neo4j.neo4j-migrations:test-migrations
 		URL resource = CypherBasedMigrationTest.class.getResource("/some/changeset/V0002__create_new_data.cypher");
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
 
-		List<String> statements = migration.readStatements();
+		List<String> statements = migration.getStatements();
 		Assertions.assertAll(
 			() -> Assertions.assertEquals(2, statements.size()),
 			() -> Assertions.assertEquals("CREATE (n:FixedData) RETURN n", statements.get(0)),
@@ -44,11 +44,20 @@ class CypherBasedMigrationTest {
 	}
 
 	@Test
-	void shouldHandleMultilineStatements() throws IOException {
+	void shouldHandleMultilineStatements() {
 		URL resource = CypherBasedMigrationTest.class
 			.getResource("/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher");
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
-		List<String> statements = migration.readStatements();
+		List<String> statements = migration.getStatements();
 		Assertions.assertEquals(2, statements.size());
+	}
+
+	@Test
+	void shouldComputeCheckSum() {
+		URL resource = CypherBasedMigrationTest.class.getResource("/some/changeset/V0001__delete_old_data.cypher");
+
+		CypherBasedMigration migration = new CypherBasedMigration(resource);
+
+		Assertions.assertEquals("1100083332", migration.getChecksum().get());
 	}
 }

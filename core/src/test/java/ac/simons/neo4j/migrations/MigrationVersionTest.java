@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations;
 
-import org.junit.jupiter.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -28,12 +29,12 @@ public class MigrationVersionTest {
 
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse("V1__a");
-		Assertions.assertEquals("1", migrationVersion.getValue());
-		Assertions.assertEquals("a", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("1");
+		assertThat(migrationVersion.getDescription()).isEqualTo("a");
 
 		migrationVersion = MigrationVersion.parse("V021__HalloWelt");
-		Assertions.assertEquals("021", migrationVersion.getValue());
-		Assertions.assertEquals("HalloWelt", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("021");
+		assertThat(migrationVersion.getDescription()).isEqualTo("HalloWelt");
 	}
 
 	@Test
@@ -41,20 +42,20 @@ public class MigrationVersionTest {
 
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse("V1__a.cypher");
-		Assertions.assertEquals("1", migrationVersion.getValue());
-		Assertions.assertEquals("a", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("1");
+		assertThat(migrationVersion.getDescription()).isEqualTo("a");
 
 		migrationVersion = MigrationVersion.parse("V021__HalloWelt.cypher");
-		Assertions.assertEquals("021", migrationVersion.getValue());
-		Assertions.assertEquals("HalloWelt", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("021");
+		assertThat(migrationVersion.getDescription()).isEqualTo("HalloWelt");
 
 		migrationVersion = MigrationVersion.parse("V4711__MirFallenKeineNamenEin.cypher");
-		Assertions.assertEquals("4711", migrationVersion.getValue());
-		Assertions.assertEquals("MirFallenKeineNamenEin", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("4711");
+		assertThat(migrationVersion.getDescription()).isEqualTo("MirFallenKeineNamenEin");
 
 		migrationVersion = MigrationVersion.parse("V4711__Ein Dateiname.cypher");
-		Assertions.assertEquals("4711", migrationVersion.getValue());
-		Assertions.assertEquals("Ein Dateiname", migrationVersion.getDescription());
+		assertThat(migrationVersion.getValue()).isEqualTo("4711");
+		assertThat(migrationVersion.getDescription()).isEqualTo("Ein Dateiname");
 	}
 
 	@Test
@@ -62,16 +63,16 @@ public class MigrationVersionTest {
 
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse("V1__a_b");
-		Assertions.assertEquals("a b", migrationVersion.getDescription());
+		assertThat(migrationVersion.getDescription()).isEqualTo("a b");
 	}
 
 	@Test
 	void shouldFailOnIncorrectClassNames() {
 
-		Assertions.assertThrows(MigrationsException.class, () -> MigrationVersion.parse("HalloWelt"));
-		Assertions.assertThrows(MigrationsException.class, () -> MigrationVersion.parse("V1"));
-		Assertions.assertThrows(MigrationsException.class, () -> MigrationVersion.parse("V1__"));
-		Assertions.assertThrows(MigrationsException.class, () -> MigrationVersion.parse("V__HalloWelt"));
-		Assertions.assertThrows(MigrationsException.class, () -> MigrationVersion.parse("V1_HalloWelt"));
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("HalloWelt"));
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1"));
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1__"));
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V__HalloWelt"));
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1_HalloWelt"));
 	}
 }

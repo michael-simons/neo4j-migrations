@@ -15,9 +15,10 @@
  */
 package ac.simons.neo4j.migrations;
 
+import static org.assertj.core.api.Assertions.*;
+
 import ac.simons.neo4j.migrations.Location.LocationType;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -30,43 +31,39 @@ class LocationTest {
 
 		Location description;
 		description = Location.of("classpath:foobar");
-		Assertions.assertEquals(LocationType.CLASSPATH, description.getType());
-		Assertions.assertEquals("foobar", description.getName());
+		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
+		assertThat(description.getName()).isEqualTo("foobar");
 
 		description = Location.of("classPath:foobar");
-		Assertions.assertEquals(LocationType.CLASSPATH, description.getType());
-		Assertions.assertEquals("foobar", description.getName());
+		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
+		assertThat(description.getName()).isEqualTo("foobar");
 
 		description = Location.of(" classPath : foobar ");
-		Assertions.assertEquals(LocationType.CLASSPATH, description.getType());
-		Assertions.assertEquals("foobar", description.getName());
+		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
+		assertThat(description.getName()).isEqualTo("foobar");
 
 		description = Location.of("FileSystem:foobar");
-		Assertions.assertEquals(LocationType.FILESYSTEM, description.getType());
-		Assertions.assertEquals("foobar", description.getName());
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo("foobar");
 	}
 
 	@Test
 	void withInvalidName() {
 
-		String msg;
-		msg = Assertions.assertThrows(MigrationsException.class, () -> Location.of(":")).getMessage();
-		Assertions.assertEquals("Invalid resource name: ':'", msg);
-		msg = Assertions.assertThrows(MigrationsException.class, () -> Location.of(":c")).getMessage();
-		Assertions.assertEquals("Invalid resource name: ':c'", msg);
-		msg = Assertions.assertThrows(MigrationsException.class, () -> Location.of("c:")).getMessage();
-		Assertions.assertEquals("Invalid resource name: 'c:'", msg);
-		msg = Assertions.assertThrows(MigrationsException.class, () -> Location.of("classpath:"))
-			.getMessage();
-		Assertions.assertEquals("Invalid name.", msg);
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":"))
+			.withMessage("Invalid resource name: ':'");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":c"))
+			.withMessage("Invalid resource name: ':c'");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("c:"))
+			.withMessage("Invalid resource name: 'c:'");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("classpath:"))
+			.withMessage("Invalid name.");
 	}
 
 	@Test
 	void withInvalidPrefix() {
 
-		String msg;
-		msg = Assertions.assertThrows(MigrationsException.class, () -> Location.of("some:thing"))
-			.getMessage();
-		Assertions.assertEquals("Invalid resource prefix: 'some'", msg);
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("some:thing"))
+			.withMessage("Invalid resource prefix: 'some'");
 	}
 }

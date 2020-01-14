@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations;
 
-import org.junit.jupiter.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
-import org.neo4j.driver.Driver;
 
 /**
  * @author Michael J. Simons
@@ -27,14 +27,14 @@ class JavaBasedMigrationTest {
 	@Test
 	void shouldGetCorrectVersion() {
 
-		Assertions.assertEquals("001", new V001__SomeMigration().getVersion().getValue());
+		assertThat(new V001__SomeMigration().getVersion().getValue()).isEqualTo("001");
 	}
 
 	@Test
 	void shouldGetCorrectDescription() {
 
-		Assertions.assertEquals("SomeMigration", new V001__SomeMigration().getDescription());
-		Assertions.assertEquals("V002__SomeWhatBroken", new V002__SomeWhatBroken().getDescription());
+		assertThat(new V001__SomeMigration().getDescription()).isEqualTo("SomeMigration");
+		assertThat(new V002__SomeWhatBroken().getDescription()).isEqualTo("V002__SomeWhatBroken");
 	}
 
 	private static class V001__SomeMigration implements JavaBasedMigration {

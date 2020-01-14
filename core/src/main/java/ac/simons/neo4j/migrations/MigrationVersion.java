@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations;
 
 import static ac.simons.neo4j.migrations.Defaults.*;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,5 +92,17 @@ public final class MigrationVersion {
 
 	@Override public int hashCode() {
 		return Objects.hash(value);
+	}
+
+	static class VersionComparator implements Comparator<MigrationVersion> {
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+			if (o1 == MigrationVersion.baseline()) {
+				return -1;
+			}
+
+			return o1.getValue().compareTo(o2.getValue());
+		}
 	}
 }

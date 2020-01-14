@@ -15,12 +15,11 @@
  */
 package ac.simons.neo4j.migrations;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
+import static org.assertj.core.api.Assertions.*;
+
 import java.net.URL;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -36,28 +35,26 @@ class CypherBasedMigrationTest {
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
 
 		List<String> statements = migration.getStatements();
-		Assertions.assertAll(
-			() -> Assertions.assertEquals(2, statements.size()),
-			() -> Assertions.assertEquals("CREATE (n:FixedData) RETURN n", statements.get(0)),
-			() -> Assertions.assertEquals("MATCH (n) RETURN count(n) AS foobar", statements.get(1))
-		);
+		assertThat(statements).containsExactly("CREATE (n:FixedData) RETURN n", "MATCH (n) RETURN count(n) AS foobar");
 	}
 
 	@Test
 	void shouldHandleMultilineStatements() {
+
 		URL resource = CypherBasedMigrationTest.class
 			.getResource("/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher");
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
 		List<String> statements = migration.getStatements();
-		Assertions.assertEquals(2, statements.size());
+		assertThat(statements).hasSize(2);
 	}
 
 	@Test
 	void shouldComputeCheckSum() {
+
 		URL resource = CypherBasedMigrationTest.class.getResource("/some/changeset/V0001__delete_old_data.cypher");
 
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
 
-		Assertions.assertEquals("1100083332", migration.getChecksum().get());
+		assertThat(migration.getChecksum()).hasValue("1100083332");
 	}
 }

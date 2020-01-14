@@ -15,9 +15,10 @@
  */
 package ac.simons.neo4j.migrations;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.Collections;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.Neo4jException;
@@ -38,7 +39,7 @@ class MigrationsLockTest extends TestBase {
 			long cnt = session.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) RETURN count(l) AS cnt",
 				Collections.singletonMap("id", lockId)).single()
 				.get("cnt").asLong();
-			Assertions.assertEquals(1L, cnt);
+			assertThat(cnt).isEqualTo(1L);
 		} finally {
 
 			lock.unlock();
@@ -54,12 +55,11 @@ class MigrationsLockTest extends TestBase {
 		try {
 			MigrationsLock lock2 = new MigrationsLock(driver);
 			lock2.lock();
-			Assertions.fail("Should not be able to acquire a 2nd lock");
+			fail("Should not be able to acquire a 2nd lock");
 		} catch (MigrationsException e) {
 
-			Assertions.assertEquals(
-				"Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed",
-				e.getMessage());
+			assertThat(e.getMessage()).isEqualTo(
+				"Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed");
 		} finally {
 
 			lock1.unlock();
@@ -76,16 +76,16 @@ class MigrationsLockTest extends TestBase {
 			int cnt = session.writeTransaction(
 				t -> t.run("UNWIND range(1,2) AS i WITH i CREATE (:__Neo4jMigrationsLock {id: i, name: 'Foo'})")
 					.consume().counters().nodesCreated());
-			Assertions.assertEquals(2, cnt);
+			assertThat(cnt).isEqualTo(2);
 		}
 
 		MigrationsLock lock = new MigrationsLock(driver);
 		try {
 			lock.lock();
-			Assertions.fail();
+			fail("Should not be able to acquire a lock");
 		} catch (MigrationsException e) {
 
-			Assertions.assertTrue(e.getMessage().startsWith("Could not ensure uniqueness of __Neo4jMigrationsLock. "));
+			assertThat(e.getMessage()).startsWith("Could not ensure uniqueness of __Neo4jMigrationsLock. ");
 		} finally {
 
 			try (Session session = driver.session()) {
@@ -93,7 +93,7 @@ class MigrationsLockTest extends TestBase {
 				int cnt = session.writeTransaction(
 					t -> t.run("MATCH (lock:__Neo4jMigrationsLock) DELETE lock")
 						.consume().counters().nodesDeleted());
-				Assertions.assertTrue(cnt >= 2);
+				assertThat(cnt).isGreaterThanOrEqualTo(2);
 			}
 			// Remove the shutdown hook to avoid error messages in test because junit already closed the driver
 			lock.unlock();

@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations;
 
-import org.junit.jupiter.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,7 +27,6 @@ class MigrationsConfigTest {
 	@Test
 	void shouldConfigureDefaultClasspathPackage() {
 
-		Assertions
-			.assertArrayEquals(Defaults.LOCATIONS_TO_SCAN, MigrationsConfig.builder().build().getLocationsToScan());
+		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).isEqualTo(Defaults.LOCATIONS_TO_SCAN);
 	}
 }

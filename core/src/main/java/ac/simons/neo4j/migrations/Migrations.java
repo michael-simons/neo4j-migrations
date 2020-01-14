@@ -113,8 +113,7 @@ public final class Migrations {
 
 			Migration newMigration = newMigrations.get(i);
 			if (!newMigration.getVersion().equals(expectedVersion)) {
-				throw new MigrationsException(
-					"Unexpected migration at index " + i + ": " + toString(newMigration));
+				throw new MigrationsException("Unexpected migration at index " + i + ": " + toString(newMigration));
 			}
 
 			if (!expectedChecksum.equals(newMigration.getChecksum())) {
@@ -155,18 +154,18 @@ public final class Migrations {
 	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration) {
 
 		try (Session session = driver.session()) {
-			session.writeTransaction(t ->
-				{
-					Value parameters = Values.parameters(
-						"previousVersion", previousVersion.getValue(),
-						"appliedMigration", toProperties(appliedMigration),
-						"osUser", System.getProperty("user.name")
-					);
-					return t.run(""
-						+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
-						+ "WITH neo4jUser "
-						+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
-						+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
+			session.writeTransaction(t -> {
+				Value parameters = Values.parameters(
+					"previousVersion", previousVersion.getValue(),
+					"appliedMigration", toProperties(appliedMigration),
+					"osUser", System.getProperty("user.name")
+				);
+
+				return t.run(""
+					+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
+					+ "WITH neo4jUser "
+					+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
+					+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
 						+ "MERGE (p) - [:MIGRATED_TO {at: datetime(), by: $osUser, connectedAs: neo4jUser}] -> (c)", parameters)
 						.consume();
 				}

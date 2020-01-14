@@ -124,8 +124,6 @@ final class CypherBasedMigration implements Migration {
 	@Override
 	public void apply(MigrationContext context) {
 
-		List<String> statements = getStatements();
-
 		SessionConfig.Builder sessionConfigBuilder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
 		if (context.getConfig().getDatabase() != null) {
 			sessionConfigBuilder.withDatabase(context.getConfig().getDatabase());
@@ -139,15 +137,19 @@ final class CypherBasedMigration implements Migration {
 
 				LOGGER.log(Level.FINE, "Executing migration \"{0}\" in one transaction", getDescription());
 				numberOfStatements = session.writeTransaction(t -> {
-					statements.forEach(statement -> run(t, statement));
-					return statements.size();
+					int cnt = 0;
+					for (String statement : getStatements()) {
+						run(t, statement);
+						++cnt;
+					}
+					return cnt;
 				});
 
 			} else if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT) {
 
 				LOGGER.log(Level.FINE, "Executing statements contained in migration \"{0}\" in seperate transactions",
 					getDescription());
-				for (String statement : statements) {
+				for (String statement : getStatements()) {
 					numberOfStatements += session.writeTransaction(t -> {
 						run(t, statement);
 						return 1;
@@ -203,7 +205,7 @@ final class CypherBasedMigration implements Migration {
 	 */
 	private List<String> readStatements() {
 
-		List<String> statements = new ArrayList<>();
+		List<String> newStatements = new ArrayList<>();
 		try (Scanner scanner = new Scanner(url.openStream(), Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING.name())
 			.useDelimiter(Defaults.CYPHER_STATEMENT_DELIMITER)) {
 			while (scanner.hasNext()) {
@@ -212,13 +214,13 @@ final class CypherBasedMigration implements Migration {
 				if (statement.isEmpty()) {
 					continue;
 				}
-				statements.add(statement);
+				newStatements.add(statement);
 			}
 		} catch (IOException e) {
 			throw new MigrationsException("Could not read script file " + this.url, e);
 		}
 
-		return Collections.unmodifiableList(statements);
+		return Collections.unmodifiableList(newStatements);
 	}
 
 	@Override

@@ -57,13 +57,18 @@
 
 		<assertj.version>3.13.2</assertj.version>
 		<classgraph.version>4.8.60</classgraph.version>
+		<checkstyle.version>8.18</checkstyle.version>
 		<java.version>1.8</java.version>
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
+		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
@@ -113,6 +118,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
@@ -135,8 +145,83 @@
 	</dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>${maven-install-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>${maven-deploy-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>${maven-javadoc-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${maven-checkstyle-plugin.version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>${checkstyle.version}</version>
+						</dependency>
+					</dependencies>
+					<configuration>
+						<configLocation>etc/checkstyle/config.xml</configLocation>
+						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+						<headerLocation>etc/checkstyle/java-header.txt</headerLocation>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>${maven-enforcer-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<DependencyConvergence></DependencyConvergence>
+								<requireMavenVersion>
+									<version>3.6.1</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
@@ -145,10 +230,12 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven-surefire-plugin.version}</version>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
 			</plugin>
@@ -179,7 +266,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven-javadoc-plugin.version}</version>
 				<configuration>
 					<detectOfflineLinks>false</detectOfflineLinks>
 					<source>${java.version}</source>

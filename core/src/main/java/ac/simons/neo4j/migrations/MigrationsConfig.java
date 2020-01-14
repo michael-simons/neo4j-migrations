@@ -121,24 +121,24 @@ public final class MigrationsConfig {
 		 * Configures the transaction mode. Please have a look at {@link TransactionMode} regarding advantages and
 		 * disadvantages of each mode.
 		 *
-		 * @param transactionMode The new transaction mode.
+		 * @param newTransactionMode The new transaction mode.
 		 * @return The builder for further customization
 		 */
-		public Builder withTransactionMode(TransactionMode transactionMode) {
+		public Builder withTransactionMode(TransactionMode newTransactionMode) {
 
-			this.transactionMode = transactionMode;
+			this.transactionMode = newTransactionMode;
 			return this;
 		}
 
 		/**
 		 * Configures the database to apply cypher based migrations too. Leave null for the default database.
 		 *
-		 * @param database The database to use
+		 * @param newDatabase The database to use
 		 * @return The builder for further customization
 		 */
-		public Builder withDatabase(String database) {
+		public Builder withDatabase(String newDatabase) {
 
-			this.database = database;
+			this.database = newDatabase;
 			return this;
 		}
 

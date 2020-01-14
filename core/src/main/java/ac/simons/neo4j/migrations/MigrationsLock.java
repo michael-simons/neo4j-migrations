@@ -38,7 +38,7 @@ final class MigrationsLock {
 
 	private final Thread cleanUpTask = new Thread(() -> this.unlock0());
 
-	public MigrationsLock(Driver driver) {
+	MigrationsLock(Driver driver) {
 		this.driver = driver;
 	}
 

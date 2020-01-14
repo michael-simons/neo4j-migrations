@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations;
 
+import static ac.simons.neo4j.migrations.TestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.File;
@@ -35,14 +36,14 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldApplyMigrations() {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.test_migrations.changeset1").build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations()).isEqualTo(2);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(2);
 
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.test_migrations.changeset1",
@@ -50,13 +51,13 @@ class MigrationsTest extends TestBase {
 			.build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations()).isEqualTo(3);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
 	}
 
 	@Test
 	void shouldRecordExecutionTime() {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
@@ -74,14 +75,14 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldFailWithNewMigrationsInBetween() {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.test_migrations.changeset3").build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations()).isEqualTo(1);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(1);
 
 		Migrations failingMigrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.test_migrations.changeset1")
@@ -94,7 +95,7 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldFailWithChangedMigrations() throws IOException {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
 		List<File> files = createMigrationFiles(2, dir);
@@ -105,7 +106,7 @@ class MigrationsTest extends TestBase {
 			Migrations migrations = new Migrations(configuration, driver);
 			migrations.apply();
 
-			assertThat(lengthOfMigrations()).isEqualTo(2);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(2);
 
 			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
 
@@ -122,7 +123,7 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldVerifyChecksums() throws IOException {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
 		List<File> files = createMigrationFiles(2, dir);
@@ -133,7 +134,7 @@ class MigrationsTest extends TestBase {
 			Migrations migrations = new Migrations(configuration, driver);
 			migrations.apply();
 
-			assertThat(lengthOfMigrations()).isEqualTo(2);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(2);
 
 			File newMigration = new File(dir, "V3__SomethingNew.cypher");
 			files.add(newMigration);
@@ -142,7 +143,7 @@ class MigrationsTest extends TestBase {
 			migrations = new Migrations(configuration, driver);
 			migrations.apply();
 
-			assertThat(lengthOfMigrations()).isEqualTo(3);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
 		} finally {
 			for (File file : files) {
 				file.delete();
@@ -164,35 +165,19 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldApplyCypherBasedMigrations() {
 
-		clearDatabase();
+		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations()).isEqualTo(5);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
 
 		try (Session session = driver.session()) {
 			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums).containsExactly(null, "1100083332", "3226785110", "1236540472", "200310393", "2884945437");
-		}
-	}
-
-	void clearDatabase() {
-
-		try (Session session = driver.session()) {
-			session.run("MATCH (n) DETACH DELETE n");
-		}
-	}
-
-	int lengthOfMigrations() {
-		try (Session session = driver.session()) {
-			return session.run(""
-				+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [:MIGRATED_TO*] -> (l:`__Neo4jMigration`) "
-				+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) "
-				+ "RETURN length(p) AS l").single().get("l").asInt();
 		}
 	}
 }

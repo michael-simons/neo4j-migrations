@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.SessionConfig;
 
 /**
  * Parameter object / context for migrations to be applied.
@@ -33,4 +34,10 @@ public interface MigrationContext {
 	 * @return The driver to be used inside migrations.
 	 */
 	Driver getDriver();
+
+	/**
+	 * Use this session config in your Java based migration to make sure you use the same database as the migration tool itself.
+	 * @return A correctly configured write access session config.
+	 */
+	SessionConfig getSessionConfig();
 }

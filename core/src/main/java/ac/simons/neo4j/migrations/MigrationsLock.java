@@ -19,7 +19,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.Neo4jException;
@@ -32,19 +31,19 @@ final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
 
-	private final Driver driver;
+	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
 	private final String nameOfLock = "John Doe";
 
 	private final Thread cleanUpTask = new Thread(() -> this.unlock0());
 
-	MigrationsLock(Driver driver) {
-		this.driver = driver;
+	MigrationsLock(MigrationContext context) {
+		this.context = context;
 	}
 
 	void createUniqueConstraintIfNecessary() {
 
-		try (Session session = driver.session()) {
+		try (Session session = context.getDriver().session(context.getSessionConfig())) {
 			int numberOfConstraints = session.writeTransaction(t -> {
 				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
 					.counters().constraintsAdded();
@@ -72,7 +71,7 @@ final class MigrationsLock {
 
 		createUniqueConstraintIfNecessary();
 
-		try (Session session = driver.session()) {
+		try (Session session = context.getDriver().session(context.getSessionConfig())) {
 
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
@@ -99,7 +98,7 @@ final class MigrationsLock {
 
 	void unlock0() {
 
-		try (Session session = driver.session()) {
+		try (Session session = context.getDriver().session(context.getSessionConfig())) {
 
 			ResultSummary resultSummary = session.writeTransaction(t ->
 				t.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l", Values.parameters("id", id))

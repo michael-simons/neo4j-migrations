@@ -28,10 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
@@ -124,12 +122,7 @@ final class CypherBasedMigration implements Migration {
 	@Override
 	public void apply(MigrationContext context) {
 
-		SessionConfig.Builder sessionConfigBuilder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
-		if (context.getConfig().getDatabase() != null) {
-			sessionConfigBuilder.withDatabase(context.getConfig().getDatabase());
-		}
-
-		try (Session session = context.getDriver().session(sessionConfigBuilder.build())) {
+		try (Session session = context.getDriver().session(context.getSessionConfig())) {
 
 			int numberOfStatements = 0;
 			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();

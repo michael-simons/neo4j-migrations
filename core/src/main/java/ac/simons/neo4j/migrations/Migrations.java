@@ -133,6 +133,7 @@ public final class Migrations {
 		}
 
 		VersionComparator comparator = new VersionComparator();
+		StopWatch stopWatch = new StopWatch();
 		for (Migration migration : migrations) {
 
 			if (previousVersion != MigrationVersion.baseline()
@@ -141,32 +142,39 @@ public final class Migrations {
 				continue;
 			}
 			try {
+				stopWatch.start();
 				migration.apply(context);
-				previousVersion = recordApplication(previousVersion, migration);
+				long executionTime = stopWatch.stop();
+				previousVersion = recordApplication(previousVersion, migration, executionTime);
 
 				LOGGER.log(Level.INFO, "Applied migration {0}", toString(migration));
 			} catch (Exception e) {
 				throw new MigrationsException("Could not apply migration: " + toString(migration), e);
+			} finally {
+				stopWatch.reset();
 			}
 		}
 	}
 
-	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration) {
+	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration,
+		long executionTime) {
 
 		try (Session session = driver.session()) {
 			session.writeTransaction(t -> {
 				Value parameters = Values.parameters(
 					"previousVersion", previousVersion.getValue(),
 					"appliedMigration", toProperties(appliedMigration),
-					"osUser", System.getProperty("user.name")
+					"osUser", System.getProperty("user.name"),
+					"executionTime", executionTime
 				);
 
 				return t.run(""
-					+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
-					+ "WITH neo4jUser "
-					+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
-					+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
-						+ "MERGE (p) - [:MIGRATED_TO {at: datetime(), by: $osUser, connectedAs: neo4jUser}] -> (c)", parameters)
+						+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
+						+ "WITH neo4jUser "
+						+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
+						+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
+						+ "MERGE (p) - [:MIGRATED_TO {at: datetime(), in: $executionTime, by: $osUser, connectedAs: neo4jUser}] -> (c)",
+					parameters)
 						.consume();
 				}
 			);

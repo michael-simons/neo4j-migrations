@@ -58,6 +58,7 @@
 		<classgraph.version>4.8.60</classgraph.version>
 		<checkstyle.version>8.18</checkstyle.version>
 		<java.version>1.8</java.version>
+		<java-module-name></java-module-name> <!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
 		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -65,6 +66,7 @@
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
 		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
@@ -73,9 +75,8 @@
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 		<mockito.version>3.2.4</mockito.version>
-		<nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
-
 		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
+		<nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<testcontainers.version>1.12.4</testcontainers.version>
 	</properties>
@@ -237,6 +238,23 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+						</manifest>
+						<manifestEntries>
+							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
+						</manifestEntries>
+					</archive>
+					<skipIfEmpty>true</skipIfEmpty>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>

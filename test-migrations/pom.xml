@@ -11,6 +11,10 @@
 	<artifactId>neo4j-migrations-test-migrations</artifactId>
 	<name>Neo4j Migrations (Test migrations)</name>
 
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations.test_migrations</java-module-name>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>

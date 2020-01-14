@@ -11,6 +11,10 @@
 	<artifactId>neo4j-migrations</artifactId>
 	<name>Neo4j Migrations (Core)</name>
 
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations</java-module-name>
+	</properties>
+
 	<dependencies>
 
 		<dependency>

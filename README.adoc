@@ -36,6 +36,7 @@ Put your migrations as Java classes into your project:
 ----
 import ac.simons.neo4j.migrations.MigrationContext;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 
 import ac.simons.neo4j.migrations.JavaBasedMigration;
 
@@ -43,10 +44,15 @@ public class V001__MyFirstMigration implements JavaBasedMigration {
 
     @Override
     public void apply(MigrationContext context) {
-        // Steps necessary for a migration
+        try(Session session = context.getDriver().session(context.getSessionConfig())) { // <1>
+            // Steps necessary for a migration
+        }
     }
 }
 ----
+<.> It is important that you use the supplied session config for your session retrieval, otherwise you may
+    run that migration in a different database than in which the tool itself is run.
+    However, you are free in which databse you run this. Your milage may vary.
 
 The class names must start with a `V` followed by digits followed by `__` and than some valid Java class name.
 

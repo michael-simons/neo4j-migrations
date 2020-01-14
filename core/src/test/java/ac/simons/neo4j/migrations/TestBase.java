@@ -39,7 +39,7 @@ abstract class TestBase {
 	}
 
 	@Container
-	public static final Neo4jContainer neo4j = new Neo4jContainer("neo4j:4.0.0");
+	public static final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0");
 
 	static Driver driver;
 

@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.exceptions.Neo4jException;
 
 /**
@@ -31,7 +32,7 @@ class MigrationsLockTest extends TestBase {
 	@Test
 	void shouldAcquireLock() {
 
-		MigrationsLock lock = new MigrationsLock(driver);
+		MigrationsLock lock = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
 		String lockId = lock.lock();
 
 		try (Session session = driver.session()) {
@@ -49,11 +50,11 @@ class MigrationsLockTest extends TestBase {
 	@Test
 	void shouldFailIfThereIsALock() {
 
-		MigrationsLock lock1 = new MigrationsLock(driver);
+		MigrationsLock lock1 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
 		lock1.lock();
 
 		try {
-			MigrationsLock lock2 = new MigrationsLock(driver);
+			MigrationsLock lock2 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
 			lock2.lock();
 			fail("Should not be able to acquire a 2nd lock");
 		} catch (MigrationsException e) {
@@ -69,7 +70,7 @@ class MigrationsLockTest extends TestBase {
 	@Test
 	void shouldDealWithUniquenessProblems() {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(SessionConfig.defaultConfig())) {
 
 			dropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
 			dropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
@@ -79,7 +80,7 @@ class MigrationsLockTest extends TestBase {
 			assertThat(cnt).isEqualTo(2);
 		}
 
-		MigrationsLock lock = new MigrationsLock(driver);
+		MigrationsLock lock = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
 		try {
 			lock.lock();
 			fail("Should not be able to acquire a lock");
@@ -88,7 +89,7 @@ class MigrationsLockTest extends TestBase {
 			assertThat(e.getMessage()).startsWith("Could not ensure uniqueness of __Neo4jMigrationsLock. ");
 		} finally {
 
-			try (Session session = driver.session()) {
+			try (Session session = driver.session(SessionConfig.defaultConfig())) {
 
 				int cnt = session.writeTransaction(
 					t -> t.run("MATCH (lock:__Neo4jMigrationsLock) DELETE lock")

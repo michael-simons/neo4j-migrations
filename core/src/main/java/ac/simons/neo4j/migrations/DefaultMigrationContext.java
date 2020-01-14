@@ -15,7 +15,9 @@
  */
 package ac.simons.neo4j.migrations;
 
+import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.SessionConfig;
 
 /**
  * @author Michael J. Simons
@@ -26,9 +28,17 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	private final Driver driver;
 
+	private final SessionConfig sessionConfig;
+
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 		this.config = config;
 		this.driver = driver;
+
+		SessionConfig.Builder sessionConfigBuilder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
+		if (!(this.config.getDatabase() == null || this.config.getDatabase().trim().isEmpty())) {
+			sessionConfigBuilder.withDatabase(this.config.getDatabase().trim());
+		}
+		this.sessionConfig = sessionConfigBuilder.build();
 	}
 
 	@Override
@@ -39,5 +49,10 @@ final class DefaultMigrationContext implements MigrationContext {
 	@Override
 	public Driver getDriver() {
 		return driver;
+	}
+
+	@Override
+	public SessionConfig getSessionConfig() {
+		return sessionConfig;
 	}
 }

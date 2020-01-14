@@ -56,7 +56,7 @@ public final class Migrations {
 
 	public void apply() {
 
-		MigrationsLock lock = new MigrationsLock(driver);
+		MigrationsLock lock = new MigrationsLock(this.context);
 		try {
 			lock.lock();
 			List<Migration> migrations = discoveryService.findMigrations(this.context);
@@ -68,7 +68,7 @@ public final class Migrations {
 
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(context.getSessionConfig())) {
 			String versionValue = session.run(
 				"MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l.version AS version")
 				.single().get("version").asString();
@@ -80,8 +80,9 @@ public final class Migrations {
 	}
 
 	private Map<MigrationVersion, Optional<String>> getChainOfAppliedMigrations() {
+
 		Map<MigrationVersion, Optional<String>> chain = new LinkedHashMap<>();
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(context.getSessionConfig())) {
 			Record r = session
 				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
 					+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
@@ -159,7 +160,7 @@ public final class Migrations {
 	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration,
 		long executionTime) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(context.getSessionConfig())) {
 			session.writeTransaction(t -> {
 				Value parameters = Values.parameters(
 					"previousVersion", previousVersion.getValue(),

@@ -18,12 +18,20 @@ package ac.simons.neo4j.migrations.test_migrations.changeset1;
 import ac.simons.neo4j.migrations.JavaBasedMigration;
 import ac.simons.neo4j.migrations.MigrationContext;
 
+import org.neo4j.driver.Session;
+
 /**
  * @author Michael J. Simons
  */
 public class V001__FirstMigration implements JavaBasedMigration {
 
+	@SuppressWarnings("unused")
 	@Override
 	public void apply(MigrationContext context) {
+
+		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+			// Steps necessary for a migration
+		}
 	}
+
 }

@@ -49,6 +49,11 @@ public final class MigrationsConfig {
 		return new Builder();
 	}
 
+	static MigrationsConfig defaultConfig() {
+
+		return builder().build();
+	}
+
 	private final String[] packagesToScan;
 
 	private final String[] locationsToScan;

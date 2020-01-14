@@ -17,15 +17,16 @@ package ac.simons.neo4j.migrations;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.CRC32;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.QueryRunner;
@@ -53,6 +54,12 @@ final class CypherBasedMigration implements Migration {
 	private final String script;
 	private final String description;
 	private final MigrationVersion version;
+
+	/**
+	 * A lazily initialized list of statements.
+	 */
+	private volatile List<String> statements;
+	private volatile String checksum;
 
 	CypherBasedMigration(URL url) {
 
@@ -90,9 +97,34 @@ final class CypherBasedMigration implements Migration {
 	}
 
 	@Override
-	public void apply(MigrationContext context) throws Exception {
+	public Optional<String> getChecksum() {
 
-		List<String> statements = readStatements();
+		String availableChecksum = this.checksum;
+		if (availableChecksum == null) {
+			synchronized (this) {
+				availableChecksum = this.checksum;
+				if (availableChecksum == null) {
+					this.checksum = computeChecksum();
+					availableChecksum = this.checksum;
+				}
+			}
+		}
+		return Optional.of(availableChecksum);
+	}
+
+	String computeChecksum() {
+		final CRC32 crc32 = new CRC32();
+
+		for (String statement : this.getStatements()) {
+			crc32.update(statement.getBytes(Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING));
+		}
+		return Long.toString(crc32.getValue());
+	}
+
+	@Override
+	public void apply(MigrationContext context) {
+
+		List<String> statements = getStatements();
 
 		SessionConfig.Builder sessionConfigBuilder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
 		if (context.getConfig().getDatabase() != null) {
@@ -146,29 +178,51 @@ final class CypherBasedMigration implements Migration {
 	}
 
 	/**
+	 * @return The list of statements to apply.
+	 */
+	List<String> getStatements() {
+
+		List<String> availableStatements = this.statements;
+		if (availableStatements == null) {
+			synchronized (this) {
+				availableStatements = this.statements;
+				if (availableStatements == null) {
+					this.statements = readStatements();
+					availableStatements = this.statements;
+				}
+			}
+		}
+		return availableStatements;
+	}
+
+	/**
 	 * Scans the resource for statements. Statements must be separated by a `;` followed by a newline.
 	 *
 	 * @return An unmodifiable list of statements contained inside the resource.
 	 * @throws IOException
 	 */
-	List<String> readStatements() throws IOException {
+	private List<String> readStatements() {
 
 		List<String> statements = new ArrayList<>();
 		try (Scanner scanner = new Scanner(url.openStream(), Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING.name())
 			.useDelimiter(Defaults.CYPHER_STATEMENT_DELIMITER)) {
 			while (scanner.hasNext()) {
 
-				String statement = scanner.next().trim();
-				if (statement.isEmpty())
+				String statement = scanner.next().trim().replaceAll(";$", "").trim();
+				if (statement.isEmpty()) {
 					continue;
+				}
 				statements.add(statement);
 			}
+		} catch (IOException e) {
+			throw new MigrationsException("Could not read script file " + this.url, e);
 		}
 
 		return Collections.unmodifiableList(statements);
 	}
 
-	@Override public String toString() {
+	@Override
+	public String toString() {
 		return "CypherBasedMigration{" +
 			"url=" + url +
 			", script='" + script + '\'' +

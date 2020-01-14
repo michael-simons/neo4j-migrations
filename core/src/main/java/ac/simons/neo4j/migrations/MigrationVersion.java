@@ -17,17 +17,14 @@ package ac.simons.neo4j.migrations;
 
 import static ac.simons.neo4j.migrations.Defaults.*;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * A migrations version.
- *
- * @author Michael J. Simons
- */
-public final class MigrationVersion implements Comparable<MigrationVersion> {
+public final class MigrationVersion {
 
-	private static final MigrationVersion BASELINE = withValue("BASELINE");
+	private static final String BASLINE_VALUE = "BASELINE";
+	private static final MigrationVersion BASELINE = new MigrationVersion(BASLINE_VALUE, null);
 	private static final Pattern VERSION_PATTERN = Pattern
 		.compile("V(\\d+)__([\\w ]+)(?:\\." + CYPHER_SCRIPT_EXTENSION + ")?");
 
@@ -50,6 +47,9 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 
 	static MigrationVersion withValue(String value) {
 
+		if (BASLINE_VALUE.equals(value)) {
+			return MigrationVersion.baseline();
+		}
 		return new MigrationVersion(value, null);
 	}
 
@@ -80,11 +80,16 @@ public final class MigrationVersion implements Comparable<MigrationVersion> {
 	}
 
 	@Override
-	public int compareTo(MigrationVersion o) {
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		MigrationVersion that = (MigrationVersion) o;
+		return value.equals(that.value);
+	}
 
-		if (BASELINE.getValue().equals(this.value)) {
-			return -1;
-		}
-		return value.compareTo(o.getValue());
+	@Override public int hashCode() {
+		return Objects.hash(value);
 	}
 }

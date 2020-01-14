@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -74,7 +76,7 @@ public final class Migrations {
 		}
 	}
 
-	Optional<MigrationVersion> getLastAppliedVersion() {
+	private Optional<MigrationVersion> getLastAppliedVersion() {
 
 		try (Session session = driver.session()) {
 			String versionValue = session.run(
@@ -87,7 +89,52 @@ public final class Migrations {
 		}
 	}
 
-	void apply0(List<Migration> migrations) {
+	private Map<MigrationVersion, Optional<String>> getChainOfAppliedMigrations() {
+		Map<MigrationVersion, Optional<String>> chain = new LinkedHashMap<>();
+		try (Session session = driver.session()) {
+			Record r = session
+				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
+					+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
+					+ "RETURN p").single();
+			r.get("p").asPath().nodes().forEach(migration -> {
+				chain.put(MigrationVersion.withValue(migration.get("version").asString()),
+					Optional.ofNullable(migration.get("checksum").asString(null)));
+			});
+		}
+		return chain;
+	}
+
+	/**
+	 * @param newMigrations A list sorted by {@link Migration#getVersion()}.
+	 */
+	private void verifyChain(List<Migration> newMigrations) {
+
+		Map<MigrationVersion, Optional<String>> chain = getChainOfAppliedMigrations();
+
+		int i = 0;
+		for (Map.Entry<MigrationVersion, Optional<String>> entry : chain.entrySet()) {
+			MigrationVersion expectedVersion = entry.getKey();
+			Optional<String> expectedChecksum = entry.getValue();
+
+			// Skip base line
+			if (expectedVersion == MigrationVersion.baseline()) {
+				continue;
+			}
+
+			Migration newMigration = newMigrations.get(i);
+			if (!newMigration.getVersion().equals(expectedVersion)) {
+				throw new MigrationsException(
+					"Unexpected migration at index " + i + ": " + toString(newMigration));
+			}
+
+			if (!expectedChecksum.equals(newMigration.getChecksum())) {
+				throw new MigrationsException(("Checksum of " + toString(newMigration) + " changed!"));
+			}
+			++i;
+		}
+	}
+
+	private void apply0(List<Migration> migrations) {
 
 		// Build context
 		MigrationContext context = new DefaultMigrationContext(this.config, this.driver);
@@ -95,27 +142,30 @@ public final class Migrations {
 		MigrationVersion previousVersion = getLastAppliedVersion()
 			.orElseGet(() -> MigrationVersion.baseline());
 
+		if (previousVersion != MigrationVersion.baseline()) {
+			verifyChain(migrations);
+		}
+
+		VersionComparator comparator = new VersionComparator();
 		for (Migration migration : migrations) {
 
 			if (previousVersion != MigrationVersion.baseline()
-				&& migration.getVersion().compareTo(previousVersion) <= 0) {
-				LOGGER.log(Level.INFO, "Skipping already applied migration {0} (\"{1}\")",
-					new Object[] { migration.getVersion(), migration.getDescription() });
+				&& comparator.compare(migration.getVersion(), previousVersion) <= 0) {
+				LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
 				continue;
 			}
 			try {
 				migration.apply(context);
 				previousVersion = recordApplication(previousVersion, migration);
 
-				LOGGER.log(Level.INFO, "Applied migration {0} (\"{1}\")",
-					new Object[] { migration.getVersion(), migration.getDescription() });
+				LOGGER.log(Level.INFO, "Applied migration {0}", toString(migration));
 			} catch (Exception e) {
-				throw new MigrationsException("Could not apply migration: " + migration.getDescription(), e);
+				throw new MigrationsException("Could not apply migration: " + toString(migration), e);
 			}
 		}
 	}
 
-	MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration) {
+	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration) {
 
 		try (Session session = driver.session()) {
 			session.writeTransaction(t ->
@@ -152,6 +202,11 @@ public final class Migrations {
 		return Collections.unmodifiableMap(properties);
 	}
 
+	private static String toString(Migration migration) {
+
+		return String.format("%s (\"%s\")", migration.getVersion(), migration.getDescription());
+	}
+
 	/**
 	 * @return An unmodifiable list of migrations sorted by version.
 	 */
@@ -165,7 +220,7 @@ public final class Migrations {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
-		Collections.sort(migrations, Comparator.comparing(Migration::getVersion));
+		Collections.sort(migrations, Comparator.comparing(Migration::getVersion, new VersionComparator()));
 		return Collections.unmodifiableList(migrations);
 	}
 
@@ -194,7 +249,7 @@ public final class Migrations {
 					} catch (Exception e) {
 						throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 					}
-				}).sorted(Comparator.comparing(Migration::getVersion)).collect(Collectors.toList());
+				}).collect(Collectors.toList());
 		}
 	}
 
@@ -268,5 +323,17 @@ public final class Migrations {
 		}
 
 		return migrations;
+	}
+
+	private static class VersionComparator implements Comparator<MigrationVersion> {
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+			if (o1 == MigrationVersion.baseline()) {
+				return -1;
+			}
+
+			return o1.getValue().compareTo(o2.getValue());
+		}
 	}
 }

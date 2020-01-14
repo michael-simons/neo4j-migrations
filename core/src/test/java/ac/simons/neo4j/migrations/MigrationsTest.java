@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -143,6 +144,98 @@ class MigrationsTest extends TestBase {
 	}
 
 	@Test
+	void shouldFailWithNewMigrationsInBetween() {
+
+		clearDatabase();
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+			"ac.simons.neo4j.migrations.test_migrations.changeset3").build(), driver);
+		migrations.apply();
+
+		Assertions.assertEquals(1, lengthOfMigrations());
+
+		Migrations failingMigrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+			"ac.simons.neo4j.migrations.test_migrations.changeset1")
+			.build(), driver);
+
+		String msg;
+		msg = Assertions.assertThrows(MigrationsException.class, () -> failingMigrations.apply()).getMessage();
+		Assertions.assertEquals("Unexpected migration at index 0: 001 (\"FirstMigration\")", msg);
+	}
+
+	@Test
+	void shouldFailWithChangedMigrations() throws IOException {
+
+		clearDatabase();
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(2, dir);
+
+		try {
+			String location = "filesystem:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			Assertions.assertEquals(2, lengthOfMigrations());
+
+			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+
+			Migrations failingMigrations = new Migrations(configuration, driver);
+			String msg;
+			msg = Assertions.assertThrows(MigrationsException.class, () -> failingMigrations.apply()).getMessage();
+			Assertions.assertEquals("Checksum of 2 (\"Some\") changed!", msg);
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
+	void shouldVerifyChecksums() throws IOException {
+
+		clearDatabase();
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(2, dir);
+
+		try {
+			String location = "filesystem:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			Assertions.assertEquals(2, lengthOfMigrations());
+
+			File newMigration = new File(dir, "V3__SomethingNew.cypher");
+			files.add(newMigration);
+			Files.write(newMigration.toPath(), Arrays.asList("MATCH (n) RETURN n"));
+
+			migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			Assertions.assertEquals(3, lengthOfMigrations());
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	private static List<File> createMigrationFiles(int n, File dir) throws IOException {
+		List<File> files = new ArrayList<>();
+		for (int i = 1; i <= n; ++i) {
+			File aFile = new File(dir, "V" + i + "__Some.cypher");
+			aFile.createNewFile();
+			files.add(aFile);
+			Files.write(aFile.toPath(), Arrays.asList("MATCH (n) RETURN n"));
+		}
+		return files;
+	}
+
+	@Test
 	void shouldApplyCypherBasedMigrations() {
 
 		clearDatabase();
@@ -153,6 +246,13 @@ class MigrationsTest extends TestBase {
 		migrations.apply();
 
 		Assertions.assertEquals(5, lengthOfMigrations());
+
+		try (Session session = driver.session()) {
+			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
+				.list(r -> r.get("checksum").asString());
+			Assertions.assertArrayEquals(new String[] { "1100083332", "3226785110", "1236540472", "200310393", "2884945437" },
+				checksums.subList(1, checksums.size()).toArray(new String[0]));
+		}
 	}
 
 	void clearDatabase() {

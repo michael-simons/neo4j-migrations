@@ -82,15 +82,18 @@ public final class MigrationVersion {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 		MigrationVersion that = (MigrationVersion) o;
 		return value.equals(that.value);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(value);
 	}
 

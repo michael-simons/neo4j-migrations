@@ -54,6 +54,24 @@ class MigrationsTest extends TestBase {
 	}
 
 	@Test
+	void shouldRecordExecutionTime() {
+
+		clearDatabase();
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+			"ac.simons.neo4j.migrations.test_migrations.changeset4").build(), driver);
+		migrations.apply();
+
+		try (Session session = driver.session()) {
+			long executionTime = session.run(
+				"MATCH (:__Neo4jMigration {version: 'BASELINE'}) -[r:MIGRATED_TO]->() RETURN r.in AS executionTime")
+				.single().get("executionTime").asLong();
+			assertThat(executionTime).isGreaterThanOrEqualTo(500L);
+		}
+	}
+
+	@Test
 	void shouldFailWithNewMigrationsInBetween() {
 
 		clearDatabase();

@@ -15,28 +15,20 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Optional;
-
 /**
- * Interface to be implemented for Java based migrations.
+ * State of a migration.
  *
  * @author Michael J. Simons
- * @since 0.0.1
+ * @since 0.0.4
  */
-public interface JavaBasedMigration extends Migration {
+public enum MigrationState {
 
-	@Override
-	default MigrationVersion getVersion() {
-		return MigrationVersion.of(getClass());
-	}
-
-	@Override
-	default String getDescription() {
-		return Optional.ofNullable(getVersion().getDescription()).orElseGet(() -> getClass().getSimpleName());
-	}
-
-	@Override
-	default String getSource() {
-		return getClass().getName();
-	}
+	/**
+	 * A pending migration (available as Java or Cypher based migration)
+	 */
+	PENDING,
+	/**
+	 * A migration already applied
+	 */
+	APPLIED
 }

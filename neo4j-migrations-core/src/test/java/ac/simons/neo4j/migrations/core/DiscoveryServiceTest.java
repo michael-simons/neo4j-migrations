@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.*;
 
+import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
+
 import java.util.List;
 
 import org.junit.jupiter.api.Test;

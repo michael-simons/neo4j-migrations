@@ -36,11 +36,6 @@ public interface Migration {
 	String getDescription();
 
 	/**
-	 * @return The type of this migration.
-	 */
-	MigrationType getType();
-
-	/**
 	 * @return Something that describes the source of this migration.
 	 */
 	String getSource();

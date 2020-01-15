@@ -286,6 +286,12 @@
 				<configuration>
 					<detectOfflineLinks>false</detectOfflineLinks>
 					<source>${java.version}</source>
+					<tags>
+						<tag>
+							<name>soundtrack</name>
+							<placement>X</placement>
+						</tag>
+					</tags>
 				</configuration>
 				<executions>
 					<execution>

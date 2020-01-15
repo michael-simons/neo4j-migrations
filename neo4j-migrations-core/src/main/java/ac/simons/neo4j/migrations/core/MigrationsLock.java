@@ -44,7 +44,7 @@ final class MigrationsLock {
 
 	void createUniqueConstraintIfNecessary() {
 
-		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+		try (Session session = context.getSession()) {
 			int numberOfConstraints = session.writeTransaction(t -> {
 				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
 					.counters().constraintsAdded();
@@ -72,7 +72,7 @@ final class MigrationsLock {
 
 		createUniqueConstraintIfNecessary();
 
-		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+		try (Session session = context.getSession()) {
 
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
@@ -99,7 +99,7 @@ final class MigrationsLock {
 
 	void unlock0() {
 
-		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+		try (Session session = context.getSession()) {
 
 			ResultSummary resultSummary = session.writeTransaction(t ->
 				t.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l", Values.parameters("id", id))

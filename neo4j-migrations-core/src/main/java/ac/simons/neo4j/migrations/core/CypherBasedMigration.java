@@ -86,11 +86,6 @@ final class CypherBasedMigration implements Migration {
 	}
 
 	@Override
-	public MigrationType getType() {
-		return MigrationType.CYPHER;
-	}
-
-	@Override
 	public String getSource() {
 		return this.script;
 	}
@@ -123,7 +118,7 @@ final class CypherBasedMigration implements Migration {
 	@Override
 	public void apply(MigrationContext context) {
 
-		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+		try (Session session = context.getSession()) {
 
 			int numberOfStatements = 0;
 			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();

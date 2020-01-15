@@ -21,31 +21,14 @@ package ac.simons.neo4j.migrations.core;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-public final class MigrationType {
-
-	/**
-	 * The reason not making the type a top level enum is simple: I don't want it to be used outside our package.
-	 */
-	enum Value {
-		JAVA, CYPHER;
-	}
+public enum MigrationType {
 
 	/**
 	 * Indicates a Java based migration.
 	 */
-	static final MigrationType JAVA = new MigrationType(Value.JAVA);
+	JAVA,
 	/**
 	 * Indicates a Cypher based migration.
 	 */
-	static final MigrationType CYPHER = new MigrationType(Value.CYPHER);
-
-	private final Value value;
-
-	private MigrationType(final Value value) {
-		this.value = value;
-	}
-
-	Value getValue() {
-		return value;
-	}
+	CYPHER
 }

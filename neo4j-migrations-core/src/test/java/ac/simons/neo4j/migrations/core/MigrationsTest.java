@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static ac.simons.neo4j.migrations.core.TestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.File;
@@ -36,8 +35,6 @@ class MigrationsTest extends TestBase {
 	@Test
 	void shouldApplyMigrations() {
 
-		clearDatabase(driver, null);
-
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), driver);
@@ -52,12 +49,14 @@ class MigrationsTest extends TestBase {
 		migrations.apply();
 
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+
+		MigrationChain migrationChain = migrations.info();
+		assertThat(migrationChain.getElements())
+			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 	}
 
 	@Test
 	void shouldRecordExecutionTime() {
-
-		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
@@ -67,15 +66,13 @@ class MigrationsTest extends TestBase {
 		try (Session session = driver.session()) {
 			long executionTime = session.run(
 				"MATCH (:__Neo4jMigration {version: 'BASELINE'}) -[r:MIGRATED_TO]->() RETURN r.in AS executionTime")
-				.single().get("executionTime").asLong();
-			assertThat(executionTime).isGreaterThanOrEqualTo(500L);
+				.single().get("executionTime").asIsoDuration().nanoseconds();
+			assertThat(executionTime).isGreaterThanOrEqualTo(500000000L);
 		}
 	}
 
 	@Test
 	void shouldFailWithNewMigrationsInBetween() {
-
-		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
@@ -94,8 +91,6 @@ class MigrationsTest extends TestBase {
 
 	@Test
 	void shouldFailWithChangedMigrations() throws IOException {
-
-		clearDatabase(driver, null);
 
 		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
 		List<File> files = createMigrationFiles(2, dir);
@@ -122,8 +117,6 @@ class MigrationsTest extends TestBase {
 
 	@Test
 	void shouldVerifyChecksums() throws IOException {
-
-		clearDatabase(driver, null);
 
 		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
 		List<File> files = createMigrationFiles(2, dir);
@@ -164,8 +157,6 @@ class MigrationsTest extends TestBase {
 
 	@Test
 	void shouldApplyCypherBasedMigrations() {
-
-		clearDatabase(driver, null);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(

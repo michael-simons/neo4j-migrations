@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>eu.michael-simons.neo4j</groupId>
+		<artifactId>neo4j-migrations-parent</artifactId>
+		<version>0.0.4-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>neo4j-migrations</artifactId>
+	<name>Neo4j Migrations (Core)</name>
+
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations.core</java-module-name>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.github.classgraph</groupId>
+			<artifactId>classgraph</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>neo4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-test-resources</artifactId>
+			<version>0.0.4-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>

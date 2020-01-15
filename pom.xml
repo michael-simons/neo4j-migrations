@@ -39,8 +39,8 @@
 	</developers>
 
 	<modules>
-		<module>core</module>
-		<module>test-migrations</module>
+		<module>neo4j-migrations-core</module>
+		<module>neo4j-migrations-test-resources</module>
 	</modules>
 
 	<scm>

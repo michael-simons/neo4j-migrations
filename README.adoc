@@ -34,11 +34,11 @@ Put your migrations as Java classes into your project:
 
 [source,java]
 ----
-import ac.simons.neo4j.migrations.MigrationContext;
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-
-import ac.simons.neo4j.migrations.JavaBasedMigration;
 
 public class V001__MyFirstMigration implements JavaBasedMigration {
 

@@ -25,6 +25,7 @@ import java.util.List;
  * Orchestrates {@link Discoverer discoverers}.
  *
  * @author Michael J. Simons
+ * @since 0.0.3
  */
 final class DiscoveryService {
 

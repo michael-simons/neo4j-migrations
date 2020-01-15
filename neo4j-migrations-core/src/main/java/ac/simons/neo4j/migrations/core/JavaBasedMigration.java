@@ -21,6 +21,7 @@ import java.util.Optional;
  * Interface to be implemented for Java based migrations.
  *
  * @author Michael J. Simons
+ * @since 0.0.1
  */
 public interface JavaBasedMigration extends Migration {
 

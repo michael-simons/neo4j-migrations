@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Michael J. Simons
+ * @since 0.0.4
  */
 final class StopWatch {
 

@@ -21,6 +21,7 @@ import org.neo4j.driver.SessionConfig;
 
 /**
  * @author Michael J. Simons
+ * @since 0.0.2
  */
 final class DefaultMigrationContext implements MigrationContext {
 

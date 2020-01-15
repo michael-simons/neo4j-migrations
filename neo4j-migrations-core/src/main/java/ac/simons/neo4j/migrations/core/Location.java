@@ -19,6 +19,7 @@ import java.util.Locale;
 
 /**
  * @author Michael J. Simons
+ * @since 0.0.2
  */
 final class Location {
 

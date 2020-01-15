@@ -21,6 +21,7 @@ import java.util.Optional;
  * Base interface for any migration.
  *
  * @author Michael J. Simons
+ * @since 0.0.1
  */
 public interface Migration {
 

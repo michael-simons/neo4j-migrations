@@ -26,6 +26,7 @@ import org.neo4j.driver.summary.ResultSummary;
 
 /**
  * @author Michael J. Simons
+ * @since 0.0.1
  */
 final class MigrationsLock {
 

@@ -22,6 +22,12 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A migrations version.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
 public final class MigrationVersion {
 
 	private static final String BASLINE_VALUE = "BASELINE";

@@ -22,6 +22,7 @@ import org.neo4j.driver.SessionConfig;
  * Parameter object / context for migrations to be applied.
  *
  * @author Michael J. Simons
+ * @since 0.0.2
  */
 public interface MigrationContext {
 

@@ -37,6 +37,7 @@ import org.neo4j.driver.summary.SummaryCounters;
  * A cypher script based migration.
  *
  * @author Michael J. Simons
+ * @since 0.0.2
  */
 final class CypherBasedMigration implements Migration {
 

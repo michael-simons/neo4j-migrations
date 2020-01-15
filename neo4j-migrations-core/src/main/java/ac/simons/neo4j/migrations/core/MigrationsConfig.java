@@ -21,6 +21,7 @@ import java.util.Optional;
  * Configuration for Migrations.
  *
  * @author Michael J. Simons
+ * @since 0.0.1
  */
 public final class MigrationsConfig {
 

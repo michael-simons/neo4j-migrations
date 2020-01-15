@@ -19,6 +19,7 @@ package ac.simons.neo4j.migrations.core;
  * Type of a migration.
  *
  * @author Michael J. Simons
+ * @since 0.0.2
  */
 public final class MigrationType {
 

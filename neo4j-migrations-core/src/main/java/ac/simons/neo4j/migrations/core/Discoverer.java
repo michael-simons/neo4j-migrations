@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  *
  * @author Michael J. Simons
  * @soundtrack Motörhead - 1916
+ * @since 0.0.3
  */
 interface Discoverer {
 

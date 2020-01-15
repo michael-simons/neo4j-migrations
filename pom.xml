@@ -60,7 +60,7 @@
 		<java.version>1.8</java.version>
 		<java-module-name /> <!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
-		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
+		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>

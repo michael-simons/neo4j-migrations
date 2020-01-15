@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
 /**
@@ -38,7 +39,18 @@ public interface MigrationContext {
 
 	/**
 	 * Use this session config in your Java based migration to make sure you use the same database as the migration tool itself.
+	 *
 	 * @return A correctly configured write access session config.
 	 */
 	SessionConfig getSessionConfig();
+
+	/**
+	 * Convenience method to return an imperative session against the configured server and database.
+	 *
+	 * @return A session configured to use the migration context's database name.
+	 */
+	default Session getSession() {
+
+		return getDriver().session(getSessionConfig());
+	}
 }

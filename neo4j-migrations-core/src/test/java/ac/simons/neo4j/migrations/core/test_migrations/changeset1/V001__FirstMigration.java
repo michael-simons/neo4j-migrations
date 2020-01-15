@@ -29,7 +29,7 @@ public class V001__FirstMigration implements JavaBasedMigration {
 	@Override
 	public void apply(MigrationContext context) {
 
-		try (Session session = context.getDriver().session(context.getSessionConfig())) {
+		try (Session session = context.getSession()) {
 			// Steps necessary for a migration
 		}
 	}

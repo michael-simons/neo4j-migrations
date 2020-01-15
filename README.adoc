@@ -44,15 +44,15 @@ public class V001__MyFirstMigration implements JavaBasedMigration {
 
     @Override
     public void apply(MigrationContext context) {
-        try(Session session = context.getDriver().session(context.getSessionConfig())) { // <1>
+        try (Session session = context.getSession()) { // <1>
             // Steps necessary for a migration
         }
     }
 }
 ----
-<.> It is important that you use the supplied session config for your session retrieval, otherwise you may
-    run that migration in a different database than in which the tool itself is run.
-    However, you are free in which databse you run this. Your milage may vary.
+<.> It is important that you use the supplied session (or the `SessionConfig` if you want to use another type of `Session`)
+    for your session retrieval, otherwise you may  run that migration in a different database than in which the tool itself
+    is run. However, you are free in which database you run this. Your mileage may vary.
 
 The class names must start with a `V` followed by digits followed by `__` and than some valid Java class name.
 

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import ac.simons.neo4j.migrations.core.Discoverer.CypherBasedMigrationDiscoverer;
 import ac.simons.neo4j.migrations.core.Discoverer.JavaBasedMigrationDiscoverer;
+import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 
 import java.io.File;
 import java.io.IOException;

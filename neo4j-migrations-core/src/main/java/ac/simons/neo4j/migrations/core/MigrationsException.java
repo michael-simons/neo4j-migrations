@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 /**
  * @author Michael J. Simons
- * @@since 0.0.1
+ * @since 0.0.1
  */
 public final class MigrationsException extends RuntimeException {
 

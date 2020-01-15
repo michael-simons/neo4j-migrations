@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static ac.simons.neo4j.migrations.core.TestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
@@ -51,10 +50,10 @@ class MigrationsEETest {
 	}
 
 	@Container
-	public static final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0-enterprise")
+	private static final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0-enterprise")
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
 
-	static Driver driver;
+	private static Driver driver;
 
 	@BeforeAll
 	static void initDriver() {
@@ -70,7 +69,7 @@ class MigrationsEETest {
 	@Test
 	void shouldRunInCorrectDatabase() {
 
-		clearDatabase(driver, TARGET_DATABASSE);
+		TestBase.clearDatabase(driver, TARGET_DATABASSE);
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder()
@@ -80,7 +79,7 @@ class MigrationsEETest {
 		migrations.apply();
 
 		// Assert basic working
-		assertThat(lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(2);
+		assertThat(TestBase.lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(2);
 
 		migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan(
@@ -92,7 +91,7 @@ class MigrationsEETest {
 		migrations.apply();
 
 		// Assert that verification runs in the correct database
-		assertThat(lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(4);
+		assertThat(TestBase.lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(4);
 
 		try (Session session = driver.session(SessionConfig.forDatabase(TARGET_DATABASSE))) {
 

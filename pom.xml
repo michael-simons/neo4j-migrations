@@ -40,6 +40,7 @@
 
 	<modules>
 		<module>neo4j-migrations-core</module>
+		<module>neo4j-migrations-cli</module>
 		<module>neo4j-migrations-test-resources</module>
 	</modules>
 
@@ -77,6 +78,7 @@
 		<mockito.version>3.2.4</mockito.version>
 		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+		<picocli.version>4.1.4</picocli.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<testcontainers.version>1.12.4</testcontainers.version>
 	</properties>
@@ -149,6 +151,11 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
 					<version>${maven-install-plugin.version}</version>
 				</plugin>
@@ -161,6 +168,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>${maven-javadoc-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-checkstyle-plugin</artifactId>
@@ -223,7 +235,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>

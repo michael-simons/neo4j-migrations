@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.5</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -49,7 +49,7 @@
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git
 		</developerConnection>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
-		<tag>HEAD</tag>
+		<tag>0.0.5</tag>
 	</scm>
 
 	<properties>

@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import static java.util.stream.Collectors.*;
+
+import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import picocli.CommandLine;
@@ -25,11 +28,9 @@ import picocli.CommandLine.Spec;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Commandline interface to Neo4j migrations.
@@ -46,14 +47,24 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 )
 public final class MigrationsCli implements Runnable {
 
-	static {
-		SLF4JBridgeHandler.removeHandlersForRootLogger();
-		SLF4JBridgeHandler.install();
-	}
-
 	static final Logger LOGGER = Logger.getLogger(MigrationsCli.class.getName());
 
+	static {
+		System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");
+		MigrationsCliConsoleHandler handler = new MigrationsCliConsoleHandler();
+		List<Logger> loggersToConfigure = Arrays.asList(
+			Logger.getAnonymousLogger(), Logger.getGlobal(),
+			Logger.getLogger(Migrations.class.getName()), LOGGER);
+
+		for (Logger logger : loggersToConfigure) {
+			logger.setUseParentHandlers(false);
+			logger.setLevel(Level.INFO);
+			logger.addHandler(handler);
+		}
+	}
+
 	public static void main(String... args) {
+
 		int exitCode = new CommandLine(new MigrationsCli()).execute(args);
 		System.exit(exitCode);
 	}
@@ -137,14 +148,12 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		if (verbose && LOGGER.isLoggable(Level.INFO)) {
-			StringBuilder msg = new StringBuilder();
 			if (config.getDatabase() != null) {
 				LOGGER.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", config.getDatabase());
 			}
 			if (config.getLocationsToScan().length > 0) {
 				LOGGER.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"",
-					Arrays.stream(config.getLocationsToScan())
-						.collect(Collectors.joining()));
+					Arrays.stream(config.getLocationsToScan()).collect(joining()));
 				LOGGER.log(Level.INFO, "Statements will be applied {0} ",
 					config.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
@@ -152,8 +161,7 @@ public final class MigrationsCli implements Runnable {
 			}
 			if (config.getPackagesToScan().length > 0) {
 				LOGGER.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"",
-					Arrays.stream(config.getPackagesToScan())
-						.collect(Collectors.joining()));
+					Arrays.stream(config.getPackagesToScan()).collect(joining()));
 			}
 		}
 		return config;

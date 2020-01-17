@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 import org.neo4j.driver.Driver;
 
@@ -58,7 +59,7 @@ final class InfoCommand extends ConnectedCommand {
 
 		Migrations migrations = new Migrations(config, driver);
 		MigrationChain migrationChain = migrations.info();
-		LOGGER.info(() -> formatChain(migrationChain));
+		LOGGER.log(Level.INFO, formatChain(migrationChain));
 		return 0;
 	}
 
@@ -111,7 +112,7 @@ final class InfoCommand extends ConnectedCommand {
 			++columnm;
 		}
 
-		// Stich everything together
+		// Stitch everything together
 		target.append(separator);
 		columnm = 0;
 		for (String column : table.keySet()) {

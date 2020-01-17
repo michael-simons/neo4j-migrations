@@ -58,10 +58,10 @@
 		<assertj.version>3.14.0</assertj.version>
 		<classgraph.version>4.8.60</classgraph.version>
 		<checkstyle.version>8.28</checkstyle.version>
+		<graalvm.version>19.3.1</graalvm.version>
 		<java.version>1.8</java.version>
 		<java-module-name /> <!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
-		<logback.version>1.2.3</logback.version>
 		<maven-assembly-plugin.version>3.2.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -139,21 +139,6 @@
 				<groupId>info.picocli</groupId>
 				<artifactId>picocli</artifactId>
 				<version>${picocli.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-access</artifactId>
-				<version>${logback.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>${logback.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.testcontainers</groupId>

@@ -73,7 +73,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 
 	private Driver openConnectionFor(MigrationsCli migrationsCli) {
 
-		Config driverConfig = Config.builder().withLogging(Logging.slf4j()).build();
+		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
 		AuthToken authToken = AuthTokens.basic(migrationsCli.user, new String(migrationsCli.password));
 		Driver driver = GraphDatabase.driver(migrationsCli.address, authToken, driverConfig);
 		boolean verified = false;
@@ -81,7 +81,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			driver.verifyConnectivity();
 			verified = true;
 		} finally {
-			// Don't want to rethrow and addiing another frame.
+			// Don't want to rethrow and adding another frame.
 			if (!verified) {
 				driver.close();
 			}

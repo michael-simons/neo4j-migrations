@@ -40,6 +40,7 @@
 
 	<modules>
 		<module>neo4j-migrations-core</module>
+		<module>neo4j-migrations-cli</module>
 		<module>neo4j-migrations-test-resources</module>
 	</modules>
 
@@ -57,9 +58,11 @@
 		<assertj.version>3.14.0</assertj.version>
 		<classgraph.version>4.8.60</classgraph.version>
 		<checkstyle.version>8.28</checkstyle.version>
+		<graalvm.version>19.3.1</graalvm.version>
 		<java.version>1.8</java.version>
 		<java-module-name /> <!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.5.2</junit.jupiter.version>
+		<maven-assembly-plugin.version>3.2.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
@@ -77,6 +80,7 @@
 		<mockito.version>3.2.4</mockito.version>
 		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+		<picocli.version>4.1.4</picocli.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<testcontainers.version>1.12.4</testcontainers.version>
 	</properties>
@@ -132,6 +136,11 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>info.picocli</groupId>
+				<artifactId>picocli</artifactId>
+				<version>${picocli.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${testcontainers.version}</version>
@@ -149,6 +158,16 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven-compiler-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>${maven-assembly-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
 					<version>${maven-install-plugin.version}</version>
 				</plugin>
@@ -161,6 +180,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>${maven-javadoc-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-checkstyle-plugin</artifactId>
@@ -223,7 +247,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>

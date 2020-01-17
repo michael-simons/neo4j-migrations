@@ -19,6 +19,129 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 
 == Usage
 
+=== As standalone CLI
+
+Since 0.0.5, you can grab binaries of `neo4j-migrations` CLI version at the
+https://github.com/michael-simons/neo4j-migrations/releases[release page].
+
+Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the the director (`cd neo4j-migrations-{latest_version}`) and execute the program
+(`neo4j-migrations` on Unix-like operating systems and `neo4j-migrations.cmd` on Windows):
+
+[source,console,subs="verbatim,attributes"]
+----
+./neo4j-migrations -h
+Usage: neo4j-migrations [-hvV] -p[=<password>] [-p[=<password>]]...
+                        [-a=<address>] [-d=<database>]
+                        [--transaction-mode=<transactionMode>] [-u=<user>]
+                        [--location=<locationsToScan>]...
+                        [--package=<packagesToScan>]... [COMMAND]
+Migrates Neo4j databases.
+  -a, --address=<address>   The address this migration should connect to. The
+                              driver supports bolt, bolt+routing or neo4j as
+                              schemes.
+  -d, --database=<database> The database to migration (Neo4j 4.0+).
+  -h, --help                Show this help message and exit.
+      --location=<locationsToScan>
+                            Location to scan. Repeat for multiple locations.
+  -p, --password[=<password>]
+                            The password of the user connecting to the database.
+      --package=<packagesToScan>
+                            Package to scan. Repeat for multiple packages.
+      --transaction-mode=<transactionMode>
+                            The transaction mode to use.
+  -u, --username=<user>     The login of the user connecting to the database.
+  -v                        Log the configuration and a couple of other things.
+  -V, --version             Print version information and exit.
+Commands:
+  info     Retrieves all applied and pending informations, prints them and
+             exits.
+  migrate  Retrieves all pending migrations, verify and applies them.
+----
+
+Here's an example that looks for migrations in a Java package and it's subpackages and in a filesystem location for Cypher based migrations.
+It uses the `info` command to tell you which migrations have been applied and which not:
+
+[source,console,subs="verbatim,attributes"]
+----
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+
+Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------+
+| Version | Description                 | Type   | Installed on | by | Execution time | State   | Source                                                 |
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------+
+| 001     | FirstMigration              | JAVA   |              |    |                | PENDING | some.migrations.changeset1.V001__FirstMigration        |
+| 002     | AnotherMigration            | JAVA   |              |    |                | PENDING | some.migrations.changeset1.V002__AnotherMigration      |
+| 023     | NichtsIstWieEsScheint       | JAVA   |              |    |                | PENDING | some.migrations.changeset2.V023__NichtsIstWieEsScheint |
+| 025     | SlowMigration               | JAVA   |              |    |                | PENDING | some.migrations.changeset3.V025__SlowMigration         |
+| 030     | Something based on a script | CYPHER |              |    |                | PENDING | V030__Something_based_on_a_script.cypher               |
+| 042     | The truth                   | CYPHER |              |    |                | PENDING | V042__The truth.cypher                                 |
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------+
+----
+
+You can repeat both `--package`  and `--location` parameter for fine grained control.
+Use `migrate` to apply migrations:
+
+[source,console,subs="verbatim,attributes"]
+----
+./neo4j-migrations -uneo4j -psecret --package some.migrations.changeset1 --package some.migrations.changeset2 migrate
+Applied migration 001 ("FirstMigration")
+Applied migration 002 ("AnotherMigration")
+Applied migration 023 ("NichtsIstWieEsScheint")
+Database migrated to version 023.
+----
+
+If we go back to the `info` example above and grab all migrations again, we find the following result:
+
+[source,console,subs="verbatim,attributes"]
+----
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+
+Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+| Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+| 001     | FirstMigration              | JAVA   | 2020-01-17T15:34:16.388Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset1.V001__FirstMigration        |
+| 002     | AnotherMigration            | JAVA   | 2020-01-17T15:34:16.406Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset1.V002__AnotherMigration      |
+| 023     | NichtsIstWieEsScheint       | JAVA   | 2020-01-17T15:34:16.417Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset2.V023__NichtsIstWieEsScheint |
+| 025     | SlowMigration               | JAVA   |                               |               |                | PENDING | some.migrations.changeset3.V025__SlowMigration         |
+| 030     | Something based on a script | CYPHER |                               |               |                | PENDING | V030__Something_based_on_a_script.cypher               |
+| 042     | The truth                   | CYPHER |                               |               |                | PENDING | V042__The truth.cypher                                 |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+----
+
+Another `migrate` - this time with all packages - gives us the following output and result:
+
+[source,console,subs="verbatim,attributes"]
+----
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo migrate
+Skipping already applied migration 001 ("FirstMigration")
+Skipping already applied migration 002 ("AnotherMigration")
+Skipping already applied migration 023 ("NichtsIstWieEsScheint")
+Applied migration 025 ("SlowMigration")
+Applied migration 030 ("Something based on a script")
+Applied migration 042 ("The truth")
+Database migrated to version 042.
+
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+
+Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+| Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+| 001     | FirstMigration              | JAVA   | 2020-01-17T15:34:16.388Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset1.V001__FirstMigration        |
+| 002     | AnotherMigration            | JAVA   | 2020-01-17T15:34:16.406Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset1.V002__AnotherMigration      |
+| 023     | NichtsIstWieEsScheint       | JAVA   | 2020-01-17T15:34:16.417Z[UTC] | msimons/neo4j | PT0S           | APPLIED | some.migrations.changeset2.V023__NichtsIstWieEsScheint |
+| 025     | SlowMigration               | JAVA   | 2020-01-17T15:36:06.899Z[UTC] | msimons/neo4j | PT0.503S       | APPLIED | some.migrations.changeset3.V025__SlowMigration         |
+| 030     | Something based on a script | CYPHER | 2020-01-17T15:36:07.001Z[UTC] | msimons/neo4j | PT0.004S       | APPLIED | V030__Something_based_on_a_script.cypher               |
+| 042     | The truth                   | CYPHER | 2020-01-17T15:36:07.016Z[UTC] | msimons/neo4j | PT0.003S       | APPLIED | V042__The truth.cypher                                 |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+----
+
+=== Inside your application
+
 Declare the extension as Maven dependency:
 
 [source,xml,subs="verbatim,attributes"]
@@ -119,3 +242,30 @@ Migrations migrations = new Migrations(
 
 migrations.apply();
 ----
+
+== For the adventurous
+
+The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
+Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
+
+After installing at least GraalVM 19.3.1, prepare your environment as follows:
+
+[source,console,subs="verbatim,attributes"]
+----
+export GRAALVM_HOME=/Library/Java/JavaVirtualMac
+export JAVA_HOME=$GRAALVM_HOME
+----
+
+The paths are probably different on your system.
+
+The `neo4j-migrations-cli` module has a build profile `create-native-image` that you use to create a binary for your OS.
+Run it with:
+
+[source,console,subs="verbatim,attributes"]
+----
+./mvnw -Pcreate-native-image clean package
+----
+
+The resulting migration tool can only be used to load Cypher script based migrations in file locations.
+It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.
+

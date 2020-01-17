@@ -77,21 +77,15 @@ public final class Migrations {
 	 * Applies a all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
 	 * or Cypher script migrations that are on the classpath or filesystem.
 	 *
+	 * @return The last applied migration (if any)
 	 * @since 0.0.1
 	 */
-	public void apply() {
+	public Optional<MigrationVersion> apply() {
 
-		executeWithinLock(() -> {
+		return executeWithinLock(() -> {
 			List<Migration> migrations = discoveryService.findMigrations(this.context);
 			apply0(migrations);
-		});
-	}
-
-	private void executeWithinLock(Runnable executable) {
-
-		executeWithinLock(() -> {
-			executable.run();
-			return null;
+			return getLastAppliedVersion();
 		});
 	}
 

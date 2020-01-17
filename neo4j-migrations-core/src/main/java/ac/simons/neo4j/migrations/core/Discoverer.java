@@ -123,7 +123,7 @@ interface Discoverer {
 				return Collections.emptyList();
 			}
 
-			LOGGER.log(Level.INFO, "Scanning for classpath resources in {0}", classpathLocations);
+			LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
 			try (ScanResult scanResult = new ClassGraph()
 				.whitelistPaths(classpathLocations.toArray(new String[classpathLocations.size()])).scan()) {
@@ -141,7 +141,7 @@ interface Discoverer {
 				return Collections.emptyList();
 			}
 
-			LOGGER.log(Level.INFO, "Scanning for filesystem resources in {0}", filesystemLocations);
+			LOGGER.log(Level.FINE, "Scanning for filesystem resources in {0}", filesystemLocations);
 
 			List<Migration> migrations = new ArrayList<>();
 

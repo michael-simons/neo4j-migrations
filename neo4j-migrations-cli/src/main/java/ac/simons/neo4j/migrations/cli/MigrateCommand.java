@@ -15,9 +15,18 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import picocli.CommandLine;
+import static ac.simons.neo4j.migrations.cli.MigrationsCli.*;
 
-import java.util.concurrent.Callable;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.ParentCommand;
+
+import java.util.Optional;
+import java.util.logging.Level;
+
+import org.neo4j.driver.Driver;
 
 /**
  * The migrate command.
@@ -25,11 +34,25 @@ import java.util.concurrent.Callable;
  * @author Michael J. Simons
  * @since 0.0.5
  */
-@CommandLine.Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.")
-final class MigrateCommand implements Callable<Integer> {
+@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.")
+final class MigrateCommand extends ConnectedCommand {
+
+	@ParentCommand
+	private MigrationsCli parent;
 
 	@Override
-	public Integer call() throws Exception {
+	public MigrationsCli getParent() {
+
+		return parent;
+	}
+
+	@Override
+	Integer withConfigAndDriver(MigrationsConfig config, Driver driver) throws Exception {
+
+		Migrations migrations = new Migrations(config, driver);
+		Optional<MigrationVersion> lastAppliedMigration = migrations.apply();
+		lastAppliedMigration.map(MigrationVersion::getValue)
+			.ifPresent(version -> LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
 		return 0;
 	}
 }

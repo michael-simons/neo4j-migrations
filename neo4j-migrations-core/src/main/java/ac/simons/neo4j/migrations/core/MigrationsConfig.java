@@ -80,6 +80,10 @@ public final class MigrationsConfig {
 		return locationsToScan;
 	}
 
+	public boolean hasPlacesToLookForMigrations() {
+		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
+	}
+
 	public TransactionMode getTransactionMode() {
 		return transactionMode;
 	}

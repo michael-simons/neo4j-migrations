@@ -24,7 +24,7 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 Since 0.0.5, you can grab binaries of `neo4j-migrations` CLI version at the
 https://github.com/michael-simons/neo4j-migrations/releases[release page].
 
-Unzip them (`unzip neo4j-migrations-cli.zip`), go the the director (`cd neo4j-migrations`) and execute the program
+Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the the director (`cd neo4j-migrations-{latest_version}`) and execute the program
 (`neo4j-migrations` on Unix-like operating systems and `neo4j-migrations.cmd` on Windows):
 
 [source,console,subs="verbatim,attributes"]
@@ -242,3 +242,30 @@ Migrations migrations = new Migrations(
 
 migrations.apply();
 ----
+
+== For the adventurous
+
+The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
+Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
+
+After installing at least GraalVM 19.3.1, prepare your environment as follows:
+
+[source,console,subs="verbatim,attributes"]
+----
+export GRAALVM_HOME=/Library/Java/JavaVirtualMac
+export JAVA_HOME=$GRAALVM_HOME
+----
+
+The paths are probably different on your system.
+
+The `neo4j-migrations-cli` module has a build profile `create-native-image` that you use to create a binary for your OS.
+Run it with:
+
+[source,console,subs="verbatim,attributes"]
+----
+./mvnw -Pcreate-native-image clean package
+----
+
+The resulting migration tool can only be used to load Cypher script based migrations in file locations.
+It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.
+

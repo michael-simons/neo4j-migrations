@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>eu.michael-simons.neo4j</groupId>
+		<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
+		<version>0.0.6-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>neo4j-migrations-spring-boot-starter</artifactId>
+
+	<name>Neo4j Migrations (Spring Boot Starter)</name>
+	<description>Integration with Spring Boot.</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-spring-boot-autoconfigure</artifactId>
+			<version>0.0.6-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>

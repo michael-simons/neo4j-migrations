@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import org.junit.jupiter.api.Nested;
@@ -30,6 +31,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -174,6 +176,15 @@ class MigrationsAutoConfigurationTest {
 	class TopLevelConditions {
 
 		@Test
+		void mustNotFailIfTheDriverStarterIsNotPresent() {
+
+			contextRunner
+					.withUserConfiguration(WithDriver.class)
+					.withClassLoader(new FilteredClassLoader(Neo4jDriverAutoConfiguration.class))
+					.run(ctx -> assertThat(ctx).hasSingleBean(Migrations.class));
+		}
+
+		@Test
 		void shouldRequireMigrations() {
 
 			contextRunner
@@ -295,6 +306,29 @@ class MigrationsAutoConfigurationTest {
 					"org.neo4j.migrations.check-location=false")
 				.run(ctx ->
 					assertThat(ctx).hasSingleBean(Migrations.class));
+		}
+
+		@Test
+		void shouldCreateCorrectConfiguration() {
+
+			contextRunner
+				.withUserConfiguration(WithDriver.class)
+				.withPropertyValues(
+						"org.neo4j.migrations.locations-to-scan=classpath:i/dont/care,file:/neither/do/i",
+						"org.neo4j.migrations.packages-to-scan=i.dont.exists,me.neither",
+						"org.neo4j.migrations.transaction-mode=PER_STATEMENT",
+						"org.neo4j.migrations.database=anAwesomeDatabase",
+						"org.neo4j.migrations.installed-by=James Bond",
+						"org.neo4j.migrations.check-location=false")
+				.run(ctx -> {
+
+					assertThat(ctx).hasSingleBean(MigrationsConfig.class);
+					MigrationsConfig config = ctx.getBean(MigrationsConfig.class);
+					assertThat(config.getLocationsToScan()).containsExactly("classpath:i/dont/care","file:/neither/do/i");
+					assertThat(config.getPackagesToScan()).containsExactly("i.dont.exists","me.neither");
+					assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_STATEMENT);
+					assertThat(config.getInstalledBy()).isEqualTo("James Bond");
+				});
 		}
 	}
 }

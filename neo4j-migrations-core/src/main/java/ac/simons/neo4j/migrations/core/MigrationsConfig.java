@@ -175,13 +175,13 @@ public final class MigrationsConfig {
 		 * Configures the user / principal name of the that is recorded in the MIGRATED_TO relationship as {@code by}.
 		 * Defaults to the OS user.
 		 *
-		 * @param installedBy
+		 * @param newInstalledBy
 		 * @return The builder for further customization
 		 * @since 0.0.6
 		 */
-		public Builder withInstalledBy(String installedBy) {
+		public Builder withInstalledBy(String newInstalledBy) {
 
-			this.installedBy = installedBy;
+			this.installedBy = newInstalledBy;
 			return this;
 		}
 

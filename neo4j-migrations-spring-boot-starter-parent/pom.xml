@@ -134,7 +134,6 @@
 							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
 						</manifestEntries>
 					</archive>
-					<skipIfEmpty>true</skipIfEmpty>
 				</configuration>
 			</plugin>
 			<plugin>

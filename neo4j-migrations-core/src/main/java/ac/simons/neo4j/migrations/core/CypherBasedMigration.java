@@ -65,7 +65,7 @@ final class CypherBasedMigration implements Migration {
 		this.url = url;
 		String path = this.url.getPath();
 		try {
-			path = URLDecoder.decode(path, Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING.name());
+			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("Somethings broken: UTF-8 encoding not supported.");
 		}
@@ -110,7 +110,7 @@ final class CypherBasedMigration implements Migration {
 		final CRC32 crc32 = new CRC32();
 
 		for (String statement : this.getStatements()) {
-			crc32.update(statement.getBytes(Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING));
+			crc32.update(statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING));
 		}
 		return Long.toString(crc32.getValue());
 	}
@@ -195,7 +195,7 @@ final class CypherBasedMigration implements Migration {
 	private List<String> readStatements() {
 
 		List<String> newStatements = new ArrayList<>();
-		try (Scanner scanner = new Scanner(url.openStream(), Defaults.DEFAULT_CYPHER_SCRIPT_ENCODING.name())
+		try (Scanner scanner = new Scanner(url.openStream(), Defaults.CYPHER_SCRIPT_ENCODING.name())
 			.useDelimiter(Defaults.CYPHER_STATEMENT_DELIMITER)) {
 			while (scanner.hasNext()) {
 

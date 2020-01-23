@@ -15,6 +15,10 @@
 	<name>Neo4j Migrations (Spring Boot Starter Autoconfiguration)</name>
 	<description>Integration with Spring Boot.</description>
 
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations.springframework.boot.autoconfigure</java-module-name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
@@ -23,6 +27,7 @@
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>

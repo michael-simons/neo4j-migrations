@@ -63,7 +63,7 @@ It uses the `info` command to tell you which migrations have been applied and wh
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
 
@@ -95,7 +95,7 @@ If we go back to the `info` example above and grab all migrations again, we find
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
 
@@ -115,7 +115,7 @@ Another `migrate` - this time with all packages - gives us the following output 
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo migrate
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo migrate
 Skipping already applied migration 001 ("FirstMigration")
 Skipping already applied migration 002 ("AnotherMigration")
 Skipping already applied migration 023 ("NichtsIstWieEsScheint")
@@ -124,7 +124,7 @@ Applied migration 030 ("Something based on a script")
 Applied migration 042 ("The truth")
 Database migrated to version 042.
 
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location filesystem:$HOME/Desktop/foo info
+./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
 
@@ -235,7 +235,7 @@ Migrations migrations = new Migrations(
     MigrationsConfig.builder()
         .withLocationsToScan(
             "classpath:my/awesome/migrations",
-            "filesystem:/path/to/migration"
+            "file:/path/to/migration"
         ).build(),
     GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
 );

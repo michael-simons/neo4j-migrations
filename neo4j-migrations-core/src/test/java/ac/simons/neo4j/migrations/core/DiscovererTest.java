@@ -113,7 +113,7 @@ class DiscovererTest {
 			try {
 				MigrationContext context = new DefaultMigrationContext(
 					MigrationsConfig.builder().withLocationsToScan(
-						"filesystem:" + dir.getAbsolutePath(), "filesystem:" + dir2.getAbsolutePath()).build(),
+						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath()).build(),
 					Mockito.mock(Driver.class));
 
 				Collection<Migration> migrations = new CypherBasedMigrationDiscoverer().discoverMigrations(context);

@@ -142,6 +142,78 @@ Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
 
 === Inside your application
 
+==== In a Spring Boot application
+
+We provide a starter with automatic configuration for Spring Boot.
+Declare the following dependency in your Spring Boot application:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations-spring-boot-starter</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+Neo4j Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exists.
+It does not scan by default for Java based migrations.
+
+The following configuration properties are supported:
+
+[cols=4*,options=header]
+|===
+|Name
+|Type
+|Default
+|Description
+
+| `org.neo4j.migrations.check-location`
+| java.lang.Boolean
+| true
+| Whether to check that migration scripts location exists.
+
+| `org.neo4j.migrations.database`
+| java.lang.String
+| `null`
+| The database that should be migrated (Neo4j 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.enabled`
+| java.lang.Boolean
+| true
+| Whether to enable Neo4j migrations or not.
+
+| `org.neo4j.migrations.encoding`
+| java.nio.charset.Charset
+| UTF-8
+| Encoding of Cypher migrations.
+
+| `org.neo4j.migrations.installed-by`
+| java.lang.String
+| System user
+| Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+
+| `org.neo4j.migrations.locations-to-scan`
+| java.lang.String[]
+| `classpath:neo4j/migrations`
+| Locations of migrations scripts.
+
+| `org.neo4j.migrations.packages-to-scan`
+| java.lang.String[]
+| An empty array
+| List of packages to scan for Java migrations.
+
+| `org.neo4j.migrations.transaction-mode`
+| TransactionMode
+| `PER_MIGRATION`
+| The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+|===
+
+NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
+
+
+==== Other applications
+
 Declare the extension as Maven dependency:
 
 [source,xml,subs="verbatim,attributes"]

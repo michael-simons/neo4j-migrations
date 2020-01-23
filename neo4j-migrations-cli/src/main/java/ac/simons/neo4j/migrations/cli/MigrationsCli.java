@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.cli;
 
 import static java.util.stream.Collectors.*;
 
+import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
@@ -108,13 +109,13 @@ public final class MigrationsCli implements Runnable {
 	@Option(
 		names = { "--transaction-mode" },
 		description = "The transaction mode to use.",
-		defaultValue = "PER_MIGRATION"
+		defaultValue = Defaults.TRANSACTION_MODE_VALUE
 	)
 	private TransactionMode transactionMode;
 
 	@Option(
 		names = { "-d", "--database" },
-		description = "The database to migration (Neo4j 4.0+)."
+		description = "The database that should be migrated (Neo4j 4.0+)."
 	)
 	private String database;
 

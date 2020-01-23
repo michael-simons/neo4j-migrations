@@ -31,6 +31,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 
 /**
  * Main entry to Neo4j Migrations
@@ -63,6 +64,8 @@ public final class Migrations {
 	 * Returns information about the context, the database, all applied and all pending applications.
 	 *
 	 * @return The chain of migrations.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
 	 * @since 0.0.4
 	 */
 	public MigrationChain info() {
@@ -78,6 +81,8 @@ public final class Migrations {
 	 * or Cypher script migrations that are on the classpath or filesystem.
 	 *
 	 * @return The last applied migration (if any)
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
 	 * @since 0.0.1
 	 */
 	public Optional<MigrationVersion> apply() {
@@ -90,6 +95,8 @@ public final class Migrations {
 	}
 
 	private <T> T executeWithinLock(Supplier<T> executable) {
+
+		driver.verifyConnectivity();
 
 		MigrationsLock lock = new MigrationsLock(this.context);
 		try {
@@ -148,20 +155,20 @@ public final class Migrations {
 
 		try (Session session = context.getSession()) {
 			session.writeTransaction(t -> {
-				Value parameters = Values.parameters(
-					"previousVersion", previousVersion.getValue(),
-					"appliedMigration", toProperties(appliedMigration),
-					"osUser", System.getProperty("user.name"),
-					"executionTime", executionTime
-				);
+					Value parameters = Values.parameters(
+						"previousVersion", previousVersion.getValue(),
+						"appliedMigration", toProperties(appliedMigration),
+						"installedBy", config.getInstalledBy(),
+						"executionTime", executionTime
+					);
 
-				return t.run(""
-						+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
-						+ "WITH neo4jUser "
-						+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
-						+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
-						+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $osUser, connectedAs: neo4jUser}] -> (c)",
-					parameters)
+					return t.run(""
+							+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
+							+ "WITH neo4jUser "
+							+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
+							+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
+							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: neo4jUser}] -> (c)",
+						parameters)
 						.consume();
 				}
 			);

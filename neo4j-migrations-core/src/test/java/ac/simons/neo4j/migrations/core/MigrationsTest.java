@@ -96,7 +96,7 @@ class MigrationsTest extends TestBase {
 		List<File> files = createMigrationFiles(2, dir);
 
 		try {
-			String location = "filesystem:" + dir.getAbsolutePath();
+			String location = "file:" + dir.getAbsolutePath();
 			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
 			Migrations migrations = new Migrations(configuration, driver);
 			migrations.apply();
@@ -122,7 +122,7 @@ class MigrationsTest extends TestBase {
 		List<File> files = createMigrationFiles(2, dir);
 
 		try {
-			String location = "filesystem:" + dir.getAbsolutePath();
+			String location = "file:" + dir.getAbsolutePath();
 			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
 			Migrations migrations = new Migrations(configuration, driver);
 			migrations.apply();

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.4.RELEASE</version>
+		<relativePath></relativePath>
+	</parent>
+
+	<groupId>eu.michael-simons.neo4j</groupId>
+	<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
+	<version>0.0.6-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Neo4j Migrations (Spring Boot Starter Parent)</name>
+	<description>Integration with Spring Boot.</description>
+
+	<modules>
+		<module>neo4j-migrations-spring-boot-autoconfigure</module>
+		<module>neo4j-migrations-spring-boot-starter</module>
+	</modules>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<checkstyle.version>8.28</checkstyle.version>
+		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
+		<neo4j-java-driver-spring-boot-starter.version>4.0.0.1</neo4j-java-driver-spring-boot-starter.version>
+		<testcontainers.version>1.12.4</testcontainers.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>eu.michael-simons.neo4j</groupId>
+				<artifactId>neo4j-migrations</artifactId>
+				<version>0.0.6-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver</artifactId>
+				<version>${neo4j-java-driver.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+				<version>${neo4j-java-driver-spring-boot-starter.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>neo4j</artifactId>
+				<version>${testcontainers.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${testcontainers.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+						</manifest>
+						<manifestEntries>
+							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
+						</manifestEntries>
+					</archive>
+					<skipIfEmpty>true</skipIfEmpty>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

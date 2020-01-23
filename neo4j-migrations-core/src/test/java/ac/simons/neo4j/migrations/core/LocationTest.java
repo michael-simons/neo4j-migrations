@@ -42,7 +42,7 @@ class LocationTest {
 		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
 		assertThat(description.getName()).isEqualTo("foobar");
 
-		description = Location.of("FileSystem:foobar");
+		description = Location.of("file:foobar");
 		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
 		assertThat(description.getName()).isEqualTo("foobar");
 	}

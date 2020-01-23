@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 public final class MigrationsConfig {
 
-	static final String PREFIX_FILESYSTEM = "filesystem";
+	static final String PREFIX_FILESYSTEM = "file";
 	static final String PREFIX_CLASSPATH = "classpath";
 
 	/**
@@ -45,12 +45,22 @@ public final class MigrationsConfig {
 		PER_STATEMENT
 	}
 
+	/**
+	 * Start building a new configuration.
+	 *
+	 * @return The entry point for creating a new configuration.
+	 * @since 0.0.1
+	 */
 	public static Builder builder() {
 
 		return new Builder();
 	}
 
-	static MigrationsConfig defaultConfig() {
+	/**
+	 * @return The default config
+	 * @since 0.0.6
+	 */
+	public static MigrationsConfig defaultConfig() {
 
 		return builder().build();
 	}
@@ -63,6 +73,8 @@ public final class MigrationsConfig {
 
 	private final String database;
 
+	private final String installedBy;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN : builder.packagesToScan;
@@ -70,6 +82,7 @@ public final class MigrationsConfig {
 			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN : builder.locationsToScan;
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
+		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 	}
 
 	public String[] getPackagesToScan() {
@@ -92,6 +105,10 @@ public final class MigrationsConfig {
 		return database;
 	}
 
+	public String getInstalledBy() {
+		return installedBy;
+	}
+
 	public static class Builder {
 
 		private String[] packagesToScan;
@@ -101,6 +118,8 @@ public final class MigrationsConfig {
 		private TransactionMode transactionMode;
 
 		private String database;
+
+		private String installedBy;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -117,7 +136,7 @@ public final class MigrationsConfig {
 		/**
 		 * Configures the list of locations to scan. Defaults to a single entry of `classpath:neo4j/migrations`.
 		 *
-		 * @param locations one or more locations to scan. Can start either with `classpath:` or `filesystem:`. Locations
+		 * @param locations one or more locations to scan. Can start either with `classpath:` or `file:`. Locations
 		 *                  without prefix are treated as classpath resources.
 		 * @return The builder for further customization
 		 */
@@ -149,6 +168,20 @@ public final class MigrationsConfig {
 		public Builder withDatabase(String newDatabase) {
 
 			this.database = newDatabase;
+			return this;
+		}
+
+		/**
+		 * Configures the user / principal name of the that is recorded in the MIGRATED_TO relationship as {@code by}.
+		 * Defaults to the OS user.
+		 *
+		 * @param newInstalledBy
+		 * @return The builder for further customization
+		 * @since 0.0.6
+		 */
+		public Builder withInstalledBy(String newInstalledBy) {
+
+			this.installedBy = newInstalledBy;
 			return this;
 		}
 

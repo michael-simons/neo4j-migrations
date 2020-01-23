@@ -18,16 +18,58 @@
 
 	<name>Neo4j Migrations (Spring Boot Starter Parent)</name>
 	<description>Integration with Spring Boot.</description>
+	<url>https://github.com/michael-simons/neo4j-migrations</url>
+
+	<inceptionYear>2020</inceptionYear>
+	<organization>
+		<name>Neo4j, Neo4j Sweden AB</name>
+		<url>https://neo4j.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>msimons</id>
+			<name>Michael Simons</name>
+			<email>michael.simons at neo4j.com</email>
+			<organization>Neo Technology</organization>
+			<organizationUrl>http://www.neotechnology.com</organizationUrl>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
 
 	<modules>
 		<module>neo4j-migrations-spring-boot-autoconfigure</module>
 		<module>neo4j-migrations-spring-boot-starter</module>
 	</modules>
 
+	<scm>
+		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
+		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git
+		</developerConnection>
+		<url>https://github.com/michael-simons/neo4j-migrations</url>
+		<tag>HEAD</tag>
+	</scm>
+
 	<properties>
 		<java.version>1.8</java.version>
 		<checkstyle.version>8.28</checkstyle.version>
 		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+
 		<neo4j-java-driver.version>4.0.0</neo4j-java-driver.version>
 		<neo4j-java-driver-spring-boot-starter.version>4.0.0.1</neo4j-java-driver-spring-boot-starter.version>
 		<testcontainers.version>1.12.4</testcontainers.version>
@@ -67,6 +109,19 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>${maven-failsafe-plugin.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>${maven-jar-plugin.version}</version>
 				<configuration>
@@ -82,7 +137,67 @@
 					<skipIfEmpty>true</skipIfEmpty>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<configuration>
+					<detectOfflineLinks>false</detectOfflineLinks>
+					<source>${java.version}</source>
+					<tags>
+						<tag>
+							<name>soundtrack</name>
+							<placement>X</placement>
+						</tag>
+					</tags>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

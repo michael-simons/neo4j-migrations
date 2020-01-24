@@ -21,10 +21,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-spring-boot-autoconfigure</artifactId>
 			<version>0.0.6-SNAPSHOT</version>

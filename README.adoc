@@ -5,7 +5,7 @@ Michael Simons <michael.simons@neo4j.com>
 :listing-caption: Listing
 :source-highlighter: coderay
 :icons: font
-:latest_version: 0.0.5
+:latest_version: 0.0.9
 
 [abstract]
 --
@@ -156,8 +156,27 @@ Declare the following dependency in your Spring Boot application:
 </dependency>
 ----
 
+That starter itself depends on the starter for the Neo4j Java Driver: 
+https://github.com/neo4j/neo4j-java-driver-spring-boot-starter[neo4j-java-driver-spring-boot-starter]
+and thus you have auto configuration for your connection and the migrations.
+
 Neo4j Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exists.
 It does not scan by default for Java based migrations.
+
+Here's an example on how to configure the driver and the migrations:
+
+[source,properties]
+----
+org.neo4j.driver.authentication.username=neo4j
+org.neo4j.driver.authentication.password=secret
+org.neo4j.driver.uri=bolt://localhost:7687
+
+# Add configuration for your migrations, for example, additional packages to scan
+org.neo4j.migrations.packages-to-scan=your.changesets, another.changeset
+
+# Or disable the check if the location exists
+org.neo4j.migrations.check-location=false
+----
 
 The following configuration properties are supported:
 

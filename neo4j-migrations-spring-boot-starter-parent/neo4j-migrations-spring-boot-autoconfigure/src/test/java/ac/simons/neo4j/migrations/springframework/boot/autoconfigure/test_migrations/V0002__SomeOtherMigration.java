@@ -15,10 +15,10 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations;
 
-import org.neo4j.driver.Session;
-
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
+
+import org.neo4j.driver.Session;
 
 /**
  * @author Michael J. Simons

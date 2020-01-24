@@ -15,7 +15,10 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
+
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.Migrations;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -33,9 +36,6 @@ import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import ac.simons.neo4j.migrations.core.MigrationChain;
-import ac.simons.neo4j.migrations.core.Migrations;
-
 /**
  * @author Michael J. Simons
  */
@@ -49,8 +49,7 @@ class MigrationsAutoConfigurationIT {
 
 	private final Driver driver;
 
-	@Autowired
-	MigrationsAutoConfigurationIT(Driver driver) {
+	@Autowired MigrationsAutoConfigurationIT(Driver driver) {
 		this.driver = driver;
 	}
 
@@ -60,9 +59,10 @@ class MigrationsAutoConfigurationIT {
 		MigrationChain migrationChain = migrations.info();
 
 		assertThat(migrationChain.getElements()).hasSize(2);
-		assertThat(migrationChain.getElements()).extracting(MigrationChain.Element::getDescription).containsExactly("KeepMe", "SomeOtherMigration");
+		assertThat(migrationChain.getElements()).extracting(MigrationChain.Element::getDescription)
+			.containsExactly("KeepMe", "SomeOtherMigration");
 
-		try(Session session = driver.session()) {
+		try (Session session = driver.session()) {
 
 			long cnt = session.run("MATCH (w:WALL) RETURN count(w)").single().get(0).asLong();
 			assertThat(cnt).isEqualTo(1L);
@@ -70,22 +70,22 @@ class MigrationsAutoConfigurationIT {
 	}
 
 	static class Neo4jContainerBasedTestPropertyProvider
-			implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+		implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
 
 			TestPropertyValues.of(
-					"org.neo4j.driver.uri = " + neo4j.getBoltUrl(),
-					"org.neo4j.driver.authentication.username = neo4j",
-					"org.neo4j.driver.authentication.password = " + neo4j.getAdminPassword(),
-					"org.neo4j.migrations.packages-to-scan=ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations"
+				"org.neo4j.driver.uri = " + neo4j.getBoltUrl(),
+				"org.neo4j.driver.authentication.username = neo4j",
+				"org.neo4j.driver.authentication.password = " + neo4j.getAdminPassword(),
+				"org.neo4j.migrations.packages-to-scan=ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations"
 			).applyTo(applicationContext.getEnvironment());
 		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ImportAutoConfiguration({Neo4jDriverAutoConfiguration.class, MigrationsAutoConfiguration.class})
+	@ImportAutoConfiguration({ Neo4jDriverAutoConfiguration.class, MigrationsAutoConfiguration.class })
 	static class TestConfiguration {
 	}
 }

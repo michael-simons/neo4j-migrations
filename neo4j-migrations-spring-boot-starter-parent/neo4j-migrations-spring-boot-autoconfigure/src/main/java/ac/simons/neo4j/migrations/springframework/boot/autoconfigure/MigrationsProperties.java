@@ -19,7 +19,6 @@ import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.nio.charset.Charset;
-import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

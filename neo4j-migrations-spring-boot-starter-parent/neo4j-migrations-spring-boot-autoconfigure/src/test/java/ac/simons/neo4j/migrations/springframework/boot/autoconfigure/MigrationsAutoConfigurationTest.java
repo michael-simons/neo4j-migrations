@@ -179,9 +179,9 @@ class MigrationsAutoConfigurationTest {
 		void mustNotFailIfTheDriverStarterIsNotPresent() {
 
 			contextRunner
-					.withUserConfiguration(WithDriver.class)
-					.withClassLoader(new FilteredClassLoader(Neo4jDriverAutoConfiguration.class))
-					.run(ctx -> assertThat(ctx).hasSingleBean(Migrations.class));
+				.withUserConfiguration(WithDriver.class)
+				.withClassLoader(new FilteredClassLoader(Neo4jDriverAutoConfiguration.class))
+				.run(ctx -> assertThat(ctx).hasSingleBean(Migrations.class));
 		}
 
 		@Test
@@ -314,18 +314,19 @@ class MigrationsAutoConfigurationTest {
 			contextRunner
 				.withUserConfiguration(WithDriver.class)
 				.withPropertyValues(
-						"org.neo4j.migrations.locations-to-scan=classpath:i/dont/care,file:/neither/do/i",
-						"org.neo4j.migrations.packages-to-scan=i.dont.exists,me.neither",
-						"org.neo4j.migrations.transaction-mode=PER_STATEMENT",
-						"org.neo4j.migrations.database=anAwesomeDatabase",
-						"org.neo4j.migrations.installed-by=James Bond",
-						"org.neo4j.migrations.check-location=false")
+					"org.neo4j.migrations.locations-to-scan=classpath:i/dont/care,file:/neither/do/i",
+					"org.neo4j.migrations.packages-to-scan=i.dont.exists,me.neither",
+					"org.neo4j.migrations.transaction-mode=PER_STATEMENT",
+					"org.neo4j.migrations.database=anAwesomeDatabase",
+					"org.neo4j.migrations.installed-by=James Bond",
+					"org.neo4j.migrations.check-location=false")
 				.run(ctx -> {
 
 					assertThat(ctx).hasSingleBean(MigrationsConfig.class);
 					MigrationsConfig config = ctx.getBean(MigrationsConfig.class);
-					assertThat(config.getLocationsToScan()).containsExactly("classpath:i/dont/care","file:/neither/do/i");
-					assertThat(config.getPackagesToScan()).containsExactly("i.dont.exists","me.neither");
+					assertThat(config.getLocationsToScan())
+						.containsExactly("classpath:i/dont/care", "file:/neither/do/i");
+					assertThat(config.getPackagesToScan()).containsExactly("i.dont.exists", "me.neither");
 					assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_STATEMENT);
 					assertThat(config.getInstalledBy()).isEqualTo("James Bond");
 				});

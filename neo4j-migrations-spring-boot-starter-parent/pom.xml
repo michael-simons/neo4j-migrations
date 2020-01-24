@@ -155,6 +155,7 @@
 				<version>${maven-javadoc-plugin.version}</version>
 				<configuration>
 					<detectOfflineLinks>false</detectOfflineLinks>
+					<detectJavaApiLink>false</detectJavaApiLink>
 					<source>${java.version}</source>
 					<tags>
 						<tag>

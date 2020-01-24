@@ -317,6 +317,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<detectOfflineLinks>false</detectOfflineLinks>
+					<detectJavaApiLink>false</detectJavaApiLink>
 					<source>${java.version}</source>
 					<tags>
 						<tag>

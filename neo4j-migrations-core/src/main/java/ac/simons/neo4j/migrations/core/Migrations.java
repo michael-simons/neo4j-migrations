@@ -139,7 +139,7 @@ public final class Migrations {
 				stopWatch.start();
 				migration.apply(context);
 				long executionTime = stopWatch.stop();
-				previousVersion = recordApplication(previousVersion, migration, executionTime);
+				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
 				LOGGER.log(Level.INFO, "Applied migration {0}", toString(migration));
 			} catch (Exception e) {
@@ -150,12 +150,13 @@ public final class Migrations {
 		}
 	}
 
-	private MigrationVersion recordApplication(MigrationVersion previousVersion, Migration appliedMigration,
+	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration,
 		long executionTime) {
 
 		try (Session session = context.getSession()) {
 			session.writeTransaction(t -> {
 					Value parameters = Values.parameters(
+						"neo4jUser", neo4jUser,
 						"previousVersion", previousVersion.getValue(),
 						"appliedMigration", toProperties(appliedMigration),
 						"installedBy", config.getInstalledBy(),
@@ -163,11 +164,9 @@ public final class Migrations {
 					);
 
 					return t.run(""
-							+ "CALL dbms.showCurrentUser() YIELD username AS neo4jUser "
-							+ "WITH neo4jUser "
 							+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
 							+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
-							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: neo4jUser}] -> (c)",
+							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
 						.consume();
 				}

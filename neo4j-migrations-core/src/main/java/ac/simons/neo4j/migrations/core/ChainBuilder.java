@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
@@ -58,14 +57,29 @@ final class ChainBuilder {
 
 		try (Session session = context.getSession()) {
 
-			Result result = session.run("CALL dbms.showCurrentUser() YIELD username AS username");
-			Record usernameRecord = result.single();
+			// Auth maybe disabled. In such cases, we cannot get the current user.
+			Result result = session.run(""
+					+ "CALL dbms.procedures() yield name "
+					+ "WHERE name = 'dbms.showCurrentUser' "
+					+ "RETURN count(*) > 0 AS showCurrentUserExists"
+			);
+			boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
 			ResultSummary summary = result.consume();
 			ServerInfo serverInfo = summary.server();
 
+			String username = "anonymous";
+			if (showCurrentUserExists) {
+
+				result = session.run(""
+					+ "CALL dbms.procedures() YIELD name "
+					+ "WHERE name = 'dbms.showCurrentUser' "
+					+ "CALL dbms.showCurrentUser() YIELD username RETURN username"
+				);
+				username = result.single().get("username").asString();
+			}
+
 			return new DefaultMigrationChain(serverInfo.address(), serverInfo.version(),
-				usernameRecord.get("username").asString(),
-				summary.database() == null ? null : summary.database().name(), elements);
+				username, summary.database() == null ? null : summary.database().name(), elements);
 		}
 	}
 

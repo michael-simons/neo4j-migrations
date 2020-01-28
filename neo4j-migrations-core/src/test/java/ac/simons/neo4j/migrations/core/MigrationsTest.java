@@ -25,7 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.Neo4jContainer;
 
 /**
  * @author Michael J. Simons
@@ -140,6 +143,28 @@ class MigrationsTest extends TestBase {
 		} finally {
 			for (File file : files) {
 				file.delete();
+			}
+		}
+	}
+
+	@Test
+	void shouldNotFailOnDisabledAuth() {
+
+		try (Neo4jContainer containerWithoutAuth = new Neo4jContainer().withoutAuthentication()) {
+			containerWithoutAuth.start();
+
+			try (Driver driverWithoutAuth = GraphDatabase.driver(containerWithoutAuth.getBoltUrl())) {
+
+				MigrationsConfig config = MigrationsConfig.builder()
+						.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1").build();
+				Migrations migrations = new Migrations(config, driverWithoutAuth);
+
+				assertThat(migrations.apply()).map(MigrationVersion::getValue).hasValue("002");
+
+				MigrationChain info = migrations.info();
+				assertThat(info.getUsername()).isEqualTo("anonymous");
+				assertThat(info.getElements()).element(1)
+						.satisfies(e -> assertThat(e.getInstalledBy()).hasValue(System.getProperty("user.name") + "/anonymous"));
 			}
 		}
 	}

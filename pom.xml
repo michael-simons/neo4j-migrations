@@ -84,7 +84,7 @@
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<picocli.version>4.1.4</picocli.version>
 		<slf4j.version>1.7.30</slf4j.version>
-		<testcontainers.version>1.14.1</testcontainers.version>
+		<testcontainers.version>1.14.2</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>

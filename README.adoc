@@ -156,7 +156,7 @@ Declare the following dependency in your Spring Boot application:
 </dependency>
 ----
 
-That starter itself depends on the starter for the Neo4j Java Driver: 
+That starter itself depends on the starter for the Neo4j Java Driver:
 https://github.com/neo4j/neo4j-java-driver-spring-boot-starter[neo4j-java-driver-spring-boot-starter]
 and thus you have auto configuration for your connection and the migrations.
 
@@ -339,11 +339,11 @@ migrations.apply();
 The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
 Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
 
-After installing at least GraalVM 19.3.1, prepare your environment as follows:
+After installing at least GraalVM 20.1.0, prepare your environment as follows:
 
 [source,console,subs="verbatim,attributes"]
 ----
-export GRAALVM_HOME=/Library/Java/JavaVirtualMac
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.1.0/Contents/Home
 export JAVA_HOME=$GRAALVM_HOME
 ----
 

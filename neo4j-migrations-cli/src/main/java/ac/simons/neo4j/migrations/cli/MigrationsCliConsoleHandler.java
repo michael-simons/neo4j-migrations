@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import java.util.logging.ConsoleHandler;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 
 /**
  * Always log to stdout.
@@ -23,9 +24,14 @@ import java.util.logging.ConsoleHandler;
  * @author Michael J. Simons
  * @since 0.0.5
  */
-final class MigrationsCliConsoleHandler extends ConsoleHandler {
+final class MigrationsCliConsoleHandler extends StreamHandler {
 
 	MigrationsCliConsoleHandler() {
-		setOutputStream(System.out);
+		super(System.out, new SimpleFormatter());
+	}
+
+	@Override
+	public void close() {
+		flush();
 	}
 }

@@ -65,7 +65,7 @@ It uses the `info` command to tell you which migrations have been applied and wh
 ----
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on | by | Execution time | State   | Source                                                 |
@@ -97,7 +97,7 @@ If we go back to the `info` example above and grab all migrations again, we find
 ----
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |
@@ -126,7 +126,7 @@ Database migrated to version 042.
 
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |

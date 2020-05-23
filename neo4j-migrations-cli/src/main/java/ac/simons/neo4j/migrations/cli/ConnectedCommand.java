@@ -15,18 +15,14 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
-import org.neo4j.driver.AuthToken;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 
 /**
@@ -50,10 +46,12 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	public Integer call() throws Exception {
 
 		MigrationsCli migrationsCli = getParent();
-		try (Driver driver = openConnectionFor(migrationsCli)) {
-			MigrationsConfig config = migrationsCli.getConfig();
+		try (Driver driver = migrationsCli.openConnection()) {
 
-			return withConfigAndDriver(config, driver);
+			MigrationsConfig config = migrationsCli.getConfig();
+			Migrations migrations = new Migrations(config, driver);
+
+			return withMigrations(migrations);
 		} catch (ServiceUnavailableException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.SOFTWARE;
@@ -69,23 +67,5 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	 * @return The return code of this command
 	 * @throws Exception Anything that might happen
 	 */
-	abstract Integer withConfigAndDriver(MigrationsConfig config, Driver driver) throws Exception;
-
-	private Driver openConnectionFor(MigrationsCli migrationsCli) {
-
-		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
-		AuthToken authToken = AuthTokens.basic(migrationsCli.user, new String(migrationsCli.password));
-		Driver driver = GraphDatabase.driver(migrationsCli.address, authToken, driverConfig);
-		boolean verified = false;
-		try {
-			driver.verifyConnectivity();
-			verified = true;
-		} finally {
-			// Don't want to rethrow and adding another frame.
-			if (!verified) {
-				driver.close();
-			}
-		}
-		return driver;
-	}
+	abstract Integer withMigrations(Migrations migrations) throws Exception;
 }

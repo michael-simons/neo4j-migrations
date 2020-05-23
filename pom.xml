@@ -41,6 +41,7 @@
 	<modules>
 		<module>neo4j-migrations-core</module>
 		<module>neo4j-migrations-cli</module>
+		<module>neo4j-migrations-maven-plugin</module>
 		<module>neo4j-migrations-test-resources</module>
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 	</modules>
@@ -63,6 +64,7 @@
 		<java.version>1.8</java.version>
 		<java-module-name /> <!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.6.2</junit.jupiter.version>
+		<maven.version>3.6.3</maven.version>
 		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -231,7 +233,7 @@
 							<rules>
 								<DependencyConvergence />
 								<requireMavenVersion>
-									<version>3.6.1</version>
+									<version>${maven.version}</version>
 								</requireMavenVersion>
 							</rules>
 						</configuration>

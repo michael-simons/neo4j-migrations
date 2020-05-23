@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static ac.simons.neo4j.migrations.core.MigrationChainFormat.*;
+
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -29,6 +31,30 @@ import java.util.Optional;
  * @since 0.0.4
  */
 public interface MigrationChain {
+
+	/**
+	 * Pretty prints this chain as an ASCII table.
+	 *
+	 * @return A formatted string (an ASCII table representing the chain)
+	 * @since 0.0.11
+	 */
+	default String prettyPrint() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(LS)
+			.append("Database: ")
+			.append(getServerVersion() + "@")
+			.append(getServerAddress())
+			.append(LS)
+			.append(LS);
+
+		if (getElements().isEmpty()) {
+			sb.append(LS).append("No migrations found.");
+		} else {
+			MigrationChainFormat.formatElements(this, sb);
+		}
+		return sb.toString();
+	}
 
 	/**
 	 * @return The address of the server used.

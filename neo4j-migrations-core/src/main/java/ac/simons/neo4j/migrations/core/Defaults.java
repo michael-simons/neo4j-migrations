@@ -28,6 +28,8 @@ import java.nio.charset.StandardCharsets;
  */
 public final class Defaults {
 
+	public static final String DEFAULT_USER = "neo4j";
+
 	/**
 	 * Default script extension to look for.
 	 */

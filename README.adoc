@@ -140,6 +140,48 @@ Database: Neo4j/4.0.0@localhost:7687
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 ----
 
+=== From your build tool
+
+==== Maven Plugin
+
+You can trigger Neo4j Migrations from your build via plugin:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<plugin>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations-maven-plugin</artifactId>
+    <version>{latest_version}</version>
+    <executions>
+        <execution>
+            <id>migrate</id>
+            <goals>
+                <goal>migrate</goal>
+            </goals>
+            <configuration>
+                <user>neo4j</user>
+                <password>secret</password>
+                <address>bolt://localhost:${it-database-port}</address>
+                <verbose>true</verbose>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+By default, the plugin will look in `neo4j/migrations` resource.
+You can change that via `locationsToScan`:
+
+[source,xml]
+----
+<locationsToScan>
+    <locationToScan>file://${project.build.outputDirectory}/custom/path/to/migrate</locationToScan>
+</locationsToScan>
+----
+
+Add multiple elements for multiple locations.
+The plugin has the same parameters as the standalone or CLI version.
+
 === Inside your application
 
 ==== In a Spring Boot application

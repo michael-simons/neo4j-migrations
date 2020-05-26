@@ -13,42 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.cli;
-
-import static ac.simons.neo4j.migrations.cli.MigrationsCli.*;
+package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.ParentCommand;
 
 import java.util.Optional;
 import java.util.logging.Level;
 
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+
 /**
- * The migrate command.
+ * Goal that applies the configured migrations..
  *
  * @author Michael J. Simons
- * @since 0.0.5
+ * @since 0.0.11
  */
-@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.")
-final class MigrateCommand extends ConnectedCommand {
-
-	@ParentCommand
-	private MigrationsCli parent;
-
-	@Override
-	public MigrationsCli getParent() {
-
-		return parent;
-	}
+@Mojo(name = "migrate",
+	requiresDependencyResolution = ResolutionScope.TEST,
+	defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST,
+	threadSafe = true)
+public class MigrateMojo extends AbstractConnectedMojo {
 
 	@Override
-	Integer withMigrations(Migrations migrations) {
+	void withMigrations(Migrations migrations) {
 
 		Optional<MigrationVersion> lastAppliedMigration = migrations.apply();
 		lastAppliedMigration.map(MigrationVersion::getValue)
 			.ifPresent(version -> LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
-		return 0;
 	}
 }

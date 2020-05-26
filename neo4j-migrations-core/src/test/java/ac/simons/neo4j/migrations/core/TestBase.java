@@ -43,7 +43,7 @@ abstract class TestBase {
 		SLF4JBridgeHandler.install();
 	}
 
-	private final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0");
+	protected final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.4");
 
 	Driver driver;
 

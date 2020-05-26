@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.cli;
+package ac.simons.neo4j.migrations.maven;
 
 import static java.util.stream.Collectors.*;
 
@@ -21,123 +21,105 @@ import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Spec;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
- * Commandline interface to Neo4j migrations.
+ * Base class for Neo4j Migrations mojos.
  *
  * @author Michael J. Simons
- * @since 0.0.5
+ * @since 0.0.11
  */
-@Command(
-	name = "neo4j-migrations",
-	mixinStandardHelpOptions = true,
-	description = "Migrates Neo4j databases.",
-	subcommands = { InfoCommand.class, MigrateCommand.class },
-	versionProvider = ManifestVersionProvider.class
-)
-public final class MigrationsCli implements Runnable {
-
-	static final Logger LOGGER = Logger.getLogger(MigrationsCli.class.getName());
+abstract class AbstractConnectedMojo extends AbstractMojo {
 
 	static {
-		System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");
-		MigrationsCliConsoleHandler handler = new MigrationsCliConsoleHandler();
-		List<Logger> loggersToConfigure = Arrays.asList(
-			Logger.getAnonymousLogger(), Logger.getGlobal(),
-			Logger.getLogger(Migrations.class.getName()), LOGGER);
+		SLF4JBridgeHandler.removeHandlersForRootLogger();
+		SLF4JBridgeHandler.install();
+	}
 
-		for (Logger logger : loggersToConfigure) {
-			logger.setUseParentHandlers(false);
-			logger.setLevel(Level.INFO);
-			logger.addHandler(handler);
+	static final Logger LOGGER = Logger.getLogger(AbstractConnectedMojo.class.getName());
+
+	/**
+	 * The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.
+	 */
+	@Parameter(required = true, defaultValue = "bolt://localhost:7687")
+	private URI address;
+
+	/**
+	 * The login of the user connecting to the database.
+	 */
+	@Parameter(required = true, defaultValue = Defaults.DEFAULT_USER)
+	private String user;
+
+	/**
+	 * The password of the user connecting to the database.
+	 */
+	@Parameter(required = true)
+	private String password;
+
+	/**
+	 * Package to scan. Repeat for multiple packages.
+	 */
+	@Parameter
+	private String[] packagesToScan = new String[0];
+
+	/**
+	 * Location to scan. Repeat for multiple locations.
+	 */
+	@Parameter(defaultValue = "file://${project.build.outputDirectory}/neo4j/migrations")
+	private String[] locationsToScan;
+
+	/**
+	 * The transaction mode to use.
+	 */
+	@Parameter(defaultValue = Defaults.TRANSACTION_MODE_VALUE)
+	private TransactionMode transactionMode;
+
+	/**
+	 * The database that should be migrated (Neo4j 4.0+).
+	 */
+	@Parameter
+	private String database;
+
+	/**
+	 * Log the configuration and a couple of other things.
+	 */
+	@Parameter(defaultValue = "false")
+	private boolean verbose;
+
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+
+		try (Driver driver = openConnection()) {
+
+			MigrationsConfig config = getConfig();
+			Migrations migrations = new Migrations(config, driver);
+
+			withMigrations(migrations);
+		} catch (ServiceUnavailableException e) {
+			throw new MojoExecutionException(e.getMessage(), e);
+		} catch (Exception e) {
+			throw new MojoFailureException("Could not execute migrations", e);
 		}
 	}
 
-	public static void main(String... args) {
-
-		int exitCode = new CommandLine(new MigrationsCli()).execute(args);
-		System.exit(exitCode);
-	}
-
-	@Option(
-		names = { "-a", "--address" },
-		description = "The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.",
-		required = true,
-		defaultValue = "bolt://localhost:7687"
-	)
-	private URI address;
-
-	@Option(
-		names = { "-u", "--username" },
-		description = "The login of the user connecting to the database.",
-		required = true,
-		defaultValue = Defaults.DEFAULT_USER
-	)
-	private String user;
-
-	@Option(
-		names = { "-p", "--password" },
-		description = "The password of the user connecting to the database.",
-		required = true,
-		arity = "0..1", interactive = true
-	)
-	private char[] password;
-
-	@Option(
-		names = { "--package" },
-		description = "Package to scan. Repeat for multiple packages."
-	)
-	private String[] packagesToScan = new String[0];
-
-	@Option(
-		names = { "--location" },
-		description = "Location to scan. Repeat for multiple locations."
-	)
-	private String[] locationsToScan = new String[0];
-
-	@Option(
-		names = { "--transaction-mode" },
-		description = "The transaction mode to use.",
-		defaultValue = Defaults.TRANSACTION_MODE_VALUE
-	)
-	private TransactionMode transactionMode;
-
-	@Option(
-		names = { "-d", "--database" },
-		description = "The database that should be migrated (Neo4j 4.0+)."
-	)
-	private String database;
-
-	@Option(
-		names = { "-v" },
-		description = "Log the configuration and a couple of other things."
-	)
-	private boolean verbose;
-
-	@Spec
-	private CommandSpec commandSpec;
-
-	public void run() {
-		throw new CommandLine.ParameterException(commandSpec.commandLine(), "Missing required subcommand");
-	}
+	abstract void withMigrations(Migrations migrations) throws Exception;
 
 	/**
 	 * @return The migrations config based on the required options.
@@ -178,7 +160,7 @@ public final class MigrationsCli implements Runnable {
 	Driver openConnection() {
 
 		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
-		AuthToken authToken = AuthTokens.basic(user, new String(password));
+		AuthToken authToken = AuthTokens.basic(user, password);
 		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);
 		boolean verified = false;
 		try {

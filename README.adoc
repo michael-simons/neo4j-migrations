@@ -65,7 +65,7 @@ It uses the `info` command to tell you which migrations have been applied and wh
 ----
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on | by | Execution time | State   | Source                                                 |
@@ -97,7 +97,7 @@ If we go back to the `info` example above and grab all migrations again, we find
 ----
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |
@@ -126,7 +126,7 @@ Database migrated to version 042.
 
 ./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
-Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
+Database: Neo4j/4.0.0@localhost:7687
 
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 | Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                 |
@@ -139,6 +139,48 @@ Database: Neo4j/4.0.0@localhost:7687 connected via bolt://localhost:7687
 | 042     | The truth                   | CYPHER | 2020-01-17T15:36:07.016Z[UTC] | msimons/neo4j | PT0.003S       | APPLIED | V042__The truth.cypher                                 |
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 ----
+
+=== From your build tool
+
+==== Maven Plugin
+
+You can trigger Neo4j Migrations from your build via plugin:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<plugin>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations-maven-plugin</artifactId>
+    <version>{latest_version}</version>
+    <executions>
+        <execution>
+            <id>migrate</id>
+            <goals>
+                <goal>migrate</goal>
+            </goals>
+            <configuration>
+                <user>neo4j</user>
+                <password>secret</password>
+                <address>bolt://localhost:${it-database-port}</address>
+                <verbose>true</verbose>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+By default, the plugin will look in `neo4j/migrations` resource.
+You can change that via `locationsToScan`:
+
+[source,xml]
+----
+<locationsToScan>
+    <locationToScan>file://${project.build.outputDirectory}/custom/path/to/migrate</locationToScan>
+</locationsToScan>
+----
+
+Add multiple elements for multiple locations.
+The plugin has the same parameters as the standalone or CLI version.
 
 === Inside your application
 

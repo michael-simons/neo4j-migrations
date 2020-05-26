@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
+		<groupId>eu.michael-simons.neo4j</groupId>
 		<version>0.0.11-SNAPSHOT</version>
 	</parent>
 
@@ -94,18 +94,16 @@
 						<executions>
 							<execution>
 								<id>create-native-image</id>
+								<phase>package</phase>
 								<goals>
 									<goal>native-image</goal>
 								</goals>
-								<phase>package</phase>
 							</execution>
 						</executions>
 						<configuration>
 							<mainClass>ac.simons.neo4j.migrations.cli.MigrationsCli</mainClass>
 							<imageName>neo4j-migrations</imageName>
-							<buildArgs>
-								--no-fallback --allow-incomplete-classpath --report-unsupported-elements-at-runtime
-							</buildArgs>
+							<buildArgs>--no-fallback --allow-incomplete-classpath --report-unsupported-elements-at-runtime</buildArgs>
 						</configuration>
 					</plugin>
 				</plugins>

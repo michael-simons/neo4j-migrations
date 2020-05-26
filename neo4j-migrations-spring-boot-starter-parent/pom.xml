@@ -5,12 +5,12 @@
 	<parent>
 		<artifactId>neo4j-migrations-parent</artifactId>
 		<groupId>eu.michael-simons.neo4j</groupId>
-		<version>0.0.11-SNAPSHOT</version>
+		<version>0.0.11</version>
 	</parent>
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
-	<version>0.0.11-SNAPSHOT</version>
+	<version>0.0.11</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations (Spring Boot Starter Parent)</name>

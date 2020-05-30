@@ -31,9 +31,6 @@
 							<password>secret</password>
 							<address>bolt://localhost:${it-database-port}</address>
 							<verbose>true</verbose>
-							<locationsToScan>
-								<locationToScan>file://${project.build.resources}/neo4j/migrations</locationToScan>
-							</locationsToScan>
 						</configuration>
 					</execution>
 					<execution>
@@ -46,9 +43,6 @@
 							<password>secret</password>
 							<address>bolt://localhost:${it-database-port}</address>
 							<verbose>true</verbose>
-							<locationsToScan>
-								<locationToScan>file://${project.build.resources}/neo4j/migrations</locationToScan>
-							</locationsToScan>
 						</configuration>
 					</execution>
 					<execution>
@@ -61,9 +55,6 @@
 							<password>secret</password>
 							<address>bolt://localhost:${it-database-port}</address>
 							<verbose>true</verbose>
-							<locationsToScan>
-								<locationToScan>file://${project.build.resources}/neo4j/migrations</locationToScan>
-							</locationsToScan>
 						</configuration>
 					</execution>
 				</executions>

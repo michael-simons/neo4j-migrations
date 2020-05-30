@@ -195,6 +195,7 @@
 				<executions>
 					<execution>
 						<id>integration-test</id>
+						<phase>integration-test</phase>
 						<goals>
 							<goal>install</goal>
 							<goal>integration-test</goal>
@@ -225,6 +226,7 @@
 					<localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
 					<settingsFile>src/it/settings.xml</settingsFile>
 					<goals>
+						<goal>clean</goal>
 						<goal>verify</goal>
 					</goals>
 				</configuration>

@@ -125,7 +125,16 @@ interface Discoverer {
 
 			LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
+			// I'm forcing this down to the system classloader, as all the others lead wrong results
+			// Especially the current context class loader as described here
+			// https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/appendix-executable-jar-format.html#executable-jar-restrictions
+			// gives an invalid url like this
+			// jar:file:foobar/classgraph_resources_issue-0.0.1-SNAPSHOT.jar!/BOOT-INF/classes!/BOOT-INF/classes/foo/a.cypher
+			// (Twice the boot)
+			// See https://github.com/classgraph/classgraph/issues/435
+
 			try (ScanResult scanResult = new ClassGraph()
+				.overrideClassLoaders(ClassLoader.getSystemClassLoader())
 				.whitelistPaths(classpathLocations.toArray(new String[classpathLocations.size()])).scan()) {
 
 				return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)

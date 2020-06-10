@@ -3,9 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<artifactId>neo4j-migrations-parent</artifactId>
 		<groupId>eu.michael-simons.neo4j</groupId>
-		<version>0.0.12-SNAPSHOT</version>
+		<artifactId>neo4j-migrations-parent</artifactId>
+		<version>0.0.12</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-maven-plugin</artifactId>
@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations</artifactId>
-			<version>0.0.12-SNAPSHOT</version>
+			<version>0.0.12</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

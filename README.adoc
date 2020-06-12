@@ -22,7 +22,7 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 === As standalone CLI
 
 Since 0.0.5, you can grab binaries of `neo4j-migrations` CLI version at Maven central:
-https://repo1.maven.org/maven2/eu/michael-simons/neo4j/neo4j-migrations/{latest_version}/neo4j-migrations-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]
+https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-cli/{latest_version}/neo4j-migrations-cli-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]
 
 Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the the director (`cd neo4j-migrations-{latest_version}`) and execute the program
 (`neo4j-migrations` on Unix-like operating systems and `neo4j-migrations.cmd` on Windows):

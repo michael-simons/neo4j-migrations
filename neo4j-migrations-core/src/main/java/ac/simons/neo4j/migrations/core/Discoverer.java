@@ -67,7 +67,7 @@ interface Discoverer {
 
 			try (ScanResult scanResult = new ClassGraph()
 				.enableAllInfo()
-				.whitelistPackages(config.getPackagesToScan())
+				.acceptPackages(config.getPackagesToScan())
 				.enableExternalClasses()
 				.scan()) {
 
@@ -126,7 +126,7 @@ interface Discoverer {
 			LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
 			String[] paths = classpathLocations.toArray(new String[classpathLocations.size()]);
-			try (ScanResult scanResult = new ClassGraph().whitelistPaths(paths).scan()) {
+			try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
 
 				return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
 					.stream()

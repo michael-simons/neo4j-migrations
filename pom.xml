@@ -87,7 +87,7 @@
 		<neo4j-java-driver-spring-boot-starter.version>4.0.2.1</neo4j-java-driver-spring-boot-starter.version>
 		<neo4j-java-driver.version>4.0.2</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-		<picocli.version>4.3.2</picocli.version>
+		<picocli.version>4.4.0</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.30</slf4j.version>
 		<sortpom-maven-plugin.version>2.11.0</sortpom-maven-plugin.version>

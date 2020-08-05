@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
@@ -46,7 +46,7 @@ import org.springframework.core.io.ResourceLoader;
  */
 class MigrationsAutoConfigurationTest {
 
-	private static final Driver MOCKED_DRIVER = mock(Driver.class);
+	private static final Driver MOCKED_DRIVER = Mockito.mock(Driver.class);
 
 	static {
 		Mockito.doThrow(ServiceUnavailableException.class)
@@ -128,8 +128,8 @@ class MigrationsAutoConfigurationTest {
 			assertThat(properties.isCheckLocation()).isTrue();
 			assertThat(properties.getLocationsToScan()).isNotEmpty();
 
-			when(resourceLoader.getResource(properties.getLocationsToScan()[0])).thenReturn(resource);
-			when(resource.exists()).thenReturn(false);
+			Mockito.when(resourceLoader.getResource(properties.getLocationsToScan()[0])).thenReturn(resource);
+			Mockito.when(resource.exists()).thenReturn(false);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
 			assertThatExceptionOfType(MigrationsException.class)
@@ -146,9 +146,9 @@ class MigrationsAutoConfigurationTest {
 
 			assertThat(properties.isCheckLocation()).isTrue();
 
-			when(resourceLoader.getResource(properties.getLocationsToScan()[0])).thenReturn(mock(Resource.class));
-			when(resourceLoader.getResource(properties.getLocationsToScan()[1])).thenReturn(resource);
-			when(resource.exists()).thenReturn(true);
+			Mockito.when(resourceLoader.getResource(properties.getLocationsToScan()[0])).thenReturn(Mockito.mock(Resource.class));
+			Mockito.when(resourceLoader.getResource(properties.getLocationsToScan()[1])).thenReturn(resource);
+			Mockito.when(resource.exists()).thenReturn(true);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
 			ac.neo4jMigrationsConfig(resourceLoader, properties);

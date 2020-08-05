@@ -56,12 +56,16 @@
         <module name="com.puppycrawl.tools.checkstyle.checks.coding.OneStatementPerLineCheck" />
 
         <!-- Imports -->
-        <module  name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStarImportCheck" />
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.AvoidStaticImportCheck">
+            <property name="excludes"
+                      value="org.apiguardian.api.API.Status.*, org.assertj.core.api.Assertions.*, org.junit.Assert.*, org.junit.Assume.*, org.junit.internal.matchers.ThrowableMessageMatcher.*, org.hamcrest.CoreMatchers.*, org.hamcrest.Matchers.*, org.mockito.Mockito.*" />
+        </module>
+        <module name="com.puppycrawl.tools.checkstyle.checks.imports.IllegalImportCheck">
             <property name="regexp" value="true" />
             <property name="illegalPkgs"
-                      value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*" />
-            <property name="illegalClasses"
-                      value="^reactor\.core\.support\.Assert, ^org\.junit\.rules\.ExpectedException, ^org\.slf4j\.LoggerFactory" />
+                      value="^sun.*, ^org\.apache\.commons\.(?!compress|dbcp2|lang|lang3|logging|pool2).*, ^com\.google\.common.*, ^org\.flywaydb\.core\.internal.*, ^org\.testcontainers\.shaded.*, ^org\.neo4j\.driver\.internal\.shaded.*, ^org\.jetbrains.*" />
+            <property name="illegalClasses" value="^reactor\.core\.support\.Assert" />
         </module>
         <module name="com.puppycrawl.tools.checkstyle.checks.imports.RedundantImportCheck" />
         <module name="com.puppycrawl.tools.checkstyle.checks.imports.UnusedImportsCheck">
@@ -109,5 +113,21 @@
 
         <!-- We have some empty blocks and statements.  -->
         <module name="SuppressionCommentFilter"/>
+
+        <!-- Java Doc-->
+        <module name="AtclauseOrder" />
+        <module name="JavadocType">
+            <property name="scope" value="public"/>
+            <property name="allowUnknownTags" value="true" />
+        </module>
+
+        <module name="MissingJavadocType" />
+        <module name="NonEmptyAtclauseDescription" />
+
+		<!-- System.outs -->
+		<module name="Regexp">
+			<property name="format" value="System\.out\.println"/>
+			<property name="illegalPattern" value="true"/>
+		</module>
     </module>
 </module>

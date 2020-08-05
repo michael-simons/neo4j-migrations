@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static java.util.stream.Collectors.*;
-
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
@@ -32,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
@@ -161,7 +160,7 @@ public final class MigrationsCli implements Runnable {
 			}
 			if (config.getLocationsToScan().length > 0) {
 				LOGGER.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"",
-					Arrays.stream(config.getLocationsToScan()).collect(joining()));
+					Arrays.stream(config.getLocationsToScan()).collect(Collectors.joining()));
 				LOGGER.log(Level.INFO, "Statements will be applied {0} ",
 					config.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
@@ -169,7 +168,7 @@ public final class MigrationsCli implements Runnable {
 			}
 			if (config.getPackagesToScan().length > 0) {
 				LOGGER.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"",
-					Arrays.stream(config.getPackagesToScan()).collect(joining()));
+					Arrays.stream(config.getPackagesToScan()).collect(Collectors.joining()));
 			}
 		}
 		return config;

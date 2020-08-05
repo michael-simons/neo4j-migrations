@@ -109,6 +109,9 @@ public final class MigrationsConfig {
 		return installedBy;
 	}
 
+	/**
+	 * A builder to create new instances of {@link MigrationsConfig configurations}.
+	 */
 	public static class Builder {
 
 		private String[] packagesToScan;
@@ -175,7 +178,7 @@ public final class MigrationsConfig {
 		 * Configures the user / principal name of the that is recorded in the MIGRATED_TO relationship as {@code by}.
 		 * Defaults to the OS user.
 		 *
-		 * @param newInstalledBy
+		 * @param newInstalledBy An arbitrary string to represent the service having installed the migrations
 		 * @return The builder for further customization
 		 * @since 0.0.6
 		 */
@@ -185,6 +188,9 @@ public final class MigrationsConfig {
 			return this;
 		}
 
+		/**
+		 * @return The immutable configuration
+		 */
 		public MigrationsConfig build() {
 
 			return new MigrationsConfig(this);

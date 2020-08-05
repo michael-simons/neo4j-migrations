@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static ac.simons.neo4j.migrations.cli.MigrationsCli.*;
-
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import picocli.CommandLine;
 
@@ -39,7 +37,7 @@ final class MigrationsCliExceptionMapper implements CommandLine.IExitCodeExcepti
 		} else if (exception instanceof MigrationsException) {
 			return CommandLine.ExitCode.USAGE;
 		} else {
-			LOGGER.log(Level.WARNING, "Uncaught exception.", exception);
+			MigrationsCli.LOGGER.log(Level.WARNING, "Uncaught exception.", exception);
 			return CommandLine.ExitCode.USAGE;
 		}
 	}

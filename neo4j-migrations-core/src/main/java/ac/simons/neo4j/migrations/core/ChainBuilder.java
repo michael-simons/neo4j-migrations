@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static ac.simons.neo4j.migrations.core.Migrations.*;
-
 import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 
 import java.time.Duration;
@@ -220,7 +218,7 @@ final class ChainBuilder {
 		}
 
 		static Element pendingElement(Migration pendingMigration) {
-			return new DefaultChainElement(MigrationState.PENDING, getMigrationType(pendingMigration),
+			return new DefaultChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
 				pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
 				pendingMigration.getDescription(), pendingMigration.getSource(), null, null, null);
 		}

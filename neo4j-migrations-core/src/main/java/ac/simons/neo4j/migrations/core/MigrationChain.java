@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static ac.simons.neo4j.migrations.core.MigrationChainFormat.*;
-
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -41,15 +39,15 @@ public interface MigrationChain {
 	default String prettyPrint() {
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(LS)
+		sb.append(MigrationChainFormat.LS)
 			.append("Database: ")
 			.append(getServerVersion() + "@")
 			.append(getServerAddress())
-			.append(LS)
-			.append(LS);
+			.append(MigrationChainFormat.LS)
+			.append(MigrationChainFormat.LS);
 
 		if (getElements().isEmpty()) {
-			sb.append(LS).append("No migrations found.");
+			sb.append(MigrationChainFormat.LS).append("No migrations found.");
 		} else {
 			MigrationChainFormat.formatElements(this, sb);
 		}

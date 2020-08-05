@@ -190,7 +190,7 @@ final class CypherBasedMigration implements Migration {
 	 * Scans the resource for statements. Statements must be separated by a `;` followed by a newline.
 	 *
 	 * @return An unmodifiable list of statements contained inside the resource.
-	 * @throws IOException
+	 * @throws MigrationsException in case the script file could not be read
 	 */
 	private List<String> readStatements() {
 

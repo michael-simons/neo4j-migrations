@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 

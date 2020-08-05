@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static ac.simons.neo4j.migrations.cli.MigrationsCli.*;
-
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.Command;
@@ -48,7 +46,7 @@ final class MigrateCommand extends ConnectedCommand {
 
 		Optional<MigrationVersion> lastAppliedMigration = migrations.apply();
 		lastAppliedMigration.map(MigrationVersion::getValue)
-			.ifPresent(version -> LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
+			.ifPresent(version -> MigrationsCli.LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
 		return 0;
 	}
 }

@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static ac.simons.neo4j.migrations.cli.MigrationsCli.*;
-
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.Command;
@@ -45,7 +43,7 @@ final class InfoCommand extends ConnectedCommand {
 	Integer withMigrations(Migrations migrations) {
 
 		MigrationChain migrationChain = migrations.info();
-		LOGGER.log(Level.INFO, migrationChain.prettyPrint());
+		MigrationsCli.LOGGER.log(Level.INFO, migrationChain.prettyPrint());
 		return 0;
 	}
 }

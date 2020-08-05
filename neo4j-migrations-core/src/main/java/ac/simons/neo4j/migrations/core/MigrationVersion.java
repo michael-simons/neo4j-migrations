@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static ac.simons.neo4j.migrations.core.Defaults.*;
-
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -33,7 +31,7 @@ public final class MigrationVersion {
 	private static final String BASLINE_VALUE = "BASELINE";
 	private static final MigrationVersion BASELINE = new MigrationVersion(BASLINE_VALUE, null);
 	private static final Pattern VERSION_PATTERN = Pattern
-		.compile("V(\\d+)__([\\w ]+)(?:\\." + CYPHER_SCRIPT_EXTENSION + ")?");
+		.compile("V(\\d+)__([\\w ]+)(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
 
 	private final String value;
 	private final String description;

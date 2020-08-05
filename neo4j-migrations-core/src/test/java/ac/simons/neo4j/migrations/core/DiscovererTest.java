@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.Discoverer.CypherBasedMigrationDiscoverer;
 import ac.simons.neo4j.migrations.core.Discoverer.JavaBasedMigrationDiscoverer;

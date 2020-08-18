@@ -26,12 +26,11 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -41,7 +40,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @SpringBootTest
 @Testcontainers(disabledWithoutDocker = true)
-@ContextConfiguration(initializers = MigrationsAutoConfigurationIT.Neo4jContainerBasedTestPropertyProvider.class)
 class MigrationsAutoConfigurationIT {
 
 	@Container
@@ -69,23 +67,17 @@ class MigrationsAutoConfigurationIT {
 		}
 	}
 
-	static class Neo4jContainerBasedTestPropertyProvider
-		implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		@Override
-		public void initialize(ConfigurableApplicationContext applicationContext) {
-
-			TestPropertyValues.of(
-				"org.neo4j.driver.uri = " + neo4j.getBoltUrl(),
-				"org.neo4j.driver.authentication.username = neo4j",
-				"org.neo4j.driver.authentication.password = " + neo4j.getAdminPassword(),
-				"org.neo4j.migrations.packages-to-scan=ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations"
-			).applyTo(applicationContext.getEnvironment());
-		}
+	@DynamicPropertySource
+	static void neo4jProperties(DynamicPropertyRegistry registry) {
+		registry.add("org.neo4j.driver.uri", neo4j::getBoltUrl);
+		registry.add("org.neo4j.driver.authentication.username", () -> "neo4j");
+		registry.add("org.neo4j.driver.authentication.password", () -> "password");
+		registry.add("org.neo4j.migrations.packages-to-scan", () -> "ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations");
 	}
 
 	@Configuration(proxyBeanMethods = false)
 	@ImportAutoConfiguration({ Neo4jDriverAutoConfiguration.class, MigrationsAutoConfiguration.class })
+	@EntityScan(basePackageClasses = MigrationsAutoConfigurationIT.class)
 	static class TestConfiguration {
 	}
 }

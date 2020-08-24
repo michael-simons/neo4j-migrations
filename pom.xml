@@ -55,7 +55,7 @@
 
 	<properties>
 
-		<assertj.version>3.16.1</assertj.version>
+		<assertj.version>3.17.0</assertj.version>
 		<checkstyle.version>8.35</checkstyle.version>
 		<classgraph.version>4.8.87</classgraph.version>
 		<graalvm.version>20.1.0</graalvm.version>

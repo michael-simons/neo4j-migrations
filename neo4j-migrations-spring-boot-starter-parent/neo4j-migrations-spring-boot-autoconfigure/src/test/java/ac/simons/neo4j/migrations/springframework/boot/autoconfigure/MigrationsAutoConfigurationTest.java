@@ -31,9 +31,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
-import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverAutoConfiguration;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -180,7 +180,7 @@ class MigrationsAutoConfigurationTest {
 
 			contextRunner
 				.withUserConfiguration(WithDriver.class)
-				.withClassLoader(new FilteredClassLoader(Neo4jDriverAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(Neo4jAutoConfiguration.class))
 				.run(ctx -> assertThat(ctx).hasSingleBean(Migrations.class));
 		}
 

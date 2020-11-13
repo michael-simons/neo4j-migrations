@@ -22,7 +22,7 @@
 		<docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
 		<ivy.version>2.5.0</ivy.version>
 		<java-module-name>ac.simons.neo4j.migrations.maven</java-module-name>
-		<junit.version>4.13</junit.version>
+		<junit.version>4.13.1</junit.version>
 		<maven-plugin-annotations.version>3.6.0</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plexus-classworlds.version>2.6.0</plexus-classworlds.version>

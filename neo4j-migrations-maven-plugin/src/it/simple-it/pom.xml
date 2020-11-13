@@ -19,7 +19,7 @@
 			<plugin>
 				<groupId>eu.michael-simons.neo4j</groupId>
 				<artifactId>neo4j-migrations-maven-plugin</artifactId>
-				<version>0.1.1-SNAPSHOT</version>
+				<version>0.1.2-SNAPSHOT</version>
 				<executions>
 					<execution>
 						<id>info-pre</id>

@@ -91,7 +91,7 @@ class MigrationsEETest {
 		migrations.apply();
 
 		// Assert that verification runs in the correct database
-		assertThat(TestBase.lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(4);
+		assertThat(TestBase.lengthOfMigrations(driver, TARGET_DATABASSE)).isEqualTo(8);
 
 		try (Session session = driver.session(SessionConfig.forDatabase(TARGET_DATABASSE))) {
 

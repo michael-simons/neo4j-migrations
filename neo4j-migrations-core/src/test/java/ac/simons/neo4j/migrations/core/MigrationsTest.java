@@ -52,7 +52,7 @@ class MigrationsTest extends TestBase {
 			.build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
 
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements())
@@ -189,13 +189,14 @@ class MigrationsTest extends TestBase {
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(9);
 
 		try (Session session = driver.session()) {
 			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
-				.containsExactly(null, "1100083332", "3226785110", "1236540472", "200310393", "2884945437");
+				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "200310393",
+						"949907516", "949907516", "2884945437");
 		}
 	}
 }

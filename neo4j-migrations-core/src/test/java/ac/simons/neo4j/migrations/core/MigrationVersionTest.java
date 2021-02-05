@@ -19,44 +19,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
  */
 public class MigrationVersionTest {
 
-	@Test
-	void shouldHandleCorrectClassNames() {
+	@ParameterizedTest
+	@CsvSource(value = {"V1__a:1:a", "V021__HalloWelt:021:HalloWelt", "V021_1__HalloWelt:021.1:HalloWelt",
+			"V021.1__HalloWelt:021.1:HalloWelt", "V021.1.2.4__HalloWelt:021.1.2.4:HalloWelt",
+			"V021_1_2_4__HalloWelt:021.1.2.4:HalloWelt"}, delimiter = ':')
+	void shouldHandleCorrectClassNames(String name, String value, String description) {
 
 		MigrationVersion migrationVersion;
-		migrationVersion = MigrationVersion.parse("V1__a");
-		assertThat(migrationVersion.getValue()).isEqualTo("1");
-		assertThat(migrationVersion.getDescription()).isEqualTo("a");
-
-		migrationVersion = MigrationVersion.parse("V021__HalloWelt");
-		assertThat(migrationVersion.getValue()).isEqualTo("021");
-		assertThat(migrationVersion.getDescription()).isEqualTo("HalloWelt");
+		migrationVersion = MigrationVersion.parse(name);
+		assertThat(migrationVersion.getValue()).isEqualTo(value);
+		assertThat(migrationVersion.getDescription()).isEqualTo(description);
 	}
 
-	@Test
-	void shouldIgnoreCypherExtension() {
-
+	@ParameterizedTest
+	@CsvSource(value = {"V1__a.cypher:1:a", "V021__HalloWelt.cypher:021:HalloWelt",
+			"V4711__MirFallenKeineNamenEin.cypher:4711:MirFallenKeineNamenEin",
+			"V4711__Ein Dateiname.cypher:4711:Ein Dateiname"}, delimiter = ':')
+	void shouldIgnoreCypherExtension(String name, String value, String description) {
 		MigrationVersion migrationVersion;
-		migrationVersion = MigrationVersion.parse("V1__a.cypher");
-		assertThat(migrationVersion.getValue()).isEqualTo("1");
-		assertThat(migrationVersion.getDescription()).isEqualTo("a");
-
-		migrationVersion = MigrationVersion.parse("V021__HalloWelt.cypher");
-		assertThat(migrationVersion.getValue()).isEqualTo("021");
-		assertThat(migrationVersion.getDescription()).isEqualTo("HalloWelt");
-
-		migrationVersion = MigrationVersion.parse("V4711__MirFallenKeineNamenEin.cypher");
-		assertThat(migrationVersion.getValue()).isEqualTo("4711");
-		assertThat(migrationVersion.getDescription()).isEqualTo("MirFallenKeineNamenEin");
-
-		migrationVersion = MigrationVersion.parse("V4711__Ein Dateiname.cypher");
-		assertThat(migrationVersion.getValue()).isEqualTo("4711");
-		assertThat(migrationVersion.getDescription()).isEqualTo("Ein Dateiname");
+		migrationVersion = MigrationVersion.parse(name);
+		assertThat(migrationVersion.getValue()).isEqualTo(value);
+		assertThat(migrationVersion.getDescription()).isEqualTo(description);
 	}
 
 	@Test
@@ -67,13 +59,11 @@ public class MigrationVersionTest {
 		assertThat(migrationVersion.getDescription()).isEqualTo("a b");
 	}
 
-	@Test
-	void shouldFailOnIncorrectClassNames() {
-
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("HalloWelt"));
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1"));
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1__"));
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V__HalloWelt"));
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse("V1_HalloWelt"));
+	@ParameterizedTest
+	@ValueSource(strings = {"HalloWelt", "V1", "V1__", "V__HalloWelt", "V1_HalloWelt", "V_1_HalloWelt", "V1_1_HalloWelt",
+			"V1.1_HalloWelt", "V1..1__HalloWelt", "V1.1_2__HalloWelt", "V1_1.2__HalloWelt", "V1_1_2_HalloWelt", "V1.1.2_HalloWelt"
+	})
+	void shouldFailOnIncorrectClassNames(String value) {
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse(value));
 	}
 }

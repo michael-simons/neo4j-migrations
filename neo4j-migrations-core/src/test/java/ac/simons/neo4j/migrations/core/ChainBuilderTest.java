@@ -46,7 +46,7 @@ class ChainBuilderTest extends TestBase {
 		assertThat(migrationChain.getServerVersion()).matches("Neo4j/4\\.0\\.\\d");
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
 		assertThat(migrationChain.getDatabaseName()).isEqualTo("neo4j");
-		assertThat(migrationChain.getElements()).hasSize(4);
+		assertThat(migrationChain.getElements()).hasSize(8);
 		assertThat(migrationChain.getElements()).element(0).satisfies(element -> {
 
 			assertThat(element.getState()).isEqualTo(MigrationState.APPLIED);
@@ -88,12 +88,24 @@ class ChainBuilderTest extends TestBase {
 		assertThat(migrationChain.getElements()).element(3).satisfies(element -> {
 
 			assertThat(element.getState()).isEqualTo(MigrationState.PENDING);
+			assertThat(element.getType()).isEqualTo(MigrationType.CYPHER);
+			assertThat(element.getChecksum()).isPresent();
+			assertThat(element.getVersion()).isEqualTo("007.1");
+			assertThat(element.getDescription()).isEqualTo("BondTheNameIsBondNew");
+			assertThat(element.getSource()).isEqualTo("V007_1__BondTheNameIsBondNew.cypher");
+			assertThat(element.getInstalledOn()).isEmpty();
+			assertThat(element.getInstalledBy()).isEmpty();
+			assertThat(element.getExecutionTime()).isEmpty();
+		});
+		assertThat(migrationChain.getElements()).element(5).satisfies(element -> {
+
+			assertThat(element.getState()).isEqualTo(MigrationState.PENDING);
 			assertThat(element.getType()).isEqualTo(MigrationType.JAVA);
 			assertThat(element.getChecksum()).isEmpty();
 			assertThat(element.getVersion()).isEqualTo("023");
 			assertThat(element.getDescription()).isEqualTo("NichtsIstWieEsScheint");
 			assertThat(element.getSource())
-				.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset2.V023__NichtsIstWieEsScheint");
+					.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset2.V023__NichtsIstWieEsScheint");
 			assertThat(element.getInstalledOn()).isEmpty();
 			assertThat(element.getInstalledBy()).isEmpty();
 			assertThat(element.getExecutionTime()).isEmpty();

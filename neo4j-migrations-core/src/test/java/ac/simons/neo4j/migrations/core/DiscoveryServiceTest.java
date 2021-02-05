@@ -42,9 +42,11 @@ class DiscoveryServiceTest {
 			.build(), Mockito.mock(Driver.class));
 
 		List<Migration> migrations = new DiscoveryService().findMigrations(context);
-		assertThat(migrations).hasSize(7)
+		assertThat(migrations).hasSize(13)
 			.extracting(Migration::getDescription)
 			.containsExactly("FirstMigration", "AnotherMigration", "InnerMigration", "BondTheNameIsBond",
-				"Die halbe Wahrheit", "NichtsIstWieEsScheint", "MirFallenKeineNamenEin");
+				"BondTheNameIsBondNew", "BondTheNameIsBondNewNew", "Die halbe Wahrheit", "Die halbe Wahrheit neu",
+					"Die halbe Wahrheit neu neu", "NichtsIstWieEsScheint", "NichtsIstWieEsScheintNeu", "NichtsIstWieEsScheintNeuNeu",
+					"MirFallenKeineNamenEin");
 	}
 }

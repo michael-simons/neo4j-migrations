@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
  */
 public final class MigrationVersion {
 
-	private static final String BASLINE_VALUE = "BASELINE";
-	private static final MigrationVersion BASELINE = new MigrationVersion(BASLINE_VALUE, null);
+	private static final String BASELINE_VALUE = "BASELINE";
+	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null);
 	private static final Pattern VERSION_PATTERN = Pattern
-		.compile("V(\\d+)__([\\w ]+)(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
+			.compile("V(\\d+(?:_\\d+)*|\\d+(?:\\.\\d+)*)__([\\w ]+)(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
 
 	private final String value;
 	private final String description;
@@ -47,12 +47,13 @@ public final class MigrationVersion {
 			throw new MigrationsException("Invalid class name for a migration: " + simpleName);
 		}
 
-		return new MigrationVersion(matcher.group(1), matcher.group(2).replaceAll("_", " "));
+		return new MigrationVersion(matcher.group(1).replaceAll("_", "\\."),
+				matcher.group(2).replaceAll("_", " "));
 	}
 
 	static MigrationVersion withValue(String value) {
 
-		if (BASLINE_VALUE.equals(value)) {
+		if (BASELINE_VALUE.equals(value)) {
 			return MigrationVersion.baseline();
 		}
 		return new MigrationVersion(value, null);

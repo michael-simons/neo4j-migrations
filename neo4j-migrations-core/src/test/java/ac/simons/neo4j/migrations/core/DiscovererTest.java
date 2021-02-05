@@ -88,6 +88,7 @@ class DiscovererTest {
 			Collection<Migration> migrations = new CypherBasedMigrationDiscoverer().discoverMigrations(context);
 			assertThat(migrations).hasSize(5)
 				.extracting(Migration::getDescription)
+				.map(s -> s.replaceAll(" neu", ""))
 				.contains("delete old data", "create new data", "BondTheNameIsBond", "Die halbe Wahrheit",
 					"MirFallenKeineNamenEin");
 		}

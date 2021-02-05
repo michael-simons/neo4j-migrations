@@ -86,11 +86,17 @@ class DiscovererTest {
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
 			Collection<Migration> migrations = new CypherBasedMigrationDiscoverer().discoverMigrations(context);
-			assertThat(migrations).hasSize(5)
+			assertThat(migrations).hasSize(9)
 				.extracting(Migration::getDescription)
-				.map(s -> s.replaceAll(" neu", ""))
-				.contains("delete old data", "create new data", "BondTheNameIsBond", "Die halbe Wahrheit",
-					"MirFallenKeineNamenEin");
+				.contains("delete old data", "create new data",
+					"BondTheNameIsBond",
+					"BondTheNameIsBondNew",
+					"BondTheNameIsBondNewNew",
+					"Die halbe Wahrheit",
+					"Die halbe Wahrheit neu",
+					"Die halbe Wahrheit neu neu",
+					"MirFallenKeineNamenEin"
+				);
 		}
 
 		@Test

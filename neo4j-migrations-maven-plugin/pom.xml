@@ -222,6 +222,7 @@
 					<postBuildHookScript>verify</postBuildHookScript>
 					<properties>
 						<it-database-port>${it-database-port}</it-database-port>
+						<neo4j-migrations-maven-plugin.version>${project.version}</neo4j-migrations-maven-plugin.version>
 					</properties>
 					<localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
 					<settingsFile>src/it/settings.xml</settingsFile>

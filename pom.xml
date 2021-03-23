@@ -39,12 +39,12 @@
 	</developers>
 
 	<modules>
+		<module>neo4j-migrations-test-resources</module>
 		<module>neo4j-migrations-core</module>
 		<module>neo4j-migrations-cli</module>
-		<module>neo4j-migrations-maven-plugin</module>
-		<module>neo4j-migrations-test-resources</module>
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 		<module>neo4j-migrations-examples</module>
+		<module>neo4j-migrations-maven-plugin</module>
 	</modules>
 
 	<scm>

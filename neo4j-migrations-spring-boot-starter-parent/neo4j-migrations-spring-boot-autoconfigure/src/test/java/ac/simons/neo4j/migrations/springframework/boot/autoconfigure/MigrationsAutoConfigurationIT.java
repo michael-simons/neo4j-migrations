@@ -34,6 +34,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -43,7 +44,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class MigrationsAutoConfigurationIT {
 
 	@Container
-	private static Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0");
+	private static Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.2")
+		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	private final Driver driver;
 

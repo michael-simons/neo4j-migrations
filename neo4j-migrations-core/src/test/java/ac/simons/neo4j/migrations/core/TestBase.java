@@ -30,6 +30,7 @@ import org.neo4j.driver.exceptions.Neo4jException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -43,7 +44,8 @@ abstract class TestBase {
 		SLF4JBridgeHandler.install();
 	}
 
-	protected final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.4");
+	protected final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.2")
+		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	Driver driver;
 

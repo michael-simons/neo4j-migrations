@@ -32,6 +32,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * Tests that made only sense in Neo4j Enterprise Edition.
@@ -50,7 +51,8 @@ class MigrationsEETest {
 	}
 
 	@Container
-	private static final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.0.0-enterprise")
+	private static final Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.2-enterprise")
+		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
 
 	private static Driver driver;

@@ -5,7 +5,7 @@ Michael Simons <michael.simons@neo4j.com>
 :listing-caption: Listing
 :source-highlighter: coderay
 :icons: font
-:latest_version: 0.1.2
+:latest_version: 0.1.3
 
 [abstract]
 --

@@ -33,7 +33,6 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
-		<java.version>11</java.version>
 	</properties>
 
 	<dependencyManagement>

@@ -24,8 +24,10 @@ import java.util.logging.Level;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
+import org.neo4j.driver.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
@@ -73,11 +75,11 @@ class ApplicationIT {
 			}
 		}
 
-		try (var driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
 			Config.builder().withLogging(Logging.console(Level.OFF)).build());
-			var session = driver.session()
+			Session session = driver.session()
 		) {
-			var cnt = session.readTransaction(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
+			long cnt = session.readTransaction(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}

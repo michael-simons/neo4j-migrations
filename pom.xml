@@ -91,7 +91,7 @@
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.30</slf4j.version>
-		<sortpom-maven-plugin.version>2.14.0</sortpom-maven-plugin.version>
+		<sortpom-maven-plugin.version>2.14.1</sortpom-maven-plugin.version>
 		<testcontainers.version>1.15.2</testcontainers.version>
 	</properties>
 

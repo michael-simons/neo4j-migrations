@@ -84,7 +84,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.version>3.6.3</maven.version>
-		<mockito.version>3.7.7</mockito.version>
+		<mockito.version>3.9.0</mockito.version>
 		<neo4j-java-driver-spring-boot-starter.version>4.1.1.1</neo4j-java-driver-spring-boot-starter.version>
 		<neo4j-java-driver.version>4.2.3</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>

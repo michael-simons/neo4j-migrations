@@ -85,7 +85,6 @@
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.version>3.6.3</maven.version>
 		<mockito.version>3.7.7</mockito.version>
-		<neo4j-java-driver-spring-boot-starter.version>4.1.1.1</neo4j-java-driver-spring-boot-starter.version>
 		<neo4j-java-driver.version>4.2.3</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<picocli.version>4.6.1</picocli.version>
@@ -140,11 +139,6 @@
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j.driver</groupId>
-				<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-				<version>${neo4j-java-driver-spring-boot-starter.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>

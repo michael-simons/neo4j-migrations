@@ -59,7 +59,7 @@
 		<assertj.version>3.19.0</assertj.version>
 		<checkstyle.version>8.43</checkstyle.version>
 		<classgraph.version>4.8.106</classgraph.version>
-		<graalvm.version>21.0.0.2</graalvm.version>
+		<graalvm.version>21.1.0</graalvm.version>
 		<java-module-name />
 		<java.version>1.8</java.version>
 		<!-- to be overridden in sub modules -->
@@ -84,7 +84,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.version>3.6.3</maven.version>
-		<mockito.version>3.7.7</mockito.version>
+		<mockito.version>3.10.0</mockito.version>
 		<neo4j-java-driver.version>4.2.5</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<picocli.version>4.6.1</picocli.version>

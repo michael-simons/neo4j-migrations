@@ -33,6 +33,7 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
+		<spring-boot.version>2.5.0</spring-boot.version>
 	</properties>
 
 	<dependencyManagement>
@@ -41,7 +42,7 @@
 				<!-- Import dependency management from Spring Boot -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.4.4</version>
+				<version>${spring-boot.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -76,7 +77,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.4.4</version>
+				<version>${spring-boot.version}</version>
 				<configuration>
 					<mainClass>org.neo4j.migrations.examples.sb.Application</mainClass>
 				</configuration>

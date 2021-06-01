@@ -55,7 +55,7 @@
 	</scm>
 
 	<properties>
-
+		<apiguardian.version>1.1.1</apiguardian.version>
 		<assertj.version>3.19.0</assertj.version>
 		<checkstyle.version>8.43</checkstyle.version>
 		<classgraph.version>4.8.106</classgraph.version>
@@ -111,6 +111,11 @@
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>
 				<version>5.8.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apiguardian</groupId>
+				<artifactId>apiguardian-api</artifactId>
+				<version>${apiguardian.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.assertj</groupId>

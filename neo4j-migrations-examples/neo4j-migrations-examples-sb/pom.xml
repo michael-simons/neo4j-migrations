@@ -77,6 +77,9 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>2.4.4</version>
+				<configuration>
+					<mainClass>org.neo4j.migrations.examples.sb.Application</mainClass>
+				</configuration>
 				<executions>
 					<execution>
 						<id>repackage</id>
@@ -85,13 +88,15 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<mainClass>org.neo4j.migrations.examples.sb.Application</mainClass>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<artifact>${project.build.directory}/${project.build.finalName}.jar</artifact>
+					</systemPropertyVariables>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -100,11 +105,6 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<systemPropertyVariables>
-						<artifact>${project.build.directory}/${project.build.finalName}.jar</artifact>
-					</systemPropertyVariables>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

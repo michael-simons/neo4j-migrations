@@ -129,6 +129,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-plugin-plugin</artifactId>
+				<configuration>
+					<goalPrefix>neo4j-migrations</goalPrefix>
+					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+				</configuration>
 				<executions>
 					<execution>
 						<id>mojo-descriptor</id>
@@ -143,31 +147,11 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<goalPrefix>neo4j-migrations</goalPrefix>
-					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
 				<version>${docker-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>prepare-it-database</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>start</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>remove-it-database</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
 					<images>
 						<image>
@@ -187,29 +171,27 @@
 						</image>
 					</images>
 				</configuration>
+				<executions>
+					<execution>
+						<id>prepare-it-database</id>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<phase>pre-integration-test</phase>
+					</execution>
+					<execution>
+						<id>remove-it-database</id>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+						<phase>post-integration-test</phase>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-invoker-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<phase>integration-test</phase>
-						<goals>
-							<goal>install</goal>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.ivy</groupId>
-						<artifactId>ivy</artifactId>
-						<version>${ivy.version}</version>
-					</dependency>
-				</dependencies>
 				<configuration>
 					<debug>true</debug>
 					<cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
@@ -231,6 +213,24 @@
 						<goal>verify</goal>
 					</goals>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.ivy</groupId>
+						<artifactId>ivy</artifactId>
+						<version>${ivy.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>install</goal>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<phase>integration-test</phase>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

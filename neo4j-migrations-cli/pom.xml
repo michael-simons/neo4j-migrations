@@ -60,13 +60,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
 				<executions>
 					<execution>
 						<id>nojre-assembly</id>
-						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<phase>package</phase>
 						<configuration>
 							<descriptors>
 								<descriptor>src/main/assembly/no-jre.xml</descriptor>
@@ -75,9 +78,6 @@
 						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<encoding>UTF-8</encoding>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -91,20 +91,20 @@
 						<groupId>org.graalvm.nativeimage</groupId>
 						<artifactId>native-image-maven-plugin</artifactId>
 						<version>${graalvm.version}</version>
-						<executions>
-							<execution>
-								<id>create-native-image</id>
-								<phase>package</phase>
-								<goals>
-									<goal>native-image</goal>
-								</goals>
-							</execution>
-						</executions>
 						<configuration>
 							<mainClass>ac.simons.neo4j.migrations.cli.MigrationsCli</mainClass>
 							<imageName>neo4j-migrations</imageName>
 							<buildArgs>--no-fallback --allow-incomplete-classpath --report-unsupported-elements-at-runtime</buildArgs>
 						</configuration>
+						<executions>
+							<execution>
+								<id>create-native-image</id>
+								<goals>
+									<goal>native-image</goal>
+								</goals>
+								<phase>package</phase>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>

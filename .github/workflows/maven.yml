@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-java@v1
         with:
             java-version: ${{ matrix.java }}
-      - if: ${{ matrix.java }} == 8
+      - if: ${{ matrix.java == '8' }}
         name: Run Maven build (Java 8)
         run: ./mvnw --no-transfer-progress clean verify
-      - if: ${{ matrix.java }} > 8
+      - if: ${{ matrix.java != '8' }}
         name: Run Maven build (Java 8)
         run: ./mvnw --no-transfer-progress clean verify -pl !eu.michael-simons.neo4j:neo4j-migrations-examples-sb-testharness

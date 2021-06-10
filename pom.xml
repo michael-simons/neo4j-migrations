@@ -84,7 +84,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.version>3.8.1</maven.version>
-		<mockito.version>3.10.0</mockito.version>
+		<mockito.version>3.11.0</mockito.version>
 		<neo4j-java-driver.version>4.2.6</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<picocli.version>4.6.1</picocli.version>

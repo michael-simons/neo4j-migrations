@@ -32,6 +32,7 @@
 
 	<modules>
 		<module>neo4j-migrations-examples-sb</module>
+		<module>neo4j-migrations-examples-sb-testharness</module>
 	</modules>
 
 	<properties>

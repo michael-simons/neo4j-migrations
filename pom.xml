@@ -89,7 +89,7 @@
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<slf4j.version>1.7.30</slf4j.version>
+		<slf4j.version>1.7.31</slf4j.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.15.3</testcontainers.version>
 	</properties>

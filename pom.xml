@@ -55,7 +55,7 @@
 	</scm>
 
 	<properties>
-		<apiguardian.version>1.1.1</apiguardian.version>
+		<apiguardian.version>1.1.2</apiguardian.version>
 		<assertj.version>3.19.0</assertj.version>
 		<checkstyle.version>8.43</checkstyle.version>
 		<classgraph.version>4.8.108</classgraph.version>

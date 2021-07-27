@@ -106,7 +106,7 @@ final class ChainBuilder {
 						"Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
 				}
 
-				if (!expectedChecksum.equals(newMigration.getChecksum())) {
+				if (context.getConfig().isValidateOnMigrate() && !expectedChecksum.equals(newMigration.getChecksum())) {
 					throw new MigrationsException(("Checksum of " + Migrations.toString(newMigration) + " changed!"));
 				}
 				// This is not a pending migration anymore

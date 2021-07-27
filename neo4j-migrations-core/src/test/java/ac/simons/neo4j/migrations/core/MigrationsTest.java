@@ -120,6 +120,42 @@ class MigrationsTest extends TestBase {
 		}
 	}
 
+	@Test // GH-237
+	void changedMigrationsShouldBeAllowedWhenValidateIsOff() throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(2, dir);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).withValidateOnMigrate(false).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(2);
+
+			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+
+			File newMigration = new File(dir, "V3__SomethingNew.cypher");
+			files.add(newMigration);
+			Files.write(newMigration.toPath(), Arrays.asList("CREATE INDEX node_index_name FOR (n:Person) ON (n.surname)"));
+
+			migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			try (Session session = driver.session()) {
+				String version = session.run(
+					"MATCH (:__Neo4jMigration {version: '2'}) -[r:MIGRATED_TO]->(t) RETURN t.version AS version")
+					.single().get("version").asString();
+				assertThat(version).isEqualTo("3");
+			}
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
 	@Test
 	void shouldVerifyChecksums() throws IOException {
 

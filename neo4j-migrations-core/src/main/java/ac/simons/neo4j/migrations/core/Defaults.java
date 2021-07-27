@@ -62,6 +62,13 @@ public final class Defaults {
 	 */
 	public static final TransactionMode TRANSACTION_MODE = TransactionMode.PER_MIGRATION;
 
+	/**
+	 * Default setting for {@code validateOnMigrate}.
+	 */
+	public static final boolean VALIDATE_ON_MIGRATE = true;
+
+	public static final String VALIDATE_ON_MIGRATE_VALUE = "true";
+
 	private Defaults() {
 	}
 }

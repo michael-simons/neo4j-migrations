@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
@@ -151,7 +152,7 @@ class MigrationsAutoConfigurationTest {
 			Mockito.when(resource.exists()).thenReturn(true);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			ac.neo4jMigrationsConfig(resourceLoader, properties);
+			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties));
 		}
 
 		@Test
@@ -159,12 +160,32 @@ class MigrationsAutoConfigurationTest {
 
 			MigrationsProperties properties = new MigrationsProperties();
 			properties.setPackagesToScan(new String[] { "na" });
-			properties.setLocationsToScan(new String[0]);
 
 			assertThat(properties.isCheckLocation()).isTrue();
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			ac.neo4jMigrationsConfig(resourceLoader, properties);
+			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties));
+		}
+
+		@Test // GH-237
+		void validateOnMigrationShouldBeTrueByDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.isValidateOnMigrate()).isTrue();
+		}
+
+		@Test // GH-237
+		void shouldApplyValidateOnMigration() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setValidateOnMigrate(false);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.isValidateOnMigrate()).isFalse();
 		}
 	}
 

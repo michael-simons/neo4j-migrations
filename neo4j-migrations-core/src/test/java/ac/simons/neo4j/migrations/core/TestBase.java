@@ -51,7 +51,6 @@ abstract class TestBase {
 
 	@BeforeAll
 	void initDriver() {
-
 		Config config = Config.builder().withLogging(Logging.none()).build();
 
 		neo4j.start();

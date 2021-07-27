@@ -71,6 +71,11 @@ public class MigrationsProperties {
 	 */
 	private String installedBy;
 
+	/**
+	 * Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+	 */
+	private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -133,5 +138,13 @@ public class MigrationsProperties {
 
 	public void setDatabase(String database) {
 		this.database = database;
+	}
+
+	public boolean isValidateOnMigrate() {
+		return validateOnMigrate;
+	}
+
+	public void setValidateOnMigrate(boolean validateOnMigrate) {
+		this.validateOnMigrate = validateOnMigrate;
 	}
 }

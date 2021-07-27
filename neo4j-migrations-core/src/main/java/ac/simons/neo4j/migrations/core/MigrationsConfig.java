@@ -75,6 +75,8 @@ public final class MigrationsConfig {
 
 	private final String installedBy;
 
+	private final boolean validateOnMigrate;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN : builder.packagesToScan;
@@ -83,6 +85,7 @@ public final class MigrationsConfig {
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
+		this.validateOnMigrate = builder.validateOnMigrate;
 	}
 
 	public String[] getPackagesToScan() {
@@ -109,6 +112,10 @@ public final class MigrationsConfig {
 		return installedBy;
 	}
 
+	public boolean isValidateOnMigrate() {
+		return validateOnMigrate;
+	}
+
 	/**
 	 * A builder to create new instances of {@link MigrationsConfig configurations}.
 	 */
@@ -123,6 +130,8 @@ public final class MigrationsConfig {
 		private String database;
 
 		private String installedBy;
+
+		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -185,6 +194,21 @@ public final class MigrationsConfig {
 		public Builder withInstalledBy(String newInstalledBy) {
 
 			this.installedBy = newInstalledBy;
+			return this;
+		}
+
+		/**
+		 * Validating helps you verify that the migrations applied to the database match the ones available locally and
+		 * is on by default. It can be turned off by using a configuration with {@link MigrationsConfig#isValidateOnMigrate()}
+		 * to {@literal false}.
+		 *
+		 * @param newValidateOnMigrate The new value for {@code validateOnMigrate}.
+		 * @return The builder for further customization
+		 * @since 0.1.5
+		 */
+		public Builder withValidateOnMigrate(boolean newValidateOnMigrate) {
+
+			this.validateOnMigrate = newValidateOnMigrate;
 			return this;
 		}
 

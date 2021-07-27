@@ -29,4 +29,16 @@ class MigrationsConfigTest {
 
 		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).isEqualTo(Defaults.LOCATIONS_TO_SCAN);
 	}
+
+	@Test // GH-237
+	void validateOnInstallShouldBeTrueByDefault() {
+
+		assertThat(MigrationsConfig.builder().build().isValidateOnMigrate()).isTrue();
+	}
+
+	@Test // GH-237
+	void validateOnInstallShouldBeChangeable() {
+
+		assertThat(MigrationsConfig.builder().withValidateOnMigrate(false).build().isValidateOnMigrate()).isFalse();
+	}
 }

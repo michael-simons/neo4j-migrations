@@ -66,6 +66,7 @@ public class MigrationsAutoConfiguration {
 			.withTransactionMode(migrationsProperties.getTransactionMode())
 			.withDatabase(migrationsProperties.getDatabase())
 			.withInstalledBy(migrationsProperties.getInstalledBy())
+			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.build();
 	}
 

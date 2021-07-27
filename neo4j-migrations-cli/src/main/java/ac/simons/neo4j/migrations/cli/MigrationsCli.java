@@ -131,6 +131,13 @@ public final class MigrationsCli implements Runnable {
 	)
 	private boolean verbose;
 
+	@Option(
+		names = { "--validate-on-migrate" },
+		description = "Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.",
+		defaultValue = Defaults.VALIDATE_ON_MIGRATE_VALUE
+	)
+	private boolean validateOnMigrate;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -148,6 +155,7 @@ public final class MigrationsCli implements Runnable {
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
+			.withValidateOnMigrate(validateOnMigrate)
 			.build();
 
 		if (!config.hasPlacesToLookForMigrations()) {

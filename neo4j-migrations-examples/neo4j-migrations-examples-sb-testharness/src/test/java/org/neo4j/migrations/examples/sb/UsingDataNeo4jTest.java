@@ -24,8 +24,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.harness.Neo4j;
+import org.neo4j.harness.Neo4jBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
@@ -33,15 +33,14 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**
- * Example uses Test-Harness 3.5 so that I can still run it on JDK 8. Neo4j 4+ would look something like this:
+ * Example uses Test-Harness 4.3 and requires JDK 11. Test-Harness 3.5 is compatible with JDK 8 and looks like this:
  * <blockquote><pre>
  * {@code
- *  	private static Neo4j embeddedDatabaseServer;
+ *    private static ServerControls embeddedDatabaseServer;
+ *
  *    @BeforeAll
  *    static void initializeNeo4j() {
- * 			embeddedDatabaseServer = Neo4jBuilders.newInProcessBuilder()
- * 				.withDisabledServer() // No need for http
- * 				.build();
+ *        embeddedDatabaseServer = TestServerBuilders.newInProcessBuilder().newServer();
  *    }
  *  }
  *  </pre></blockquote>
@@ -52,12 +51,12 @@ import org.springframework.test.context.DynamicPropertySource;
 @ImportAutoConfiguration(MigrationsAutoConfiguration.class)
 public class UsingDataNeo4jTest {
 
-	private static ServerControls embeddedDatabaseServer;
+	private static Neo4j embeddedDatabaseServer;
 
 	@BeforeAll
 	static void initializeNeo4j() {
 
-		embeddedDatabaseServer = TestServerBuilders.newInProcessBuilder().newServer();
+		embeddedDatabaseServer = Neo4jBuilders.newInProcessBuilder().withDisabledServer().build();
 	}
 
 	@DynamicPropertySource

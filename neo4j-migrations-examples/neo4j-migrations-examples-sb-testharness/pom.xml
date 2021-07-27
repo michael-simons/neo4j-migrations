@@ -33,9 +33,8 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
-		<neo4j.version>3.5.28</neo4j.version>
+		<neo4j.version>4.3.2</neo4j.version>
 		<spring-boot.version>2.5.3</spring-boot.version>
-
 	</properties>
 
 	<dependencyManagement>
@@ -62,6 +61,12 @@
 			<groupId>org.neo4j.test</groupId>
 			<artifactId>neo4j-harness</artifactId>
 			<version>${neo4j.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-nop</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

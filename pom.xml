@@ -61,7 +61,7 @@
 		<classgraph.version>4.8.110</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
 		<java-module-name></java-module-name>
-		<java.version>1.8</java.version>
+		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.7.2</junit.jupiter.version>
 		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -81,8 +81,7 @@
 		<maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.1</maven.version>
 		<mockito.version>3.11.2</mockito.version>
 		<neo4j-java-driver.version>4.2.7</neo4j-java-driver.version>
@@ -293,6 +292,9 @@
 						<phase>validate</phase>
 						<configuration>
 							<rules>
+								<requireJavaVersion>
+									<version>11</version>
+								</requireJavaVersion>
 								<DependencyConvergence></DependencyConvergence>
 								<requireMavenVersion>
 									<version>${maven.version}</version>

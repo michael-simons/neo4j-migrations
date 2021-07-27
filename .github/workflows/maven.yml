@@ -12,16 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '16' ]
+        java: [ '11', '16' ]
     steps:
       - uses: actions/checkout@v1
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
             java-version: ${{ matrix.java }}
-      - if: ${{ matrix.java == '8' }}
-        name: Run Maven build (Java 8)
+      - name: Clean and verify
         run: ./mvnw --no-transfer-progress clean verify
-      - if: ${{ matrix.java != '8' }}
-        name: Run Maven build (Java 8)
-        run: ./mvnw --no-transfer-progress clean verify -pl !eu.michael-simons.neo4j:neo4j-migrations-examples-sb-testharness

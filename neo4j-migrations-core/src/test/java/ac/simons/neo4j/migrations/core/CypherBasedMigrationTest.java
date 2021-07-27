@@ -21,11 +21,26 @@ import java.net.URL;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
  */
 class CypherBasedMigrationTest {
+
+	@ParameterizedTest // GH-232
+	@ValueSource(strings = {"unix", "dos", "mac"})
+	void unixDosOrMacLineEndingsMustNotChangeChecksum(String type)  {
+
+		URL resource = CypherBasedMigrationTest.class.getResource("/V0001__" + type + ".cypher");
+
+		CypherBasedMigration migration = new CypherBasedMigration(resource);
+		List<String> statements = migration.getStatements();
+
+		assertThat(statements).hasSize(3).containsOnly("MATCH (n) RETURN count(n) AS n");
+		assertThat(migration.getChecksum()).hasValue("1902097523");
+	}
 
 	@Test
 	void shouldBeAbleToReadFromJar() {

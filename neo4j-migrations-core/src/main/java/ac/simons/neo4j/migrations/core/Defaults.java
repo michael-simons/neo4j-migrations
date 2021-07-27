@@ -43,7 +43,7 @@ public final class Defaults {
 	/**
 	 * Cypher delimiter
 	 */
-	static final String CYPHER_STATEMENT_DELIMITER = ";\r?\n";
+	static final String CYPHER_STATEMENT_DELIMITER = ";(:?\r?\n|\r)";
 
 	/**
 	 * Default packages to scan.

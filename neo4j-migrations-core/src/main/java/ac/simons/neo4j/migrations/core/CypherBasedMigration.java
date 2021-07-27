@@ -110,7 +110,8 @@ final class CypherBasedMigration implements Migration {
 		final CRC32 crc32 = new CRC32();
 
 		for (String statement : this.getStatements()) {
-			crc32.update(statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING));
+			byte[] bytes = statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING);
+			crc32.update(bytes, 0, bytes.length);
 		}
 		return Long.toString(crc32.getValue());
 	}

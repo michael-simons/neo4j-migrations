@@ -15,7 +15,6 @@
  */
 package org.neo4j.migrations.examples.sb;
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -23,15 +22,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Michael J. Simons
  */
 @SpringBootApplication
-public class Application implements CommandLineRunner {
+public class Application {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-	}
-
-	@Override
-	public void run(String... args) {
-		// Needed to shutdown the drivers Netty threads :/
-		System.exit(0);
 	}
 }

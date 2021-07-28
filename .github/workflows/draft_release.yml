@@ -1,0 +1,131 @@
+name: create_binaries
+
+on:
+  create:
+    tags:
+      - '*'
+
+jobs:
+  create_binaries:
+    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Set up JDK'
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: 'Prepare branch name'
+        run: >
+          echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: 'Checkout relevant branch'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.refName }}
+
+      - name: 'Create distribution'
+        run: >
+          ./mvnw --no-transfer-progress -DskipTests
+          -pl eu.michael-simons.neo4j:neo4j-migrations
+          -pl eu.michael-simons.neo4j:neo4j-migrations-test-resources
+          -pl eu.michael-simons.neo4j:neo4j-migrations-cli
+          package
+
+      - name: 'Upload build artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
+
+  create_native_binaries:
+    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
+    name: 'Build with Graal on ${{ matrix.os }}'
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        gu-binary: [ gu, gu.cmd ]
+        exclude:
+          - os: ubuntu-latest
+            gu-binary: gu.cmd
+          - os: macos-latest
+            gu-binary: gu.cmd
+          - os: windows-latest
+            gu-binary: gu
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 'Prepare git'
+        run: git config --global core.autocrlf false
+
+      - name: 'Prepare branch name'
+        run: >
+          echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: 'Checkout relevant branch'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.refName }}
+
+      - name: 'Add Developer Command Prompt for Microsoft Visual C++ '
+        if: ${{ runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: 'Set up Graal'
+        uses: DeLaGuardo/setup-graalvm@4.0
+        with:
+          graalvm: '21.2.0'
+          java: 'java11'
+
+      - name: 'Install native-image component'
+        run: |
+          ${{ matrix.gu-binary }} install native-image
+
+      - name: 'Create distribution'
+        run: >
+          ./mvnw --no-transfer-progress -Pnative -DskipTests
+          -pl eu.michael-simons.neo4j:neo4j-migrations
+          -pl eu.michael-simons.neo4j:neo4j-migrations-test-resources
+          -pl eu.michael-simons.neo4j:neo4j-migrations-cli
+          package
+
+      - name: 'Upload build artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
+
+  draft_release:
+    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
+    needs: [ create_binaries, create_native_binaries ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Prepare branch name'
+        run: >
+          echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: 'Download all build artifacts'
+        uses: actions/download-artifact@v2
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: 'Draft Release'
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          name: ${{ env.refName }}
+          tag_name: ${{ env.refName }}
+          fail_on_unmatched_files: true
+          body: |
+            # What's Changed
+
+            ## 🚀 Features
+            ## 🐛 Bug Fixes
+            ## 🧹 Housekeeping
+          draft: true
+          prerelease: false
+          files: |
+            artifacts/*.zip

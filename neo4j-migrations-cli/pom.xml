@@ -100,6 +100,7 @@
 						<phase>package</phase>
 						<configuration>
 							<finalName>neo4j-migrations-${project.version}</finalName>
+							<attach>false</attach>
 							<descriptors>
 								<descriptor>src/main/assembly/assembly-java.xml</descriptor>
 							</descriptors>
@@ -168,9 +169,8 @@
 								</goals>
 								<phase>package</phase>
 								<configuration>
-									<attach>false</attach>
-									<!-- Not attaching those to the release -->
 									<finalName>neo4j-migrations-${project.version}-${os.detected.classifier}</finalName>
+									<attach>false</attach>
 									<descriptors>
 										<descriptor>src/main/assembly/assembly-native.xml</descriptor>
 									</descriptors>

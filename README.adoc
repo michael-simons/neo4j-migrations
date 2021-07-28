@@ -436,6 +436,8 @@ migrations.apply();
 
 == For the adventurous
 
+NOTE: Native binaries for Windows, Unix and macOS are supplied since 0.3.1 at https://github.com/michael-simons/neo4j-migrations/releases[the releases page].
+
 The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
 Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
 

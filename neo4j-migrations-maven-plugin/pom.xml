@@ -155,7 +155,7 @@
 				<configuration>
 					<images>
 						<image>
-							<name>neo4j:4.2</name>
+							<name>neo4j:4.3</name>
 							<run>
 								<env>
 									<NEO4J_AUTH>neo4j/secret</NEO4J_AUTH>

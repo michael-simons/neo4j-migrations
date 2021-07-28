@@ -111,9 +111,9 @@ public final class Migrations {
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
 		try (Session session = context.getSession()) {
-			Node lastMigration = session.run(
-				"MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l")
-				.single().get(0).asNode();
+			Node lastMigration = session.readTransaction(tx ->
+				tx.run("MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l")
+				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
 			String description = lastMigration.get("description").asString();

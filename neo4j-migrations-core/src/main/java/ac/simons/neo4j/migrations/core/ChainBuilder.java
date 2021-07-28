@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.summary.DatabaseInfo;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
 import org.neo4j.driver.types.IsoDuration;
@@ -53,31 +54,45 @@ final class ChainBuilder {
 
 		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations);
 
+		class Tuple<T1, T2> {
+			final T1 v1;
+			final T2 v2;
+
+			Tuple(T1 v1, T2 v2) {
+				this.v1 = v1;
+				this.v2 = v2;
+			}
+		}
+
 		try (Session session = context.getSession()) {
 
 			// Auth maybe disabled. In such cases, we cannot get the current user.
-			Result result = session.run(""
-					+ "CALL dbms.procedures() yield name "
-					+ "WHERE name = 'dbms.showCurrentUser' "
-					+ "RETURN count(*) > 0 AS showCurrentUserExists"
-			);
-			boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
-			ResultSummary summary = result.consume();
-			ServerInfo serverInfo = summary.server();
+			Tuple<Boolean, ResultSummary> databaseInformation = session.readTransaction(tx -> {
+				Result result = tx.run(""
+									   + "CALL dbms.procedures() yield name "
+									   + "WHERE name = 'dbms.showCurrentUser' "
+									   + "RETURN count(*) > 0 AS showCurrentUserExists"
+				);
+				boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
+				ResultSummary summary = result.consume();
+				return new Tuple(showCurrentUserExists, summary);
+			});
+
 
 			String username = "anonymous";
-			if (showCurrentUserExists) {
+			if (databaseInformation.v1) {
 
-				result = session.run(""
+				username = session.readTransaction(tx -> tx.run(""
 					+ "CALL dbms.procedures() YIELD name "
 					+ "WHERE name = 'dbms.showCurrentUser' "
 					+ "CALL dbms.showCurrentUser() YIELD username RETURN username"
-				);
-				username = result.single().get("username").asString();
+				).single().get("username").asString());
 			}
 
+			ServerInfo serverInfo = databaseInformation.v2.server();
+			DatabaseInfo database = databaseInformation.v2.database();
 			return new DefaultMigrationChain(serverInfo.address(), serverInfo.version(),
-				username, summary.database() == null ? null : summary.database().name(), elements);
+				username, database == null ? null : database.name(), elements);
 		}
 	}
 

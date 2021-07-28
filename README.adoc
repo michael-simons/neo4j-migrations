@@ -24,12 +24,12 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 Since 0.0.5, you can grab binaries of `neo4j-migrations` CLI version at Maven central:
 https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-cli/{latest_version}/neo4j-migrations-cli-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]
 
-Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the the director (`cd neo4j-migrations-{latest_version}`) and execute the program
-(`neo4j-migrations` on Unix-like operating systems and `neo4j-migrations.cmd` on Windows):
+Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the directory (`cd neo4j-migrations-{latest_version}`) and execute the program
+(`bin/neo4j-migrations` on Unix-like operating systems and `bin/neo4j-migrations.bat` on Windows):
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -h
+./bin/neo4j-migrations -h
 Usage: neo4j-migrations [-hvV] -p[=<password>] [-p[=<password>]]...
                         [-a=<address>] [-d=<database>]
                         [--transaction-mode=<transactionMode>] [-u=<user>]
@@ -63,7 +63,7 @@ It uses the `info` command to tell you which migrations have been applied and wh
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
+./bin/neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687
 
@@ -84,7 +84,7 @@ Use `migrate` to apply migrations:
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations.changeset1 --package some.migrations.changeset2 migrate
+./bin/neo4j-migrations -uneo4j -psecret --package some.migrations.changeset1 --package some.migrations.changeset2 migrate
 Applied migration 001 ("FirstMigration")
 Applied migration 002 ("AnotherMigration")
 Applied migration 023 ("NichtsIstWieEsScheint")
@@ -95,7 +95,7 @@ If we go back to the `info` example above and grab all migrations again, we find
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
+./bin/neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687
 
@@ -115,7 +115,7 @@ Another `migrate` - this time with all packages - gives us the following output 
 
 [source,console,subs="verbatim,attributes"]
 ----
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo migrate
+./bin/neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo migrate
 Skipping already applied migration 001 ("FirstMigration")
 Skipping already applied migration 002 ("AnotherMigration")
 Skipping already applied migration 023 ("NichtsIstWieEsScheint")
@@ -124,7 +124,7 @@ Applied migration 030 ("Something based on a script")
 Applied migration 042 ("The truth")
 Database migrated to version 042.
 
-./neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
+./bin/neo4j-migrations -uneo4j -psecret --package some.migrations  --location file:$HOME/Desktop/foo info
 
 Database: Neo4j/4.0.0@localhost:7687
 

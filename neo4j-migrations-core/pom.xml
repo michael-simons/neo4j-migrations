@@ -16,16 +16,21 @@
 	</properties>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>io.github.classgraph</groupId>
+			<artifactId>classgraph</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-test-resources</artifactId>
 			<version>0.2.2-SNAPSHOT</version>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.github.classgraph</groupId>
-			<artifactId>classgraph</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
@@ -41,11 +46,6 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

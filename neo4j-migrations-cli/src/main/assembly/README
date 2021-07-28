@@ -1,0 +1,13 @@
+This is the CLI version of [neo4j-migrations][1].
+
+Use
+
+    ./bin/neo4j-migrations -h
+
+on a Unix like machine for usage instructions and
+
+    ./bin/neo4j-migrations.bat -h
+
+on Windows.
+
+[1]: https://github.com/michael-simons/neo4j-migrations

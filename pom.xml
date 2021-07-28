@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>0.3.1</version>
+	<version>0.3.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -50,7 +50,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>0.3.1</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -61,7 +61,7 @@
 		<checkstyle.version>8.44</checkstyle.version>
 		<classgraph.version>4.8.110</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
-		<java-module-name></java-module-name>
+		<java-module-name />
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.7.2</junit.jupiter.version>
@@ -297,7 +297,7 @@
 								<requireJavaVersion>
 									<version>11</version>
 								</requireJavaVersion>
-								<DependencyConvergence></DependencyConvergence>
+								<DependencyConvergence />
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>

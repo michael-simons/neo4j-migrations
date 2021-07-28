@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>0.3.1</version>
+		<version>0.3.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-cli</artifactId>
 	<name>Neo4j Migrations (CLI)</name>
 
 	<properties>
-		<executable-suffix></executable-suffix>
+		<executable-suffix />
 		<java-module-name>ac.simons.neo4j.migrations.cli</java-module-name>
 		<name-of-main-class>ac.simons.neo4j.migrations.cli.MigrationsCli</name-of-main-class>
 	</properties>
@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations</artifactId>
-			<version>0.3.1</version>
+			<version>0.3.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>info.picocli</groupId>

@@ -138,6 +138,14 @@ public final class MigrationsCli implements Runnable {
 	)
 	private boolean autocrlf;
 
+	@Option(
+		names = { "--with-max-connection-pool-size" },
+		description = "Configure the connection pool size, hardly ever needed to change.",
+		defaultValue = "1",
+		hidden = true
+	)
+	private int maxConnectionPoolSize;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -185,7 +193,10 @@ public final class MigrationsCli implements Runnable {
 
 	Driver openConnection() {
 
-		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
+		Config driverConfig = Config.builder()
+			.withMaxConnectionPoolSize(maxConnectionPoolSize)
+			.withUserAgent("neo4j-migrations")
+			.withLogging(Logging.console(Level.SEVERE)).build();
 		AuthToken authToken = AuthTokens.basic(user, new String(password));
 		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);
 		boolean verified = false;

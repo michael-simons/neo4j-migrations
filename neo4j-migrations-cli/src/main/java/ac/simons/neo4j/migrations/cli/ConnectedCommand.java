@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 
 /**
@@ -52,7 +53,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			Migrations migrations = new Migrations(config, driver);
 
 			return withMigrations(migrations);
-		} catch (ServiceUnavailableException e) {
+		} catch (AuthenticationException | ServiceUnavailableException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.SOFTWARE;
 		} catch (Exception e) {

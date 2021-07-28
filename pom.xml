@@ -60,7 +60,6 @@
 		<assertj.version>3.20.2</assertj.version>
 		<checkstyle.version>8.44</checkstyle.version>
 		<classgraph.version>4.8.110</classgraph.version>
-		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 		<graalvm.version>21.2.0</graalvm.version>
 		<java-module-name></java-module-name>
 		<java.version>8</java.version>
@@ -81,7 +80,6 @@
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
-		<maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -411,56 +409,7 @@
 					<releaseProfiles>release</releaseProfiles>
 					<tagNameFormat>@{project.version}</tagNameFormat>
 					<goals>deploy</goals>
-					<preparationGoals>clean exec:exec@update_readme exec:exec@delete_readme_backup scm:checkin@readme</preparationGoals>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>${exec-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>update_readme</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>sed</executable>
-							<arguments>
-								<argument>-i</argument>
-								<argument>.bak</argument>
-								<argument>s/\(:latest_version:\) \(.*\)/\1 ${project.version}/g</argument>
-								<argument>README.adoc</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>delete_readme_backup</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>rm</executable>
-							<arguments>
-								<argument>README.adoc.bak</argument>
-							</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-scm-plugin</artifactId>
-				<version>${maven-scm-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>readme</id>
-						<configuration>
-							<message>[maven-scm-plugin] Update README.adoc.</message>
-							<includes>README.adoc</includes>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

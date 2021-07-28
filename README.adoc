@@ -454,7 +454,7 @@ Run it with:
 
 [source,console,subs="verbatim,attributes"]
 ----
-./mvnw -Pcreate-native-image clean package
+./mvnw -Pnative clean package
 ----
 
 The resulting migration tool can only be used to load Cypher script based migrations in file locations.

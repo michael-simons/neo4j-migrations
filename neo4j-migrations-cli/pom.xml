@@ -12,6 +12,7 @@
 	<name>Neo4j Migrations (CLI)</name>
 
 	<properties>
+		<executable-suffix></executable-suffix>
 		<java-module-name>ac.simons.neo4j.migrations.cli</java-module-name>
 		<name-of-main-class>ac.simons.neo4j.migrations.cli.MigrationsCli</name-of-main-class>
 	</properties>
@@ -88,6 +89,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<encoding>UTF-8</encoding>
+					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 				<executions>
 					<execution>
@@ -97,20 +99,43 @@
 						</goals>
 						<phase>package</phase>
 						<configuration>
+							<finalName>neo4j-migrations-${project.version}</finalName>
 							<descriptors>
 								<descriptor>src/main/assembly/assembly-java.xml</descriptor>
 							</descriptors>
-							<appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>${os-maven-plugin.version}</version>
+			</extension>
+		</extensions>
 	</build>
 
 	<profiles>
 		<profile>
-			<id>create-native-image</id>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<executable-suffix>.exe</executable-suffix>
+			</properties>
+		</profile>
+		<profile>
+			<id>native</id>
+			<activation>
+				<property>
+					<name>native</name>
+				</property>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -129,6 +154,27 @@
 									<goal>native-image</goal>
 								</goals>
 								<phase>package</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>assembly-native</id>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration>
+									<attach>false</attach>
+									<!-- Not attaching those to the release -->
+									<finalName>neo4j-migrations-${project.version}-${os.detected.classifier}</finalName>
+									<descriptors>
+										<descriptor>src/main/assembly/assembly-native.xml</descriptor>
+									</descriptors>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

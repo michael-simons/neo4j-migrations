@@ -1,0 +1,11 @@
+[
+  {
+    "name": "ac.simons.neo4j.migrations.cli.internal.MigrationsCliConsoleHandler",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

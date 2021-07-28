@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Defaults;
-import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import picocli.CommandLine;
@@ -25,10 +24,11 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -54,20 +54,13 @@ import org.neo4j.driver.Logging;
 )
 public final class MigrationsCli implements Runnable {
 
-	static final Logger LOGGER = Logger.getLogger(MigrationsCli.class.getName());
-
+	static final Logger LOGGER;
 	static {
-		System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");
-		MigrationsCliConsoleHandler handler = new MigrationsCliConsoleHandler();
-		List<Logger> loggersToConfigure = Arrays.asList(
-			Logger.getAnonymousLogger(), Logger.getGlobal(),
-			Logger.getLogger(Migrations.class.getName()), LOGGER);
-
-		for (Logger logger : loggersToConfigure) {
-			logger.setUseParentHandlers(false);
-			logger.setLevel(Level.INFO);
-			logger.addHandler(handler);
+		try {
+			LogManager.getLogManager().readConfiguration(MigrationsCli.class.getResourceAsStream("/logging.properties"));
+		} catch (IOException e) {
 		}
+		LOGGER = Logger.getLogger(MigrationsCli.class.getName());
 	}
 
 	public static void main(String... args) {

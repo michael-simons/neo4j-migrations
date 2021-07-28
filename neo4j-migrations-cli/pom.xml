@@ -120,7 +120,7 @@
 						<configuration>
 							<mainClass>${name-of-main-class}</mainClass>
 							<imageName>neo4j-migrations</imageName>
-							<buildArgs>--no-fallback --allow-incomplete-classpath --report-unsupported-elements-at-runtime</buildArgs>
+							<buildArgs>--no-fallback</buildArgs>
 						</configuration>
 						<executions>
 							<execution>

@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.cli;
+package ac.simons.neo4j.migrations.cli.internal;
 
+import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
 /**
- * Always log to stdout.
+ * Always log to stdout. Not for external use outside this program.
  *
  * @author Michael J. Simons
  * @since 0.0.5
  */
-final class MigrationsCliConsoleHandler extends StreamHandler {
+public final class MigrationsCliConsoleHandler extends StreamHandler {
 
-	MigrationsCliConsoleHandler() {
+	public MigrationsCliConsoleHandler() {
 		super(System.out, new SimpleFormatter());
+	}
+
+	@Override
+	public synchronized void publish(LogRecord record) {
+		super.publish(record);
+		flush();
 	}
 
 	@Override

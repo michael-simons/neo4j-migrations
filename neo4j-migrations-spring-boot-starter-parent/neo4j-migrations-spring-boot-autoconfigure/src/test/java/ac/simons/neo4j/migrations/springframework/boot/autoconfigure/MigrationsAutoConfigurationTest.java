@@ -187,6 +187,27 @@ class MigrationsAutoConfigurationTest {
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
 			assertThat(config.isValidateOnMigrate()).isFalse();
 		}
+
+		@Test // GH-238
+		void autocrlfShouldBeFalseByDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.isAutocrlf()).isFalse();
+		}
+
+		@Test // GH-238
+		void shouldApplyAutocrlf() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setAutocrlf(true);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.isAutocrlf()).isTrue();
+		}
 	}
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

@@ -53,6 +53,7 @@ final class CypherBasedMigration implements Migration {
 	private final String script;
 	private final String description;
 	private final MigrationVersion version;
+	private final boolean autocrlf;
 
 	/**
 	 * A lazily initialized list of statements.
@@ -61,6 +62,10 @@ final class CypherBasedMigration implements Migration {
 	private volatile String checksum;
 
 	CypherBasedMigration(URL url) {
+		this(url, Defaults.AUTOCRLF);
+	}
+
+	CypherBasedMigration(URL url, boolean autocrlf) {
 
 		this.url = url;
 		String path = this.url.getPath();
@@ -73,6 +78,7 @@ final class CypherBasedMigration implements Migration {
 		this.script = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 		this.version = MigrationVersion.parse(this.script);
 		this.description = this.version.getDescription();
+		this.autocrlf = autocrlf;
 	}
 
 	@Override
@@ -201,6 +207,9 @@ final class CypherBasedMigration implements Migration {
 			while (scanner.hasNext()) {
 
 				String statement = scanner.next().trim().replaceAll(";$", "").trim();
+				if (this.autocrlf) {
+					statement = statement.replaceAll("\r\n", "\n");
+				}
 				if (statement.isEmpty()) {
 					continue;
 				}

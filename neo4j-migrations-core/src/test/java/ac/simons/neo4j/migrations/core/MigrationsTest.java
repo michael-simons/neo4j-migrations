@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -183,6 +184,30 @@ class MigrationsTest extends TestBase {
 				file.delete();
 			}
 		}
+	}
+
+	@Test // GH-238
+	void shouldNotFailWithDifferentLineEndings() {
+
+		MigrationsConfig configuration = MigrationsConfig.builder()
+			.withLocationsToScan("classpath:ml/dos")
+			.withAutocrlf(true)
+			.build();
+		Migrations migrations = new Migrations(configuration, driver);
+
+		Optional<MigrationVersion> finalVersion = migrations.apply();
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(1);
+		assertThat(finalVersion).map(MigrationVersion::getDescription).hasValue("Just a couple of matches");
+
+		configuration = MigrationsConfig.builder()
+			.withLocationsToScan("classpath:ml/unix")
+			.withAutocrlf(true)
+			.build();
+		migrations = new Migrations(configuration, driver);
+
+		finalVersion = migrations.apply();
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(1);
+		assertThat(finalVersion).map(MigrationVersion::getDescription).hasValue("Just a couple of matches");
 	}
 
 	@Test

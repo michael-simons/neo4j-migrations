@@ -67,6 +67,7 @@ public class MigrationsAutoConfiguration {
 			.withDatabase(migrationsProperties.getDatabase())
 			.withInstalledBy(migrationsProperties.getInstalledBy())
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
+			.withAutocrlf(migrationsProperties.isAutocrlf())
 			.build();
 	}
 

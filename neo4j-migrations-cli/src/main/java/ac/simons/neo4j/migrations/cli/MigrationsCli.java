@@ -138,6 +138,13 @@ public final class MigrationsCli implements Runnable {
 	)
 	private boolean validateOnMigrate;
 
+	@Option(
+		names = { "--autocrlf" },
+		description = "Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.",
+		defaultValue = Defaults.AUTOCRLF_VALUE
+	)
+	private boolean autocrlf;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -156,6 +163,7 @@ public final class MigrationsCli implements Runnable {
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
 			.withValidateOnMigrate(validateOnMigrate)
+			.withAutocrlf(autocrlf)
 			.build();
 
 		if (!config.hasPlacesToLookForMigrations()) {

@@ -41,4 +41,16 @@ class MigrationsConfigTest {
 
 		assertThat(MigrationsConfig.builder().withValidateOnMigrate(false).build().isValidateOnMigrate()).isFalse();
 	}
+
+	@Test // GH-238
+	void autocrlfShouldBeFalseByDefault() {
+
+		assertThat(MigrationsConfig.builder().build().isAutocrlf()).isFalse();
+	}
+
+	@Test // GH-238
+	void autocrlfShouldBeChangeable() {
+
+		assertThat(MigrationsConfig.builder().withAutocrlf(true).build().isAutocrlf()).isTrue();
+	}
 }

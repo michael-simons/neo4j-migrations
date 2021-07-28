@@ -111,13 +111,13 @@ interface Discoverer {
 				}
 			}
 
-			listOfMigrations.addAll(scanClasspathLocations(classpathLocations));
-			listOfMigrations.addAll(scanFilesystemLocations(filesystemLocations));
+			listOfMigrations.addAll(scanClasspathLocations(classpathLocations, context.getConfig()));
+			listOfMigrations.addAll(scanFilesystemLocations(filesystemLocations, context.getConfig()));
 
 			return listOfMigrations;
 		}
 
-		private List<Migration> scanClasspathLocations(List<String> classpathLocations) {
+		private List<Migration> scanClasspathLocations(List<String> classpathLocations, MigrationsConfig config) {
 
 			if (classpathLocations.isEmpty()) {
 				return Collections.emptyList();
@@ -130,12 +130,12 @@ interface Discoverer {
 
 				return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
 					.stream()
-					.map(resource -> new CypherBasedMigration(resource.getURL()))
+					.map(resource -> new CypherBasedMigration(resource.getURL(), config.isAutocrlf()))
 					.collect(Collectors.toList());
 			}
 		}
 
-		private List<Migration> scanFilesystemLocations(List<String> filesystemLocations) {
+		private List<Migration> scanFilesystemLocations(List<String> filesystemLocations, MigrationsConfig config) {
 
 			if (filesystemLocations.isEmpty()) {
 				return Collections.emptyList();
@@ -153,7 +153,7 @@ interface Discoverer {
 						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 							if (attrs.isRegularFile() && file.getFileName().toString()
 								.endsWith("." + Defaults.CYPHER_SCRIPT_EXTENSION)) {
-								migrations.add(new CypherBasedMigration(file.toFile().toURI().toURL()));
+								migrations.add(new CypherBasedMigration(file.toFile().toURI().toURL(), config.isAutocrlf()));
 								return FileVisitResult.CONTINUE;
 							}
 							return super.visitFile(file, attrs);

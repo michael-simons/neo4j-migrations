@@ -268,6 +268,16 @@ The following configuration properties are supported:
 | TransactionMode
 | `PER_MIGRATION`
 | The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+
+| `org.neo4j.migrations.validate-on-migrate`
+| boolean
+| `true`
+| Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+
+| `org.neo4j.migrations.autocrlf`
+| boolean
+| `false`
+| Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.
 |===
 
 NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.

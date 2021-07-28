@@ -69,6 +69,13 @@ public final class Defaults {
 
 	public static final String VALIDATE_ON_MIGRATE_VALUE = "true";
 
+	/**
+	 * Default setting for {@code autocrlf}.
+	 */
+	public static final boolean AUTOCRLF = false;
+
+	public static final String AUTOCRLF_VALUE = "false";
+
 	private Defaults() {
 	}
 }

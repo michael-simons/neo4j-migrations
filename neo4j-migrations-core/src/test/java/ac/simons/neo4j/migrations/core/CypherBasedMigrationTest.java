@@ -42,6 +42,19 @@ class CypherBasedMigrationTest {
 		assertThat(migration.getChecksum()).hasValue("1902097523");
 	}
 
+	@ParameterizedTest // GH-238
+	@ValueSource(strings = {"unix", "dos"})
+	void shouldConvertLineEndings(String type)  {
+
+		URL resource = CypherBasedMigrationTest.class.getResource("/ml/" + type + "/V0001__Just a couple of matches.cypher");
+
+		CypherBasedMigration migration = new CypherBasedMigration(resource, true);
+		List<String> statements = migration.getStatements();
+
+		assertThat(statements).hasSize(3).containsOnly("MATCH (n)\nRETURN count(n) AS n");
+		assertThat(migration.getChecksum()).hasValue("1916418554");
+	}
+
 	@Test
 	void shouldBeAbleToReadFromJar() {
 

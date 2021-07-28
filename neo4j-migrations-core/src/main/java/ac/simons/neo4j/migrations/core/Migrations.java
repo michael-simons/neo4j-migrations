@@ -32,6 +32,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.types.Node;
 
 /**
  * Main entry to Neo4j Migrations
@@ -110,11 +111,14 @@ public final class Migrations {
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
 		try (Session session = context.getSession()) {
-			String versionValue = session.run(
-				"MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l.version AS version")
-				.single().get("version").asString();
+			Node lastMigration = session.run(
+				"MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l")
+				.single().get(0).asNode();
 
-			return Optional.of(MigrationVersion.withValue(versionValue));
+			String version = lastMigration.get("version").asString();
+			String description = lastMigration.get("description").asString();
+
+			return Optional.of(MigrationVersion.withValueAndDescription(version, description));
 		} catch (NoSuchRecordException e) {
 			return Optional.empty();
 		}

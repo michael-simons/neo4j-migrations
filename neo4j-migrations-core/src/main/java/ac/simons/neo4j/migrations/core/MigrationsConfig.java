@@ -77,6 +77,8 @@ public final class MigrationsConfig {
 
 	private final boolean validateOnMigrate;
 
+	private final boolean autocrlf;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN : builder.packagesToScan;
@@ -86,6 +88,7 @@ public final class MigrationsConfig {
 		this.database = builder.database;
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 		this.validateOnMigrate = builder.validateOnMigrate;
+		this.autocrlf = builder.autocrlf;
 	}
 
 	public String[] getPackagesToScan() {
@@ -116,6 +119,10 @@ public final class MigrationsConfig {
 		return validateOnMigrate;
 	}
 
+	public boolean isAutocrlf() {
+		return autocrlf;
+	}
+
 	/**
 	 * A builder to create new instances of {@link MigrationsConfig configurations}.
 	 */
@@ -132,6 +139,8 @@ public final class MigrationsConfig {
 		private String installedBy;
 
 		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
+
+		private boolean autocrlf = Defaults.AUTOCRLF;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -204,11 +213,31 @@ public final class MigrationsConfig {
 		 *
 		 * @param newValidateOnMigrate The new value for {@code validateOnMigrate}.
 		 * @return The builder for further customization
-		 * @since 0.1.5
+		 * @since 0.2.1
 		 */
 		public Builder withValidateOnMigrate(boolean newValidateOnMigrate) {
 
 			this.validateOnMigrate = newValidateOnMigrate;
+			return this;
+		}
+
+		/**
+		 * If you’re programming on Windows and working with people who are not (or vice-versa), you’ll probably run into
+		 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+		 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+		 *
+		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+		 * Cypher based migration or applying it.
+		 *
+		 * @param newAutocrlf The new value for {@code autocrlf}.
+		 * @return The builder for further customization
+		 * @since 0.3.1
+		 */
+		public Builder withAutocrlf(boolean newAutocrlf) {
+
+			this.autocrlf = newAutocrlf;
 			return this;
 		}
 

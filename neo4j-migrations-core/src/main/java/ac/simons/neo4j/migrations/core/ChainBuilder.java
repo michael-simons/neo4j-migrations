@@ -88,12 +88,8 @@ final class ChainBuilder {
 			discoveredMigrations.size() + appliedMigrations.size());
 
 		if (discoveredMigrations.isEmpty()) {
-			// No migrations found, all everything in the chain is applied
-			appliedMigrations.forEach((expectedVersion, value) -> {
-				Optional<String> expectedChecksum = value.getChecksum();
-				// This is not a pending migration anymore
-				fullMigrationChain.put(expectedVersion, value);
-			});
+			// No migrations found, everything in the chain is applied
+			appliedMigrations.forEach(fullMigrationChain::put);
 		} else {
 			int i = 0;
 			for (Map.Entry<MigrationVersion, Element> entry : appliedMigrations.entrySet()) {

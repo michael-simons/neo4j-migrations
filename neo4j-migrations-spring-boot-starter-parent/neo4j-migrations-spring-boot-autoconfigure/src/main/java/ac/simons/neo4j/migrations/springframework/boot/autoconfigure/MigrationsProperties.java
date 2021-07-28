@@ -76,6 +76,18 @@ public class MigrationsProperties {
 	 */
 	private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
 
+	/**
+	 * If you’re programming on Windows and working with people who are not (or vice-versa), you’ll probably run into
+	 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+	 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+	 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+	 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+	 *
+	 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+	 * Cypher based migration or applying it.
+	 */
+	private boolean autocrlf = Defaults.AUTOCRLF;
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -146,5 +158,13 @@ public class MigrationsProperties {
 
 	public void setValidateOnMigrate(boolean validateOnMigrate) {
 		this.validateOnMigrate = validateOnMigrate;
+	}
+
+	public boolean isAutocrlf() {
+		return autocrlf;
+	}
+
+	public void setAutocrlf(boolean autocrlf) {
+		this.autocrlf = autocrlf;
 	}
 }

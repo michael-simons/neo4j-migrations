@@ -53,10 +53,15 @@ public final class MigrationVersion {
 
 	static MigrationVersion withValue(String value) {
 
+		return withValueAndDescription(value, null);
+	}
+
+	static MigrationVersion withValueAndDescription(String value, String description) {
+
 		if (BASELINE_VALUE.equals(value)) {
 			return MigrationVersion.baseline();
 		}
-		return new MigrationVersion(value, null);
+		return new MigrationVersion(value, description);
 	}
 
 	static MigrationVersion baseline() {

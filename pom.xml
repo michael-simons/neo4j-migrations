@@ -58,7 +58,7 @@
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<assertj.version>3.20.2</assertj.version>
-		<checkstyle.version>8.44</checkstyle.version>
+		<checkstyle.version>8.45</checkstyle.version>
 		<classgraph.version>4.8.110</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
 		<java-module-name />

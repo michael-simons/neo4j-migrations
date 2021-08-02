@@ -28,7 +28,7 @@
 		<plexus-classworlds.version>2.6.0</plexus-classworlds.version>
 		<plexus-component-annotations.version>2.1.0</plexus-component-annotations.version>
 
-		<plexus-utils.version>3.3.0</plexus-utils.version>
+		<plexus-utils.version>3.4.0</plexus-utils.version>
 	</properties>
 
 	<dependencyManagement>

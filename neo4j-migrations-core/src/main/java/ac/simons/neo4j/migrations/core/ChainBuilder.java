@@ -75,7 +75,7 @@ final class ChainBuilder {
 				);
 				boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
 				ResultSummary summary = result.consume();
-				return new Tuple(showCurrentUserExists, summary);
+				return new Tuple<>(showCurrentUserExists, summary);
 			});
 
 
@@ -104,7 +104,7 @@ final class ChainBuilder {
 
 		if (discoveredMigrations.isEmpty()) {
 			// No migrations found, everything in the chain is applied
-			appliedMigrations.forEach(fullMigrationChain::put);
+			fullMigrationChain.putAll(appliedMigrations);
 		} else {
 			int i = 0;
 			for (Map.Entry<MigrationVersion, Element> entry : appliedMigrations.entrySet()) {

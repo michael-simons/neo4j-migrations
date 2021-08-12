@@ -61,7 +61,7 @@
 		<checkstyle.version>8.45.1</checkstyle.version>
 		<classgraph.version>4.8.113</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
-		<java-module-name />
+		<java-module-name></java-module-name>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.7.2</junit.jupiter.version>
@@ -202,6 +202,14 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin.version}</version>
+					<configuration>
+						<forceJavacCompilerUse>true</forceJavacCompilerUse>
+						<compilerArgs>
+							<arg>-Xlint:all,-options,-path,-processing,-classfile</arg>
+							<!-- -classfile due to some weird stuff happening in testCompile. -->
+							<arg>-Werror</arg>
+						</compilerArgs>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -297,7 +305,7 @@
 								<requireJavaVersion>
 									<version>11</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence></DependencyConvergence>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>

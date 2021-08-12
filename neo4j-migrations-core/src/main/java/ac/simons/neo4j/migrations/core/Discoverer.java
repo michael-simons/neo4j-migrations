@@ -71,11 +71,12 @@ interface Discoverer {
 				.enableExternalClasses()
 				.scan()) {
 
-				return scanResult.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses()
+				return scanResult
+					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(Migration.class)
 					.stream()
 					.map(c -> {
 						try {
-							Constructor<Migration> ctr = (Constructor<Migration>) c.getDeclaredConstructor();
+							Constructor<Migration> ctr = c.getDeclaredConstructor();
 							ctr.setAccessible(true);
 							return ctr.newInstance();
 						} catch (Exception e) {
@@ -125,7 +126,7 @@ interface Discoverer {
 
 			LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
-			String[] paths = classpathLocations.toArray(new String[classpathLocations.size()]);
+			String[] paths = classpathLocations.toArray(new String[0]);
 			try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
 
 				return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)

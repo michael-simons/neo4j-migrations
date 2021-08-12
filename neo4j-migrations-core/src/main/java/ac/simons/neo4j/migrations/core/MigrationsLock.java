@@ -36,7 +36,7 @@ final class MigrationsLock {
 	private final String id = UUID.randomUUID().toString();
 	private final String nameOfLock = "John Doe";
 
-	private final Thread cleanUpTask = new Thread(() -> this.unlock0());
+	private final Thread cleanUpTask = new Thread(this::unlock0);
 
 	MigrationsLock(MigrationContext context) {
 		this.context = context;

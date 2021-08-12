@@ -23,6 +23,7 @@ import org.neo4j.driver.Session;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings("unused") // It is used.
 public class V0002__SomeOtherMigration implements JavaBasedMigration {
 
 	@Override

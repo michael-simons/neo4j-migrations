@@ -127,7 +127,7 @@ public final class Migrations {
 	private void apply0(List<Migration> migrations) {
 
 		MigrationVersion previousVersion = getLastAppliedVersion()
-			.orElseGet(() -> MigrationVersion.baseline());
+			.orElseGet(MigrationVersion::baseline);
 
 		// Validate and build the chain of migrations
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);

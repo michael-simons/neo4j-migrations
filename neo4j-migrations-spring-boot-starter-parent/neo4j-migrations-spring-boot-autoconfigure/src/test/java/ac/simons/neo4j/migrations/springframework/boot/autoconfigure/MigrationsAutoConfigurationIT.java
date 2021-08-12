@@ -44,7 +44,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 class MigrationsAutoConfigurationIT {
 
 	@Container
-	private static Neo4jContainer neo4j = new Neo4jContainer<>("neo4j:4.3")
+	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3")
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	private final Driver driver;

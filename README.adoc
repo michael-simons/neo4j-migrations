@@ -19,6 +19,20 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 
 == Usage
 
+A script based migration must have a name following the given pattern to be recognized:
+
+```
+V1_2_3__Add_last_name_index.sql
+```
+
+* Prefix `V` for "__V__ersioned Migrations"
+* Version with optional underscores separating as many parts as you like
+* Separator: `__` (two underscores)
+* Description: Underscores or spaces separate the wo
+* Suffix: `.cypher`
+
+This applies to Cypher scripts for the CLI as well as resources.
+
 === As standalone CLI
 
 Since *0.3.1* binaries that require a JVM as well as native binaries for Unix, macOS and Windows are available on each https://github.com/michael-simons/neo4j-migrations/releases[release]. Get the latest here: https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]

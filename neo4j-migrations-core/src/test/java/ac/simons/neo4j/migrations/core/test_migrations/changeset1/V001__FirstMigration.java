@@ -25,11 +25,12 @@ import org.neo4j.driver.Session;
  */
 public class V001__FirstMigration implements JavaBasedMigration {
 
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused" })
 	@Override
 	public void apply(MigrationContext context) {
 
 		try (Session session = context.getSession()) {
+			assert session != null;
 			// Steps necessary for a migration
 		}
 	}

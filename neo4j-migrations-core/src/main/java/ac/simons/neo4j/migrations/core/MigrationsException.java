@@ -21,6 +21,8 @@ package ac.simons.neo4j.migrations.core;
  */
 public final class MigrationsException extends RuntimeException {
 
+	static final long serialVersionUID = 1L;
+
 	public MigrationsException(String message) {
 		super(message);
 	}

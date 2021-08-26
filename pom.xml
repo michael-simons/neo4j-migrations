@@ -84,7 +84,7 @@
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.1</maven.version>
-		<mockito.version>3.11.2</mockito.version>
+		<mockito.version>3.12.1</mockito.version>
 		<neo4j-java-driver.version>4.2.7</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>

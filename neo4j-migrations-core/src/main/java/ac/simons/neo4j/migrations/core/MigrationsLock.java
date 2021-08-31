@@ -45,14 +45,11 @@ final class MigrationsLock {
 	void createUniqueConstraintIfNecessary() {
 
 		try (Session session = context.getSession()) {
-			int numberOfConstraints = session.writeTransaction(t -> {
-				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
+			int rv = session.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
 					.counters().constraintsAdded();
-				rv += t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE").consume()
+			rv += session.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE").consume()
 					.counters().constraintsAdded();
-				return rv;
-			});
-			LOGGER.log(Level.FINE, "Created {0} constraints", numberOfConstraints);
+			LOGGER.log(Level.FINE, "Created {0} constraints", rv);
 		} catch (Neo4jException e) {
 
 			if (!"Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists".equals(e.code())) {

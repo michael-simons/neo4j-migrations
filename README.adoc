@@ -22,7 +22,7 @@ image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.s
 A script based migration must have a name following the given pattern to be recognized:
 
 ```
-V1_2_3__Add_last_name_index.sql
+V1_2_3__Add_last_name_index.cypher
 ```
 
 * Prefix `V` for "__V__ersioned Migrations"

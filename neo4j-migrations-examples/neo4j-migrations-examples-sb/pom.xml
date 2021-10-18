@@ -33,7 +33,7 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
-		<spring-boot.version>2.5.4</spring-boot.version>
+		<spring-boot.version>2.5.5</spring-boot.version>
 	</properties>
 
 	<dependencyManagement>

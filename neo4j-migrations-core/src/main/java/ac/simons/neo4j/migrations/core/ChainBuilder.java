@@ -211,6 +211,33 @@ final class ChainBuilder {
 
 	private static class DefaultChainElement implements Element {
 
+		static class InstallationInfo {
+
+			private final ZonedDateTime installedOn;
+
+			private final String installedBy;
+
+			private final Duration executionTime;
+
+			InstallationInfo(ZonedDateTime installedOn, String installedBy, Duration executionTime) {
+				this.installedOn = installedOn;
+				this.installedBy = installedBy;
+				this.executionTime = executionTime;
+			}
+
+			ZonedDateTime getInstalledOn() {
+				return installedOn;
+			}
+
+			String getInstalledBy() {
+				return installedBy;
+			}
+
+			Duration getExecutionTime() {
+				return executionTime;
+			}
+		}
+
 		static Element appliedElement(Path.Segment appliedMigration) {
 
 			Node targetMigration = appliedMigration.end();
@@ -227,13 +254,13 @@ final class ChainBuilder {
 			return new DefaultChainElement(MigrationState.APPLIED,
 				MigrationType.valueOf((String) properties.get("type")), (String) properties.get("checksum"),
 				(String) properties.get("version"), (String) properties.get("description"),
-				(String) properties.get("source"), installedOn, installedBy, executionTime);
+				(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
 		}
 
 		static Element pendingElement(Migration pendingMigration) {
 			return new DefaultChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
 				pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
-				pendingMigration.getDescription(), pendingMigration.getSource(), null, null, null);
+				pendingMigration.getDescription(), pendingMigration.getSource(), null);
 		}
 
 		private final MigrationState state;
@@ -248,24 +275,17 @@ final class ChainBuilder {
 
 		private final String source;
 
-		private final ZonedDateTime installedOn;
-
-		private final String installedBy;
-
-		private final Duration executionTime;
+		private final InstallationInfo installationInfo;
 
 		private DefaultChainElement(MigrationState state, MigrationType type, String checksum,
-			String version, String description, String source, ZonedDateTime installedOn, String installedBy,
-			Duration executionTime) {
+			String version, String description, String source, InstallationInfo installationInfo) {
 			this.state = state;
 			this.type = type;
 			this.checksum = checksum;
 			this.version = version;
 			this.description = description;
 			this.source = source;
-			this.installedOn = installedOn;
-			this.installedBy = installedBy;
-			this.executionTime = executionTime;
+			this.installationInfo = installationInfo;
 		}
 
 		@Override
@@ -300,17 +320,17 @@ final class ChainBuilder {
 
 		@Override
 		public Optional<ZonedDateTime> getInstalledOn() {
-			return Optional.ofNullable(installedOn);
+			return Optional.ofNullable(installationInfo).map(InstallationInfo::getInstalledOn);
 		}
 
 		@Override
 		public Optional<String> getInstalledBy() {
-			return Optional.ofNullable(installedBy);
+			return Optional.ofNullable(installationInfo).map(InstallationInfo::getInstalledBy);
 		}
 
 		@Override
 		public Optional<Duration> getExecutionTime() {
-			return Optional.ofNullable(executionTime);
+			return Optional.ofNullable(installationInfo).map(InstallationInfo::getExecutionTime);
 		}
 	}
 }

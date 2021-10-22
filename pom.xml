@@ -62,7 +62,7 @@
 		<checkstyle.version>9.0.1</checkstyle.version>
 		<classgraph.version>4.8.128</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
@@ -93,7 +93,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-
+		<sonar.modules>neo4j-migrations-core,neo4j-migrations-cli,neo4j-migrations-spring-boot-starter-parent,neo4j-migrations-spring-boot-starter,neo4j-migrations-spring-boot-autoconfigure,neo4j-migrations-maven-plugin</sonar.modules>
 		<sonar.organization>michael-simons-github</sonar.organization>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
@@ -310,7 +310,7 @@
 								<requireJavaVersion>
 									<version>11</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>

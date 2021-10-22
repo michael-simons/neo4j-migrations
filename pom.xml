@@ -62,7 +62,7 @@
 		<assertj.version>3.21.0</assertj.version>
 		<checkstyle.version>9.0.1</checkstyle.version>
 		<classgraph.version>4.8.128</classgraph.version>
-		<graalvm.version>21.2.0</graalvm.version>
+		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<java-module-name/>
 		<java.version>8</java.version>
@@ -88,6 +88,7 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.3</maven.version>
 		<mockito.version>4.0.0</mockito.version>
+		<native.maven.plugin.version>0.9.6</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.2.7</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>
@@ -220,6 +221,22 @@
 							<arg>-Werror</arg>
 						</compilerArgs>
 					</configuration>
+					<executions>
+						<execution>
+							<id>compile-java-17</id>
+							<goals>
+								<goal>compile</goal>
+							</goals>
+							<phase>compile</phase>
+							<configuration combine.self="override">
+								<release>17</release>
+								<compileSourceRoots>
+									<compileSourceRoot>${project.basedir}/src/main/java17</compileSourceRoot>
+								</compileSourceRoots>
+								<multiReleaseOutput>true</multiReleaseOutput>
+							</configuration>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -289,6 +306,11 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-maven-plugin.version}</version>
+					<configuration>
+						<excludes>
+							<exclude>**/versions/17/**/*</exclude>
+						</excludes>
+					</configuration>
 					<executions>
 						<execution>
 							<id>pre-unit-test</id>
@@ -358,7 +380,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>11</version>
+									<version>17</version>
 								</requireJavaVersion>
 								<DependencyConvergence/>
 								<requireMavenVersion>
@@ -411,6 +433,7 @@
 						</manifest>
 						<manifestEntries>
 							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
+							<Multi-Release>true</Multi-Release>
 						</manifestEntries>
 					</archive>
 				</configuration>

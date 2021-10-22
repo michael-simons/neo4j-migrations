@@ -44,11 +44,6 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>**/HelpMojo.class</exclude>
-					</excludes>
-				</configuration>
 				<executions>
 					<execution>
 						<id>post-unit-test</id>
@@ -182,9 +177,10 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.graalvm.nativeimage</groupId>
-						<artifactId>native-image-maven-plugin</artifactId>
-						<version>${graalvm.version}</version>
+						<groupId>org.graalvm.buildtools</groupId>
+						<artifactId>native-maven-plugin</artifactId>
+						<version>${native.maven.plugin.version}</version>
+						<extensions>true</extensions>
 						<configuration>
 							<mainClass>${name-of-main-class}</mainClass>
 							<imageName>neo4j-migrations</imageName>
@@ -194,7 +190,7 @@
 							<execution>
 								<id>create-native-image</id>
 								<goals>
-									<goal>native-image</goal>
+									<goal>build</goal>
 								</goals>
 								<phase>package</phase>
 							</execution>

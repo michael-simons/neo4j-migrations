@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-    name: with jdk ${{ matrix.java }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

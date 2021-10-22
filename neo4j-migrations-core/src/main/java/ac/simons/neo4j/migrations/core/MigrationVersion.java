@@ -47,8 +47,7 @@ public final class MigrationVersion {
 			throw new MigrationsException("Invalid class name for a migration: " + simpleName);
 		}
 
-		return new MigrationVersion(matcher.group(1).replaceAll("_", "\\."),
-				matcher.group(2).replaceAll("_", " "));
+		return new MigrationVersion(matcher.group(1).replace("_", "."), matcher.group(2).replace("_", " "));
 	}
 
 	static MigrationVersion withValue(String value) {

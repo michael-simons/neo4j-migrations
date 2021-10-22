@@ -16,6 +16,8 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Configuration for Migrations.
@@ -121,6 +123,29 @@ public final class MigrationsConfig {
 
 	public boolean isAutocrlf() {
 		return autocrlf;
+	}
+
+	public void logTo(Logger logger, boolean verbose) {
+		if (!this.hasPlacesToLookForMigrations()) {
+			//noinspection UnnecessaryStringEscape It is not unnessary, the logger uses a message format
+			logger.log(Level.WARNING, "Can\'t find migrations as neither locations or packages to scan are configured!");
+		}
+
+		if (verbose && logger.isLoggable(Level.INFO)) {
+			if (this.getDatabase() != null) {
+				logger.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", this.getDatabase());
+			}
+			if (this.getLocationsToScan().length > 0) {
+				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
+				logger.log(Level.INFO, "Statements will be applied {0} ",
+					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?
+						"in one transaction per migration" :
+						"in separate transactions");
+			}
+			if (this.getPackagesToScan().length > 0) {
+				logger.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
+			}
+		}
 	}
 
 	/**

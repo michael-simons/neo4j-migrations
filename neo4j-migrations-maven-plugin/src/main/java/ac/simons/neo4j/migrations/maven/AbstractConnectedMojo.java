@@ -21,10 +21,8 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -133,7 +131,8 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.build();
 
 		if (!config.hasPlacesToLookForMigrations()) {
-			LOGGER.log(Level.WARNING, "Can't find migrations as neither locations or packages to scan are configured!");
+			//noinspection UnnecessaryStringEscape It is not unnessary, the logger uses a message format
+			LOGGER.log(Level.WARNING, "Can\'t find migrations as neither locations or packages to scan are configured!");
 		}
 
 		if (verbose && LOGGER.isLoggable(Level.INFO)) {
@@ -141,16 +140,14 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 				LOGGER.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", config.getDatabase());
 			}
 			if (config.getLocationsToScan().length > 0) {
-				LOGGER.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"",
-					Arrays.stream(config.getLocationsToScan()).collect(Collectors.joining()));
+				LOGGER.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", config.getLocationsToScan()));
 				LOGGER.log(Level.INFO, "Statements will be applied {0} ",
 					config.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
 						"in separate transactions");
 			}
 			if (config.getPackagesToScan().length > 0) {
-				LOGGER.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"",
-					Arrays.stream(config.getPackagesToScan()).collect(Collectors.joining()));
+				LOGGER.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", config.getPackagesToScan()));
 			}
 		}
 		return config;

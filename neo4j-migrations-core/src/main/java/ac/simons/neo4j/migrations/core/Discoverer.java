@@ -76,14 +76,19 @@ interface Discoverer {
 					.stream()
 					.map(c -> {
 						try {
-							Constructor<Migration> ctr = c.getDeclaredConstructor();
-							ctr.setAccessible(true);
-							return ctr.newInstance();
+							return getConstructor(c).newInstance();
 						} catch (Exception e) {
 							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 						}
 					}).collect(Collectors.toList());
 			}
+		}
+
+		@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
+		private static Constructor<Migration> getConstructor(Class<Migration> c) throws NoSuchMethodException {
+			Constructor<Migration> ctr = c.getDeclaredConstructor();
+			ctr.setAccessible(true);
+			return ctr;
 		}
 	}
 

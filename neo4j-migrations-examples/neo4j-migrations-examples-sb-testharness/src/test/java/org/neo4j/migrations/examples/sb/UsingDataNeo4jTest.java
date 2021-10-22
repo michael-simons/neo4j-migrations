@@ -49,7 +49,7 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @DataNeo4jTest
 @ImportAutoConfiguration(MigrationsAutoConfiguration.class)
-public class UsingDataNeo4jTest {
+class UsingDataNeo4jTest {
 
 	private static Neo4j embeddedDatabaseServer;
 

@@ -58,6 +58,7 @@ class MigrationsTest extends TestBase {
 
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements())
+			.hasSizeGreaterThan(0)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 	}
 

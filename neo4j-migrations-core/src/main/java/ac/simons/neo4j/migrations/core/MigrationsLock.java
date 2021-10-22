@@ -31,10 +31,10 @@ import org.neo4j.driver.summary.ResultSummary;
 final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
+	private static final String nameOfLock = "John Doe";
 
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
-	private final String nameOfLock = "John Doe";
 
 	private final Thread cleanUpTask = new Thread(this::unlock0);
 

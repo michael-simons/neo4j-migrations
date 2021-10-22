@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.io.File;
@@ -29,6 +30,8 @@ import java.net.URI;
 import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.testing.MojoRule;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,6 +42,21 @@ public class AbstractConnectedMojoTest {
 
 	@Rule
 	public MojoRule rule = new MojoRule();
+
+	private static String origUserName;
+
+	@BeforeClass
+	public static void setFixedSysUser() {
+		origUserName = System.getProperty("user.name");
+		System.setProperty("user.name", "testor");
+	}
+
+	@AfterClass
+	public static void restoreSysUSer() {
+		if (origUserName != null && !origUserName.trim().isEmpty()) {
+			System.setProperty("user.name", origUserName);
+		}
+	}
 
 	@Test
 	public void defaultValuesShouldBeCorrect() throws Exception {
@@ -63,17 +81,26 @@ public class AbstractConnectedMojoTest {
 		assertArrayEquals(new String[0], packagesToScan);
 
 		String[] locationsToScan = (String[]) rule.getVariableValueFromObject(infoMojo, "locationsToScan");
-		assertTrue(Pattern.compile("file://.*/neo4j/migrations").matcher(locationsToScan[0]).matches());
+		Pattern expectedLocationsToScan = Pattern.compile("file://.*/neo4j/migrations");
+		assertTrue(expectedLocationsToScan.matcher(locationsToScan[0]).matches());
 
 		TransactionMode transactionMode = (TransactionMode) rule
 			.getVariableValueFromObject(infoMojo, "transactionMode");
-		assertEquals(transactionMode, TransactionMode.PER_MIGRATION);
+		assertEquals(TransactionMode.PER_MIGRATION, transactionMode);
 
 		String database = (String) rule.getVariableValueFromObject(infoMojo, "database");
 		assertNull(database);
 
 		boolean verbose = (boolean) rule.getVariableValueFromObject(infoMojo, "verbose");
 		assertFalse(verbose);
+
+		MigrationsConfig config = infoMojo.getConfig();
+		assertNotNull(config);
+		assertNull(config.getDatabase());
+		assertEquals("testor", config.getInstalledBy());
+		assertEquals(1, config.getLocationsToScan().length);
+		assertTrue(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches());
+		assertEquals(TransactionMode.PER_MIGRATION, config.getTransactionMode());
 	}
 }
 

@@ -17,6 +17,15 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,4 +62,96 @@ class MigrationsConfigTest {
 
 		assertThat(MigrationsConfig.builder().withAutocrlf(true).build().isAutocrlf()).isTrue();
 	}
+
+	@Test
+	void logToShouldWork() {
+
+		MigrationsConfig config = MigrationsConfig.builder().build();
+		Logger logger = Logger.getLogger(UUID.randomUUID().toString());
+		LogCollector logCollector = new LogCollector();
+		logger.addHandler(logCollector);
+
+		config.logTo(logger, true);
+		assertThat(logCollector.logMessages)
+			.containsExactly("Will search for Cypher scripts in \"classpath:neo4j/migrations\"", "Statements will be applied in one transaction per migration");
+	}
+
+	@Test
+	void shouldWarnLog() {
+
+		MigrationsConfig config = MigrationsConfig.builder()
+			.withLocationsToScan()
+			.build();
+		Logger logger = Logger.getLogger(UUID.randomUUID().toString());
+		LogCollector logCollector = new LogCollector();
+		logger.addHandler(logCollector);
+
+		config.logTo(logger, true);
+		assertThat(logCollector.logMessages)
+			.containsExactly("Cannot find migrations as neither locations or packages to scan are configured!");
+	}
+
+	@Test
+	void shouldOnlyVerboseLogIfPossible() {
+
+		MigrationsConfig config = MigrationsConfig.builder().build();
+
+		Logger logger = Logger.getLogger(UUID.randomUUID().toString());
+		LogCollector logCollector = new LogCollector();
+		logger.addHandler(logCollector);
+
+		config.logTo(logger, false);
+		assertThat(logCollector.logMessages).isEmpty();
+
+		logCollector.clear();
+
+		logger.setLevel(Level.WARNING);
+		config.logTo(logger, true);
+		assertThat(logCollector.logMessages).isEmpty();
+	}
+
+	@Test
+	void nonDefaultsShouldBeLogged() {
+
+		MigrationsConfig config = MigrationsConfig
+			.builder()
+			.withPackagesToScan("a.b.c")
+			.withDatabase("x")
+			.withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+			.build();
+
+		Logger logger = Logger.getLogger(UUID.randomUUID().toString());
+		LogCollector logCollector = new LogCollector();
+		logger.addHandler(logCollector);
+
+		config.logTo(logger, true);
+		assertThat(logCollector.logMessages)
+			.containsExactly(
+				"Migrations will be applied to using database \"x\"",
+				"Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
+				"Statements will be applied in separate transactions",
+				"Will scan for Java based migrations in \"a.b.c\""
+			);
+	}
+
+	static class LogCollector extends Handler {
+
+		final List<String> logMessages = new ArrayList<>();
+		final SimpleFormatter formatter = new SimpleFormatter();
+
+		void clear() {
+			logMessages.clear();
+		}
+
+		@Override public void publish(LogRecord record) {
+			logMessages.add(formatter.formatMessage(record));
+		}
+
+		@Override public void flush() {
+		}
+
+		@Override public void close() throws SecurityException {
+		}
+	}
+
 }

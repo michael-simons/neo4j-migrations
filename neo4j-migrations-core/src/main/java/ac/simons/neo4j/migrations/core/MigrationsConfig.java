@@ -127,8 +127,7 @@ public final class MigrationsConfig {
 
 	public void logTo(Logger logger, boolean verbose) {
 		if (!this.hasPlacesToLookForMigrations()) {
-			//noinspection UnnecessaryStringEscape It is not unnessary, the logger uses a message format
-			logger.log(Level.WARNING, "Can\'t find migrations as neither locations or packages to scan are configured!");
+			logger.log(Level.WARNING, "Cannot find migrations as neither locations or packages to scan are configured!");
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {
@@ -137,7 +136,7 @@ public final class MigrationsConfig {
 			}
 			if (this.getLocationsToScan().length > 0) {
 				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
-				logger.log(Level.INFO, "Statements will be applied {0} ",
+				logger.log(Level.INFO, "Statements will be applied {0}",
 					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
 						"in separate transactions");

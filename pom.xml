@@ -45,6 +45,7 @@
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
+		<module>neo4j-migrations-test-results</module>
 	</modules>
 
 	<scm>
@@ -55,13 +56,15 @@
 	</scm>
 
 	<properties>
+
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<assertj.version>3.21.0</assertj.version>
 		<checkstyle.version>9.0.1</checkstyle.version>
 		<classgraph.version>4.8.128</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
-		<java-module-name />
+		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
@@ -91,6 +94,7 @@
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
+		<sonar-maven-plugin.version>3.9.0.2155</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
 	</properties>
@@ -178,6 +182,11 @@
 		<pluginManagement>
 
 			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>${sonar-maven-plugin.version}</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
@@ -272,11 +281,56 @@
 						<sortProperties>true</sortProperties>
 						<sortDependencies>scope,groupId,artifactId</sortDependencies>
 						<createBackupFile>false</createBackupFile>
+						<expandEmptyElements>false</expandEmptyElements>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>pre-unit-test</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>post-unit-test</id>
+							<goals>
+								<goal>report</goal>
+								<goal>check</goal>
+							</goals>
+							<phase>test</phase>
+							<configuration>
+								<rules>
+									<rule>
+										<element>BUNDLE</element>
+										<limits>
+											<limit>
+												<counter>INSTRUCTION</counter>
+												<value>COVEREDRATIO</value>
+												<minimum>0.5</minimum>
+											</limit>
+											<limit>
+												<counter>COMPLEXITY</counter>
+												<value>COVEREDRATIO</value>
+												<minimum>0.5</minimum>
+											</limit>
+										</limits>
+									</rule>
+								</rules>
+							</configuration>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>com.github.ekryd.sortpom</groupId>
 				<artifactId>sortpom-maven-plugin</artifactId>
@@ -305,7 +359,7 @@
 								<requireJavaVersion>
 									<version>11</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -436,6 +490,36 @@
 								<id>sign-artifacts</id>
 								<goals>
 									<goal>sign</goal>
+								</goals>
+								<phase>verify</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+				<sonar.organization>michael-simons-github</sonar.organization>
+				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
+				<sonar.report>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</sonar.report>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>sonar</id>
+								<goals>
+									<goal>sonar</goal>
 								</goals>
 								<phase>verify</phase>
 							</execution>

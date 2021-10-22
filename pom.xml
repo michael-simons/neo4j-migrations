@@ -62,6 +62,7 @@
 		<checkstyle.version>9.0.1</checkstyle.version>
 		<classgraph.version>4.8.128</classgraph.version>
 		<graalvm.version>21.2.0</graalvm.version>
+		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
@@ -93,7 +94,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<sonar.modules>neo4j-migrations-core,neo4j-migrations-cli,neo4j-migrations-spring-boot-starter-parent,neo4j-migrations-spring-boot-starter,neo4j-migrations-spring-boot-autoconfigure,neo4j-migrations-maven-plugin</sonar.modules>
+		<!-- <sonar.modules>neo4j-migrations-core,neo4j-migrations-cli,neo4j-migrations-spring-boot-starter-parent,neo4j-migrations-spring-boot-starter,neo4j-migrations-spring-boot-autoconfigure,neo4j-migrations-maven-plugin</sonar.modules> -->
 		<sonar.organization>michael-simons-github</sonar.organization>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
@@ -282,6 +283,37 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<configuration>
+					<propertyName>jacocoArgLine</propertyName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>pre-unit-test</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<goals>
+							<goal>report</goal>
+							<goal>check</goal>
+						</goals>
+						<phase>test</phase>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.github.ekryd.sortpom</groupId>
 				<artifactId>sortpom-maven-plugin</artifactId>

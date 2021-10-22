@@ -138,6 +138,11 @@
 				<version>${assertj.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.graalvm.sdk</groupId>
+				<artifactId>graal-sdk</artifactId>
+				<version>${graalvm.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-core</artifactId>
 				<version>${mockito.version}</version>
@@ -472,7 +477,8 @@
 					<tags>
 						<tag>
 							<name>soundtrack</name>
-							<placement>X</placement>
+							<placement>a</placement>
+							<head>Soundtrack</head>
 						</tag>
 					</tags>
 				</configuration>

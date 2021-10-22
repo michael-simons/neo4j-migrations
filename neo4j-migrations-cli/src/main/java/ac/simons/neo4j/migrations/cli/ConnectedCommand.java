@@ -44,12 +44,19 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	abstract MigrationsCli getParent();
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 
 		MigrationsCli migrationsCli = getParent();
+		MigrationsConfig config;
+		try {
+			config = migrationsCli.getConfig();
+		} catch (UnsupportedConfigException e) {
+			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
+			return CommandLine.ExitCode.USAGE;
+		}
+
 		try (Driver driver = migrationsCli.openConnection()) {
 
-			MigrationsConfig config = migrationsCli.getConfig();
 			Migrations migrations = new Migrations(config, driver);
 
 			return withMigrations(migrations);

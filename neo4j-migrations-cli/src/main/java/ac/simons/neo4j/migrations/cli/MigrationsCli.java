@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.graalvm.nativeimage.ImageInfo;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -70,6 +71,10 @@ public final class MigrationsCli implements Runnable {
 		}
 	}
 
+	/**
+	 * Entry point to the CLI.
+	 * @param args The command line arguments
+	 */
 	public static void main(String... args) {
 
 		int exitCode = new CommandLine(new MigrationsCli()).execute(args);
@@ -173,6 +178,11 @@ public final class MigrationsCli implements Runnable {
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
 			.build();
+
+		if (ImageInfo.inImageRuntimeCode() && config.getPackagesToScan().length != 0) {
+			throw new UnsupportedConfigException(
+				"Java based migrations are not supported in native binaries. Please use the Java based distribution.");
+		}
 
 		config.logTo(LOGGER, verbose);
 		return config;

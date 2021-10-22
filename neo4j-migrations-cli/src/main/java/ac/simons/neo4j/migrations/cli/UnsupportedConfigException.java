@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.cli;
 
 /**
- * An unchecked exception that is thrown when something didn't work as expected. Most of the time, mitigation from the
- * call won't be possible.
- *
  * @author Michael J. Simons
- * @since 0.0.1
+ * @since 1.0.0
  */
-public final class MigrationsException extends RuntimeException {
+final class UnsupportedConfigException extends RuntimeException {
 
 	static final long serialVersionUID = 1L;
 
-	public MigrationsException(String message) {
+	UnsupportedConfigException(String message) {
 		super(message);
-	}
-
-	public MigrationsException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

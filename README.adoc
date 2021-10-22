@@ -38,7 +38,11 @@ This applies to Cypher scripts for the CLI as well as resources.
 
 === As standalone CLI
 
-Since *0.3.1* binaries that require a JVM as well as native binaries for Unix, macOS and Windows are available on each https://github.com/michael-simons/neo4j-migrations/releases[release]. Get the latest here: https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]
+NOTE: Since *0.3.1* binaries that require a JVM as well as native binaries for Unix, macOS and Windows are available on each https://github.com/michael-simons/neo4j-migrations/releases[release]. Get the latest here: https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[neo4j-migrations-{latest_version}.zip]
+      +
+      Only the JVM version does support custom, Java based migrations as shown in the following examples (argument `--package`), the natively compiled version does not.
+      If you want to use the `--package` option, you must export the path to your classes as `$CLASSPATH_PREFIX` (See below) or
+      add them as packaged up as Jar files to the `lib` folder of the distribution.
 
 Older binaries of the CLI are on 
 https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-cli/[Maven Central]
@@ -157,6 +161,39 @@ Database: Neo4j/4.0.0@localhost:7687
 | 030     | Something based on a script | CYPHER | 2020-01-17T15:36:07.001Z[UTC] | msimons/neo4j | PT0.004S       | APPLIED | V030__Something_based_on_a_script.cypher               |
 | 042     | The truth                   | CYPHER | 2020-01-17T15:36:07.016Z[UTC] | msimons/neo4j | PT0.003S       | APPLIED | V042__The truth.cypher                                 |
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
+----
+
+==== A template for Java based migrations
+
+As stated above, this will work only with the JVM distribution. Follow those steps:
+
+[source,bash,subs="verbatim,attributes"]
+----
+wget https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+unzip neo4j-migrations-{latest_version}.zip
+cd neo4j-migrations-{latest_version}
+chmod +x ./bin/neo4j-migrations
+mkdir -p my-migrations/some/migrations
+cat <<EOT >> my-migrations/some/migrations/V001__MyFirstMigration.java
+package some.migrations;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+
+public class V001__MyFirstMigration implements JavaBasedMigration {
+
+    @Override
+    public void apply(MigrationContext context) {
+        try (Session session = context.getSession()) {
+        }
+    }
+}
+EOT
+javac -cp "lib/*" my-migrations/some/migrations/*
+CLASSPATH_PREFIX=my-migrations ./bin/neo4j-migrations -v -uneo4j -psecret --package some.migrations info
 ----
 
 === From your build tool
@@ -367,6 +404,8 @@ Put your migrations as Java classes into your project:
 
 [source,java]
 ----
+package some.migrations;
+
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 
@@ -456,6 +495,8 @@ migrations.apply();
 == For the adventurous
 
 NOTE: Native binaries for Windows, Unix and macOS are supplied since 0.3.1 at https://github.com/michael-simons/neo4j-migrations/releases[the releases page].
+
+WARNING: The natively compiled version does not support Java based migrations and will fail if you try to point it to any package to scan.
 
 The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
 Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].

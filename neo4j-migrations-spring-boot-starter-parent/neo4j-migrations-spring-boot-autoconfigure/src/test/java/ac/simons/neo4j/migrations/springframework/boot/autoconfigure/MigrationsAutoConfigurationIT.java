@@ -43,6 +43,11 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 @Testcontainers(disabledWithoutDocker = true)
 class MigrationsAutoConfigurationIT {
 
+	static {
+
+		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "INFO");
+	}
+
 	@Container
 	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3")
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());

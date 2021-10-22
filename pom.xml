@@ -45,6 +45,7 @@
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
+		<module>neo4j-migrations-test-results</module>
 	</modules>
 
 	<scm>
@@ -93,12 +94,9 @@
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
-		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<!-- <sonar.modules>neo4j-migrations-core,neo4j-migrations-cli,neo4j-migrations-spring-boot-starter-parent,neo4j-migrations-spring-boot-starter,neo4j-migrations-spring-boot-autoconfigure,neo4j-migrations-maven-plugin</sonar.modules> -->
-		<sonar.organization>michael-simons-github</sonar.organization>
+		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
-		<sonar.version>3.7.0.1746</sonar.version>
 	</properties>
 
 	<dependencyManagement>
@@ -187,7 +185,7 @@
 				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>${sonar.version}</version>
+					<version>${sonar-maven-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -498,15 +496,19 @@
 		</profile>
 		<profile>
 			<id>sonar</id>
-			<properties>
-				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-				<sonar.organization>michael-simons-github</sonar.organization>
-				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
-				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
-			</properties>
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
+			<properties>
+				<!-- SonarCloud is unhappy about maven.compiler.release -->
+				<maven.compiler.source>${java.version}</maven.compiler.source>
+				<maven.compiler.target>${java.version}</maven.compiler.target>
+				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+				<sonar.organization>michael-simons-github</sonar.organization>
+				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
+				<sonar.report>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</sonar.report>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -515,10 +517,10 @@
 						<executions>
 							<execution>
 								<id>sonar</id>
-								<phase>verify</phase>
 								<goals>
 									<goal>sonar</goal>
 								</goals>
+								<phase>verify</phase>
 							</execution>
 						</executions>
 					</plugin>

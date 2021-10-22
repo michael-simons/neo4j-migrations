@@ -31,7 +31,7 @@ import org.neo4j.driver.summary.ResultSummary;
 final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
-	private static final String nameOfLock = "John Doe";
+	private static final String NAME_OF_LOCK = "John Doe";
 
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
@@ -76,7 +76,7 @@ final class MigrationsLock {
 
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
-					Values.parameters("id", id, "name", nameOfLock))
+					Values.parameters("id", id, "name", NAME_OF_LOCK))
 					.single().get("l").asNode().id()
 			);
 			LOGGER.log(Level.FINE, "Acquired lock {0} with internal id {1}", new Object[] { id, internalId });

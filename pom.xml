@@ -98,6 +98,7 @@
 		<sonar.organization>michael-simons-github</sonar.organization>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
+		<sonar.version>3.7.0.1746</sonar.version>
 	</properties>
 
 	<dependencyManagement>
@@ -183,6 +184,11 @@
 		<pluginManagement>
 
 			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>${sonar.version}</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
@@ -484,6 +490,35 @@
 									<goal>sign</goal>
 								</goals>
 								<phase>verify</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>sonar</id>
+			<properties>
+				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+				<sonar.organization>michael-simons-github</sonar.organization>
+				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
+				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+			</properties>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>sonar</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sonar</goal>
+								</goals>
 							</execution>
 						</executions>
 					</plugin>

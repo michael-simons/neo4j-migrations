@@ -39,4 +39,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --no-transfer-progress clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=eu.michael-simons.neo4j:neo4j-migrations-parent
+        run: ./mvnw --no-transfer-progress clean verify -Psonar

@@ -55,6 +55,7 @@
 	</scm>
 
 	<properties>
+
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<assertj.version>3.21.0</assertj.version>
@@ -91,6 +92,9 @@
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+		<sonar.organization>michael-simons-github</sonar.organization>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
 	</properties>
@@ -272,6 +276,7 @@
 						<sortProperties>true</sortProperties>
 						<sortDependencies>scope,groupId,artifactId</sortDependencies>
 						<createBackupFile>false</createBackupFile>
+						<expandEmptyElements>false</expandEmptyElements>
 					</configuration>
 				</plugin>
 			</plugins>

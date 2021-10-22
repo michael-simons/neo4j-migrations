@@ -55,12 +55,19 @@ import org.neo4j.driver.Logging;
 public final class MigrationsCli implements Runnable {
 
 	static final Logger LOGGER;
+
 	static {
+		configureLogging();
+		LOGGER = Logger.getLogger(MigrationsCli.class.getName());
+	}
+
+	@SuppressWarnings("squid:S4792")
+	private static void configureLogging() {
 		try {
-			LogManager.getLogManager().readConfiguration(MigrationsCli.class.getResourceAsStream("/logging.properties"));
+			LogManager.getLogManager()
+				.readConfiguration(MigrationsCli.class.getResourceAsStream("/logging.properties"));
 		} catch (IOException e) {
 		}
-		LOGGER = Logger.getLogger(MigrationsCli.class.getName());
 	}
 
 	public static void main(String... args) {

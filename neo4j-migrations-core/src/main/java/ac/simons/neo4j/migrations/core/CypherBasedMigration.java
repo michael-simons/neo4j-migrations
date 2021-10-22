@@ -74,7 +74,7 @@ final class CypherBasedMigration implements Migration {
 		try {
 			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
 		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException("Somethings broken: UTF-8 encoding not supported.");
+			throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
 		}
 		int lastIndexOf = path.lastIndexOf("/");
 		this.script = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);

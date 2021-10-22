@@ -58,10 +58,8 @@ class MigrationsLockTest extends TestBase {
 		lock1.lock();
 
 		try {
-			assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> {
-				MigrationsLock lock2 = new MigrationsLock(context);
-				lock2.lock();
-			}).withMessage(
+			MigrationsLock lock2 = new MigrationsLock(context);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(lock2::lock).withMessage(
 				"Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed");
 		} finally {
 			lock1.unlock();

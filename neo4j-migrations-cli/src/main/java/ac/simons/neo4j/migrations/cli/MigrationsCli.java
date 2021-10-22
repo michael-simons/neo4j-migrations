@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.cli;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsException;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -65,6 +66,7 @@ public final class MigrationsCli implements Runnable {
 			LogManager.getLogManager()
 				.readConfiguration(MigrationsCli.class.getResourceAsStream("/logging.properties"));
 		} catch (IOException e) {
+			throw new MigrationsException("logging.properties are missing. Is your distribution of neo4j-migrations broken?");
 		}
 	}
 

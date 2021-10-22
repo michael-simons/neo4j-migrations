@@ -15,7 +15,10 @@ The only dependencies are the https://github.com/neo4j/neo4j-java-driver[Neo4j J
 Neo4j Migrations is inspired by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
 --
 
-image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.svg[link=https://github.com/michael-simons/neo4j-migrations/actions] image:https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations]
+image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.svg[link=https://github.com/michael-simons/neo4j-migrations/actions] 
+image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons.neo4j%3Aneo4j-migrations-parent&metric=coverage[link=https://sonarcloud.io/summary/new_code?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent]
+image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons.neo4j%3Aneo4j-migrations-parent&metric=alert_status[link=https://sonarcloud.io/dashboard?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent]
+image:https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations]
 
 == Usage
 

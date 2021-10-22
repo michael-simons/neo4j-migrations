@@ -27,18 +27,19 @@ import java.util.logging.StreamHandler;
  */
 public final class MigrationsCliConsoleHandler extends StreamHandler {
 
+	@SuppressWarnings("squid:S106Standard") // Using System.out is the point of this exercise.
 	public MigrationsCliConsoleHandler() {
 		super(System.out, new SimpleFormatter());
 	}
 
 	@Override
-	public synchronized void publish(LogRecord record) {
-		super.publish(record);
+	public synchronized void publish(LogRecord logRecord) {
+		super.publish(logRecord);
 		flush();
 	}
 
 	@Override
-	public void close() {
+	public synchronized void close() {
 		flush();
 	}
 }

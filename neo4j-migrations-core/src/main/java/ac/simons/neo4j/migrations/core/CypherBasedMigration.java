@@ -56,8 +56,10 @@ final class CypherBasedMigration implements Migration {
 	private final boolean autocrlf;
 
 	/**
-	 * A lazily initialized list of statements.
+	 * A lazily initialized list of statements, will be initialized with Double-checked locking into an unmodifiable
+	 * list, see {@link #readStatements()}.
 	 */
+	@SuppressWarnings("suid:S3077")
 	private volatile List<String> statements;
 	private volatile String checksum;
 
@@ -205,10 +207,9 @@ final class CypherBasedMigration implements Migration {
 		try (Scanner scanner = new Scanner(url.openStream(), Defaults.CYPHER_SCRIPT_ENCODING.name())
 			.useDelimiter(Defaults.CYPHER_STATEMENT_DELIMITER)) {
 			while (scanner.hasNext()) {
-
 				String statement = scanner.next().trim().replaceAll(";$", "").trim();
 				if (this.autocrlf) {
-					statement = statement.replaceAll("\r\n", "\n");
+					statement = statement.replace("\r\n", "\n");
 				}
 				if (statement.isEmpty()) {
 					continue;

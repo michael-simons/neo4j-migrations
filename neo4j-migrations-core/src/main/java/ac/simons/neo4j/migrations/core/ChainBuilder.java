@@ -54,20 +54,22 @@ final class ChainBuilder {
 
 		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations);
 
-		class Tuple<T1, T2> {
-			final T1 v1;
-			final T2 v2;
+		class ExtendedResultSummary {
+			final boolean showCurrentUserExists;
+			final ServerInfo server;
+			final DatabaseInfo database;
 
-			Tuple(T1 v1, T2 v2) {
-				this.v1 = v1;
-				this.v2 = v2;
+			ExtendedResultSummary(boolean showCurrentUserExists, ResultSummary actualSummary) {
+				this.showCurrentUserExists = showCurrentUserExists;
+				this.server = actualSummary.server();
+				this.database = actualSummary.database();
 			}
 		}
 
 		try (Session session = context.getSession()) {
 
 			// Auth maybe disabled. In such cases, we cannot get the current user.
-			Tuple<Boolean, ResultSummary> databaseInformation = session.readTransaction(tx -> {
+			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
 				Result result = tx.run(""
 									   + "CALL dbms.procedures() yield name "
 									   + "WHERE name = 'dbms.showCurrentUser' "
@@ -75,12 +77,12 @@ final class ChainBuilder {
 				);
 				boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
 				ResultSummary summary = result.consume();
-				return new Tuple<>(showCurrentUserExists, summary);
+				return new ExtendedResultSummary(showCurrentUserExists, summary);
 			});
 
 
 			String username = "anonymous";
-			if (databaseInformation.v1) {
+			if (databaseInformation.showCurrentUserExists) {
 
 				username = session.readTransaction(tx -> tx.run(""
 					+ "CALL dbms.procedures() YIELD name "
@@ -89,8 +91,8 @@ final class ChainBuilder {
 				).single().get("username").asString());
 			}
 
-			ServerInfo serverInfo = databaseInformation.v2.server();
-			DatabaseInfo database = databaseInformation.v2.database();
+			ServerInfo serverInfo = databaseInformation.server;
+			DatabaseInfo database = databaseInformation.database;
 			return new DefaultMigrationChain(serverInfo.address(), serverInfo.version(),
 				username, database == null ? null : database.name(), elements);
 		}

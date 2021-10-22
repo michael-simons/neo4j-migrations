@@ -71,9 +71,7 @@ final class MigrationChainFormat {
 			target.append(String.format(columnFormats[columnm++], column));
 		}
 		target.append("|").append(LS).append(separator);
-		rows.values().forEach(row -> {
-			target.append(row).append("|").append(LS);
-		});
+		rows.values().forEach(row -> target.append(row).append("|").append(LS));
 		target.append(separator);
 	}
 

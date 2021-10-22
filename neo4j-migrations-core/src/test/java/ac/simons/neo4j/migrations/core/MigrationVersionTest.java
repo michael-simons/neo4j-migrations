@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Michael J. Simons
  */
-public class MigrationVersionTest {
+class MigrationVersionTest {
 
 	@ParameterizedTest
 	@CsvSource(value = {"V1__a:1:a", "V021__HalloWelt:021:HalloWelt", "V021_1__HalloWelt:021.1:HalloWelt",

@@ -94,7 +94,7 @@
 		<picocli.version>4.6.1</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
-		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>3.9.0.2155</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<testcontainers.version>1.16.0</testcontainers.version>
 	</properties>
@@ -504,9 +504,6 @@
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<properties>
-				<!-- SonarCloud is unhappy about maven.compiler.release -->
-				<maven.compiler.source>${java.version}</maven.compiler.source>
-				<maven.compiler.target>${java.version}</maven.compiler.target>
 				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
 				<sonar.organization>michael-simons-github</sonar.organization>

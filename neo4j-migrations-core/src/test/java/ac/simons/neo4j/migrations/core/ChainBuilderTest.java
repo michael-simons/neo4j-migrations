@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 class ChainBuilderTest extends TestBase {
 
 	@Test
+	@SuppressWarnings("squid:S5961") // Pretty happy with the number of assertions.
 	void migrationInfoShouldWork() {
 
 		// Apply some migrations

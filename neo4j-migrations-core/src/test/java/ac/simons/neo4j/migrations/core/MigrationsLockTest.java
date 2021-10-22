@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
@@ -57,15 +58,12 @@ class MigrationsLockTest extends TestBase {
 		lock1.lock();
 
 		try {
-			MigrationsLock lock2 = new MigrationsLock(context);
-			lock2.lock();
-			fail("Should not be able to acquire a 2nd lock");
-		} catch (MigrationsException e) {
-
-			assertThat(e.getMessage()).isEqualTo(
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> {
+				MigrationsLock lock2 = new MigrationsLock(context);
+				lock2.lock();
+			}).withMessage(
 				"Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed");
 		} finally {
-
 			lock1.unlock();
 		}
 	}

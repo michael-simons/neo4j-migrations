@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * Goal that applies the configured migrations..
+ * Goal that applies the configured migrations.
  *
  * @author Michael J. Simons
  * @since 0.0.11

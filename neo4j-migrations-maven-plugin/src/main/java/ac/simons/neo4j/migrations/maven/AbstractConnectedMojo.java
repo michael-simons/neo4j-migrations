@@ -116,7 +116,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 		}
 	}
 
-	abstract void withMigrations(Migrations migrations) throws Exception;
+	abstract void withMigrations(Migrations migrations);
 
 	/**
 	 * @return The migrations config based on the required options.

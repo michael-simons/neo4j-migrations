@@ -287,9 +287,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco-maven-plugin.version}</version>
-				<configuration>
-					<propertyName>jacocoArgLine</propertyName>
-				</configuration>
 				<executions>
 					<execution>
 						<id>pre-unit-test</id>
@@ -308,6 +305,18 @@
 							<rules>
 								<rule>
 									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.5</minimum>
+										</limit>
+										<limit>
+											<counter>COMPLEXITY</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.5</minimum>
+										</limit>
+									</limits>
 								</rule>
 							</rules>
 						</configuration>

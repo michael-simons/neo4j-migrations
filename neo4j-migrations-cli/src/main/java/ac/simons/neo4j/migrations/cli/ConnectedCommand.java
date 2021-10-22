@@ -57,7 +57,6 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.SOFTWARE;
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 	}

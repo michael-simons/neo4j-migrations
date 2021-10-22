@@ -59,7 +59,7 @@ final class CypherBasedMigration implements Migration {
 	 * A lazily initialized list of statements, will be initialized with Double-checked locking into an unmodifiable
 	 * list, see {@link #readStatements()}.
 	 */
-	@SuppressWarnings("suid:S3077")
+	@SuppressWarnings("squid:S3077")
 	private volatile List<String> statements;
 	private volatile String checksum;
 

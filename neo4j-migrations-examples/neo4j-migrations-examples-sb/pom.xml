@@ -26,14 +26,12 @@
 		<version>0.3.3-SNAPSHOT</version>
 	</parent>
 
-	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-examples-sb</artifactId>
 
 	<name>Examples (Spring Boot Integration)</name>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
-		<spring-boot.version>2.5.5</spring-boot.version>
 	</properties>
 
 	<dependencyManagement>

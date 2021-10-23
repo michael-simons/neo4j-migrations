@@ -19,6 +19,8 @@
 
 	<properties>
 		<commons-io.version>2.11.0</commons-io.version>
+		<covered-ratio-complexity>0.2</covered-ratio-complexity>
+		<covered-ratio-instructions>0.2</covered-ratio-instructions>
 		<docker-maven-plugin.version>0.37.0</docker-maven-plugin.version>
 		<ivy.version>2.5.0</ivy.version>
 		<java-module-name>ac.simons.neo4j.migrations.maven</java-module-name>
@@ -27,7 +29,6 @@
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plexus-classworlds.version>2.6.0</plexus-classworlds.version>
 		<plexus-component-annotations.version>2.1.0</plexus-component-annotations.version>
-
 		<plexus-utils.version>3.4.1</plexus-utils.version>
 	</properties>
 
@@ -134,29 +135,6 @@
 						<exclude>**/HelpMojo.class</exclude>
 					</excludes>
 				</configuration>
-				<executions>
-					<execution>
-						<id>post-unit-test</id>
-						<configuration combine.self="append">
-							<rules>
-								<rule>
-									<limits>
-										<limit>
-											<counter>INSTRUCTION</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.2</minimum>
-										</limit>
-										<limit>
-											<counter>COMPLEXITY</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.2</minimum>
-										</limit>
-									</limits>
-								</rule>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

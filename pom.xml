@@ -62,6 +62,8 @@
 		<assertj.version>3.21.0</assertj.version>
 		<checkstyle.version>9.0.1</checkstyle.version>
 		<classgraph.version>4.8.128</classgraph.version>
+		<covered-ratio-complexity>0.5</covered-ratio-complexity>
+		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<java-module-name/>
@@ -322,14 +324,27 @@
 							<goals>
 								<goal>prepare-agent</goal>
 							</goals>
+							<configuration>
+								<append>true</append>
+							</configuration>
 						</execution>
 						<execution>
-							<id>post-unit-test</id>
+							<id>pre-integration-test</id>
+							<goals>
+								<goal>prepare-agent-integration</goal>
+							</goals>
+							<configuration>
+								<append>true</append>
+								<destFile>${project.build.directory}/jacoco.exec</destFile>
+							</configuration>
+						</execution>
+						<execution>
+							<id>report-and-check</id>
 							<goals>
 								<goal>report</goal>
 								<goal>check</goal>
 							</goals>
-							<phase>test</phase>
+							<phase>post-integration-test</phase>
 							<configuration>
 								<rules>
 									<rule>
@@ -338,12 +353,12 @@
 											<limit>
 												<counter>INSTRUCTION</counter>
 												<value>COVEREDRATIO</value>
-												<minimum>0.5</minimum>
+												<minimum>${covered-ratio-instructions}</minimum>
 											</limit>
 											<limit>
 												<counter>COMPLEXITY</counter>
 												<value>COVEREDRATIO</value>
-												<minimum>0.5</minimum>
+												<minimum>${covered-ratio-complexity}</minimum>
 											</limit>
 										</limits>
 									</rule>

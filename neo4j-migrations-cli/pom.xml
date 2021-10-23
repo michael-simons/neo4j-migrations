@@ -12,6 +12,8 @@
 	<name>Neo4j Migrations (CLI)</name>
 
 	<properties>
+		<covered-ratio-complexity>0.1</covered-ratio-complexity>
+		<covered-ratio-instructions>0.03</covered-ratio-instructions>
 		<executable-suffix/>
 		<java-module-name>ac.simons.neo4j.migrations.cli</java-module-name>
 		<name-of-main-class>ac.simons.neo4j.migrations.cli.MigrationsCli</name-of-main-class>
@@ -45,33 +47,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>post-unit-test</id>
-						<configuration combine.self="append">
-							<rules>
-								<rule>
-									<limits>
-										<limit>
-											<counter>INSTRUCTION</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.03</minimum>
-										</limit>
-										<limit>
-											<counter>COMPLEXITY</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.1</minimum>
-										</limit>
-									</limits>
-								</rule>
-							</rules>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>appassembler-maven-plugin</artifactId>

@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.maven;
+package ac.simons.neo4j.migrations.cli;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.junit.jupiter.api.Test;
 
 /**
- * Goal that retrieves information from the configured database about the migrations including applied, pending and current migrations.
- *
  * @author Michael J. Simons
- * @since 0.0.11
  */
-@Mojo(name = "info",
-	requiresDependencyResolution = ResolutionScope.TEST,
-	defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST,
-	threadSafe = true)
-public class InfoMojo extends AbstractConnectedMojo {
+class InfoCommandTest {
 
-	@Override
-	void withMigrations(Migrations migrations) {
+	@Test
+	void shouldLog() {
 
-		MigrationChain migrationChain = migrations.info();
-		LOGGER.info(migrationChain::prettyPrint);
+		Migrations migrations = mock(Migrations.class);
+		MigrationChain info = mock(MigrationChain.class);
+		when(info.prettyPrint()).thenReturn("<<info>>");
+		when(migrations.info()).thenReturn(info);
+
+		InfoCommand cmd = new InfoCommand();
+		cmd.withMigrations(migrations);
+
+		verify(migrations).info();
+		verify(info).prettyPrint();
+
+		verifyNoMoreInteractions(migrations, info);
 	}
 }

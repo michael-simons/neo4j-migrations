@@ -43,7 +43,7 @@ final class InfoCommand extends ConnectedCommand {
 	Integer withMigrations(Migrations migrations) {
 
 		MigrationChain migrationChain = migrations.info();
-		MigrationsCli.LOGGER.log(Level.INFO, migrationChain.prettyPrint());
+		MigrationsCli.LOGGER.info(migrationChain::prettyPrint);
 		return 0;
 	}
 }

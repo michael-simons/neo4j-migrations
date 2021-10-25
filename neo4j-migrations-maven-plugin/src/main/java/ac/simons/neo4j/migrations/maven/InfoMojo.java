@@ -40,6 +40,6 @@ public class InfoMojo extends AbstractConnectedMojo {
 	void withMigrations(Migrations migrations) {
 
 		MigrationChain migrationChain = migrations.info();
-		LOGGER.log(Level.INFO, migrationChain.prettyPrint());
+		LOGGER.info(migrationChain::prettyPrint);
 	}
 }

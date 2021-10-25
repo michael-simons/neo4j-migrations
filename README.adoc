@@ -521,4 +521,3 @@ Run it with:
 
 The resulting migration tool can only be used to load Cypher script based migrations in file locations.
 It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.
-

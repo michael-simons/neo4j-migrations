@@ -83,9 +83,9 @@ public final class MigrationsConfig {
 
 	private MigrationsConfig(Builder builder) {
 
-		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN : builder.packagesToScan;
+		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;
 		this.locationsToScan =
-			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN : builder.locationsToScan;
+			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) : builder.locationsToScan;
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));

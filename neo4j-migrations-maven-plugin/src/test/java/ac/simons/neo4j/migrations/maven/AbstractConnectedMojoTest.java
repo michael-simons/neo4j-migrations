@@ -69,10 +69,10 @@ public class AbstractConnectedMojoTest {
 		assertNotNull(infoMojo);
 
 		URI address = (URI) rule.getVariableValueFromObject(infoMojo, "address");
-		assertEquals(address, URI.create("bolt://localhost:7687"));
+		assertEquals(URI.create("bolt://localhost:7687"), address);
 
 		String user = (String) rule.getVariableValueFromObject(infoMojo, "user");
-		assertEquals(user, "neo4j");
+		assertEquals("neo4j", user);
 
 		String password = (String) rule.getVariableValueFromObject(infoMojo, "password");
 		assertNull(password);

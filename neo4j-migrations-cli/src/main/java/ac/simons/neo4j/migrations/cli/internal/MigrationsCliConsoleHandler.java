@@ -30,7 +30,7 @@ public final class MigrationsCliConsoleHandler extends StreamHandler {
 	/**
 	 * Creates a new handler with a fixed pointer to {@link System#out}.
 	 */
-	@SuppressWarnings("squid:S106Standard") // Using System.out is the point of this exercise.
+	@SuppressWarnings("squid:S106") // Using System.out is the point of this exercise.
 	public MigrationsCliConsoleHandler() {
 		super(System.out, new SimpleFormatter());
 	}

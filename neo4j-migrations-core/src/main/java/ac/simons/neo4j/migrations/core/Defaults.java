@@ -19,6 +19,9 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Defaults for Migrations configuration.
@@ -48,12 +51,13 @@ public final class Defaults {
 	/**
 	 * Default packages to scan.
 	 */
-	static final String[] PACKAGES_TO_SCAN = new String[0];
+	static final List<String> PACKAGES_TO_SCAN = Collections.emptyList();
 
 	/**
 	 * Default locations to scan.
 	 */
-	public static final String[] LOCATIONS_TO_SCAN = new String[] { "classpath:neo4j/migrations" };
+	public static final List<String> LOCATIONS_TO_SCAN = Collections.unmodifiableList(
+		Arrays.asList("classpath:neo4j/migrations"));
 
 	public static final String TRANSACTION_MODE_VALUE = "PER_MIGRATION";
 

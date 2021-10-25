@@ -501,11 +501,11 @@ WARNING: The natively compiled version does not support Java based migrations an
 The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
 Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
 
-After installing at least GraalVM 20.1.0, prepare your environment as follows:
+After installing at least GraalVM 21.3.0, prepare your environment as follows:
 
 [source,console,subs="verbatim,attributes"]
 ----
-export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.1.0/Contents/Home
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-ce-java17-21.3.0/Contents/Home
 export JAVA_HOME=$GRAALVM_HOME
 ----
 

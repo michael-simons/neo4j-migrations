@@ -1,4 +1,4 @@
-= Neo4j Migrations
+= Neo4j Migrations test
 Michael Simons <michael.simons@neo4j.com>
 :doctype: article
 :lang: en

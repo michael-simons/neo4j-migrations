@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.test_migrations.changeset4;
+package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.JavaBasedMigration;
-import ac.simons.neo4j.migrations.core.MigrationContext;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Sleeps 500ms on purpose.
- *
  * @author Michael J. Simons
  */
-public class V001__SlowMigration implements JavaBasedMigration {
+class DefaultsTest {
 
-	@SuppressWarnings("squid:S2925")
-	@Override
-	public void apply(MigrationContext context) {
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	@Test
+	void packagesToScanShouldBeEmpty() {
+		assertThat(Defaults.PACKAGES_TO_SCAN).isEmpty();
+	}
+
+	@Test
+	void locationsToScanShouldBeInResources() {
+		assertThat(Defaults.LOCATIONS_TO_SCAN).containsExactly("classpath:neo4j/migrations");
 	}
 }
-

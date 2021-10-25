@@ -18,8 +18,6 @@ package ac.simons.neo4j.migrations.maven;
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 
-import java.util.logging.Level;
-
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -40,6 +38,6 @@ public class InfoMojo extends AbstractConnectedMojo {
 	void withMigrations(Migrations migrations) {
 
 		MigrationChain migrationChain = migrations.info();
-		LOGGER.log(Level.INFO, migrationChain.prettyPrint());
+		LOGGER.info(migrationChain::prettyPrint);
 	}
 }

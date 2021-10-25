@@ -36,7 +36,7 @@ class MigrationsConfigTest {
 	@Test
 	void shouldConfigureDefaultClasspathPackage() {
 
-		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).isEqualTo(Defaults.LOCATIONS_TO_SCAN);
+		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).containsExactlyElementsOf(Defaults.LOCATIONS_TO_SCAN);
 	}
 
 	@Test // GH-237

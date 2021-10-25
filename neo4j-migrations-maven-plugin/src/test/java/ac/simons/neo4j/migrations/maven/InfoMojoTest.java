@@ -13,35 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.cli;
+package ac.simons.neo4j.migrations.maven;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.ParentCommand;
+
+import org.junit.Test;
 
 /**
- * The info command.
- *
  * @author Michael J. Simons
- * @since 0.0.5
  */
-@Command(name = "info", description = "Retrieves all applied and pending informations, prints them and exits.")
-final class InfoCommand extends ConnectedCommand {
+public class InfoMojoTest {
 
-	@ParentCommand
-	private MigrationsCli parent;
+	@Test
+	public void shouldLog() {
 
-	@Override
-	public MigrationsCli getParent() {
-		return parent;
-	}
+		Migrations migrations = mock(Migrations.class);
+		MigrationChain info = mock(MigrationChain.class);
+		when(info.prettyPrint()).thenReturn("<<info>>");
+		when(migrations.info()).thenReturn(info);
 
-	@Override
-	Integer withMigrations(Migrations migrations) {
+		InfoMojo cmd = new InfoMojo();
+		cmd.withMigrations(migrations);
 
-		MigrationChain migrationChain = migrations.info();
-		MigrationsCli.LOGGER.info(migrationChain::prettyPrint);
-		return 0;
+		verify(migrations).info();
+		verify(info).prettyPrint();
+
+		verifyNoMoreInteractions(migrations, info);
 	}
 }

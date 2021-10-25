@@ -15,6 +15,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
             java-version: 17
+      - name: Enable Sonar for local PRs not from Dependabot
+        if:  ${{ github.event.sender.login != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        run: echo "USE_SONAR=sonar" >> $GITHUB_ENV
+      - name: Disable Sonar for foreign PRs or from Dependabot
+        if:  ${{ github.event.sender.login == 'dependabot[bot]' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+        run: echo "USE_SONAR=-sonar" >> $GITHUB_ENV
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
@@ -27,12 +33,8 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Clean, verify and analyze
-        if:  ${{ github.event.sender.login != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+      - name: Clean and verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --no-transfer-progress clean verify -Psonar
-      - name: Clean and verify
-        if:  ${{ github.event.sender.login == 'dependabot[bot]' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
-        run: ./mvnw --no-transfer-progress clean verify
+        run: ./mvnw --no-transfer-progress clean verify -P$USE_SONAR

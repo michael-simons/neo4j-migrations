@@ -20,8 +20,6 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-import java.util.logging.Level;
-
 /**
  * The info command.
  *

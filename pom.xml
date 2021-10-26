@@ -59,6 +59,7 @@
 
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
+		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
 		<assertj.version>3.21.0</assertj.version>
 		<byte-buddy.version>1.11.19</byte-buddy.version>
 		<checkstyle.version>9.1</checkstyle.version>
@@ -602,6 +603,95 @@
 								<phase>verify</phase>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>jreleaser</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jreleaser</groupId>
+						<artifactId>jreleaser-maven-plugin</artifactId>
+						<version>0.8.0</version>
+						<inherited>false</inherited>
+						<configuration>
+							<jreleaser>
+								<release>
+									<github>
+										<draft>true</draft>
+										<skipTag>true</skipTag>
+										<tagName>{{projectVersion}}</tagName>
+										<releaseName>{{projectVersion}}</releaseName>
+										<changelog>
+											<formatted>ALWAYS</formatted>
+											<format>- {{commitShortHash}} {{commitTitle}}</format>
+											<contributors>
+												<format>- {{contributorName}}</format>
+											</contributors>
+											<labelers>
+												<labeler>
+													<title>GH-</title>
+													<label>changes</label>
+												</labeler>
+												<labeler>
+													<title>Bump</title>
+													<label>dependabot</label>
+												</labeler>
+												<labeler>
+													<title>[maven-release-plugin]</title>
+													<label>maven-release</label>
+												</labeler>
+											</labelers>
+											<categories>
+												<category>
+													<title>Changes</title>
+													<labels>changes</labels>
+												</category>
+												<category>
+													<title>dependabot</title>
+													<labels>dependabot</labels>
+												</category>
+												<category>
+													<title>maven-release</title>
+													<labels>maven-release</labels>
+												</category>
+											</categories>
+											<hide>
+												<categories>dependabot,maven-release</categories>
+												<contributors>GitHub,dependabot</contributors>
+											</hide>
+										</changelog>
+									</github>
+								</release>
+								<distributions>
+									<neo4j-migrations>
+										<type>NATIVE_IMAGE</type>
+										<artifacts>
+											<artifact>
+												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-x86_64.tar.gz</path>
+												<platform>linux-x86_64</platform>
+											</artifact>
+											<artifact>
+												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-windows-x86_64.zip</path>
+												<platform>windows-x86_64</platform>
+											</artifact>
+											<artifact>
+												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-osx-x86_64.zip</path>
+												<platform>osx-x86_64</platform>
+											</artifact>
+										</artifacts>
+										<brew>
+											<active>ALWAYS</active>
+											<tap>
+												<name>homebrew-neo4j-migrations</name>
+											</tap>
+										</brew>
+									</neo4j-migrations>
+								</distributions>
+							</jreleaser>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

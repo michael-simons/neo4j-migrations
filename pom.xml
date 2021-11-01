@@ -61,7 +61,7 @@
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<assertj.version>3.21.0</assertj.version>
 		<checkstyle.version>9.0.1</checkstyle.version>
-		<classgraph.version>4.8.128</classgraph.version>
+		<classgraph.version>4.8.129</classgraph.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<graalvm.version>21.3.0</graalvm.version>

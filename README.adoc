@@ -172,7 +172,6 @@ As stated above, this will work only with the JVM distribution. Follow those ste
 wget https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
 unzip neo4j-migrations-{latest_version}.zip
 cd neo4j-migrations-{latest_version}
-chmod +x ./bin/neo4j-migrations
 mkdir -p my-migrations/some/migrations
 cat <<EOT >> my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;

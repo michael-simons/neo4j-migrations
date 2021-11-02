@@ -23,5 +23,10 @@
             <directory>${project.build.directory}/assembly</directory>
             <outputDirectory/>
         </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/assembly/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>744</fileMode>
+        </fileSet>
     </fileSets>
 </assembly>

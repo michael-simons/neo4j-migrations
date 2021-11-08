@@ -94,12 +94,13 @@
 		<neo4j-java-driver.version>4.2.7</neo4j-java-driver.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-		<picocli.version>4.6.1</picocli.version>
+		<picocli.version>4.6.2</picocli.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar-maven-plugin.version>3.9.0.2155</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
 		<spring-boot.version>2.5.6</spring-boot.version>
+		<system-lambda.version>1.2.0</system-lambda.version>
 		<testcontainers.version>1.16.2</testcontainers.version>
 	</properties>
 
@@ -112,6 +113,11 @@
 				<version>${junit.jupiter.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.github.stefanbirkner</groupId>
+				<artifactId>system-lambda</artifactId>
+				<version>${system-lambda.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>info.picocli</groupId>

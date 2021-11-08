@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>0.3.3-SNAPSHOT</version>
+	<version>42.21</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>

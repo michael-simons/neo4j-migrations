@@ -45,7 +45,6 @@
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
-		<module>neo4j-migrations-test-results</module>
 	</modules>
 
 	<scm>
@@ -550,12 +549,30 @@
 					<releaseProfiles>release</releaseProfiles>
 					<tagNameFormat>@{project.version}</tagNameFormat>
 					<goals>deploy</goals>
+					<arguments>-Drelease</arguments>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
+		<profile>
+			<id>no-release</id>
+			<!--
+			According to https://github.com/sonatype/nexus-maven-plugins/tree/master/staging/maven-plugin
+			skipNexusStagingDeployMojo may not be set to true in the last reactor module. Because we don't
+			want to deploy our last module, nor a dummy module, we simply omit the relevant modules when
+			a deploy is in progress.
+			-->
+			<activation>
+				<property>
+					<name>!release</name>
+				</property>
+			</activation>
+			<modules>
+				<module>neo4j-migrations-test-results</module>
+			</modules>
+		</profile>
 		<profile>
 			<id>release</id>
 			<build>

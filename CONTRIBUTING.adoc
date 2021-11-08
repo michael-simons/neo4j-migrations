@@ -14,7 +14,6 @@ Also, the same plugin is rather unhappy about JDK 17…
 
 [source,bash]
 ----
-./mvnw release:prepare -pl \!:neo4j-migrations-test-results
-MAVEN_OPTS="--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED" \
-./mvnw release:perform -pl \!:neo4j-migrations-test-results
+./mvnw release:prepare
+MAVEN_OPTS="--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED" ./mvnw release:perform
 ----

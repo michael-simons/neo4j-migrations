@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -220,6 +222,16 @@ public final class Migrations {
 
 	static class DefaultMigrationContext implements MigrationContext {
 
+		private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
+
+		private static Method findWithImpersonatedUser() {
+			try {
+				return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
+			} catch (NoSuchMethodException e) {
+				return null; // This is fine
+			}
+		}
+
 		private final MigrationsConfig config;
 
 		private final Driver driver;
@@ -230,12 +242,23 @@ public final class Migrations {
 			this.config = config;
 			this.driver = driver;
 
-			SessionConfig.Builder sessionConfigBuilder = SessionConfig.builder()
-				.withDefaultAccessMode(AccessMode.WRITE);
+			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
 			if (!(this.config.getDatabase() == null || this.config.getDatabase().trim().isEmpty())) {
-				sessionConfigBuilder.withDatabase(this.config.getDatabase().trim());
+				builder.withDatabase(this.config.getDatabase().trim());
 			}
-			this.sessionConfig = sessionConfigBuilder.build();
+
+			if (!(this.config.getImpersonatedUser() == null || this.config.getImpersonatedUser().trim().isEmpty())) {
+				if (WITH_IMPERSONATED_USER == null) {
+					throw new IllegalArgumentException("User impersonation requires a driver that supports `withImpersonatedUser`.");
+				}
+				try {
+					WITH_IMPERSONATED_USER.invoke(builder, this.getConfig().getImpersonatedUser().trim());
+				} catch (IllegalAccessException | InvocationTargetException e) {
+					throw new MigrationsException("Could not impersonate a user on the driver level", e);
+				}
+			}
+
+			this.sessionConfig = builder.build();
 		}
 
 		@Override

@@ -9,7 +9,6 @@
 	</parent>
 
 	<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
-	<version>0.3.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations (Spring Boot Starter Parent)</name>

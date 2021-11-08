@@ -67,6 +67,12 @@ public class MigrationsProperties {
 	private String database;
 
 	/**
+	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
+	 * will be dropped again after migration. Requires Neo4j 4.4+. Leave {@literal null} for using the connected user.
+	 */
+	private String impersonatedUser;
+
+	/**
 	 * Username recorded as property {@literal by} on the MIGRATED_TO relationship.
 	 */
 	private String installedBy;
@@ -150,6 +156,14 @@ public class MigrationsProperties {
 
 	public void setDatabase(String database) {
 		this.database = database;
+	}
+
+	public String getImpersonatedUser() {
+		return impersonatedUser;
+	}
+
+	public void setImpersonatedUser(String impersonatedUser) {
+		this.impersonatedUser = impersonatedUser;
 	}
 
 	public boolean isValidateOnMigrate() {

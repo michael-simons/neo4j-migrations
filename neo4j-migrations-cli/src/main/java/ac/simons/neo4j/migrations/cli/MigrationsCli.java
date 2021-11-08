@@ -131,6 +131,12 @@ public final class MigrationsCli implements Runnable {
 	private String database;
 
 	@Option(
+		names = { "--impersonate" },
+		description = "The name of a user to impersonate during migration (Neo4j 4.4+)."
+	)
+	private String impersonatedUser;
+
+	@Option(
 		names = { "-v" },
 		description = "Log the configuration and a couple of other things."
 	)
@@ -175,6 +181,7 @@ public final class MigrationsCli implements Runnable {
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
+			.withImpersonatedUser(impersonatedUser)
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
 			.build();

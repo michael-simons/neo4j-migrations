@@ -75,6 +75,8 @@ public final class MigrationsConfig {
 
 	private final String database;
 
+	private final String impersonatedUser;
+
 	private final String installedBy;
 
 	private final boolean validateOnMigrate;
@@ -88,6 +90,7 @@ public final class MigrationsConfig {
 			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) : builder.locationsToScan;
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
+		this.impersonatedUser = builder.impersonatedUser;
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 		this.validateOnMigrate = builder.validateOnMigrate;
 		this.autocrlf = builder.autocrlf;
@@ -111,6 +114,10 @@ public final class MigrationsConfig {
 
 	public String getDatabase() {
 		return database;
+	}
+
+	public String getImpersonatedUser() {
+		return impersonatedUser;
 	}
 
 	public String getInstalledBy() {
@@ -159,6 +166,8 @@ public final class MigrationsConfig {
 		private TransactionMode transactionMode;
 
 		private String database;
+
+		private String impersonatedUser;
 
 		private String installedBy;
 
@@ -262,6 +271,21 @@ public final class MigrationsConfig {
 		public Builder withAutocrlf(boolean newAutocrlf) {
 
 			this.autocrlf = newAutocrlf;
+			return this;
+		}
+
+		/**
+		 * Configures the impersonated user to use. This works only with Neo4j 4.4+ Enterprise and a Neo4j 4.4+ driver.
+		 * The feature comes in handy for escalating privileges during the time of migrations and dropping them again
+		 * for further use of a connection.
+		 *
+		 * @param newImpersonatedUser A user to impersonate
+		 * @return The builder for further customization
+		 * @since 1.0.0
+		 */
+		public Builder withImpersonatedUser(String newImpersonatedUser) {
+
+			this.impersonatedUser = newImpersonatedUser;
 			return this;
 		}
 

@@ -26,7 +26,8 @@ import java.lang.reflect.Field;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.util.ReflectionUtils;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
 
 /**
  * @author Michael J. Simons
@@ -39,9 +40,9 @@ class MigrationsCliTest {
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			MigrationsCli cli = new MigrationsCli();
-			Field field = ReflectionUtils.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-				ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
-			ReflectionUtils.makeAccessible(field);
+			Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
+				HierarchyTraversalMode.TOP_DOWN).get(0);
+			field.setAccessible(true);
 			try {
 				field.set(cli, new String[] { "foo.bar" });
 			} catch (IllegalAccessException e) {
@@ -58,21 +59,31 @@ class MigrationsCliTest {
 	void shouldNotFailToScanPackageInJVM() throws IllegalAccessException {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionUtils.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-			ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
-		ReflectionUtils.makeAccessible(field);
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
 		field.set(cli, new String[] { "foo.bar" });
 
 		assertThat(cli.getConfig()).isNotNull();
 	}
 
 	@Test
+	void shouldConfigureImpersonatedUser() throws IllegalAccessException {
+
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "impersonatedUser".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, "someoneElse");
+
+		assertThat(cli.getConfig().getImpersonatedUser()).isEqualTo("someoneElse");
+	}
+
+	@Test
 	void shouldHandleUnsupportedConfigException() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionUtils.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-			ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
-		ReflectionUtils.makeAccessible(field);
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
+			HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
 		field.set(cli, new String[] { "foo.bar" });
 
 		restoreSystemProperties(() -> {

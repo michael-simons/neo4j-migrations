@@ -95,6 +95,13 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private String database;
 
 	/**
+	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
+	 * will be dropped again after migration. Requires Neo4j 4.4+. Leave {@literal null} for using the connected user.
+	 */
+	@Parameter
+	private String impersonatedUser;
+
+	/**
 	 * Log the configuration and a couple of other things.
 	 */
 	@Parameter(defaultValue = "false")
@@ -128,6 +135,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
+			.withImpersonatedUser(impersonatedUser)
 			.build();
 
 		config.logTo(LOGGER, verbose);

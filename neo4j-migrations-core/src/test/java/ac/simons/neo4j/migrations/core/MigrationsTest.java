@@ -79,6 +79,17 @@ class MigrationsTest extends TestBase {
 	}
 
 	@Test
+	void shouldNotTryToImpersonateWithEmptyName() {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset4")
+			.withImpersonatedUser("  	 ")
+			.build(), driver);
+		assertThat(migrations.info()).isNotNull();
+	}
+
+	@Test
 	void shouldFailWithNewMigrationsInBetween() {
 
 		Migrations migrations;

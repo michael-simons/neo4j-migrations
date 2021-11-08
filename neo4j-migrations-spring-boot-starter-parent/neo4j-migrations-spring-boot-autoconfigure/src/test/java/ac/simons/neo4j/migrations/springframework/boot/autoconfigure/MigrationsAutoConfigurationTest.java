@@ -208,6 +208,17 @@ class MigrationsAutoConfigurationTest {
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
 			assertThat(config.isAutocrlf()).isTrue();
 		}
+
+		@Test
+		void shouldConfigureImpersonatedUser() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setImpersonatedUser("someoneElse");
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.getImpersonatedUser()).isEqualTo("someoneElse");
+		}
 	}
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

@@ -65,6 +65,7 @@ public class MigrationsAutoConfiguration {
 			.withPackagesToScan(migrationsProperties.getPackagesToScan())
 			.withTransactionMode(migrationsProperties.getTransactionMode())
 			.withDatabase(migrationsProperties.getDatabase())
+			.withImpersonatedUser(migrationsProperties.getImpersonatedUser())
 			.withInstalledBy(migrationsProperties.getInstalledBy())
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.withAutocrlf(migrationsProperties.isAutocrlf())

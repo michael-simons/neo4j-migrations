@@ -24,6 +24,13 @@ jobs:
         with:
           ref: ${{ env.refName }}
 
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: 'Create distribution'
         run: >
           ./mvnw --no-transfer-progress -DskipTests
@@ -96,7 +103,7 @@ jobs:
           name: artifacts
           path: neo4j-migrations-cli/target/neo4j-migrations*.zip
 
-  draft_release:
+  release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
     needs: [ create_binaries, create_native_binaries ]
     runs-on: ubuntu-latest
@@ -105,27 +112,24 @@ jobs:
         run: >
           echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
+      - name: 'Checkout relevant branch'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.refName }}
+          fetch-depth: 0
+
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
 
-      - name: Display structure of downloaded files
-        run: ls -R
-
-      - name: 'Draft Release'
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v1
         with:
-          name: ${{ env.refName }}
-          tag_name: ${{ env.refName }}
-          fail_on_unmatched_files: true
-          body: |
-            # What's Changed
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-            ## 🚀 Features
-            ## 🐛 Bug Fixes
-            ## 🧹 Housekeeping
-          draft: true
-          prerelease: false
-          files: |
-            artifacts/*.zip
+      - name: 'Create release'
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
+        run: ./mvnw --no-transfer-progress  -Pjreleaser -pl :neo4j-migrations-parent -DartifactsDir=artifacts jreleaser:full-release

@@ -1,4 +1,4 @@
-name: create_binaries
+name: release
 
 on:
   create:

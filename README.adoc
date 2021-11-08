@@ -50,6 +50,12 @@ https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-cl
 Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the directory (`cd neo4j-migrations-{latest_version}`) and execute the program
 (`bin/neo4j-migrations` on Unix-like operating systems and `bin/neo4j-migrations.bat` on Windows):
 
+TIP: On macOS you can use Homebrew to install neo4j-migrations via:
+     +
+     `brew install michael-simons/homebrew-neo4j-migrations/neo4j-migrations`
+     +
+     Afterwards, the `neo4j-migrations` command will be available on your path.
+
 [source,console,subs="verbatim,attributes"]
 ----
 ./bin/neo4j-migrations -h

@@ -24,6 +24,13 @@ jobs:
         with:
           ref: ${{ env.refName }}
 
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: 'Create distribution'
         run: >
           ./mvnw --no-transfer-progress -DskipTests
@@ -96,7 +103,7 @@ jobs:
           name: artifacts
           path: neo4j-migrations-cli/target/neo4j-migrations*.zip
 
-  draft_release:
+  release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
     needs: [ create_binaries, create_native_binaries ]
     runs-on: ubuntu-latest
@@ -114,9 +121,6 @@ jobs:
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
 
-      - name: Display structure of downloaded files
-        run: ls -R
-
       - name: 'Cache Maven packages'
         uses: actions/cache@v1
         with:
@@ -124,7 +128,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: 'Create draft release'
+      - name: 'Create release'
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./mvnw -B --file pom.xml -Pjreleaser -pl :neo4j-migrations-parent -DartifactsDir=artifacts jreleaser:release
+          JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
+        run: ./mvnw --no-transfer-progress  -Pjreleaser -pl :neo4j-migrations-parent -DartifactsDir=artifacts jreleaser:full-release

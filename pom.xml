@@ -620,37 +620,72 @@
 							<jreleaser>
 								<release>
 									<github>
-										<draft>true</draft>
 										<skipTag>true</skipTag>
 										<tagName>{{projectVersion}}</tagName>
 										<releaseName>{{projectVersion}}</releaseName>
 										<changelog>
 											<formatted>ALWAYS</formatted>
+											<contentTemplate>etc/changelog.tpl.md</contentTemplate>
 											<format>- {{commitShortHash}} {{commitTitle}}</format>
+											<preset>conventional-commits</preset>
 											<contributors>
-												<format>- {{contributorName}}</format>
+												<format>- {{contributorNameAsLink}}</format>
 											</contributors>
 											<labelers>
 												<labeler>
-													<title>GH-</title>
-													<label>changes</label>
-												</labeler>
-												<labeler>
 													<title>Bump</title>
 													<label>dependabot</label>
+												</labeler>
+												<labeler>
+													<title>Fix</title>
+													<label>fix</label>
+												</labeler>
+												<labeler>
+													<title>fix</title>
+													<label>fix</label>
+												</labeler>
+												<labeler>
+													<title>Add support</title>
+													<label>feat</label>
+												</labeler>
+												<labeler>
+													<title>Document</title>
+													<label>docs</label>
+												</labeler>
+												<labeler>
+													<title>After release cleanup.</title>
+													<label>maven-release</label>
 												</labeler>
 												<labeler>
 													<title>[maven-release-plugin]</title>
 													<label>maven-release</label>
 												</labeler>
 											</labelers>
+											<replacers>
+												<replacer>
+												<search>((?:GH-)(\d+) - )(.*)</search>
+												<replace>$3 (#$2)</replace>
+												</replacer>
+											</replacers>
 											<categories>
 												<category>
-													<title>Changes</title>
-													<labels>changes</labels>
+													<title>🚀 Features</title>
+													<labels>feat</labels>
 												</category>
 												<category>
-													<title>dependabot</title>
+													<title>🐛 Bug Fixes</title>
+													<labels>fix</labels>
+												</category>
+												<category>
+													<title>📝 Documentation</title>
+													<labels>docs</labels>
+												</category>
+												<category>
+													<title>🧰 Build</title>
+													<labels>test,build,ci</labels>
+												</category>
+												<category>
+													<title>🧹 Housekeeping</title>
 													<labels>dependabot</labels>
 												</category>
 												<category>

@@ -623,6 +623,7 @@
 										<skipTag>true</skipTag>
 										<tagName>{{projectVersion}}</tagName>
 										<releaseName>{{projectVersion}}</releaseName>
+										<branch>master</branch>
 										<changelog>
 											<formatted>ALWAYS</formatted>
 											<contentTemplate>etc/changelog.tpl.md</contentTemplate>

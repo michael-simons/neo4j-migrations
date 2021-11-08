@@ -102,5 +102,17 @@ public class AbstractConnectedMojoTest {
 		assertTrue(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches());
 		assertEquals(TransactionMode.PER_MIGRATION, config.getTransactionMode());
 	}
+
+	@Test
+	public void shouldConfigureImpersonatedUser() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-user/");
+		assertNotNull(pom);
+		assertTrue(pom.exists());
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertNotNull(infoMojo);
+		assertEquals("someoneElse", infoMojo.getConfig().getImpersonatedUser());
+	}
 }
 

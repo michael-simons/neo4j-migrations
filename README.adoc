@@ -53,8 +53,9 @@ Unzip them (`unzip neo4j-migrations-cli-{latest_version}.zip`), go the directory
 [source,console,subs="verbatim,attributes"]
 ----
 ./bin/neo4j-migrations -h
-Usage: neo4j-migrations [-hvV] -p[=<password>] [-p[=<password>]]...
-                        [-a=<address>] [-d=<database>]
+Usage: neo4j-migrations [-hvV] [--autocrlf] [--validate-on-migrate] -p
+                        [=<password>] [-p[=<password>]]... [-a=<address>]
+                        [-d=<database>] [--impersonate=<impersonatedUser>]
                         [--transaction-mode=<transactionMode>] [-u=<user>]
                         [--location=<locationsToScan>]...
                         [--package=<packagesToScan>]... [COMMAND]
@@ -62,8 +63,15 @@ Migrates Neo4j databases.
   -a, --address=<address>   The address this migration should connect to. The
                               driver supports bolt, bolt+routing or neo4j as
                               schemes.
-  -d, --database=<database> The database to migration (Neo4j 4.0+).
+      --autocrlf            Automatically convert Windows line-endings (CRLF)
+                              to LF when reading resource based migrations,
+                              pretty much what the same Git option does during
+                              checkin.
+  -d, --database=<database> The database that should be migrated (Neo4j 4.0+).
   -h, --help                Show this help message and exit.
+      --impersonate=<impersonatedUser>
+                            The name of a user to impersonate during migration
+                              (Neo4j 4.4+).
       --location=<locationsToScan>
                             Location to scan. Repeat for multiple locations.
   -p, --password[=<password>]
@@ -75,6 +83,9 @@ Migrates Neo4j databases.
   -u, --username=<user>     The login of the user connecting to the database.
   -v                        Log the configuration and a couple of other things.
   -V, --version             Print version information and exit.
+      --validate-on-migrate Validating helps you verify that the migrations
+                              applied to the database match the ones available
+                              locally and is on by default.
 Commands:
   info     Retrieves all applied and pending informations, prints them and
              exits.
@@ -293,6 +304,11 @@ The following configuration properties are supported:
 | java.lang.String
 | `null`
 | The database that should be migrated (Neo4j 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.impersonated-user`
+| java.lang.String
+| `null`
+| An alternative user to impersonate during migration. Might have higher privileges than the user connected, which  will be dropped again after migration. Requires Neo4j 4.4+. Leave {@literal null} for using the connected user.
 
 | `org.neo4j.migrations.enabled`
 | java.lang.Boolean

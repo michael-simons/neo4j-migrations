@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.exceptions.ClientException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -65,6 +67,31 @@ class MigrationsEETest {
 		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
 
 			session.run("CREATE DATABASE migrationTest").consume();
+		}
+	}
+
+	@Test
+	void impersonationOnOldDBShouldFail() {
+		try (Neo4jContainer<?> neo4j43 = new Neo4jContainer<>("neo4j:4.3-enterprise")
+			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
+
+			neo4j43.start();
+
+			Config config = Config.builder().withLogging(Logging.none()).build();
+
+			try (Driver driver43 = GraphDatabase.driver(neo4j43.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
+
+				Migrations migrations = new Migrations(MigrationsConfig.builder()
+					.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+					.withImpersonatedUser("TheImposter")
+					.build(), driver43);
+
+				assertThatExceptionOfType(ClientException.class).isThrownBy(migrations::info)
+					.withMessageStartingWith(
+						"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
+			}
 		}
 	}
 

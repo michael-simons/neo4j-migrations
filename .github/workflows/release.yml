@@ -120,6 +120,9 @@ jobs:
 
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v2
+        with:
+          name: artifacts
+          path: neo4j-migrations-cli/target
 
       - name: 'Cache Maven packages'
         uses: actions/cache@v1
@@ -132,4 +135,4 @@ jobs:
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
-        run: ./mvnw --no-transfer-progress  -Pjreleaser -pl :neo4j-migrations-parent -DartifactsDir=artifacts jreleaser:full-release
+        run: ./mvnw --no-transfer-progress -Pjreleaser -pl :neo4j-migrations-parent jreleaser:full-release

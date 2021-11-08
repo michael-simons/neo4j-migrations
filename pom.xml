@@ -660,6 +660,10 @@
 													<title>[maven-release-plugin]</title>
 													<label>maven-release</label>
 												</labeler>
+												<labeler>
+													<body>nocl</body>
+													<label>nocl</label>
+												</labeler>
 											</labelers>
 											<replacers>
 												<replacer>
@@ -689,12 +693,12 @@
 													<labels>dependabot</labels>
 												</category>
 												<category>
-													<title>maven-release</title>
-													<labels>maven-release</labels>
+													<title>nocl</title>
+													<labels>nocl,maven-release</labels>
 												</category>
 											</categories>
 											<hide>
-												<categories>dependabot,maven-release</categories>
+												<categories>dependabot,nocl</categories>
 												<contributors>GitHub,dependabot</contributors>
 											</hide>
 										</changelog>

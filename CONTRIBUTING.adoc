@@ -1,0 +1,20 @@
+= Contributing
+
+[abstract]
+--
+As of writing a loose list of how things needs to be run, not exhaustive.
+--
+
+== Releasing
+
+Releases will be created via standard Maven `release:prepare` / `release:perform` cycle.
+There is a long standing bug in the Nexus plugin (https://issues.sonatype.org/browse/NEXUS-9138[NEXUS-9138]) whic affects
+due to the integration test aggregator project.
+Also, the same plugin is rather unhappy about JDK 17…
+
+[source,bash]
+----
+./mvnw release:prepare -pl \!:neo4j-migrations-test-results
+MAVEN_OPTS="--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED" \
+./mvnw release:perform -pl \!:neo4j-migrations-test-results
+----

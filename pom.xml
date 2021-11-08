@@ -623,9 +623,10 @@
 										<skipTag>true</skipTag>
 										<tagName>{{projectVersion}}</tagName>
 										<releaseName>{{projectVersion}}</releaseName>
+										<branch>master</branch>
 										<changelog>
 											<formatted>ALWAYS</formatted>
-											<contentTemplate>etc/changelog.tpl.md</contentTemplate>
+											<contentTemplate>etc/jreleaser/changelog.md.tpl</contentTemplate>
 											<format>- {{commitShortHash}} {{commitTitle}}</format>
 											<preset>conventional-commits</preset>
 											<contributors>
@@ -709,7 +710,7 @@
 										<type>NATIVE_IMAGE</type>
 										<artifacts>
 											<artifact>
-												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-x86_64.tar.gz</path>
+												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-x86_64.zip</path>
 												<platform>linux-x86_64</platform>
 											</artifact>
 											<artifact>
@@ -726,6 +727,7 @@
 											<tap>
 												<name>homebrew-neo4j-migrations</name>
 											</tap>
+											<formulaName>neo4j-migrations</formulaName>
 										</brew>
 									</neo4j-migrations>
 								</distributions>

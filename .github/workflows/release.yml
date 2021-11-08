@@ -136,3 +136,12 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
         run: ./mvnw --no-transfer-progress -Pjreleaser -pl :neo4j-migrations-parent jreleaser:full-release
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties

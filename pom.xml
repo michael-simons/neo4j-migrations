@@ -620,6 +620,7 @@
 							<jreleaser>
 								<release>
 									<github>
+										<overwrite>true</overwrite>
 										<skipTag>true</skipTag>
 										<tagName>{{projectVersion}}</tagName>
 										<releaseName>{{projectVersion}}</releaseName>

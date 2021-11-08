@@ -4,5 +4,5 @@ This is the official tap for [michael-simons/neo4j-migrations](https://github.co
 Tap and install with:
 
 ```sh
-$ brew install {{repoOwner}}/homebrew-{{distributionName}}/{{distributionName}}
+brew install {{repoOwner}}/homebrew-{{distributionName}}/{{distributionName}}
 ```

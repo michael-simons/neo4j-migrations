@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.restoreSystemProperties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -33,9 +34,10 @@ import org.junit.platform.commons.util.ReflectionUtils;
 class MigrationsCliTest {
 
 	@Test
-	void shouldFailToScanPackageInNative() {
+	void shouldFailToScanPackageInNative() throws Exception {
 
-		runTestPretendingToBeInNativeImage(() -> {
+		restoreSystemProperties(() -> {
+			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			MigrationsCli cli = new MigrationsCli();
 			Field field = ReflectionUtils.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
 				ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
@@ -52,24 +54,6 @@ class MigrationsCliTest {
 		});
 	}
 
-	static void runTestPretendingToBeInNativeImage(Runnable test) {
-		String propertyImageCodeKey = ImageInfo.PROPERTY_IMAGE_CODE_KEY;
-		String oldImageCodeValue = System.getProperty(propertyImageCodeKey);
-
-		try {
-			// This makes the test pretend to run in native image mode without SSL present
-			System.setProperty(propertyImageCodeKey, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
-
-			test.run();
-		} finally {
-			if (oldImageCodeValue == null || oldImageCodeValue.trim().isEmpty()) {
-				System.clearProperty(propertyImageCodeKey);
-			} else {
-				System.setProperty(propertyImageCodeKey, oldImageCodeValue);
-			}
-		}
-	}
-
 	@Test
 	void shouldNotFailToScanPackageInJVM() throws IllegalAccessException {
 
@@ -83,7 +67,7 @@ class MigrationsCliTest {
 	}
 
 	@Test
-	void shouldHandleUnsupportedConfigException() throws IllegalAccessException {
+	void shouldHandleUnsupportedConfigException() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();
 		Field field = ReflectionUtils.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
@@ -91,7 +75,8 @@ class MigrationsCliTest {
 		ReflectionUtils.makeAccessible(field);
 		field.set(cli, new String[] { "foo.bar" });
 
-		MigrationsCliTest.runTestPretendingToBeInNativeImage(() -> {
+		restoreSystemProperties(() -> {
+			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			ConnectedCommand cmd = new ConnectedCommand() {
 
 				@Override

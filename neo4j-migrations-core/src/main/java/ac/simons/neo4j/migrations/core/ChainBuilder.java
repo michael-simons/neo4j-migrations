@@ -26,8 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.summary.DatabaseInfo;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
@@ -56,11 +58,13 @@ final class ChainBuilder {
 
 		class ExtendedResultSummary {
 			final boolean showCurrentUserExists;
+			final ServerVersion version;
 			final ServerInfo server;
 			final DatabaseInfo database;
 
-			ExtendedResultSummary(boolean showCurrentUserExists, ResultSummary actualSummary) {
+			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, ResultSummary actualSummary) {
 				this.showCurrentUserExists = showCurrentUserExists;
+				this.version = version;
 				this.server = actualSummary.server();
 				this.database = actualSummary.database();
 			}
@@ -71,13 +75,17 @@ final class ChainBuilder {
 			// Auth maybe disabled. In such cases, we cannot get the current user.
 			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
 				Result result = tx.run(""
-									   + "CALL dbms.procedures() yield name "
+									   + "CALL dbms.procedures() YIELD name "
 									   + "WHERE name = 'dbms.showCurrentUser' "
-									   + "RETURN count(*) > 0 AS showCurrentUserExists"
+									   + "WITH count(*) > 0 AS showCurrentUserExists "
+									   + "CALL dbms.components() YIELD versions "
+									   + "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
 				);
-				boolean showCurrentUserExists = result.single().get("showCurrentUserExists").asBoolean();
+				Record singleResultRecord = result.single();
+				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
+				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
 				ResultSummary summary = result.consume();
-				return new ExtendedResultSummary(showCurrentUserExists, summary);
+				return new ExtendedResultSummary(showCurrentUserExists, version, summary);
 			});
 
 
@@ -93,7 +101,7 @@ final class ChainBuilder {
 
 			ServerInfo serverInfo = databaseInformation.server;
 			DatabaseInfo database = databaseInformation.database;
-			return new DefaultMigrationChain(serverInfo.address(), serverInfo.version(),
+			return new DefaultMigrationChain(serverInfo.address(), databaseInformation.version.toString(),
 				username, database == null ? null : database.name(), elements);
 		}
 	}

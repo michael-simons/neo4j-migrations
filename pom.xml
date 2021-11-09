@@ -549,6 +549,8 @@
 					<releaseProfiles>release</releaseProfiles>
 					<tagNameFormat>@{project.version}</tagNameFormat>
 					<goals>deploy</goals>
+					<pushChanges>false</pushChanges>
+					<localCheckout>true</localCheckout>
 					<arguments>-Drelease</arguments>
 				</configuration>
 			</plugin>

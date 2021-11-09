@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>0.3.3-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -50,7 +50,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>1.0.0</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -687,29 +687,29 @@
 											</labelers>
 											<replacers>
 												<replacer>
-												<search>((?:GH-)(\d+) - )(.*)</search>
-												<replace>$3 (#$2)</replace>
+													<search>((?:GH-)(\d+) - )(.*)</search>
+													<replace>$3 (#$2)</replace>
 												</replacer>
 											</replacers>
 											<categories>
 												<category>
-													<title>🚀 Features</title>
+													<title>&#x1f680; Features</title>
 													<labels>feat</labels>
 												</category>
 												<category>
-													<title>🐛 Bug Fixes</title>
+													<title>&#x1f41b; Bug Fixes</title>
 													<labels>fix</labels>
 												</category>
 												<category>
-													<title>📝 Documentation</title>
+													<title>&#x1f4dd; Documentation</title>
 													<labels>docs</labels>
 												</category>
 												<category>
-													<title>🧰 Build</title>
+													<title>&#x1f9f0; Build</title>
 													<labels>test,build,ci</labels>
 												</category>
 												<category>
-													<title>🧹 Housekeeping</title>
+													<title>&#x1f9f9; Housekeeping</title>
 													<labels>dependabot</labels>
 												</category>
 												<category>

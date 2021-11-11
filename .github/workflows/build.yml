@@ -23,7 +23,7 @@ jobs:
         run: echo "USE_SONAR=-sonar" >> $GITHUB_ENV
       - name: Prepare testcontainers.cloud agent
         env:
-          TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }
+          TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }}
         run : |
           curl -L -o agent https://app.testcontainers.cloud/download/testcontainers-cloud-agent_linux_x86-64
           chmod +x agent

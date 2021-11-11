@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN_FOO }}
+      TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v1
       - name: Set up JDK

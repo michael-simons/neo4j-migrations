@@ -21,6 +21,14 @@ jobs:
       - name: Disable Sonar for foreign PRs or from Dependabot
         if:  ${{ github.event.sender.login == 'dependabot[bot]' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
         run: echo "USE_SONAR=-sonar" >> $GITHUB_ENV
+      - name: Prepare testcontainers.cloud agent
+        env:
+          TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }
+        run : |
+          curl -L -o agent https://app.testcontainers.cloud/download/testcontainers-cloud-agent_linux_x86-64
+          chmod +x agent
+          ./agent &
+          ./agent wait
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:

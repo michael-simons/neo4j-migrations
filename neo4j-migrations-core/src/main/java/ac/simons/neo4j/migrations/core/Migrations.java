@@ -111,17 +111,13 @@ public final class Migrations {
 		}
 	}
 
-	static String getTargetDatabase(MigrationsConfig config, String defaultResult) {
-		return config.getDatabase().filter(ignored -> config.getSchemaDatabase().isPresent()).orElse(null);
-	}
-
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
 		try (Session session = context.getSchemaSession()) {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run(
-					"MATCH (l:__Neo4jMigration) WHERE (l.targetDatabase = $targetDatabase OR $targetDatabase IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
-						Collections.singletonMap("targetDatabase", getTargetDatabase(config, null)))
+					"MATCH (l:__Neo4jMigration) WHERE (l.migrationTarget = $migrationTarget OR $migrationTarget IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
+						Collections.singletonMap("migrationTarget", config.getMigrationTarget().orElse(null)))
 				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
@@ -168,26 +164,26 @@ public final class Migrations {
 
 		try (Session session = context.getSchemaSession()) {
 
-
+			Optional<String> migrationTarget = context.getConfig().getMigrationTarget();
 			Value parameters = Values.parameters(
 				"neo4jUser", neo4jUser,
 				"previousVersion", previousVersion.getValue(),
 				"appliedMigration", toProperties(appliedMigration),
 				"installedBy", config.getInstalledBy().map(Values::value).orElse(Values.NULL),
 				"executionTime", executionTime,
-				"targetDatabase", config.getDatabase().orElse(null)
+				"migrationTarget", migrationTarget.orElse(null)
 			);
 
-			String f;
-			if (config.getDatabase().isPresent() && config.getSchemaDatabase().isPresent()) {
-				f = "MERGE (p:__Neo4jMigration {version: $previousVersion, targetDatabase: $targetDatabase}) ";
+			String merge;
+			if (migrationTarget.isPresent()) {
+				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) ";
 			} else {
-				f = "MERGE (p:__Neo4jMigration {version: $previousVersion}) ";
+				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion}) ";
 			}
 
 			session.writeTransaction(t ->
-				t.run(f
-					  + "CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.targetDatabase = $targetDatabase "
+				t.run(merge
+					  + "CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.migrationTarget = $migrationTarget "
 					  + "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
 					.consume()

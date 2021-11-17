@@ -178,6 +178,20 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * The migration target will be empty if no target database is given or the schema database is the same as the target.
+	 *
+	 * @return A target database to use for all chains stored.
+	 */
+	Optional<String> getMigrationTarget() {
+		Optional<String> optionalDatabase = getDatabase();
+		Optional<String> optionalSchemaDatabase = getSchemaDatabase();
+		if (optionalDatabase.isPresent() && optionalSchemaDatabase.isPresent() && !optionalDatabase.equals(optionalSchemaDatabase)) {
+			return optionalDatabase;
+		}
+		return Optional.empty();
+	}
+
+	/**
 	 * A builder to create new instances of {@link MigrationsConfig configurations}.
 	 */
 	public static class Builder {

@@ -208,10 +208,17 @@ class MigrationsEETest {
 
 		String schemaDatabase = "schemaDatabase";
 		TestBase.clearDatabase(driver, schemaDatabase);
+		TestBase.clearDatabase(driver, "neo4j");
 		TestBase.clearDatabase(driver, "migrationTest");
 		TestBase.clearDatabase(driver, "anotherTarget");
 
-		// Migrate both targets
+		// Migrate all targets
+		Migrations neo4j = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withSchemaDatabase(schemaDatabase)
+			.build(), driver);
+		neo4j.apply();
+
 		Migrations migrationTest = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("migrationTest")
@@ -227,6 +234,7 @@ class MigrationsEETest {
 		anotherTarget.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
+		assertThat(allLengths).containsEntry("<default>", 2);
 		assertThat(allLengths).containsEntry("migrationTest", 2);
 		assertThat(allLengths).containsEntry("anotherTarget", 2);
 
@@ -249,13 +257,14 @@ class MigrationsEETest {
 		anotherTarget.apply();
 
 		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
+		assertThat(allLengths).containsEntry("<default>", 2);
 		assertThat(allLengths).containsEntry("migrationTest", 2);
 		assertThat(allLengths).containsEntry("anotherTarget", 8);
 
-		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
+		Stream.of("migrationTest", "neo4j", "anotherTarget").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
 				long cnt = session.run("MATCH (agent:`007`) RETURN count(agent) AS cnt").single().get("cnt").asLong();
-				assertThat(cnt).isEqualTo(databaseName.equals("migrationTest") ? 0L : 1L);
+				assertThat(cnt).isEqualTo(databaseName.equals("anotherTarget") ? 1L : 0L);
 			}
 		});
 	}

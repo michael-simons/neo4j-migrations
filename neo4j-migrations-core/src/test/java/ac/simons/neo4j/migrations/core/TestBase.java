@@ -106,9 +106,9 @@ abstract class TestBase {
 			return session.run(""
 				+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [:MIGRATED_TO*] -> (l:`__Neo4jMigration`) "
 				+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) "
-				+ "RETURN b.targetDatabase as targetDatabase, length(p) AS l")
+				+ "RETURN b.migrationTarget as migrationTarget, length(p) AS l")
 				.stream()
-				.collect(Collectors.toMap(r -> r.get("targetDatabase").asString("<default>"),  r -> r.get("l").asInt()));
+				.collect(Collectors.toMap(r -> r.get("migrationTarget").asString("<default>"),  r -> r.get("l").asInt()));
 		}
 	}
 

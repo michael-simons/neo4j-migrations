@@ -130,7 +130,7 @@ class MigrationsConfigTest {
 		config.logTo(logger, true);
 		assertThat(logCollector.logMessages)
 			.containsExactly(
-				"Migrations will be applied to using database \"x\"",
+				"Migrations will be applied to database \"x\"",
 				"Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
 				"Statements will be applied in separate transactions",
 				"Will scan for Java based migrations in \"a.b.c\""

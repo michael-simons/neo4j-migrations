@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.cli;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.restoreSystemProperties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine;
@@ -86,6 +87,22 @@ class MigrationsCliTest {
 		field.set(cli, "aDatabaseForTheSchema");
 
 		assertThat(cli.getConfig().getSchemaDatabase()).hasValue("aDatabaseForTheSchema");
+	}
+
+	@Test
+	void shouldRequire2Connections() throws IllegalAccessException {
+
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "schemaDatabase".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, "aDatabaseForTheSchema");
+
+		field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, 1);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> cli.getConfig().getSchemaDatabase())
+			.withMessage("You must at least allow 2 connections in the pool to use a separate database.");
 	}
 
 	@Test

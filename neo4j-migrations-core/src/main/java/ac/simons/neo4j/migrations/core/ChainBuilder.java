@@ -99,9 +99,10 @@ final class ChainBuilder {
 			}
 
 			ServerInfo serverInfo = databaseInformation.server;
-			DatabaseInfo database = databaseInformation.database;
+			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
+			String targetDatabase = context.getConfig().getMigrationTargetIn(context).orElse(schemaDatabase);
 			return new DefaultMigrationChain(serverInfo.address(), databaseInformation.version.toString(),
-				username, database == null ? null : database.name(), elements);
+				username, targetDatabase, schemaDatabase, elements);
 		}
 	}
 
@@ -174,14 +175,17 @@ final class ChainBuilder {
 
 		private final String databaseName;
 
+		private final String schemaDatabaseName;
+
 		private final Map<MigrationVersion, Element> elements;
 
-		DefaultMigrationChain(String serverAdress, String serverVersion, String username, String databaseName,
+		DefaultMigrationChain(String serverAdress, String serverVersion, String username, String databaseName, String schemaDatabaseName,
 			Map<MigrationVersion, Element> elements) {
 			this.serverAdress = serverAdress;
 			this.serverVersion = serverVersion;
 			this.username = username;
 			this.databaseName = databaseName;
+			this.schemaDatabaseName = schemaDatabaseName;
 			this.elements = elements;
 		}
 
@@ -200,8 +204,13 @@ final class ChainBuilder {
 		}
 
 		@Override
-		public String getDatabaseName() {
-			return databaseName;
+		public Optional<String> getDatabaseName() {
+			return Optional.ofNullable(databaseName);
+		}
+
+		@Override
+		public Optional<String> getSchemaDatabaseName() {
+			return Optional.ofNullable(schemaDatabaseName);
 		}
 
 		@Override

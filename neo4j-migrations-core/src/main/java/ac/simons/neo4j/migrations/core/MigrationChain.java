@@ -40,9 +40,17 @@ public interface MigrationChain {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(MigrationChainFormat.LS)
-			.append("Database: ")
-			.append(getServerVersion() + "@")
-			.append(getServerAddress())
+			.append(getServerVersion() + "@").append(getServerAddress());
+
+		getDatabaseName().ifPresent(name ->
+			sb.append(MigrationChainFormat.LS).append("Database: ").append(name)
+		);
+
+		getSchemaDatabaseName().ifPresent(name ->
+			sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
+		);
+
+		sb
 			.append(MigrationChainFormat.LS)
 			.append(MigrationChainFormat.LS);
 
@@ -72,11 +80,16 @@ public interface MigrationChain {
 	/**
 	 * @return The database if applicable (Neo4j 4.0 and up)
 	 */
-	String getDatabaseName();
+	Optional<String> getDatabaseName();
+
+	/**
+	 * @return The database if applicable (Neo4j 4.0 and up)
+	 */
+	Optional<String> getSchemaDatabaseName();
 
 	/**
 	 * @param version An arbitrary version string
-	 * @return True, if the the version string maps to a migration that has been applied.
+	 * @return True, if the version string maps to a migration that has been applied.
 	 */
 	boolean isApplied(String version);
 

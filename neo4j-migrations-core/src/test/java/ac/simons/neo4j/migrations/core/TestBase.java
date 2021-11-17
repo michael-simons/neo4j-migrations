@@ -71,12 +71,6 @@ abstract class TestBase {
 		return neo4j.getBoltUrl().replaceAll("bolt://", "");
 	}
 
-	public static void main(String...a) {
-		Driver d = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
-		Session s = d.session(SessionConfig.forDatabase("neo4j"));
-		s.run("MATCH (n) RETURN n").consume();
-	}
-
 	@AfterAll
 	void closeDriver() {
 

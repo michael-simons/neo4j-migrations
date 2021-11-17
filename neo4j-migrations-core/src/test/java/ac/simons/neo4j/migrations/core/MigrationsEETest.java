@@ -122,7 +122,7 @@ class MigrationsEETest {
 		Logger logger = Logger.getLogger(MigrationsEETest.class.getName());
 		String actualSchemaDatabase = schemaDatabase == null ? targetDatabase : schemaDatabase;
 		String targetDatabaseInStats =
-			schemaDatabase != null ? targetDatabase == null ? "neo4j" : targetDatabase : "<default>";
+			(schemaDatabase != null ? targetDatabase == null ? "neo4j" : targetDatabase : "<default>").toLowerCase(Locale.ROOT);
 
 		logger.log(Level.INFO, "Target database {0}, schemaDatabase {1}", new Object[] { targetDatabase, actualSchemaDatabase });
 
@@ -240,33 +240,45 @@ class MigrationsEETest {
 		TestBase.clearDatabase(driver, "migrationTest");
 		TestBase.clearDatabase(driver, "anotherTarget");
 
-		new Migrations(MigrationsConfig.builder()
+		Migrations migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver)
-			.apply();
+			.build(), driver);
+		MigrationChain info = migrations.info();
+		assertThat(info.getDatabaseName()).hasValue("neo4j");
+		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		migrations.apply();
 
 		// Explicit neo4j again
-		new Migrations(MigrationsConfig.builder()
+		migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("neo4j")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver)
-			.apply();
+			.build(), driver);
+		info = migrations.info();
+		assertThat(info.getDatabaseName()).hasValue("neo4j");
+		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		migrations.apply();
 
-		new Migrations(MigrationsConfig.builder()
+		migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("migrationTest")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver)
-			.apply();
+			.build(), driver);
+		info = migrations.info();
+		assertThat(info.getDatabaseName()).hasValue("migrationtest");
+		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		migrations.apply();
 
-		new Migrations(MigrationsConfig.builder()
+		migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("anotherTarget")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver)
-			.apply();
+			.build(), driver);
+		info = migrations.info();
+		assertThat(info.getDatabaseName()).hasValue("anothertarget");
+		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		migrations.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
 		assertThat(allLengths)

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -154,7 +155,7 @@ public final class MigrationsConfig {
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {
-			this.getDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", v));
+			this.getDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to database \"{0}\"", v));
 			if (this.getLocationsToScan().length > 0) {
 				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
 				logger.log(Level.INFO, "Statements will be applied {0}",
@@ -201,7 +202,7 @@ public final class MigrationsConfig {
 		}
 
 		if (!optionalDatabase.equals(optionalSchemaDatabase)) {
-			return optionalDatabase;
+			return optionalDatabase.map(s -> s.toLowerCase(Locale.ROOT));
 		}
 		return Optional.empty();
 	}

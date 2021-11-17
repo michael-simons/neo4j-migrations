@@ -59,7 +59,7 @@ final class MigrationsLock {
 
 	void createUniqueConstraintIfNecessary() {
 
-		try (Session session = Migrations.getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 			int numberOfConstraints = session.writeTransaction(t -> {
 				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
 					.counters().constraintsAdded();
@@ -93,7 +93,7 @@ final class MigrationsLock {
 
 		createUniqueConstraintIfNecessary();
 
-		try (Session session = Migrations.getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
@@ -101,7 +101,7 @@ final class MigrationsLock {
 					.single().get("l").asNode().id()
 			);
 			LOGGER.log(Level.FINE, "Acquired lock {0} with internal id {1}", new Object[] { id, internalId });
-		//	Runtime.getRuntime().addShutdownHook(cleanUpTask);
+			Runtime.getRuntime().addShutdownHook(cleanUpTask);
 			return id;
 		} catch (Neo4jException e) {
 			throw new MigrationsException(
@@ -120,7 +120,7 @@ final class MigrationsLock {
 
 	void unlock0() {
 
-		try (Session session = Migrations.getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 
 			ResultSummary resultSummary = session.writeTransaction(t ->
 				t.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l", Values.parameters("id", id))

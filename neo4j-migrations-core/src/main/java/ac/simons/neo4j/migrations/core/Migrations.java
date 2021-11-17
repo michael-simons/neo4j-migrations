@@ -81,7 +81,7 @@ public final class Migrations {
 	}
 
 	/**
-	 * Applies a all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
+	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
 	 * or Cypher script migrations that are on the classpath or filesystem.
 	 *
 	 * @return The last applied migration (if any)
@@ -111,18 +111,9 @@ public final class Migrations {
 		}
 	}
 
-	static Session getSchemaSessionFor(MigrationContext context) {
-
-		MigrationsConfig config = context.getConfig();
-		UnaryOperator<SessionConfig.Builder> configCustomizer = config.getSchemaDatabase().map(schemaDatabase ->
-			(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
-		).orElseGet(UnaryOperator::identity);
-		return context.getDriver().session(context.getSessionConfig(configCustomizer));
-	}
-
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
-		try (Session session = getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run("MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l")
 				.single().get(0).asNode());
@@ -169,18 +160,20 @@ public final class Migrations {
 	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration,
 		long executionTime) {
 
-		try (Session session = getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 			session.writeTransaction(t -> {
 					Value parameters = Values.parameters(
 						"neo4jUser", neo4jUser,
 						"previousVersion", previousVersion.getValue(),
 						"appliedMigration", toProperties(appliedMigration),
 						"installedBy", config.getInstalledBy().map(Values::value).orElse(Values.NULL),
-						"executionTime", executionTime
+						"executionTime", executionTime,
+						"targetDatabase", previousVersion == MigrationVersion.baseline() ? context.getConfig().getDatabase().orElse(null) : null
 					);
 
 					return t.run(""
 							+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
+								 //+ "SET p.targetDatabase = $targetDatabase "
 							+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
 							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
@@ -233,6 +226,7 @@ public final class Migrations {
 	static class DefaultMigrationContext implements MigrationContext {
 
 		private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
+		private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
 		private static Method findWithImpersonatedUser() {
 			try {
@@ -248,12 +242,16 @@ public final class Migrations {
 
 		DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
-			this.config = config;
-			this.driver = driver;
 			if (config.getImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
 				throw new IllegalArgumentException(
 					"User impersonation requires a driver that supports `withImpersonatedUser`.");
 			}
+
+			this.config = config;
+			this.driver = driver;
+			this.applySchemaDatabase = this.config.getSchemaDatabase().map(schemaDatabase ->
+				(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
+			).orElseGet(UnaryOperator::identity);
 		}
 
 		@Override
@@ -280,6 +278,11 @@ public final class Migrations {
 			});
 
 			return configCustomizer.apply(builder).build();
+		}
+
+		@Override
+		public Session getSchemaSession() {
+			return getDriver().session(getSessionConfig(applySchemaDatabase));
 		}
 	}
 }

@@ -70,7 +70,7 @@ final class ChainBuilder {
 			}
 		}
 
-		try (Session session = Migrations.getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 
 			// Auth maybe disabled. In such cases, we cannot get the current user.
 			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
@@ -148,7 +148,7 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
 		Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
-		try (Session session = Migrations.getSchemaSessionFor(context)) {
+		try (Session session = context.getSchemaSession()) {
 			Result result = session
 				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
 					+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"

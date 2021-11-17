@@ -68,4 +68,9 @@ public interface MigrationContext {
 
 		return getDriver().session(getSessionConfig());
 	}
+
+	/**
+	 * @return A session accessing the configured schema database if any or the default database.
+	 */
+	Session getSchemaSession();
 }

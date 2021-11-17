@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +38,7 @@ import org.powermock.reflect.Whitebox;
 class DefaultMigrationContextTest {
 
 	@Test
-	void noSuchMethod() {
+	void shouldRequireSupportedDriverForImpersonationAndFailOtherwise() {
 
 		MigrationsConfig migrationConfig = MigrationsConfig.builder().withImpersonatedUser("foo").build();
 
@@ -62,11 +63,21 @@ class DefaultMigrationContextTest {
 		MigrationsConfig migrationConfig = MigrationsConfig.builder().withImpersonatedUser("foo").build();
 
 		try (MockedStatic<SessionConfig> utilities = Mockito.mockStatic(SessionConfig.class)) {
-
+			MigrationContext ctx = new Migrations.DefaultMigrationContext(migrationConfig, null);
 			utilities.when(SessionConfig::builder).thenReturn(sessionConfigBuilder);
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> new Migrations.DefaultMigrationContext(migrationConfig, null))
+				.isThrownBy(ctx::getSessionConfig)
 				.withMessage("Could not impersonate a user on the driver level");
 		}
+	}
+
+	@Test
+	void shouldApplyCustomizer() {
+
+		MigrationContext ctx = new Migrations.DefaultMigrationContext(
+			MigrationsConfig.defaultConfig(), null);
+
+		SessionConfig config = ctx.getSessionConfig(builder -> builder.withDatabase("aDatabase"));
+		assertThat(config.database()).hasValue("aDatabase");
 	}
 }

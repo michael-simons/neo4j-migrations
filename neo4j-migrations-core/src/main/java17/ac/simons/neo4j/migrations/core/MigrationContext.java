@@ -27,7 +27,7 @@ import org.neo4j.driver.SessionConfig;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-public interface MigrationContext {
+public sealed interface MigrationContext permits Migrations.DefaultMigrationContext {
 
 	/**
 	 * @return The configuration of this migration instance.

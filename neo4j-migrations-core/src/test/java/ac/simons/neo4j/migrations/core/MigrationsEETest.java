@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -42,7 +42,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.exceptions.ClientException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -105,31 +104,6 @@ class MigrationsEETest {
 	static void disableConsoleLoggingOnLock() {
 		LOCK_LOGGER.setLevel(PREVIOUS_LOCK_LOGGING_LEVEL);
 		LOCK_LOGGER.removeHandler(SIMPLE_CONSOLE_HANDLER);
-	}
-
-	@Test
-	void impersonationOnOldDBShouldFail() {
-		try (Neo4jContainer<?> neo4j43 = new Neo4jContainer<>("neo4j:4.3-enterprise")
-			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
-
-			neo4j43.start();
-
-			Config config = Config.builder().withLogging(Logging.none()).build();
-
-			try (Driver driver43 = GraphDatabase.driver(neo4j43.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
-
-				Migrations migrations = new Migrations(MigrationsConfig.builder()
-					.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
-					.withImpersonatedUser("TheImposter")
-					.build(), driver43);
-
-				assertThatExceptionOfType(ClientException.class).isThrownBy(migrations::info)
-					.withMessageStartingWith(
-						"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
-			}
-		}
 	}
 
 	@ParameterizedTest
@@ -205,6 +179,58 @@ class MigrationsEETest {
 	}
 
 	@Test
+	void usingSchemeWithPreexistingDatabasesMigrationsShouldWork() {
+
+		TestBase.clearDatabase(driver, "migrationTest");
+		Migrations migrationTestWithoutSchema = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("migrationTest")
+			.build(), driver);
+		migrationTestWithoutSchema.apply();
+
+		Migrations migrationTestSameSchema = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("migrationTest")
+			.withSchemaDatabase("migrationTest")
+			.build(), driver);
+		migrationTestSameSchema.apply();
+
+		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, "migrationTest");
+		assertThat(allLengths).containsOnly(new AbstractMap.SimpleEntry<>("<default>", 2)); // There is none, since it maybe from an old migration
+
+		Stream.of("migrationTest").forEach(databaseName -> {
+			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
+				long cnt = session.run("MATCH (n:IWasHere) RETURN count(n) AS cnt").single().get("cnt").asLong();
+				assertThat(cnt).isEqualTo(1L);
+			}
+		});
+
+		// Add a migration with a scheme
+		Migrations migrationNeo4j = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("neo4j")
+			.withSchemaDatabase("migrationTest")
+			.build(), driver);
+		migrationNeo4j.apply();
+
+		// Now the default entry is there (a potential old one) and the neo4j one
+		allLengths = TestBase.allLengthOfMigrations(driver, "migrationTest");
+		assertThat(allLengths).containsOnly(
+			new AbstractMap.SimpleEntry<>("<default>", 2),
+			new AbstractMap.SimpleEntry<>("neo4j", 2)
+		);
+
+		migrationTestWithoutSchema.apply();
+		migrationTestSameSchema.apply();
+
+		allLengths = TestBase.allLengthOfMigrations(driver, "migrationTest");
+		assertThat(allLengths).containsOnly(
+			new AbstractMap.SimpleEntry<>("<default>", 2),
+			new AbstractMap.SimpleEntry<>("neo4j", 2)
+		);
+	}
+
+	@Test
 	void shouldBeAbleToManageMultipleDatabasesFromOneSchemaDatabase() {
 
 		String schemaDatabase = "schemaDatabase";
@@ -213,34 +239,33 @@ class MigrationsEETest {
 		TestBase.clearDatabase(driver, "migrationTest");
 		TestBase.clearDatabase(driver, "anotherTarget");
 
-		// Migrate all targets
-		Migrations neo4j = new Migrations(MigrationsConfig.builder()
+		new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver);
-		neo4j.apply();
+			.build(), driver)
+			.apply();
 
 		// Explicit neo4j again
-		neo4j = new Migrations(MigrationsConfig.builder()
+		new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("neo4j")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver);
-		neo4j.apply();
+			.build(), driver)
+			.apply();
 
-		Migrations migrationTest = new Migrations(MigrationsConfig.builder()
+		new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("migrationTest")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver);
-		migrationTest.apply();
+			.build(), driver)
+			.apply();
 
-		Migrations anotherTarget = new Migrations(MigrationsConfig.builder()
+		new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("anotherTarget")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver);
-		anotherTarget.apply();
+			.build(), driver)
+			.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
 		assertThat(allLengths).containsEntry("neo4j", 2);
@@ -255,15 +280,15 @@ class MigrationsEETest {
 			}
 		});
 
-		anotherTarget = new Migrations(MigrationsConfig.builder()
+		new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan(
 				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
 				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
 			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
 			.withDatabase("anotherTarget")
 			.withSchemaDatabase(schemaDatabase)
-			.build(), driver);
-		anotherTarget.apply();
+			.build(), driver)
+			.apply();
 
 		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
 		assertThat(allLengths).containsEntry("neo4j", 2);

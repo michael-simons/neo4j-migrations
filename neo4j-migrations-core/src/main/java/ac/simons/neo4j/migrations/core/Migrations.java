@@ -116,7 +116,7 @@ public final class Migrations {
 		try (Session session = context.getSchemaSession()) {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run(
-					"MATCH (l:__Neo4jMigration) WHERE (l.migrationTarget = $migrationTarget OR $migrationTarget IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
+					"MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
 						Collections.singletonMap("migrationTarget", config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 

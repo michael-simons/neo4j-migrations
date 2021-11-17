@@ -190,7 +190,7 @@ public final class MigrationsConfig {
 		Optional<String> optionalDatabase = getDatabase();
 		Optional<String> optionalSchemaDatabase = getSchemaDatabase();
 
-		if(!optionalSchemaDatabase.isPresent()) {
+		if (!optionalSchemaDatabase.isPresent()) {
 			return Optional.empty();
 		}
 

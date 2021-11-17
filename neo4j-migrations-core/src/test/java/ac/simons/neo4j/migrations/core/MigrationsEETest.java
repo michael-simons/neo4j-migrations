@@ -269,9 +269,10 @@ class MigrationsEETest {
 			.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
-		assertThat(allLengths).containsEntry("neo4j", 2);
-		assertThat(allLengths).containsEntry("migrationTest", 2);
-		assertThat(allLengths).containsEntry("anotherTarget", 2);
+		assertThat(allLengths)
+			.containsEntry("neo4j", 2)
+			.containsEntry("migrationTest", 2)
+			.containsEntry("anotherTarget", 2);
 
 		// Assert that the cypher based migration was correctly applied
 		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
@@ -292,9 +293,10 @@ class MigrationsEETest {
 			.apply();
 
 		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
-		assertThat(allLengths).containsEntry("neo4j", 2);
-		assertThat(allLengths).containsEntry("migrationTest", 2);
-		assertThat(allLengths).containsEntry("anotherTarget", 8);
+		assertThat(allLengths)
+			.containsEntry("neo4j", 2)
+			.containsEntry("migrationTest", 2)
+			.containsEntry("anotherTarget", 8);
 
 		Stream.of("migrationTest", "neo4j", "anotherTarget").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {

@@ -116,10 +116,6 @@ public final class MigrationsConfig {
 		return locationsToScan;
 	}
 
-	public boolean hasPlacesToLookForMigrations() {
-		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
-	}
-
 	public TransactionMode getTransactionMode() {
 		return transactionMode;
 	}
@@ -129,27 +125,19 @@ public final class MigrationsConfig {
 	}
 
 	public Optional<String> getDatabase() {
-		return Optional.ofNullable(database)
-			.filter(MigrationsConfig::valueIsNotBlank)
-			.map(String::trim);
+		return optionalOf(database);
 	}
 
 	public Optional<String> getSchemaDatabase() {
-		return Optional.ofNullable(schemaDatabase)
-			.filter(MigrationsConfig::valueIsNotBlank)
-			.map(String::trim);
+		return optionalOf(schemaDatabase);
 	}
 
 	public Optional<String> getImpersonatedUser() {
-		return Optional.ofNullable(impersonatedUser)
-			.filter(MigrationsConfig::valueIsNotBlank)
-			.map(String::trim);
+		return optionalOf(impersonatedUser);
 	}
 
 	public Optional<String> getInstalledBy() {
-		return Optional.ofNullable(installedBy)
-			.filter(MigrationsConfig::valueIsNotBlank)
-			.map(String::trim);
+		return optionalOf(installedBy);
 	}
 
 	public boolean isValidateOnMigrate() {
@@ -178,6 +166,16 @@ public final class MigrationsConfig {
 				logger.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
 			}
 		}
+	}
+
+	boolean hasPlacesToLookForMigrations() {
+		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
+	}
+
+	Optional<String> optionalOf(String value) {
+		return Optional.ofNullable(value)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
 	}
 
 	/**

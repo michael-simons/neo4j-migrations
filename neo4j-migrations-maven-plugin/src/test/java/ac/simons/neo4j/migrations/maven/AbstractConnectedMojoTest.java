@@ -107,13 +107,25 @@ public class AbstractConnectedMojoTest {
 	@Test
 	public void shouldConfigureImpersonatedUser() throws Exception {
 
-		File pom = new File("target/test-classes/with-imp-user/");
+		File pom = new File("target/test-classes/with-imp-and-schema/");
 		assertNotNull(pom);
 		assertTrue(pom.exists());
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertNotNull(infoMojo);
 		assertEquals(Optional.of("someoneElse"), infoMojo.getConfig().getImpersonatedUser());
+	}
+
+	@Test
+	public void shouldConfigureSchemaDatabase() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-and-schema/");
+		assertNotNull(pom);
+		assertTrue(pom.exists());
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertNotNull(infoMojo);
+		assertEquals(Optional.of("anotherDatabase"), infoMojo.getConfig().getSchemaDatabase());
 	}
 }
 

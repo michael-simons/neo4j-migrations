@@ -18,6 +18,7 @@
 				<configuration>
 					<impersonatedUser>someoneElse</impersonatedUser>
 					<password>secret</password>
+					<schemaDatabase>anotherDatabase</schemaDatabase>
 				</configuration>
 			</plugin>
 		</plugins>

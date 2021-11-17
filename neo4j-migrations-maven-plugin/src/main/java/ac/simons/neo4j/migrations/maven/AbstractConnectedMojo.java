@@ -89,14 +89,20 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private TransactionMode transactionMode;
 
 	/**
-	 * The database that should be migrated (Neo4j 4.0+).
+	 * The database that should be migrated (Neo4j EE 4.0+).
 	 */
 	@Parameter
 	private String database;
 
 	/**
+	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+).
+	 */
+	@Parameter
+	private String schemaDatabase;
+
+	/**
 	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
-	 * will be dropped again after migration. Requires Neo4j 4.4+. Leave {@literal null} for using the connected user.
+	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
 	 */
 	@Parameter
 	private String impersonatedUser;
@@ -135,6 +141,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
+			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)
 			.build();
 

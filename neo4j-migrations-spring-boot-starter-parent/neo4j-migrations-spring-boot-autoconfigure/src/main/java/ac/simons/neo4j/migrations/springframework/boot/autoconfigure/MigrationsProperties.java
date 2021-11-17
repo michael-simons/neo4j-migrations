@@ -62,13 +62,18 @@ public class MigrationsProperties {
 	private Charset encoding = Defaults.CYPHER_SCRIPT_ENCODING;
 
 	/**
-	 * The database that should be migrated (Neo4j 4.0+ only). Leave {@literal null} for using the default database.
+	 * The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
 	 */
 	private String database;
 
 	/**
+	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+	 */
+	private String schemaDatabase;
+
+	/**
 	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
-	 * will be dropped again after migration. Requires Neo4j 4.4+. Leave {@literal null} for using the connected user.
+	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
 	 */
 	private String impersonatedUser;
 
@@ -156,6 +161,14 @@ public class MigrationsProperties {
 
 	public void setDatabase(String database) {
 		this.database = database;
+	}
+
+	public String getSchemaDatabase() {
+		return schemaDatabase;
+	}
+
+	public void setSchemaDatabase(String schemaDatabase) {
+		this.schemaDatabase = schemaDatabase;
 	}
 
 	public String getImpersonatedUser() {

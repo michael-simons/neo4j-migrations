@@ -78,6 +78,17 @@ class MigrationsCliTest {
 	}
 
 	@Test
+	void shouldConfigureSchemaDatabase() throws IllegalAccessException {
+
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "schemaDatabase".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, "aDatabaseForTheSchema");
+
+		assertThat(cli.getConfig().getSchemaDatabase()).hasValue("aDatabaseForTheSchema");
+	}
+
+	@Test
 	void shouldHandleUnsupportedConfigException() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();

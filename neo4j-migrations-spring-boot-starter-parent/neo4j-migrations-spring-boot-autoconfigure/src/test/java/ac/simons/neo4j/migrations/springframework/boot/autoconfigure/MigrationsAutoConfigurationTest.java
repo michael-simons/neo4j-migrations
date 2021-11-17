@@ -219,6 +219,17 @@ class MigrationsAutoConfigurationTest {
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
 			assertThat(config.getImpersonatedUser()).hasValue("someoneElse");
 		}
+
+		@Test
+		void shouldConfigureSchemaDatabaseUser() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setSchemaDatabase("anotherDatabase");
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.getSchemaDatabase()).hasValue("anotherDatabase");
+		}
 	}
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()

@@ -86,6 +86,10 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, "aDatabaseForTheSchema");
 
+		field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, 2);
+
 		assertThat(cli.getConfig().getSchemaDatabase()).hasValue("aDatabaseForTheSchema");
 	}
 

@@ -42,13 +42,17 @@ public interface MigrationChain {
 		sb.append(MigrationChainFormat.LS)
 			.append(getServerVersion() + "@").append(getServerAddress());
 
-		getDatabaseName().ifPresent(name ->
+		Optional<String> optionalDatabase = getDatabaseName();
+		optionalDatabase.ifPresent(name ->
 			sb.append(MigrationChainFormat.LS).append("Database: ").append(name)
 		);
 
-		getSchemaDatabaseName().ifPresent(name ->
-			sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
-		);
+		Optional<String> optionalSchemaDatabase = getSchemaDatabaseName();
+		if (!optionalSchemaDatabase.equals(optionalDatabase)) {
+			optionalSchemaDatabase.ifPresent(name ->
+				sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
+			);
+		}
 
 		sb
 			.append(MigrationChainFormat.LS)

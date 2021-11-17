@@ -151,8 +151,8 @@ final class ChainBuilder {
 		try (Session session = context.getSchemaSession()) {
 			Result result = session
 				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
-					+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-					+ "RETURN p");
+					+ "WHERE (b.targetDatabase = $targetDatabase OR $targetDatabase IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
+					+ "RETURN p", Collections.singletonMap("targetDatabase", Migrations.getTargetDatabase(context.getConfig(), null)));
 			// Might be empty (when nothing has applied yet)
 			if (result.hasNext()) {
 				result.single().get("p").asPath().forEach(segment -> {

@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,14 +97,18 @@ abstract class TestBase {
 	}
 
 	static int lengthOfMigrations(Driver driver, String database) {
+		return allLengthOfMigrations(driver, database).getOrDefault("<default>", 0);
+	}
 
-		SessionConfig sessionConfig = getSessionConfig(database);
+	static Map<String, Integer> allLengthOfMigrations(Driver driver, String database) {
 
-		try (Session session = driver.session(sessionConfig)) {
+		try (Session session = driver.session(getSessionConfig(database))) {
 			return session.run(""
 				+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [:MIGRATED_TO*] -> (l:`__Neo4jMigration`) "
 				+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) "
-				+ "RETURN length(p) AS l").single().get("l").asInt();
+				+ "RETURN b.targetDatabase as targetDatabase, length(p) AS l")
+				.stream()
+				.collect(Collectors.toMap(r -> r.get("targetDatabase").asString("<default>"),  r -> r.get("l").asInt()));
 		}
 	}
 

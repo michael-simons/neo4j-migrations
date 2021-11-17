@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -69,9 +70,9 @@ class MigrationsEETest {
 
 	private static Driver driver;
 
-	private static Logger LOCK_LOGGER = Logger.getLogger(MigrationsLock.class.getName());
-	private static Level PREVIOUS_LOCK_LOGGING_LEVEL = LOCK_LOGGER.getLevel();
-	private static ConsoleHandler SIMPLE_CONSOLE_HANDLER = new ConsoleHandler();
+	private static final Logger LOCK_LOGGER = Logger.getLogger(MigrationsLock.class.getName());
+	private static final Level PREVIOUS_LOCK_LOGGING_LEVEL = LOCK_LOGGER.getLevel();
+	private static final ConsoleHandler SIMPLE_CONSOLE_HANDLER = new ConsoleHandler();
 	static {
 		SIMPLE_CONSOLE_HANDLER.setLevel(Level.FINE);
 		SIMPLE_CONSOLE_HANDLER.setFormatter(new Formatter() {
@@ -88,7 +89,7 @@ class MigrationsEETest {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			Stream.of("migrationTest", "schemaDatabase")
+			Stream.of("migrationTest", "schemaDatabase", "anotherTarget")
 				.map(database -> Collections.<String, Object>singletonMap("database", database))
 				.forEach(params -> session.run("CREATE DATABASE $database", params).consume());
 		}
@@ -145,6 +146,7 @@ class MigrationsEETest {
 
 		Logger logger = Logger.getLogger(MigrationsEETest.class.getName());
 		String actualSchemaDatabase = schemaDatabase == null ? targetDatabase : schemaDatabase;
+		String targetDatabaseInStats = targetDatabase != null && schemaDatabase != null ? targetDatabase : "<default>";
 
 		logger.log(Level.INFO, "Target database {0}, schemaDatabase {1}", new Object[] { targetDatabase, actualSchemaDatabase });
 
@@ -163,7 +165,7 @@ class MigrationsEETest {
 		migrations.apply();
 
 		// Assert that verification runs in the correct database
-		assertThat(TestBase.lengthOfMigrations(driver, actualSchemaDatabase)).isEqualTo(2);
+		assertThat(TestBase.allLengthOfMigrations(driver, actualSchemaDatabase)).containsEntry(targetDatabaseInStats, 2);
 
 		// Second application
 		migrations = new Migrations(MigrationsConfig.builder()
@@ -177,7 +179,7 @@ class MigrationsEETest {
 		migrations.apply();
 
 		// Assert that verification runs in the correct database
-		assertThat(TestBase.lengthOfMigrations(driver, actualSchemaDatabase)).isEqualTo(8);
+		assertThat(TestBase.allLengthOfMigrations(driver, actualSchemaDatabase)).containsEntry(targetDatabaseInStats, 8);
 
 		// Assert that the cypher based migration was correctly applied
 		try (Session session = targetDatabase == null ? driver.session() : driver.session(SessionConfig.forDatabase(targetDatabase))) {
@@ -199,6 +201,63 @@ class MigrationsEETest {
 				"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.id) IS UNIQUE"
 			);
 		}
+	}
+
+	@Test
+	void shouldBeAbleToManageMultipleDatabasesFromOneSchemaDatabase() {
+
+		String schemaDatabase = "schemaDatabase";
+		TestBase.clearDatabase(driver, schemaDatabase);
+		TestBase.clearDatabase(driver, "migrationTest");
+		TestBase.clearDatabase(driver, "anotherTarget");
+
+		// Migrate both targets
+		Migrations migrationTest = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("migrationTest")
+			.withSchemaDatabase(schemaDatabase)
+			.build(), driver);
+		migrationTest.apply();
+
+		Migrations anotherTarget = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("anotherTarget")
+			.withSchemaDatabase(schemaDatabase)
+			.build(), driver);
+		anotherTarget.apply();
+
+		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
+		assertThat(allLengths).containsEntry("migrationTest", 2);
+		assertThat(allLengths).containsEntry("anotherTarget", 2);
+
+		// Assert that the cypher based migration was correctly applied
+		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
+			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
+				long cnt = session.run("MATCH (n:IWasHere) RETURN count(n) AS cnt").single().get("cnt").asLong();
+				assertThat(cnt).isEqualTo(1L);
+			}
+		});
+
+		anotherTarget = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
+			.withDatabase("anotherTarget")
+			.withSchemaDatabase(schemaDatabase)
+			.build(), driver);
+		anotherTarget.apply();
+
+		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
+		assertThat(allLengths).containsEntry("migrationTest", 2);
+		assertThat(allLengths).containsEntry("anotherTarget", 8);
+
+		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
+			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
+				long cnt = session.run("MATCH (agent:`007`) RETURN count(agent) AS cnt").single().get("cnt").asLong();
+				assertThat(cnt).isEqualTo(databaseName.equals("migrationTest") ? 0L : 1L);
+			}
+		});
 	}
 
 	@ParameterizedTest

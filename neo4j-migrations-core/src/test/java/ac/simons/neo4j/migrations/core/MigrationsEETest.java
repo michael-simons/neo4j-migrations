@@ -283,8 +283,8 @@ class MigrationsEETest {
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
 		assertThat(allLengths)
 			.containsEntry("neo4j", 2)
-			.containsEntry("migrationTest", 2)
-			.containsEntry("anotherTarget", 2);
+			.containsEntry("migrationtest", 2)
+			.containsEntry("anothertarget", 2);
 
 		// Assert that the cypher based migration was correctly applied
 		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
@@ -307,8 +307,8 @@ class MigrationsEETest {
 		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
 		assertThat(allLengths)
 			.containsEntry("neo4j", 2)
-			.containsEntry("migrationTest", 2)
-			.containsEntry("anotherTarget", 8);
+			.containsEntry("migrationtest", 2)
+			.containsEntry("anothertarget", 8);
 
 		Stream.of("migrationTest", "neo4j", "anotherTarget").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {

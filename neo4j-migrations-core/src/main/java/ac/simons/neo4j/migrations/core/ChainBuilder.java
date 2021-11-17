@@ -152,7 +152,7 @@ final class ChainBuilder {
 			Result result = session
 				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
 					+ "WHERE (b.migrationTarget = $migrationTarget OR $migrationTarget IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-					+ "RETURN p", Collections.singletonMap("migrationTarget", context.getConfig().getMigrationTarget().orElse(null)));
+					+ "RETURN p", Collections.singletonMap("migrationTarget", context.getConfig().getMigrationTargetIn(context).orElse(null)));
 			// Might be empty (when nothing has applied yet)
 			if (result.hasNext()) {
 				result.single().get("p").asPath().forEach(segment -> {

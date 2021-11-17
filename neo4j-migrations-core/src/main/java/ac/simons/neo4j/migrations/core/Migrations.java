@@ -117,7 +117,7 @@ public final class Migrations {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run(
 					"MATCH (l:__Neo4jMigration) WHERE (l.migrationTarget = $migrationTarget OR $migrationTarget IS NULL) AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
-						Collections.singletonMap("migrationTarget", config.getMigrationTarget().orElse(null)))
+						Collections.singletonMap("migrationTarget", config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
@@ -164,7 +164,7 @@ public final class Migrations {
 
 		try (Session session = context.getSchemaSession()) {
 
-			Optional<String> migrationTarget = context.getConfig().getMigrationTarget();
+			Optional<String> migrationTarget = context.getConfig().getMigrationTargetIn(context);
 			Value parameters = Values.parameters(
 				"neo4jUser", neo4jUser,
 				"previousVersion", previousVersion.getValue(),

@@ -19,6 +19,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.neo4j.driver.Session;
+import org.neo4j.driver.summary.DatabaseInfo;
+
 /**
  * Configuration for Migrations.
  *
@@ -180,12 +183,26 @@ public final class MigrationsConfig {
 	/**
 	 * The migration target will be empty if no target database is given or the schema database is the same as the target.
 	 *
+	 * @param context The context in which the target should be retrieved
 	 * @return A target database to use for all chains stored.
 	 */
-	Optional<String> getMigrationTarget() {
+	Optional<String> getMigrationTargetIn(MigrationContext context) {
 		Optional<String> optionalDatabase = getDatabase();
 		Optional<String> optionalSchemaDatabase = getSchemaDatabase();
-		if (optionalDatabase.isPresent() && optionalSchemaDatabase.isPresent() && !optionalDatabase.equals(optionalSchemaDatabase)) {
+
+		if(!optionalSchemaDatabase.isPresent()) {
+			return Optional.empty();
+		}
+
+		if (!optionalDatabase.isPresent()) {
+			// We need to connect to get this information
+			try (Session session = context.getSession()) {
+				optionalDatabase =
+					Optional.ofNullable(session.run("MATCH (n) RETURN count(n)").consume().database()).map(DatabaseInfo::name);
+			}
+		}
+
+		if (!optionalDatabase.equals(optionalSchemaDatabase)) {
 			return optionalDatabase;
 		}
 		return Optional.empty();

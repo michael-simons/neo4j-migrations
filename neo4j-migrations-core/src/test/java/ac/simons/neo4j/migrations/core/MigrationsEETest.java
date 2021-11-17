@@ -146,7 +146,8 @@ class MigrationsEETest {
 
 		Logger logger = Logger.getLogger(MigrationsEETest.class.getName());
 		String actualSchemaDatabase = schemaDatabase == null ? targetDatabase : schemaDatabase;
-		String targetDatabaseInStats = targetDatabase != null && schemaDatabase != null ? targetDatabase : "<default>";
+		String targetDatabaseInStats =
+			schemaDatabase != null ? targetDatabase == null ? "neo4j" : targetDatabase : "<default>";
 
 		logger.log(Level.INFO, "Target database {0}, schemaDatabase {1}", new Object[] { targetDatabase, actualSchemaDatabase });
 
@@ -219,6 +220,14 @@ class MigrationsEETest {
 			.build(), driver);
 		neo4j.apply();
 
+		// Explicit neo4j again
+		neo4j = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.withDatabase("neo4j")
+			.withSchemaDatabase(schemaDatabase)
+			.build(), driver);
+		neo4j.apply();
+
 		Migrations migrationTest = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.withDatabase("migrationTest")
@@ -234,7 +243,7 @@ class MigrationsEETest {
 		anotherTarget.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
-		assertThat(allLengths).containsEntry("<default>", 2);
+		assertThat(allLengths).containsEntry("neo4j", 2);
 		assertThat(allLengths).containsEntry("migrationTest", 2);
 		assertThat(allLengths).containsEntry("anotherTarget", 2);
 
@@ -257,7 +266,7 @@ class MigrationsEETest {
 		anotherTarget.apply();
 
 		allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);
-		assertThat(allLengths).containsEntry("<default>", 2);
+		assertThat(allLengths).containsEntry("neo4j", 2);
 		assertThat(allLengths).containsEntry("migrationTest", 2);
 		assertThat(allLengths).containsEntry("anotherTarget", 8);
 

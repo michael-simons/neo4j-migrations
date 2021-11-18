@@ -139,6 +139,14 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<!-- Otherwise, we mess up logging -->
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration combine.self="append">
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
 		</plugins>
 		<extensions>
 			<extension>

@@ -62,6 +62,7 @@ TIP: On macOS you can use Homebrew to install neo4j-migrations via:
 Usage: neo4j-migrations [-hvV] [--autocrlf] [--validate-on-migrate] -p
                         [=<password>] [-p[=<password>]]... [-a=<address>]
                         [-d=<database>] [--impersonate=<impersonatedUser>]
+                        [--schema-database=<schemaDatabase>]
                         [--transaction-mode=<transactionMode>] [-u=<user>]
                         [--location=<locationsToScan>]...
                         [--package=<packagesToScan>]... [COMMAND]
@@ -73,17 +74,21 @@ Migrates Neo4j databases.
                               to LF when reading resource based migrations,
                               pretty much what the same Git option does during
                               checkin.
-  -d, --database=<database> The database that should be migrated (Neo4j 4.0+).
+  -d, --database=<database> The database that should be migrated (Neo4j EE  4.0
+                              +).
   -h, --help                Show this help message and exit.
       --impersonate=<impersonatedUser>
                             The name of a user to impersonate during migration
-                              (Neo4j 4.4+).
+                              (Neo4j EE  4.4+).
       --location=<locationsToScan>
                             Location to scan. Repeat for multiple locations.
   -p, --password[=<password>]
                             The password of the user connecting to the database.
       --package=<packagesToScan>
                             Package to scan. Repeat for multiple packages.
+      --schema-database=<schemaDatabase>
+                            The database that should be used for storing
+                              informations about migrations (Neo4j EE 4.0+).
       --transaction-mode=<transactionMode>
                             The transaction mode to use.
   -u, --username=<user>     The login of the user connecting to the database.

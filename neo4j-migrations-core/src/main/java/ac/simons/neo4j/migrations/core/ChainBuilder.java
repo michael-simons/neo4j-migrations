@@ -203,13 +203,19 @@ final class ChainBuilder {
 			return username;
 		}
 
+		@SuppressWarnings("deprecation")
 		@Override
-		public Optional<String> getDatabaseName() {
+		public String getDatabaseName() {
+			return databaseName;
+		}
+
+		@Override
+		public Optional<String> getOptionalDatabaseName() {
 			return Optional.ofNullable(databaseName);
 		}
 
 		@Override
-		public Optional<String> getSchemaDatabaseName() {
+		public Optional<String> getOptionalSchemaDatabaseName() {
 			return Optional.ofNullable(schemaDatabaseName);
 		}
 

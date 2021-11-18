@@ -75,7 +75,7 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, "someoneElse");
 
-		assertThat(cli.getConfig().getImpersonatedUser()).hasValue("someoneElse");
+		assertThat(cli.getConfig().getOptionalImpersonatedUser()).hasValue("someoneElse");
 	}
 
 	@Test
@@ -90,7 +90,7 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, 2);
 
-		assertThat(cli.getConfig().getSchemaDatabase()).hasValue("aDatabaseForTheSchema");
+		assertThat(cli.getConfig().getOptionalSchemaDatabase()).hasValue("aDatabaseForTheSchema");
 	}
 
 	@Test
@@ -105,7 +105,7 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, 1);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> cli.getConfig().getSchemaDatabase())
+		assertThatIllegalArgumentException().isThrownBy(() -> cli.getConfig().getOptionalSchemaDatabase())
 			.withMessage("You must at least allow 2 connections in the pool to use a separate database.");
 	}
 

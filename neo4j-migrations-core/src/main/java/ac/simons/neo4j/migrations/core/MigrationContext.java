@@ -44,10 +44,7 @@ public interface MigrationContext {
 	 *
 	 * @return A correctly configured write access session config.
 	 */
-	default SessionConfig getSessionConfig() {
-
-		return getSessionConfig(UnaryOperator.identity());
-	}
+	SessionConfig getSessionConfig();
 
 	/**
 	 * This method provides a callback that will be applied to the {@link SessionConfig.Builder} just before a {@link SessionConfig}

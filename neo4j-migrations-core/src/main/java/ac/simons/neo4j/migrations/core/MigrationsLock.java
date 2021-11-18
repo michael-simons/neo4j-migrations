@@ -43,7 +43,7 @@ final class MigrationsLock {
 
 	MigrationsLock(MigrationContext context) {
 		this.context = context;
-		this.nameOfLock = context.getConfig().getDatabase()
+		this.nameOfLock = context.getConfig().getOptionalDatabase()
 			.map(v -> v.toLowerCase(Locale.ROOT))
 			// Prior to 1.1, Migrations would use "John Doe" by default, so if someone used explicitly "neo4j" as database
 			// name, the lock wouldn't work. Therefore, we must translate this here.
@@ -86,9 +86,9 @@ final class MigrationsLock {
 		if (LOGGER.isLoggable(Level.FINE)) {
 			MigrationsConfig config = context.getConfig();
 			UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
-			String formattedTargetDatabaseName = config.getDatabase().map(databaseNameMapper).orElse("the default database");
+			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper).orElse("the default database");
 			LOGGER.log(Level.FINE, "Acquiring lock {0} on {1} in {2}", new Object[] { id, formattedTargetDatabaseName, config
-				.getSchemaDatabase().map(databaseNameMapper).orElse(formattedTargetDatabaseName) });
+				.getOptionalSchemaDatabase().map(databaseNameMapper).orElse(formattedTargetDatabaseName) });
 		}
 
 		createUniqueConstraintIfNecessary();

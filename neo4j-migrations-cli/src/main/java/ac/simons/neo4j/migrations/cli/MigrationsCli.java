@@ -198,7 +198,7 @@ public final class MigrationsCli implements Runnable {
 				"Java based migrations are not supported in native binaries. Please use the Java based distribution.");
 		}
 
-		if (config.getSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {
+		if (config.getOptionalSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {
 			throw new IllegalArgumentException(
 				"You must at least allow 2 connections in the pool to use a separate database.");
 		}

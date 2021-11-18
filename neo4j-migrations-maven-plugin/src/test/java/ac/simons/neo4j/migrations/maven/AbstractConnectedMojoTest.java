@@ -97,8 +97,8 @@ public class AbstractConnectedMojoTest {
 
 		MigrationsConfig config = infoMojo.getConfig();
 		assertNotNull(config);
-		assertFalse(config.getDatabase().isPresent());
-		assertEquals(Optional.of("testor"), config.getInstalledBy());
+		assertFalse(config.getOptionalDatabase().isPresent());
+		assertEquals(Optional.of("testor"), config.getOptionalInstalledBy());
 		assertEquals(1, config.getLocationsToScan().length);
 		assertTrue(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches());
 		assertEquals(TransactionMode.PER_MIGRATION, config.getTransactionMode());
@@ -113,7 +113,7 @@ public class AbstractConnectedMojoTest {
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertNotNull(infoMojo);
-		assertEquals(Optional.of("someoneElse"), infoMojo.getConfig().getImpersonatedUser());
+		assertEquals(Optional.of("someoneElse"), infoMojo.getConfig().getOptionalImpersonatedUser());
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class AbstractConnectedMojoTest {
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertNotNull(infoMojo);
-		assertEquals(Optional.of("anotherDatabase"), infoMojo.getConfig().getSchemaDatabase());
+		assertEquals(Optional.of("anotherDatabase"), infoMojo.getConfig().getOptionalSchemaDatabase());
 	}
 }
 

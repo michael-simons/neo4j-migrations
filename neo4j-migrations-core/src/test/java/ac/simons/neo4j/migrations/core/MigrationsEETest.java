@@ -245,8 +245,8 @@ class MigrationsEETest {
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver);
 		MigrationChain info = migrations.info();
-		assertThat(info.getDatabaseName()).hasValue("neo4j");
-		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		assertThat(info.getOptionalDatabaseName()).hasValue("neo4j");
+		assertThat(info.getOptionalSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
 		migrations.apply();
 
 		// Explicit neo4j again
@@ -256,8 +256,8 @@ class MigrationsEETest {
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver);
 		info = migrations.info();
-		assertThat(info.getDatabaseName()).hasValue("neo4j");
-		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		assertThat(info.getOptionalDatabaseName()).hasValue("neo4j");
+		assertThat(info.getOptionalSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
 		migrations.apply();
 
 		migrations = new Migrations(MigrationsConfig.builder()
@@ -266,8 +266,8 @@ class MigrationsEETest {
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver);
 		info = migrations.info();
-		assertThat(info.getDatabaseName()).hasValue("migrationtest");
-		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		assertThat(info.getOptionalDatabaseName()).hasValue("migrationtest");
+		assertThat(info.getOptionalSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
 		migrations.apply();
 
 		migrations = new Migrations(MigrationsConfig.builder()
@@ -276,8 +276,8 @@ class MigrationsEETest {
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver);
 		info = migrations.info();
-		assertThat(info.getDatabaseName()).hasValue("anothertarget");
-		assertThat(info.getSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
+		assertThat(info.getOptionalDatabaseName()).hasValue("anothertarget");
+		assertThat(info.getOptionalSchemaDatabaseName()).hasValue(schemaDatabase.toLowerCase(Locale.ROOT));
 		migrations.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, schemaDatabase);

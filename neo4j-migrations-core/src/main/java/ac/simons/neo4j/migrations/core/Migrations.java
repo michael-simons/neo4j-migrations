@@ -169,7 +169,7 @@ public final class Migrations {
 				"neo4jUser", neo4jUser,
 				"previousVersion", previousVersion.getValue(),
 				"appliedMigration", toProperties(appliedMigration),
-				"installedBy", config.getInstalledBy().map(Values::value).orElse(Values.NULL),
+				"installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL),
 				"executionTime", executionTime,
 				"migrationTarget", migrationTarget.orElse(null)
 			);
@@ -250,14 +250,14 @@ public final class Migrations {
 
 		DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
-			if (config.getImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
+			if (config.getOptionalImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
 				throw new IllegalArgumentException(
 					"User impersonation requires a driver that supports `withImpersonatedUser`.");
 			}
 
 			this.config = config;
 			this.driver = driver;
-			this.applySchemaDatabase = this.config.getSchemaDatabase().map(schemaDatabase ->
+			this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
 				(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
 			).orElseGet(UnaryOperator::identity);
 		}
@@ -273,11 +273,16 @@ public final class Migrations {
 		}
 
 		@Override
+		public SessionConfig getSessionConfig() {
+			return getSessionConfig(UnaryOperator.identity());
+		}
+
+		@Override
 		public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
 
 			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
-			this.config.getDatabase().ifPresent(builder::withDatabase);
-			this.config.getImpersonatedUser().ifPresent(user -> {
+			this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
+			this.config.getOptionalImpersonatedUser().ifPresent(user -> {
 				try {
 					WITH_IMPERSONATED_USER.invoke(builder, user);
 				} catch (IllegalAccessException | InvocationTargetException e) {

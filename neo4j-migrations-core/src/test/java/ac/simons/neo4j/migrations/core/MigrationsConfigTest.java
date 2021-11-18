@@ -163,7 +163,7 @@ class MigrationsConfigTest {
 		@Test
 		void shouldDefaultToNull() {
 
-			assertThat(MigrationsConfig.defaultConfig().getSchemaDatabase()).isEmpty();
+			assertThat(MigrationsConfig.defaultConfig().getOptionalSchemaDatabase()).isEmpty();
 		}
 
 		@Test
@@ -174,8 +174,8 @@ class MigrationsConfigTest {
 				.withDatabase("d")
 				.build();
 
-			assertThat(config.getSchemaDatabase()).hasValue("sd");
-			assertThat(config.getDatabase()).hasValue("d");
+			assertThat(config.getOptionalSchemaDatabase()).hasValue("sd");
+			assertThat(config.getOptionalDatabase()).hasValue("d");
 		}
 	}
 }

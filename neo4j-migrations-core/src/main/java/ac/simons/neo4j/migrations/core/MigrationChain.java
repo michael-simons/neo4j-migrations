@@ -42,12 +42,12 @@ public interface MigrationChain {
 		sb.append(MigrationChainFormat.LS)
 			.append(getServerVersion() + "@").append(getServerAddress());
 
-		Optional<String> optionalDatabase = getDatabaseName();
+		Optional<String> optionalDatabase = getOptionalDatabaseName();
 		optionalDatabase.ifPresent(name ->
 			sb.append(MigrationChainFormat.LS).append("Database: ").append(name)
 		);
 
-		Optional<String> optionalSchemaDatabase = getSchemaDatabaseName();
+		Optional<String> optionalSchemaDatabase = getOptionalSchemaDatabaseName();
 		if (!optionalSchemaDatabase.equals(optionalDatabase)) {
 			optionalSchemaDatabase.ifPresent(name ->
 				sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
@@ -82,14 +82,23 @@ public interface MigrationChain {
 	String getUsername();
 
 	/**
-	 * @return The database if applicable (Neo4j 4.0 and up)
+	 * @return The database if applicable (Neo4j 4.0 and up), maybe null
+	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabaseName()} ()}
 	 */
-	Optional<String> getDatabaseName();
+	@Deprecated
+	String getDatabaseName();
 
 	/**
 	 * @return The database if applicable (Neo4j 4.0 and up)
+	 * @since 1.1.0
 	 */
-	Optional<String> getSchemaDatabaseName();
+	Optional<String> getOptionalDatabaseName();
+
+	/**
+	 * @return The database if applicable (Neo4j 4.0 and up)
+	 * @since 1.1.0
+	 */
+	Optional<String> getOptionalSchemaDatabaseName();
 
 	/**
 	 * @param version An arbitrary version string

@@ -97,9 +97,12 @@ public final class MigrationsConfig {
 
 	private MigrationsConfig(Builder builder) {
 
-		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;
+		this.packagesToScan =
+			builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;
 		this.locationsToScan =
-			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) : builder.locationsToScan;
+			builder.locationsToScan == null ?
+				Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) :
+				builder.locationsToScan;
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
 		this.impersonatedUser = builder.impersonatedUser;
@@ -125,19 +128,62 @@ public final class MigrationsConfig {
 		return !value.trim().isEmpty();
 	}
 
-	public Optional<String> getDatabase() {
+	/**
+	 * @return An optional target database, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabase()}
+	 */
+	@Deprecated
+	public String getDatabase() {
+		return database;
+	}
+
+	/**
+	 * @return An optional target database
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalDatabase() {
 		return optionalOf(database);
 	}
 
-	public Optional<String> getSchemaDatabase() {
+	/**
+	 * @return An optional schema database
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalSchemaDatabase() {
 		return optionalOf(schemaDatabase);
 	}
 
-	public Optional<String> getImpersonatedUser() {
+	/**
+	 * @return An optional user to impersonate, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalImpersonatedUser()}
+	 */
+	@Deprecated
+	public String getImpersonatedUser() {
+		return impersonatedUser;
+	}
+
+	/**
+	 * @return An optional user to impersonate
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalImpersonatedUser() {
 		return optionalOf(impersonatedUser);
 	}
 
-	public Optional<String> getInstalledBy() {
+	/**
+	 * @return Optional user information about the user executing the migration, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalInstalledBy()}
+	 */
+	@Deprecated
+	public String getInstalledBy() {
+		return installedBy;
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalInstalledBy() {
 		return optionalOf(installedBy);
 	}
 
@@ -155,9 +201,10 @@ public final class MigrationsConfig {
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {
-			this.getDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to database \"{0}\"", v));
+			this.getOptionalDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to database \"{0}\"", v));
 			if (this.getLocationsToScan().length > 0) {
-				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
+				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"",
+					String.join("", this.getLocationsToScan()));
 				logger.log(Level.INFO, "Statements will be applied {0}",
 					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
@@ -169,7 +216,14 @@ public final class MigrationsConfig {
 		}
 	}
 
-	boolean hasPlacesToLookForMigrations() {
+	/**
+	 * This is internal API and will be made package private in 2.0.0
+	 * @return True if there are packages to scan
+	 * @deprecated Since 1.1.0, will be removed from public without replace.
+	 */
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	public boolean hasPlacesToLookForMigrations() {
 		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
 	}
 
@@ -186,8 +240,8 @@ public final class MigrationsConfig {
 	 * @return A target database to use for all chains stored.
 	 */
 	Optional<String> getMigrationTargetIn(MigrationContext context) {
-		Optional<String> optionalDatabase = getDatabase();
-		Optional<String> optionalSchemaDatabase = getSchemaDatabase();
+		Optional<String> optionalDatabase = getOptionalDatabase();
+		Optional<String> optionalSchemaDatabase = getOptionalSchemaDatabase();
 
 		if (!optionalSchemaDatabase.isPresent()) {
 			return Optional.empty();
@@ -197,7 +251,8 @@ public final class MigrationsConfig {
 			// We need to connect to get this information
 			try (Session session = context.getSession()) {
 				optionalDatabase =
-					Optional.ofNullable(session.run("MATCH (n) RETURN count(n)").consume().database()).map(DatabaseInfo::name);
+					Optional.ofNullable(session.run("MATCH (n) RETURN count(n)").consume().database())
+						.map(DatabaseInfo::name);
 			}
 		}
 
@@ -315,7 +370,6 @@ public final class MigrationsConfig {
 		 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
 		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
 		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
-		 *
 		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
 		 * Cypher based migration or applying it.
 		 *
@@ -349,6 +403,7 @@ public final class MigrationsConfig {
 		 * the database that should be migrated, the schema database configures the database that holds the migration chain
 		 * <p>
 		 * To use this, Neo4j 4+ enterprise edition is required.
+		 *
 		 * @param newSchemaDatabase The new schema database to use.
 		 * @return The builder for further customization
 		 * @since 1.1.0

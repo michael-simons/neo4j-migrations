@@ -46,7 +46,7 @@ class ChainBuilderTest extends TestBase {
 		assertThat(migrationChain.getServerAddress()).isEqualTo(getServerAddress());
 		assertThat(migrationChain.getServerVersion()).matches("Neo4j/4\\.3\\.\\d");
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
-		assertThat(migrationChain.getDatabaseName()).hasValue("neo4j");
+		assertThat(migrationChain.getOptionalDatabaseName()).hasValue("neo4j");
 		assertThat(migrationChain.getElements()).hasSize(8);
 		assertThat(migrationChain.getElements()).element(0).satisfies(element -> {
 

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,7 +81,7 @@ public final class Migrations {
 	}
 
 	/**
-	 * Applies a all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
+	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
 	 * or Cypher script migrations that are on the classpath or filesystem.
 	 *
 	 * @return The last applied migration (if any)
@@ -112,9 +113,11 @@ public final class Migrations {
 
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 			Node lastMigration = session.readTransaction(tx ->
-				tx.run("MATCH (l:__Neo4jMigration) WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l")
+				tx.run(
+					"MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
+						Collections.singletonMap("migrationTarget", config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
@@ -159,23 +162,31 @@ public final class Migrations {
 	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration,
 		long executionTime) {
 
-		try (Session session = context.getSession()) {
-			session.writeTransaction(t -> {
-					Value parameters = Values.parameters(
-						"neo4jUser", neo4jUser,
-						"previousVersion", previousVersion.getValue(),
-						"appliedMigration", toProperties(appliedMigration),
-						"installedBy", config.getInstalledBy(),
-						"executionTime", executionTime
-					);
+		try (Session session = context.getSchemaSession()) {
 
-					return t.run(""
-							+ "MERGE (p:__Neo4jMigration {version: $previousVersion}) "
-							+ "CREATE (c:__Neo4jMigration) SET c = $appliedMigration "
-							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
+			Optional<String> migrationTarget = context.getConfig().getMigrationTargetIn(context);
+			Value parameters = Values.parameters(
+				"neo4jUser", neo4jUser,
+				"previousVersion", previousVersion.getValue(),
+				"appliedMigration", toProperties(appliedMigration),
+				"installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL),
+				"executionTime", executionTime,
+				"migrationTarget", migrationTarget.orElse(null)
+			);
+
+			String merge;
+			if (migrationTarget.isPresent()) {
+				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) ";
+			} else {
+				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion}) ";
+			}
+
+			session.writeTransaction(t ->
+				t.run(merge
+					  + "CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.migrationTarget = $migrationTarget "
+					  + "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
-						.consume();
-				}
+					.consume()
 			);
 		}
 
@@ -223,6 +234,7 @@ public final class Migrations {
 	static class DefaultMigrationContext implements MigrationContext {
 
 		private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
+		private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
 		private static Method findWithImpersonatedUser() {
 			try {
@@ -236,29 +248,18 @@ public final class Migrations {
 
 		private final Driver driver;
 
-		private final SessionConfig sessionConfig;
-
 		DefaultMigrationContext(MigrationsConfig config, Driver driver) {
+
+			if (config.getOptionalImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
+				throw new IllegalArgumentException(
+					"User impersonation requires a driver that supports `withImpersonatedUser`.");
+			}
+
 			this.config = config;
 			this.driver = driver;
-
-			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
-			if (!(this.config.getDatabase() == null || this.config.getDatabase().trim().isEmpty())) {
-				builder.withDatabase(this.config.getDatabase().trim());
-			}
-
-			if (!(this.config.getImpersonatedUser() == null || this.config.getImpersonatedUser().trim().isEmpty())) {
-				if (WITH_IMPERSONATED_USER == null) {
-					throw new IllegalArgumentException("User impersonation requires a driver that supports `withImpersonatedUser`.");
-				}
-				try {
-					WITH_IMPERSONATED_USER.invoke(builder, this.getConfig().getImpersonatedUser().trim());
-				} catch (IllegalAccessException | InvocationTargetException e) {
-					throw new MigrationsException("Could not impersonate a user on the driver level", e);
-				}
-			}
-
-			this.sessionConfig = builder.build();
+			this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
+				(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
+			).orElseGet(UnaryOperator::identity);
 		}
 
 		@Override
@@ -273,7 +274,28 @@ public final class Migrations {
 
 		@Override
 		public SessionConfig getSessionConfig() {
-			return sessionConfig;
+			return getSessionConfig(UnaryOperator.identity());
+		}
+
+		@Override
+		public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
+
+			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
+			this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
+			this.config.getOptionalImpersonatedUser().ifPresent(user -> {
+				try {
+					WITH_IMPERSONATED_USER.invoke(builder, user);
+				} catch (IllegalAccessException | InvocationTargetException e) {
+					throw new MigrationsException("Could not impersonate a user on the driver level", e);
+				}
+			});
+
+			return configCustomizer.apply(builder).build();
+		}
+
+		@Override
+		public Session getSchemaSession() {
+			return getDriver().session(getSessionConfig(applySchemaDatabase));
 		}
 	}
 }

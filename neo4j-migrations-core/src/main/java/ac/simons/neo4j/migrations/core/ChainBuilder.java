@@ -70,7 +70,7 @@ final class ChainBuilder {
 			}
 		}
 
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 
 			// Auth maybe disabled. In such cases, we cannot get the current user.
 			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
@@ -88,7 +88,6 @@ final class ChainBuilder {
 				return new ExtendedResultSummary(showCurrentUserExists, version, summary);
 			});
 
-
 			String username = "anonymous";
 			if (databaseInformation.showCurrentUserExists) {
 
@@ -100,9 +99,10 @@ final class ChainBuilder {
 			}
 
 			ServerInfo serverInfo = databaseInformation.server;
-			DatabaseInfo database = databaseInformation.database;
+			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
+			String targetDatabase = context.getConfig().getMigrationTargetIn(context).orElse(schemaDatabase);
 			return new DefaultMigrationChain(serverInfo.address(), databaseInformation.version.toString(),
-				username, database == null ? null : database.name(), elements);
+				username, targetDatabase, schemaDatabase, elements);
 		}
 	}
 
@@ -149,11 +149,11 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
 		Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 			Result result = session
 				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
-					+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-					+ "RETURN p");
+					+ "WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
+					+ "RETURN p", Collections.singletonMap("migrationTarget", context.getConfig().getMigrationTargetIn(context).orElse(null)));
 			// Might be empty (when nothing has applied yet)
 			if (result.hasNext()) {
 				result.single().get("p").asPath().forEach(segment -> {
@@ -175,14 +175,17 @@ final class ChainBuilder {
 
 		private final String databaseName;
 
+		private final String schemaDatabaseName;
+
 		private final Map<MigrationVersion, Element> elements;
 
-		DefaultMigrationChain(String serverAdress, String serverVersion, String username, String databaseName,
+		DefaultMigrationChain(String serverAdress, String serverVersion, String username, String databaseName, String schemaDatabaseName,
 			Map<MigrationVersion, Element> elements) {
 			this.serverAdress = serverAdress;
 			this.serverVersion = serverVersion;
 			this.username = username;
 			this.databaseName = databaseName;
+			this.schemaDatabaseName = schemaDatabaseName;
 			this.elements = elements;
 		}
 
@@ -200,9 +203,20 @@ final class ChainBuilder {
 			return username;
 		}
 
+		@SuppressWarnings("deprecation")
 		@Override
 		public String getDatabaseName() {
 			return databaseName;
+		}
+
+		@Override
+		public Optional<String> getOptionalDatabaseName() {
+			return Optional.ofNullable(databaseName);
+		}
+
+		@Override
+		public Optional<String> getOptionalSchemaDatabaseName() {
+			return Optional.ofNullable(schemaDatabaseName);
 		}
 
 		@Override

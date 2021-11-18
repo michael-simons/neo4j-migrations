@@ -126,13 +126,19 @@ public final class MigrationsCli implements Runnable {
 
 	@Option(
 		names = { "-d", "--database" },
-		description = "The database that should be migrated (Neo4j 4.0+)."
+		description = "The database that should be migrated (Neo4j EE  4.0+)."
 	)
 	private String database;
 
 	@Option(
+		names = { "--schema-database" },
+		description = "The database that should be used for storing informations about migrations (Neo4j EE 4.0+)."
+	)
+	private String schemaDatabase;
+
+	@Option(
 		names = { "--impersonate" },
-		description = "The name of a user to impersonate during migration (Neo4j 4.4+)."
+		description = "The name of a user to impersonate during migration (Neo4j EE  4.4+)."
 	)
 	private String impersonatedUser;
 
@@ -159,7 +165,7 @@ public final class MigrationsCli implements Runnable {
 	@Option(
 		names = { "--with-max-connection-pool-size" },
 		description = "Configure the connection pool size, hardly ever needed to change.",
-		defaultValue = "1",
+		defaultValue = "2",
 		hidden = true
 	)
 	private int maxConnectionPoolSize;
@@ -181,6 +187,7 @@ public final class MigrationsCli implements Runnable {
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
+			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
@@ -189,6 +196,11 @@ public final class MigrationsCli implements Runnable {
 		if (ImageInfo.inImageRuntimeCode() && config.getPackagesToScan().length != 0) {
 			throw new UnsupportedConfigException(
 				"Java based migrations are not supported in native binaries. Please use the Java based distribution.");
+		}
+
+		if (config.getOptionalSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {
+			throw new IllegalArgumentException(
+				"You must at least allow 2 connections in the pool to use a separate database.");
 		}
 
 		config.logTo(LOGGER, verbose);

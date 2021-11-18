@@ -15,7 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Locale;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,20 +33,33 @@ import org.neo4j.driver.summary.ResultSummary;
 final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
-	private static final String NAME_OF_LOCK = "John Doe";
+	private static final String DEFAULT_NAME_OF_LOCK = "John Doe";
 
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
+	private final String nameOfLock;
 
 	private final Thread cleanUpTask = new Thread(this::unlock0);
 
 	MigrationsLock(MigrationContext context) {
 		this.context = context;
+		this.nameOfLock = context.getConfig().getOptionalDatabase()
+			.map(v -> v.toLowerCase(Locale.ROOT))
+			// Prior to 1.1, Migrations would use "John Doe" by default, so if someone used explicitly "neo4j" as database
+			// name, the lock wouldn't work. Therefore, we must translate this here.
+
+			// "John Doe" will be unique and not clash with any existing database name, see
+			// - Length must be between 3 and 63 characters.
+			// - The first character of a name must be an ASCII alphabetic character.
+			// - Subsequent characters must be ASCII alphabetic or numeric characters, dots or dashes; [a..z][0..9].
+			// From https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/
+			.filter(v -> !v.equals("neo4j"))
+			.orElse(DEFAULT_NAME_OF_LOCK);
 	}
 
 	void createUniqueConstraintIfNecessary() {
 
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 			int numberOfConstraints = session.writeTransaction(t -> {
 				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
 					.counters().constraintsAdded();
@@ -68,15 +83,21 @@ final class MigrationsLock {
 
 	public String lock() {
 
-		LOGGER.log(Level.FINE, "Acquiring lock {0} on database", id);
+		if (LOGGER.isLoggable(Level.FINE)) {
+			MigrationsConfig config = context.getConfig();
+			UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
+			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper).orElse("the default database");
+			LOGGER.log(Level.FINE, "Acquiring lock {0} on {1} in {2}", new Object[] { id, formattedTargetDatabaseName, config
+				.getOptionalSchemaDatabase().map(databaseNameMapper).orElse(formattedTargetDatabaseName) });
+		}
 
 		createUniqueConstraintIfNecessary();
 
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
-					Values.parameters("id", id, "name", NAME_OF_LOCK))
+					Values.parameters("id", id, "name", nameOfLock))
 					.single().get("l").asNode().id()
 			);
 			LOGGER.log(Level.FINE, "Acquired lock {0} with internal id {1}", new Object[] { id, internalId });
@@ -99,7 +120,7 @@ final class MigrationsLock {
 
 	void unlock0() {
 
-		try (Session session = context.getSession()) {
+		try (Session session = context.getSchemaSession()) {
 
 			ResultSummary resultSummary = session.writeTransaction(t ->
 				t.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l", Values.parameters("id", id))

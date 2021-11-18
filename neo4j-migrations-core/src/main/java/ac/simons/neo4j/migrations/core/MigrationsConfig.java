@@ -15,9 +15,13 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.neo4j.driver.Session;
+import org.neo4j.driver.summary.DatabaseInfo;
 
 /**
  * Configuration for Migrations.
@@ -36,8 +40,8 @@ public final class MigrationsConfig {
 	public enum TransactionMode {
 
 		/**
-		 * Run all statements in one transactions. May need more memory, but it's generally safer. Either the
-		 * migration runs as a whole or not not at all.
+		 * Run all statements in one transaction. May need more memory, but it's generally safer. Either the
+		 * migration runs as a whole or not at all.
 		 */
 		PER_MIGRATION,
 		/**
@@ -73,7 +77,15 @@ public final class MigrationsConfig {
 
 	private final TransactionMode transactionMode;
 
+	/**
+	 * The database to migrate.
+	 */
 	private final String database;
+
+	/**
+	 * The database to store the schema in.
+	 */
+	private final String schemaDatabase;
 
 	private final String impersonatedUser;
 
@@ -85,15 +97,19 @@ public final class MigrationsConfig {
 
 	private MigrationsConfig(Builder builder) {
 
-		this.packagesToScan = builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;
+		this.packagesToScan =
+			builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;
 		this.locationsToScan =
-			builder.locationsToScan == null ? Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) : builder.locationsToScan;
+			builder.locationsToScan == null ?
+				Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) :
+				builder.locationsToScan;
 		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);
 		this.database = builder.database;
 		this.impersonatedUser = builder.impersonatedUser;
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 		this.validateOnMigrate = builder.validateOnMigrate;
 		this.autocrlf = builder.autocrlf;
+		this.schemaDatabase = builder.schemaDatabase;
 	}
 
 	public String[] getPackagesToScan() {
@@ -104,24 +120,71 @@ public final class MigrationsConfig {
 		return locationsToScan;
 	}
 
-	public boolean hasPlacesToLookForMigrations() {
-		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
-	}
-
 	public TransactionMode getTransactionMode() {
 		return transactionMode;
 	}
 
+	private static boolean valueIsNotBlank(String value) {
+		return !value.trim().isEmpty();
+	}
+
+	/**
+	 * @return An optional target database, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabase()}
+	 */
+	@Deprecated
 	public String getDatabase() {
 		return database;
 	}
 
+	/**
+	 * @return An optional target database
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalDatabase() {
+		return optionalOf(database);
+	}
+
+	/**
+	 * @return An optional schema database
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalSchemaDatabase() {
+		return optionalOf(schemaDatabase);
+	}
+
+	/**
+	 * @return An optional user to impersonate, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalImpersonatedUser()}
+	 */
+	@Deprecated
 	public String getImpersonatedUser() {
 		return impersonatedUser;
 	}
 
+	/**
+	 * @return An optional user to impersonate
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalImpersonatedUser() {
+		return optionalOf(impersonatedUser);
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalInstalledBy()}
+	 */
+	@Deprecated
 	public String getInstalledBy() {
 		return installedBy;
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration
+	 * @since 1.1.0
+	 */
+	public Optional<String> getOptionalInstalledBy() {
+		return optionalOf(installedBy);
 	}
 
 	public boolean isValidateOnMigrate() {
@@ -138,11 +201,10 @@ public final class MigrationsConfig {
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {
-			if (this.getDatabase() != null) {
-				logger.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", this.getDatabase());
-			}
+			this.getOptionalDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to database \"{0}\"", v));
 			if (this.getLocationsToScan().length > 0) {
-				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
+				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"",
+					String.join("", this.getLocationsToScan()));
 				logger.log(Level.INFO, "Statements will be applied {0}",
 					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?
 						"in one transaction per migration" :
@@ -152,6 +214,52 @@ public final class MigrationsConfig {
 				logger.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
 			}
 		}
+	}
+
+	/**
+	 * This is internal API and will be made package private in 2.0.0
+	 * @return True if there are packages to scan
+	 * @deprecated Since 1.1.0, will be removed from public without replace.
+	 */
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	public boolean hasPlacesToLookForMigrations() {
+		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
+	}
+
+	Optional<String> optionalOf(String value) {
+		return Optional.ofNullable(value)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
+	}
+
+	/**
+	 * The migration target will be empty if no target database is given or the schema database is the same as the target.
+	 *
+	 * @param context The context in which the target should be retrieved
+	 * @return A target database to use for all chains stored.
+	 */
+	Optional<String> getMigrationTargetIn(MigrationContext context) {
+		Optional<String> optionalDatabase = getOptionalDatabase();
+		Optional<String> optionalSchemaDatabase = getOptionalSchemaDatabase();
+
+		if (!optionalSchemaDatabase.isPresent()) {
+			return Optional.empty();
+		}
+
+		if (!optionalDatabase.isPresent()) {
+			// We need to connect to get this information
+			try (Session session = context.getSession()) {
+				optionalDatabase =
+					Optional.ofNullable(session.run("MATCH (n) RETURN count(n)").consume().database())
+						.map(DatabaseInfo::name);
+			}
+		}
+
+		if (!optionalDatabase.equals(optionalSchemaDatabase)) {
+			return optionalDatabase.map(s -> s.toLowerCase(Locale.ROOT));
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -174,6 +282,8 @@ public final class MigrationsConfig {
 		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
 
 		private boolean autocrlf = Defaults.AUTOCRLF;
+
+		private String schemaDatabase;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -260,7 +370,6 @@ public final class MigrationsConfig {
 		 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
 		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
 		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
-		 *
 		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
 		 * Cypher based migration or applying it.
 		 *
@@ -286,6 +395,22 @@ public final class MigrationsConfig {
 		public Builder withImpersonatedUser(String newImpersonatedUser) {
 
 			this.impersonatedUser = newImpersonatedUser;
+			return this;
+		}
+
+		/**
+		 * Configures the schema database to use. This is different from {@link #withDatabase(String)}. The latter configures
+		 * the database that should be migrated, the schema database configures the database that holds the migration chain
+		 * <p>
+		 * To use this, Neo4j 4+ enterprise edition is required.
+		 *
+		 * @param newSchemaDatabase The new schema database to use.
+		 * @return The builder for further customization
+		 * @since 1.1.0
+		 */
+		public Builder withSchemaDatabase(String newSchemaDatabase) {
+
+			this.schemaDatabase = newSchemaDatabase;
 			return this;
 		}
 

@@ -217,7 +217,18 @@ class MigrationsAutoConfigurationTest {
 			properties.setImpersonatedUser("someoneElse");
 
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
-			assertThat(config.getImpersonatedUser()).isEqualTo("someoneElse");
+			assertThat(config.getOptionalImpersonatedUser()).hasValue("someoneElse");
+		}
+
+		@Test
+		void shouldConfigureSchemaDatabaseUser() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setSchemaDatabase("anotherDatabase");
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.getOptionalSchemaDatabase()).hasValue("anotherDatabase");
 		}
 	}
 
@@ -381,7 +392,7 @@ class MigrationsAutoConfigurationTest {
 						.containsExactly("classpath:i/dont/care", "file:/neither/do/i");
 					assertThat(config.getPackagesToScan()).containsExactly("i.dont.exists", "me.neither");
 					assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_STATEMENT);
-					assertThat(config.getInstalledBy()).isEqualTo("James Bond");
+					assertThat(config.getOptionalInstalledBy()).hasValue("James Bond");
 				});
 		}
 	}

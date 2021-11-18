@@ -28,7 +28,10 @@ class LoggingTest {
 	@Test
 	void shouldLogToSysOut() throws Exception {
 
-		String result = tapSystemOut(() -> MigrationsCli.LOGGER.info("Test"));
+		String result = tapSystemOut(() -> {
+			MigrationsCli.LOGGER.info("Test");
+			System.out.flush();
+		});
 		assertThat(result).isEqualTo("Test" + System.lineSeparator());
 	}
 }

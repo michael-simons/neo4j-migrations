@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.function.UnaryOperator;
+
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
@@ -45,6 +47,16 @@ public interface MigrationContext {
 	SessionConfig getSessionConfig();
 
 	/**
+	 * This method provides a callback that will be applied to the {@link SessionConfig.Builder} just before a {@link SessionConfig}
+	 * is created.
+	 *
+	 * @param configCustomizer Customization callback for the builder.
+	 * @return The final session config.
+	 * @since 1.1.0
+	 */
+	SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer);
+
+	/**
 	 * Convenience method to return an imperative session against the configured server and database.
 	 *
 	 * @return A session configured to use the migration context's database name.
@@ -53,4 +65,9 @@ public interface MigrationContext {
 
 		return getDriver().session(getSessionConfig());
 	}
+
+	/**
+	 * @return A session accessing the configured schema database if any or the default database.
+	 */
+	Session getSchemaSession();
 }

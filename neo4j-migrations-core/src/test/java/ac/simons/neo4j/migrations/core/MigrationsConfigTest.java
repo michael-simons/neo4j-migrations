@@ -26,6 +26,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -36,7 +37,8 @@ class MigrationsConfigTest {
 	@Test
 	void shouldConfigureDefaultClasspathPackage() {
 
-		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).containsExactlyElementsOf(Defaults.LOCATIONS_TO_SCAN);
+		assertThat(MigrationsConfig.builder().build().getLocationsToScan()).containsExactlyElementsOf(
+			Defaults.LOCATIONS_TO_SCAN);
 	}
 
 	@Test // GH-237
@@ -73,7 +75,8 @@ class MigrationsConfigTest {
 
 		config.logTo(logger, true);
 		assertThat(logCollector.logMessages)
-			.containsExactly("Will search for Cypher scripts in \"classpath:neo4j/migrations\"", "Statements will be applied in one transaction per migration");
+			.containsExactly("Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
+				"Statements will be applied in one transaction per migration");
 	}
 
 	@Test
@@ -154,4 +157,25 @@ class MigrationsConfigTest {
 		}
 	}
 
+	@Nested
+	class SchemaDatabase {
+
+		@Test
+		void shouldDefaultToNull() {
+
+			assertThat(MigrationsConfig.defaultConfig().getSchemaDatabase()).isEmpty();
+		}
+
+		@Test
+		void shoulldBeConfigurableIndependendFromDatabase() {
+
+			MigrationsConfig config = MigrationsConfig.builder()
+				.withSchemaDatabase("sd")
+				.withDatabase("d")
+				.build();
+
+			assertThat(config.getSchemaDatabase()).hasValue("sd");
+			assertThat(config.getDatabase()).hasValue("d");
+		}
+	}
 }

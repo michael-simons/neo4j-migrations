@@ -165,7 +165,7 @@ public final class Migrations {
 						"neo4jUser", neo4jUser,
 						"previousVersion", previousVersion.getValue(),
 						"appliedMigration", toProperties(appliedMigration),
-						"installedBy", config.getInstalledBy(),
+						"installedBy", config.getInstalledBy().map(Values::value).orElse(Values.NULL),
 						"executionTime", executionTime
 					);
 
@@ -243,20 +243,18 @@ public final class Migrations {
 			this.driver = driver;
 
 			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
-			if (!(this.config.getDatabase() == null || this.config.getDatabase().trim().isEmpty())) {
-				builder.withDatabase(this.config.getDatabase().trim());
-			}
-
-			if (!(this.config.getImpersonatedUser() == null || this.config.getImpersonatedUser().trim().isEmpty())) {
+			this.config.getDatabase().ifPresent(builder::withDatabase);
+			this.config.getImpersonatedUser().ifPresent(user -> {
 				if (WITH_IMPERSONATED_USER == null) {
-					throw new IllegalArgumentException("User impersonation requires a driver that supports `withImpersonatedUser`.");
+					throw new IllegalArgumentException(
+						"User impersonation requires a driver that supports `withImpersonatedUser`.");
 				}
 				try {
-					WITH_IMPERSONATED_USER.invoke(builder, this.getConfig().getImpersonatedUser().trim());
+					WITH_IMPERSONATED_USER.invoke(builder, user);
 				} catch (IllegalAccessException | InvocationTargetException e) {
 					throw new MigrationsException("Could not impersonate a user on the driver level", e);
 				}
-			}
+			});
 
 			this.sessionConfig = builder.build();
 		}

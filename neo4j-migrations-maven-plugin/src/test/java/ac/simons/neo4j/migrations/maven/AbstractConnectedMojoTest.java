@@ -27,6 +27,7 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.testing.MojoRule;
@@ -96,8 +97,8 @@ public class AbstractConnectedMojoTest {
 
 		MigrationsConfig config = infoMojo.getConfig();
 		assertNotNull(config);
-		assertNull(config.getDatabase());
-		assertEquals("testor", config.getInstalledBy());
+		assertFalse(config.getDatabase().isPresent());
+		assertEquals(Optional.of("testor"), config.getInstalledBy());
 		assertEquals(1, config.getLocationsToScan().length);
 		assertTrue(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches());
 		assertEquals(TransactionMode.PER_MIGRATION, config.getTransactionMode());
@@ -112,7 +113,7 @@ public class AbstractConnectedMojoTest {
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertNotNull(infoMojo);
-		assertEquals("someoneElse", infoMojo.getConfig().getImpersonatedUser());
+		assertEquals(Optional.of("someoneElse"), infoMojo.getConfig().getImpersonatedUser());
 	}
 }
 

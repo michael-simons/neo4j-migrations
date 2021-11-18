@@ -74,7 +74,7 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, "someoneElse");
 
-		assertThat(cli.getConfig().getImpersonatedUser()).isEqualTo("someoneElse");
+		assertThat(cli.getConfig().getImpersonatedUser()).hasValue("someoneElse");
 	}
 
 	@Test

@@ -36,8 +36,8 @@ public final class MigrationsConfig {
 	public enum TransactionMode {
 
 		/**
-		 * Run all statements in one transactions. May need more memory, but it's generally safer. Either the
-		 * migration runs as a whole or not not at all.
+		 * Run all statements in one transaction. May need more memory, but it's generally safer. Either the
+		 * migration runs as a whole or not at all.
 		 */
 		PER_MIGRATION,
 		/**
@@ -73,7 +73,15 @@ public final class MigrationsConfig {
 
 	private final TransactionMode transactionMode;
 
+	/**
+	 * The database to migrate.
+	 */
 	private final String database;
+
+	/**
+	 * The database to store the schema in.
+	 */
+	private final String schemaDatabase;
 
 	private final String impersonatedUser;
 
@@ -94,6 +102,7 @@ public final class MigrationsConfig {
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 		this.validateOnMigrate = builder.validateOnMigrate;
 		this.autocrlf = builder.autocrlf;
+		this.schemaDatabase = builder.schemaDatabase;
 	}
 
 	public String[] getPackagesToScan() {
@@ -112,16 +121,32 @@ public final class MigrationsConfig {
 		return transactionMode;
 	}
 
-	public String getDatabase() {
-		return database;
+	private static boolean valueIsNotBlank(String value) {
+		return !value.trim().isEmpty();
 	}
 
-	public String getImpersonatedUser() {
-		return impersonatedUser;
+	public Optional<String> getDatabase() {
+		return Optional.ofNullable(database)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
 	}
 
-	public String getInstalledBy() {
-		return installedBy;
+	public Optional<String> getSchemaDatabase() {
+		return Optional.ofNullable(schemaDatabase)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
+	}
+
+	public Optional<String> getImpersonatedUser() {
+		return Optional.ofNullable(impersonatedUser)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
+	}
+
+	public Optional<String> getInstalledBy() {
+		return Optional.ofNullable(installedBy)
+			.filter(MigrationsConfig::valueIsNotBlank)
+			.map(String::trim);
 	}
 
 	public boolean isValidateOnMigrate() {
@@ -138,9 +163,7 @@ public final class MigrationsConfig {
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {
-			if (this.getDatabase() != null) {
-				logger.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", this.getDatabase());
-			}
+			this.getDatabase().ifPresent(v -> logger.log(Level.INFO, "Migrations will be applied to using database \"{0}\"", v));
 			if (this.getLocationsToScan().length > 0) {
 				logger.log(Level.INFO, "Will search for Cypher scripts in \"{0}\"", String.join("", this.getLocationsToScan()));
 				logger.log(Level.INFO, "Statements will be applied {0}",
@@ -174,6 +197,8 @@ public final class MigrationsConfig {
 		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
 
 		private boolean autocrlf = Defaults.AUTOCRLF;
+
+		private String schemaDatabase;
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.
@@ -286,6 +311,21 @@ public final class MigrationsConfig {
 		public Builder withImpersonatedUser(String newImpersonatedUser) {
 
 			this.impersonatedUser = newImpersonatedUser;
+			return this;
+		}
+
+		/**
+		 * Configures the schema database to use. This is different from {@link #withDatabase(String)}. The latter configures
+		 * the database that should be migrated, the schema database configures the database that holds the migration chain
+		 * <p>
+		 * To use this, Neo4j 4+ enterprise edition is required.
+		 * @param newSchemaDatabase The new schema database to use.
+		 * @return The builder for further customization
+		 * @since 1.1.0
+		 */
+		public Builder withSchemaDatabase(String newSchemaDatabase) {
+
+			this.schemaDatabase = newSchemaDatabase;
 			return this;
 		}
 

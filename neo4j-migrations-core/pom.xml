@@ -80,4 +80,40 @@
 		</dependency>
 
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.siom79.japicmp</groupId>
+				<artifactId>japicmp-maven-plugin</artifactId>
+				<version>${japicmp-maven-plugin.version}</version>
+				<configuration>
+					<oldVersion>
+						<dependency>
+							<groupId>eu.michael-simons.neo4j</groupId>
+							<artifactId>neo4j-migrations</artifactId>
+							<version>${neo4j-migrations.previous.version}</version>
+							<type>jar</type>
+						</dependency>
+					</oldVersion>
+					<newVersion>
+						<file>
+							<path>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</path>
+						</file>
+					</newVersion>
+					<parameter>
+						<breakBuildBasedOnSemanticVersioning>true</breakBuildBasedOnSemanticVersioning>
+					</parameter>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>cmp</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

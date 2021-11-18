@@ -9,7 +9,7 @@
     </formats>
     <files>
         <file>
-            <source>${project.parent.basedir}/LICENSE-2.0.txt</source>
+            <source>${project.parent.basedir}/LICENSE.txt</source>
             <destName>LICENSE</destName>
             <outputDirectory/>
         </file>

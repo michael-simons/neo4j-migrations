@@ -67,7 +67,8 @@
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-		<java-module-name />
+		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
@@ -93,6 +94,7 @@
 		<mockito.version>4.0.0</mockito.version>
 		<native.maven.plugin.version>0.9.7.1</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.4.1</neo4j-java-driver.version>
+		<neo4j-migrations.previous.version>1.0.0</neo4j-migrations.previous.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<objenesis.version>3.2</objenesis.version>
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>
@@ -435,7 +437,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -693,23 +695,23 @@
 											</replacers>
 											<categories>
 												<category>
-													<title>🚀 Features</title>
+													<title>&#x1f680; Features</title>
 													<labels>feat</labels>
 												</category>
 												<category>
-													<title>🐛 Bug Fixes</title>
+													<title>&#x1f41b; Bug Fixes</title>
 													<labels>fix</labels>
 												</category>
 												<category>
-													<title>📝 Documentation</title>
+													<title>&#x1f4dd; Documentation</title>
 													<labels>docs</labels>
 												</category>
 												<category>
-													<title>🧰 Build</title>
+													<title>&#x1f9f0; Build</title>
 													<labels>test,build,ci</labels>
 												</category>
 												<category>
-													<title>🧹 Housekeeping</title>
+													<title>&#x1f9f9; Housekeeping</title>
 													<labels>dependabot</labels>
 												</category>
 												<category>

@@ -686,7 +686,7 @@
 										<skipTag>true</skipTag>
 										<tagName>{{projectVersion}}</tagName>
 										<releaseName>{{projectVersion}}</releaseName>
-										<branch>master</branch>
+										<branch>main</branch>
 										<changelog>
 											<formatted>ALWAYS</formatted>
 											<contentTemplate>etc/jreleaser/changelog.md.tpl</contentTemplate>

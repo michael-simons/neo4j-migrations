@@ -53,6 +53,13 @@ public final class Migrations {
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
 
+	/**
+	 * Creates a {@link Migrations migrations instance} ready to used with the given configuration over the connection
+	 * defined by the {@link Driver driver}.
+	 *
+	 * @param config The configuration to use
+	 * @param driver The connection
+	 */
 	public Migrations(MigrationsConfig config, Driver driver) {
 
 		this.config = config;
@@ -96,6 +103,32 @@ public final class Migrations {
 			apply0(migrations);
 			return getLastAppliedVersion();
 		});
+	}
+
+	/**
+	 * Cleans the {@link MigrationsConfig#getOptionalSchemaDatabase() selected schema database}. If there is no schema
+	 * database selected, looks in the {@link MigrationsConfig#getOptionalDatabase() target database.} If this isn't
+	 * configured as well, the users home database will be searched for
+	 * <ol>
+	 * <li>Migration chains (those are the nodes containing information about the applied migrations</li>
+	 * <li>Any log from this tool</li>
+	 * <li>Any constraints created by this tool</li>
+	 * </ol>
+	 * and will delete and drop them in that order. This is a <strong>destructive</strong> operation, so make sure not
+	 * to apply it to your production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
+	 *
+	 * @return The result of cleaning the database.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused due to schema objects not deletable
+	 * @since 1.1.0
+	 */
+	public CleanResult clean() {
+
+		// Delete schema objects
+		// Delete lock
+		// Delete constraints
+
+		return null;
 	}
 
 	private <T> T executeWithinLock(Supplier<T> executable) {

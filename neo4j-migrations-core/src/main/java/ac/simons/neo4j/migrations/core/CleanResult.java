@@ -50,24 +50,36 @@ public final class CleanResult implements OperationResult {
 	/**
 	 * The list of chains deleted.
 	 *
-	 * @return The name of the chains' migration target
+	 * @return the name of the chains' migration targets
 	 */
 	public List<String> getChainsDeleted() {
 		return chainsDeleted;
 	}
 
+	/**
+	 * @return how many nodes have been deleted.
+	 */
 	public long getNodesDeleted() {
 		return nodesDeleted;
 	}
 
+	/**
+	 * @return how many relationships have been deleted
+	 */
 	public long getRelationshipsDeleted() {
 		return relationshipsDeleted;
 	}
 
+	/**
+	 * @return how many constraints have been removed
+	 */
 	public long getConstraintsRemoved() {
 		return constraintsRemoved;
 	}
 
+	/**
+	 * @return how many indexes have been removed
+	 */
 	public long getIndexesRemoved() {
 		return indexesRemoved;
 	}

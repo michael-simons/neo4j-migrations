@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;

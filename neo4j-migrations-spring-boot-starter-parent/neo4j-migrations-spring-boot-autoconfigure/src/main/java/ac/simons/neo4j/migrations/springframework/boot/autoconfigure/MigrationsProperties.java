@@ -99,98 +99,170 @@ public class MigrationsProperties {
 	 */
 	private boolean autocrlf = Defaults.AUTOCRLF;
 
+	/**
+	 * @return see {@link #enabled}
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
+	/**
+	 * @param enabled A new value for {@link #enabled}
+	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	/**
+	 * @return see {@link #checkLocation}
+	 */
 	public boolean isCheckLocation() {
 		return checkLocation;
 	}
 
+	/**
+	 * @param checkLocation A new value for {@link #checkLocation}
+	 */
 	public void setCheckLocation(boolean checkLocation) {
 		this.checkLocation = checkLocation;
 	}
 
+	/**
+	 * @return see {@link #packagesToScan}
+	 */
 	public String[] getPackagesToScan() {
 		return packagesToScan;
 	}
 
+	/**
+	 * @param packagesToScan A new value for {@link #packagesToScan}
+	 */
 	public void setPackagesToScan(String[] packagesToScan) {
 		this.packagesToScan = packagesToScan;
 	}
 
+	/**
+	 * @return see {@link #locationsToScan}
+	 */
 	public String[] getLocationsToScan() {
 		return locationsToScan;
 	}
 
+	/**
+	 * @param locationsToScan A new value for {@link #locationsToScan}
+	 */
 	public void setLocationsToScan(String[] locationsToScan) {
 		this.locationsToScan = locationsToScan;
 	}
 
+	/**
+	 * @return see {@link #installedBy}
+	 */
 	public String getInstalledBy() {
 		return installedBy;
 	}
 
+	/**
+	 * @param installedBy A new value for {@link #installedBy}
+	 */
 	public void setInstalledBy(String installedBy) {
 		this.installedBy = installedBy;
 	}
 
+	/**
+	 * @return see {@link #transactionMode}
+	 */
 	public TransactionMode getTransactionMode() {
 		return transactionMode;
 	}
 
+	/**
+	 * @param transactionMode A new value for {@link #transactionMode}
+	 */
 	public void setTransactionMode(TransactionMode transactionMode) {
 		this.transactionMode = transactionMode;
 	}
 
+	/**
+	 * @return see {@link #encoding}
+	 */
 	public Charset getEncoding() {
 		return encoding;
 	}
 
+	/**
+	 * @param encoding A new value for {@link #encoding}
+	 */
 	public void setEncoding(Charset encoding) {
 		this.encoding = encoding;
 	}
 
+	/**
+	 * @return see {@link #database}
+	 */
 	public String getDatabase() {
 		return database;
 	}
 
+	/**
+	 * @param database A new value for {@link #database}
+	 */
 	public void setDatabase(String database) {
 		this.database = database;
 	}
 
+	/**
+	 * @return see {@link #schemaDatabase}
+	 */
 	public String getSchemaDatabase() {
 		return schemaDatabase;
 	}
 
+	/**
+	 * @param schemaDatabase A new value for {@link #schemaDatabase}
+	 */
 	public void setSchemaDatabase(String schemaDatabase) {
 		this.schemaDatabase = schemaDatabase;
 	}
 
+	/**
+	 * @return see {@link #impersonatedUser}
+	 */
 	public String getImpersonatedUser() {
 		return impersonatedUser;
 	}
 
+	/**
+	 * @param impersonatedUser A new value for {@link #impersonatedUser}
+	 */
 	public void setImpersonatedUser(String impersonatedUser) {
 		this.impersonatedUser = impersonatedUser;
 	}
 
+	/**
+	 * @return see {@link #validateOnMigrate}
+	 */
 	public boolean isValidateOnMigrate() {
 		return validateOnMigrate;
 	}
 
+	/**
+	 * @param validateOnMigrate A new value for {@link #validateOnMigrate}
+	 */
 	public void setValidateOnMigrate(boolean validateOnMigrate) {
 		this.validateOnMigrate = validateOnMigrate;
 	}
 
+	/**
+	 * @return see {@link #autocrlf}
+	 */
 	public boolean isAutocrlf() {
 		return autocrlf;
 	}
 
+	/**
+	 * @param autocrlf A new value for {@link #autocrlf}
+	 */
 	public void setAutocrlf(boolean autocrlf) {
 		this.autocrlf = autocrlf;
 	}

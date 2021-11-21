@@ -30,6 +30,9 @@ import java.util.List;
  */
 public final class Defaults {
 
+	/**
+	 * The default Neo4j user to use.
+	 */
 	public static final String DEFAULT_USER = "neo4j";
 
 	/**
@@ -57,6 +60,9 @@ public final class Defaults {
 	 */
 	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList("classpath:neo4j/migrations");
 
+	/**
+	 * Same as {@link #LOCATIONS_TO_SCAN} but as {@link String string value} to be used in configuration that requires defaults given as string.
+	 */
 	public static final String TRANSACTION_MODE_VALUE = "PER_MIGRATION";
 
 	/**
@@ -69,6 +75,10 @@ public final class Defaults {
 	 */
 	public static final boolean VALIDATE_ON_MIGRATE = true;
 
+	/**
+	 * Same as {@link #VALIDATE_ON_MIGRATE} but as {@link String string value} to be used in configuration that requires
+	 * defaults given as string.
+	 */
 	public static final String VALIDATE_ON_MIGRATE_VALUE = "true";
 
 	/**
@@ -76,6 +86,10 @@ public final class Defaults {
 	 */
 	public static final boolean AUTOCRLF = false;
 
+	/**
+	 * Same as {@link #AUTOCRLF} but as {@link String string value} to be used in configuration that requires defaults
+	 * given as string.
+	 */
 	public static final String AUTOCRLF_VALUE = "false";
 
 	private Defaults() {

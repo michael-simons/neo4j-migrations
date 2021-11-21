@@ -29,9 +29,9 @@ import java.util.logging.Logger;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -165,29 +165,36 @@ public final class Migrations {
 		try (Session session = context.getSchemaSession()) {
 
 			Optional<String> migrationTarget = context.getConfig().getMigrationTargetIn(context);
-			Value parameters = Values.parameters(
-				"neo4jUser", neo4jUser,
-				"previousVersion", previousVersion.getValue(),
-				"appliedMigration", toProperties(appliedMigration),
-				"installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL),
-				"executionTime", executionTime,
-				"migrationTarget", migrationTarget.orElse(null)
-			);
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("neo4jUser", neo4jUser);
+			parameters.put("previousVersion", previousVersion.getValue());
+			parameters.put("appliedMigration", toProperties(appliedMigration));
+			parameters.put("installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));
+			parameters.put("executionTime", executionTime);
+			parameters.put("migrationTarget", migrationTarget.orElse(null));
 
-			String merge;
-			if (migrationTarget.isPresent()) {
-				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) ";
-			} else {
-				merge = "MERGE (p:__Neo4jMigration {version: $previousVersion}) ";
-			}
+			session.writeTransaction(t -> {
+				String mergeOrMatchAndMaybeCreate;
+				if (migrationTarget.isPresent()) {
+					mergeOrMatchAndMaybeCreate = "MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) ";
+				} else {
+					Result result = t.run(
+						"MATCH (p:__Neo4jMigration {version: $previousVersion}) WHERE p.migrationTarget IS NULL RETURN id(p) AS id",
+						Values.parameters("previousVersion", previousVersion.getValue()));
+					if (result.hasNext()) {
+						parameters.put("id", result.single().get("id").asLong());
+						mergeOrMatchAndMaybeCreate = "MATCH (p) WHERE id(p) = $id WITH p ";
+					} else {
+						mergeOrMatchAndMaybeCreate = "CREATE (p:__Neo4jMigration {version: $previousVersion}) ";
+					}
+				}
 
-			session.writeTransaction(t ->
-				t.run(merge
-					  + "CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.migrationTarget = $migrationTarget "
-					  + "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
+				return t.run(mergeOrMatchAndMaybeCreate
+							 + "CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.migrationTarget = $migrationTarget "
+							 + "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
-					.consume()
-			);
+					.consume();
+			});
 		}
 
 		return appliedMigration.getVersion();

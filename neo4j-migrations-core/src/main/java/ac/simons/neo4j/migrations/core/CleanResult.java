@@ -29,16 +29,22 @@ public final class CleanResult implements OperationResult {
 
 	private final List<String> chainsDeleted;
 
-	private final List<String> locksDeleted;
+	private final long nodesDeleted;
 
-	private final List<String> constraintsDeleted;
+	private final long relationshipsDeleted;
 
-	// TODO Number of nodes / relationships deleted
+	private final long constraintsRemoved;
 
-	CleanResult(List<String> chainsDeleted, List<String> locksDeleted, List<String> constraintsDeleted) {
+	private final long indexesRemoved;
+
+	CleanResult(List<String> chainsDeleted, long nodesDeleted, long relationshipsDeleted,
+		long constraintsRemoved,
+		long indexesRemoved) {
 		this.chainsDeleted = Collections.unmodifiableList(new ArrayList<>(chainsDeleted));
-		this.locksDeleted = Collections.unmodifiableList(new ArrayList<>(locksDeleted));
-		this.constraintsDeleted = Collections.unmodifiableList(new ArrayList<>(constraintsDeleted));
+		this.nodesDeleted = nodesDeleted;
+		this.relationshipsDeleted = relationshipsDeleted;
+		this.constraintsRemoved = constraintsRemoved;
+		this.indexesRemoved = indexesRemoved;
 	}
 
 	/**
@@ -50,17 +56,19 @@ public final class CleanResult implements OperationResult {
 		return chainsDeleted;
 	}
 
-	/**
-	 * @return The list of locks deleted (if there has been any left)
-	 */
-	public List<String> getLocksDeleted() {
-		return locksDeleted;
+	public long getNodesDeleted() {
+		return nodesDeleted;
 	}
 
-	/**
-	 * @return The list of constraints deleted
-	 */
-	public List<String> getConstraintsDeleted() {
-		return constraintsDeleted;
+	public long getRelationshipsDeleted() {
+		return relationshipsDeleted;
+	}
+
+	public long getConstraintsRemoved() {
+		return constraintsRemoved;
+	}
+
+	public long getIndexesRemoved() {
+		return indexesRemoved;
 	}
 }

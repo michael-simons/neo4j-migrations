@@ -35,6 +35,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 
 /**
@@ -126,7 +127,7 @@ public final class Migrations {
 	 */
 	public CleanResult clean(boolean all) {
 
-		Optional<String> migrationTarget = config.getMigrationTargetIn(context);
+		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
 		if (all && LOGGER.isLoggable(Level.WARNING)) {
 			UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
 			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper)
@@ -135,19 +136,78 @@ public final class Migrations {
 				formattedTargetDatabaseName);
 		}
 
+		DeletedChainsWithCounters deletedChainsWithCounters
+			= executeWithinLock(() -> clean0(optionalMigrationTarget, all));
 
+		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();
+		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();
+		long constraintsRemoved = 0;
+		long indexesRemoved = 0;
+		if (all) {
+			// Hard to do in the lock itself, it might fail
+			try (Session session = context.getSchemaSession()) {
+				SummaryCounters summaryCounters = session.writeTransaction(
+					tx -> tx.run("MATCH  (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
+				nodesDeleted += summaryCounters.nodesDeleted();
+				relationshipsDeleted += summaryCounters.relationshipsDeleted();
+				constraintsRemoved += session.writeTransaction(tx ->
+					tx.run("DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
+						.consume().counters().constraintsRemoved());
+				constraintsRemoved += session.writeTransaction(tx ->
+					tx.run("DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE")
+						.consume().counters().constraintsRemoved());
+			}
+		}
 
-		// Delete schema objects
-		// Delete lock
-		// Delete constraints
+		CleanResult result = new CleanResult(deletedChainsWithCounters.chainsDeleted, nodesDeleted,
+			relationshipsDeleted,
+			constraintsRemoved, indexesRemoved);
 
-		return null;
+		if (LOGGER.isLoggable(Level.INFO)) {
+			LOGGER.log(Level.INFO,
+				"Deleted the following chains {0} ({1} nodes and {2} relationships in total) as well as {3} constraints.",
+				new Object[] {
+					String.join(",", result.getChainsDeleted()),
+					result.getNodesDeleted(),
+					result.getRelationshipsDeleted(),
+					result.getConstraintsRemoved()
+				});
+		}
+		return result;
 	}
 
-	private void clean0() {
+	static class DeletedChainsWithCounters {
 
+		final List<String> chainsDeleted;
+		final SummaryCounters counter;
+
+		DeletedChainsWithCounters(List<String> chainsDeleted, SummaryCounters counter) {
+			this.chainsDeleted = chainsDeleted;
+			this.counter = counter;
+		}
 	}
 
+	private DeletedChainsWithCounters clean0(Optional<String> migrationTarget, boolean all) {
+
+		String query = ""
+			+ "MATCH (n:__Neo4jMigration) "
+			+ "WITH n, coalesce(n.migrationTarget, '<default>') as migrationTarget "
+			+ "WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)"
+			+ "DETACH DELETE n "
+			+ "RETURN DISTINCT migrationTarget"
+			+ "ORDER BY migrationTarget ASC ";
+
+		try (Session session = context.getSchemaSession()) {
+			Result result = session.run(query, Values.parameters(
+				"migrationTarget", migrationTarget.orElse(null),
+				"all", all));
+
+			return new DeletedChainsWithCounters(
+				result.list(r -> r.get("migrationTarget").asString()),
+				result.consume().counters()
+			);
+		}
+	}
 
 	private <T> T executeWithinLock(Supplier<T> executable) {
 

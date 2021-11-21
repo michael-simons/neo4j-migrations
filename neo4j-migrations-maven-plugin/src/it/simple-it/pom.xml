@@ -20,42 +20,30 @@
 				<groupId>eu.michael-simons.neo4j</groupId>
 				<artifactId>neo4j-migrations-maven-plugin</artifactId>
 				<version>${neo4j-migrations-maven-plugin.version}</version>
+				<configuration>
+					<user>neo4j</user>
+					<password>secret</password>
+					<address>bolt://localhost:${it-database-port}</address>
+					<verbose>true</verbose>
+				</configuration>
 				<executions>
 					<execution>
 						<id>info-pre</id>
 						<goals>
 							<goal>info</goal>
 						</goals>
-						<configuration>
-							<user>neo4j</user>
-							<password>secret</password>
-							<address>bolt://localhost:${it-database-port}</address>
-							<verbose>true</verbose>
-						</configuration>
 					</execution>
 					<execution>
 						<id>migrate</id>
 						<goals>
 							<goal>migrate</goal>
 						</goals>
-						<configuration>
-							<user>neo4j</user>
-							<password>secret</password>
-							<address>bolt://localhost:${it-database-port}</address>
-							<verbose>true</verbose>
-						</configuration>
 					</execution>
 					<execution>
 						<id>info-post</id>
 						<goals>
 							<goal>info</goal>
 						</goals>
-						<configuration>
-							<user>neo4j</user>
-							<password>secret</password>
-							<address>bolt://localhost:${it-database-port}</address>
-							<verbose>true</verbose>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

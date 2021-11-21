@@ -117,12 +117,25 @@ public final class Migrations {
 	 * and will delete and drop them in that order. This is a <strong>destructive</strong> operation, so make sure not
 	 * to apply it to your production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
 	 *
+	 * @param all Set to {@literal true} to remove all constructs created by Neo4j-Migrations, set to {@literal false} to
+	 *            remove all the migration chain for the selected or automatically determined target database.
 	 * @return The result of cleaning the database.
 	 * @throws ServiceUnavailableException in case the driver is not connected
 	 * @throws MigrationsException         for everything caused due to schema objects not deletable
 	 * @since 1.1.0
 	 */
-	public CleanResult clean() {
+	public CleanResult clean(boolean all) {
+
+		Optional<String> migrationTarget = config.getMigrationTargetIn(context);
+		if (all && LOGGER.isLoggable(Level.WARNING)) {
+			UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
+			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper)
+				.orElse("the default database");
+			LOGGER.log(Level.WARNING, "All Neo4j-Migrations related objects in {0} will be removed",
+				formattedTargetDatabaseName);
+		}
+
+
 
 		// Delete schema objects
 		// Delete lock
@@ -130,6 +143,11 @@ public final class Migrations {
 
 		return null;
 	}
+
+	private void clean0() {
+
+	}
+
 
 	private <T> T executeWithinLock(Supplier<T> executable) {
 

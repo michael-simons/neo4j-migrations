@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>1.1.0</version>
+		<version>1.1.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-cli</artifactId>
@@ -14,7 +14,7 @@
 	<properties>
 		<covered-ratio-complexity>0.1</covered-ratio-complexity>
 		<covered-ratio-instructions>0.03</covered-ratio-instructions>
-		<executable-suffix/>
+		<executable-suffix />
 		<java-module-name>ac.simons.neo4j.migrations.cli</java-module-name>
 		<name-of-main-class>ac.simons.neo4j.migrations.cli.MigrationsCli</name-of-main-class>
 	</properties>

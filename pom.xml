@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -50,7 +50,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>1.1.0</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -69,7 +69,7 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
-		<java-module-name/>
+		<java-module-name />
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
@@ -478,7 +478,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence/>
+								<DependencyConvergence />
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -737,23 +737,23 @@
 											</replacers>
 											<categories>
 												<category>
-													<title>&#x1f680; Features</title>
+													<title>🚀 Features</title>
 													<labels>feat</labels>
 												</category>
 												<category>
-													<title>&#x1f41b; Bug Fixes</title>
+													<title>🐛 Bug Fixes</title>
 													<labels>fix</labels>
 												</category>
 												<category>
-													<title>&#x1f4dd; Documentation</title>
+													<title>📝 Documentation</title>
 													<labels>docs</labels>
 												</category>
 												<category>
-													<title>&#x1f9f0; Build</title>
+													<title>🧰 Build</title>
 													<labels>test,build,ci</labels>
 												</category>
 												<category>
-													<title>&#x1f9f9; Housekeeping</title>
+													<title>🧹 Housekeeping</title>
 													<labels>dependabot</labels>
 												</category>
 												<category>

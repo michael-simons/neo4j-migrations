@@ -49,7 +49,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { InfoCommand.class, MigrateCommand.class },
+	subcommands = { InfoCommand.class, MigrateCommand.class, CleanCommand.class, CommandLine.HelpCommand.class },
 	versionProvider = ManifestVersionProvider.class
 )
 public final class MigrationsCli implements Runnable {

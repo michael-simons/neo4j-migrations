@@ -221,6 +221,7 @@
 					<scriptVariables>
 						<address>bolt://localhost:${it-database-port}</address>
 					</scriptVariables>
+					<preBuildHookScript>prepare</preBuildHookScript>
 					<postBuildHookScript>verify</postBuildHookScript>
 					<properties>
 						<it-database-port>${it-database-port}</it-database-port>
@@ -228,6 +229,7 @@
 					</properties>
 					<localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
 					<settingsFile>src/it/settings.xml</settingsFile>
+					<streamLogsOnFailures>true</streamLogsOnFailures>
 					<goals>
 						<goal>clean</goal>
 						<goal>verify</goal>

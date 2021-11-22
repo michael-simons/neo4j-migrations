@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@Grab('org.neo4j.driver:neo4j-java-driver:4.4.1')
+package ac.simons.neo4j.migrations.core;
 
-import org.neo4j.driver.AuthTokens
-import org.neo4j.driver.Driver
-import org.neo4j.driver.GraphDatabase
-import org.neo4j.driver.Session
+import java.util.Collection;
+import java.util.Collections;
 
-Driver driver = GraphDatabase.driver(address, AuthTokens.basic("neo4j", "secret"))
-driver.verifyConnectivity()
-Session session = driver.session()
+/**
+ * Represents the result of some operations.
+ *
+ * @author Michael J. Simons
+ * @since 1.1.0
+ */
+public interface OperationResult {
 
-try {
-    String version = session.run("MATCH (n:`__Neo4jMigration`) WHERE NOT (n) -[:MIGRATED_TO] -> () RETURN n.version")
-            .single().get("n.version")
-            .asString()
-    assert version == "0002"
-} finally {
-    session.close()
-    driver.close()
+	/**
+	 * @return all warnings, if any
+	 */
+	default Collection<String> getWarnings() {
+		return Collections.emptyList();
+	}
+
+	/**
+	 * @return a sensible string applicable in a log or info message
+	 */
+	String prettyPrint();
 }

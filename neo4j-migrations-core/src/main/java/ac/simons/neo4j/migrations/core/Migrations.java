@@ -35,6 +35,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 
 /**
@@ -47,12 +48,21 @@ public final class Migrations {
 
 	private static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
+	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+
 	private final MigrationsConfig config;
 	private final Driver driver;
 	private final MigrationContext context;
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
 
+	/**
+	 * Creates a {@link Migrations migrations instance} ready to used with the given configuration over the connection
+	 * defined by the {@link Driver driver}.
+	 *
+	 * @param config The configuration to use
+	 * @param driver The connection
+	 */
 	public Migrations(MigrationsConfig config, Driver driver) {
 
 		this.config = config;
@@ -98,6 +108,81 @@ public final class Migrations {
 		});
 	}
 
+	/**
+	 * Cleans the {@link MigrationsConfig#getOptionalSchemaDatabase() selected schema database}. If there is no schema
+	 * database selected, looks in the {@link MigrationsConfig#getOptionalDatabase() target database.} If this isn't
+	 * configured as well, the users home database will be searched for
+	 * <ol>
+	 * <li>Migration chains (those are the nodes containing information about the applied migrations</li>
+	 * <li>Any log from this tool</li>
+	 * <li>Any constraints created by this tool</li>
+	 * </ol>
+	 * and will delete and drop them in that order. This is a <strong>destructive</strong> operation, so make sure not
+	 * to apply it to your production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
+	 *
+	 * @param all Set to {@literal true} to remove all constructs created by Neo4j-Migrations, set to {@literal false} to
+	 *            remove all the migration chain for the selected or automatically determined target database.
+	 * @return The result of cleaning the database.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused due to schema objects not deletable
+	 * @since 1.1.0
+	 */
+	public CleanResult clean(boolean all) {
+
+		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
+		DeletedChainsWithCounters deletedChainsWithCounters
+			= executeWithinLock(() -> clean0(optionalMigrationTarget, all));
+
+		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();
+		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();
+		long constraintsRemoved = 0;
+		long indexesRemoved = 0;
+		if (all) {
+			SummaryCounters additionalCounters = new MigrationsLock(context).clean();
+			nodesDeleted += additionalCounters.nodesDeleted();
+			relationshipsDeleted += additionalCounters.relationshipsDeleted();
+			constraintsRemoved += additionalCounters.constraintsRemoved();
+			indexesRemoved += additionalCounters.indexesRemoved();
+		}
+
+		return new CleanResult(config.getOptionalSchemaDatabase(), deletedChainsWithCounters.chainsDeleted, nodesDeleted,
+			relationshipsDeleted,
+			constraintsRemoved, indexesRemoved);
+	}
+
+	static class DeletedChainsWithCounters {
+
+		final List<String> chainsDeleted;
+		final SummaryCounters counter;
+
+		DeletedChainsWithCounters(List<String> chainsDeleted, SummaryCounters counter) {
+			this.chainsDeleted = chainsDeleted;
+			this.counter = counter;
+		}
+	}
+
+	private DeletedChainsWithCounters clean0(Optional<String> migrationTarget, boolean all) {
+
+		String query = ""
+			+ "MATCH (n:__Neo4jMigration) "
+			+ "WITH n, coalesce(n.migrationTarget, '<default>') as migrationTarget "
+			+ "WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)"
+			+ "DETACH DELETE n "
+			+ "RETURN DISTINCT migrationTarget "
+			+ "ORDER BY migrationTarget ASC ";
+
+		try (Session session = context.getSchemaSession()) {
+			Result result = session.run(query, Values.parameters(
+				PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null),
+				"all", all));
+
+			return new DeletedChainsWithCounters(
+				result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
+				result.consume().counters()
+			);
+		}
+	}
+
 	private <T> T executeWithinLock(Supplier<T> executable) {
 
 		driver.verifyConnectivity();
@@ -117,7 +202,7 @@ public final class Migrations {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run(
 					"MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
-						Collections.singletonMap("migrationTarget", config.getMigrationTargetIn(context).orElse(null)))
+						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
@@ -171,7 +256,7 @@ public final class Migrations {
 			parameters.put("appliedMigration", toProperties(appliedMigration));
 			parameters.put("installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));
 			parameters.put("executionTime", executionTime);
-			parameters.put("migrationTarget", migrationTarget.orElse(null));
+			parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));
 
 			session.writeTransaction(t -> {
 				String mergeOrMatchAndMaybeCreate;

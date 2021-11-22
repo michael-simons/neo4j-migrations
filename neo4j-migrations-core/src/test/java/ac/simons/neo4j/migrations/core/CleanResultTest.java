@@ -38,7 +38,7 @@ class CleanResultTest {
 	@Test
 	void shouldJoinChains() {
 		CleanResult result = new CleanResult(Optional.empty(), Arrays.asList("a", "b"), 0, 0, 0, 0);
-		assertThat(result).hasToString(
+		assertThat(result.prettyPrint()).isEqualTo(
 			"Deleted chains a, b (0 nodes and 0 relationships in total) and 0 constraints from the default database.");
 	}
 

@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Result of a clean operation. The result is immutable.
@@ -26,6 +28,8 @@ import java.util.List;
  * @since 1.1.0
  */
 public final class CleanResult implements OperationResult {
+
+	private final String affectedDatabase;
 
 	private final List<String> chainsDeleted;
 
@@ -37,14 +41,22 @@ public final class CleanResult implements OperationResult {
 
 	private final long indexesRemoved;
 
-	CleanResult(List<String> chainsDeleted, long nodesDeleted, long relationshipsDeleted,
+	CleanResult(Optional<String> affectedDatabase, List<String> chainsDeleted, long nodesDeleted, long relationshipsDeleted,
 		long constraintsRemoved,
 		long indexesRemoved) {
+		this.affectedDatabase = affectedDatabase.orElse(null);
 		this.chainsDeleted = Collections.unmodifiableList(new ArrayList<>(chainsDeleted));
 		this.nodesDeleted = nodesDeleted;
 		this.relationshipsDeleted = relationshipsDeleted;
 		this.constraintsRemoved = constraintsRemoved;
 		this.indexesRemoved = indexesRemoved;
+	}
+
+	/**
+	 * @return the optional name of the database clean, an empty optional indicates the default database
+	 */
+	public Optional<String> getAffectedDatabase() {
+		return Optional.ofNullable(affectedDatabase);
 	}
 
 	/**
@@ -82,5 +94,20 @@ public final class CleanResult implements OperationResult {
 	 */
 	public long getIndexesRemoved() {
 		return indexesRemoved;
+	}
+
+	@Override
+	public String prettyPrint() {
+		return String.format(
+			"Deleted %s (%d nodes and %d relationships in total) and %d constraints from %s.",
+			getChainsDeleted().isEmpty() ?
+				"no chains" :
+				getChainsDeleted().stream()
+					.collect(Collectors.joining(", ", "chain" + (getChainsDeleted().size() > 1 ? "s " : " "), "")),
+			this.getNodesDeleted(),
+			this.getRelationshipsDeleted(),
+			this.getConstraintsRemoved(),
+			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
+		);
 	}
 }

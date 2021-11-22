@@ -27,9 +27,14 @@ import java.util.Collections;
 public interface OperationResult {
 
 	/**
-	 * @return All warnings, if any.
+	 * @return all warnings, if any
 	 */
 	default Collection<String> getWarnings() {
 		return Collections.emptyList();
 	}
+
+	/**
+	 * @return a sensible string applicable in a log or info message
+	 */
+	String prettyPrint();
 }

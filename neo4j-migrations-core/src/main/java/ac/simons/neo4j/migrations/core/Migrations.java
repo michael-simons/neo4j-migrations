@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
@@ -128,14 +127,6 @@ public final class Migrations {
 	 */
 	public CleanResult clean(boolean all) {
 
-		UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
-		String formattedSchemaDatabase = config.getOptionalSchemaDatabase().map(databaseNameMapper)
-			.orElse("the default database");
-		if (all && LOGGER.isLoggable(Level.WARNING)) {
-			LOGGER.log(Level.WARNING, "All Neo4j-Migrations related objects in {0} will be removed.",
-				formattedSchemaDatabase);
-		}
-
 		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
 		DeletedChainsWithCounters deletedChainsWithCounters
 			= executeWithinLock(() -> clean0(optionalMigrationTarget, all));
@@ -152,23 +143,9 @@ public final class Migrations {
 			indexesRemoved += additionalCounters.indexesRemoved();
 		}
 
-		CleanResult result = new CleanResult(deletedChainsWithCounters.chainsDeleted, nodesDeleted,
+		return new CleanResult(config.getOptionalSchemaDatabase(), deletedChainsWithCounters.chainsDeleted, nodesDeleted,
 			relationshipsDeleted,
 			constraintsRemoved, indexesRemoved);
-
-		if (LOGGER.isLoggable(Level.INFO)) {
-			LOGGER.log(Level.INFO,
-				"Deleted {0} ({1} nodes and {2} relationships in total) as well as {3} constraints from {4}.",
-				new Object[] {
-					result.getChainsDeleted().isEmpty() ? "no chains" : result.getChainsDeleted().stream().collect(
-						Collectors.joining(",", "the following chains ", "")),
-					result.getNodesDeleted(),
-					result.getRelationshipsDeleted(),
-					result.getConstraintsRemoved(),
-					formattedSchemaDatabase
-				});
-		}
-		return result;
 	}
 
 	static class DeletedChainsWithCounters {

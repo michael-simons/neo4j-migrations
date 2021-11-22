@@ -25,11 +25,12 @@ driver.verifyConnectivity()
 Session session = driver.session()
 
 try {
-    String version = session.run("MATCH (n:`__Neo4jMigration`) WHERE NOT (n) -[:MIGRATED_TO] -> () RETURN n.version")
-            .single().get("n.version")
-            .asString()
-    assert version == "0002"
+    // This is actually garbage data on 2 levels: The migration does not exist and without our required attributes,
+    // it will cause an NPE inside migrations.
+    session.run("create (:__Neo4jMigration {version: 'BASELINE'}) - [:MIGRATED_TO] -> (:__Neo4jMigration {version: 'Next'})").consume();
+    return true // This is needed to make the invoker plugin happy
 } finally {
     session.close()
     driver.close()
 }
+

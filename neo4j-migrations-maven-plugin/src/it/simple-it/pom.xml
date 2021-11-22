@@ -28,6 +28,15 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>clean</id>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<configuration>
+							<all>true</all>
+						</configuration>
+					</execution>
+					<execution>
 						<id>info-pre</id>
 						<goals>
 							<goal>info</goal>

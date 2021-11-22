@@ -177,7 +177,7 @@ public final class Migrations {
 				"all", all));
 
 			return new DeletedChainsWithCounters(
-				result.list(r -> r.get("migrationTarget").asString()),
+				result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
 				result.consume().counters()
 			);
 		}
@@ -202,7 +202,7 @@ public final class Migrations {
 			Node lastMigration = session.readTransaction(tx ->
 				tx.run(
 					"MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
-						Collections.singletonMap("migrationTarget", config.getMigrationTargetIn(context).orElse(null)))
+						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
 			String version = lastMigration.get("version").asString();
@@ -256,7 +256,7 @@ public final class Migrations {
 			parameters.put("appliedMigration", toProperties(appliedMigration));
 			parameters.put("installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));
 			parameters.put("executionTime", executionTime);
-			parameters.put("migrationTarget", migrationTarget.orElse(null));
+			parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));
 
 			session.writeTransaction(t -> {
 				String mergeOrMatchAndMaybeCreate;

@@ -48,6 +48,8 @@ public final class Migrations {
 
 	private static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
+	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+
 	private final MigrationsConfig config;
 	private final Driver driver;
 	private final MigrationContext context;
@@ -171,7 +173,7 @@ public final class Migrations {
 
 		try (Session session = context.getSchemaSession()) {
 			Result result = session.run(query, Values.parameters(
-				"migrationTarget", migrationTarget.orElse(null),
+				PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null),
 				"all", all));
 
 			return new DeletedChainsWithCounters(

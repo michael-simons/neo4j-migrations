@@ -98,12 +98,13 @@ public final class CleanResult implements OperationResult {
 
 	@Override
 	public String prettyPrint() {
+
+		String prefix = "chain" + (getChainsDeleted().size() > 1 ? "s " : " ");
 		return String.format(
 			"Deleted %s (%d nodes and %d relationships in total) and %d constraints from %s.",
 			getChainsDeleted().isEmpty() ?
 				"no chains" :
-				getChainsDeleted().stream()
-					.collect(Collectors.joining(", ", "chain" + (getChainsDeleted().size() > 1 ? "s " : " "), "")),
+				getChainsDeleted().stream().collect(Collectors.joining(", ", prefix, "")),
 			this.getNodesDeleted(),
 			this.getRelationshipsDeleted(),
 			this.getConstraintsRemoved(),

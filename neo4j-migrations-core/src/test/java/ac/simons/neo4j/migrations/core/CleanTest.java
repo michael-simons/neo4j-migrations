@@ -28,7 +28,7 @@ import org.neo4j.driver.Values;
 /**
  * @author Michael J. Simons
  */
-public class CleanTest extends TestBase {
+class CleanTest extends TestBase {
 
 	@BeforeEach
 	void initDB() {
@@ -76,8 +76,8 @@ public class CleanTest extends TestBase {
 		CleanResult cleanResult = migrations.clean(false);
 
 		assertThat(cleanResult.getChainsDeleted()).containsExactly("db1");
-		assertThat(cleanResult.getConstraintsRemoved()).isEqualTo(0);
-		assertThat(cleanResult.getIndexesRemoved()).isEqualTo(0);
+		assertThat(cleanResult.getConstraintsRemoved()).isZero();
+		assertThat(cleanResult.getIndexesRemoved()).isZero();
 		assertThat(cleanResult.getNodesDeleted()).isEqualTo(2);
 		assertThat(cleanResult.getRelationshipsDeleted()).isEqualTo(1);
 		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j"))
@@ -99,8 +99,8 @@ public class CleanTest extends TestBase {
 		CleanResult cleanResult = migrations.clean(false);
 
 		assertThat(cleanResult.getChainsDeleted()).containsExactly("<default>");
-		assertThat(cleanResult.getConstraintsRemoved()).isEqualTo(0);
-		assertThat(cleanResult.getIndexesRemoved()).isEqualTo(0);
+		assertThat(cleanResult.getConstraintsRemoved()).isZero();
+		assertThat(cleanResult.getIndexesRemoved()).isZero();
 		assertThat(cleanResult.getNodesDeleted()).isEqualTo(2);
 		assertThat(cleanResult.getRelationshipsDeleted()).isEqualTo(1);
 		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j"))
@@ -123,12 +123,12 @@ public class CleanTest extends TestBase {
 
 		assertThat(cleanResult.getChainsDeleted()).containsExactly("<default>", "db1", "db2");
 		assertThat(cleanResult.getConstraintsRemoved()).isEqualTo(2);
-		assertThat(cleanResult.getIndexesRemoved()).isEqualTo(0);
+		assertThat(cleanResult.getIndexesRemoved()).isZero();
 		assertThat(cleanResult.getNodesDeleted()).isEqualTo(7);
 		assertThat(cleanResult.getRelationshipsDeleted()).isEqualTo(4);
 		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j"))
 			.isEmpty();
 
-		assertThat(numConstraints()).isEqualTo(0);
+		assertThat(numConstraints()).isZero();
 	}
 }

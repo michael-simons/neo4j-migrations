@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
@@ -127,15 +128,15 @@ public final class Migrations {
 	 */
 	public CleanResult clean(boolean all) {
 
-		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
+		UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
+		String formattedSchemaDatabase = config.getOptionalSchemaDatabase().map(databaseNameMapper)
+			.orElse("the default database");
 		if (all && LOGGER.isLoggable(Level.WARNING)) {
-			UnaryOperator<String> databaseNameMapper = v -> "database `" + v + "`";
-			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper)
-				.orElse("the default database");
-			LOGGER.log(Level.WARNING, "All Neo4j-Migrations related objects in {0} will be removed",
-				formattedTargetDatabaseName);
+			LOGGER.log(Level.WARNING, "All Neo4j-Migrations related objects in {0} will be removed.",
+				formattedSchemaDatabase);
 		}
 
+		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
 		DeletedChainsWithCounters deletedChainsWithCounters
 			= executeWithinLock(() -> clean0(optionalMigrationTarget, all));
 
@@ -144,19 +145,11 @@ public final class Migrations {
 		long constraintsRemoved = 0;
 		long indexesRemoved = 0;
 		if (all) {
-			// Hard to do in the lock itself, it might fail
-			try (Session session = context.getSchemaSession()) {
-				SummaryCounters summaryCounters = session.writeTransaction(
-					tx -> tx.run("MATCH  (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
-				nodesDeleted += summaryCounters.nodesDeleted();
-				relationshipsDeleted += summaryCounters.relationshipsDeleted();
-				constraintsRemoved += session.writeTransaction(tx ->
-					tx.run("DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
-						.consume().counters().constraintsRemoved());
-				constraintsRemoved += session.writeTransaction(tx ->
-					tx.run("DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE")
-						.consume().counters().constraintsRemoved());
-			}
+			SummaryCounters additionalCounters = new MigrationsLock(context).clean();
+			nodesDeleted += additionalCounters.nodesDeleted();
+			relationshipsDeleted += additionalCounters.relationshipsDeleted();
+			constraintsRemoved += additionalCounters.constraintsRemoved();
+			indexesRemoved += additionalCounters.indexesRemoved();
 		}
 
 		CleanResult result = new CleanResult(deletedChainsWithCounters.chainsDeleted, nodesDeleted,
@@ -165,12 +158,14 @@ public final class Migrations {
 
 		if (LOGGER.isLoggable(Level.INFO)) {
 			LOGGER.log(Level.INFO,
-				"Deleted the following chains {0} ({1} nodes and {2} relationships in total) as well as {3} constraints.",
+				"Deleted {0} ({1} nodes and {2} relationships in total) as well as {3} constraints from {4}.",
 				new Object[] {
-					String.join(",", result.getChainsDeleted()),
+					result.getChainsDeleted().isEmpty() ? "no chains" : result.getChainsDeleted().stream().collect(
+						Collectors.joining(",", "the following chains ", "")),
 					result.getNodesDeleted(),
 					result.getRelationshipsDeleted(),
-					result.getConstraintsRemoved()
+					result.getConstraintsRemoved(),
+					formattedSchemaDatabase
 				});
 		}
 		return result;
@@ -194,7 +189,7 @@ public final class Migrations {
 			+ "WITH n, coalesce(n.migrationTarget, '<default>') as migrationTarget "
 			+ "WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)"
 			+ "DETACH DELETE n "
-			+ "RETURN DISTINCT migrationTarget"
+			+ "RETURN DISTINCT migrationTarget "
 			+ "ORDER BY migrationTarget ASC ";
 
 		try (Session session = context.getSchemaSession()) {

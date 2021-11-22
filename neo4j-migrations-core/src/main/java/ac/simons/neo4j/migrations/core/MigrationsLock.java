@@ -24,7 +24,9 @@ import java.util.logging.Logger;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.internal.summary.InternalSummaryCounters;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
 
 /**
  * @author Michael J. Simons
@@ -57,31 +59,74 @@ final class MigrationsLock {
 			.orElse(DEFAULT_NAME_OF_LOCK);
 	}
 
-	void createUniqueConstraintIfNecessary() {
+	private void createUniqueConstraintIfNecessary() {
+
+		int constraintsAdded = 0;
+		try (Session session = context.getSchemaSession()) {
+			constraintsAdded += silentCreateConstraint(session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
+			constraintsAdded += silentCreateConstraint(session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
+		}
+		LOGGER.log(Level.FINE, "Created {0} constraints", constraintsAdded);
+	}
+
+	SummaryCounters clean() {
+
+		int nodesDeleted = 0;
+		int relationshipsDeleted = 0;
+		int constraintsRemoved = 0;
+		int indexesRemoved = 0;
 
 		try (Session session = context.getSchemaSession()) {
-			int numberOfConstraints = session.writeTransaction(t -> {
-				int rv = t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE").consume()
-					.counters().constraintsAdded();
-				rv += t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE").consume()
-					.counters().constraintsAdded();
-				return rv;
-			});
-			LOGGER.log(Level.FINE, "Created {0} constraints", numberOfConstraints);
-		} catch (Neo4jException e) {
+			SummaryCounters summaryCounters = session.writeTransaction(
+				tx -> tx.run("MATCH  (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
+			nodesDeleted += summaryCounters.nodesDeleted();
+			relationshipsDeleted += summaryCounters.relationshipsDeleted();
+			constraintsRemoved += silentDropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
+			constraintsRemoved += silentDropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
+		}
+
+		return new InternalSummaryCounters(
+			0, nodesDeleted,
+			0, relationshipsDeleted,
+			0,
+			0, 0,
+			0, indexesRemoved,
+			0, constraintsRemoved, 0
+		);
+	}
+
+	private static Integer silentCreateConstraint(Session session, String statement) {
+		try {
+			return session.writeTransaction(tx ->
+				tx.run(statement).consume().counters().constraintsAdded());
+		}  catch (Neo4jException e) {
 
 			if (!"Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists".equals(e.code())) {
 				throw new MigrationsException(""
 					+ "Could not ensure uniqueness of __Neo4jMigrationsLock. "
 					+ "Please make sure your instance is in a clean state, "
-					+ "no more than 1 lock should be there simultaneously!",
-					e
+					+ "no more than 1 lock should be there simultaneously!", e
 				);
 			}
 		}
+
+		return 0;
 	}
 
-	public String lock() {
+	private static Integer silentDropConstraint(Session session, String statement) {
+		try {
+			return session.writeTransaction(tx ->
+				tx.run(statement).consume().counters().constraintsRemoved());
+		} catch (Neo4jException e) {
+			if (!"Neo.DatabaseError.Schema.ConstraintDropFailed".equals(e.code())) {
+				throw new MigrationsException("Could not remove locks", e);
+			}
+		}
+
+		return 0;
+	}
+
+	String lock() {
 
 		if (LOGGER.isLoggable(Level.FINE)) {
 			MigrationsConfig config = context.getConfig();
@@ -109,7 +154,7 @@ final class MigrationsLock {
 		}
 	}
 
-	public void unlock() {
+	void unlock() {
 
 		try {
 			unlock0();
@@ -118,7 +163,7 @@ final class MigrationsLock {
 		}
 	}
 
-	void unlock0() {
+	private void unlock0() {
 
 		try (Session session = context.getSchemaSession()) {
 

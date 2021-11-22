@@ -89,7 +89,7 @@ class MigrationsEETest {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			Stream.of("migrationTest", "schemaDatabase", "anotherTarget")
+			Stream.of("migrationTest", "schemaDatabase", "anotherTarget", "db1")
 				.map(database -> Collections.<String, Object>singletonMap("database", database))
 				.forEach(params -> session.run("CREATE DATABASE $database", params).consume());
 		}
@@ -105,6 +105,34 @@ class MigrationsEETest {
 	static void disableConsoleLoggingOnLock() {
 		LOCK_LOGGER.setLevel(PREVIOUS_LOCK_LOGGING_LEVEL);
 		LOCK_LOGGER.removeHandler(SIMPLE_CONSOLE_HANDLER);
+	}
+
+	@Test
+	void shouldNotOverwriteSpecificChainWithDefaultOne() {
+		// GH-311, for #963d389
+		// The order is important here
+
+		TestBase.clearDatabase(driver, "neo4j");
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
+			.withDatabase("db1")
+			.withSchemaDatabase("neo4j")
+			.build(), driver);
+		migrations.apply();
+
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
+			.withDatabase("neo4j")
+			.withSchemaDatabase("neo4j")
+			.build(), driver);
+		migrations.apply();
+
+		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j"))
+			.hasSize(2)
+			.containsEntry("db1", 3)
+			.containsEntry("<default>", 3);
 	}
 
 	@ParameterizedTest

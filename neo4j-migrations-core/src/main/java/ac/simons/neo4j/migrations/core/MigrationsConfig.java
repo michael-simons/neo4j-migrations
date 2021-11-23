@@ -57,6 +57,7 @@ public final class MigrationsConfig {
 	 * @return The entry point for creating a new configuration.
 	 * @since 0.0.1
 	 */
+	@SuppressWarnings("squid:S1874") // Remove it as soon as the constructor is made private and no longer marked as deprecated.
 	public static Builder builder() {
 
 		return new Builder();
@@ -284,6 +285,17 @@ public final class MigrationsConfig {
 		private boolean autocrlf = Defaults.AUTOCRLF;
 
 		private String schemaDatabase;
+
+		/**
+		 * @deprecated since 1.1.0, will be made private in 2.0.0, please use {@link MigrationsConfig#builder()}.
+		 */
+		@SuppressWarnings({ "DeprecatedIsStillUsed", "squid:S1133" }) // The deprecation warning on any client code calling this is actually the point.
+		@Deprecated
+		public Builder() {
+			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
+			// is used on the module path. JMS will complain about Builder being exported with
+			// a public visible, implicit constructor.
+		}
 
 		/**
 		 * Configures the list of packages to scan. Default is an empty list.

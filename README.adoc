@@ -464,7 +464,7 @@ To use them create a `Migrations` instance to scan your project and apply all fo
 [source,java]
 ----
 Migrations migrations = new Migrations(
-    MigrationsConfig.builder().withPackagesToScan("org.company.changeset1").build(),
+    MigrationsConfig.builder().withPackagesToScan("some.migrations").build(),
     GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
 );
 

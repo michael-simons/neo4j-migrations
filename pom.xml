@@ -228,6 +228,11 @@
 
 			<plugins>
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${maven-gpg-plugin.version}</version>
+				</plugin>
+				<plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
 					<version>${sonar-maven-plugin.version}</version>
@@ -425,6 +430,16 @@
 								<skip>true</skip>
 							</configuration>
 						</execution>
+						<execution>
+							<id>release-prepared</id>
+							<goals>
+								<goal>exec</goal>
+							</goals>
+							<configuration>
+								<executable>bin/update-previous-version.sh</executable>
+								<skip>true</skip>
+							</configuration>
+						</execution>
 					</executions>
 				</plugin>
 			</plugins>
@@ -437,6 +452,15 @@
 				<executions>
 					<execution>
 						<id>prepare-release</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration combine.self="append">
+							<skip>false</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>release-prepared</id>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -596,6 +620,7 @@
 					<localCheckout>true</localCheckout>
 					<arguments>-Drelease -DisDryRun=${dryRun}</arguments>
 					<preparationGoals>clean exec:exec@prepare-release verify</preparationGoals>
+					<completionGoals>compile exec:exec@release-prepared</completionGoals>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -626,7 +651,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>${maven-gpg-plugin.version}</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>

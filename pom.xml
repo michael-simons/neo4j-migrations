@@ -62,7 +62,7 @@
 		<assertj.version>3.21.0</assertj.version>
 		<byte-buddy.version>1.12.1</byte-buddy.version>
 		<checkstyle.version>9.1</checkstyle.version>
-		<classgraph.version>4.8.134</classgraph.version>
+		<classgraph.version>4.8.137</classgraph.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>

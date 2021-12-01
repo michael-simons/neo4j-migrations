@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +37,7 @@ class ValidationResultTest {
 		"DIFFERENT_CONTENT,false",
 	})
 	void isValidShouldWork(ValidationResult.Outcome outcome, boolean expected) {
-		ValidationResult result = new ValidationResult(Optional.empty(), outcome);
+		ValidationResult result = new ValidationResult(Optional.empty(), outcome, Collections.emptyList());
 		assertThat(result.getOutcome()).isEqualTo(outcome);
 		assertThat(result.isValid()).isEqualTo(expected);
 	}
@@ -49,7 +50,7 @@ class ValidationResultTest {
 		"DIFFERENT_CONTENT,true",
 	})
 	void needsRepairShouldWork(ValidationResult.Outcome outcome, boolean expected) {
-		ValidationResult result = new ValidationResult(Optional.empty(), outcome);
+		ValidationResult result = new ValidationResult(Optional.empty(), outcome, Collections.emptyList());
 		assertThat(result.getOutcome()).isEqualTo(outcome);
 		assertThat(result.needsRepair()).isEqualTo(expected);
 	}
@@ -61,7 +62,7 @@ class ValidationResultTest {
 	void getAffectedDatabaseShouldWork(String affectedDatabase) {
 
 		assertThat(new ValidationResult(Optional.ofNullable(affectedDatabase),
-			ValidationResult.Outcome.VALID).getAffectedDatabase()).isEqualTo(Optional.ofNullable(affectedDatabase));
+			ValidationResult.Outcome.VALID, Collections.emptyList()).getAffectedDatabase()).isEqualTo(Optional.ofNullable(affectedDatabase));
 	}
 
 	@ParameterizedTest
@@ -72,7 +73,7 @@ class ValidationResultTest {
 	}, nullValues = "n/a")
 	void prettyPrintingShouldWork(ValidationResult.Outcome outcome, String affectedDatabase, String expected) {
 
-		ValidationResult result = new ValidationResult(Optional.ofNullable(affectedDatabase), outcome);
+		ValidationResult result = new ValidationResult(Optional.ofNullable(affectedDatabase), outcome, Collections.emptyList());
 		assertThat(result.prettyPrint()).isEqualTo(expected);
 	}
 }

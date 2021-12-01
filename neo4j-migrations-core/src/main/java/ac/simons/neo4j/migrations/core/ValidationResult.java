@@ -16,7 +16,11 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +40,11 @@ public final class ValidationResult implements DatabaseOperationResult {
 	public enum Outcome {
 
 		/**
+		 * The database is in an undefined state.
+		 */
+		UNDEFINED,
+
+		/**
 		 * The combined state of migrations resolved and applied to the target database is valid.
 		 */
 		VALID,
@@ -53,23 +62,31 @@ public final class ValidationResult implements DatabaseOperationResult {
 		INCOMPLETE_MIGRATIONS,
 
 		/**
-		 * Some migrations have been changed since they have been applied to the target database. The database must be
-		 * repaired.
+		 * Some migrations have been changed since they have been applied to the target database or their version doesn't fit anymore.
+		 * The database must be repaired.
 		 */
 		DIFFERENT_CONTENT;
 	}
 
 	private static final Set<Outcome> NEEDS_REPAIR = EnumSet.of(Outcome.INCOMPLETE_MIGRATIONS,
-		Outcome.DIFFERENT_CONTENT);
+		Outcome.DIFFERENT_CONTENT, Outcome.UNDEFINED);
 
 	private final String affectedDatabase;
 
 	private final Outcome outcome;
 
-	ValidationResult(Optional<String> affectedDatabase, Outcome outcome) {
+	private final List<String> warnings;
+
+	ValidationResult(Optional<String> affectedDatabase, Outcome outcome, List<String> warnings) {
 
 		this.affectedDatabase = affectedDatabase.orElse(null);
 		this.outcome = outcome;
+		this.warnings = new ArrayList<>(warnings);
+	}
+
+	@Override
+	public Collection<String> getWarnings() {
+		return Collections.unmodifiableList(this.warnings);
 	}
 
 	@Override

@@ -48,6 +48,19 @@ import org.neo4j.driver.types.Relationship;
 final class ChainBuilder {
 
 	/**
+	 * A flag to force the chain builder into verification mode.
+	 */
+	private final boolean alwaysVerify;
+
+	ChainBuilder() {
+		this(false);
+	}
+
+	ChainBuilder(boolean alwaysVerify) {
+		this.alwaysVerify = alwaysVerify;
+	}
+
+	/**
 	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
 	 *                             It is not yet known whether those are pending or not.
 	 * @return The full migration chain.
@@ -121,14 +134,18 @@ final class ChainBuilder {
 				MigrationVersion expectedVersion = entry.getKey();
 				Optional<String> expectedChecksum = entry.getValue().getChecksum();
 
-				Migration newMigration = discoveredMigrations.get(i);
+				Migration newMigration;
+				try {
+					newMigration = discoveredMigrations.get(i);
+				} catch (IndexOutOfBoundsException e) {
+					throw new MigrationsException("More migrations have been applied to the database than locally resolved", e);
+				}
 				if (!newMigration.getVersion().equals(expectedVersion)) {
-					throw new MigrationsException(
-						"Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
+					throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
 				}
 
-				if (context.getConfig().isValidateOnMigrate() && !expectedChecksum.equals(newMigration.getChecksum())) {
-					throw new MigrationsException(("Checksum of " + Migrations.toString(newMigration) + " changed!"));
+				if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !expectedChecksum.equals(newMigration.getChecksum())) {
+					throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 				}
 				// This is not a pending migration anymore
 				fullMigrationChain.put(expectedVersion, entry.getValue());

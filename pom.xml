@@ -725,6 +725,10 @@
 													<label>dependabot</label>
 												</labeler>
 												<labeler>
+													<title>build(deps)</title>
+													<label>dependabot</label>
+												</labeler>
+												<labeler>
 													<title>Fix</title>
 													<label>fix</label>
 												</labeler>
@@ -755,6 +759,10 @@
 											</labelers>
 											<replacers>
 												<replacer>
+													<search>(?:build\(deps\): )(.*)</search>
+													<replace>$1</replace>
+												</replacer>
+												<replacer>
 													<search>((?:GH-)(\d+) - )(.*)</search>
 													<replace>$3 (#$2)</replace>
 												</replacer>
@@ -773,12 +781,12 @@
 													<labels>docs</labels>
 												</category>
 												<category>
-													<title>🧰 Build</title>
-													<labels>test,build,ci</labels>
-												</category>
-												<category>
 													<title>🧹 Housekeeping</title>
 													<labels>dependabot</labels>
+												</category>
+												<category>
+													<title>🧰 Build</title>
+													<labels>test,build,ci</labels>
 												</category>
 												<category>
 													<title>nocl</title>

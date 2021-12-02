@@ -30,6 +30,7 @@
 		<plexus-classworlds.version>2.6.0</plexus-classworlds.version>
 		<plexus-component-annotations.version>2.1.0</plexus-component-annotations.version>
 		<plexus-utils.version>3.4.1</plexus-utils.version>
+		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<dependencyManagement>

@@ -122,42 +122,41 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations) {
 
 		Map<MigrationVersion, Element> appliedMigrations = getChainOfAppliedMigrations(context);
-		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(
-			discoveredMigrations.size() + appliedMigrations.size());
-
 		if (discoveredMigrations.isEmpty()) {
 			// No migrations found, everything in the chain is applied
-			fullMigrationChain.putAll(appliedMigrations);
-		} else {
-			int i = 0;
-			for (Map.Entry<MigrationVersion, Element> entry : appliedMigrations.entrySet()) {
-				MigrationVersion expectedVersion = entry.getKey();
-				Optional<String> expectedChecksum = entry.getValue().getChecksum();
+			Collections.unmodifiableMap(appliedMigrations);
+		}
 
-				Migration newMigration;
-				try {
-					newMigration = discoveredMigrations.get(i);
-				} catch (IndexOutOfBoundsException e) {
-					throw new MigrationsException("More migrations have been applied to the database than locally resolved", e);
-				}
-				if (!newMigration.getVersion().equals(expectedVersion)) {
-					throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
-				}
+		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(
+			discoveredMigrations.size() + appliedMigrations.size());
+		int i = 0;
+		for (Map.Entry<MigrationVersion, Element> entry : appliedMigrations.entrySet()) {
+			MigrationVersion expectedVersion = entry.getKey();
+			Optional<String> expectedChecksum = entry.getValue().getChecksum();
 
-				if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !expectedChecksum.equals(newMigration.getChecksum())) {
-					throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
-				}
-				// This is not a pending migration anymore
-				fullMigrationChain.put(expectedVersion, entry.getValue());
-				++i;
+			Migration newMigration;
+			try {
+				newMigration = discoveredMigrations.get(i);
+			} catch (IndexOutOfBoundsException e) {
+				throw new MigrationsException("More migrations have been applied to the database than locally resolved", e);
+			}
+			if (!newMigration.getVersion().equals(expectedVersion)) {
+				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
 			}
 
-			// All remaining migrations are pending
-			while (i < discoveredMigrations.size()) {
-				Migration pendingMigration = discoveredMigrations.get(i++);
-				Element element = DefaultChainElement.pendingElement(pendingMigration);
-				fullMigrationChain.put(pendingMigration.getVersion(), element);
+			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !expectedChecksum.equals(newMigration.getChecksum())) {
+				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 			}
+			// This is not a pending migration anymore
+			fullMigrationChain.put(expectedVersion, entry.getValue());
+			++i;
+		}
+
+		// All remaining migrations are pending
+		while (i < discoveredMigrations.size()) {
+			Migration pendingMigration = discoveredMigrations.get(i++);
+			Element element = DefaultChainElement.pendingElement(pendingMigration);
+			fullMigrationChain.put(pendingMigration.getVersion(), element);
 		}
 
 		return Collections.unmodifiableMap(fullMigrationChain);

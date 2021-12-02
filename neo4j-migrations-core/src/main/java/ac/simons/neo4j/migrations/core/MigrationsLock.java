@@ -15,7 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
@@ -36,6 +40,9 @@ final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
 	private static final String DEFAULT_NAME_OF_LOCK = "John Doe";
+
+	private static final Set<String> CODES_FOR_EXISTING_CONSTRAINT
+		= Collections.unmodifiableSet(new HashSet<>(Arrays.asList("Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists", "Neo.ClientError.Schema.ConstraintAlreadyExists")));
 
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
@@ -101,7 +108,7 @@ final class MigrationsLock {
 				tx.run(statement).consume().counters().constraintsAdded());
 		}  catch (Neo4jException e) {
 
-			if (!"Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists".equals(e.code())) {
+			if (!CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
 				throw new MigrationsException(""
 					+ "Could not ensure uniqueness of __Neo4jMigrationsLock. "
 					+ "Please make sure your instance is in a clean state, "

@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
@@ -25,6 +26,7 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.Neo4jException;
 
 /**
  * @author Michael J. Simons
@@ -47,6 +49,31 @@ class MigrationsLockTest extends TestBase {
 		} finally {
 
 			lock.unlock();
+		}
+	}
+
+	@Test
+	void shouldNotFailIfTheConstraintExistsAsNamedConstraint() {
+
+		try (Session session = driver.session()) {
+			int cnt = session.writeTransaction(
+				t -> t.run("CREATE CONSTRAINT a_name ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
+					.consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+
+			// Assert that the exception we want to catch is actually thrown
+			assertThatExceptionOfType(Neo4jException.class).isThrownBy(
+					() -> session.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
+						.consume())
+				.matches(e -> "Neo.ClientError.Schema.ConstraintAlreadyExists" .equals(e.code()));
+		}
+
+		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
+		MigrationsLock lock1 = new MigrationsLock(context);
+		try {
+			assertThatNoException().isThrownBy(lock1::lock);
+		} finally {
+			lock1.unlock();
 		}
 	}
 

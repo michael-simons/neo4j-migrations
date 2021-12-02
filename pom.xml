@@ -55,7 +55,7 @@
 	</scm>
 
 	<properties>
-
+		<aggregate.report.dir>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
@@ -674,7 +674,6 @@
 				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
 				<sonar.organization>michael-simons-github</sonar.organization>
 				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
-				<sonar.report>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</sonar.report>
 			</properties>
 			<build>
 				<plugins>

@@ -28,7 +28,7 @@ import org.neo4j.driver.Values;
 /**
  * @author Michael J. Simons
  */
-class CleanTest extends TestBase {
+class CleanIT extends TestBase {
 
 	@BeforeEach
 	void initDB() {

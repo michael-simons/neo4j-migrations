@@ -36,7 +36,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 /**
  * @author Michael J. Simons
  */
-class MigrationsTest extends TestBase {
+class MigrationsIT extends TestBase {
 
 	@Test
 	void shouldApplyMigrations() {

@@ -33,7 +33,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 /**
  * @author Michael J. Simons
  */
-class UnsupportedTargetsTest {
+class UnsupportedTargetsIT {
 
 	@Test
 	void migrationTargetDeterminationMustNotFailWithOlderEnterprise() {

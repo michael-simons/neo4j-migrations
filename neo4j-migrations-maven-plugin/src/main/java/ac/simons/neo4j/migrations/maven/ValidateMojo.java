@@ -67,7 +67,7 @@ public class ValidateMojo extends AbstractConnectedMojo {
 				throw new MojoFailureException(validationResult, shortMessage, message.toString());
 			} else {
 				LOGGER.warning(shortMessage);
-				LOGGER.warning(message.toString());
+				LOGGER.warning(message::toString);
 			}
 		}
 	}

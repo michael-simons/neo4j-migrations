@@ -28,7 +28,7 @@ public enum Messages {
 
 	INSTANCE;
 
-	private final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(
+	private final ResourceBundle defaultBundle = ResourceBundle.getBundle(
 		"ac.simons.neo4j.migrations.core.messages");
 
 	/**
@@ -38,6 +38,6 @@ public enum Messages {
 	 * @return A messsage
 	 */
 	public String get(String key) {
-		return DEFAULT_BUNDLE.getString(key);
+		return defaultBundle.getString(key);
 	}
 }

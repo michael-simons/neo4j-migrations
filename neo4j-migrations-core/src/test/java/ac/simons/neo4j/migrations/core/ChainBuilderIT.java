@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael J. Simons
  */
-class ChainBuilderTest extends TestBase {
+class ChainBuilderIT extends TestBase {
 
 	@Test
 	@SuppressWarnings("squid:S5961") // Pretty happy with the number of assertions.

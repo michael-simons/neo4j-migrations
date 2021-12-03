@@ -56,7 +56,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
  * @soundtrack Paul van Dyk - From Then On
  */
 @Testcontainers(disabledWithoutDocker = true)
-class MigrationsEETest {
+class MigrationsEEIT {
 
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -147,7 +147,7 @@ class MigrationsEETest {
 	})
 	void shouldRunInCorrectDatabase(String targetDatabase, String schemaDatabase) {
 
-		Logger logger = Logger.getLogger(MigrationsEETest.class.getName());
+		Logger logger = Logger.getLogger(MigrationsEEIT.class.getName());
 		String actualSchemaDatabase = schemaDatabase == null ? targetDatabase : schemaDatabase;
 		String targetDatabaseInStats =
 			(schemaDatabase != null ? targetDatabase == null ? "neo4j" : targetDatabase : "<default>").toLowerCase(Locale.ROOT);

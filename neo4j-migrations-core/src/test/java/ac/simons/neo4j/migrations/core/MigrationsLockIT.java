@@ -31,7 +31,7 @@ import org.neo4j.driver.exceptions.Neo4jException;
 /**
  * @author Michael J. Simons
  */
-class MigrationsLockTest extends TestBase {
+class MigrationsLockIT extends TestBase {
 
 	@Test
 	void shouldAcquireLock() {

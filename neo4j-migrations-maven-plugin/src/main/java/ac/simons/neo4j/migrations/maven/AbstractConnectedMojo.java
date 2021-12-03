@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.net.URI;
 import java.util.logging.Level;
@@ -34,7 +35,6 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
-import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
@@ -122,14 +122,17 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			Migrations migrations = new Migrations(config, driver);
 
 			withMigrations(migrations);
-		} catch (ServiceUnavailableException e) {
-			throw new MojoExecutionException(e.getMessage(), e);
-		} catch (Exception e) {
+		} catch (MojoFailureException e) {
+			// Don't add stack, but rethrow
+			throw e;
+		} catch (MigrationsException e) {
 			throw new MojoFailureException("Could not execute migrations", e);
+		} catch (Exception e) {
+			throw new MojoExecutionException(e.getMessage(), e);
 		}
 	}
 
-	abstract void withMigrations(Migrations migrations);
+	abstract void withMigrations(Migrations migrations) throws MojoFailureException;
 
 	/**
 	 * @return The migrations config based on the required options.

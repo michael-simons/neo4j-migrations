@@ -43,6 +43,16 @@
 						</goals>
 					</execution>
 					<execution>
+						<id>validate-pre</id>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+						<configuration>
+							<alwaysFail>false</alwaysFail>
+						</configuration>
+						<phase>pre-integration-test</phase>
+					</execution>
+					<execution>
 						<id>migrate</id>
 						<goals>
 							<goal>migrate</goal>
@@ -52,6 +62,13 @@
 						<id>info-post</id>
 						<goals>
 							<goal>info</goal>
+						</goals>
+						<phase>post-integration-test</phase>
+					</execution>
+					<execution>
+						<id>default-validate</id>
+						<goals>
+							<goal>validate</goal>
 						</goals>
 					</execution>
 				</executions>

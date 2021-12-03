@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -181,6 +183,45 @@ public final class Migrations {
 				result.consume().counters()
 			);
 		}
+	}
+
+	/**
+	 * Validates the database against the resolved migrations. A database is considered to be in a valid state when all
+	 * resolved migrations have been applied (there are no more pending migrations). If a database is not yet fully migrated,
+	 * it won't identify as {@link ValidationResult.Outcome#VALID} but it will indicate via {@link ValidationResult#needsRepair()} that
+	 * it doesn't need repair. Applying the pending migrations via {@link #apply()} will bring the database into a valid state.
+	 * Most other outcomes not valid need to be manually fix. One radical fix is calling {@link Migrations#clean(boolean)}
+	 * with the same configuration.
+	 *
+	 * @return a validation result, with an outcome, a possible list of warnings and indicators if the database is in a valid state
+	 * @since 1.2.0
+	 */
+	public ValidationResult validate() {
+
+		return executeWithinLock(() -> {
+			List<Migration> migrations = discoveryService.findMigrations(this.context);
+			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
+			try {
+				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations);
+				int numberOfAppliedMigrations = (int) migrationChain.getElements()
+					.stream().filter(m -> m.getState() == MigrationState.APPLIED)
+					.count();
+				if (migrations.size() == numberOfAppliedMigrations) {
+					return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?
+						Collections.singletonList("No migrations resolved.") :
+						Collections.emptyList());
+				} else if (migrations.size() > numberOfAppliedMigrations) {
+					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());
+				}
+				return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
+			} catch (MigrationsException e) {
+				List<String> warnings = Collections.singletonList(e.getMessage());
+				if (e.getCause() instanceof IndexOutOfBoundsException) {
+					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
+				}
+				return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
+			}
+		});
 	}
 
 	private <T> T executeWithinLock(Supplier<T> executable) {

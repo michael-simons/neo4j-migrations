@@ -13,15 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core;
 
-	requires io.github.classgraph;
+import java.util.Collection;
+import java.util.Collections;
 
-	requires transitive java.logging;
+/**
+ * Represents the result of some operations.
+ *
+ * @author Michael J. Simons
+ * @since 1.1.0
+ */
+public sealed interface OperationResult permits DatabaseOperationResult {
 
-	requires transitive org.neo4j.driver;
+	/**
+	 * {@return all warnings, if any}
+	 */
+	default Collection<String> getWarnings() {
+		return Collections.emptyList();
+	}
 
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.utils to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven;
+	/**
+	 * {@return a sensible string applicable in a log or info message}
+	 */
+	String prettyPrint();
 }

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * @author Michael J. Simons
  * @since 1.1.0
  */
-public final class CleanResult implements OperationResult {
+public final class CleanResult implements DatabaseOperationResult {
 
 	private final String affectedDatabase;
 
@@ -52,9 +52,7 @@ public final class CleanResult implements OperationResult {
 		this.indexesRemoved = indexesRemoved;
 	}
 
-	/**
-	 * @return the optional name of the database clean, an empty optional indicates the default database
-	 */
+	@Override
 	public Optional<String> getAffectedDatabase() {
 		return Optional.ofNullable(affectedDatabase);
 	}

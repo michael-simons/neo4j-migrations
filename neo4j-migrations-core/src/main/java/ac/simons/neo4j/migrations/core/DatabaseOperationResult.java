@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core;
 
-	requires io.github.classgraph;
+import java.util.Optional;
 
-	requires transitive java.logging;
+/**
+ * A specialization of the {@link OperationResult} that always affects a database, either the default one
+ * or a named other.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Die Krupps - Paradise Now
+ * @since 1.2.0
+ */
+public interface DatabaseOperationResult extends OperationResult {
 
-	requires transitive org.neo4j.driver;
-
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.utils to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven;
+	/**
+	 * @return the optional name of the database clean, an empty optional indicates the default database
+	 */
+	Optional<String> getAffectedDatabase();
 }

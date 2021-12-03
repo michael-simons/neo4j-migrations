@@ -98,9 +98,14 @@ Migrates Neo4j databases.
                               applied to the database match the ones available
                               locally and is on by default.
 Commands:
-  info     Retrieves all applied and pending informations, prints them and
-             exits.
-  migrate  Retrieves all pending migrations, verify and applies them.
+  clean     Removes Neo4j-Migration specific data from the selected schema
+              database
+  help      Displays help information about the specified command
+  info      Retrieves all applied and pending informations, prints them and
+              exits.
+  migrate   Retrieves all pending migrations, verify and applies them.
+  validate  Resolves all local migrations and validates the state of the
+              configured database with them.
 ----
 
 Here's an example that looks for migrations in a Java package and it's subpackages and in a filesystem location for Cypher based migrations.

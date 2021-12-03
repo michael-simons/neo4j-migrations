@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.utils.Messages;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +95,7 @@ public final class ValidationResult implements DatabaseOperationResult {
 	public String prettyPrint() {
 		String key = "validation-result.outcome." + this.outcome.name().toLowerCase(Locale.ROOT);
 		return MessageFormat.format(
-			Migrations.MESSAGES.getString(key),
+			Messages.INSTANCE.get(key),
 			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
 		);
 	}

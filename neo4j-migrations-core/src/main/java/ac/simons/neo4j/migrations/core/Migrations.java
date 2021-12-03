@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
@@ -52,8 +51,6 @@ public final class Migrations {
 	private static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
-
-	static final ResourceBundle MESSAGES = ResourceBundle.getBundle("ac.simons.neo4j.migrations.core.messages");
 
 	private final MigrationsConfig config;
 	private final Driver driver;

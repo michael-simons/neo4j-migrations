@@ -13,15 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core.utils;
 
-	requires io.github.classgraph;
+import java.util.ResourceBundle;
 
-	requires transitive java.logging;
+/**
+ * Accessor to messages shared between the core module and extensions.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Kid Rock - Devil Without A Cause
+ * @since 1.2.0
+ */
+public enum Messages {
 
-	requires transitive org.neo4j.driver;
+	INSTANCE;
 
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.utils to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven;
+	private final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(
+		"ac.simons.neo4j.migrations.core.messages");
+
+	/**
+	 * Retrieves the message with the given key.
+	 *
+	 * @param key The key in the bundle
+	 * @return A messsage
+	 */
+	public String get(String key) {
+		return DEFAULT_BUNDLE.getString(key);
+	}
 }

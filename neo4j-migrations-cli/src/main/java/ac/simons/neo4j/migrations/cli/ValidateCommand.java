@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.ValidationResult;
+import ac.simons.neo4j.migrations.core.utils.Messages;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
@@ -46,11 +47,9 @@ final class ValidateCommand extends ConnectedCommand {
 		boolean isValid = validationResult.isValid();
 		if (!isValid) {
 			validationResult.getWarnings().forEach(MigrationsCli.LOGGER::info);
-			if (validationResult.needsRepair()) {
-				MigrationsCli.LOGGER.info("Database is not in a valid state and needs manual repair.");
-			} else {
-				MigrationsCli.LOGGER.info("Database is not in a valid state. To fix this, apply this configuration.");
-			}
+			MigrationsCli.LOGGER.info(Messages.INSTANCE.get(validationResult.needsRepair() ?
+				"validation.database_needs_repair" :
+				"validation.database_is_invalid"));
 		}
 		return isValid ? 0 : 1;
 	}

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.maven;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +36,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.internal.logging.ConsoleLogging;
 
 /**
  * @author Michael J. Simons
@@ -126,6 +129,14 @@ public class AbstractConnectedMojoTest {
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertNotNull(infoMojo);
 		assertEquals(Optional.of("anotherDatabase"), infoMojo.getConfig().getOptionalSchemaDatabase());
+	}
+
+	@Test
+	public void createDriverConfigShouldSetCorrectValues() {
+
+		Config config = AbstractConnectedMojo.createDriverConfig();
+		assertThat(config.logging()).isInstanceOf(ConsoleLogging.class);
+		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
 }
 

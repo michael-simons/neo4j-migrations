@@ -15,22 +15,21 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import ac.simons.neo4j.migrations.core.Migrations;
-import picocli.CommandLine.IVersionProvider;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Version provider modelled after the official example
- * <a href="https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java">here</a>
- * Implementation has been moved to the core module, see {@literal ac.simons.neo4j.migrations.core.ProductionVersion}.
- *
  * @author Michael J. Simons
- * @soundtrack Phil Collins - ...But Seriously
- * @since 0.0.5
  */
-final class ManifestVersionProvider implements IVersionProvider {
+class ManifestVersionProviderTest {
 
-	@Override
-	public String[] getVersion() {
-		return new String[] { Migrations.getUserAgent() };
+	@Test
+	void getVersionShouldWork() {
+
+		ManifestVersionProvider manifestVersionProvider = new ManifestVersionProvider();
+		String[] version = manifestVersionProvider.getVersion();
+		assertThat(version).hasSize(1);
+		assertThat(version[0]).matches("neo4j-migrations/(unknown|\\d+(?:\\.\\d+\\.\\d+)?(?:-SNAPSHOT)?)");
 	}
 }

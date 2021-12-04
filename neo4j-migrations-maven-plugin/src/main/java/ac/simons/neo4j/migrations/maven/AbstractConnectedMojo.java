@@ -154,9 +154,8 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 
 	Driver openConnection() {
 
-		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
 		AuthToken authToken = AuthTokens.basic(user, password);
-		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);
+		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());
 		boolean verified = false;
 		try {
 			driver.verifyConnectivity();
@@ -168,5 +167,13 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			}
 		}
 		return driver;
+	}
+
+	static Config createDriverConfig() {
+
+		return Config.builder()
+			.withLogging(Logging.console(Level.SEVERE))
+			.withUserAgent(Migrations.getUserAgent())
+			.build();
 	}
 }

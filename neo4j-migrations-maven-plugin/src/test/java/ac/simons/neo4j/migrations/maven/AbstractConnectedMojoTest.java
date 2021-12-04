@@ -136,7 +136,7 @@ public class AbstractConnectedMojoTest {
 
 		Config config = AbstractConnectedMojo.createDriverConfig();
 		assertThat(config.logging()).isInstanceOf(ConsoleLogging.class);
-		assertThat(config.userAgent()).isEqualTo("neo4j-migrations/unknown");
+		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
 }
 

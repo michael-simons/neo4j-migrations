@@ -28,7 +28,8 @@ class ManifestVersionProviderTest {
 	void getVersionShouldWork() {
 
 		ManifestVersionProvider manifestVersionProvider = new ManifestVersionProvider();
-		assertThat(manifestVersionProvider.getVersion()).containsExactly(
-			"neo4j-migrations/unknown"); // No test-manifest here
+		String[] version = manifestVersionProvider.getVersion();
+		assertThat(version).hasSize(1);
+		assertThat(version[0]).matches("neo4j-migrations/(unknown|\\d+(?:\\.\\d+\\.\\d+)?(?:-SNAPSHOT)?)");
 	}
 }

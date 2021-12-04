@@ -148,6 +148,6 @@ class MigrationsCliTest {
 
 		Config config = cli.createDriverConfig();
 		assertThat(config.maxConnectionPoolSize()).isEqualTo(4711);
-		assertThat(config.userAgent()).isEqualTo("neo4j-migrations/unknown");
+		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
 }

@@ -25,11 +25,11 @@ class ProductionVersionTest {
 
 	@Test
 	void getValueShouldWork() {
-		Assertions.assertThat(ProductionVersion.getValue()).isEqualTo("4711");
+		Assertions.assertThat(ProductionVersion.getValue()).isEqualTo("unknown");
 	}
 
 	@Test
 	void getUserAgentShouldWork() {
-		Assertions.assertThat(Migrations.getUserAgent()).isEqualTo("neo4j-migrations/4711");
+		Assertions.assertThat(Migrations.getUserAgent()).isEqualTo("neo4j-migrations/unknown");
 	}
 }

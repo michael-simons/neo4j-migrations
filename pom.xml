@@ -821,6 +821,7 @@
 										</artifacts>
 										<brew>
 											<active>ALWAYS</active>
+											<templateDirectory>etc/jreleaser/distributions/brew</templateDirectory>
 											<tap>
 												<name>homebrew-neo4j-migrations</name>
 											</tap>

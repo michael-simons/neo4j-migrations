@@ -61,7 +61,7 @@ final class ProductionVersion {
 			throw new MigrationsException("Unable to read from neo4j-migrations-core manifest.");
 		}
 
-		return "Unknown version";
+		return "unknown";
 	}
 
 	private static boolean isApplicableManifest(Manifest manifest) {

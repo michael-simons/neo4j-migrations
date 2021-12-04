@@ -210,12 +210,8 @@ public final class MigrationsCli implements Runnable {
 
 	Driver openConnection() {
 
-		Config driverConfig = Config.builder()
-			.withMaxConnectionPoolSize(maxConnectionPoolSize)
-			.withUserAgent(Migrations.getUserAgent())
-			.withLogging(Logging.console(Level.SEVERE)).build();
 		AuthToken authToken = AuthTokens.basic(user, new String(password));
-		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);
+		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());
 		boolean verified = false;
 		try {
 			driver.verifyConnectivity();
@@ -227,5 +223,13 @@ public final class MigrationsCli implements Runnable {
 			}
 		}
 		return driver;
+	}
+
+	Config createDriverConfig() {
+
+		return Config.builder()
+			.withMaxConnectionPoolSize(maxConnectionPoolSize)
+			.withUserAgent(Migrations.getUserAgent())
+			.withLogging(Logging.console(Level.SEVERE)).build();
 	}
 }

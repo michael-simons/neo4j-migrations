@@ -29,6 +29,7 @@ import org.graalvm.nativeimage.ImageInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
+import org.neo4j.driver.Config;
 
 /**
  * @author Michael J. Simons
@@ -134,5 +135,19 @@ class MigrationsCliTest {
 			};
 			assertThat(cmd.call()).isEqualTo(CommandLine.ExitCode.USAGE);
 		});
+	}
+
+	@Test
+	void createDriverConfigShouldSetCorrectValues() throws IllegalAccessException {
+
+		MigrationsCli cli = new MigrationsCli();
+
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, 4711);
+
+		Config config = cli.createDriverConfig();
+		assertThat(config.maxConnectionPoolSize()).isEqualTo(4711);
+		assertThat(config.userAgent()).isEqualTo("neo4j-migrations/unknown");
 	}
 }

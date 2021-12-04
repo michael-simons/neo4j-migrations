@@ -700,7 +700,7 @@
 					<plugin>
 						<groupId>org.jreleaser</groupId>
 						<artifactId>jreleaser-maven-plugin</artifactId>
-						<version>0.8.0</version>
+						<version>0.9.1</version>
 						<inherited>false</inherited>
 						<configuration>
 							<jreleaser>
@@ -722,10 +722,12 @@
 												<labeler>
 													<title>Bump</title>
 													<label>dependabot</label>
+                                                    <order>-1</order>
 												</labeler>
 												<labeler>
 													<title>build(deps)</title>
 													<label>dependabot</label>
+                                                    <order>-2</order>
 												</labeler>
 												<labeler>
 													<title>Fix</title>
@@ -782,10 +784,11 @@
 												<category>
 													<title>🧹 Housekeeping</title>
 													<labels>dependabot</labels>
+                                                    <order>70</order>
 												</category>
 												<category>
-													<title>🧰 Build</title>
-													<labels>test,build,ci</labels>
+													<title>🛠  Build</title>
+                                                    <order>80</order>
 												</category>
 												<category>
 													<title>nocl</title>

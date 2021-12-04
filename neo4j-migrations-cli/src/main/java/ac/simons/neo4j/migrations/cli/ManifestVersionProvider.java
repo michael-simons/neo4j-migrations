@@ -15,17 +15,13 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.IVersionProvider;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 /**
  * Version provider modelled after the official example
  * <a href="https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java">here</a>
+ * Implementation has been moved to the core module, see {@literal ac.simons.neo4j.migrations.core.ProductionVersion}.
  *
  * @author Michael J. Simons
  * @soundtrack Phil Collins - ...But Seriously
@@ -34,32 +30,7 @@ import java.util.jar.Manifest;
 final class ManifestVersionProvider implements IVersionProvider {
 
 	@Override
-	public String[] getVersion() throws Exception {
-		Enumeration<URL> resources = MigrationsCli.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-		while (resources.hasMoreElements()) {
-			URL url = resources.nextElement();
-			try {
-				Manifest manifest = new Manifest(url.openStream());
-				if (isApplicableManifest(manifest)) {
-					Attributes attr = manifest.getMainAttributes();
-					return new String[] { get(attr, "Implementation-Title") + " v" +
-						get(attr, "Implementation-Version") + "" };
-				}
-			} catch (IOException ex) {
-				return new String[] { "Unable to read from " + url + ": " + ex };
-			}
-		}
-		return new String[] { "Unknown version" };
+	public String[] getVersion() {
+		return new String[] { Migrations.getUserAgent() };
 	}
-
-	private static boolean isApplicableManifest(Manifest manifest) {
-		Attributes attributes = manifest.getMainAttributes();
-		return ManifestVersionProvider.class.getPackage().getName()
-			.equals(get(attributes, "Automatic-Module-Name"));
-	}
-
-	private static Object get(Attributes attributes, String key) {
-		return attributes.get(new Attributes.Name(key));
-	}
-
 }

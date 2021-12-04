@@ -224,6 +224,14 @@ public final class Migrations {
 		});
 	}
 
+	/**
+	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
+	 * @since 1.2.1
+	 */
+	public static String getUserAgent() {
+		return "neo4j-migrations/" + ProductionVersion.getValue();
+	}
+
 	private <T> T executeWithinLock(Supplier<T> executable) {
 
 		driver.verifyConnectivity();

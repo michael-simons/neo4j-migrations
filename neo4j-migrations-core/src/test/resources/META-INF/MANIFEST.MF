@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Name: This is just a test manifest and must not be included in the final jar.
+Implementation-Title: Neo4j Migrations (Core)
+Implementation-Version: 4711
+Implementation-Vendor: Neo4j, Neo4j Sweden AB
+Automatic-Module-Name: ac.simons.neo4j.migrations.core
+Multi-Release: true
+

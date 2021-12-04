@@ -154,7 +154,10 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 
 	Driver openConnection() {
 
-		Config driverConfig = Config.builder().withLogging(Logging.console(Level.SEVERE)).build();
+		Config driverConfig = Config.builder()
+			.withLogging(Logging.console(Level.SEVERE))
+			.withUserAgent(Migrations.getUserAgent())
+			.build();
 		AuthToken authToken = AuthTokens.basic(user, password);
 		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);
 		boolean verified = false;

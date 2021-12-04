@@ -3,5 +3,10 @@
     {
       "name": "ac.simons.neo4j.migrations.core.messages"
     }
+  ],
+  "resources": [
+    {
+      "pattern": "META-INF/MANIFEST\\.MF"
+    }
   ]
 }

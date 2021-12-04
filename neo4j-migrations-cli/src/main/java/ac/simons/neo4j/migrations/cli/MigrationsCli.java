@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
@@ -211,7 +212,7 @@ public final class MigrationsCli implements Runnable {
 
 		Config driverConfig = Config.builder()
 			.withMaxConnectionPoolSize(maxConnectionPoolSize)
-			.withUserAgent("neo4j-migrations")
+			.withUserAgent(Migrations.getUserAgent())
 			.withLogging(Logging.console(Level.SEVERE)).build();
 		AuthToken authToken = AuthTokens.basic(user, new String(password));
 		Driver driver = GraphDatabase.driver(address, authToken, driverConfig);

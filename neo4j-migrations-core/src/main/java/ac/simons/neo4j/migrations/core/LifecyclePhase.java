@@ -24,6 +24,12 @@ package ac.simons.neo4j.migrations.core;
 public enum LifecyclePhase {
 
     /**
+     * After connect but before any impersonation or the target database selection has been done.
+     * Can be used to create the target database for example.
+     */
+    AFTER_CONNECT,
+
+    /**
      * Before Migrate runs.
      */
     BEFORE_MIGRATE,

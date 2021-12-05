@@ -36,6 +36,14 @@ public final class MigrationVersion {
 	private final String value;
 	private final String description;
 
+	/**
+	 * @param pathOrUrl A string representing either a path or an URL.
+	 * @return {@literal true} when the given path or URL can be parsed into a valid {@link MigrationVersion}
+	 */
+	static boolean canParse(String pathOrUrl) {
+		return VERSION_PATTERN.matcher(pathOrUrl).find();
+	}
+
 	static MigrationVersion of(Class<?> clazz) {
 		return parse(clazz.getSimpleName());
 	}

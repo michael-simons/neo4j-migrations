@@ -23,7 +23,7 @@ import ac.simons.neo4j.migrations.core.MigrationContext;
  */
 public class V023_1__NichtsIstWieEsScheintNeu implements JavaBasedMigration {
 
-    @Override
-    public void apply(MigrationContext context) {
-    }
+	@Override
+	public void apply(MigrationContext context) {
+	}
 }

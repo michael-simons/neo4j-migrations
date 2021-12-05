@@ -35,8 +35,10 @@ final class CleanCommand extends ConnectedCommand {
 
 	@Option(names = "all",
 		defaultValue = "false",
-		description = "Set to true to delete all migration chains as well as all Neo4j-Migration "
-					  + "constraints and not only the chain for the target database")
+		description = ""
+			+ "Set to true to delete all migration chains as well as all Neo4j-Migration "
+			+ "constraints and not only the chain for the target database"
+	)
 	private boolean all;
 
 	@Override

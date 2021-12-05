@@ -82,7 +82,7 @@ public class ValidateMojoTest {
 					.isEqualTo("Database is not in a valid state. To fix this, apply this configuration.");
 				assertThat(e.getLongMessage())
 					.isEqualTo("things have been validated" + System.lineSeparator()
-							   + "a warning");
+						+ "a warning");
 			});
 
 		verify(migrations).validate();
@@ -157,7 +157,7 @@ public class ValidateMojoTest {
 					.isEqualTo("Database is not in a valid state and needs manual repair.");
 				assertThat(e.getLongMessage())
 					.isEqualTo("things have been validated" + System.lineSeparator()
-							   + "a warning");
+						+ "a warning");
 			});
 
 		verify(migrations).validate();

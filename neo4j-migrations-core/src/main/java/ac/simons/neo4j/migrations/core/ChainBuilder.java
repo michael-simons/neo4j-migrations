@@ -88,11 +88,11 @@ final class ChainBuilder {
 			// Auth maybe disabled. In such cases, we cannot get the current user.
 			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
 				Result result = tx.run(""
-									   + "CALL dbms.procedures() YIELD name "
-									   + "WHERE name = 'dbms.showCurrentUser' "
-									   + "WITH count(*) > 0 AS showCurrentUserExists "
-									   + "CALL dbms.components() YIELD versions "
-									   + "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
+					+ "CALL dbms.procedures() YIELD name "
+					+ "WHERE name = 'dbms.showCurrentUser' "
+					+ "WITH count(*) > 0 AS showCurrentUserExists "
+					+ "CALL dbms.components() YIELD versions "
+					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
 				);
 				Record singleResultRecord = result.single();
 				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();

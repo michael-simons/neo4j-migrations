@@ -15,6 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Arrays;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 /**
  * The phase in the lifecycle of a migrations flow in which a {@link Callback} is invoked.
  * <p>
@@ -56,5 +61,49 @@ enum LifecyclePhase {
 	/**
 	 * After Validate runs
 	 */
-	AFTER_VALIDATE
+	AFTER_VALIDATE;
+
+	static final Pattern LIFECYCLE_PATTERN;
+
+	static {
+
+		String group1 = Arrays.stream(LifecyclePhase.values())
+				.map(LifecyclePhase::name)
+				.map(LifecyclePhase::toCamelCase)
+				.collect(Collectors.joining("|", "(", ")"));
+
+		LIFECYCLE_PATTERN = Pattern.compile(group1 + "(?:__([\\w ]+))?(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
+	}
+
+	/**
+	 * Transforms a string with words separated by {@literal _} into a camelCase string.
+	 * @param value The value to transform
+	 * @return the value in camelCase
+	 */
+	static String toCamelCase(String value) {
+		StringBuilder sb = new StringBuilder();
+
+		int i = 0;
+		final int u = '_';
+		int codePoint;
+		Integer prev = null;
+		boolean nextUpper = false;
+		while (i < value.length()) {
+			codePoint = value.codePointAt(i);
+			i += Character.charCount(codePoint);
+			if (codePoint == u) {
+				nextUpper = true;
+			} else {
+				UnaryOperator<Integer> transform = Character::toLowerCase;
+				if (nextUpper || (prev != null && Character.isLowerCase(prev) && Character.isUpperCase(codePoint))) {
+					transform = Character::toUpperCase;
+				}
+				prev = codePoint;
+				sb.append(Character.toChars(transform.apply(codePoint)));
+				nextUpper = false;
+			}
+		}
+
+		return sb.toString();
+	}
 }

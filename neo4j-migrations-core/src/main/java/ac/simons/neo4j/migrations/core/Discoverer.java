@@ -27,11 +27,11 @@ import java.util.Collection;
  */
 interface Discoverer<T> {
 
-    /**
-     * Discover migrations within the given context.
-     *
-     * @param context The context of the ongoing migration.
-     * @return A collection of migrations.
-     */
-    Collection<T> discover(MigrationContext context);
+	/**
+	 * Discover migrations within the given context.
+	 *
+	 * @param context The context of the ongoing migration.
+	 * @return A collection of migrations.
+	 */
+	Collection<T> discover(MigrationContext context);
 }

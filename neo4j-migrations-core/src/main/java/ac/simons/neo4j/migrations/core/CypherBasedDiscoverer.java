@@ -46,109 +46,109 @@ import java.util.stream.Collectors;
  */
 final class CypherBasedDiscoverer<T> implements Discoverer<T> {
 
-    static CypherBasedDiscoverer<Migration> forMigrations() {
-        return new CypherBasedDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
-    }
+	static CypherBasedDiscoverer<Migration> forMigrations() {
+		return new CypherBasedDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
+	}
 
-    final static class ResourceContext {
-        final URL url;
+	final static class ResourceContext {
+		final URL url;
 
-        final MigrationsConfig config;
+		final MigrationsConfig config;
 
-        ResourceContext(URL url, MigrationsConfig config) {
-            this.url = url;
-            this.config = config;
-        }
-    }
+		ResourceContext(URL url, MigrationsConfig config) {
+			this.url = url;
+			this.config = config;
+		}
+	}
 
-    private static final Logger LOGGER = Logger.getLogger(CypherBasedDiscoverer.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(CypherBasedDiscoverer.class.getName());
 
-    private final Predicate<String> resourceFilter;
+	private final Predicate<String> resourceFilter;
 
-    private final Function<ResourceContext, T> mapper;
+	private final Function<ResourceContext, T> mapper;
 
-    private CypherBasedDiscoverer(Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
-        this.resourceFilter = resourceFilter;
-        this.mapper = mapper;
-    }
+	private CypherBasedDiscoverer(Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+		this.resourceFilter = resourceFilter;
+		this.mapper = mapper;
+	}
 
-    /**
-     * @return All Cypher based migrations. Empty list if no package to scan is configured.
-     */
-    @Override
-    public Collection<T> discover(MigrationContext context) {
+	/**
+	 * @return All Cypher based migrations. Empty list if no package to scan is configured.
+	 */
+	@Override
+	public Collection<T> discover(MigrationContext context) {
 
-        MigrationsConfig config = context.getConfig();
-        List<T> listOfMigrations = new ArrayList<>();
+		MigrationsConfig config = context.getConfig();
+		List<T> listOfMigrations = new ArrayList<>();
 
-        List<String> classpathLocations = new ArrayList<>();
-        List<String> filesystemLocations = new ArrayList<>();
+		List<String> classpathLocations = new ArrayList<>();
+		List<String> filesystemLocations = new ArrayList<>();
 
-        for (String prefixAndLocation : config.getLocationsToScan()) {
+		for (String prefixAndLocation : config.getLocationsToScan()) {
 
-            Location location = Location.of(prefixAndLocation);
-            if (location.getType() == Location.LocationType.CLASSPATH) {
-                classpathLocations.add(location.getName());
-            } else if (location.getType() == Location.LocationType.FILESYSTEM) {
-                filesystemLocations.add(location.getName());
-            }
-        }
+			Location location = Location.of(prefixAndLocation);
+			if (location.getType() == Location.LocationType.CLASSPATH) {
+				classpathLocations.add(location.getName());
+			} else if (location.getType() == Location.LocationType.FILESYSTEM) {
+				filesystemLocations.add(location.getName());
+			}
+		}
 
-        listOfMigrations.addAll(scanClasspathLocations(classpathLocations, context.getConfig()));
-        listOfMigrations.addAll(scanFilesystemLocations(filesystemLocations, context.getConfig()));
+		listOfMigrations.addAll(scanClasspathLocations(classpathLocations, context.getConfig()));
+		listOfMigrations.addAll(scanFilesystemLocations(filesystemLocations, context.getConfig()));
 
-        return listOfMigrations;
-    }
+		return listOfMigrations;
+	}
 
-    private List<T> scanClasspathLocations(List<String> classpathLocations, MigrationsConfig config) {
+	private List<T> scanClasspathLocations(List<String> classpathLocations, MigrationsConfig config) {
 
-        if (classpathLocations.isEmpty()) {
-            return Collections.emptyList();
-        }
+		if (classpathLocations.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-        LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
+		LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
-        String[] paths = classpathLocations.toArray(new String[0]);
-        try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
+		String[] paths = classpathLocations.toArray(new String[0]);
+		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
 
-            return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
-                    .stream()
-                    .filter(r -> resourceFilter.test(r.getPath()))
-                    .map(resource -> new ResourceContext(resource.getURL(), config))
-                    .map(mapper)
-                    .collect(Collectors.toList());
-        }
-    }
+			return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
+					.stream()
+					.filter(r -> resourceFilter.test(r.getPath()))
+					.map(resource -> new ResourceContext(resource.getURL(), config))
+					.map(mapper)
+					.collect(Collectors.toList());
+		}
+	}
 
-    private List<T> scanFilesystemLocations(List<String> filesystemLocations, MigrationsConfig config) {
+	private List<T> scanFilesystemLocations(List<String> filesystemLocations, MigrationsConfig config) {
 
-        if (filesystemLocations.isEmpty()) {
-            return Collections.emptyList();
-        }
+		if (filesystemLocations.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-        LOGGER.log(Level.FINE, "Scanning for filesystem resources in {0}", filesystemLocations);
+		LOGGER.log(Level.FINE, "Scanning for filesystem resources in {0}", filesystemLocations);
 
-        List<T> migrations = new ArrayList<>();
+		List<T> migrations = new ArrayList<>();
 
-        for (String location : filesystemLocations) {
-            Path path = Paths.get(location);
-            try {
-                Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (attrs.isRegularFile() && resourceFilter.test(file.toString())) {
-                            ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
-                            migrations.add(mapper.apply(context));
-                            return FileVisitResult.CONTINUE;
-                        }
-                        return super.visitFile(file, attrs);
-                    }
-                });
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
+		for (String location : filesystemLocations) {
+			Path path = Paths.get(location);
+			try {
+				Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						if (attrs.isRegularFile() && resourceFilter.test(file.toString())) {
+							ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
+							migrations.add(mapper.apply(context));
+							return FileVisitResult.CONTINUE;
+						}
+						return super.visitFile(file, attrs);
+					}
+				});
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		}
 
-        return migrations;
-    }
+		return migrations;
+	}
 }

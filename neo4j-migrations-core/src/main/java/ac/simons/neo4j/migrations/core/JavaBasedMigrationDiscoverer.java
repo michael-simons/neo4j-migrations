@@ -31,37 +31,37 @@ import java.util.stream.Collectors;
  */
 final class JavaBasedMigrationDiscoverer implements Discoverer<Migration> {
 
-    @Override
-    public Collection<Migration> discover(MigrationContext context) {
+	@Override
+	public Collection<Migration> discover(MigrationContext context) {
 
-        MigrationsConfig config = context.getConfig();
-        if (config.getPackagesToScan().length == 0) {
-            return Collections.emptyList();
-        }
+		MigrationsConfig config = context.getConfig();
+		if (config.getPackagesToScan().length == 0) {
+			return Collections.emptyList();
+		}
 
-        try (ScanResult scanResult = new ClassGraph()
-                .enableAllInfo()
-                .acceptPackages(config.getPackagesToScan())
-                .enableExternalClasses()
-                .scan()) {
+		try (ScanResult scanResult = new ClassGraph()
+				.enableAllInfo()
+				.acceptPackages(config.getPackagesToScan())
+				.enableExternalClasses()
+				.scan()) {
 
-            return scanResult
-                    .getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(Migration.class)
-                    .stream()
-                    .map(c -> {
-                        try {
-                            return getConstructor(c).newInstance();
-                        } catch (Exception e) {
-                            throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
-                        }
-                    }).collect(Collectors.toList());
-        }
-    }
+			return scanResult
+					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(Migration.class)
+					.stream()
+					.map(c -> {
+						try {
+							return getConstructor(c).newInstance();
+						} catch (Exception e) {
+							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
+						}
+					}).collect(Collectors.toList());
+		}
+	}
 
-    @SuppressWarnings("squid:S3011") // Very much the point of the whole thing
-    private static Constructor<Migration> getConstructor(Class<Migration> c) throws NoSuchMethodException {
-        Constructor<Migration> ctr = c.getDeclaredConstructor();
-        ctr.setAccessible(true);
-        return ctr;
-    }
+	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
+	private static Constructor<Migration> getConstructor(Class<Migration> c) throws NoSuchMethodException {
+		Constructor<Migration> ctr = c.getDeclaredConstructor();
+		ctr.setAccessible(true);
+		return ctr;
+	}
 }

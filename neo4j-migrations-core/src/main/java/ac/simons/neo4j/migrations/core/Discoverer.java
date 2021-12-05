@@ -136,6 +136,7 @@ interface Discoverer {
 
 				return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
 					.stream()
+					.filter(r -> MigrationVersion.canParse(r.getPath()))
 					.map(resource -> new CypherBasedMigration(resource.getURL(), config.isAutocrlf()))
 					.collect(Collectors.toList());
 			}
@@ -157,8 +158,7 @@ interface Discoverer {
 					Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 						@Override
 						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-							if (attrs.isRegularFile() && file.getFileName().toString()
-								.endsWith("." + Defaults.CYPHER_SCRIPT_EXTENSION)) {
+							if (attrs.isRegularFile() && MigrationVersion.canParse(file.toString())) {
 								migrations.add(new CypherBasedMigration(file.toFile().toURI().toURL(), config.isAutocrlf()));
 								return FileVisitResult.CONTINUE;
 							}

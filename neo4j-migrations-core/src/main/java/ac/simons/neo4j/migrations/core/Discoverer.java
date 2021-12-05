@@ -40,10 +40,11 @@ import java.util.stream.Collectors;
  * Discoverer of migrations.
  *
  * @author Michael J. Simons
+ * @param <T> The type of things to discover
  * @soundtrack Motörhead - 1916
  * @since 0.0.3
  */
-interface Discoverer {
+interface Discoverer<T> {
 
 	/**
 	 * Discover migrations within the given context.
@@ -51,15 +52,15 @@ interface Discoverer {
 	 * @param context The context of the ongoing migration.
 	 * @return A collection of migrations.
 	 */
-	Collection<Migration> discoverMigrations(MigrationContext context);
+	Collection<T> discover(MigrationContext context);
 
 	/**
 	 * Discovers all Java based migrations.
 	 */
-	class JavaBasedMigrationDiscoverer implements Discoverer {
+	class JavaBasedMigrationDiscoverer implements Discoverer<Migration> {
 
 		@Override
-		public Collection<Migration> discoverMigrations(MigrationContext context) {
+		public Collection<Migration> discover(MigrationContext context) {
 
 			MigrationsConfig config = context.getConfig();
 			if (config.getPackagesToScan().length == 0) {
@@ -93,14 +94,14 @@ interface Discoverer {
 		}
 	}
 
-	class CypherBasedMigrationDiscoverer implements Discoverer {
+	class CypherBasedMigrationDiscoverer implements Discoverer<Migration> {
 
 		private static final Logger LOGGER = Logger.getLogger(CypherBasedMigrationDiscoverer.class.getName());
 
 		/**
 		 * @return All Cypher based migrations. Empty list if no package to scan is configured.
 		 */
-		public Collection<Migration> discoverMigrations(MigrationContext context) {
+		public Collection<Migration> discover(MigrationContext context) {
 
 			MigrationsConfig config = context.getConfig();
 			List<Migration> listOfMigrations = new ArrayList<>();

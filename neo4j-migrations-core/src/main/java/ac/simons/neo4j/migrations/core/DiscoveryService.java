@@ -29,7 +29,7 @@ import java.util.List;
  */
 final class DiscoveryService {
 
-	private final List<Discoverer> discoverers;
+	private final List<Discoverer<Migration>> discoverers;
 
 	DiscoveryService() {
 		this.discoverers = Collections.unmodifiableList(
@@ -44,8 +44,8 @@ final class DiscoveryService {
 
 		List<Migration> migrations = new ArrayList<>();
 		try {
-			for (Discoverer discoverer : this.discoverers) {
-				migrations.addAll(discoverer.discoverMigrations(context));
+			for (Discoverer<Migration> discoverer : this.discoverers) {
+				migrations.addAll(discoverer.discover(context));
 			}
 		} catch (Exception e) {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);

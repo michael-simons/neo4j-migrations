@@ -190,6 +190,16 @@ Database: Neo4j/4.0.0@localhost:7687
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 ----
 
+==== Switching database inside Cypher-Scripts
+
+It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE])
+inside your scripts. There a couple of thinks to remember, though:
+
+* It can get tricky if you combine it in creative ways with the options for schema- and targetdatabases Migrations offer itselfs
+* If you have more than one statement per script (which is completely not a problem) and one of them should use `USE` you must
+  configure Migrations to use `TransactionMode#PER_STATEMENT`, meaning to run each statement of a script in a separate transaction.
+  This is slightly more error prone, as it will most likely leave your database in an inconsistent state if one statement fails.
+
 ==== A template for Java based migrations
 
 As stated above, this will work only with the JVM distribution. Follow those steps:

@@ -5,6 +5,36 @@
 As of writing a loose list of how things needs to be run, not exhaustive.
 --
 
+== Producing native binaries
+
+NOTE: Native binaries for Windows, Unix and macOS are supplied since 0.3.1 at https://github.com/michael-simons/neo4j-migrations/releases[the releases page].
+
+WARNING: The natively compiled version does not support Java based migrations and will fail if you try to point it to any package to scan.
+
+The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
+Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
+
+After installing at least GraalVM 21.3.0 based on JDK 17, prepare your environment as follows:
+
+[source,console,subs="verbatim,attributes"]
+----
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-ce-java17-21.3.0/Contents/Home
+export JAVA_HOME=$GRAALVM_HOME
+----
+
+The paths are probably different on your system.
+
+The `neo4j-migrations-cli` module has a build profile `create-native-image` that you use to create a binary for your OS.
+Run it with:
+
+[source,console,subs="verbatim,attributes"]
+----
+./mvnw -Pnative clean package
+----
+
+The resulting migration tool can only be used to load Cypher script based migrations in file locations.
+It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.
+
 == Releasing
 
 Releases will be created via standard Maven `release:prepare` / `release:perform` cycle.

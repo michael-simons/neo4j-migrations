@@ -20,7 +20,12 @@ image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons
 image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons.neo4j%3Aneo4j-migrations-parent&metric=alert_status[link=https://sonarcloud.io/dashboard?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent]
 image:https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations]
 
-== Usage
+== Types of migrations
+
+=== Cypher script based migrations
+
+You can put Cypher scripts ending with `.cypher` inside your classpath resources under `neo4j/migrations`.
+From there on they'll be picked up automatically.
 
 A script based migration must have a name following the given pattern to be recognized:
 
@@ -34,7 +39,94 @@ V1_2_3__Add_last_name_index.cypher
 * Description: Underscores or spaces separate the wo
 * Suffix: `.cypher`
 
-This applies to Cypher scripts for the CLI as well as resources.
+This applies to Cypher scripts outside an application (in the file system, which are most likely passed as parameter to the CLI) as well as inside
+an application (as resources) and to Java based migrations.
+
+Here's an example:
+
+[source,cypher]
+.neo4j/migrations/V007__BondTheNameIsBond.cypher
+----
+CREATE (agent:`007`) RETURN agent;
+UNWIND RANGE(1,6) AS i
+WITH i CREATE (n:OtherAgents {idx: '00' + i})
+RETURN n
+;
+----
+
+Scripts can contain multiple statements, separated by a `;` followed by a newline.
+Statements will be executed in one transaction by default.
+That behaviour can be changed as follows:
+
+[source,java]
+----
+Migrations migrations= new Migrations(
+    MigrationsConfig.builder()
+        .withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+        .build(),
+    driver
+);
+migrations.apply();
+----
+
+If you want Migrations to look at other places, configure it as follows:
+
+[source,java]
+----
+Migrations migrations = new Migrations(
+    MigrationsConfig.builder()
+        .withLocationsToScan(
+            "classpath:my/awesome/migrations",
+            "file:/path/to/migration"
+        ).build(),
+    GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
+);
+
+migrations.apply();
+----
+
+==== Switching database inside Cypher-Scripts
+
+It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE])
+inside your scripts. There a couple of thinks to remember, though:
+
+* It can get tricky if you combine it in creative ways with the options for schema- and targetdatabases Migrations offer itselfs
+* If you have more than one statement per script (which is completely not a problem) and one of them should use `USE` you must
+  configure Migrations to use `TransactionMode#PER_STATEMENT`, meaning to run each statement of a script in a separate transaction.
+  This is slightly more error prone, as it will most likely leave your database in an inconsistent state if one statement fails.
+
+=== Java based migrations
+
+You can implement `JavaBasedMigration` and put those classes as your migrations into your project:
+
+[source,java]
+----
+package some.migrations;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+
+public class V001__MyFirstMigration implements JavaBasedMigration {
+
+    @Override
+    public void apply(MigrationContext context) {
+        try (Session session = context.getSession()) { // <1>
+            // Steps necessary for a migration
+        }
+    }
+}
+----
+<.> It is important that you use the supplied session (or the `SessionConfig` if you want to use another type of `Session`)
+    for your session retrieval, otherwise you may  run that migration in a different database than in which the tool itself
+    is run. However, you are free in which database you run this. Your mileage may vary.
+
+The class names must start with a `V` followed by digits followed by `__` and than some valid Java class name.
+Of course, they must be on the class path.
+
+== Usage
 
 === As standalone CLI
 
@@ -190,16 +282,6 @@ Database: Neo4j/4.0.0@localhost:7687
 +---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------+
 ----
 
-==== Switching database inside Cypher-Scripts
-
-It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE])
-inside your scripts. There a couple of thinks to remember, though:
-
-* It can get tricky if you combine it in creative ways with the options for schema- and targetdatabases Migrations offer itselfs
-* If you have more than one statement per script (which is completely not a problem) and one of them should use `USE` you must
-  configure Migrations to use `TransactionMode#PER_STATEMENT`, meaning to run each statement of a script in a separate transaction.
-  This is slightly more error prone, as it will most likely leave your database in an inconsistent state if one statement fails.
-
 ==== A template for Java based migrations
 
 As stated above, this will work only with the JVM distribution. Follow those steps:
@@ -231,6 +313,9 @@ EOT
 javac -cp "lib/*" my-migrations/some/migrations/*
 CLASSPATH_PREFIX=my-migrations ./bin/neo4j-migrations -v -uneo4j -psecret --package some.migrations info
 ----
+
+However, Java based migrations make most sense in an application, regardless whether it's a Spring Boot, Quarkus or just a plain Java application.
+The CLI should be seen primarily as a script runner.
 
 === From your build tool
 
@@ -446,40 +531,19 @@ Declare the extension as Maven dependency:
 </dependency>
 ----
 
-Put your migrations as Java classes into your project:
-
-[source,java]
-----
-package some.migrations;
-
-import ac.simons.neo4j.migrations.core.JavaBasedMigration;
-import ac.simons.neo4j.migrations.core.MigrationContext;
-
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.Session;
-
-public class V001__MyFirstMigration implements JavaBasedMigration {
-
-    @Override
-    public void apply(MigrationContext context) {
-        try (Session session = context.getSession()) { // <1>
-            // Steps necessary for a migration
-        }
-    }
-}
-----
-<.> It is important that you use the supplied session (or the `SessionConfig` if you want to use another type of `Session`)
-    for your session retrieval, otherwise you may  run that migration in a different database than in which the tool itself
-    is run. However, you are free in which database you run this. Your mileage may vary.
-
-The class names must start with a `V` followed by digits followed by `__` and than some valid Java class name.
-
-To use them create a `Migrations` instance to scan your project and apply all found migrations:
+Migrating a database requires creating an instance of  `Migrations` that scans your project for Cyper- or Java-based migrations.
+It will apply all found migrations:
 
 [source,java]
 ----
 Migrations migrations = new Migrations(
-    MigrationsConfig.builder().withPackagesToScan("some.migrations").build(),
+    MigrationsConfig.builder()
+        .withPackagesToScan("some.migrations")
+        .withLocationsToScan(
+            "classpath:my/awesome/migrations",
+            "file:/path/to/migration"
+        )
+        .build(),
     GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
 );
 
@@ -489,54 +553,6 @@ migrations.apply();
 Your migrations will be recorded as a chain of applied migrations (as nodes with the label `__Neo4jMigration`). They can use the driver any way they like.
 
 There's no rollback yet. If any migration fails, the chain will stop, but will not rollback previous migrations.
-
-=== Cypher script based migrations
-
-You can put Cypher scripts ending with `.cypher` inside your classpath resources under `neo4j/migrations`.
-From there on they'll be picked up automatically.
-
-Here's an example:
-
-[source,cypher]
-.neo4j/migrations/V007__BondTheNameIsBond.cypher
-----
-CREATE (agent:`007`) RETURN agent;
-UNWIND RANGE(1,6) AS i
-WITH i CREATE (n:OtherAgents {idx: '00' + i})
-RETURN n
-;
-----
-
-Scripts can contain multiple statements, separated by a `;` followed by a newline.
-Statements will be executed in one transaction by default.
-That behaviour can be changed as follows:
-
-[source,java]
-----
-Migrations migrations= new Migrations(
-    MigrationsConfig.builder()
-        .withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
-        .build(),
-    driver
-);
-migrations.apply();
-----
-
-If you want Migrations to look at other places, configure it as follows:
-
-[source,java]
-----
-Migrations migrations = new Migrations(
-    MigrationsConfig.builder()
-        .withLocationsToScan(
-            "classpath:my/awesome/migrations",
-            "file:/path/to/migration"
-        ).build(),
-    GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
-);
-
-migrations.apply();
-----
 
 == Separate schema databases
 
@@ -555,33 +571,3 @@ Valid scenarios are:
 Neo4j migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
 Neo4j migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`), so that this feature
 doesn't break compatibility with schemas created before 1.1.0.
-
-== For the adventurous
-
-NOTE: Native binaries for Windows, Unix and macOS are supplied since 0.3.1 at https://github.com/michael-simons/neo4j-migrations/releases[the releases page].
-
-WARNING: The natively compiled version does not support Java based migrations and will fail if you try to point it to any package to scan.
-
-The Neo4j Java driver and this application supports native compilation with GraalVM so that you can create a native executable.
-Read more about it https://www.graalvm.org/docs/reference-manual/native-image/[here].
-
-After installing at least GraalVM 21.3.0, prepare your environment as follows:
-
-[source,console,subs="verbatim,attributes"]
-----
-export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-ce-java17-21.3.0/Contents/Home
-export JAVA_HOME=$GRAALVM_HOME
-----
-
-The paths are probably different on your system.
-
-The `neo4j-migrations-cli` module has a build profile `create-native-image` that you use to create a binary for your OS.
-Run it with:
-
-[source,console,subs="verbatim,attributes"]
-----
-./mvnw -Pnative clean package
-----
-
-The resulting migration tool can only be used to load Cypher script based migrations in file locations.
-It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.

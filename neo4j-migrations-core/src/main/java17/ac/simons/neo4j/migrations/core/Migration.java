@@ -31,7 +31,7 @@ public sealed interface Migration permits CypherBasedMigration, JavaBasedMigrati
 	MigrationVersion getVersion();
 
 	/**
-	 * {@return Some description}
+	 * {@return some description}
 	 */
 	String getDescription();
 

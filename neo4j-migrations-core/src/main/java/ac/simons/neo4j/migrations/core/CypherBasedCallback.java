@@ -15,6 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.net.URL;
+
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+
 /**
  * A callback based on a Cypher script.
  *
@@ -23,8 +29,31 @@ package ac.simons.neo4j.migrations.core;
  */
 final class CypherBasedCallback implements Callback {
 
-	@Override
-	public void invoke(LifecyclePhase phase, MigrationContext context) throws MigrationsException {
+	CypherBasedCallback(URL url) {
+		this(url, Defaults.AUTOCRLF);
+	}
 
+	private final CypherResource cypherResource;
+
+	CypherBasedCallback(URL url, boolean autocrlf) {
+
+		this.cypherResource = new CypherResource(url, autocrlf);
+//		super(url, autocrlf);
+	//	this.version = MigrationVersion.parse(this.script);
+	//	this.description = this.version.getDescription();
+	}
+
+	@Override
+	public LifecyclePhase getPhase() {
+		return null;
+	}
+
+	@Override
+	public void invoke(MigrationContext context) throws MigrationsException {
+
+		// Only in pre migrate, with default database
+		try (Session session = context.getDriver().session(SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE).build())) {
+			this.cypherResource.executeIn(session, context.getConfig().getTransactionMode());
+		}
 	}
 }

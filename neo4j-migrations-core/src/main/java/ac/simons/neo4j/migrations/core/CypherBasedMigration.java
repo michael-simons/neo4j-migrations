@@ -16,7 +16,10 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Optional;
+
+import org.neo4j.driver.Session;
 
 /**
  * A cypher script based migration.
@@ -24,8 +27,9 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-final class CypherBasedMigration extends AbstractCypherResource implements Migration {
+final class CypherBasedMigration implements Migration {
 
+	private final CypherResource cypherResource;
 	private final String description;
 	private final MigrationVersion version;
 
@@ -35,8 +39,8 @@ final class CypherBasedMigration extends AbstractCypherResource implements Migra
 
 	CypherBasedMigration(URL url, boolean autocrlf) {
 
-		super(url, autocrlf);
-		this.version = MigrationVersion.parse(this.script);
+		this.cypherResource = new CypherResource(url, autocrlf);
+		this.version = MigrationVersion.parse(this.cypherResource.getScript());
 		this.description = this.version.getDescription();
 	}
 
@@ -52,24 +56,23 @@ final class CypherBasedMigration extends AbstractCypherResource implements Migra
 
 	@Override
 	public String getSource() {
-		return this.script;
+		return this.cypherResource.getScript();
 	}
 
 	@Override
 	public Optional<String> getChecksum() {
-		return Optional.of(getRequiredChecksum());
+		return Optional.of(cypherResource.getChecksum());
 	}
 
 	@Override
 	public void apply(MigrationContext context) throws MigrationsException {
-		super.executeIn(context);
+
+		try (Session session = context.getSession()) {
+			cypherResource.executeIn(session, context.getConfig().getTransactionMode());
+		}
 	}
 
-	@Override
-	public String toString() {
-		return "CypherBasedMigration{" +
-			"url=" + url +
-			", script='" + script + '\'' +
-			'}';
+	List<String> getStatements() {
+		return this.cypherResource.getStatements();
 	}
 }

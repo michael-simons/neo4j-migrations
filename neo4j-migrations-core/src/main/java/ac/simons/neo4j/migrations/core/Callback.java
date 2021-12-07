@@ -24,4 +24,12 @@ package ac.simons.neo4j.migrations.core;
  */
 interface Callback {
 
+	/**
+	 * Invokes this callback with the given context
+	 *
+	 * @param phase   The phase in which the callback happened
+	 * @param context The current migration context
+	 * @throws MigrationsException Any unexpected exception will be wrapped and rethrown.
+	 */
+	void invoke(LifecyclePhase phase, MigrationContext context);
 }

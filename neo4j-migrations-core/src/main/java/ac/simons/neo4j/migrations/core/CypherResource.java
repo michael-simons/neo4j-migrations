@@ -16,15 +16,23 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
- * A callback based on a Cypher script.
+ * A Cypher resource.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class CypherBasedCallback implements Callback {
+interface CypherResource {
 
-	@Override
-	public void invoke(LifecyclePhase phase, MigrationContext context) throws MigrationsException {
+	/**
+	 * @return Checksum of the given resource.
+	 */
+	String getRequiredChecksum();
 
-	}
+	/**
+	 * Executes the statements contained in this resource in the given context.
+	 *
+	 * @param context The context in which to execute this resource.
+	 * @throws MigrationsException In case anything happens, wrap your exception or create a new one
+	 */
+	void executeIn(MigrationContext context) throws MigrationsException;
 }

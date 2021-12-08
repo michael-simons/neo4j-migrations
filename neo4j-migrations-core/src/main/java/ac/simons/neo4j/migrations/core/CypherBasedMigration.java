@@ -18,8 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
-
-import org.neo4j.driver.Session;
+import java.util.function.UnaryOperator;
 
 /**
  * A cypher script based migration.
@@ -67,9 +66,7 @@ final class CypherBasedMigration implements Migration {
 	@Override
 	public void apply(MigrationContext context) throws MigrationsException {
 
-		try (Session session = context.getSession()) {
-			cypherResource.executeIn(session, context.getConfig().getTransactionMode());
-		}
+			cypherResource.executeIn(context, UnaryOperator.identity());
 	}
 
 	List<String> getStatements() {

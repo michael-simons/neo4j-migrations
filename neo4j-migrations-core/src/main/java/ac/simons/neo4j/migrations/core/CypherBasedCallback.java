@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import java.net.URL;
 
 import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 
 /**
@@ -52,8 +51,6 @@ final class CypherBasedCallback implements Callback {
 	public void invoke(MigrationContext context) throws MigrationsException {
 
 		// Only in pre migrate, with default database
-		try (Session session = context.getDriver().session(SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE).build())) {
-			this.cypherResource.executeIn(session, context.getConfig().getTransactionMode());
-		}
+		this.cypherResource.executeIn(context, builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE));
 	}
 }

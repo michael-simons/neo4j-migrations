@@ -23,12 +23,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
@@ -114,35 +116,39 @@ final class CypherResource {
 		return Long.toString(crc32.getValue());
 	}
 
-	void executeIn(Session session, MigrationsConfig.TransactionMode transactionMode) {
+	void executeIn(MigrationContext context, UnaryOperator<SessionConfig.Builder> sessionCustomizer) {
 
-		int numberOfStatements = 0;
-		if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
+		try (Session session = context.getDriver().session(context.getSessionConfig(sessionCustomizer))) {
 
-			LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", script);
-			numberOfStatements = session.writeTransaction(t -> {
-				int cnt = 0;
-				for (String statement : getStatements()) {
-					run(t, statement);
-					++cnt;
-				}
-				return cnt;
-			});
+			int numberOfStatements = 0;
+			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();
+			if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
-		} else if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT) {
-
-			LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", script);
-			for (String statement : getStatements()) {
-				numberOfStatements += session.writeTransaction(t -> {
-					run(t, statement);
-					return 1;
+				LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", script);
+				numberOfStatements = session.writeTransaction(t -> {
+					int cnt = 0;
+					for (String statement : getStatements()) {
+						run(t, statement);
+						++cnt;
+					}
+					return cnt;
 				});
-			}
-		} else {
-			throw new MigrationsException("Unknown transaction mode " + transactionMode);
-		}
 
-		LOGGER.log(Level.FINE, "Executed {0} statements", numberOfStatements);
+			} else if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT) {
+
+				LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", script);
+				for (String statement : getStatements()) {
+					numberOfStatements += session.writeTransaction(t -> {
+						run(t, statement);
+						return 1;
+					});
+				}
+			} else {
+				throw new MigrationsException("Unknown transaction mode " + transactionMode);
+			}
+
+			LOGGER.log(Level.FINE, "Executed {0} statements", numberOfStatements);
+		}
 	}
 
 	private void run(QueryRunner runner, String statement) {

@@ -127,19 +127,19 @@ public final class MigrationsCli implements Runnable {
 
 	@Option(
 		names = { "-d", "--database" },
-		description = "The database that should be migrated (Neo4j EE  4.0+)."
+		description = "The database that should be migrated (Neo4j EE 4.0+)."
 	)
 	private String database;
 
 	@Option(
 		names = { "--schema-database" },
-		description = "The database that should be used for storing informations about migrations (Neo4j EE 4.0+)."
+		description = "The database that should be used for storing information about migrations (Neo4j EE 4.0+)."
 	)
 	private String schemaDatabase;
 
 	@Option(
 		names = { "--impersonate" },
-		description = "The name of a user to impersonate during migration (Neo4j EE  4.4+)."
+		description = "The name of a user to impersonate during migration (Neo4j EE 4.4+)."
 	)
 	private String impersonatedUser;
 

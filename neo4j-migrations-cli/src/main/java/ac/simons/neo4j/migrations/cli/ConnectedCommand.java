@@ -63,8 +63,6 @@ abstract class ConnectedCommand implements Callable<Integer> {
 		} catch (AuthenticationException | ServiceUnavailableException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.SOFTWARE;
-		} catch (Exception e) {
-			throw e;
 		}
 	}
 

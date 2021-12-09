@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -48,5 +49,45 @@ class DiscoveryServiceTest {
 				"BondTheNameIsBondNew", "BondTheNameIsBondNewNew", "Die halbe Wahrheit", "Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu", "NichtsIstWieEsScheint", "NichtsIstWieEsScheintNeu", "NichtsIstWieEsScheintNeuNeu",
 					"MirFallenKeineNamenEin");
+	}
+
+	@Test
+	void shouldDiscoverCallbacksInSameDirectoryAsMigrations() {
+
+		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:/my/awesome/migrations")
+			.build(), Mockito.mock(Driver.class));
+
+		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
+		assertThat(callbacks)
+			.hasSize(2)
+			.containsOnlyKeys(LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
+	}
+
+	@Test
+	void shouldMergeAndSortCallbacks() {
+
+		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
+			.withLocationsToScan(
+				"classpath:/my/awesome/migrations",
+				"classpath:/my/awesome/callbacks"
+			)
+			.build(), Mockito.mock(Driver.class));
+
+		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
+		assertThat(callbacks)
+			.hasSize(LifecyclePhase.values().length);
+
+		assertThat(callbacks.get(LifecyclePhase.AFTER_MIGRATE))
+			.hasSize(4)
+			.map(CypherBasedCallback.class::cast)
+			.map(CypherBasedCallback::getSource)
+			.containsExactly("afterMigrate.cypher", "afterMigrate.cypher", "afterMigrate__001.cypher",
+				"afterMigrate__002.cypher");
+
+		assertThat(callbacks.get(LifecyclePhase.AFTER_CONNECT))
+			.hasSize(2)
+			.map(Callback::getSource)
+			.containsExactly("afterConnect.cypher", "afterConnect__anotherStep.cypher");
 	}
 }

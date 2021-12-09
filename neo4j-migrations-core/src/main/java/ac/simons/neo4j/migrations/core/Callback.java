@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Optional;
+
 /**
  * Default contract for callbacks that might be involved during various phases of the migration lifecycle.
  * This interface might become public as soon as neo4j-migrations supports Java based callbacks, too.
@@ -30,10 +32,22 @@ interface Callback {
 	LifecyclePhase getPhase();
 
 	/**
+	 * If the description is empty, then callbacks in the same {@link LifecyclePhase lifecycle phase} won't be ordered.
+	 * Otherwise, the description might be used to order callbacks in the same phase.
+	 *
+	 * @return an optional description
+	 */
+	Optional<String> getOptionalDescription();
+
+	/**
+	 * @return Something that describes the source of this callback.
+	 */
+	String getSource();
+
+	/**
 	 * Invokes this callback with the given context
 	 *
-	 * @param context The current migration context
-	 * @throws MigrationsException Any unexpected exception will be wrapped and rethrown.
+	 * @param event The event that happened
 	 */
-	void invoke(MigrationContext context);
+	void on(LifecycleEvent event);
 }

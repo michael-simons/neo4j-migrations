@@ -15,29 +15,18 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.regex.Matcher;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
  */
 class LifecyclePhaseTest {
-
-	@ParameterizedTest
-	@CsvSource({
-			"DAS_IST_EIN_TEST,dasIstEinTest",
-			"DAS,das",
-			"DAS__AUCH,dasAuch",
-			"dasEbenfalls,dasEbenfalls",
-			"dasEBenfalls,dasEbenfalls"
-	})
-	void toCamelCaseShouldWork(String in, String expected) {
-		assertThat(LifecyclePhase.toCamelCase(in)).isEqualTo(expected);
-	}
 
 	@ParameterizedTest
 	@CsvSource(value = {
@@ -58,6 +47,21 @@ class LifecyclePhaseTest {
 			}
 		} else {
 			assertThat(m.matches()).isFalse();
+		}
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"my/awesome/callbacks/afterMigrate.cypher",
+		"my/awesome/callbacks/afterConnect.cypher",
+		"my/awesome/callbacks/afterConnect__anotherStep.cypher"
+	})
+	void ifItCanParseItShouldMatch(String in) {
+		Matcher matcher = LifecyclePhase.LIFECYCLE_PATTERN.matcher(in.substring(in.lastIndexOf("/") + 1));
+		if (LifecyclePhase.canParse(in)) {
+			assertThat(matcher.matches()).isTrue();
+		} else {
+			assertThat(matcher.matches()).isFalse();
 		}
 	}
 }

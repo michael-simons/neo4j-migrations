@@ -16,6 +16,8 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.net.URL;
+import java.util.Optional;
+import java.util.regex.Matcher;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.SessionConfig;
@@ -28,29 +30,46 @@ import org.neo4j.driver.SessionConfig;
  */
 final class CypherBasedCallback implements Callback {
 
-	CypherBasedCallback(URL url) {
-		this(url, Defaults.AUTOCRLF);
-	}
-
 	private final CypherResource cypherResource;
+
+	private final LifecyclePhase phase;
+
+	private final String description;
 
 	CypherBasedCallback(URL url, boolean autocrlf) {
 
 		this.cypherResource = new CypherResource(url, autocrlf);
-//		super(url, autocrlf);
-	//	this.version = MigrationVersion.parse(this.script);
-	//	this.description = this.version.getDescription();
+
+		String script = this.cypherResource.getScript();
+		Matcher matcher = LifecyclePhase.LIFECYCLE_PATTERN.matcher(script);
+		if (!matcher.matches()) {
+			throw new MigrationsException("Invalid name for a callback script: " + script);
+		}
+
+		this.phase = LifecyclePhase.fromCamelCase(matcher.group(1));
+		this.description = matcher.group(2);
 	}
 
 	@Override
 	public LifecyclePhase getPhase() {
-		return null;
+		return this.phase;
 	}
 
 	@Override
-	public void invoke(MigrationContext context) throws MigrationsException {
+	public Optional<String> getOptionalDescription() {
+		return Optional.ofNullable(this.description);
+	}
+
+	@Override
+	public String getSource() {
+		return this.cypherResource.getScript();
+	}
+
+	@Override
+	public void on(LifecycleEvent event) {
 
 		// Only in pre migrate, with default database
-		this.cypherResource.executeIn(context, builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE));
+		this.cypherResource.executeIn(event.getContext(),
+			builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE));
 	}
 }

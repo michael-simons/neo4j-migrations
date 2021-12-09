@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Orchestrates {@link Discoverer discoverers}.
@@ -29,12 +31,16 @@ import java.util.List;
  */
 final class DiscoveryService {
 
-	private final List<Discoverer<Migration>> discoverers;
+	private final List<Discoverer<Migration>> migrationDiscoverers;
+
+	private final List<Discoverer<Callback>> callbackDiscoverers;
 
 	DiscoveryService() {
-		this.discoverers = Collections.unmodifiableList(
+		this.migrationDiscoverers = Collections.unmodifiableList(
 			Arrays.asList(new JavaBasedMigrationDiscoverer(),
 				CypherBasedDiscoverer.forMigrations()));
+
+		this.callbackDiscoverers = Collections.singletonList(CypherBasedDiscoverer.forCallbacks());
 	}
 
 	/**
@@ -44,7 +50,7 @@ final class DiscoveryService {
 
 		List<Migration> migrations = new ArrayList<>();
 		try {
-			for (Discoverer<Migration> discoverer : this.discoverers) {
+			for (Discoverer<Migration> discoverer : this.migrationDiscoverers) {
 				migrations.addAll(discoverer.discover(context));
 			}
 		} catch (Exception e) {
@@ -56,4 +62,13 @@ final class DiscoveryService {
 		return Collections.unmodifiableList(migrations);
 	}
 
+	Map<LifecyclePhase, List<Callback>> findCallbacks(MigrationContext context) {
+
+		return Collections.unmodifiableMap(this.callbackDiscoverers.stream()
+			.flatMap(d -> d.discover(context).stream())
+			.collect(Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -> {
+				l.sort(Comparator.comparing(c -> c.getOptionalDescription().orElse("")));
+				return Collections.unmodifiableList(l);
+			}))));
+	}
 }

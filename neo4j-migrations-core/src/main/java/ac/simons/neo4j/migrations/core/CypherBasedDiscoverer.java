@@ -50,6 +50,11 @@ final class CypherBasedDiscoverer<T> implements Discoverer<T> {
 		return new CypherBasedDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
 	}
 
+	static CypherBasedDiscoverer<Callback> forCallbacks() {
+		return new CypherBasedDiscoverer<>(LifecyclePhase::canParse,
+			ctx -> new CypherBasedCallback(ctx.url, ctx.config.isAutocrlf()));
+	}
+
 	final static class ResourceContext {
 		final URL url;
 

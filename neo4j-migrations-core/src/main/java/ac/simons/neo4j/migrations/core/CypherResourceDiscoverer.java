@@ -133,7 +133,13 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
 		LOGGER.log(Level.FINE, "Scanning for filesystem resources in {0}", filesystemLocations);
 
-		List<T> migrations = new ArrayList<>();
+		List<T> resources = new ArrayList<>();
+
+		Predicate<String> hasExtension = fullPath -> {
+			final int lastSlashIdx = fullPath.lastIndexOf('/');
+			final int lastDotIdx = fullPath.lastIndexOf('.');
+			return lastDotIdx > lastSlashIdx  && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
+		};
 
 		for (String location : filesystemLocations) {
 			Path path = Paths.get(location);
@@ -141,9 +147,10 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 				Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-						if (attrs.isRegularFile() && resourceFilter.test(file.toString())) {
+						String fullPath = file.toString();
+						if (attrs.isRegularFile() && hasExtension.test(fullPath) && MigrationVersion.canParse(fullPath)) {
 							ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
-							migrations.add(mapper.apply(context));
+							resources.add(mapper.apply(context));
 							return FileVisitResult.CONTINUE;
 						}
 						return super.visitFile(file, attrs);
@@ -154,6 +161,6 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 			}
 		}
 
-		return migrations;
+		return resources;
 	}
 }

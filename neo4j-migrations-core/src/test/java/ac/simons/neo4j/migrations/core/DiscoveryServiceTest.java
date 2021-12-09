@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,12 +69,22 @@ class DiscoveryServiceTest {
 	}
 
 	@Test
-	void shouldMergeAndSortCallbacks() {
+	void shouldMergeAndSortCallbacks() throws IOException {
+
+		List<File> files = new ArrayList<>();
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		files.add(new File(dir, "V1__One.cypher"));
+		files.add(new File(dir, "afterMigrate"));
+		for (File file : files) {
+			file.createNewFile();
+		}
 
 		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
 			.withLocationsToScan(
 				"classpath:/my/awesome/migrations",
-				"classpath:/my/awesome/callbacks"
+				"classpath:/my/awesome/callbacks",
+				"file:" + dir.getAbsolutePath()
 			)
 			.build(), Mockito.mock(Driver.class));
 

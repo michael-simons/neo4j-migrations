@@ -75,7 +75,7 @@ enum LifecyclePhase {
 			.collect(Collectors.joining("|", "(", ")"));
 
 		LIFECYCLE_PATTERN = Pattern.compile(
-			group1 + "(?:__([\\w ]+))?(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")");
+			group1 + "(?:__([\\w ]+))?(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
 	}
 
 	static boolean canParse(String pathOrUrl) {

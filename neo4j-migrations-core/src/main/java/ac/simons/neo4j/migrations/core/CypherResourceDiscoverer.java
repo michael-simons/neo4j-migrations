@@ -44,14 +44,14 @@ import java.util.stream.Collectors;
  * @param <T> The concrete type to be instantiated with a discovered resource
  * @since TBA
  */
-final class CypherBasedDiscoverer<T> implements Discoverer<T> {
+final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
-	static CypherBasedDiscoverer<Migration> forMigrations() {
-		return new CypherBasedDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
+	static CypherResourceDiscoverer<Migration> forMigrations() {
+		return new CypherResourceDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
 	}
 
-	static CypherBasedDiscoverer<Callback> forCallbacks() {
-		return new CypherBasedDiscoverer<>(LifecyclePhase::canParse,
+	static CypherResourceDiscoverer<Callback> forCallbacks() {
+		return new CypherResourceDiscoverer<>(LifecyclePhase::canParse,
 			ctx -> new CypherBasedCallback(ctx.url, ctx.config.isAutocrlf()));
 	}
 
@@ -66,13 +66,13 @@ final class CypherBasedDiscoverer<T> implements Discoverer<T> {
 		}
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(CypherBasedDiscoverer.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(CypherResourceDiscoverer.class.getName());
 
 	private final Predicate<String> resourceFilter;
 
 	private final Function<ResourceContext, T> mapper;
 
-	private CypherBasedDiscoverer(Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+	private CypherResourceDiscoverer(Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
 		this.resourceFilter = resourceFilter;
 		this.mapper = mapper;
 	}

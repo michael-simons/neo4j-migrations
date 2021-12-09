@@ -38,9 +38,9 @@ final class DiscoveryService {
 	DiscoveryService() {
 		this.migrationDiscoverers = Collections.unmodifiableList(
 			Arrays.asList(new JavaBasedMigrationDiscoverer(),
-				CypherBasedDiscoverer.forMigrations()));
+				CypherResourceDiscoverer.forMigrations()));
 
-		this.callbackDiscoverers = Collections.singletonList(CypherBasedDiscoverer.forCallbacks());
+		this.callbackDiscoverers = Collections.singletonList(CypherResourceDiscoverer.forCallbacks());
 	}
 
 	/**

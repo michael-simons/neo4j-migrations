@@ -109,6 +109,7 @@ class DiscovererTest {
 			subDir.mkdir();
 			files.add(new File(dir, "V1__One.cypher"));
 			files.add(new File(subDir, "V2__Two.cypher"));
+			files.add(new File(subDir, "V2__Broken"));
 
 			File dir2 = Files.createTempDirectory("neo4j-migrations2").toFile();
 			files.add(new File(dir, "V3__Three.cypher"));

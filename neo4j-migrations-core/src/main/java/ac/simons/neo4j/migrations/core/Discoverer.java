@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -152,13 +153,20 @@ interface Discoverer {
 
 			List<Migration> migrations = new ArrayList<>();
 
+			Predicate<String> hasExtension = fullPath -> {
+				final int lastSlashIdx = fullPath.lastIndexOf('/');
+				final int lastDotIdx = fullPath.lastIndexOf('.');
+				return lastDotIdx > lastSlashIdx  && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
+			};
+
 			for (String location : filesystemLocations) {
 				Path path = Paths.get(location);
 				try {
 					Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 						@Override
 						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-							if (attrs.isRegularFile() && MigrationVersion.canParse(file.toString())) {
+							String fullPath = file.toString();
+							if (attrs.isRegularFile() && hasExtension.test(fullPath) && MigrationVersion.canParse(fullPath)) {
 								migrations.add(new CypherBasedMigration(file.toFile().toURI().toURL(), config.isAutocrlf()));
 								return FileVisitResult.CONTINUE;
 							}

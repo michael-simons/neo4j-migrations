@@ -33,8 +33,8 @@ final class DiscoveryService {
 
 	DiscoveryService() {
 		this.discoverers = Collections.unmodifiableList(
-			Arrays.asList(new Discoverer.JavaBasedMigrationDiscoverer(),
-				new Discoverer.CypherBasedMigrationDiscoverer()));
+			Arrays.asList(new JavaBasedMigrationDiscoverer(),
+				CypherBasedDiscoverer.forMigrations()));
 	}
 
 	/**

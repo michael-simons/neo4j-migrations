@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core;
  * A callback based on a Cypher script.
  *
  * @author Michael J. Simons
- * @since 1.2.1
+ * @since TBA
  */
 final class CypherBasedCallback implements Callback {
 }

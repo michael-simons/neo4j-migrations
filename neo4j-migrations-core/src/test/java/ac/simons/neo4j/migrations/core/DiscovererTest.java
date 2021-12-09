@@ -17,8 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ac.simons.neo4j.migrations.core.Discoverer.CypherBasedMigrationDiscoverer;
-import ac.simons.neo4j.migrations.core.Discoverer.JavaBasedMigrationDiscoverer;
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 
 import java.io.File;
@@ -85,7 +83,7 @@ class DiscovererTest {
 				MigrationsConfig.builder().withLocationsToScan(
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
-			Collection<Migration> migrations = new CypherBasedMigrationDiscoverer().discover(context);
+			Collection<Migration> migrations = CypherBasedDiscoverer.forMigrations().discover(context);
 			assertThat(migrations).hasSize(9)
 				.extracting(Migration::getDescription)
 				.contains("delete old data", "create new data",
@@ -124,7 +122,7 @@ class DiscovererTest {
 						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath()).build(),
 					Mockito.mock(Driver.class));
 
-				Collection<Migration> migrations = new CypherBasedMigrationDiscoverer().discover(context);
+				Collection<Migration> migrations = CypherBasedDiscoverer.forMigrations().discover(context);
 				assertThat(migrations).hasSize(3)
 					.extracting(Migration::getDescription)
 					.contains("One", "Two", "Three");

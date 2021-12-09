@@ -17,11 +17,13 @@ package ac.simons.neo4j.migrations.core;
 
 /**
  * The phase in the lifecycle of a migrations flow in which a {@link Callback} is invoked.
+ * <p>
+ * This enum might become public as soon as neo4j-migrations supports Java based callbacks, too.
  *
  * @author Michael J. Simons
- * @since 1.2.1
+ * @since TBA
  */
-public enum LifecyclePhase {
+enum LifecyclePhase {
 
     /**
      * After connect but before any impersonation or the target database selection has been done.

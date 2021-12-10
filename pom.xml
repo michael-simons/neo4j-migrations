@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>1.2.1</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -50,7 +50,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>1.2.1</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -69,7 +69,7 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
@@ -505,7 +505,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -725,12 +725,12 @@
 												<labeler>
 													<title>Bump</title>
 													<label>dependabot</label>
-                                                    <order>-1</order>
+													<order>-1</order>
 												</labeler>
 												<labeler>
 													<title>build(deps)</title>
 													<label>dependabot</label>
-                                                    <order>-2</order>
+													<order>-2</order>
 												</labeler>
 												<labeler>
 													<title>Fix</title>
@@ -773,25 +773,25 @@
 											</replacers>
 											<categories>
 												<category>
-													<title>🚀 Features</title>
+													<title>&#x1f680; Features</title>
 													<labels>feat</labels>
 												</category>
 												<category>
-													<title>🐛 Bug Fixes</title>
+													<title>&#x1f41b; Bug Fixes</title>
 													<labels>fix</labels>
 												</category>
 												<category>
-													<title>📝 Documentation</title>
+													<title>&#x1f4dd; Documentation</title>
 													<labels>docs</labels>
 												</category>
 												<category>
-													<title>🧹 Housekeeping</title>
+													<title>&#x1f9f9; Housekeeping</title>
 													<labels>dependabot</labels>
-                                                    <order>70</order>
+													<order>70</order>
 												</category>
 												<category>
-													<title>🛠  Build</title>
-                                                    <order>80</order>
+													<title>&#x1f6e0;  Build</title>
+													<order>80</order>
 												</category>
 												<category>
 													<title>nocl</title>

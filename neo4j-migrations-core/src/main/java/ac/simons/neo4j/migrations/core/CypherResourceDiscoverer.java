@@ -143,6 +143,9 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
 		for (String location : filesystemLocations) {
 			Path path = Paths.get(location);
+			if (!Files.isDirectory(path)) {
+				continue;
+			}
 			try {
 				Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 					@Override

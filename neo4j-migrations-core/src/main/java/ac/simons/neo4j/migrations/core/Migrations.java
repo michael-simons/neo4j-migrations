@@ -59,7 +59,9 @@ public final class Migrations {
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
 
-	private volatile Map<LifecyclePhase, List<Callback>> callbacks;
+	private volatile List<Migration> resolvedMigrations;
+	private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
+
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
 
 	/**
@@ -80,15 +82,30 @@ public final class Migrations {
 		this.context = new DefaultMigrationContext(this.config, this.driver);
 	}
 
+	private List<Migration> getMigrations() {
+
+		List<Migration> availableMigrations = this.resolvedMigrations;
+		if (availableMigrations == null) {
+			synchronized (this) {
+				availableMigrations = this.resolvedMigrations;
+				if (availableMigrations == null) {
+					this.resolvedMigrations = discoveryService.findMigrations(this.context);
+					availableMigrations = this.resolvedMigrations;
+				}
+			}
+		}
+		return availableMigrations;
+	}
+
 	private Map<LifecyclePhase, List<Callback>> getCallbacks() {
 
-		Map<LifecyclePhase, List<Callback>> availableCallbacks = this.callbacks;
+		Map<LifecyclePhase, List<Callback>> availableCallbacks = this.resolvedCallbacks;
 		if (availableCallbacks == null) {
 			synchronized (this) {
-				availableCallbacks = this.callbacks;
+				availableCallbacks = this.resolvedCallbacks;
 				if (availableCallbacks == null) {
-					this.callbacks = discoveryService.findCallbacks(this.context);
-					availableCallbacks = this.callbacks;
+					this.resolvedCallbacks = discoveryService.findCallbacks(this.context);
+					availableCallbacks = this.resolvedCallbacks;
 				}
 			}
 		}
@@ -105,10 +122,8 @@ public final class Migrations {
 	 */
 	public MigrationChain info() {
 
-		return executeWithinLock(() -> {
-			List<Migration> migrations = discoveryService.findMigrations(this.context);
-			return chainBuilder.buildChain(context, migrations);
-		}, LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
+		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations()),
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
 	}
 
 	/**
@@ -123,8 +138,7 @@ public final class Migrations {
 	public Optional<MigrationVersion> apply() {
 
 		return executeWithinLock(() -> {
-			List<Migration> migrations = discoveryService.findMigrations(this.context);
-			apply0(migrations);
+			apply0(this.getMigrations());
 			return getLastAppliedVersion();
 		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
 	}
@@ -221,7 +235,7 @@ public final class Migrations {
 	public ValidationResult validate() {
 
 		return executeWithinLock(() -> {
-			List<Migration> migrations = discoveryService.findMigrations(this.context);
+			List<Migration> migrations = this.getMigrations();
 			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
 			try {
 				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations);

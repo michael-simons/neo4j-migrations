@@ -58,11 +58,8 @@ public final class Migrations {
 	private final MigrationContext context;
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
-	/**
-	 * As the callbacks are used in many phases of the lifecycle of a migration object,
-	 * they are computed upfront.
-	 */
-	private final Map<LifecyclePhase, List<Callback>> callbacks;
+
+	private volatile Map<LifecyclePhase, List<Callback>> callbacks;
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
 
 	/**
@@ -81,7 +78,21 @@ public final class Migrations {
 		this.chainBuilder = new ChainBuilder();
 
 		this.context = new DefaultMigrationContext(this.config, this.driver);
-		this.callbacks = this.discoveryService.findCallbacks(this.context);
+	}
+
+	private Map<LifecyclePhase, List<Callback>> getCallbacks() {
+
+		Map<LifecyclePhase, List<Callback>> availableCallbacks = this.callbacks;
+		if (availableCallbacks == null) {
+			synchronized (this) {
+				availableCallbacks = this.callbacks;
+				if (availableCallbacks == null) {
+					this.callbacks = discoveryService.findCallbacks(this.context);
+					availableCallbacks = this.callbacks;
+				}
+			}
+		}
+		return availableCallbacks;
 	}
 
 	/**
@@ -267,7 +278,7 @@ public final class Migrations {
 	private void invokeCallbacks(LifecyclePhase phase) {
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
-		this.callbacks.getOrDefault(phase, Collections.emptyList())
+		this.getCallbacks().getOrDefault(phase, Collections.emptyList())
 			.forEach(callback -> callback.on(event));
 	}
 

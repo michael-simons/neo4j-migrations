@@ -29,11 +29,11 @@ import org.neo4j.driver.SessionConfig;
  * A callback based on a Cypher script.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 final class CypherBasedCallback implements Callback {
 
-	private static final Logger LOGGER = Logger.getLogger(Callback.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(CypherBasedCallback.class.getName());
 
 	private final CypherResource cypherResource;
 
@@ -73,7 +73,7 @@ final class CypherBasedCallback implements Callback {
 	@Override
 	public void on(LifecycleEvent event) {
 
-		LOGGER.log(Level.INFO, "Invoking \"{0}\" on {1}",
+		LOGGER.log(Level.FINE, "Invoking \"{0}\" on {1}",
 			new Object[] { this.cypherResource.getUrl(), event.getPhase() });
 
 		UnaryOperator<SessionConfig.Builder> sessionCustomizer = event.getPhase() == LifecyclePhase.BEFORE_FIRST_USE ?

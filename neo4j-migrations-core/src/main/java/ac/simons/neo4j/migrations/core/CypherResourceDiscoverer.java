@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  *
  * @author Michael J. Simons
  * @param <T> The concrete type to be instantiated with a discovered resource
- * @since TBA
+ * @since 1.2.2
  */
 final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
@@ -55,7 +55,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 			ctx -> new CypherBasedCallback(ctx.url, ctx.config.isAutocrlf()));
 	}
 
-	final static class ResourceContext {
+	static final class ResourceContext {
 		final URL url;
 
 		final MigrationsConfig config;

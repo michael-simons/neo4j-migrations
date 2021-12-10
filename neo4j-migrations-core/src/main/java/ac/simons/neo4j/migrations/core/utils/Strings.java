@@ -22,7 +22,7 @@ import java.util.function.UnaryOperator;
  * run on the module path.
  *
  * @author Michael J. Simon
- * @since TBA
+ * @since 1.2.2
  */
 public final class Strings {
 

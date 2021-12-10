@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 final class DefaultLifecycleEvent implements LifecycleEvent {
 

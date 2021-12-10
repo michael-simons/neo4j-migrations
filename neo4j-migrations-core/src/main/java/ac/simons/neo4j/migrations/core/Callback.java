@@ -22,7 +22,7 @@ import java.util.Optional;
  * This interface might become public as soon as neo4j-migrations supports Java based callbacks, too.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 interface Callback {
 

@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.core.utils;
 
-import java.util.Collection;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * Discoverer of migrations.
- *
  * @author Michael J. Simons
- * @param <T> The type of things to discover
- * @soundtrack Motörhead - 1916
- * @since 0.0.3
  */
-interface Discoverer<T> {
+final class StringsTest {
 
-	/**
-	 * Discover migrations within the given context.
-	 *
-	 * @param context The context of the ongoing migration.
-	 * @return A collection of migrations.
-	 */
-	Collection<T> discover(MigrationContext context);
+	@ParameterizedTest
+	@CsvSource({
+		"DAS_IST_EIN_TEST,dasIstEinTest",
+		"DAS,das",
+		"DAS__AUCH,dasAuch",
+		"dasEbenfalls,dasEbenfalls",
+		"dasEBenfalls,dasEbenfalls"
+	})
+	void toCamelCaseShouldWork(String in, String expected) {
+		assertThat(Strings.toCamelCase(in)).isEqualTo(expected);
+	}
 }

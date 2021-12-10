@@ -19,7 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -48,5 +53,55 @@ class DiscoveryServiceTest {
 				"BondTheNameIsBondNew", "BondTheNameIsBondNewNew", "Die halbe Wahrheit", "Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu", "NichtsIstWieEsScheint", "NichtsIstWieEsScheintNeu", "NichtsIstWieEsScheintNeuNeu",
 					"MirFallenKeineNamenEin");
+	}
+
+	@Test
+	void shouldDiscoverCallbacksInSameDirectoryAsMigrations() {
+
+		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:/my/awesome/migrations")
+			.build(), Mockito.mock(Driver.class));
+
+		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
+		assertThat(callbacks)
+			.hasSize(2)
+			.containsOnlyKeys(LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
+	}
+
+	@Test
+	void shouldMergeAndSortCallbacks() throws IOException {
+
+		List<File> files = new ArrayList<>();
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		files.add(new File(dir, "V1__One.cypher"));
+		files.add(new File(dir, "afterMigrate"));
+		for (File file : files) {
+			file.createNewFile();
+		}
+
+		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
+			.withLocationsToScan(
+				"classpath:/my/awesome/migrations",
+				"classpath:/my/awesome/callbacks",
+				"file:" + dir.getAbsolutePath()
+			)
+			.build(), Mockito.mock(Driver.class));
+
+		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
+		assertThat(callbacks)
+			.hasSize(LifecyclePhase.values().length);
+
+		assertThat(callbacks.get(LifecyclePhase.AFTER_MIGRATE))
+			.hasSize(4)
+			.map(CypherBasedCallback.class::cast)
+			.map(CypherBasedCallback::getSource)
+			.containsExactly("afterMigrate.cypher", "afterMigrate.cypher", "afterMigrate__001.cypher",
+				"afterMigrate__002.cypher");
+
+		assertThat(callbacks.get(LifecyclePhase.BEFORE_FIRST_USE))
+			.hasSize(2)
+			.map(Callback::getSource)
+			.containsExactly("beforeFirstUse.cypher", "beforeFirstUse__anotherStep.cypher");
 	}
 }

@@ -108,6 +108,26 @@ class MigrationsEEIT {
 	}
 
 	@Test
+	void shouldBeAbleToCreateDatabaseInASimpleWay() {
+
+		TestBase.clearDatabase(driver, "neo4j");
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:callbackee")
+			.withDatabase("callbackTarget")
+			.withSchemaDatabase("neo4j")
+			.build(), driver);
+		migrations.apply();
+
+		try (Session session = driver.session(SessionConfig.forDatabase("callbackTarget"))) {
+
+			long cnt = session.run("MATCH (n:`MigrationNode`) RETURN count(n) AS cnt").single().get("cnt").asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
+	}
+
+	@Test
 	void shouldNotOverwriteSpecificChainWithDefaultOne() {
 		// GH-311, for #963d389
 		// The order is important here

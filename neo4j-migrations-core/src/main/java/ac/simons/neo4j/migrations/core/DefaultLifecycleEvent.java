@@ -15,23 +15,28 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Collection;
-
 /**
- * Discoverer of migrations.
- *
  * @author Michael J. Simons
- * @param <T> The type of things to discover
- * @soundtrack Motörhead - 1916
- * @since 0.0.3
+ * @since 1.2.2
  */
-interface Discoverer<T> {
+final class DefaultLifecycleEvent implements LifecycleEvent {
 
-	/**
-	 * Discover migrations within the given context.
-	 *
-	 * @param context The context of the ongoing migration.
-	 * @return A collection of migrations.
-	 */
-	Collection<T> discover(MigrationContext context);
+	private final LifecyclePhase phase;
+
+	private final MigrationContext context;
+
+	DefaultLifecycleEvent(LifecyclePhase phase, MigrationContext context) {
+		this.phase = phase;
+		this.context = context;
+	}
+
+	@Override
+	public LifecyclePhase getPhase() {
+		return phase;
+	}
+
+	@Override
+	public MigrationContext getContext() {
+		return context;
+	}
 }

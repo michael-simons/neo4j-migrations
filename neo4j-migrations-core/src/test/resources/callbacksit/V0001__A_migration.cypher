@@ -1,0 +1,1 @@
+CREATE (:MigrationNode);

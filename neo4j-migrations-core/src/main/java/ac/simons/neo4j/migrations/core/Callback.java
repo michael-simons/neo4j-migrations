@@ -18,40 +18,36 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * Base interface for any migration.
+ * Default contract for callbacks that might be involved during various phases of the migration lifecycle.
+ * This interface might become public as soon as neo4j-migrations supports Java based callbacks, too.
  *
  * @author Michael J. Simons
- * @since 0.0.1
+ * @since 1.2.2
  */
-public sealed interface Migration permits CypherBasedMigration, JavaBasedMigration {
+interface Callback {
 
 	/**
-	 * {@return the version}
+	 * @return the phase in which to invoke this callback
 	 */
-	MigrationVersion getVersion();
+	LifecyclePhase getPhase();
 
 	/**
-	 * {@return some description}
+	 * If the description is empty, then callbacks in the same {@link LifecyclePhase lifecycle phase} won't be ordered.
+	 * Otherwise, the description might be used to order callbacks in the same phase.
+	 *
+	 * @return an optional description
 	 */
-	String getDescription();
+	Optional<String> getOptionalDescription();
 
 	/**
-	 * {@return something that describes the source of this migration}
+	 * @return Something that describes the source of this callback.
 	 */
 	String getSource();
 
 	/**
-	 * {@return possible checksum of the migration}
-	 */
-	default Optional<String> getChecksum() {
-		return Optional.empty();
-	}
-
-	/**
-	 * Implement your migration code here.
+	 * Invokes this callback with the given context
 	 *
-	 * @param context The migrations' context.
-	 * @throws MigrationsException In case anything happens, wrap your exception or create a new one
+	 * @param event The event that happened
 	 */
-	void apply(MigrationContext context);
+	void on(LifecycleEvent event);
 }

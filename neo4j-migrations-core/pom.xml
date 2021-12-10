@@ -104,6 +104,13 @@
 					</newVersion>
 					<parameter>
 						<breakBuildBasedOnSemanticVersioning>true</breakBuildBasedOnSemanticVersioning>
+						<excludes>
+							<!--
+							 | Those are public classes in a package private interface which cannot be accessed from outside my own package
+							 -->
+							<exclude>ac.simons.neo4j.migrations.core.Discoverer$CypherBasedMigrationDiscoverer</exclude>
+							<exclude>ac.simons.neo4j.migrations.core.Discoverer$JavaBasedMigrationDiscoverer</exclude>
+						</excludes>
 					</parameter>
 				</configuration>
 				<executions>

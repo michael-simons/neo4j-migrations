@@ -87,10 +87,6 @@ final class CypherResource {
 		return script;
 	}
 
-	boolean isAutocrlf() {
-		return autocrlf;
-	}
-
 	String getChecksum() {
 
 		String availableChecksum = this.checksum;

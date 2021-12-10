@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -103,7 +105,7 @@ class MigrationsIT extends TestBase {
 			"ac.simons.neo4j.migrations.core.test_migrations.changeset1")
 			.build(), driver);
 
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> failingMigrations.apply())
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
 			.withMessage("Unexpected migration at index 0: 001 (\"FirstMigration\")");
 	}
 
@@ -124,7 +126,7 @@ class MigrationsIT extends TestBase {
 			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
 
 			Migrations failingMigrations = new Migrations(configuration, driver);
-			assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> failingMigrations.apply())
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
 				.withMessage("Checksum of 2 (\"Some\") changed!");
 		} finally {
 			for (File file : files) {
@@ -151,7 +153,8 @@ class MigrationsIT extends TestBase {
 
 			File newMigration = new File(dir, "V3__SomethingNew.cypher");
 			files.add(newMigration);
-			Files.write(newMigration.toPath(), Arrays.asList("CREATE INDEX node_index_name FOR (n:Person) ON (n.surname)"));
+			Files.write(newMigration.toPath(),
+				Collections.singletonList("CREATE INDEX node_index_name FOR (n:Person) ON (n.surname)"));
 
 			migrations = new Migrations(configuration, driver);
 			migrations.apply();
@@ -251,7 +254,7 @@ class MigrationsIT extends TestBase {
 			File aFile = new File(dir, "V" + i + "__Some.cypher");
 			aFile.createNewFile();
 			files.add(aFile);
-			Files.write(aFile.toPath(), Arrays.asList("MATCH (n) RETURN n"));
+			Files.write(aFile.toPath(), Collections.singletonList("MATCH (n) RETURN n"));
 		}
 		return files;
 	}

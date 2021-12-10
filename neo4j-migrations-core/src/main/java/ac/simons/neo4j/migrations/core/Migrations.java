@@ -59,7 +59,9 @@ public final class Migrations {
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
 
+	@SuppressWarnings("squid:S3077")
 	private volatile List<Migration> resolvedMigrations;
+	@SuppressWarnings("squid:S3077")
 	private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
 
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);

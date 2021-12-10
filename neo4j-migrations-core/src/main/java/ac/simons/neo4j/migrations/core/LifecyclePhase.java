@@ -32,10 +32,11 @@ import java.util.stream.Collectors;
 enum LifecyclePhase {
 
 	/**
-	 * After connect but before any impersonation or the target database selection has been done.
-	 * Can be used to create the target database for example.
+	 * Callbacks in that phase are only called once and are also the only ones that are called with the schema database
+	 * and not the target database, so they won't require the target database to be present. Also, no user impersonation
+	 * will be performed.
 	 */
-	AFTER_CONNECT,
+	BEFORE_FIRST_USE,
 
 	/**
 	 * Before Migrate runs.
@@ -62,14 +63,23 @@ enum LifecyclePhase {
 	/**
 	 * After Validate runs
 	 */
-	AFTER_VALIDATE;
+	AFTER_VALIDATE,
+
+	/**
+	 * Before Info runs
+	 */
+	BEFORE_INFO,
+	/**
+	 * After Info runs
+	 */
+	AFTER_INFO;
 
 	private static final EnumSet<LifecyclePhase> ALL_VALUES = EnumSet.allOf(LifecyclePhase.class);
 
 	static final Pattern LIFECYCLE_PATTERN;
 
 	static {
-		LifecyclePhase.values();
+
 		String group1 = ALL_VALUES.stream()
 			.map(LifecyclePhase::toCamelCase)
 			.collect(Collectors.joining("|", "(", ")"));

@@ -17,6 +17,9 @@ package ac.simons.neo4j.migrations.core;
 
 import java.net.URL;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import org.neo4j.driver.AccessMode;
@@ -29,6 +32,8 @@ import org.neo4j.driver.SessionConfig;
  * @since TBA
  */
 final class CypherBasedCallback implements Callback {
+
+	private static final Logger LOGGER = Logger.getLogger(Callback.class.getName());
 
 	private final CypherResource cypherResource;
 
@@ -68,8 +73,11 @@ final class CypherBasedCallback implements Callback {
 	@Override
 	public void on(LifecycleEvent event) {
 
-		// Only in pre migrate, with default database
-		this.cypherResource.executeIn(event.getContext(),
-			builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE));
+		LOGGER.log(Level.INFO, "Invoking \"{0}\" on {1}",
+			new Object[] { this.cypherResource.getUrl(), event.getPhase() });
+
+		UnaryOperator<SessionConfig.Builder> sessionCustomizer = event.getPhase() == LifecyclePhase.BEFORE_FIRST_USE ?
+			builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE) : UnaryOperator.identity();
+		this.cypherResource.executeIn(event.getContext(), sessionCustomizer);
 	}
 }

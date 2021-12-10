@@ -99,7 +99,7 @@ class DiscoveryServiceTest {
 			.containsExactly("afterMigrate.cypher", "afterMigrate.cypher", "afterMigrate__001.cypher",
 				"afterMigrate__002.cypher");
 
-		assertThat(callbacks.get(LifecyclePhase.AFTER_CONNECT))
+		assertThat(callbacks.get(LifecyclePhase.BEFORE_FIRST_USE))
 			.hasSize(2)
 			.map(Callback::getSource)
 			.containsExactly("afterConnect.cypher", "afterConnect__anotherStep.cypher");

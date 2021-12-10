@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
@@ -57,6 +58,12 @@ public final class Migrations {
 	private final MigrationContext context;
 	private final DiscoveryService discoveryService;
 	private final ChainBuilder chainBuilder;
+	/**
+	 * As the callbacks are used in many phases of the lifecycle of a migration object,
+	 * they are computed upfront.
+	 */
+	private final Map<LifecyclePhase, List<Callback>> callbacks;
+	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
 
 	/**
 	 * Creates a {@link Migrations migrations instance} ready to used with the given configuration over the connection
@@ -74,6 +81,7 @@ public final class Migrations {
 		this.chainBuilder = new ChainBuilder();
 
 		this.context = new DefaultMigrationContext(this.config, this.driver);
+		this.callbacks = this.discoveryService.findCallbacks(this.context);
 	}
 
 	/**
@@ -89,7 +97,7 @@ public final class Migrations {
 		return executeWithinLock(() -> {
 			List<Migration> migrations = discoveryService.findMigrations(this.context);
 			return chainBuilder.buildChain(context, migrations);
-		});
+		}, LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
 	}
 
 	/**
@@ -107,7 +115,7 @@ public final class Migrations {
 			List<Migration> migrations = discoveryService.findMigrations(this.context);
 			apply0(migrations);
 			return getLastAppliedVersion();
-		});
+		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
 	}
 
 	/**
@@ -133,7 +141,7 @@ public final class Migrations {
 
 		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
 		DeletedChainsWithCounters deletedChainsWithCounters
-			= executeWithinLock(() -> clean0(optionalMigrationTarget, all));
+			= executeWithinLock(() -> clean0(optionalMigrationTarget, all), LifecyclePhase.BEFORE_CLEAN, LifecyclePhase.AFTER_CLEAN);
 
 		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();
 		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();
@@ -163,7 +171,10 @@ public final class Migrations {
 		}
 	}
 
-	private DeletedChainsWithCounters clean0(Optional<String> migrationTarget, boolean all) {
+	private DeletedChainsWithCounters clean0(
+		@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<String> migrationTarget,
+		boolean all
+	) {
 
 		String query = ""
 			+ "MATCH (n:__Neo4jMigration) "
@@ -221,7 +232,7 @@ public final class Migrations {
 				}
 				return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
 			}
-		});
+		}, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
 	}
 
 	/**
@@ -232,17 +243,32 @@ public final class Migrations {
 		return "neo4j-migrations/" + ProductionVersion.getValue();
 	}
 
-	private <T> T executeWithinLock(Supplier<T> executable) {
+	private <T> T executeWithinLock(Supplier<T> executable, LifecyclePhase before, LifecyclePhase after) {
 
 		driver.verifyConnectivity();
 
 		MigrationsLock lock = new MigrationsLock(this.context);
 		try {
 			lock.lock();
-			return executable.get();
+			if (beforeFirstUseHasBeenCalled.compareAndSet(false, true)) {
+				invokeCallbacks(LifecyclePhase.BEFORE_FIRST_USE);
+			}
+			try {
+				invokeCallbacks(before);
+				return executable.get();
+			} finally {
+				invokeCallbacks(after);
+			}
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	private void invokeCallbacks(LifecyclePhase phase) {
+
+		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
+		this.callbacks.getOrDefault(phase, Collections.emptyList())
+			.forEach(callback -> callback.on(event));
 	}
 
 	private Optional<MigrationVersion> getLastAppliedVersion() {
@@ -349,10 +375,10 @@ public final class Migrations {
 	}
 
 	/**
-	 * Returns the type of a migration. It's not part of the API so that it is not possible to be overwritten by
-	 * classes implementing {@link JavaBasedMigration}.
+	 * Returns the type of the migration in question. It's not part of the API so that it is not possible to be
+	 * overwritten by classes implementing {@link JavaBasedMigration}.
 	 *
-	 * @param migration The migration who's type should be computed
+	 * @param migration The migration whose type should be computed
 	 * @return The type of the migration.
 	 */
 	static MigrationType getMigrationType(Migration migration) {
@@ -426,6 +452,9 @@ public final class Migrations {
 			this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
 			this.config.getOptionalImpersonatedUser().ifPresent(user -> {
 				try {
+					// This is fine, when an impersonated user is present, the availability of
+					// this method has been checked.
+					// noinspection ConstantConditions
 					WITH_IMPERSONATED_USER.invoke(builder, user);
 				} catch (IllegalAccessException | InvocationTargetException e) {
 					throw new MigrationsException("Could not impersonate a user on the driver level", e);

@@ -46,7 +46,6 @@ class LifecyclePhaseTest {
 				assertThat(m.group(2)).isNull();
 			}
 		} else {
-			assertThat(LifecyclePhase.canParse(in)).isFalse();
 			assertThat(m.matches()).isFalse();
 		}
 	}

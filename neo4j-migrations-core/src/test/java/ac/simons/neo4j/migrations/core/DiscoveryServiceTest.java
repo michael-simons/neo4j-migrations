@@ -102,6 +102,6 @@ class DiscoveryServiceTest {
 		assertThat(callbacks.get(LifecyclePhase.BEFORE_FIRST_USE))
 			.hasSize(2)
 			.map(Callback::getSource)
-			.containsExactly("afterConnect.cypher", "afterConnect__anotherStep.cypher");
+			.containsExactly("beforeFirstUse.cypher", "beforeFirstUse__anotherStep.cypher");
 	}
 }

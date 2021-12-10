@@ -148,7 +148,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						String fullPath = file.toString();
-						if (attrs.isRegularFile() && hasExtension.test(fullPath) && MigrationVersion.canParse(fullPath)) {
+						if (attrs.isRegularFile() && hasExtension.test(fullPath) && resourceFilter.test(fullPath)) {
 							ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
 							resources.add(mapper.apply(context));
 							return FileVisitResult.CONTINUE;

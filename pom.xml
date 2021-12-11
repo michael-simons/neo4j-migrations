@@ -707,6 +707,9 @@
 						<inherited>false</inherited>
 						<configuration>
 							<jreleaser>
+								<project>
+									<name>neo4j-migrations</name>
+								</project>
 								<release>
 									<github>
 										<skipTag>true</skipTag>
@@ -810,15 +813,15 @@
 										<type>NATIVE_IMAGE</type>
 										<artifacts>
 											<artifact>
-												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-x86_64.zip</path>
+												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-linux-x86_64.zip</path>
 												<platform>linux-x86_64</platform>
 											</artifact>
 											<artifact>
-												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-windows-x86_64.zip</path>
+												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-windows-x86_64.zip</path>
 												<platform>windows-x86_64</platform>
 											</artifact>
 											<artifact>
-												<path>{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-osx-x86_64.zip</path>
+												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-osx-x86_64.zip</path>
 												<platform>osx-x86_64</platform>
 											</artifact>
 										</artifacts>
@@ -831,6 +834,14 @@
 											<formulaName>neo4j-migrations</formulaName>
 										</brew>
 									</neo4j-migrations>
+									<neo4j-migrations-no-arch>
+										<type>JAVA_BINARY</type>
+										<artifacts>
+											<artifact>
+												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}.zip</path>
+											</artifact>
+										</artifacts>
+									</neo4j-migrations-no-arch>
 								</distributions>
 							</jreleaser>
 						</configuration>

@@ -33,3 +33,5 @@ include::download.adoc[leveloffset=+1]
 include::concepts.adoc[leveloffset=+1]
 
 include::usage.adoc[leveloffset=+1]
+
+include::appendix.adoc[leveloffset=+1]

@@ -1,0 +1,9 @@
+:numbered!:
+
+[[appendix]]
+= Appendix
+
+== Glossary
+
+Schema database:: A database inside a Neo4j enterprise instance or cluster that stores the schema information from Neo4j-Migrations.
+Target database:: A database inside a Neo4j enterprise instance or cluster that is refactored by Neo4j-Migrations.

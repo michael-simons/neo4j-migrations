@@ -1,0 +1,144 @@
+[[usage]]
+= Usage
+
+== CLI
+
+=== All options and arguments
+
+The CLI comes with a build-in help, accessible via `neo4j-migrations -h` or `neo4j-migrations --help`:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations --help
+Usage: neo4j-migrations [-hvV] [--autocrlf] [--validate-on-migrate] -p
+                        [=<password>] [-p[=<password>]]... [-a=<address>]
+                        [-d=<database>] [--impersonate=<impersonatedUser>]
+                        [--schema-database=<schemaDatabase>]
+                        [--transaction-mode=<transactionMode>] [-u=<user>]
+                        [--location=<locationsToScan>]...
+                        [--package=<packagesToScan>]... [COMMAND]
+Migrates Neo4j databases.
+  -a, --address=<address>   The address this migration should connect to. The
+                              driver supports bolt, bolt+routing or neo4j as
+                              schemes.
+      --autocrlf            Automatically convert Windows line-endings (CRLF)
+                              to LF when reading resource based migrations,
+                              pretty much what the same Git option does during
+                              checkin.
+  -d, --database=<database> The database that should be migrated (Neo4j EE 4.0
+                              +).
+  -h, --help                Show this help message and exit.
+      --impersonate=<impersonatedUser>
+                            The name of a user to impersonate during migration
+                              (Neo4j EE 4.4+).
+      --location=<locationsToScan>
+                            Location to scan. Repeat for multiple locations.
+  -p, --password[=<password>]
+                            The password of the user connecting to the database.
+      --package=<packagesToScan>
+                            Package to scan. Repeat for multiple packages.
+      --schema-database=<schemaDatabase>
+                            The database that should be used for storing
+                              information about migrations (Neo4j EE 4.0+).
+      --transaction-mode=<transactionMode>
+                            The transaction mode to use.
+  -u, --username=<user>     The login of the user connecting to the database.
+  -v                        Log the configuration and a couple of other things.
+  -V, --version             Print version information and exit.
+      --validate-on-migrate Validating helps you verify that the migrations
+                              applied to the database match the ones available
+                              locally and is on by default.
+Commands:
+  clean     Removes Neo4j-Migration specific data from the selected schema
+              database
+  help      Displays help information about the specified command
+  info      Retrieves all applied and pending informations, prints them and
+              exits.
+  migrate   Retrieves all pending migrations, verify and applies them.
+  validate  Resolves all local migrations and validates the state of the
+              configured database with them.
+----
+
+== Core API
+=== Configuration
+
+[[usage_spring-boot-starter]]
+== Spring-Boot-Starter
+=== Available configuration properties
+
+The following configuration properties in the `org.neo4j.migrations` namespace are supported:
+
+[cols="40a,5m,5m,50a",options=header]
+|===
+|Name
+|Type
+|Default
+|Description
+
+| `org.neo4j.migrations.check-location`
+| java.lang.Boolean
+| true
+| Whether to check that migration scripts location exists.
+
+| `org.neo4j.migrations.database`
+| java.lang.String
+| null
+| The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.schema-database`
+| java.lang.String
+| null
+| The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.impersonated-user`
+| java.lang.String
+| null
+| An alternative user to impersonate during migration. Might have higher privileges than the user connected, which  will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+
+| `org.neo4j.migrations.enabled`
+| java.lang.Boolean
+| true
+| Whether to enable Neo4j-Migrations or not.
+
+| `org.neo4j.migrations.encoding`
+| java.nio.charset.Charset
+| UTF-8
+| Encoding of Cypher migrations.
+
+| `org.neo4j.migrations.installed-by`
+| java.lang.String
+| System user
+| Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+
+| `org.neo4j.migrations.locations-to-scan`
+| java.lang.String[]
+| `classpath:neo4j/migrations`
+| Locations of migrations scripts.
+
+| `org.neo4j.migrations.packages-to-scan`
+| java.lang.String[]
+| An empty array
+| List of packages to scan for Java migrations.
+
+| `org.neo4j.migrations.transaction-mode`
+| TransactionMode
+| `PER_MIGRATION`
+| The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+
+| `org.neo4j.migrations.validate-on-migrate`
+| boolean
+| `true`
+| Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+
+| `org.neo4j.migrations.autocrlf`
+| boolean
+| `false`
+| Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.
+|===
+
+NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
+
+[[usage_maven-plugin]]
+== Maven-Plugin
+=== Configuration
+=== Goals

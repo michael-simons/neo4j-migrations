@@ -33,11 +33,11 @@ JDK 17. Be aware that we sealed all interfaces not intended to be implemented by
 CLI:: A command line tool that supports every interaction that the core-module provides. Native binaries are available
 for Linux, macOS and Windows. If you want to use Java based migrations in the CLI, you must use the JVM distribution.
 This is an ideal tool to be put into CI/CD not based on Maven or Gradle.
-Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
-to apply migrations during your build.
 Spring-Boot-Starter:: Provides all configuration options via the well-known Spring-Boot-Properties mechanism and turns them
 into a fully configured Migrations instance that will be applied on application start. Scripts will be searched sane default
 location.
+Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
+to apply migrations during your build.
 
 [[introduction-changelog]]
 == Changelog

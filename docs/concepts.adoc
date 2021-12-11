@@ -1,0 +1,74 @@
+[[concepts]]
+= Concepts
+
+This chapter deals with various concepts that are applicable for all modules offered.
+Especially checkout <<concepts_naming-conventions>> regarding naming conventions, for all Cypher and Java based migrations and callbacks.
+
+== Glossary
+
+Schema database:: A database inside a Neo4j enterprise instance or cluster that stores the schema information from Neo4j-Migrations.
+Target database:: A database inside a Neo4j enterprise instance or cluster that is refactored by Neo4j-Migrations.
+
+[[concepts_naming-conventions]]
+== Naming conventions
+
+=== Cypher based resources
+
+All Cypher based resources (especially migration and callback scripts) require `.cypher` as extension.
+The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in `classpath:neo4j/migrations`.
+The CLI has no default search-location.
+
+==== Migration scripts
+
+A Cypher script based migration must have a name following the given pattern to be recognized:
+
+[source,console]
+----
+V1_2_3__Add_last_name_index.cypher
+----
+
+* Prefix `V` for "__V__ersioned Migrations"
+* Version with optional underscores separating as many parts as you like
+* Separator: `__` (two underscores)
+* Required description: Underscores or spaces might be used to separate words
+* Suffix: `.cypher`
+
+This applies to both Cypher scripts outside an application (in the file system) as well as inside  an application (as resources).
+
+==== Callback scripts
+
+A Cypher script is recognized as a callback for a given lifecycle when it matches the following pattern:
+
+[source,console]
+----
+nameOfTheLifecyclePhase.cypher
+nameOfTheLifecyclePhase__optional_description.cypher
+----
+
+`nameOfTheLifecyclePhase` must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <<concepts_lifecycle-phases>>),
+followed by the suffix `.cypher` or an optional description, separated from the name of the phase by two underscores (`__`).
+The description is used to order different callback scripts for the same lifecycle phase.
+If you use more than one script in the same lifecycle phase without a description, the order is undefined.
+
+== Callbacks
+
+// TODO was ist das?
+
+[[concepts_lifecycle-phases]]
+=== Lifecycle phases
+
+The following phases are supported:
+
+beforeFirstUse:: The only phase that only runs once for any given instance of Neo4j-Migrations. It will run before any
+other operations are called, when the first connection is opened. Callbacks in this phase will always be invoked in the
+schema database and not the target database, so they won't require the target database to be present. Also, no user impersonation
+will be performed. This can be used to create the target database before any migrations or validations are run.
+beforeMigrate:: Before migrating a database.
+afterMigrate:: After migrating a database, independent of outcome.
+beforeClean:: Before cleaning a database.
+afterClean:: After cleaning a database, independent of outcome.
+beforeValidate:: Before validating a database.
+afterValidate:: After validating a database, independent of outcome.
+beforeInfo:: Before getting information about the target database.
+afterInfo:: After getting information about the target database.
+

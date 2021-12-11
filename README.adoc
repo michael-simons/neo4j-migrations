@@ -1,18 +1,31 @@
-= Neo4j Migrations
+= Neo4j-Migrations
 Michael Simons <michael.simons@neo4j.com>
 :doctype: article
 :lang: en
 :listing-caption: Listing
 :source-highlighter: coderay
 :icons: font
+// tag::properties[]
 :latest_version: 1.2.1
+:groupId: eu.michael-simons.neo4j
+:artifactIdMavenPlugin: neo4j-migrations-maven-plugin
+:artifactIdSpringBoot: neo4j-migrations-spring-boot-starter
+:artifactIdCore: neo4j-migrations
+// end::properties[]
 
 [abstract]
 --
-This is a tool for defining Java based migrations that should be applied and recorded against a Neo4j instance.
-The only dependencies are the https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver] and https://github.com/classgraph/classgraph[ClassGraph], the later being used to find migrations on the classpath.
+// tag::abstract[]
+Neo4j-Migrations are a set of tools to make your schema migrations as easy as possible.
+They provide a uniform way for applications, the command line and build tools alike to track, manage and apply changes to your database.
+The project is inspired to a large extend by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
+Most things evolve around Cypher-Scripts, however the core API of Neo4j-Migrations allows defining Java classes as migrations as well.
 
-Neo4j Migrations is inspired by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
+Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver] , supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.
+The only dependencies are said driver and https://github.com/classgraph/classgraph[ClassGraph], the later being used to find migrations on the classpath.
+
+The history of migrations applied are stored as a subgraph in your database.
+// end::abstract[]
 --
 
 image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.svg[link=https://github.com/michael-simons/neo4j-migrations/actions] 
@@ -321,7 +334,7 @@ The CLI should be seen primarily as a script runner.
 
 ==== Maven Plugin
 
-You can trigger Neo4j Migrations from your build via plugin:
+You can trigger Neo4j-Migrations from your build via plugin:
 
 [source,xml,subs="verbatim,attributes"]
 ----
@@ -379,7 +392,7 @@ That starter itself depends on the https://github.com/neo4j/neo4j-java-driver[Ne
 The driver is managed by Spring Boot since 2.4 and you can enjoy configuration support directly through Spring Boot.
 For Boot versions prior to Spring Boot 2.4, please have a look at version https://github.com/michael-simons/neo4j-migrations/tree/0.0.13[0.0.13] of this library.
 
-Neo4j Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exists.
+Neo4j-Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exists.
 It does not scan by default for Java based migrations.
 
 Here's an example on how to configure the driver and the migrations:
@@ -429,7 +442,7 @@ The following configuration properties are supported:
 | `org.neo4j.migrations.enabled`
 | java.lang.Boolean
 | true
-| Whether to enable Neo4j migrations or not.
+| Whether to enable Neo4j-Migrations or not.
 
 | `org.neo4j.migrations.encoding`
 | java.nio.charset.Charset
@@ -568,6 +581,6 @@ Valid scenarios are:
 - Using a schema database for maintaining multiple migrations of different databases
 - Using pairs of schema databases and target databases
 
-Neo4j migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
-Neo4j migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`), so that this feature
+Neo4j-Migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
+Neo4j-Migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`), so that this feature
 doesn't break compatibility with schemas created before 1.1.0.

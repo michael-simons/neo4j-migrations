@@ -1,0 +1,56 @@
+[[introduction]]
+= Introduction
+
+[[introduction-about]]
+== About
+
+include::{manualIncludeDir}/README.adoc[tags=abstract]
+
+[[introduction-compatibility]]
+== Compatibility
+
+Neo4j-Migrations is tested only against https://neo4j.com[Neo4j], the world's leading Graph database.
+Neo4j-Migrations requires a 4.x version of Neo4j Java Driver.
+The project is build and tested with the latest 4.4 version, however previous versions 4.3, 4.2 and 4.1 are supported as well and can be used as drop-in-replacement.
+Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4 and of course, Neo4j-Aura.
+It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
+The tooling may or may not work with other databases using the Bolt protocol. We don't provide any support for those.
+
+[[introduction-versions]]
+== Versions
+
+Neo4j-Migrations 1.0.0 has been considered stable and has been released in November 2021. Since then, we ensure https://semver.org[semantic versioning].
+This means in cases where you use the Java api directly, you can be sure that patch releases won't break your application, and you can always upgrade.
+
+[[introduction-modules]]
+== Modules
+
+Neo4j-Migrations comes in different flavors:
+
+Core:: The core module, providing an API to run both Cypher script and Java based migrations. The API includes builders
+for configuration. The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on
+JDK 17. Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
+CLI:: A command line tool that supports every interaction that the core-module provides. Native binaries are available
+for Linux, macOS and Windows. If you want to use Java based migrations in the CLI, you must use the JVM distribution.
+This is an ideal tool to be put into CI/CD not based on Maven or Gradle.
+Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
+to apply migrations during your build.
+Spring-Boot-Starter:: Provides all configuration options via the well-known Spring-Boot-Properties mechanism and turns them
+into a fully configured Migrations instance that will be applied on application start. Scripts will be searched sane default
+location.
+
+[[introduction-changelog]]
+== Changelog
+
+We provide a full changelog on GitHub: https://github.com/michael-simons/neo4j-migrations/releases[Neo4j-Migrations].
+Our commits follow https://www.conventionalcommits.org/en/v1.0.0/[conventional commits].
+The releases are created and published via https://jreleaser.org[JReleaser].
+
+[[introduction-history]]
+== History
+
+The original idea of Neo4j-Migrations was conceived when working on integrating https://github.com/spring-projects/spring-data-neo4j[Spring Data Neo4j] (back then SDN/RX)
+into https://www.jhipster.tech[JHipster]. We needed some Nodes, constraints and relationship to be present in the Neo4j database
+for JHipster to do it's magic but back then there was no lightweight (in terms of dependencies) tool that did work well with
+Neo4j 4.0 (the first Graph database providing reactive data access out of the box).
+Neo4j-Migrations filled that gab in early 2020 and has grown ever since.

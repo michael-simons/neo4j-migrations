@@ -3,8 +3,44 @@
 
 == Common operations
 
+[[usage_common_apply]]
+=== Apply
+
 [[usage_common_clean]]
 === Clean
+
+`clean` applies by default to the schema database. It will remove Neo4j-Migrations related nodes and relationships.
+If there is no schema database selected, it works on the optional target database. If this isn't configured either, the
+users home database will be used.
+
+The clean operation will search for
+
+* Migration chains (those are the nodes containing information about the applied migrations)
+* Any log from this Neo4j-Migrations
+* Any constraints created by Neo4j-Migrations
+
+And will delete and drop them in that order. This is a *destructive* operation, so make sure not to apply it to your
+production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
+
+The operation takes in a boolean parameter. When set to `false`, only the <<concepts_chain,migration chain>> for the currently
+configured target database will be deleted. When set to `true`, all objects created by Neo4j-Migrations will be deleted.
+
+[[usage_common_info]]
+=== Info
+
+The `info` operations returns information about the context, the database, all applied and all pending applications.
+
+[[usage_common_validate]]
+=== Validate
+
+The `validate` operations resolves all local migrations and checks whether all have applied in the same order and in the
+same version to the configured database.
+A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
+where migrations are missing, have not been applied, applied in a different order or with a different checksum.
+
+The validation result provides an additional operation `needsRepair()`. In case the result is invalid you might check if it
+needs repair. If not, you can just call the <<usage_common_apply, apply operation>> to turn the database into a valid state.
+
 
 == CLI
 

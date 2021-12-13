@@ -67,6 +67,9 @@
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
+		<asciidoctor-maven-plugin.version>2.2.1</asciidoctor-maven-plugin.version>
+		<asciidoctorj-diagram.version>2.2.1</asciidoctorj-diagram.version>
+		<asciidoctorj.version>2.5.2</asciidoctorj.version>
 		<assertj.version>3.21.0</assertj.version>
 		<byte-buddy.version>1.12.3</byte-buddy.version>
 		<checkstyle.version>9.2</checkstyle.version>
@@ -77,7 +80,7 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
@@ -110,6 +113,7 @@
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>
 		<picocli.version>4.6.2</picocli.version>
 		<powermock.version>2.0.9</powermock.version>
+		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
@@ -163,6 +167,18 @@
 				<groupId>org.apiguardian</groupId>
 				<artifactId>apiguardian-api</artifactId>
 				<version>${apiguardian.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctorj</artifactId>
+				<version>${asciidoctorj.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>rubygems</groupId>
+						<!-- Not needed -->
+						<artifactId>test-unit</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.assertj</groupId>
@@ -531,7 +547,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -639,6 +655,49 @@
 					<preparationGoals>clean exec:exec@prepare-release verify</preparationGoals>
 					<completionGoals>compile exec:exec@release-prepared</completionGoals>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>${asciidoctor-maven-plugin.version}</version>
+				<inherited>false</inherited>
+				<configuration>
+					<backend>html</backend>
+					<doctype>book</doctype>
+					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<attributes>
+						<icons>font</icons>
+						<toc>left</toc>
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
+						<imagesdir>img</imagesdir>
+						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
+						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
+						<source-highlighter>coderay</source-highlighter>
+					</attributes>
+					<requires>
+						<require>asciidoctor-diagram</require>
+					</requires>
+					<outputDirectory>${project.build.docs}</outputDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-diagram</artifactId>
+						<version>${asciidoctorj-diagram.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<phase>prepare-package</phase>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -10,6 +10,7 @@ Michael Simons <michael.simons@neo4j.com>
 :sectanchors: true
 :numbered: true
 :xrefstyle: short
+:imagesdir: img
 
 ifndef::manualIncludeDir[]
 :manualIncludeDir: ../

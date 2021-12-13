@@ -39,8 +39,7 @@ public interface MigrationChain {
 	default String prettyPrint() {
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(MigrationChainFormat.LS)
-			.append(getServerVersion() + "@").append(getServerAddress());
+		sb.append(MigrationChainFormat.LS).append(getServerVersion()).append("@").append(getServerAddress());
 
 		Optional<String> optionalDatabase = getOptionalDatabaseName();
 		optionalDatabase.ifPresent(name ->

@@ -1,6 +1,11 @@
 [[usage]]
 = Usage
 
+== Common operations
+
+[[usage_common_clean]]
+=== Clean
+
 == CLI
 
 === All options and arguments

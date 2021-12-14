@@ -10,8 +10,7 @@ on:
 
 jobs:
   publish_docs:
-    if: ${{ false }}  # disable for now
-    # if: github.event_name == 'push' || (github.event_name == 'create' && github.event.ref_type == 'tag')
+    if: github.event_name == 'push' || (github.event_name == 'create' && github.event.ref_type == 'tag')
     runs-on: ubuntu-latest
     steps:
       - name: Prepare branch name
@@ -29,14 +28,13 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 11
+          java-version: 17
       - name: Run docs generation
-        # Copy has wrong path
         run: >
-          ./mvnw asciidoctor:process-asciidoc@generate-docs -pl org.neo4j:neo4j-cypher-dsl-parent -Dproject.build.docs=target/gh-pages/${refName} &&
-          ./mvnw clean compile site:site site:stage &&
+          ./mvnw asciidoctor:process-asciidoc@generate-docs -pl :neo4j-migrations-parent -Dproject.build.docs=target/gh-pages/${refName} &&
+          ./bin/generate-site.sh &&
           rm -rf target/gh-pages/${refName}/project-info &&
-          mv neo4j-cypher-dsl/target/site target/gh-pages/${refName}/project-info
+          mv neo4j-cypher-dsl/target/staging target/gh-pages/${refName}/project-info
       - name: Create symlink
         if: (github.event_name == 'create' && github.event.ref_type == 'tag')
         working-directory: ./target/gh-pages

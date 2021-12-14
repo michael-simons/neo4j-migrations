@@ -11,7 +11,8 @@ Michael Simons <michael.simons@neo4j.com>
 :artifactIdMavenPlugin: neo4j-migrations-maven-plugin
 :artifactIdSpringBoot: neo4j-migrations-spring-boot-starter
 :artifactIdCore: neo4j-migrations
-:projectInfoBaseUrl: file:///Users/msimons/Projects/eu.michael-simons/neo4j-migrations/target/staging
+:branch: main
+:siteBaseUrl: https://michael-simons.github.io/neo4j-migrations/{branch}/site
 // end::properties[]
 
 [abstract]
@@ -58,3 +59,4 @@ the following coordinates:
 == Manual
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].
+The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].

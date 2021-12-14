@@ -10,6 +10,7 @@
 
 	<artifactId>neo4j-migrations-test-results</artifactId>
 	<name>Neo4j Migrations (Test Results)</name>
+	<description>Aggregator project for test results.</description>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.test_results</java-module-name>

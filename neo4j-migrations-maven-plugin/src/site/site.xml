@@ -2,6 +2,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.3.0.xsd"
 		 name="Neo4j-Migrations Maven-Plugin">
 	<body>
+		<menu ref="parent"/>
 		<menu name="Overview">
 			<item name="Goals" href="plugin-info.html"/>
 		</menu>

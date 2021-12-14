@@ -272,7 +272,7 @@ NOTE: We do add this here for completeness, but we do think that Java based migr
 
 == Core API
 
-We publish the Java-API-Docs here: {projectInfoBaseUrl}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
+We publish the Java-API-Docs here: link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <<download_core>>.
 
 The classes you will be working with are `ac.simons.neo4j.migrations.core.MigrationsConfig` and its related builder and
@@ -477,7 +477,7 @@ NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `f
 [[usage_maven-plugin]]
 == Maven-Plugin
 
-You can trigger Neo4j-Migrations from your build a Maven-Plugin. Please refer to the dedicated {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Maven-Plugin page] for
+You can trigger Neo4j-Migrations from your build a Maven-Plugin. Please refer to the dedicated link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Maven-Plugin page] for
 a detailed list of all goals and configuration option as well as the default lifecycle mapping of the plugin.
 
 === Configuration
@@ -521,10 +521,10 @@ Add multiple `locationToScan` elements for multiple locations to scan.
 
 All goals as described in <<usage_common>> are supported.
 
-* {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/clean-mojo.html[clean], see <<usage_common_clean>>
-* {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/help-mojo.html[help]
-* {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/info-mojo.html[info], see <<usage_common_info>>
-* {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/migrate-mojo.html[migrate], see <<usage_common_apply>>
-* {projectInfoBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/clean-mojo.html[clean], see <<usage_common_clean>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/help-mojo.html[help]
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/info-mojo.html[info], see <<usage_common_info>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/migrate-mojo.html[migrate], see <<usage_common_apply>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
 
 The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.

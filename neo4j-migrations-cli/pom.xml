@@ -10,6 +10,7 @@
 
 	<artifactId>neo4j-migrations-cli</artifactId>
 	<name>Neo4j Migrations (CLI)</name>
+	<description>CLI module, packaged as JVM and native assemblies.</description>
 
 	<properties>
 		<covered-ratio-complexity>0.1</covered-ratio-complexity>

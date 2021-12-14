@@ -115,6 +115,7 @@
 		<picocli.version>4.6.2</picocli.version>
 		<powermock.version>2.0.9</powermock.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
+		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
@@ -682,6 +683,7 @@
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
 						<source-highlighter>coderay</source-highlighter>
+						<branch>${project.build.docs.branch}</branch>
 					</attributes>
 					<requires>
 						<require>asciidoctor-diagram</require>

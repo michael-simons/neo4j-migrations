@@ -30,14 +30,20 @@ Neo4j-Migrations comes in different flavors:
 Core:: The core module, providing an API to run both Cypher script and Java based migrations. The API includes builders
 for configuration. The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on
 JDK 17. Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
++
+link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations/index.html[Project info]
 CLI:: A command line tool that supports every interaction that the core-module provides. Native binaries are available
 for Linux, macOS and Windows. If you want to use Java based migrations in the CLI, you must use the JVM distribution.
 This is an ideal tool to be put into CI/CD not based on Maven or Gradle.
 Spring-Boot-Starter:: Provides all configuration options via the well-known Spring-Boot-Properties mechanism and turns them
 into a fully configured Migrations instance that will be applied on application start. Scripts will be searched sane default
 location.
++
+link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/index.html[Project info]
 Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
 to apply migrations during your build.
++
+link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Plugin info]
 
 [[introduction-changelog]]
 == Changelog

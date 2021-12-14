@@ -10,6 +10,7 @@
 
 	<artifactId>neo4j-migrations</artifactId>
 	<name>Neo4j Migrations (Core)</name>
+	<description>The Core API of Neo4j-Migrations.</description>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.core</java-module-name>

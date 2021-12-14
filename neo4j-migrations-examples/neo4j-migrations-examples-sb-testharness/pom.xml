@@ -29,6 +29,7 @@
 	<artifactId>neo4j-migrations-examples-sb-testharness</artifactId>
 
 	<name>Examples (Spring Boot Integration with Neo4j Test-Harness)</name>
+	<description>Example using an embedded Database as target for migrations.</description>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>

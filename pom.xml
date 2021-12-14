@@ -54,11 +54,22 @@
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
+	<distributionManagement>
+		<site>
+			<id>neo4j-migrations-docs</id>
+			<name>Neo4j-Migrations</name>
+			<url>https://michael-simons.github.io/neo4j-migrations/current/</url>
+		</site>
+	</distributionManagement>
+
 	<properties>
 		<aggregate.report.dir>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
+		<asciidoctor-maven-plugin.version>2.2.1</asciidoctor-maven-plugin.version>
+		<asciidoctorj-diagram.version>2.2.1</asciidoctorj-diagram.version>
+		<asciidoctorj.version>2.5.2</asciidoctorj.version>
 		<assertj.version>3.21.0</assertj.version>
 		<byte-buddy.version>1.12.3</byte-buddy.version>
 		<checkstyle.version>9.2</checkstyle.version>
@@ -69,7 +80,7 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
@@ -86,8 +97,10 @@
 		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
 		<maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+		<maven-project-info-reports-plugin.version>3.1.2</maven-project-info-reports-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+		<maven-site-plugin.version>3.9.1</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -101,6 +114,8 @@
 		<os-maven-plugin.version>1.7.0</os-maven-plugin.version>
 		<picocli.version>4.6.2</picocli.version>
 		<powermock.version>2.0.9</powermock.version>
+		<project.build.docs>${project.build.directory}/docs</project.build.docs>
+		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
@@ -154,6 +169,18 @@
 				<groupId>org.apiguardian</groupId>
 				<artifactId>apiguardian-api</artifactId>
 				<version>${apiguardian.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctorj</artifactId>
+				<version>${asciidoctorj.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>rubygems</groupId>
+						<!-- Not needed -->
+						<artifactId>test-unit</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.assertj</groupId>
@@ -305,6 +332,18 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>${maven-javadoc-plugin.version}</version>
+					<configuration>
+						<detectOfflineLinks>false</detectOfflineLinks>
+						<detectJavaApiLink>false</detectJavaApiLink>
+						<source>${java.version}</source>
+						<tags>
+							<tag>
+								<name>soundtrack</name>
+								<placement>a</placement>
+								<head>Soundtrack</head>
+							</tag>
+						</tags>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -445,6 +484,16 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>${maven-site-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>${maven-project-info-reports-plugin.version}</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -505,7 +554,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -588,18 +637,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<detectOfflineLinks>false</detectOfflineLinks>
-					<detectJavaApiLink>false</detectJavaApiLink>
-					<source>${java.version}</source>
-					<tags>
-						<tag>
-							<name>soundtrack</name>
-							<placement>a</placement>
-							<head>Soundtrack</head>
-						</tag>
-					</tags>
-				</configuration>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -626,8 +663,87 @@
 					<completionGoals>compile exec:exec@release-prepared</completionGoals>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>${asciidoctor-maven-plugin.version}</version>
+				<inherited>false</inherited>
+				<configuration>
+					<backend>html</backend>
+					<doctype>book</doctype>
+					<sourceDirectory>${basedir}/docs</sourceDirectory>
+					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<attributes>
+						<icons>font</icons>
+						<toc>left</toc>
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
+						<imagesdir>img</imagesdir>
+						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
+						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
+						<source-highlighter>coderay</source-highlighter>
+						<branch>${project.build.docs.branch}</branch>
+					</attributes>
+					<requires>
+						<require>asciidoctor-diagram</require>
+					</requires>
+					<outputDirectory>${project.build.docs}</outputDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-diagram</artifactId>
+						<version>${asciidoctorj-diagram.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<phase>prepare-package</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<reportSets>
+					<reportSet>
+						<id>default</id>
+						<reports>
+							<report>javadoc</report>
+						</reports>
+					</reportSet>
+					<reportSet>
+						<id>aggregate</id>
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>checkstyle</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<profiles>
 		<profile>

@@ -29,6 +29,7 @@
 	<artifactId>neo4j-migrations-examples</artifactId>
 	<packaging>pom</packaging>
 	<name>Neo4j Migrations (Examples)</name>
+	<description>A couple of example projects.</description>
 
 	<modules>
 		<module>neo4j-migrations-examples-sb</module>

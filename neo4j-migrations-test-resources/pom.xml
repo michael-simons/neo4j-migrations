@@ -10,6 +10,7 @@
 
 	<artifactId>neo4j-migrations-test-resources</artifactId>
 	<name>Neo4j Migrations (Test Resources)</name>
+	<description>A set of sample resources (Cypher and Java based) used in integration tests.</description>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.test_resources</java-module-name>

@@ -12,6 +12,7 @@
 	<packaging>maven-plugin</packaging>
 
 	<name>Neo4j Migrations (Maven Plugin)</name>
+	<description>Integration for Maven.</description>
 
 	<prerequisites>
 		<maven>${maven.version}</maven>
@@ -267,4 +268,13 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

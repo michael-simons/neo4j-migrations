@@ -1,0 +1,357 @@
+[[concepts]]
+= Concepts
+
+This chapter deals with various concepts that are applicable for all modules offered.
+Especially checkout <<concepts_naming-conventions>> regarding naming conventions, for all Cypher and Java based migrations and callbacks.
+
+[[concepts_connectivity]]
+== Connectivity
+
+Neo4j-Migrations solely uses the https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver].
+Most of the time you pass a pre-configured object to our API.
+The Spring-Boot-Plugin depends on the driver-instance provided by Spring-Boot which can be configured via properties in the `spring.neo4j.*` space.
+The CLI and Maven-Plugin offer parameters to define the URL, username and password alike.
+
+All of this mean that we can keep this chapter short and basically defer to the drivers' documentation:
+https://neo4j.com/docs/java-manual/current/[The Neo4j Java Driver Manual v4.4].
+For ease of use, here are the most common forms of URLs the driver might take. The URLS all have this format: `<NEO4J_PROTOCOL>://<HOST>:<PORT>`.
+The Neo4j-Protocol might be one of the following:
+
+[cols="10m,5a,40a",options=header]
+|===
+|URI scheme
+|Routing
+|Description
+
+|neo4j
+|Yes
+|Unsecured
+
+|neo4j+s
+|Yes
+|Secured with full certificate
+
+|neo4j+ssc
+|Yes
+|Secured with self-signed certificate
+
+|bolt
+|No
+|Unsecured
+
+|bolt+s
+|No
+|Secured with full certificate
+
+|bolt+ssc
+|No
+|Secured with self-signed certificate
+|===
+
+You don't have to care much more about the Driver api than knowing how to create an instance:
+
+.Create an instance of the Neo4j-Java-Driver
+[source,java]
+----
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+
+class HowToCreateADriverInstance {
+
+	public static void main(String... args) {
+		Driver driver = GraphDatabase.driver(
+			"neo4j://your.database.io",
+			AuthTokens.basic("neo4j", "secret"),
+			Config.defaultConfig()
+		);
+	}
+}
+----
+
+This instance needs to be passed than to the Neo4j-Migrations Core-API in case you aren't using one of our integrations.
+Mostly everything else than can be done via Cypher-Scripts alone.
+If you need more control about what happens in a migration, have a look at our Java-based migration support in <<concepts_migrations_java-based>>.
+
+[[concepts_migrations]]
+== Migrations
+
+Migrations are all operations or refactorings you apply to a database.
+These operations might be creating, changing, or dropping indexes and constraints or altering data.
+Sometimes you might even want to create users or databases.
+
+[[concepts_migrations_cypher-based]]
+=== Cypher based
+
+Cypher based migrations can be mostly anything you can write down as https://neo4j.com/docs/cypher-refcard/current/[Cypher statement].
+A Cypher based migration can contain one or more statements with multiple lines separated by a `;` followed by a new line.
+By default, all statements in one script will be executed in a single transaction.
+
+Here's an example:
+
+[source,cypher]
+.neo4j/migrations/V007__BondTheNameIsBond.cypher
+----
+CREATE (agent:`007`) RETURN agent;
+UNWIND RANGE(1,6) AS i
+WITH i CREATE (n:OtherAgents {idx: '00' + i})
+RETURN n
+;
+----
+
+This script contains two different statements.
+
+Neo4j-Migrations will by default look in `classpath:neo4j/migrations` for all `*.cypher` files matching the name described in
+<<concepts_naming-conventions>>. You can change (or add to this default) with the Core API or the appropriate properties in
+Spring-Boot-Starter or the Maven-Plugin like this:
+
+.Changing the locations to scan for Migrations (and Callbacks) via the Core API
+[source,java]
+----
+MigrationsConfig configLookingAtDifferentPlaces = MigrationsConfig.builder()
+    .withLocationsToScan(
+        "classpath:my/awesome/migrations", // <.>
+        "file:/path/to/migration" // <.>
+    ).build();
+----
+<.> Look at a different place on the classpath
+<.> Look additional at the given filesystem path
+
+==== Switching database inside Cypher-Scripts
+
+It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE])
+inside your scripts. There a couple of thinks to remember, though:
+
+* It can get tricky if you combine it in creative ways with the options for schema- and target-databases Neo4j-Migrations offer itself
+* If you have more than one statement per script (which is completely not a problem) and one of them should use `USE` you must
+configure Neo4j-Migrations to use `TransactionMode#PER_STATEMENT` (see <<concepts_transactions>>, meaning to run each statement of a script in a separate transaction.
+This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
+before has already been committed.
+
+[[concepts_migrations_java-based]]
+=== Java based
+
+Neo4j-Migrations provides the interface `ac.simons.neo4j.migrations.core.JavaBasedMigration` for you to implement.
+Based on that interface you can do much more than just migrate things via adding or changing data: You can refactor
+everything in your database in a programmatic way. One possible migration looks like this:
+
+.Example for a Java based refactoring
+[source,java]
+----
+package some.migrations;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+
+public class V001__MyFirstMigration implements JavaBasedMigration {
+
+    @Override
+    public void apply(MigrationContext context) {
+        try (Session session = context.getSession()) { // <1>
+            // Steps necessary for a migration
+        }
+    }
+}
+----
+<.> The `MigrationContext` provides both `getSession()` or `getSessionConfig()` to be used in combination with `getDriver()`.
+    The latter is helpful when you want to have access to a reactive or asynchronous session.
+    It is important that you use the convenient method `getSession()` or create a session with the provided config as only
+    those guarantee hat your database session will be connected to the configured target database with the configured user.
+    However, if you feel like it is necessary to switch to a different database, you can use the driver instance any way you want.
+    The transaction handling inside Java based migrations is completely up to you.
+
+You don't have to annotate your Java based migrations in any way. Neo4j-Migrations will find them on the classpath as is.
+The same naming requirements that apply to Cypher scripts apply to Java based migrations as well, see <<concepts_naming-conventions>>.
+
+NOTE: There are some restrictions when it comes to run Neo4j-Migrations on GraalVM native image: You might or might not
+      be able to convince the runtime to find implementations of an interface in native image. You must at least explicitly
+      include those classes in the native image unless used otherwise as well.
+      +
+      The CLI will outright refuse to scan for Java based migrations in its native form (when using the `--package` option).
+      It does support them only in JVM mode.
+
+While you can theoretically extend the public base interface `Migration` too, we don't recommend it.
+In fact, on JDK 17 we forbid it. Please use only `JavaBasedMigration` as base interface for your programmatic migrations.
+
+[[concepts_callbacks]]
+== Callbacks
+
+Callbacks are part of a refactoring or a chain of migration that lives outside the chain of things. As such these callbacks
+can be used to make sure certain data, constructs or other preconditions are available of full filled before anything else happens.
+They also come in handy during integration tests. You might want to have your migrations as part of the main source tree
+of your application and at the same time have in your tests source tree the same folder with a bunch of callbacks that
+create test data for example in an `afterMigrate` event.
+
+Callbacks are not considered immutable after they have been invoked and their invocation is not stored in the history graph.
+This gives you a hook to add some more volatile things to your refactoring.
+
+The `beforeFirstUse` callback is especially handy in cases in which you want to create the target database before migrations
+are applied: It will always be invoked inside the home database of the connected user, so at this point, the target database
+does not need to exist yet.
+
+[[concepts_lifecycle-phases]]
+=== Lifecycle phases
+
+The following phases are supported:
+
+beforeFirstUse:: The only phase that only runs once for any given instance of Neo4j-Migrations. It will run before any
+other operations are called, when the first connection is opened. Callbacks in this phase will always be invoked in the
+schema database and not the target database, so they won't require the target database to be present. Also, no user impersonation
+will be performed. This can be used to create the target database before any migrations or validations are run.
+beforeMigrate:: Before migrating a database.
+afterMigrate:: After migrating a database, independent of outcome.
+beforeClean:: Before cleaning a database.
+afterClean:: After cleaning a database, independent of outcome.
+beforeValidate:: Before validating a database.
+afterValidate:: After validating a database, independent of outcome.
+beforeInfo:: Before getting information about the target database.
+afterInfo:: After getting information about the target database.
+
+[[concepts_naming-conventions]]
+== Naming conventions
+
+=== Cypher based resources
+
+All Cypher based resources (especially migration and callback scripts) require `.cypher` as extension.
+The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in `classpath:neo4j/migrations`.
+The CLI has no default search-location.
+
+[[concepts_naming-conventions_migration_scripts]]
+==== Migration scripts
+
+A Cypher script based migration must have a name following the given pattern to be recognized:
+
+[source,console]
+----
+V1_2_3__Add_last_name_index.cypher
+----
+
+* Prefix `V` for "__V__ersioned Migrations"
+* Version with optional underscores separating as many parts as you like
+* Separator: `__` (two underscores)
+* Required description: Underscores or spaces might be used to separate words
+* Suffix: `.cypher`
+
+This applies to both Cypher scripts outside an application (in the file system) and inside  an application (as resources).
+
+WARNING: Cypher based migrations scripts are considered to be immutable once applied! We compute their checksums and
+record it inside the schema database. If you change a Cypher based migration after it has been applied, any further
+application will fail.
+
+==== Callback scripts
+
+A Cypher script is recognized as a callback for a given lifecycle when it matches the following pattern:
+
+[source,console]
+----
+nameOfTheLifecyclePhase.cypher
+nameOfTheLifecyclePhase__optional_description.cypher
+----
+
+`nameOfTheLifecyclePhase` must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <<concepts_lifecycle-phases>>),
+followed by the suffix `.cypher` or an optional description, separated from the name of the phase by two underscores (`__`).
+The description is used to order different callback scripts for the same lifecycle phase.
+If you use more than one script in the same lifecycle phase without a description, the order is undefined.
+
+NOTE: Callback scripts are not considered to be immutable and can change between execution.
+If you use DDL statements such as `CREATE USER` or `CREATE DATABASE` in them make sure you look for an `IF NOT EXITS`
+option in your desired clause so that theses statements become idempotent.
+
+=== Java based migrations
+
+For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
+<<concepts_naming-conventions_migration_scripts, Cypher based scripts>> apart from the extension. To stick with the above
+example, `++V1_2_3__Add_last_name_index.cypher++` becomes `++V1_2_3__Add_last_name_index++` as simple class name, or in source
+form, `++V1_2_3__Add_last_name_index.java++`.
+
+Our recommendation is to use something like this:
+
+[source,java]
+----
+public class V1_2_3__AddLastNameIndex implements JavaBasedMigration {
+    @Override
+    public void apply(MigrationContext context) {
+        // Your thing
+    }
+
+    @Override
+    public String getSource() {
+        return "Add last name index"; // <.>
+    }
+}
+----
+<.> Defaults to the simple class name being added to the history chain.
+
+[[concepts_chain]]
+== Chain of applied migrations
+
+All migrations applied to a target database are stored in the schema database.
+The target and the schema database can be the same database.
+If you are an enterprise customer managing different databases for different tenants that are however used for the same
+application, it makes absolutely sense to use a separate schema database that stores all data related to Neo4j-Migrations.
+
+The subgraph will look like this:
+
+image::chain-of-migrations.png[]
+
+In case you use a schema database for any database with a different name than the default (which is `neo4j`) the nodes
+labelled `++__Neo4jMigration++` will have an additional property name `migrationTarget` which contains the target graph.
+
+The chain of applied migrations is stable, and you can of course query it (for example in <<concepts_callbacks,callbacks>>)
+but you should not modify it in any way or form. In case you want to get rid of it, please use the <<usage_common_clean,`clean`>>
+operation.
+
+[[concepts_separate-databases]]
+== Separate schema databases
+
+Since version 1.1.0 you can use a different database for storing information about migrations.
+You need to run against Neo4j Enterprise Edition.
+The command line argument respectively the property is `schema-database` throughout the configuration.
+The name given must be a valid Neo4j database name (See https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/[Administration and configuration]).
+The database must exist and the user must have write access to it.
+
+Valid scenarios are:
+
+- Using a schema database for one other database
+- Using a schema database for maintaining multiple migrations of different databases
+- Using pairs of schema databases and target databases
+
+Neo4j-Migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
+Neo4j-Migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`), so that this feature
+doesn't break compatibility with schemas created before 1.1.0.
+
+[[concepts_transactions]]
+== Transactions
+
+All operations executed directly by Neo4j-Migrations are executed inside transactional functions.
+This essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).
+
+You can configure if all statements of one <<concepts_migrations_cypher-based,Cypher based>> migration go into one
+transactional function or if each statement goes into its own transactional scope:
+
+.Chose transaction behaviour
+[source,java]
+----
+MigrationsConfig configPerMigration = MigrationsConfig.builder()
+    .withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
+    .build();
+
+// OR
+
+MigrationsConfig configPerStatement = MigrationsConfig.builder()
+    .withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+    .build();
+----
+
+Per Migration is the default, as we think it's safer: Either the whole migration is applied (or failed) or none.
+But there are certain scenarios that require a transaction per statement, for example most DDL operations such as creating
+databases might not be run together with DML operations in the same transaction.

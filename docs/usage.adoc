@@ -1,0 +1,530 @@
+[[usage]]
+= Usage
+
+[[usage_common]]
+== Common operations
+
+[[usage_common_apply]]
+=== Apply
+
+[[usage_common_clean]]
+=== Clean
+
+`clean` applies by default to the schema database. It will remove Neo4j-Migrations related nodes and relationships.
+If there is no schema database selected, it works on the optional target database. If this isn't configured either, the
+users home database will be used.
+
+The clean operation will search for
+
+* Migration chains (those are the nodes containing information about the applied migrations)
+* Any log from this Neo4j-Migrations
+* Any constraints created by Neo4j-Migrations
+
+And will delete and drop them in that order. This is a *destructive* operation, so make sure not to apply it to your
+production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
+
+The operation takes in a boolean parameter. When set to `false`, only the <<concepts_chain,migration chain>> for the currently
+configured target database will be deleted. When set to `true`, all objects created by Neo4j-Migrations will be deleted.
+
+[[usage_common_info]]
+=== Info
+
+The `info` operations returns information about the context, the database, all applied and all pending applications.
+
+[[usage_common_migrate]]
+=== Apply / migrate
+
+The `apply` method (or `migrate` in case of the Maven-Plugin) does exactly that: It applies all locally resolved migrations
+to the target database and stores the <<concepts_chain,chain of applied migrations>> in the schema database.
+
+It returns the last applied version.
+
+[[usage_common_validate]]
+=== Validate
+
+The `validate` operations resolves all local migrations and checks whether all have applied in the same order and in the
+same version to the configured database.
+A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
+where migrations are missing, have not been applied, applied in a different order or with a different checksum.
+
+The validation result provides an additional operation `needsRepair()`. In case the result is invalid you might check if it
+needs repair. If not, you can just call the <<usage_common_apply, apply operation>> to turn the database into a valid state.
+
+== CLI
+
+Please chose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <<download_cli>>.
+In the following we assume you downloaded and unzipped the architecture independent version. For that version to work, you need to have
+JDK 8 or higher installed:
+
+.Download and extraction of the JVM based version
+[source,console,subs="verbatim,attributes"]
+----
+java -version
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+unzip neo4j-migrations-{latest_version}.zip
+cd neo4j-migrations-{latest_version}
+./bin/neo4j-migrations -V
+----
+
+Those commands should first print out your Java version, then download, extract and run Neo4j-Migrations-CLI to give you its version.
+
+TIP: If you only deal with <<concepts_migrations_cypher-based, Cypher based migrations>>, don't have the need for any
+      <<concepts_migrations_java-based,programmatic migrations>> and we provide a native binary for your platform, make sure
+      to chose that. Its startup time is faster and you don't need to have a JVM installed.
+
+=== All options and arguments
+
+The CLI comes with a build-in help, accessible via `neo4j-migrations -h` or `neo4j-migrations --help`:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations --help
+Usage: neo4j-migrations [-hvV] [--autocrlf] [--validate-on-migrate] -p
+                        [=<password>] [-p[=<password>]]... [-a=<address>]
+                        [-d=<database>] [--impersonate=<impersonatedUser>]
+                        [--schema-database=<schemaDatabase>]
+                        [--transaction-mode=<transactionMode>] [-u=<user>]
+                        [--location=<locationsToScan>]...
+                        [--package=<packagesToScan>]... [COMMAND]
+Migrates Neo4j databases.
+  -a, --address=<address>   The address this migration should connect to. The
+                              driver supports bolt, bolt+routing or neo4j as
+                              schemes.
+      --autocrlf            Automatically convert Windows line-endings (CRLF)
+                              to LF when reading resource based migrations,
+                              pretty much what the same Git option does during
+                              checkin.
+  -d, --database=<database> The database that should be migrated (Neo4j EE 4.0
+                              +).
+  -h, --help                Show this help message and exit.
+      --impersonate=<impersonatedUser>
+                            The name of a user to impersonate during migration
+                              (Neo4j EE 4.4+).
+      --location=<locationsToScan>
+                            Location to scan. Repeat for multiple locations.
+  -p, --password[=<password>]
+                            The password of the user connecting to the database.
+      --package=<packagesToScan>
+                            Package to scan. Repeat for multiple packages.
+      --schema-database=<schemaDatabase>
+                            The database that should be used for storing
+                              information about migrations (Neo4j EE 4.0+).
+      --transaction-mode=<transactionMode>
+                            The transaction mode to use.
+  -u, --username=<user>     The login of the user connecting to the database.
+  -v                        Log the configuration and a couple of other things.
+  -V, --version             Print version information and exit.
+      --validate-on-migrate Validating helps you verify that the migrations
+                              applied to the database match the ones available
+                              locally and is on by default.
+Commands:
+  clean     Removes Neo4j-Migration specific data from the selected schema
+              database
+  help      Displays help information about the specified command
+  info      Retrieves all applied and pending informations, prints them and
+              exits.
+  migrate   Retrieves all pending migrations, verify and applies them.
+  validate  Resolves all local migrations and validates the state of the
+              configured database with them.
+----
+
+=== Full example
+
+Here's an example that looks for migrations in a Java package and it's subpackages and in a filesystem location for Cypher based migrations.
+In this example we have exported the directory with our Java based migrations like this: `export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/`.
+Please adapt accordingly to your project and / or needs.
+
+The example uses the `info` command to tell you which migrations have been applied and which not:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  --location file:$HOME/Desktop/foo \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
+  info
+
+Neo4j/4.4.0@localhost:7687
+Database: neo4j
+
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------------+
+| Version | Description                 | Type   | Installed on | by | Execution time | State   | Source                                                       |
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------------+
+| 001     | FirstMigration              | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset1.V001__FirstMigration                  |
+| 002     | AnotherMigration            | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset1.V002__AnotherMigration                |
+| 023     | NichtsIstWieEsScheint       | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset2.V023__NichtsIstWieEsScheint           |
+| 023.1   | NichtsIstWieEsScheintNeu    | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset2.V023_1__NichtsIstWieEsScheintNeu      |
+| 023.1.1 | NichtsIstWieEsScheintNeuNeu | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset2.V023_1_1__NichtsIstWieEsScheintNeuNeu |
+| 030     | Something based on a script | CYPHER |              |    |                | PENDING | V030__Something_based_on_a_script.cypher                     |
+| 042     | The truth                   | CYPHER |              |    |                | PENDING | V042__The truth.cypher                                       |
++---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------------+
+----
+
+You can repeat both `--package`  and `--location` parameter for fine-grained control.
+Use `migrate` to apply migrations:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  --location file:$HOME/Desktop/foo \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
+  migrate
+Applied migration 001 ("FirstMigration")
+Applied migration 002 ("AnotherMigration")
+Applied migration 023 ("NichtsIstWieEsScheint")
+Applied migration 023.1 ("NichtsIstWieEsScheintNeu")
+Applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu")
+Applied migration 030 ("Something based on a script")
+Applied migration 042 ("The truth")
+Database migrated to version 042.
+----
+
+If we go back to the `info` example above and grab all migrations again, we find the following result:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  --location file:$HOME/Desktop/foo \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
+  info
+
+Database: Neo4j/4.0.0@localhost:7687
+
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------------+
+| Version | Description                 | Type   | Installed on                  | by            | Execution time | State   | Source                                                       |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------------+
+| 001     | FirstMigration              | JAVA   | 2021-12-14T12:16:43.577Z[UTC] | msimons/neo4j | PT0S           | APPLIED | a.s.n.m.c.t.changeset1.V001__FirstMigration                  |
+| 002     | AnotherMigration            | JAVA   | 2021-12-14T12:16:43.876Z[UTC] | msimons/neo4j | PT0.032S       | APPLIED | a.s.n.m.c.t.changeset1.V002__AnotherMigration                |
+| 023     | NichtsIstWieEsScheint       | JAVA   | 2021-12-14T12:16:43.993Z[UTC] | msimons/neo4j | PT0S           | APPLIED | a.s.n.m.c.t.changeset2.V023__NichtsIstWieEsScheint           |
+| 023.1   | NichtsIstWieEsScheintNeu    | JAVA   | 2021-12-14T12:16:44.014Z[UTC] | msimons/neo4j | PT0S           | APPLIED | a.s.n.m.c.t.changeset2.V023_1__NichtsIstWieEsScheintNeu      |
+| 023.1.1 | NichtsIstWieEsScheintNeuNeu | JAVA   | 2021-12-14T12:16:44.035Z[UTC] | msimons/neo4j | PT0S           | APPLIED | a.s.n.m.c.t.changeset2.V023_1_1__NichtsIstWieEsScheintNeuNeu |
+| 030     | Something based on a script | CYPHER | 2021-12-14T12:16:44.093Z[UTC] | msimons/neo4j | PT0.033S       | APPLIED | V030__Something_based_on_a_script.cypher                     |
+| 042     | The truth                   | CYPHER | 2021-12-14T12:16:44.127Z[UTC] | msimons/neo4j | PT0.011S       | APPLIED | V042__The truth.cypher                                       |
++---------+-----------------------------+--------+-------------------------------+---------------+----------------+---------+--------------------------------------------------------------+
+----
+
+Another `migrate` - this time with all packages - gives us the following output and result:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  --location file:$HOME/Desktop/foo \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
+  migrate
+Skipping already applied migration 001 ("FirstMigration")
+Skipping already applied migration 002 ("AnotherMigration")
+Skipping already applied migration 023 ("NichtsIstWieEsScheint")
+Skipping already applied migration 023.1 ("NichtsIstWieEsScheintNeu")
+Skipping already applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu")
+Skipping already applied migration 030 ("Something based on a script")
+Skipping already applied migration 042 ("The truth")
+Database migrated to version 042.
+----
+
+The database will be now in a valid state:
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  --location file:$HOME/Desktop/foo \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
+  --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
+  validate
+All resolved migrations have been applied to the default database.
+----
+
+=== A template for Java based migrations
+
+As stated above, this will work only with the JVM distribution. Follow those steps:
+
+[source,bash,subs="verbatim,attributes"]
+----
+wget https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+unzip neo4j-migrations-{latest_version}.zip
+cd neo4j-migrations-{latest_version}
+mkdir -p my-migrations/some/migrations
+cat <<EOT >> my-migrations/some/migrations/V001__MyFirstMigration.java
+package some.migrations;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+
+public class V001__MyFirstMigration implements JavaBasedMigration {
+
+    @Override
+    public void apply(MigrationContext context) {
+        try (Session session = context.getSession()) {
+        }
+    }
+}
+EOT
+javac -cp "lib/*" my-migrations/some/migrations/*
+CLASSPATH_PREFIX=my-migrations ./bin/neo4j-migrations -v -uneo4j -psecret --package some.migrations info
+----
+
+NOTE: We do add this here for completeness, but we do think that Java based migrations makes most sense from inside your application,
+      regardless whether it's a Spring Boot, Quarkus or just a plain Java application. The CLI should be seen primarily as a script runner.
+
+== Core API
+
+We publish the Java-API-Docs here: link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
+Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <<download_core>>.
+
+The classes you will be working with are `ac.simons.neo4j.migrations.core.MigrationsConfig` and its related builder and
+`ac.simons.neo4j.migrations.core.Migrations` and maybe `ac.simons.neo4j.migrations.core.JavaBasedMigration` in case you
+want todo programmatic refactorings.
+
+=== Configuration and usage
+
+Configuration is basically made up of two parts: Creating a driver instance that points to your database or cluster as
+described in <<concepts_connectivity>> and an instance of `MigrationsConfig`. An instance of `MigrationsConfig` is created via a fluent-builder API.
+Putting everything together looks like this:
+
+.Creating an instance of `Migrations` based on a driver an a configuration object
+[source,java]
+----
+Migrations migrations = new Migrations(
+    MigrationsConfig.builder()
+        .withPackagesToScan("some.migrations")
+        .withLocationsToScan(
+            "classpath:my/awesome/migrations",
+            "file:/path/to/migration"
+        )
+        .build(),
+    GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))
+);
+
+migrations.apply(); // <.>
+----
+<.> Applies this migration object and migrates the database
+
+In case anything goes wrong the API will throw a `ac.simons.neo4j.migrations.core.MigrationsException`.
+Of course your migrations will be recorded as a chain of applied migrations (as nodes with the label `++__Neo4jMigration++`) as well when you use the API directly.
+
+[[usage_spring-boot-starter]]
+== Spring-Boot-Starter
+
+We provide a starter with automatic configuration for Spring Boot.
+Declare the following dependency in your Spring Boot application:
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations-spring-boot-starter</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+Or follow the instructions for Gradle in <<download_springboot>>.
+
+That starter itself depends on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver].
+The driver is managed by Spring Boot since 2.4 and you can enjoy configuration support directly through Spring Boot.
+For Boot versions prior to Spring Boot 2.4, please have a look at version https://github.com/michael-simons/neo4j-migrations/tree/0.0.13[0.0.13] of this library.
+
+Neo4j-Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exists.
+It does not scan by default for Java based migrations.
+
+Here's an example on how to configure the driver and the migrations:
+
+.Configure both the driver, disable the existince check for migration scripts and scan for Java based migration
+[source,properties]
+----
+spring.neo4j.authentication.username=neo4j
+spring.neo4j.authentication.password=secret
+spring.neo4j.uri=bolt://localhost:7687
+
+# Add configuration for your migrations, for example, additional packages to scan
+org.neo4j.migrations.packages-to-scan=your.changesets, another.changeset
+
+# Or disable the check if the location exists
+org.neo4j.migrations.check-location=false
+----
+
+Have a look at <<usage_spring-boot_all-properties>> for all supported properties.
+
+=== Usage with `@DataNeo4jTest`
+
+If you want to use your migrations together with `@DataNeo4jTest` which is provided with Spring Boot out of the box,
+you have to manually import our autoconfiguration like this:
+
+[source,java,indent=0,tabsize=4]
+----
+import ac.simons.neo4j.migrations.springframework.boot.autoconfigure.MigrationsAutoConfiguration;
+
+import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Driver;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
+
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
+
+@Testcontainers(disabledWithoutDocker = true)
+@DataNeo4jTest // <.>
+@ImportAutoConfiguration(MigrationsAutoConfiguration.class) // <.>
+public class UsingDataNeo4jTest {
+
+	@Container
+	private static Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.2")
+		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse()); // <.>
+
+	@DynamicPropertySource
+	static void neo4jProperties(DynamicPropertyRegistry registry) { // <.>
+
+		registry.add("spring.neo4j.uri", neo4j::getBoltUrl);
+		registry.add("spring.neo4j.authentication.username", () -> "neo4j");
+		registry.add("spring.neo4j.authentication.password", neo4j::getAdminPassword);
+	}
+
+	@Test
+	void yourTest(@Autowired Driver driver) {
+		// Whatever is tested
+    }
+}
+----
+<.> Use the dedicated Neo4j test slice
+<.> Import _this_ auto configuration (which is not part of Spring Boot)
+<.> Bring up a container to test against
+<.> Use `DynamicPropertySource`  for configuring the test resources dynamically
+
+[[usage_spring-boot_all-properties]]
+=== Available configuration properties
+
+The following configuration properties in the `org.neo4j.migrations` namespace are supported:
+
+[cols="40a,5m,5m,50a",options=header]
+|===
+|Name
+|Type
+|Default
+|Description
+
+| `org.neo4j.migrations.check-location`
+| java.lang.Boolean
+| true
+| Whether to check that migration scripts location exists.
+
+| `org.neo4j.migrations.database`
+| java.lang.String
+| null
+| The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.schema-database`
+| java.lang.String
+| null
+| The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+
+| `org.neo4j.migrations.impersonated-user`
+| java.lang.String
+| null
+| An alternative user to impersonate during migration. Might have higher privileges than the user connected, which  will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+
+| `org.neo4j.migrations.enabled`
+| java.lang.Boolean
+| true
+| Whether to enable Neo4j-Migrations or not.
+
+| `org.neo4j.migrations.encoding`
+| java.nio.charset.Charset
+| UTF-8
+| Encoding of Cypher migrations.
+
+| `org.neo4j.migrations.installed-by`
+| java.lang.String
+| System user
+| Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+
+| `org.neo4j.migrations.locations-to-scan`
+| java.lang.String[]
+| `classpath:neo4j/migrations`
+| Locations of migrations scripts.
+
+| `org.neo4j.migrations.packages-to-scan`
+| java.lang.String[]
+| An empty array
+| List of packages to scan for Java migrations.
+
+| `org.neo4j.migrations.transaction-mode`
+| TransactionMode
+| `PER_MIGRATION`
+| The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+
+| `org.neo4j.migrations.validate-on-migrate`
+| boolean
+| `true`
+| Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+
+| `org.neo4j.migrations.autocrlf`
+| boolean
+| `false`
+| Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.
+|===
+
+NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
+
+[[usage_maven-plugin]]
+== Maven-Plugin
+
+You can trigger Neo4j-Migrations from your build a Maven-Plugin. Please refer to the dedicated link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Maven-Plugin page] for
+a detailed list of all goals and configuration option as well as the default lifecycle mapping of the plugin.
+
+=== Configuration
+
+Most of the time you will configure the following properties for the plugin:
+
+.Configuring the Maven-Plugin
+[source,xml,subs="verbatim,attributes"]
+----
+<plugin>
+    <groupId>eu.michael-simons.neo4j</groupId>
+    <artifactId>neo4j-migrations-maven-plugin</artifactId>
+    <version>{latest_version}</version>
+    <executions>
+        <execution>
+            <configuration>
+                <user>neo4j</user>
+                <password>secret</password>
+                <address>bolt://localhost:${it-database-port}</address>
+                <verbose>true</verbose>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+All goals provide these properties. By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations_cypher-based, Cypher based migrations>>.
+You can change that via `locationsToScan` inside the `configuration` element like this:
+
+.Changing the locations to scan for the Maven-Plugin
+[source,xml]
+----
+<locationsToScan>
+    <locationToScan>file://${project.build.outputDirectory}/custom/path</locationToScan>
+</locationsToScan>
+----
+
+Add multiple `locationToScan` elements for multiple locations to scan.
+
+=== Goals
+
+All goals as described in <<usage_common>> are supported.
+
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/clean-mojo.html[clean], see <<usage_common_clean>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/help-mojo.html[help]
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/info-mojo.html[info], see <<usage_common_info>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/migrate-mojo.html[migrate], see <<usage_common_apply>>
+* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
+
+The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.

@@ -1,0 +1,38 @@
+= Neo4j-Migrations
+Michael Simons <michael.simons@neo4j.com>
+:toc:
+:doctype: book
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:sectlink: true
+:sectanchors: true
+:numbered: true
+:xrefstyle: short
+:imagesdir: img
+
+ifndef::manualIncludeDir[]
+:manualIncludeDir: ../
+endif::[]
+
+include::{manualIncludeDir}/README.adoc[tags=properties]
+
+:copyright: Copyright 2020-2021 the original author or authors.
+
+(C) {copyright}
+
+[abstract]
+--
+This is the Neo4j-Migrations manual version {latest_version}.
+--
+
+include::introduction.adoc[leveloffset=+1]
+
+include::download.adoc[leveloffset=+1]
+
+include::concepts.adoc[leveloffset=+1]
+
+include::usage.adoc[leveloffset=+1]
+
+include::appendix.adoc[leveloffset=+1]

@@ -310,6 +310,25 @@ The chain of applied migrations is stable, and you can of course query it (for e
 but you should not modify it in any way or form. In case you want to get rid of it, please use the <<usage_common_clean,`clean`>>
 operation.
 
+[[concepts_separate-databases]]
+== Separate schema databases
+
+Since version 1.1.0 you can use a different database for storing information about migrations.
+You need to run against Neo4j Enterprise Edition.
+The command line argument respectively the property is `schema-database` throughout the configuration.
+The name given must be a valid Neo4j database name (See https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/[Administration and configuration]).
+The database must exist and the user must have write access to it.
+
+Valid scenarios are:
+
+- Using a schema database for one other database
+- Using a schema database for maintaining multiple migrations of different databases
+- Using pairs of schema databases and target databases
+
+Neo4j-Migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
+Neo4j-Migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`), so that this feature
+doesn't break compatibility with schemas created before 1.1.0.
+
 [[concepts_transactions]]
 == Transactions
 

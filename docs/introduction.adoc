@@ -4,7 +4,7 @@
 [[introduction-about]]
 == About
 
-include::{manualIncludeDir}/README.adoc[tags=abstract]
+include::{manualIncludeDir}/README.adoc[tags=introduction]
 
 [[introduction-compatibility]]
 == Compatibility

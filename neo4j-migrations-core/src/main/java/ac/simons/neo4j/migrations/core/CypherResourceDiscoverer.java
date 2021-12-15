@@ -138,7 +138,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 		Predicate<String> hasExtension = fullPath -> {
 			final int lastSlashIdx = fullPath.lastIndexOf('/');
 			final int lastDotIdx = fullPath.lastIndexOf('.');
-			return lastDotIdx > lastSlashIdx  && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
+			return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
 		};
 
 		for (String location : filesystemLocations) {

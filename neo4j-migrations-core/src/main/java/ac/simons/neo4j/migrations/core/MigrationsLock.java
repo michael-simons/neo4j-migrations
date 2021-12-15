@@ -85,7 +85,7 @@ final class MigrationsLock {
 
 		try (Session session = context.getSchemaSession()) {
 			SummaryCounters summaryCounters = session.writeTransaction(
-				tx -> tx.run("MATCH  (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
+				tx -> tx.run("MATCH (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
 			nodesDeleted += summaryCounters.nodesDeleted();
 			relationshipsDeleted += summaryCounters.relationshipsDeleted();
 			constraintsRemoved += silentDropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");

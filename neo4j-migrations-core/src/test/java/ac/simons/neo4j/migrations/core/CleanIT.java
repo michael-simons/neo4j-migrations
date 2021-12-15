@@ -42,8 +42,8 @@ class CleanIT extends TestBase {
 			});
 			// Make one chain a bit longer
 			session.run(
-				"MATCH (n:__Neo4jMigration {version: 'Next',  migrationTarget: $db}) "
-				+ "CREATE (n) - [:MIGRATED_TO] -> (:__Neo4jMigration {version: 'Next2',  migrationTarget: $db})",
+				"MATCH (n:__Neo4jMigration {version: 'Next', migrationTarget: $db}) "
+				+ "CREATE (n) - [:MIGRATED_TO] -> (:__Neo4jMigration {version: 'Next2', migrationTarget: $db})",
 				Values.parameters("db", "db2"));
 		}
 		// Enforce creation of locks

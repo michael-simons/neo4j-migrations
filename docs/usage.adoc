@@ -69,7 +69,7 @@ cd neo4j-migrations-{latest_version}
 
 Those commands should first print out your Java version, then download, extract and run Neo4j-Migrations-CLI to give you its version.
 
-TIP: If you only deal with <<concepts_migrations_cypher-based, Cypher based migrations>> and
+TIP: If you only deal with <<concepts_migrations_cypher-based, Cypher-based migrations>> and
       don't have the need for any <<concepts_migrations_java-based,programmatic migrations>>,
       we provide a native binary for your platform, make sure to choose that.
       Its startup time is faster, and you don't need to have a JVM installed.
@@ -132,7 +132,7 @@ Commands:
 
 === Full example
 
-Here's an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher based migrations.
+Here's an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.
 In this example we have exported the directory with our Java-based migrations like this: `export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/`.
 Please adapt accordingly to your project and / or needs.
 
@@ -511,7 +511,7 @@ Most of the time you will configure the following properties for the plugin:
 ----
 
 All goals provide those properties.
-By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations_cypher-based, Cypher based migrations>>.
+By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations_cypher-based, Cypher-based migrations>>.
 You can change that via `locationsToScan` inside the `configuration` element like this:
 
 .Changing the locations to scan for the Maven-Plugin

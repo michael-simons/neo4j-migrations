@@ -83,10 +83,10 @@ These operations might be creating, changing, or dropping indexes and constraint
 Sometimes you might even want to create users or databases.
 
 [[concepts_migrations_cypher-based]]
-=== Cypher based
+=== Cypher-based
 
-Cypher based migrations can be mostly anything you can write down as https://neo4j.com/docs/cypher-refcard/current/[Cypher statement].
-A Cypher based migration can contain one or more statements with multiple lines separated by a `;` followed by a new line.
+Cypher-based migrations can be mostly anything you can write down as https://neo4j.com/docs/cypher-refcard/current/[Cypher statement].
+A Cypher-based migration can contain one or more statements with multiple lines separated by a `;` followed by a new line.
 By default, all statements in one script will be executed in a single transaction.
 
 Here's an example:
@@ -221,9 +221,9 @@ afterInfo:: After getting information about the target database.
 [[concepts_naming-conventions]]
 == Naming conventions
 
-=== Cypher based resources
+=== Cypher-based resources
 
-All Cypher based resources (especially migration and callback scripts) require `.cypher` as extension.
+All Cypher-based resources (especially migration and callback scripts) require `.cypher` as extension.
 The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in `classpath:neo4j/migrations`.
 The CLI has no default search-location.
 
@@ -245,9 +245,9 @@ V1_2_3__Add_last_name_index.cypher
 
 This applies to both Cypher scripts outside an application (in the file system) and inside an application (as resources).
 
-WARNING: Cypher based migrations scripts are considered to be immutable once applied!
+WARNING: Cypher-based migrations scripts are considered to be immutable once applied!
 We compute their checksums and record it inside the schema database.
-If you change a Cypher based migration after it has been applied, any further application will fail.
+If you change a Cypher-based migration after it has been applied, any further application will fail.
 
 ==== Callback scripts
 
@@ -271,7 +271,7 @@ option in your desired clause so that these statements become idempotent.
 === Java-based migrations
 
 For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
-<<concepts_naming-conventions_migration_scripts, Cypher based scripts>> apart from the extension.
+<<concepts_naming-conventions_migration_scripts, Cypher-based scripts>> apart from the extension.
 To stick with the above example, `++V1_2_3__Add_last_name_index.cypher++` becomes `++V1_2_3__Add_last_name_index++` as simple class name,
 or in source form, `++V1_2_3__Add_last_name_index.java++`.
 
@@ -337,7 +337,7 @@ so that this feature doesn't break compatibility with schemas created before 1.1
 All operations executed directly by Neo4j-Migrations are executed inside transactional functions.
 This is essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).
 
-You can configure if all statements of one <<concepts_migrations_cypher-based,Cypher based>> migration go into one
+You can configure if all statements of one <<concepts_migrations_cypher-based,Cypher-based>> migration go into one
 transactional function or if each statement goes into its own transactional scope:
 
 .Choose transaction behaviour

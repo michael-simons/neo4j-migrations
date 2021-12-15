@@ -35,7 +35,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
 /**
- * An executable Cypher based resources as a basis for migrations and callbacks
+ * An executable Cypher-based resources as a basis for migrations and callbacks
  *
  * @author Michael J. Simons
  * @since 1.2.2

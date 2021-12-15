@@ -205,7 +205,7 @@ class MigrationsEEIT {
 		// Assert that verification runs in the correct database
 		assertThat(TestBase.allLengthOfMigrations(driver, actualSchemaDatabase)).containsEntry(targetDatabaseInStats, 8);
 
-		// Assert that the cypher based migration was correctly applied
+		// Assert that the Cypher-based migration was correctly applied
 		try (Session session = targetDatabase == null ? driver.session() : driver.session(SessionConfig.forDatabase(targetDatabase))) {
 
 			long cnt = session.run("MATCH (agent:`007`) RETURN count(agent) AS cnt").single().get("cnt").asLong();
@@ -334,7 +334,7 @@ class MigrationsEEIT {
 			.containsEntry("migrationtest", 2)
 			.containsEntry("anothertarget", 2);
 
-		// Assert that the cypher based migration was correctly applied
+		// Assert that the Cypher-based migration was correctly applied
 		Stream.of("migrationTest", "anotherTarget").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
 				long cnt = session.run("MATCH (n:IWasHere) RETURN count(n) AS cnt").single().get("cnt").asLong();

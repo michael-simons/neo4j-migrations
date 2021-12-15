@@ -95,7 +95,7 @@ public class MigrationsProperties {
 	 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
 	 *
 	 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
-	 * Cypher based migration or applying it.
+	 * Cypher-based migration or applying it.
 	 */
 	private boolean autocrlf = Defaults.AUTOCRLF;
 

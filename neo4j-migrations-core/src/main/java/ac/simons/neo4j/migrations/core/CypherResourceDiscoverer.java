@@ -78,7 +78,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 	}
 
 	/**
-	 * @return All Cypher based migrations. Empty list if no package to scan is configured.
+	 * @return All Cypher-based migrations. Empty list if no package to scan is configured.
 	 */
 	@Override
 	public Collection<T> discover(MigrationContext context) {

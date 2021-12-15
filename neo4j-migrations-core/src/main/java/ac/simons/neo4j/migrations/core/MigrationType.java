@@ -28,7 +28,7 @@ public enum MigrationType {
 	 */
 	JAVA,
 	/**
-	 * Indicates a Cypher based migration.
+	 * Indicates a Cypher-based migration.
 	 */
 	CYPHER
 }

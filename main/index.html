@@ -606,14 +606,14 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <p>Neo4j-Migrations are a set of tools to make your schema migrations as easy as possible.
 They provide a uniform way for applications, the command line and build tools alike to track, manage and apply changes to your database, in short: to refactor your database.
 The project is inspired to a large extend by <a href="https://flywaydb.org">FlywayDB</a>, which is an awesome tool for migration of relational databases.
-Most things evolve around Cypher-Scripts, however the core API of Neo4j-Migrations allows defining Java classes as migrations as well.</p>
+Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.</p>
 </div>
 <div class="paragraph">
-<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a> , supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.
-The only dependencies are said driver and <a href="https://github.com/classgraph/classgraph">ClassGraph</a>, the later being used to find migrations on the classpath.</p>
+<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>, supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.
+The only dependencies are said driver and <a href="https://github.com/classgraph/classgraph">ClassGraph</a>, the latter being used to find migrations on the classpath.</p>
 </div>
 <div class="paragraph">
-<p>The history of migrations applied are stored as a subgraph in your database.</p>
+<p>The history of migrations applied is stored as a subgraph in your database.</p>
 </div>
 </div>
 <div class="sect2">
@@ -631,7 +631,7 @@ The tooling may or may not work with other databases using the Bolt protocol. We
 <h3 id="introduction-versions"><a class="anchor" href="#introduction-versions"></a>1.3. Versions</h3>
 <div class="paragraph">
 <p>Neo4j-Migrations 1.0.0 has been considered stable and has been released in November 2021. Since then, we ensure <a href="https://semver.org">semantic versioning</a>.
-This means in cases where you use the Java api directly, you can be sure that patch releases won&#8217;t break your application, and you can always upgrade.</p>
+This means in cases where you use the Java API directly, you can be sure that patch releases won&#8217;t break your application, and you can always upgrade.</p>
 </div>
 </div>
 <div class="sect2">
@@ -643,32 +643,34 @@ This means in cases where you use the Java api directly, you can be sure that pa
 <dl>
 <dt class="hdlist1">Core</dt>
 <dd>
-<p>The core module, providing an API to run both Cypher script and Java based migrations. The API includes builders
-for configuration. The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on
-JDK 17. Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.</p>
+<p>The core module, providing an API to run both Cypher script and Java-based migrations.
+The API includes builders for configuration.
+The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on JDK 17.
+Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.</p>
 <div class="paragraph">
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">JavaDoc</a> and <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/index.html">Project info</a></p>
 </div>
 </dd>
 <dt class="hdlist1">CLI</dt>
 <dd>
-<p>A command line tool that supports every interaction that the core-module provides. Native binaries are available
-for Linux, macOS and Windows. If you want to use Java based migrations in the CLI, you must use the JVM distribution.
+<p>A command line tool that supports every interaction that the core module provides.
+Native binaries are available for Linux, macOS and Windows.
+If you want to use Java-based migrations in the CLI, you must use the JVM distribution.
 This is an ideal tool to be put into CI/CD not based on Maven or Gradle.</p>
 </dd>
 <dt class="hdlist1">Spring-Boot-Starter</dt>
 <dd>
 <p>Provides all configuration options via the well-known Spring-Boot-Properties mechanism and turns them
-into a fully configured Migrations instance that will be applied on application start. Scripts will be searched sane default
-location.</p>
+into a fully configured Migrations instance that will be applied on application start.
+Scripts will be searched sane default location.</p>
 <div class="paragraph">
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html">JavaDoc</a> and <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-spring-boot-starter-parent/index.html">Project info</a></p>
 </div>
 </dd>
 <dt class="hdlist1">Maven-Plugin</dt>
 <dd>
-<p>A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
-to apply migrations during your build.</p>
+<p>A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles.
+Use this to apply migrations during your build.</p>
 <div class="paragraph">
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/plugin-info.html">Plugin info</a></p>
 </div>
@@ -687,8 +689,8 @@ The releases are created and published via <a href="https://jreleaser.org">JRele
 <div class="sect2">
 <h3 id="introduction-history"><a class="anchor" href="#introduction-history"></a>1.6. History</h3>
 <div class="paragraph">
-<p>The original idea of Neo4j-Migrations was conceived when working on integrating <a href="https://github.com/spring-projects/spring-data-neo4j">Spring Data Neo4j</a> (back then SDN/RX)
-into <a href="https://www.jhipster.tech">JHipster</a>. We needed some Nodes, constraints and relationship to be present in the Neo4j database
+<p>The original idea of Neo4j-Migrations was conceived when working on integrating <a href="https://github.com/spring-projects/spring-data-neo4j">Spring Data Neo4j</a> (back then SDN/RX) into <a href="https://www.jhipster.tech">JHipster</a>.
+We needed some Nodes, constraints and relationship to be present in the Neo4j database
 for JHipster to do it&#8217;s magic but back then there was no lightweight (in terms of dependencies) tool that did work well with
 Neo4j 4.0 (the first Graph database providing reactive data access out of the box).
 Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
@@ -712,7 +714,7 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 <div class="sect3">
 <h4 id="linux"><a class="anchor" href="#linux"></a>2.1.2. Linux</h4>
 <div class="paragraph">
-<p>As Download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
+<p>As download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -723,7 +725,7 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 <div class="sect3">
 <h4 id="windows"><a class="anchor" href="#windows"></a>2.1.3. Windows</h4>
 <div class="paragraph">
-<p>As Download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
+<p>As download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -735,7 +737,7 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 <h4 id="architectureindependent"><a class="anchor" href="#architectureindependent"></a>2.1.4. Architecture independent</h4>
 <div class="paragraph">
 <p>In addition to the above native binaries we still offer a JVM, architecture independent version of Neo4j-Migrations-CLI.
-Only the JVM version does support custom, Java based migrations as shown via the argument <code>--package</code>, the natively compiled versions do not.
+Only the JVM version does support custom, Java-based migrations as shown via the argument <code>--package</code>, the natively compiled versions do not.
 Get this version here:</p>
 </div>
 <div class="listingblock">
@@ -748,7 +750,7 @@ Get this version here:</p>
 <div class="sect2">
 <h3 id="download_core"><a class="anchor" href="#download_core"></a>2.2. Core API</h3>
 <div class="paragraph">
-<p>The easiest way to get the core API is to use a build- and dependency-management tool like Maven or Gradle.
+<p>The easiest way to get the Core API is to use a build- and dependency-management tool like Maven or Gradle.
 Here are the coordinates:</p>
 </div>
 <div class="listingblock">
@@ -848,20 +850,21 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="sectionbody">
 <div class="paragraph">
 <p>This chapter deals with various concepts that are applicable for all modules offered.
-Especially checkout <a href="#concepts_naming-conventions">Section 3.4</a> regarding naming conventions, for all Cypher and Java based migrations and callbacks.</p>
+Especially checkout <a href="#concepts_naming-conventions">Section 3.4</a> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.</p>
 </div>
 <div class="sect2">
 <h3 id="concepts_connectivity"><a class="anchor" href="#concepts_connectivity"></a>3.1. Connectivity</h3>
 <div class="paragraph">
-<p>Neo4j-Migrations solely uses the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>.
-Most of the time you pass a pre-configured object to our API.
+<p>Neo4j-Migrations solely uses the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a>.
+Most of the time you pass a pre-configured driver object to our API.
 The Spring-Boot-Plugin depends on the driver-instance provided by Spring-Boot which can be configured via properties in the <code>spring.neo4j.*</code> space.
 The CLI and Maven-Plugin offer parameters to define the URL, username and password alike.</p>
 </div>
 <div class="paragraph">
-<p>All of this mean that we can keep this chapter short and basically defer to the drivers' documentation:
+<p>All of this mean that we can keep this chapter short and basically defer to the driver&#8217;s documentation:
 <a href="https://neo4j.com/docs/java-manual/current/">The Neo4j Java Driver Manual v4.4</a>.
-For ease of use, here are the most common forms of URLs the driver might take. The URLS all have this format: <code>&lt;NEO4J_PROTOCOL&gt;://&lt;HOST&gt;:&lt;PORT&gt;</code>.
+For ease of use, here are the most common forms of URLs the driver might take.
+The URLS all have this format: <code>&lt;NEO4J_PROTOCOL&gt;://&lt;HOST&gt;:&lt;PORT&gt;</code>.
 The Neo4j-Protocol might be one of the following:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -935,17 +938,12 @@ The Neo4j-Protocol might be one of the following:</p>
 </tbody>
 </table>
 <div class="paragraph">
-<p>You don&#8217;t have to care much more about the Driver api than knowing how to create an instance:</p>
+<p>You don&#8217;t have to care much more about the Driver API than knowing how to create an instance:</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 5. Create an instance of the Neo4j-Java-Driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">org.neo4j.driver.AuthTokens</span>;
-<span class="keyword">import</span> <span class="include">org.neo4j.driver.Config</span>;
-<span class="keyword">import</span> <span class="include">org.neo4j.driver.Driver</span>;
-<span class="keyword">import</span> <span class="include">org.neo4j.driver.GraphDatabase</span>;
-
-<span class="keyword">import</span> <span class="include">org.neo4j.driver.AuthTokens</span>;
 <span class="keyword">import</span> <span class="include">org.neo4j.driver.Config</span>;
 <span class="keyword">import</span> <span class="include">org.neo4j.driver.Driver</span>;
 <span class="keyword">import</span> <span class="include">org.neo4j.driver.GraphDatabase</span>;
@@ -963,8 +961,8 @@ The Neo4j-Protocol might be one of the following:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This instance needs to be passed than to the Neo4j-Migrations Core-API in case you aren&#8217;t using one of our integrations.
-Mostly everything else than can be done via Cypher-Scripts alone.
+<p>This instance needs to be passed than to the Neo4j-Migrations Core API in case you aren&#8217;t using one of our integrations.
+Mostly everything else than can be done via Cypher scripts alone.
 If you need more control about what happens in a migration, have a look at our Java-based migration support in <a href="#concepts_migrations_java-based">Section 3.2.2</a>.</p>
 </div>
 </div>
@@ -976,10 +974,10 @@ These operations might be creating, changing, or dropping indexes and constraint
 Sometimes you might even want to create users or databases.</p>
 </div>
 <div class="sect3">
-<h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.2.1. Cypher based</h4>
+<h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.2.1. Cypher-based</h4>
 <div class="paragraph">
-<p>Cypher based migrations can be mostly anything you can write down as <a href="https://neo4j.com/docs/cypher-refcard/current/">Cypher statement</a>.
-A Cypher based migration can contain one or more statements with multiple lines separated by a <code>;</code> followed by a new line.
+<p>Cypher-based migrations can be mostly anything you can write down as <a href="https://neo4j.com/docs/cypher-refcard/current/">Cypher statement</a>.
+A Cypher-based migration can contain one or more statements with multiple lines separated by a <code>;</code> followed by a new line.
 By default, all statements in one script will be executed in a single transaction.</p>
 </div>
 <div class="paragraph">
@@ -1026,10 +1024,10 @@ Spring-Boot-Starter or the Maven-Plugin like this:</p>
 </table>
 </div>
 <div class="sect4">
-<h5 id="switchingdatabaseinsidecypher-scripts"><a class="anchor" href="#switchingdatabaseinsidecypher-scripts"></a>Switching database inside Cypher-Scripts</h5>
+<h5 id="switchingdatabaseinsidecypherscripts"><a class="anchor" href="#switchingdatabaseinsidecypherscripts"></a>Switching database inside Cypher scripts</h5>
 <div class="paragraph">
-<p>It is of course possible to use the Cypher keyword <code>USE &lt;graph&gt;</code> (See <a href="https://neo4j.com/docs/cypher-manual/current/clauses/use/">USE</a>)
-inside your scripts. There a couple of thinks to remember, though:</p>
+<p>It is of course possible to use the Cypher keyword <code>USE &lt;graph&gt;</code> (See <a href="https://neo4j.com/docs/cypher-manual/current/clauses/use/">USE</a>) inside your scripts.
+There a couple of thinks to remember, though:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1047,14 +1045,15 @@ before has already been committed.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="concepts_migrations_java-based"><a class="anchor" href="#concepts_migrations_java-based"></a>3.2.2. Java based</h4>
+<h4 id="concepts_migrations_java-based"><a class="anchor" href="#concepts_migrations_java-based"></a>3.2.2. Java-based</h4>
 <div class="paragraph">
 <p>Neo4j-Migrations provides the interface <code>ac.simons.neo4j.migrations.core.JavaBasedMigration</code> for you to implement.
-Based on that interface you can do much more than just migrate things via adding or changing data: You can refactor
-everything in your database in a programmatic way. One possible migration looks like this:</p>
+Based on that interface you can do much more than just migrate things via adding or changing data:
+You can refactor everything in your database in a programmatic way.
+One possible migration looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 8. Example for a Java based refactoring</div>
+<div class="title">Listing 8. Example for a Java-based refactoring</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">some.migrations</span>;
 
@@ -1084,13 +1083,14 @@ The latter is helpful when you want to have access to a reactive or asynchronous
 It is important that you use the convenient method <code>getSession()</code> or create a session with the provided config as only
 those guarantee hat your database session will be connected to the configured target database with the configured user.
 However, if you feel like it is necessary to switch to a different database, you can use the driver instance any way you want.
-The transaction handling inside Java based migrations is completely up to you.</td>
+The transaction handling inside Java-based migrations is completely up to you.</td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>You don&#8217;t have to annotate your Java based migrations in any way. Neo4j-Migrations will find them on the classpath as is.
-The same naming requirements that apply to Cypher scripts apply to Java based migrations as well, see <a href="#concepts_naming-conventions">Section 3.4</a>.</p>
+<p>You don&#8217;t have to annotate your Java-based migrations in any way.
+Neo4j-Migrations will find them on the classpath as is.
+The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <a href="#concepts_naming-conventions">Section 3.4</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1099,11 +1099,11 @@ The same naming requirements that apply to Cypher scripts apply to Java based mi
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-There are some restrictions when it comes to run Neo4j-Migrations on GraalVM native image: You might or might not
-      be able to convince the runtime to find implementations of an interface in native image. You must at least explicitly
-      include those classes in the native image unless used otherwise as well.
+There are some restrictions when it comes to run Neo4j-Migrations on GraalVM native image:
+      You might or might not be able to convince the runtime to find implementations of an interface in native image.
+      You must at least explicitly include those classes in the native image unless used otherwise as well.
      <br>
-      The CLI will outright refuse to scan for Java based migrations in its native form (when using the <code>--package</code> option).
+      The CLI will outright refuse to scan for Java-based migrations in its native form (when using the <code>--package</code> option).
       It does support them only in JVM mode.
 </td>
 </tr>
@@ -1111,17 +1111,19 @@ There are some restrictions when it comes to run Neo4j-Migrations on GraalVM nat
 </div>
 <div class="paragraph">
 <p>While you can theoretically extend the public base interface <code>Migration</code> too, we don&#8217;t recommend it.
-In fact, on JDK 17 we forbid it. Please use only <code>JavaBasedMigration</code> as base interface for your programmatic migrations.</p>
+In fact, on JDK 17 we forbid it.
+Please use only <code>JavaBasedMigration</code> as the base interface for your programmatic migrations.</p>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="concepts_callbacks"><a class="anchor" href="#concepts_callbacks"></a>3.3. Callbacks</h3>
 <div class="paragraph">
-<p>Callbacks are part of a refactoring or a chain of migration that lives outside the chain of things. As such these callbacks
-can be used to make sure certain data, constructs or other preconditions are available of full filled before anything else happens.
-They also come in handy during integration tests. You might want to have your migrations as part of the main source tree
-of your application and at the same time have in your tests source tree the same folder with a bunch of callbacks that
+<p>Callbacks are part of a refactoring or a chain of migration that lives outside the chain of things.
+As such these callbacks can be used to make sure certain data, constructs or other preconditions are available or fulfilled before anything else happens.
+They also come in handy during integration tests.
+You might want to have your migrations as part of the main source tree of your application and
+at the same time have in your tests source tree the same folder with a bunch of callbacks that
 create test data for example in an <code>afterMigrate</code> event.</p>
 </div>
 <div class="paragraph">
@@ -1142,10 +1144,12 @@ does not need to exist yet.</p>
 <dl>
 <dt class="hdlist1">beforeFirstUse</dt>
 <dd>
-<p>The only phase that only runs once for any given instance of Neo4j-Migrations. It will run before any
-other operations are called, when the first connection is opened. Callbacks in this phase will always be invoked in the
-schema database and not the target database, so they won&#8217;t require the target database to be present. Also, no user impersonation
-will be performed. This can be used to create the target database before any migrations or validations are run.</p>
+<p>The only phase that only runs once for any given instance of Neo4j-Migrations.
+It will run before any other operations are called, when the first connection is opened.
+Callbacks in this phase will always be invoked in the schema database and not the target database,
+so they won&#8217;t require the target database to be present.
+Also, no user impersonation will be performed.
+This can be used to create the target database before any migrations or validations are run.</p>
 </dd>
 <dt class="hdlist1">beforeMigrate</dt>
 <dd>
@@ -1186,9 +1190,9 @@ will be performed. This can be used to create the target database before any mig
 <div class="sect2">
 <h3 id="concepts_naming-conventions"><a class="anchor" href="#concepts_naming-conventions"></a>3.4. Naming conventions</h3>
 <div class="sect3">
-<h4 id="cypherbasedresources"><a class="anchor" href="#cypherbasedresources"></a>3.4.1. Cypher based resources</h4>
+<h4 id="cypher-basedresources"><a class="anchor" href="#cypher-basedresources"></a>3.4.1. Cypher-based resources</h4>
 <div class="paragraph">
-<p>All Cypher based resources (especially migration and callback scripts) require <code>.cypher</code> as extension.
+<p>All Cypher-based resources (especially migration and callback scripts) require <code>.cypher</code> as extension.
 The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in <code>classpath:neo4j/migrations</code>.
 The CLI has no default search-location.</p>
 </div>
@@ -1222,7 +1226,7 @@ The CLI has no default search-location.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>This applies to both Cypher scripts outside an application (in the file system) and inside  an application (as resources).</p>
+<p>This applies to both Cypher scripts outside an application (in the file system) and inside an application (as resources).</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1231,9 +1235,9 @@ The CLI has no default search-location.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-Cypher based migrations scripts are considered to be immutable once applied! We compute their checksums and
-record it inside the schema database. If you change a Cypher based migration after it has been applied, any further
-application will fail.
+Cypher-based migrations scripts are considered to be immutable once applied!
+We compute their checksums and record it inside the schema database.
+If you change a Cypher-based migration after it has been applied, any further application will fail.
 </td>
 </tr>
 </table>
@@ -1242,7 +1246,7 @@ application will fail.
 <div class="sect4">
 <h5 id="callbackscripts"><a class="anchor" href="#callbackscripts"></a>Callback scripts</h5>
 <div class="paragraph">
-<p>A Cypher script is recognized as a callback for a given lifecycle when it matches the following pattern:</p>
+<p>A Cypher script is recognized as a callback for a given lifecycle if it matches the following pattern:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1252,7 +1256,7 @@ nameOfTheLifecyclePhase__optional_description.cypher</code></pre>
 </div>
 <div class="paragraph">
 <p><code>nameOfTheLifecyclePhase</code> must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <a href="#concepts_lifecycle-phases">Section 3.3.1</a>),
-followed by the suffix <code>.cypher</code> or an optional description, separated from the name of the phase by two underscores (<code>__</code>).
+followed by an optional description and the suffix <code>.cypher</code>, separated from the name of the phase by two underscores (<code>__</code>).
 The description is used to order different callback scripts for the same lifecycle phase.
 If you use more than one script in the same lifecycle phase without a description, the order is undefined.</p>
 </div>
@@ -1265,7 +1269,7 @@ If you use more than one script in the same lifecycle phase without a descriptio
 <td class="content">
 Callback scripts are not considered to be immutable and can change between execution.
 If you use DDL statements such as <code>CREATE USER</code> or <code>CREATE DATABASE</code> in them make sure you look for an <code>IF NOT EXITS</code>
-option in your desired clause so that theses statements become idempotent.
+option in your desired clause so that these statements become idempotent.
 </td>
 </tr>
 </table>
@@ -1273,12 +1277,12 @@ option in your desired clause so that theses statements become idempotent.
 </div>
 </div>
 <div class="sect3">
-<h4 id="javabasedmigrations"><a class="anchor" href="#javabasedmigrations"></a>3.4.2. Java based migrations</h4>
+<h4 id="java-basedmigrations"><a class="anchor" href="#java-basedmigrations"></a>3.4.2. Java-based migrations</h4>
 <div class="paragraph">
 <p>For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
-<a href="#concepts_naming-conventions_migration_scripts">Cypher based scripts</a> apart from the extension. To stick with the above
-example, <code>V1_2_3__Add_last_name_index.cypher</code> becomes <code>V1_2_3__Add_last_name_index</code> as simple class name, or in source
-form, <code>V1_2_3__Add_last_name_index.java</code>.</p>
+<a href="#concepts_naming-conventions_migration_scripts">Cypher-based scripts</a> apart from the extension.
+To stick with the above example, <code>V1_2_3__Add_last_name_index.cypher</code> becomes <code>V1_2_3__Add_last_name_index</code> as simple class name,
+or in source form, <code>V1_2_3__Add_last_name_index.java</code>.</p>
 </div>
 <div class="paragraph">
 <p>Our recommendation is to use something like this:</p>
@@ -1313,8 +1317,8 @@ form, <code>V1_2_3__Add_last_name_index.java</code>.</p>
 <div class="paragraph">
 <p>All migrations applied to a target database are stored in the schema database.
 The target and the schema database can be the same database.
-If you are an enterprise customer managing different databases for different tenants that are however used for the same
-application, it makes absolutely sense to use a separate schema database that stores all data related to Neo4j-Migrations.</p>
+If you are an enterprise customer managing different databases for different tenants that are however used for the same application,
+it makes absolutely sense to use a separate schema database that stores all data related to Neo4j-Migrations.</p>
 </div>
 <div class="paragraph">
 <p>The subgraph will look like this:</p>
@@ -1329,17 +1333,17 @@ application, it makes absolutely sense to use a separate schema database that st
 labelled <code>__Neo4jMigration</code> will have an additional property name <code>migrationTarget</code> which contains the target graph.</p>
 </div>
 <div class="paragraph">
-<p>The chain of applied migrations is stable, and you can of course query it (for example in <a href="#concepts_callbacks">callbacks</a>)
-but you should not modify it in any way or form. In case you want to get rid of it, please use the <a href="#usage_common_clean"><code>clean</code></a>
-operation.</p>
+<p>The chain of applied migrations is stable, and you can of course query it (for example in <a href="#concepts_callbacks">callbacks</a>),
+but you should not modify it in any way or form.
+In case you want to get rid of it, please use the <a href="#usage_common_clean"><code>clean</code></a> operation.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="concepts_separate-databases"><a class="anchor" href="#concepts_separate-databases"></a>3.6. Separate schema databases</h3>
 <div class="paragraph">
 <p>Since version 1.1.0 you can use a different database for storing information about migrations.
-You need to run against Neo4j Enterprise Edition.
-The command line argument respectively the property is <code>schema-database</code> throughout the configuration.
+You need to run a Neo4j 4+ Enterprise Edition.
+The command line argument and the property, respectively, is <code>schema-database</code> throughout the configuration.
 The name given must be a valid Neo4j database name (See <a href="https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/">Administration and configuration</a>).
 The database must exist and the user must have write access to it.</p>
 </div>
@@ -1361,22 +1365,22 @@ The database must exist and the user must have write access to it.</p>
 </div>
 <div class="paragraph">
 <p>Neo4j-Migrations will create subgraphs in the schema database identifiable by a <code>migrationTarget</code>-property in the <code>__Neo4jMigration</code>-nodes.
-Neo4j-Migrations will <strong>not</strong> record a <code>migrationTarget</code> for the default database (usually <code>neo4j</code>), so that this feature
-doesn&#8217;t break compatibility with schemas created before 1.1.0.</p>
+Neo4j-Migrations will <strong>not</strong> record a <code>migrationTarget</code> for the default database (usually <code>neo4j</code>),
+so that this feature doesn&#8217;t break compatibility with schemas created before 1.1.0.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.7. Transactions</h3>
 <div class="paragraph">
 <p>All operations executed directly by Neo4j-Migrations are executed inside transactional functions.
-This essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).</p>
+This is essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).</p>
 </div>
 <div class="paragraph">
-<p>You can configure if all statements of one <a href="#concepts_migrations_cypher-based">Cypher based</a> migration go into one
+<p>You can configure if all statements of one <a href="#concepts_migrations_cypher-based">Cypher-based</a> migration go into one
 transactional function or if each statement goes into its own transactional scope:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 9. Chose transaction behaviour</div>
+<div class="title">Listing 9. Choose transaction behaviour</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">MigrationsConfig configPerMigration = MigrationsConfig.builder()
     .withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
@@ -1390,7 +1394,8 @@ MigrationsConfig configPerStatement = MigrationsConfig.builder()
 </div>
 </div>
 <div class="paragraph">
-<p>Per Migration is the default, as we think it&#8217;s safer: Either the whole migration is applied (or failed) or none.
+<p>Per Migration is the default, as we think it&#8217;s safer:
+Either the whole migration is applied (or failed) or none.
 But there are certain scenarios that require a transaction per statement, for example most DDL operations such as creating
 databases might not be run together with DML operations in the same transaction.</p>
 </div>
@@ -1403,15 +1408,12 @@ databases might not be run together with DML operations in the same transaction.
 <div class="sect2">
 <h3 id="usage_common"><a class="anchor" href="#usage_common"></a>4.1. Common operations</h3>
 <div class="sect3">
-<h4 id="usage_common_apply"><a class="anchor" href="#usage_common_apply"></a>4.1.1. Apply</h4>
-
-</div>
-<div class="sect3">
-<h4 id="usage_common_clean"><a class="anchor" href="#usage_common_clean"></a>4.1.2. Clean</h4>
+<h4 id="usage_common_clean"><a class="anchor" href="#usage_common_clean"></a>4.1.1. Clean</h4>
 <div class="paragraph">
-<p><code>clean</code> applies by default to the schema database. It will remove Neo4j-Migrations related nodes and relationships.
-If there is no schema database selected, it works on the optional target database. If this isn&#8217;t configured either, the
-users home database will be used.</p>
+<p><code>clean</code> applies by default to the schema database.
+It will remove Neo4j-Migrations related nodes and relationships.
+If there is no schema database selected, it works on the optional target database.
+If this isn&#8217;t configured either, the users home database will be used.</p>
 </div>
 <div class="paragraph">
 <p>The clean operation will search for</p>
@@ -1430,32 +1432,34 @@ users home database will be used.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>And will delete and drop them in that order. This is a <strong>destructive</strong> operation, so make sure not to apply it to your
-production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.</p>
+<p>and will delete and drop them in that order.
+This is a <strong>destructive</strong> operation, so make sure not to apply it to your production database without thinking at least twice.
+It cannot be undone via Neo4j-Migrations.</p>
 </div>
 <div class="paragraph">
-<p>The operation takes in a boolean parameter. When set to <code>false</code>, only the <a href="#concepts_chain">migration chain</a> for the currently
-configured target database will be deleted. When set to <code>true</code>, all objects created by Neo4j-Migrations will be deleted.</p>
+<p>The operation takes in a boolean parameter.
+When set to <code>false</code>, only the <a href="#concepts_chain">migration chain</a> for the currently configured target database will be deleted.
+When set to <code>true</code>, all objects created by Neo4j-Migrations will be deleted.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="usage_common_info"><a class="anchor" href="#usage_common_info"></a>4.1.3. Info</h4>
+<h4 id="usage_common_info"><a class="anchor" href="#usage_common_info"></a>4.1.2. Info</h4>
 <div class="paragraph">
 <p>The <code>info</code> operations returns information about the context, the database, all applied and all pending applications.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="usage_common_migrate"><a class="anchor" href="#usage_common_migrate"></a>4.1.4. Apply / migrate</h4>
+<h4 id="usage_common_migrate"><a class="anchor" href="#usage_common_migrate"></a>4.1.3. Migrate / apply</h4>
 <div class="paragraph">
-<p>The <code>apply</code> method (or <code>migrate</code> in case of the Maven-Plugin) does exactly that: It applies all locally resolved migrations
-to the target database and stores the <a href="#concepts_chain">chain of applied migrations</a> in the schema database.</p>
+<p>The <code>migrate</code> command (or its underlying method <code>apply</code> in the Migrations Core API) does exactly that:
+It applies all locally resolved migrations to the target database and stores the <a href="#concepts_chain">chain of applied migrations</a> in the schema database.</p>
 </div>
 <div class="paragraph">
 <p>It returns the last applied version.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="usage_common_validate"><a class="anchor" href="#usage_common_validate"></a>4.1.5. Validate</h4>
+<h4 id="usage_common_validate"><a class="anchor" href="#usage_common_validate"></a>4.1.4. Validate</h4>
 <div class="paragraph">
 <p>The <code>validate</code> operations resolves all local migrations and checks whether all have applied in the same order and in the
 same version to the configured database.
@@ -1463,17 +1467,18 @@ A target database will validate as valid when all migrations have been applied i
 where migrations are missing, have not been applied, applied in a different order or with a different checksum.</p>
 </div>
 <div class="paragraph">
-<p>The validation result provides an additional operation <code>needsRepair()</code>. In case the result is invalid you might check if it
-needs repair. If not, you can just call the <a href="#usage_common_apply">apply operation</a> to turn the database into a valid state.</p>
+<p>The validation result provides an additional operation <code>needsRepair()</code>.
+In case the result is invalid you might check if it needs repair.
+If not, you can just call the <a href="#usage_common_migrate">apply operation</a> to turn the database into a valid state.</p>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="cli"><a class="anchor" href="#cli"></a>4.2. CLI</h3>
 <div class="paragraph">
-<p>Please chose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <a href="#download_cli">Section 2.1</a>.
-In the following we assume you downloaded and unzipped the architecture independent version. For that version to work, you need to have
-JDK 8 or higher installed:</p>
+<p>Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <a href="#download_cli">Section 2.1</a>.
+In the following we assume you downloaded and unzipped the architecture independent version.
+For that version to work, you need to have JDK 8 or higher installed:</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 10. Download and extraction of the JVM based version</div>
@@ -1495,9 +1500,10 @@ cd neo4j-migrations-1.2.2-SNAPSHOT
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-If you only deal with <a href="#concepts_migrations_cypher-based">Cypher based migrations</a>, don&#8217;t have the need for any
-      <a href="#concepts_migrations_java-based">programmatic migrations</a> and we provide a native binary for your platform, make sure
-      to chose that. Its startup time is faster and you don&#8217;t need to have a JVM installed.
+If you only deal with <a href="#concepts_migrations_cypher-based">Cypher-based migrations</a> and
+      don&#8217;t have the need for any <a href="#concepts_migrations_java-based">programmatic migrations</a>,
+      we provide a native binary for your platform, make sure to choose that.
+      Its startup time is faster, and you don&#8217;t need to have a JVM installed.
 </td>
 </tr>
 </table>
@@ -1563,8 +1569,8 @@ Commands:
 <div class="sect3">
 <h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.2. Full example</h4>
 <div class="paragraph">
-<p>Here&#8217;s an example that looks for migrations in a Java package and it&#8217;s subpackages and in a filesystem location for Cypher based migrations.
-In this example we have exported the directory with our Java based migrations like this: <code>export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/</code>.
+<p>Here&#8217;s an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.
+In this example we have exported the directory with our Java-based migrations like this: <code>export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/</code>.
 Please adapt accordingly to your project and / or needs.</p>
 </div>
 <div class="paragraph">
@@ -1676,9 +1682,10 @@ All resolved migrations have been applied to the default database.</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="atemplateforjavabasedmigrations"><a class="anchor" href="#atemplateforjavabasedmigrations"></a>4.2.3. A template for Java based migrations</h4>
+<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.3. A template for Java-based migrations</h4>
 <div class="paragraph">
-<p>As stated above, this will work only with the JVM distribution. Follow those steps:</p>
+<p>As stated above, this will work only with the JVM distribution.
+Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1715,8 +1722,9 @@ CLASSPATH_PREFIX=my-migrations ./bin/neo4j-migrations -v -uneo4j -psecret --pack
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-We do add this here for completeness, but we do think that Java based migrations makes most sense from inside your application,
-      regardless whether it&#8217;s a Spring Boot, Quarkus or just a plain Java application. The CLI should be seen primarily as a script runner.
+We do add this here for completeness, but we do think that Java-based migrations makes most sense from inside your application,
+      regardless whether it&#8217;s a Spring Boot, Quarkus or just a plain Java application.
+      The CLI should be seen primarily as a script runner.
 </td>
 </tr>
 </table>
@@ -1732,17 +1740,18 @@ Follow the instructions for your favorite dependency management tool to get hold
 <div class="paragraph">
 <p>The classes you will be working with are <code>ac.simons.neo4j.migrations.core.MigrationsConfig</code> and its related builder and
 <code>ac.simons.neo4j.migrations.core.Migrations</code> and maybe <code>ac.simons.neo4j.migrations.core.JavaBasedMigration</code> in case you
-want todo programmatic refactorings.</p>
+want to do programmatic refactorings.</p>
 </div>
 <div class="sect3">
 <h4 id="configurationandusage"><a class="anchor" href="#configurationandusage"></a>4.3.1. Configuration and usage</h4>
 <div class="paragraph">
-<p>Configuration is basically made up of two parts: Creating a driver instance that points to your database or cluster as
-described in <a href="#concepts_connectivity">Section 3.1</a> and an instance of <code>MigrationsConfig</code>. An instance of <code>MigrationsConfig</code> is created via a fluent-builder API.
+<p>Configuration is basically made up of two parts:
+Creating a driver instance that points to your database or cluster as described in <a href="#concepts_connectivity">Section 3.1</a> and an instance of <code>MigrationsConfig</code>.
+An instance of <code>MigrationsConfig</code> is created via a fluent-builder API.
 Putting everything together looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 11. Creating an instance of <code>Migrations</code> based on a driver an a configuration object</div>
+<div class="title">Listing 11. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Migrations migrations = <span class="keyword">new</span> Migrations(
     MigrationsConfig.builder()
@@ -1792,18 +1801,18 @@ Declare the following dependency in your Spring Boot application:</p>
 </div>
 <div class="paragraph">
 <p>That starter itself depends on the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a>.
-The driver is managed by Spring Boot since 2.4 and you can enjoy configuration support directly through Spring Boot.
-For Boot versions prior to Spring Boot 2.4, please have a look at version <a href="https://github.com/michael-simons/neo4j-migrations/tree/0.0.13">0.0.13</a> of this library.</p>
+The driver is managed by Spring Boot since 2.4, and you can enjoy configuration support directly through Spring Boot.
+For Spring Boot versions prior to Spring Boot 2.4, please have a look at version <a href="https://github.com/michael-simons/neo4j-migrations/tree/0.0.13">0.0.13</a> of this library.</p>
 </div>
 <div class="paragraph">
-<p>Neo4j-Migrations will automatically look for migrations in <code>classpath:neo4j/migrations</code> and will fail if this location does not exists.
-It does not scan by default for Java based migrations.</p>
+<p>Neo4j-Migrations will automatically look for migrations in <code>classpath:neo4j/migrations</code> and will fail if this location does not exist.
+It does not scan by default for Java-based migrations.</p>
 </div>
 <div class="paragraph">
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 12. Configure both the driver, disable the existince check for migration scripts and scan for Java based migration</div>
+<div class="title">Listing 12. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
@@ -1875,7 +1884,7 @@ you have to manually import our autoconfiguration like this:</p>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Import <em>this</em> auto configuration (which is not part of Spring Boot)</td>
+<td>Import <em>this</em> auto-configuration (which is not part of Spring Boot)</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
@@ -1936,7 +1945,7 @@ you have to manually import our autoconfiguration like this:</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.</p>
+<p>The database that should be used for storing information about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.</p>
 </div></div></td>
 </tr>
 <tr>
@@ -2048,7 +2057,8 @@ Migrations can be disabled by setting <code>org.neo4j.migrations.enabled</code> 
 <div class="sect2">
 <h3 id="usage_maven-plugin"><a class="anchor" href="#usage_maven-plugin"></a>4.5. Maven-Plugin</h3>
 <div class="paragraph">
-<p>You can trigger Neo4j-Migrations from your build a Maven-Plugin. Please refer to the dedicated <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/plugin-info.html">Maven-Plugin page</a> for
+<p>You can trigger Neo4j-Migrations from your build a Maven-Plugin.
+Please refer to the dedicated <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/plugin-info.html">Maven-Plugin page</a> for
 a detailed list of all goals and configuration option as well as the default lifecycle mapping of the plugin.</p>
 </div>
 <div class="sect3">
@@ -2077,7 +2087,8 @@ a detailed list of all goals and configuration option as well as the default lif
 </div>
 </div>
 <div class="paragraph">
-<p>All goals provide these properties. By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#concepts_migrations_cypher-based">Cypher based migrations</a>.
+<p>All goals provide those properties.
+By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#concepts_migrations_cypher-based">Cypher-based migrations</a>.
 You can change that via <code>locationsToScan</code> inside the <code>configuration</code> element like this:</p>
 </div>
 <div class="listingblock">
@@ -2100,19 +2111,19 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/clean-mojo.html">clean</a>, see <a href="#usage_common_clean">Section 4.1.2</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/clean-mojo.html">clean</a>, see <a href="#usage_common_clean">Section 4.1.1</a></p>
 </li>
 <li>
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/help-mojo.html">help</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/info-mojo.html">info</a>, see <a href="#usage_common_info">Section 4.1.3</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/info-mojo.html">info</a>, see <a href="#usage_common_info">Section 4.1.2</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/migrate-mojo.html">migrate</a>, see <a href="#usage_common_apply">Section 4.1.1</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/migrate-mojo.html">migrate</a>, see <a href="#usage_common_migrate">Section 4.1.3</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/validate-mojo.html">clean</a>, see <a href="#usage_common_validate">Section 4.1.5</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/validate-mojo.html">clean</a>, see <a href="#usage_common_validate">Section 4.1.4</a></p>
 </li>
 </ul>
 </div>
@@ -2154,7 +2165,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-15 15:07:09 UTC
+Last updated 2021-12-15 15:47:52 UTC
 </div>
 </div>
 </body>

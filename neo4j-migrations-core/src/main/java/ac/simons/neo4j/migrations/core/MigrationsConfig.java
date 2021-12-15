@@ -35,7 +35,7 @@ public final class MigrationsConfig {
 	static final String PREFIX_CLASSPATH = "classpath";
 
 	/**
-	 * Used for configuring the transaction mode in Cypher based transactions.
+	 * Used for configuring the transaction mode in Cypher-based transactions.
 	 */
 	public enum TransactionMode {
 
@@ -212,7 +212,7 @@ public final class MigrationsConfig {
 						"in separate transactions");
 			}
 			if (this.getPackagesToScan().length > 0) {
-				logger.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
+				logger.log(Level.INFO, "Will scan for Java-based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
 			}
 		}
 	}
@@ -336,7 +336,7 @@ public final class MigrationsConfig {
 		}
 
 		/**
-		 * Configures the database to apply cypher based migrations too. Leave null for the default database.
+		 * Configures the database to apply Cypher-based migrations too. Leave null for the default database.
 		 *
 		 * @param newDatabase The database to use
 		 * @return The builder for further customization
@@ -383,7 +383,7 @@ public final class MigrationsConfig {
 		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
 		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
 		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
-		 * Cypher based migration or applying it.
+		 * Cypher-based migration or applying it.
 		 *
 		 * @param newAutocrlf The new value for {@code autocrlf}.
 		 * @return The builder for further customization

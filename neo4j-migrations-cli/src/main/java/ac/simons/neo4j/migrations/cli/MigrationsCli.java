@@ -196,7 +196,7 @@ public final class MigrationsCli implements Runnable {
 
 		if (ImageInfo.inImageRuntimeCode() && config.getPackagesToScan().length != 0) {
 			throw new UnsupportedConfigException(
-				"Java based migrations are not supported in native binaries. Please use the Java based distribution.");
+				"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
 		}
 
 		if (config.getOptionalSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {

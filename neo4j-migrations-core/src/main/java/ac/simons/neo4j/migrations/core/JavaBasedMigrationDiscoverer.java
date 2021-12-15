@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * Discovers all Java based migrations.
+ * Discovers all Java-based migrations.
  *
  * @author Michael J. Simons
  * @since 0.0.3

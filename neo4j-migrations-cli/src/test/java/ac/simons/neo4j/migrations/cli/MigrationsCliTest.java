@@ -53,7 +53,7 @@ class MigrationsCliTest {
 
 			assertThatExceptionOfType(UnsupportedConfigException.class).isThrownBy(cli::getConfig)
 				.withMessage(
-					"Java based migrations are not supported in native binaries. Please use the Java based distribution.");
+					"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
 		});
 	}
 

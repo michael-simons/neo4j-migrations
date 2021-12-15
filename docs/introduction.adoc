@@ -20,28 +20,30 @@ The tooling may or may not work with other databases using the Bolt protocol. We
 == Versions
 
 Neo4j-Migrations 1.0.0 has been considered stable and has been released in November 2021. Since then, we ensure https://semver.org[semantic versioning].
-This means in cases where you use the Java api directly, you can be sure that patch releases won't break your application, and you can always upgrade.
+This means in cases where you use the Java API directly, you can be sure that patch releases won't break your application, and you can always upgrade.
 
 [[introduction-modules]]
 == Modules
 
 Neo4j-Migrations comes in different flavors:
 
-Core:: The core module, providing an API to run both Cypher script and Java based migrations. The API includes builders
-for configuration. The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on
-JDK 17. Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
+Core:: The core module, providing an API to run both Cypher script and Java-based migrations.
+The API includes builders for configuration.
+The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on JDK 17.
+Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
 +
 link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations/index.html[Project info]
-CLI:: A command line tool that supports every interaction that the core-module provides. Native binaries are available
-for Linux, macOS and Windows. If you want to use Java based migrations in the CLI, you must use the JVM distribution.
+CLI:: A command line tool that supports every interaction that the core module provides.
+Native binaries are available for Linux, macOS and Windows.
+If you want to use Java-based migrations in the CLI, you must use the JVM distribution.
 This is an ideal tool to be put into CI/CD not based on Maven or Gradle.
 Spring-Boot-Starter:: Provides all configuration options via the well-known Spring-Boot-Properties mechanism and turns them
-into a fully configured Migrations instance that will be applied on application start. Scripts will be searched sane default
-location.
+into a fully configured Migrations instance that will be applied on application start.
+Scripts will be searched sane default location.
 +
 link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/index.html[Project info]
-Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles. Use this
-to apply migrations during your build.
+Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles.
+Use this to apply migrations during your build.
 +
 link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Plugin info]
 
@@ -55,8 +57,8 @@ The releases are created and published via https://jreleaser.org[JReleaser].
 [[introduction-history]]
 == History
 
-The original idea of Neo4j-Migrations was conceived when working on integrating https://github.com/spring-projects/spring-data-neo4j[Spring Data Neo4j] (back then SDN/RX)
-into https://www.jhipster.tech[JHipster]. We needed some Nodes, constraints and relationship to be present in the Neo4j database
+The original idea of Neo4j-Migrations was conceived when working on integrating https://github.com/spring-projects/spring-data-neo4j[Spring Data Neo4j] (back then SDN/RX) into https://www.jhipster.tech[JHipster].
+We needed some Nodes, constraints and relationship to be present in the Neo4j database
 for JHipster to do it's magic but back then there was no lightweight (in terms of dependencies) tool that did work well with
 Neo4j 4.0 (the first Graph database providing reactive data access out of the box).
 Neo4j-Migrations filled that gap in early 2020 and has grown ever since.

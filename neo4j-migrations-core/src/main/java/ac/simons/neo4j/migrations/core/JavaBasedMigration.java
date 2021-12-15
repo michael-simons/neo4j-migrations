@@ -18,7 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * Interface to be implemented for Java based migrations.
+ * Interface to be implemented for Java-based migrations.
  *
  * @author Michael J. Simons
  * @since 0.0.1

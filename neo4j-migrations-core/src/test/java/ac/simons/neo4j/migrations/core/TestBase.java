@@ -102,7 +102,7 @@ abstract class TestBase {
 				+ "WHERE NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) "
 				+ "RETURN b.migrationTarget as migrationTarget, length(p) AS l")
 				.stream()
-				.collect(Collectors.toMap(r -> r.get("migrationTarget").asString("<default>"),  r -> r.get("l").asInt()));
+				.collect(Collectors.toMap(r -> r.get("migrationTarget").asString("<default>"), r -> r.get("l").asInt()));
 		}
 	}
 

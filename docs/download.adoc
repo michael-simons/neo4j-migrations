@@ -13,7 +13,7 @@ brew install michael-simons/homebrew-neo4j-migrations/neo4j-migrations
 
 === Linux
 
-As Download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
+As download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
@@ -22,7 +22,7 @@ curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{l
 
 === Windows
 
-As Download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
+As download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
@@ -32,7 +32,7 @@ curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{l
 === Architecture independent
 
 In addition to the above native binaries we still offer a JVM, architecture independent version of Neo4j-Migrations-CLI.
-Only the JVM version does support custom, Java based migrations as shown via the argument `--package`, the natively compiled versions do not.
+Only the JVM version does support custom, Java-based migrations as shown via the argument `--package`, the natively compiled versions do not.
 Get this version here:
 
 [source,console,subs="verbatim,attributes"]
@@ -43,7 +43,7 @@ curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{l
 [[download_core]]
 == Core API
 
-The easiest way to get the core API is to use a build- and dependency-management tool like Maven or Gradle.
+The easiest way to get the Core API is to use a build- and dependency-management tool like Maven or Gradle.
 Here are the coordinates:
 
 [source,xml,subs="verbatim,attributes"]

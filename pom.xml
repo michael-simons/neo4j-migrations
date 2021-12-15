@@ -684,6 +684,7 @@
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
 						<source-highlighter>coderay</source-highlighter>
 						<branch>${project.build.docs.branch}</branch>
+						<latest_version>${project.version}</latest_version>
 					</attributes>
 					<requires>
 						<require>asciidoctor-diagram</require>

@@ -59,4 +59,4 @@ The original idea of Neo4j-Migrations was conceived when working on integrating 
 into https://www.jhipster.tech[JHipster]. We needed some Nodes, constraints and relationship to be present in the Neo4j database
 for JHipster to do it's magic but back then there was no lightweight (in terms of dependencies) tool that did work well with
 Neo4j 4.0 (the first Graph database providing reactive data access out of the box).
-Neo4j-Migrations filled that gab in early 2020 and has grown ever since.
+Neo4j-Migrations filled that gap in early 2020 and has grown ever since.

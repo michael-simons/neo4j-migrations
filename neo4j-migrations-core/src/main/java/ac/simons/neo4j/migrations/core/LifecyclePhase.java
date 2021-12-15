@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * The phase in the lifecycle of a migrations flow in which a {@link Callback} is invoked.
  * <p>
- * This enum might become public as soon as neo4j-migrations supports Java based callbacks, too.
+ * This enum might become public as soon as neo4j-migrations supports Java-based callbacks, too.
  *
  * @author Michael J. Simons
  * @since 1.2.2

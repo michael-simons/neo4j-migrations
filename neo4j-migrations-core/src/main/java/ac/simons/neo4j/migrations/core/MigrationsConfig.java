@@ -212,7 +212,7 @@ public final class MigrationsConfig {
 						"in separate transactions");
 			}
 			if (this.getPackagesToScan().length > 0) {
-				logger.log(Level.INFO, "Will scan for Java based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
+				logger.log(Level.INFO, "Will scan for Java-based migrations in \"{0}\"", String.join("", this.getPackagesToScan()));
 			}
 		}
 	}

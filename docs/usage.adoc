@@ -133,7 +133,7 @@ Commands:
 === Full example
 
 Here's an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher based migrations.
-In this example we have exported the directory with our Java based migrations like this: `export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/`.
+In this example we have exported the directory with our Java-based migrations like this: `export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/`.
 Please adapt accordingly to your project and / or needs.
 
 The example uses the `info` command to tell you which migrations have been applied and which not:
@@ -237,7 +237,7 @@ The database will be now in a valid state:
 All resolved migrations have been applied to the default database.
 ----
 
-=== A template for Java based migrations
+=== A template for Java-based migrations
 
 As stated above, this will work only with the JVM distribution.
 Follow those steps:
@@ -270,7 +270,7 @@ javac -cp "lib/*" my-migrations/some/migrations/*
 CLASSPATH_PREFIX=my-migrations ./bin/neo4j-migrations -v -uneo4j -psecret --package some.migrations info
 ----
 
-NOTE: We do add this here for completeness, but we do think that Java based migrations makes most sense from inside your application,
+NOTE: We do add this here for completeness, but we do think that Java-based migrations makes most sense from inside your application,
       regardless whether it's a Spring Boot, Quarkus or just a plain Java application.
       The CLI should be seen primarily as a script runner.
 
@@ -333,11 +333,11 @@ The driver is managed by Spring Boot since 2.4, and you can enjoy configuration 
 For Spring Boot versions prior to Spring Boot 2.4, please have a look at version https://github.com/michael-simons/neo4j-migrations/tree/0.0.13[0.0.13] of this library.
 
 Neo4j-Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exist.
-It does not scan by default for Java based migrations.
+It does not scan by default for Java-based migrations.
 
 Here's an example on how to configure the driver and the migrations:
 
-.Configure both the driver, disable the existence check for migration scripts and scan for Java based migration
+.Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration
 [source,properties]
 ----
 spring.neo4j.authentication.username=neo4j

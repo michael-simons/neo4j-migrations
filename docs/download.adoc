@@ -32,7 +32,7 @@ curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{l
 === Architecture independent
 
 In addition to the above native binaries we still offer a JVM, architecture independent version of Neo4j-Migrations-CLI.
-Only the JVM version does support custom, Java based migrations as shown via the argument `--package`, the natively compiled versions do not.
+Only the JVM version does support custom, Java-based migrations as shown via the argument `--package`, the natively compiled versions do not.
 Get this version here:
 
 [source,console,subs="verbatim,attributes"]

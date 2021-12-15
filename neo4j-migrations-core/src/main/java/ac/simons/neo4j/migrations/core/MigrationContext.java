@@ -40,7 +40,7 @@ public interface MigrationContext {
 	Driver getDriver();
 
 	/**
-	 * Use this session config in your Java based migration to make sure you use the same database as the migration tool itself.
+	 * Use this session config in your Java-based migration to make sure you use the same database as the migration tool itself.
 	 *
 	 * @return A correctly configured write access session config.
 	 */

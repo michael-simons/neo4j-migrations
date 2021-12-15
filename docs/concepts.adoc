@@ -2,7 +2,7 @@
 = Concepts
 
 This chapter deals with various concepts that are applicable for all modules offered.
-Especially checkout <<concepts_naming-conventions>> regarding naming conventions, for all Cypher and Java based migrations and callbacks.
+Especially checkout <<concepts_naming-conventions>> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.
 
 [[concepts_connectivity]]
 == Connectivity
@@ -138,7 +138,7 @@ Based on that interface you can do much more than just migrate things via adding
 You can refactor everything in your database in a programmatic way.
 One possible migration looks like this:
 
-.Example for a Java based refactoring
+.Example for a Java-based refactoring
 [source,java]
 ----
 package some.migrations;
@@ -164,17 +164,17 @@ public class V001__MyFirstMigration implements JavaBasedMigration {
     It is important that you use the convenient method `getSession()` or create a session with the provided config as only
     those guarantee hat your database session will be connected to the configured target database with the configured user.
     However, if you feel like it is necessary to switch to a different database, you can use the driver instance any way you want.
-    The transaction handling inside Java based migrations is completely up to you.
+    The transaction handling inside Java-based migrations is completely up to you.
 
-You don't have to annotate your Java based migrations in any way.
+You don't have to annotate your Java-based migrations in any way.
 Neo4j-Migrations will find them on the classpath as is.
-The same naming requirements that apply to Cypher scripts apply to Java based migrations as well, see <<concepts_naming-conventions>>.
+The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <<concepts_naming-conventions>>.
 
 NOTE: There are some restrictions when it comes to run Neo4j-Migrations on GraalVM native image:
       You might or might not be able to convince the runtime to find implementations of an interface in native image.
       You must at least explicitly include those classes in the native image unless used otherwise as well.
       +
-      The CLI will outright refuse to scan for Java based migrations in its native form (when using the `--package` option).
+      The CLI will outright refuse to scan for Java-based migrations in its native form (when using the `--package` option).
       It does support them only in JVM mode.
 
 While you can theoretically extend the public base interface `Migration` too, we don't recommend it.
@@ -268,7 +268,7 @@ NOTE: Callback scripts are not considered to be immutable and can change between
 If you use DDL statements such as `CREATE USER` or `CREATE DATABASE` in them make sure you look for an `IF NOT EXITS`
 option in your desired clause so that these statements become idempotent.
 
-=== Java based migrations
+=== Java-based migrations
 
 For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
 <<concepts_naming-conventions_migration_scripts, Cypher based scripts>> apart from the extension.

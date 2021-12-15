@@ -19,7 +19,7 @@ import java.util.Optional;
 
 /**
  * Default contract for callbacks that might be involved during various phases of the migration lifecycle.
- * This interface might become public as soon as neo4j-migrations supports Java based callbacks, too.
+ * This interface might become public as soon as neo4j-migrations supports Java-based callbacks, too.
  *
  * @author Michael J. Simons
  * @since 1.2.2

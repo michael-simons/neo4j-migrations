@@ -133,7 +133,7 @@ class MigrationsConfigTest {
 				"Migrations will be applied to database \"x\"",
 				"Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
 				"Statements will be applied in separate transactions",
-				"Will scan for Java based migrations in \"a.b.c\""
+				"Will scan for Java-based migrations in \"a.b.c\""
 			);
 	}
 

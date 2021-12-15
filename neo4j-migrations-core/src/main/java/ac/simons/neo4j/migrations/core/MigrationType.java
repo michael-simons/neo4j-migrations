@@ -24,7 +24,7 @@ package ac.simons.neo4j.migrations.core;
 public enum MigrationType {
 
 	/**
-	 * Indicates a Java based migration.
+	 * Indicates a Java-based migration.
 	 */
 	JAVA,
 	/**

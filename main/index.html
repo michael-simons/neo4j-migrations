@@ -591,7 +591,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 1.2.1.</p>
+<p>This is the Neo4j-Migrations manual version 1.2.2-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -691,7 +691,7 @@ The releases are created and published via <a href="https://jreleaser.org">JRele
 into <a href="https://www.jhipster.tech">JHipster</a>. We needed some Nodes, constraints and relationship to be present in the Neo4j database
 for JHipster to do it&#8217;s magic but back then there was no lightweight (in terms of dependencies) tool that did work well with
 Neo4j 4.0 (the first Graph database providing reactive data access out of the box).
-Neo4j-Migrations filled that gab in early 2020 and has grown ever since.</p>
+Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 </div>
 </div>
 </div>
@@ -716,7 +716,7 @@ Neo4j-Migrations filled that gab in early 2020 and has grown ever since.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.1/neo4j-migrations-1.2.1-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -727,7 +727,7 @@ Neo4j-Migrations filled that gab in early 2020 and has grown ever since.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.1/neo4j-migrations-1.2.1-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -740,7 +740,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.1/neo4j-migrations-1.2.1.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 </div>
@@ -757,7 +757,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.2.1<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -768,7 +768,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations:1.2.1'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations:1.2.2-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -787,7 +787,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.2.1<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -799,7 +799,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.2.1'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.2.2-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -815,7 +815,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.2.1<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -1479,9 +1479,9 @@ JDK 8 or higher installed:</p>
 <div class="title">Listing 10. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.1/neo4j-migrations-1.2.1.zip
-unzip neo4j-migrations-1.2.1.zip
-cd neo4j-migrations-1.2.1
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT.zip
+unzip neo4j-migrations-1.2.2-SNAPSHOT.zip
+cd neo4j-migrations-1.2.2-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -1682,9 +1682,9 @@ All resolved migrations have been applied to the default database.</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.1/neo4j-migrations-1.2.1.zip
-unzip neo4j-migrations-1.2.1.zip
-cd neo4j-migrations-1.2.1
+<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT.zip
+unzip neo4j-migrations-1.2.2-SNAPSHOT.zip
+cd neo4j-migrations-1.2.2-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -1726,7 +1726,7 @@ We do add this here for completeness, but we do think that Java based migrations
 <div class="sect2">
 <h3 id="coreapi"><a class="anchor" href="#coreapi"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.2.1 API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.2.2-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">Section 2.2</a>.</p>
 </div>
 <div class="paragraph">
@@ -1783,7 +1783,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.2.1<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2062,7 +2062,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.2.1<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -2154,7 +2154,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-14 17:31:25 UTC
+Last updated 2021-12-15 09:02:20 UTC
 </div>
 </div>
 </body>

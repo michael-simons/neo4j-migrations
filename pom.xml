@@ -813,6 +813,7 @@
 				</plugins>
 			</build>
 		</profile>
+		<?SORTPOM IGNORE?>
 		<profile>
 			<id>jreleaser</id>
 			<build>
@@ -966,5 +967,6 @@
 				</plugins>
 			</build>
 		</profile>
+		<?SORTPOM RESUME?>
 	</profiles>
 </project>

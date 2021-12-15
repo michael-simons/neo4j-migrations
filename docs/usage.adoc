@@ -32,9 +32,9 @@ When set to `true`, all objects created by Neo4j-Migrations will be deleted.
 The `info` operations returns information about the context, the database, all applied and all pending applications.
 
 [[usage_common_migrate]]
-=== Apply / migrate
+=== Migrate / apply
 
-The `apply` method (or `migrate` in case of the Maven-Plugin) does exactly that:
+The `migrate` command (or its underlying method `apply` in the Migrations Core API) does exactly that:
 It applies all locally resolved migrations to the target database and stores the <<concepts_chain,chain of applied migrations>> in the schema database.
 
 It returns the last applied version.

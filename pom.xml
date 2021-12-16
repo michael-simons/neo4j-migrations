@@ -298,6 +298,20 @@
 					</configuration>
 					<executions>
 						<execution>
+							<id>compile-java-11</id>
+							<goals>
+								<goal>compile</goal>
+							</goals>
+							<phase>compile</phase>
+							<configuration combine.self="override">
+								<release>11</release>
+								<compileSourceRoots>
+									<compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
+								</compileSourceRoots>
+								<multiReleaseOutput>true</multiReleaseOutput>
+							</configuration>
+						</execution>
+						<execution>
 							<id>compile-java-17</id>
 							<goals>
 								<goal>compile</goal>

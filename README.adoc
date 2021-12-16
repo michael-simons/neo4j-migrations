@@ -56,6 +56,20 @@ the following coordinates:
 * Spring-Boot-Starter: `{groupId}:{artifactIdSpringBoot}:{latest_version}`
 * Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{latest_version}`
 
+== Compatibility
+
+Neo4j-Migrations can be used against Neo4j 3.5 and all Neo4j 4.x versions upto 4.4, including Neo4j-Aura.
+
+// tag::compatibility[]
+The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 8 to run.
+Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don't require a JVM to be installed.
+
+All releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8. Thus, we ensure both source, target and API compatibility with JDK 8.
+In addition, the Core API is provided as a Multi-Release-Jar, providing a `module-info.java` for JDK 11 and higher, making it a good citizen on the Java module path.
+
+For JDK 17 and higher we do restrict the usage of some interfaces and have better boundaries for you what you can safely implement and what you should not.
+// end::compatibility[]
+
 == Manual
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].

@@ -311,6 +311,22 @@ migrations.apply(); // <.>
 In case anything goes wrong the API will throw a `ac.simons.neo4j.migrations.core.MigrationsException`.
 Of course your migrations will be recorded as a chain of applied migrations (as nodes with the label `++__Neo4jMigration++`) as well when you use the API directly.
 
+=== Running on the Java module-path
+
+Neo4j-Migrations can be used on the Java module path. Make sure you require them in your module and export packages with Java-based migrations in case you're using the latter.
+Resoruces on the classpath should be picked up automatically:
+
+.Using Neo4j-Migrations on the module path
+[source,java]
+----
+module my.module {
+    requires ac.simons.neo4j.migrations.core;
+
+    exports my.module.java_based_migrations; // <.>
+}
+----
+<.> Only needed when you actually have those
+
 [[usage_spring-boot-starter]]
 == Spring-Boot-Starter
 

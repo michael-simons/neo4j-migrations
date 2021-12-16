@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -50,7 +51,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { CleanCommand.class, CommandLine.HelpCommand.class, InfoCommand.class, MigrateCommand.class, ValidateCommand.class },
+	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, MigrateCommand.class, ValidateCommand.class },
 	versionProvider = ManifestVersionProvider.class
 )
 public final class MigrationsCli implements Runnable {
@@ -78,7 +79,11 @@ public final class MigrationsCli implements Runnable {
 	 */
 	public static void main(String... args) {
 
-		int exitCode = new CommandLine(new MigrationsCli()).execute(args);
+		CommandLine commandLine = new CommandLine(new MigrationsCli());
+		CommandLine generateCompletionCmd = commandLine.getSubcommands().get("generate-completion");
+		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);
+
+		int exitCode = commandLine.execute(args);
 		System.exit(exitCode);
 	}
 

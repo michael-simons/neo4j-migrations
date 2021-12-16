@@ -130,6 +130,30 @@ Commands:
               configured database with them.
 ----
 
+=== Enable autocompletion for Neo4j-Migrations in your shell
+
+Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.
+Here's how to use it:
+
+.Generate autocompletion script
+[source,console]
+----
+./bin/neo4j-migrations generate-completion > neo4j-migrations_completion.sh
+----
+
+The generated script `neo4j-migrations_completion.sh` can than be run via `. neo4j-migrations_completion.sh` or permanently installed by
+sourcing it in your `~/.bashrc` or `~/.zshrc`.
+
+If you want to have autocompletion for Neo4j-Migrations just in your current shell use the following command
+
+.Add autocompletion to your current shell
+[source,console]
+----
+source <(./bin/neo4j-migrations generate-completion)
+----
+
+NOTE: Autocompletion for macOS is automatically installed when you use <<download_cli_brew,Homebrew>>.
+
 === Full example
 
 Here's an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.

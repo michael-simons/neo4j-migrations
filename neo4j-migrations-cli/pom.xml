@@ -102,6 +102,29 @@
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate-cli-completion</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration combine.self="override">
+							<executable>${project.basedir}/../bin/generate-completion.sh</executable>
+							<arguments>
+								<argument>-classpath</argument>
+								<classpath/>
+								<argument>${name-of-main-class}</argument>
+								<argument>generate-completion</argument>
+								<argument>${project.build.directory}</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>appassembler-maven-plugin</artifactId>
 				<version>${appassembler-maven-plugin.version}</version>
 				<configuration>

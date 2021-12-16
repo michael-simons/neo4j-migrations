@@ -1581,7 +1581,34 @@ Commands:
 </div>
 </div>
 <div class="sect3">
-<h4 id="enableautocompletionforneo4j-migrationsinyourshell"><a class="anchor" href="#enableautocompletionforneo4j-migrationsinyourshell"></a>4.2.2. Enable autocompletion for Neo4j-Migrations in your shell</h4>
+<h4 id="safepasswordsincicdusage"><a class="anchor" href="#safepasswordsincicdusage"></a>4.2.2. Safe passwords in CI/CD usage</h4>
+<div class="paragraph">
+<p>There are 4 ways to specify the password:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>interactive: Use <code>--password</code> without arguments and your shell will prompt you with a hidden prompt.</p>
+</li>
+<li>
+<p>direct: Use <code>--password not-so-secret</code>. The password will be visible in the shell history and in the process monitor.</p>
+</li>
+<li>
+<p>Via environment variable: Define an environment variable like <code>MY_PASSWORD</code> and use <code>--password:env MY_PASSWORD</code>. Note
+that the parameter is the <strong>name</strong>  of the variable, not the resolved value.</p>
+</li>
+<li>
+<p>Via a file: Create a file in a safe space and add your password in a single line in that file and use <code>--password:file path/to/your/passwordFile</code>.
+The password will be read from this file.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The last two options are a safe choice in scripts or in a CI/CD environment.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="enableautocompletionforneo4j-migrationsinyourshell"><a class="anchor" href="#enableautocompletionforneo4j-migrationsinyourshell"></a>4.2.3. Enable autocompletion for Neo4j-Migrations in your shell</h4>
 <div class="paragraph">
 <p>Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.
 Here&#8217;s how to use it:</p>
@@ -1619,7 +1646,7 @@ Autocompletion for macOS is automatically installed when you use <a href="#downl
 </div>
 </div>
 <div class="sect3">
-<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.3. Full example</h4>
+<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.4. Full example</h4>
 <div class="paragraph">
 <p>Here&#8217;s an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.
 In this example we have exported the directory with our Java-based migrations like this: <code>export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/</code>.
@@ -1734,7 +1761,7 @@ All resolved migrations have been applied to the default database.</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.4. A template for Java-based migrations</h4>
+<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.5. A template for Java-based migrations</h4>
 <div class="paragraph">
 <p>As stated above, this will work only with the JVM distribution.
 Follow those steps:</p>
@@ -2242,7 +2269,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-16 15:24:51 UTC
+Last updated 2021-12-16 17:12:25 UTC
 </div>
 </div>
 </body>

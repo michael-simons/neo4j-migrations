@@ -626,6 +626,17 @@ Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4 and of course, Neo4j
 It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
 The tooling may or may not work with other databases using the Bolt protocol. We don&#8217;t provide any support for those.</p>
 </div>
+<div class="paragraph">
+<p>The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 8 to run.
+Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don&#8217;t require a JVM to be installed.</p>
+</div>
+<div class="paragraph">
+<p>All releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8. Thus, we ensure both source, target and API compatibility with JDK 8.
+In addition, the Core API is provided as a Multi-Release-Jar, providing a <code>module-info.java</code> for JDK 11 and higher, making it a good citizen on the Java module path.</p>
+</div>
+<div class="paragraph">
+<p>For JDK 17 and higher we do restrict the usage of some interfaces and have better boundaries for you what you can safely implement and what you should not.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="introduction-versions"><a class="anchor" href="#introduction-versions"></a>1.3. Versions</h3>
@@ -704,11 +715,14 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 <div class="sect2">
 <h3 id="download_cli"><a class="anchor" href="#download_cli"></a>2.1. CLI</h3>
 <div class="sect3">
-<h4 id="forhomebrewusersonmacos"><a class="anchor" href="#forhomebrewusersonmacos"></a>2.1.1. For homebrew users on macOS</h4>
+<h4 id="download_cli_brew"><a class="anchor" href="#download_cli_brew"></a>2.1.1. For homebrew users on macOS</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">brew install michael-simons/homebrew-neo4j-migrations/neo4j-migrations</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Autocompletion is automatically installed and available for bash and zsh when you configured Homebrew <a href="https://docs.brew.sh/Shell-Completion">accordingly</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1567,7 +1581,45 @@ Commands:
 </div>
 </div>
 <div class="sect3">
-<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.2. Full example</h4>
+<h4 id="enableautocompletionforneo4j-migrationsinyourshell"><a class="anchor" href="#enableautocompletionforneo4j-migrationsinyourshell"></a>4.2.2. Enable autocompletion for Neo4j-Migrations in your shell</h4>
+<div class="paragraph">
+<p>Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.
+Here&#8217;s how to use it:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 11. Generate autocompletion script</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">./bin/neo4j-migrations generate-completion &gt; neo4j-migrations_completion.sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The generated script <code>neo4j-migrations_completion.sh</code> can than be run via <code>. neo4j-migrations_completion.sh</code> or permanently installed by
+sourcing it in your <code>~/.bashrc</code> or <code>~/.zshrc</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you want to have autocompletion for Neo4j-Migrations just in your current shell use the following command</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 12. Add autocompletion to your current shell</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">source &lt;(./bin/neo4j-migrations generate-completion)</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Autocompletion for macOS is automatically installed when you use <a href="#download_cli_brew">Homebrew</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.3. Full example</h4>
 <div class="paragraph">
 <p>Here&#8217;s an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.
 In this example we have exported the directory with our Java-based migrations like this: <code>export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/</code>.
@@ -1682,7 +1734,7 @@ All resolved migrations have been applied to the default database.</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.3. A template for Java-based migrations</h4>
+<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.4. A template for Java-based migrations</h4>
 <div class="paragraph">
 <p>As stated above, this will work only with the JVM distribution.
 Follow those steps:</p>
@@ -1751,7 +1803,7 @@ An instance of <code>MigrationsConfig</code> is created via a fluent-builder API
 Putting everything together looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 11. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
+<div class="title">Listing 13. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Migrations migrations = <span class="keyword">new</span> Migrations(
     MigrationsConfig.builder()
@@ -1778,6 +1830,31 @@ migrations.apply(); <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 <div class="paragraph">
 <p>In case anything goes wrong the API will throw a <code>ac.simons.neo4j.migrations.core.MigrationsException</code>.
 Of course your migrations will be recorded as a chain of applied migrations (as nodes with the label <code>__Neo4jMigration</code>) as well when you use the API directly.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="runningonthejavamodule-path"><a class="anchor" href="#runningonthejavamodule-path"></a>4.3.2. Running on the Java module-path</h4>
+<div class="paragraph">
+<p>Neo4j-Migrations can be used on the Java module path. Make sure you require them in your module and export packages with Java-based migrations in case you&#8217;re using the latter.
+Resoruces on the classpath should be picked up automatically:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 14. Using Neo4j-Migrations on the module path</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">module my.module {
+    requires ac.simons.neo4j.migrations.core;
+
+    exports my.module.java_based_migrations; <i class="conum" data-value="1"></i><b>(1)</b>
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Only needed when you actually have those</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1812,7 +1889,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 12. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
+<div class="title">Listing 15. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
@@ -2067,7 +2144,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <p>Most of the time you will configure the following properties for the plugin:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 13. Configuring the Maven-Plugin</div>
+<div class="title">Listing 16. Configuring the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -2092,7 +2169,7 @@ By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#
 You can change that via <code>locationsToScan</code> inside the <code>configuration</code> element like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 14. Changing the locations to scan for the Maven-Plugin</div>
+<div class="title">Listing 17. Changing the locations to scan for the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;locationsToScan&gt;</span>
     <span class="tag">&lt;locationToScan&gt;</span>file://${project.build.outputDirectory}/custom/path<span class="tag">&lt;/locationToScan&gt;</span>
@@ -2165,7 +2242,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-15 15:47:52 UTC
+Last updated 2021-12-16 15:24:51 UTC
 </div>
 </div>
 </body>

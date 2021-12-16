@@ -23,13 +23,23 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.graalvm.nativeimage.ImageInfo;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
+import org.mockito.Answers;
+import org.mockito.Mockito;
+import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Config;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.internal.security.InternalAuthToken;
 
 /**
  * @author Michael J. Simons
@@ -119,6 +129,9 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, new String[] { "foo.bar" });
 
+		setUserName(cli);
+		setPassword(cli);
+
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			ConnectedCommand cmd = new ConnectedCommand() {
@@ -137,6 +150,30 @@ class MigrationsCliTest {
 		});
 	}
 
+	private void setUserName(MigrationsCli cli) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "user".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, "neo4j");
+	}
+
+	private void setPassword(MigrationsCli cli) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "password".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, "secret".toCharArray());
+	}
+
+	private void setPasswordEnv(MigrationsCli cli, String name) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "passwordEnv".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, name);
+	}
+
+	private void setPasswordFile(MigrationsCli cli, File file) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "passwordFile".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, file);
+	}
+
 	@Test
 	void createDriverConfigShouldSetCorrectValues() throws IllegalAccessException {
 
@@ -149,5 +186,88 @@ class MigrationsCliTest {
 		Config config = cli.createDriverConfig();
 		assertThat(config.maxConnectionPoolSize()).isEqualTo(4711);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
+	}
+
+	@Nested
+	class PasswordOptions {
+
+		@Test
+		void shouldUsePasswordFirst() throws Exception {
+
+			MigrationsCli cli = new MigrationsCli();
+			setUserName(cli);
+			setPassword(cli);
+			setPasswordEnv(cli, "superSecretSuperPassword");
+			setPasswordFile(cli, new File("X"));
+
+			AuthToken authToken = cli.getAuthToken();
+			assertAuthToken(authToken, "secret");
+		}
+
+		@Test
+		void shouldUseEnvFirst() throws Exception {
+
+			MigrationsCli cli = new MigrationsCli();
+			setUserName(cli);
+			setPasswordEnv(cli, "superSecretSuperPassword");
+			setPasswordFile(cli, new File("X"));
+
+			AuthToken authToken = cli.getAuthToken();
+			assertAuthToken(authToken, "Geheim");
+		}
+
+		@Test
+		void shouldUseFile() throws Exception {
+
+			Path passwordfile = Files.createTempFile("passwordfile", "");
+			Files.write(passwordfile, "Vertraulich".getBytes(StandardCharsets.UTF_8));
+
+			MigrationsCli cli = new MigrationsCli();
+			setUserName(cli);
+			setPasswordFile(cli, passwordfile.toFile());
+
+			AuthToken authToken = cli.getAuthToken();
+			assertAuthToken(authToken, "Vertraulich");
+		}
+
+		private void setCommandSpec(MigrationsCli cli) throws IllegalAccessException {
+
+			Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "commandSpec".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
+			field.setAccessible(true);
+			CommandLine.Model.CommandSpec mock = Mockito.mock(CommandLine.Model.CommandSpec.class, Answers.RETURNS_MOCKS);
+			field.set(cli, mock);
+		}
+
+		@Test
+		void shouldCheckExistenceOfFile() throws Exception {
+
+			MigrationsCli cli = new MigrationsCli();
+
+			setUserName(cli);
+			setPasswordFile(cli, new File("non-existing"));
+			setCommandSpec(cli);
+
+			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
+				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+		}
+
+		@Test
+		void shouldTrim() throws Exception {
+
+			MigrationsCli cli = new MigrationsCli();
+
+			setUserName(cli);
+			setPasswordEnv(cli, "emptyPassword");
+			setCommandSpec(cli);
+
+			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
+				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+		}
+
+		private void assertAuthToken(AuthToken authToken, String expectedCredentials) {
+			assertThat(authToken).isInstanceOf(InternalAuthToken.class);
+			assertThat(((InternalAuthToken) authToken).toMap())
+				.containsEntry("credentials", Values.value(expectedCredentials));
+		}
 	}
 }

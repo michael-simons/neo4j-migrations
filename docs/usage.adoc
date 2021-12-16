@@ -130,6 +130,19 @@ Commands:
               configured database with them.
 ----
 
+=== Safe passwords in CI/CD usage
+
+There are 4 ways to specify the password:
+
+. interactive: Use `--password` without arguments and your shell will prompt you with a hidden prompt.
+. direct: Use `--password not-so-secret`. The password will be visible in the shell history and in the process monitor.
+. Via environment variable: Define an environment variable like `MY_PASSWORD` and use `--password:env MY_PASSWORD`. Note
+  that the parameter is the *name*  of the variable, not the resolved value.
+. Via a file: Create a file in a safe space and add your password in a single line in that file and use `--password:file path/to/your/passwordFile`.
+  The password will be read from this file.
+
+The last two options are a safe choice in scripts or in a CI/CD environment.
+
 === Enable autocompletion for Neo4j-Migrations in your shell
 
 Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.

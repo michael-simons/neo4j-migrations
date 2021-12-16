@@ -22,6 +22,7 @@ import picocli.CommandLine;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
+import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -47,6 +48,8 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	public Integer call() {
 
 		MigrationsCli migrationsCli = getParent();
+		AuthToken authToken = migrationsCli.getAuthToken();
+
 		MigrationsConfig config;
 		try {
 			config = migrationsCli.getConfig();
@@ -55,7 +58,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			return CommandLine.ExitCode.USAGE;
 		}
 
-		try (Driver driver = migrationsCli.openConnection()) {
+		try (Driver driver = migrationsCli.openConnection(authToken)) {
 
 			Migrations migrations = new Migrations(config, driver);
 

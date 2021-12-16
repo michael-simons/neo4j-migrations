@@ -27,8 +27,12 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -103,10 +107,15 @@ public final class MigrationsCli implements Runnable {
 	)
 	private String user;
 
+	@Option(names = "--password:file")
+	File passwordFile;
+
+	@Option(names = "--password:env")
+	String passwordEnv;
+
 	@Option(
 		names = { "-p", "--password" },
 		description = "The password of the user connecting to the database.",
-		required = true,
 		arity = "0..1", interactive = true
 	)
 	private char[] password;
@@ -213,9 +222,32 @@ public final class MigrationsCli implements Runnable {
 		return config;
 	}
 
-	Driver openConnection() {
+	AuthToken getAuthToken() {
+		Optional<String> resolvedPassword = Optional.empty();
+		if (password != null) {
+			resolvedPassword = Optional.of(new String(password));
+		} else if (passwordEnv != null) {
+			resolvedPassword = Optional.ofNullable(System.getenv(passwordEnv));
+		} else if (passwordFile != null && passwordFile.isFile()) {
+			try {
+				resolvedPassword = Optional.of(new String(Files.readAllBytes(passwordFile.toPath())));
+			} catch (IOException e) {
+				throw new UncheckedIOException("Could not read password file " + passwordFile.getAbsolutePath(), e);
+			}
+		}
 
-		AuthToken authToken = AuthTokens.basic(user, new String(password));
+		return resolvedPassword
+			.map(String::trim)
+			.filter(s -> !s.isEmpty())
+			.map(s -> AuthTokens.basic(user, s))
+			.orElseThrow(
+				() -> new CommandLine.ParameterException(commandSpec.commandLine(),
+					"Missing required option: '--password', '--password:env' or '--password:file'")
+			);
+	}
+
+	Driver openConnection(AuthToken authToken) {
+
 		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());
 		boolean verified = false;
 		try {

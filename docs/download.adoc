@@ -72,7 +72,7 @@ dependencies {
 [[download_springboot]]
 == Spring-Boot-Starter
 
-Use your dependency management to include the Spring-Boot-Starter.
+Use your dependency management to include the https://start.spring.io[Spring-Boot]-Starter.
 The starter automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the `spring.neo4j.*` namespace.
 This starter here has a custom namespace, please refer to <<usage_spring-boot-starter>> for more information.
 
@@ -96,6 +96,25 @@ Or in case you fancy Gradle:
 dependencies {
     implementation '{groupId}:{artifactIdSpringBoot}:{latest_version}'
 }
+----
+
+[[download_quarkus]]
+== Quarkus
+
+Use your dependency management to include the https://quarkus.io[Quarkus] module.
+The module automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the `++quarkus.neo4j.*++` namespace.
+The namespace for this Quarkus module is `++quarkus.neo4j.migrations.*++`.
+
+[source,xml,subs="verbatim,attributes"]
+.Neo4j-Migrations for Quarkus as Maven dependency
+----
+<dependencies>
+    <dependency>
+        <groupId>{groupId}</groupId>
+        <artifactId>{artifactIdQuarkus}</artifactId>
+        <version>{latest_version}</version>
+    </dependency>
+</dependencies>
 ----
 
 == Maven-Plugin

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>eu.michael-simons.neo4j</groupId>
+		<artifactId>neo4j-migrations-parent</artifactId>
+		<version>1.2.2-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>neo4j-migrations-quarkus-parent</artifactId>
+	<packaging>pom</packaging>
+
+	<name>Neo4j Migrations (Quarkus Parent)</name>
+	<description>Integration with Quarkus.</description>
+
+	<modules>
+		<module>neo4j-migrations-quarkus-deployment</module>
+		<module>neo4j-migrations-quarkus-runtime</module>
+		<module>neo4j-migrations-quarkus-integration-tests</module>
+	</modules>
+
+	<properties>
+		<java.version>11</java.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.quarkus</groupId>
+				<artifactId>quarkus-bom</artifactId>
+				<version>${quarkus.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.quarkiverse.neo4j</groupId>
+				<artifactId>quarkus-neo4j</artifactId>
+				<version>${quarkus-neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.quarkiverse.neo4j</groupId>
+				<artifactId>quarkus-neo4j-deployment</artifactId>
+				<version>${quarkus-neo4j.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-maven-plugin</artifactId>
+					<version>${quarkus.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<!-- Don't ask… JavDoc plugin insists on module path for whatever reason then stumbles crying about invalid automatic module name for io.quarkus:quarkus-class-change-agent -->
+					<configuration combine.self="append">
+						<release>8</release>
+						<additionalOptions>
+							<additionalOption>--release ${java.version}</additionalOption>
+						</additionalOptions>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration combine.self="append">
+						<systemPropertyVariables>
+							<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<configuration combine.self="append">
+						<systemPropertyVariables>
+							<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

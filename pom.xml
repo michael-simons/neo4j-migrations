@@ -43,6 +43,7 @@
 		<module>neo4j-migrations-core</module>
 		<module>neo4j-migrations-cli</module>
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
+		<module>neo4j-migrations-quarkus-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
 	</modules>
@@ -76,6 +77,7 @@
 		<classgraph.version>4.8.138</classgraph.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
+		<docker-maven-plugin.version>0.38.0</docker-maven-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -103,6 +105,7 @@
 		<maven-site-plugin.version>3.9.1</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.4</maven.version>
 		<mockito.version>4.1.0</mockito.version>
@@ -117,6 +120,8 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<quarkus-neo4j.version>1.0.1</quarkus-neo4j.version>
+		<quarkus.version>2.6.0.Final</quarkus.version>
 		<slf4j.version>1.7.32</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.0</sortpom-maven-plugin.version>
@@ -349,7 +354,7 @@
 					<configuration>
 						<detectOfflineLinks>false</detectOfflineLinks>
 						<detectJavaApiLink>false</detectJavaApiLink>
-						<source>${java.version}</source>
+						<release>${java.version}</release>
 						<tags>
 							<tag>
 								<name>soundtrack</name>

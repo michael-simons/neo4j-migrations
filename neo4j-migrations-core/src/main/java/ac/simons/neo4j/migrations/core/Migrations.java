@@ -240,7 +240,7 @@ public final class Migrations {
 			List<Migration> migrations = this.getMigrations();
 			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
 			try {
-				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations);
+				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true);
 				int numberOfAppliedMigrations = (int) migrationChain.getElements()
 					.stream().filter(m -> m.getState() == MigrationState.APPLIED)
 					.count();

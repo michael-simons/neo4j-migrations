@@ -40,12 +40,6 @@ public class MigrationsProperties {
 	public boolean enabled;
 
 	/**
-	 * Whether to check that migration scripts location exists.
-	 */
-	@ConfigItem(defaultValue = "true")
-	public boolean checkLocation;
-
-	/**
 	 * List of packages to scan for Java migrations.
 	 */
 	@ConfigItem

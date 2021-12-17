@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  */
 @QuarkusIntegrationTest
-public class MigrationsIT {
+class MigrationsIT {
 
 	@Test
 	void cypherAndJavaBasedMigrationsShouldHaveBeenApplied() {

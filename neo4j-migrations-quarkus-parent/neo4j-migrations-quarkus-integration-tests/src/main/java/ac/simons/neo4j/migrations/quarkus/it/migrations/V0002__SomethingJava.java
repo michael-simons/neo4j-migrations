@@ -18,14 +18,22 @@ package ac.simons.neo4j.migrations.quarkus.it.migrations;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 
+import org.neo4j.driver.Session;
+
 /**
  * A sample migration
  *
  * @author Michael J. Simons
  */
+@SuppressWarnings({ "squid:S101", "unused" })
 public class V0002__SomethingJava implements JavaBasedMigration {
+
 	@Override
 	public void apply(MigrationContext context) {
 
+		try (Session session = context.getSession()) {
+
+			session.run("CREATE (onA:WALL{graffito: 'I was here'})");
+		}
 	}
 }

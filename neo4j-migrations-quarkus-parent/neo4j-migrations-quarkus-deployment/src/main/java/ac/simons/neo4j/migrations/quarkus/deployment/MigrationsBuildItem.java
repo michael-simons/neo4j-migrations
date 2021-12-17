@@ -23,7 +23,7 @@ import io.quarkus.runtime.RuntimeValue;
  * A Neo4j-Migrations built-time item to be consumed by interested parties during their deployment.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 public final class MigrationsBuildItem extends SimpleBuildItem {
 

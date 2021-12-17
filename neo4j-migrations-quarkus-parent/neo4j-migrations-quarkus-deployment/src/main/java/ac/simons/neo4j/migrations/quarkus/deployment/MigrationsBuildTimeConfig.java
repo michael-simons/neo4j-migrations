@@ -23,7 +23,7 @@ import io.quarkus.runtime.annotations.ConfigRoot;
  * Build-time configuration for Neo4j-Migrations.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 @ConfigRoot(name = "neo4j.migrations", phase = ConfigPhase.BUILD_TIME)
 public class MigrationsBuildTimeConfig {

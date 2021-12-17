@@ -29,7 +29,7 @@ import org.neo4j.driver.exceptions.ServiceUnavailableException;
  * Observer used to trigger a {@link Migrations Neo4j migration}.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 @ApplicationScoped
 public final class MigrationsInitializer {

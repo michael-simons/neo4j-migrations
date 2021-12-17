@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
  * Returning a list of migrations.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 @Path("/migrations")
 public class MigrationsResource {

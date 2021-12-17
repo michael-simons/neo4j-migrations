@@ -28,7 +28,7 @@ import java.util.Optional;
  * Shim between {@link ac.simons.neo4j.migrations.core.MigrationsConfig} and the Smallrye configuration.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 @ConfigRoot(name = "neo4j.migrations", phase = ConfigPhase.RUN_TIME)
 public class MigrationsProperties {

@@ -35,7 +35,7 @@ import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
  * observing the start of an application and migration the database.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 class MigrationsProcessor {
 

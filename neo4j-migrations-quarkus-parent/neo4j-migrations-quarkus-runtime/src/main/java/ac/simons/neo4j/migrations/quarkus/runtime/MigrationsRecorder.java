@@ -26,7 +26,7 @@ import org.neo4j.driver.Driver;
  * Records both initialization of the {@link MigrationsConfig migration config} and the {@link Migrations migrations} itself.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.2.2
  */
 @Recorder
 public class MigrationsRecorder {

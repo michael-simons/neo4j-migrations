@@ -825,9 +825,10 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="sect2">
 <h3 id="download_quarkus"><a class="anchor" href="#download_quarkus"></a>2.4. Quarkus</h3>
 <div class="paragraph">
-<p>Use your dependency management to include the <a href="https://quarkus.io">Quarkus</a> module.
-The module automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the <code>quarkus.neo4j.*</code> namespace.
-The namespace for this Quarkus module is <code>quarkus.neo4j.migrations.*</code>.</p>
+<p>Use your dependency management to include the <a href="https://quarkus.io">Quarkus</a> extension.
+This extension automatically triggers the dependency to the Neo4j extension containing the Neo4j-Java-Driver.
+The latter can be configured via properties in the <code>quarkus.neo4j.*</code> namespace.
+The namespace for this extension is <code>quarkus.neo4j.migrations.*</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 5. Neo4j-Migrations for Quarkus as Maven dependency</div>
@@ -2183,7 +2184,7 @@ Migrations can be disabled by setting <code>org.neo4j.migrations.enabled</code> 
 <div class="sect2">
 <h3 id="usage_quarkus"><a class="anchor" href="#usage_quarkus"></a>4.5. Quarkus</h3>
 <div class="paragraph">
-<p>We provide a module with automatic configuration for Quarkus.
+<p>We provide an extension with automatic configuration for Quarkus.
 Declare the following dependency in your Quarkus application:</p>
 </div>
 <div class="listingblock">
@@ -2196,9 +2197,9 @@ Declare the following dependency in your Quarkus application:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>That module itself depends on the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a> and the corresponding
+<p>That extension itself depends on the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a> and the corresponding
 Quarkus extension <a href="https://github.com/quarkiverse/quarkus-neo4j">Quarkus-Neo4j</a> and requires at least Quarkus 2.6.
-You don&#8217;t need to declare those dependencies, this module will do for your.</p>
+You don&#8217;t need to declare those dependencies, they are already transitive dependencies of this extension.</p>
 </div>
 <div class="paragraph">
 <p>Neo4j-Migrations will automatically look for migrations in <code>classpath:neo4j/migrations</code> and will fail if this location does not exist.
@@ -2242,7 +2243,7 @@ will still be in the context to be used.</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-All other propertiers available for the <a href="#usage_spring-boot_all-properties">Spring-Boot-Starter</a> are available for the Quarkus-Module, too.
+All other properties available for the <a href="#usage_spring-boot_all-properties">Spring-Boot-Starter</a> are available for the Quarkus extension, too.
 Their namespace is <code>quarkus.neo4j.migrations</code> instead of <code>org.neo4j.migrations</code>.
 </td>
 </tr>
@@ -2360,7 +2361,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-18 00:53:37 UTC
+Last updated 2021-12-18 01:09:24 UTC
 </div>
 </div>
 </body>

@@ -551,7 +551,8 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <li><a href="#download_cli">2.1. CLI</a></li>
 <li><a href="#download_core">2.2. Core API</a></li>
 <li><a href="#download_springboot">2.3. Spring-Boot-Starter</a></li>
-<li><a href="#maven-plugin">2.4. Maven-Plugin</a></li>
+<li><a href="#download_quarkus">2.4. Quarkus</a></li>
+<li><a href="#maven-plugin">2.5. Maven-Plugin</a></li>
 </ul>
 </li>
 <li><a href="#concepts">3. Concepts</a>
@@ -571,7 +572,8 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <li><a href="#cli">4.2. CLI</a></li>
 <li><a href="#coreapi">4.3. Core API</a></li>
 <li><a href="#usage_spring-boot-starter">4.4. Spring-Boot-Starter</a></li>
-<li><a href="#usage_maven-plugin">4.5. Maven-Plugin</a></li>
+<li><a href="#usage_quarkus">4.5. Quarkus</a></li>
+<li><a href="#usage_maven-plugin">4.6. Maven-Plugin</a></li>
 </ul>
 </li>
 <li><a href="#appendix">Appendix</a>
@@ -792,7 +794,7 @@ Here are the coordinates:</p>
 <div class="sect2">
 <h3 id="download_springboot"><a class="anchor" href="#download_springboot"></a>2.3. Spring-Boot-Starter</h3>
 <div class="paragraph">
-<p>Use your dependency management to include the Spring-Boot-Starter.
+<p>Use your dependency management to include the <a href="https://start.spring.io">Spring-Boot</a>-Starter.
 The starter automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the <code>spring.neo4j.*</code> namespace.
 This starter here has a custom namespace, please refer to <a href="#usage_spring-boot-starter">Section 4.4</a> for more information.</p>
 </div>
@@ -821,9 +823,29 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 </div>
 </div>
 <div class="sect2">
-<h3 id="maven-plugin"><a class="anchor" href="#maven-plugin"></a>2.4. Maven-Plugin</h3>
+<h3 id="download_quarkus"><a class="anchor" href="#download_quarkus"></a>2.4. Quarkus</h3>
 <div class="paragraph">
-<p>Include the Maven-Plugin like this in your build and configure it according to <a href="#usage_maven-plugin">Section 4.5</a>:</p>
+<p>Use your dependency management to include the <a href="https://quarkus.io">Quarkus</a> module.
+The module automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the <code>quarkus.neo4j.*</code> namespace.
+The namespace for this Quarkus module is <code>quarkus.neo4j.migrations.*</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 5. Neo4j-Migrations for Quarkus as Maven dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependencies&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+<span class="tag">&lt;/dependencies&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="maven-plugin"><a class="anchor" href="#maven-plugin"></a>2.5. Maven-Plugin</h3>
+<div class="paragraph">
+<p>Include the Maven-Plugin like this in your build and configure it according to <a href="#usage_maven-plugin">Section 4.6</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -955,7 +977,7 @@ The Neo4j-Protocol might be one of the following:</p>
 <p>You don&#8217;t have to care much more about the Driver API than knowing how to create an instance:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 5. Create an instance of the Neo4j-Java-Driver</div>
+<div class="title">Listing 6. Create an instance of the Neo4j-Java-Driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">org.neo4j.driver.AuthTokens</span>;
 <span class="keyword">import</span> <span class="include">org.neo4j.driver.Config</span>;
@@ -998,7 +1020,7 @@ By default, all statements in one script will be executed in a single transactio
 <p>Here&#8217;s an example:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 6. neo4j/migrations/V007__BondTheNameIsBond.cypher</div>
+<div class="title">Listing 7. neo4j/migrations/V007__BondTheNameIsBond.cypher</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cypher">CREATE (agent:`007`) RETURN agent;
 UNWIND RANGE(1,6) AS i
@@ -1016,7 +1038,7 @@ RETURN n
 Spring-Boot-Starter or the Maven-Plugin like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 7. Changing the locations to scan for Migrations (and Callbacks) via the Core API</div>
+<div class="title">Listing 8. Changing the locations to scan for Migrations (and Callbacks) via the Core API</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">MigrationsConfig configLookingAtDifferentPlaces = MigrationsConfig.builder()
     .withLocationsToScan(
@@ -1067,7 +1089,7 @@ You can refactor everything in your database in a programmatic way.
 One possible migration looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 8. Example for a Java-based refactoring</div>
+<div class="title">Listing 9. Example for a Java-based refactoring</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">some.migrations</span>;
 
@@ -1394,7 +1416,7 @@ This is essentially a scope around one or more statements which will be retried 
 transactional function or if each statement goes into its own transactional scope:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 9. Choose transaction behaviour</div>
+<div class="title">Listing 10. Choose transaction behaviour</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">MigrationsConfig configPerMigration = MigrationsConfig.builder()
     .withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
@@ -1495,7 +1517,7 @@ In the following we assume you downloaded and unzipped the architecture independ
 For that version to work, you need to have JDK 8 or higher installed:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 10. Download and extraction of the JVM based version</div>
+<div class="title">Listing 11. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
 curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.2.2-SNAPSHOT/neo4j-migrations-1.2.2-SNAPSHOT.zip
@@ -1614,7 +1636,7 @@ The password will be read from this file.</p>
 Here&#8217;s how to use it:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 11. Generate autocompletion script</div>
+<div class="title">Listing 12. Generate autocompletion script</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">./bin/neo4j-migrations generate-completion &gt; neo4j-migrations_completion.sh</code></pre>
 </div>
@@ -1627,7 +1649,7 @@ sourcing it in your <code>~/.bashrc</code> or <code>~/.zshrc</code>.</p>
 <p>If you want to have autocompletion for Neo4j-Migrations just in your current shell use the following command</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 12. Add autocompletion to your current shell</div>
+<div class="title">Listing 13. Add autocompletion to your current shell</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">source &lt;(./bin/neo4j-migrations generate-completion)</code></pre>
 </div>
@@ -1830,7 +1852,7 @@ An instance of <code>MigrationsConfig</code> is created via a fluent-builder API
 Putting everything together looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 13. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
+<div class="title">Listing 14. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Migrations migrations = <span class="keyword">new</span> Migrations(
     MigrationsConfig.builder()
@@ -1866,7 +1888,7 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 Resoruces on the classpath should be picked up automatically:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 14. Using Neo4j-Migrations on the module path</div>
+<div class="title">Listing 15. Using Neo4j-Migrations on the module path</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">module my.module {
     requires ac.simons.neo4j.migrations.core;
@@ -1888,7 +1910,7 @@ Resoruces on the classpath should be picked up automatically:</p>
 <div class="sect2">
 <h3 id="usage_spring-boot-starter"><a class="anchor" href="#usage_spring-boot-starter"></a>4.4. Spring-Boot-Starter</h3>
 <div class="paragraph">
-<p>We provide a starter with automatic configuration for Spring Boot.
+<p>We provide a starter with automatic configuration for <a href="https://start.spring.io">Spring Boot</a>.
 Declare the following dependency in your Spring Boot application:</p>
 </div>
 <div class="listingblock">
@@ -1916,7 +1938,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 15. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
+<div class="title">Listing 16. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
@@ -2159,19 +2181,88 @@ Migrations can be disabled by setting <code>org.neo4j.migrations.enabled</code> 
 </div>
 </div>
 <div class="sect2">
-<h3 id="usage_maven-plugin"><a class="anchor" href="#usage_maven-plugin"></a>4.5. Maven-Plugin</h3>
+<h3 id="usage_quarkus"><a class="anchor" href="#usage_quarkus"></a>4.5. Quarkus</h3>
+<div class="paragraph">
+<p>We provide a module with automatic configuration for Quarkus.
+Declare the following dependency in your Quarkus application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.2.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That module itself depends on the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a> and the corresponding
+Quarkus extension <a href="https://github.com/quarkiverse/quarkus-neo4j">Quarkus-Neo4j</a> and requires at least Quarkus 2.6.
+You don&#8217;t need to declare those dependencies, this module will do for your.</p>
+</div>
+<div class="paragraph">
+<p>Neo4j-Migrations will automatically look for migrations in <code>classpath:neo4j/migrations</code> and will fail if this location does not exist.
+It does not scan by default for Java-based migrations.</p>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 17. Configure both the driver and scan for Java-based migrations, too</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="properties">quarkus.neo4j.uri=bolt://localhost:7687
+quarkus.neo4j.authentication.username=neo4j
+quarkus.neo4j.authentication.password=secret
+
+quarkus.neo4j.migrations.packages-to-scan=foo.bar</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+The extension will not find Cypher-based migrations when the Quarkus application is packaged up as
+         GraalVM native image. If you want to deploy your application as native image, you must store Cypher-based
+         migrations external to this application and use <code>quarkus.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you disable Neo4j-Migrations via <code>quarkus.neo4j.migrations.enabled</code> we won&#8217;t apply Migrations at startup but the <code>Migrations</code> object
+will still be in the context to be used.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+All other propertiers available for the <a href="#usage_spring-boot_all-properties">Spring-Boot-Starter</a> are available for the Quarkus-Module, too.
+Their namespace is <code>quarkus.neo4j.migrations</code> instead of <code>org.neo4j.migrations</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="usage_maven-plugin"><a class="anchor" href="#usage_maven-plugin"></a>4.6. Maven-Plugin</h3>
 <div class="paragraph">
 <p>You can trigger Neo4j-Migrations from your build a Maven-Plugin.
 Please refer to the dedicated <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/plugin-info.html">Maven-Plugin page</a> for
 a detailed list of all goals and configuration option as well as the default lifecycle mapping of the plugin.</p>
 </div>
 <div class="sect3">
-<h4 id="configuration"><a class="anchor" href="#configuration"></a>4.5.1. Configuration</h4>
+<h4 id="configuration"><a class="anchor" href="#configuration"></a>4.6.1. Configuration</h4>
 <div class="paragraph">
 <p>Most of the time you will configure the following properties for the plugin:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 16. Configuring the Maven-Plugin</div>
+<div class="title">Listing 18. Configuring the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -2196,7 +2287,7 @@ By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#
 You can change that via <code>locationsToScan</code> inside the <code>configuration</code> element like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 17. Changing the locations to scan for the Maven-Plugin</div>
+<div class="title">Listing 19. Changing the locations to scan for the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;locationsToScan&gt;</span>
     <span class="tag">&lt;locationToScan&gt;</span>file://${project.build.outputDirectory}/custom/path<span class="tag">&lt;/locationToScan&gt;</span>
@@ -2208,7 +2299,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 </div>
 <div class="sect3">
-<h4 id="goals"><a class="anchor" href="#goals"></a>4.5.2. Goals</h4>
+<h4 id="goals"><a class="anchor" href="#goals"></a>4.6.2. Goals</h4>
 <div class="paragraph">
 <p>All goals as described in <a href="#usage_common">Section 4.1</a> are supported.</p>
 </div>
@@ -2269,7 +2360,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-16 17:12:25 UTC
+Last updated 2021-12-18 00:53:37 UTC
 </div>
 </div>
 </body>

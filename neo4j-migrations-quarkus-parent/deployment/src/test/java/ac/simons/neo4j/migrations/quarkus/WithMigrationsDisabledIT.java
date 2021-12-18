@@ -40,7 +40,7 @@ class WithMigrationsDisabledIT {
 	@RegisterExtension
 	static QuarkusUnitTest test = new QuarkusUnitTest()
 		.withConfigurationResource("application.properties")
-		.overrideConfigKey("quarkus.neo4j.migrations.enabled", "false")
+		.overrideConfigKey("org.neo4j.migrations.enabled", "false")
 		.withEmptyApplication();
 
 	@Inject

@@ -38,13 +38,19 @@ public final class MigrationsInitializer {
 
 	private final Migrations migrations;
 
+	private final MigrationsEnabled enabled;
+
 	@Inject
-	public MigrationsInitializer(Migrations migrations) {
+	public MigrationsInitializer(Migrations migrations, MigrationsEnabled enabled) {
 		this.migrations = migrations;
+		this.enabled = enabled;
 	}
 
 	void onStart(@Observes StartupEvent ev) {
 
+		if (!this.enabled.getAsBoolean()) {
+			return;
+		}
 		try {
 			migrations.apply();
 		} catch (ServiceUnavailableException e) {

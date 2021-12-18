@@ -34,6 +34,17 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-quarkus</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-quarkus-deployment</artifactId>
 			<version>${project.version}</version>
 			<exclusions>

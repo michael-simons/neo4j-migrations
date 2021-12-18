@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.quarkus.deployment;
+package ac.simons.neo4j.migrations.quarkus.runtime;
 
-import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
-import io.quarkus.runtime.annotations.ConfigRoot;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Build-time configuration for Neo4j-Migrations.
- *
  * @author Michael J. Simons
- * @since 1.2.2
  */
-@ConfigRoot(name = "neo4j.migrations", phase = ConfigPhase.BUILD_TIME)
-public class MigrationsBuildTimeConfig {
+class MigrationsEnabledTest {
 
-	/**
-	 * Set to {@literal false} to disable migrations at start. An instance of {@link ac.simons.neo4j.migrations.core.Migrations} will
-	 * still be provided to interested parties.
-	 */
-	@ConfigItem(name = "enabled", defaultValue = "true")
-	public boolean enabled;
+	@ParameterizedTest
+	@ValueSource(booleans = { true, false })
+	void shouldReturnConfiguredValue(boolean in) {
+		assertThat(new MigrationsEnabled(in).getAsBoolean()).isEqualTo(in);
+	}
 }

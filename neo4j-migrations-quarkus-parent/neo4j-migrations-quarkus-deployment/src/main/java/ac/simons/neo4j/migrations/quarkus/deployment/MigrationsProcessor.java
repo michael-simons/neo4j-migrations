@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.quarkus.deployment;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsEnabled;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsInitializer;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -61,15 +62,16 @@ class MigrationsProcessor {
 		syntheticBeans.produce(
 			SyntheticBeanBuildItem.configure(Migrations.class).runtimeValue(migrationsRv).setRuntimeInit().done());
 
+		var migrationsEnabledRv = migrationsRecorder.isEnabled(migrationsProperties);
+		syntheticBeans.produce(
+			SyntheticBeanBuildItem.configure(MigrationsEnabled.class).runtimeValue(migrationsEnabledRv).setRuntimeInit()
+				.done());
+
 		return new MigrationsBuildItem(migrationsRv);
 	}
 
 	@BuildStep
-	void migrationsInitializerStep(MigrationsBuildTimeConfig buildTimeConfig,
-		BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-		if (!buildTimeConfig.enabled) {
-			return;
-		}
-		additionalBeans.produce(AdditionalBeanBuildItem.unremovableOf(MigrationsInitializer.class));
+	AdditionalBeanBuildItem migrationsInitializerStep() {
+		return AdditionalBeanBuildItem.unremovableOf(MigrationsInitializer.class);
 	}
 }

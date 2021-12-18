@@ -48,6 +48,10 @@ public class MigrationsRecorder {
 		return new RuntimeValue<>(config);
 	}
 
+	public RuntimeValue<MigrationsEnabled> isEnabled(MigrationsProperties migrationsProperties) {
+		return new RuntimeValue<>(new MigrationsEnabled(migrationsProperties.enabled));
+	}
+
 	public RuntimeValue<Migrations> initializeMigrations(
 		RuntimeValue<MigrationsConfig> migrationsConfig, RuntimeValue<Driver> driver
 	) {

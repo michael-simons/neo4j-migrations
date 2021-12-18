@@ -34,7 +34,8 @@ import java.util.Optional;
 public class MigrationsProperties {
 
 	/**
-	 * Whether to enable Neo4j migrations or not.
+	 * Set to {@literal false} to disable migrations at start. An instance of {@link ac.simons.neo4j.migrations.core.Migrations} will
+	 * still be provided to interested parties.
 	 */
 	@ConfigItem(defaultValue = "true")
 	public boolean enabled;

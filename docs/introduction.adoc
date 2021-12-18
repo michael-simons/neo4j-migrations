@@ -44,6 +44,10 @@ into a fully configured Migrations instance that will be applied on application 
 Scripts will be searched sane default location.
 +
 link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/index.html[Project info]
+Quarkus:: An extension for Quarkus, providing full integration of all configuration option via Quarkus' configuration.
+Creates a startup observer that applies all resolved migrations at startup.
++
+link:{siteBaseUrl}/neo4j-migrations-quarkus-parent/neo4j-migrations-quarkus/apidocs/ac/simons/neo4j/migrations/quarkus/runtime/package-summary.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-quarkus-parent/index.html[Project info]
 Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles.
 Use this to apply migrations during your build.
 +

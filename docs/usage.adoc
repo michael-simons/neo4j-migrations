@@ -564,18 +564,18 @@ quarkus.neo4j.uri=bolt://localhost:7687
 quarkus.neo4j.authentication.username=neo4j
 quarkus.neo4j.authentication.password=secret
 
-quarkus.neo4j.migrations.packages-to-scan=foo.bar
+org.neo4j.migrations.packages-to-scan=foo.bar
 ----
 
 WARNING: The extension will not find Cypher-based migrations when the Quarkus application is packaged up as
          GraalVM native image. If you want to deploy your application as native image, you must store Cypher-based
-         migrations external to this application and use `quarkus.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons`.
+         migrations external to this application and use `org.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons`.
 
-If you disable Neo4j-Migrations via `quarkus.neo4j.migrations.enabled` we won't apply Migrations at startup but the `Migrations` object
+If you disable Neo4j-Migrations via `org.neo4j.migrations.enabled` we won't apply Migrations at startup but the `Migrations` object
 will still be in the context to be used.
 
 TIP: All other properties available for the <<usage_spring-boot_all-properties,Spring-Boot-Starter>> are available for the Quarkus extension, too.
-Their namespace is `quarkus.neo4j.migrations` instead of `org.neo4j.migrations`.
+Their namespace is the same: `org.neo4j.migrations`.
 
 
 [[usage_maven-plugin]]

@@ -39,7 +39,7 @@ class WithDifferentLocationIT {
 	@RegisterExtension
 	static QuarkusUnitTest test = new QuarkusUnitTest()
 		.withConfigurationResource("application.properties")
-		.overrideConfigKey("quarkus.neo4j.migrations.locations-to-scan", "classpath:neo4j/secondary-migrations")
+		.overrideConfigKey("org.neo4j.migrations.locations-to-scan", "classpath:neo4j/secondary-migrations")
 		.withEmptyApplication();
 
 	@Inject

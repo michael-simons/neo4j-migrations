@@ -12,4 +12,4 @@ metadata:
   categories:
   - "data"
   config:
-  - "quarkus.neo4j.migrations."
+  - "org.neo4j.migrations."

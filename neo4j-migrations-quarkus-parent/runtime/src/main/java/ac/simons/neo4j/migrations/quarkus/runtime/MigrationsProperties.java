@@ -30,7 +30,7 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 1.2.2
  */
-@ConfigRoot(name = "neo4j.migrations", phase = ConfigPhase.RUN_TIME)
+@ConfigRoot(name = "neo4j.migrations", prefix = "org", phase = ConfigPhase.RUN_TIME)
 public class MigrationsProperties {
 
 	/**

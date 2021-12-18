@@ -536,7 +536,7 @@ NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `f
 [[usage_quarkus]]
 == Quarkus
 
-We provide a module with automatic configuration for Quarkus.
+We provide an extension with automatic configuration for Quarkus.
 Declare the following dependency in your Quarkus application:
 
 [source,xml,subs="verbatim,attributes"]
@@ -548,9 +548,9 @@ Declare the following dependency in your Quarkus application:
 </dependency>
 ----
 
-That module itself depends on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver] and the corresponding
+That extension itself depends on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver] and the corresponding
 Quarkus extension https://github.com/quarkiverse/quarkus-neo4j[Quarkus-Neo4j] and requires at least Quarkus 2.6.
-You don't need to declare those dependencies, this module will do for your.
+You don't need to declare those dependencies, they are already transitive dependencies of this extension.
 
 Neo4j-Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exist.
 It does not scan by default for Java-based migrations.
@@ -574,7 +574,7 @@ WARNING: The extension will not find Cypher-based migrations when the Quarkus ap
 If you disable Neo4j-Migrations via `quarkus.neo4j.migrations.enabled` we won't apply Migrations at startup but the `Migrations` object
 will still be in the context to be used.
 
-TIP: All other propertiers available for the <<usage_spring-boot_all-properties,Spring-Boot-Starter>> are available for the Quarkus-Module, too.
+TIP: All other properties available for the <<usage_spring-boot_all-properties,Spring-Boot-Starter>> are available for the Quarkus extension, too.
 Their namespace is `quarkus.neo4j.migrations` instead of `org.neo4j.migrations`.
 
 

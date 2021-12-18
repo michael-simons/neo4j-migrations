@@ -101,9 +101,10 @@ dependencies {
 [[download_quarkus]]
 == Quarkus
 
-Use your dependency management to include the https://quarkus.io[Quarkus] module.
-The module automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the `++quarkus.neo4j.*++` namespace.
-The namespace for this Quarkus module is `++quarkus.neo4j.migrations.*++`.
+Use your dependency management to include the https://quarkus.io[Quarkus] extension.
+This extension automatically triggers the dependency to the Neo4j extension containing the Neo4j-Java-Driver.
+The latter can be configured via properties in the `++quarkus.neo4j.*++` namespace.
+The namespace for this extension is `++quarkus.neo4j.migrations.*++`.
 
 [source,xml,subs="verbatim,attributes"]
 .Neo4j-Migrations for Quarkus as Maven dependency

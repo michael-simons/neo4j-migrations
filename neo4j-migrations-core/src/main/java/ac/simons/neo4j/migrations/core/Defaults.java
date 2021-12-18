@@ -58,7 +58,12 @@ public final class Defaults {
 	/**
 	 * Default locations to scan.
 	 */
-	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList("classpath:neo4j/migrations");
+	public static final String LOCATIONS_TO_SCAN_VALUE = "classpath:neo4j/migrations";
+
+	/**
+	 * Default locations to scan.
+	 */
+	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList(LOCATIONS_TO_SCAN_VALUE);
 
 	/**
 	 * Same as {@link #LOCATIONS_TO_SCAN} but as {@link String string value} to be used in configuration that requires defaults given as string.

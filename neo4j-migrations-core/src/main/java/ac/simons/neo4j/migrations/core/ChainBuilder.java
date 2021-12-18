@@ -61,13 +61,26 @@ final class ChainBuilder {
 	}
 
 	/**
+	 * @param context              The current context
 	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
 	 *                             It is not yet known whether those are pending or not.
 	 * @return The full migration chain.
+	 * @see #buildChain(MigrationContext, List, boolean)
 	 */
 	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations) {
+		return buildChain(context, discoveredMigrations, false);
+	}
 
-		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations);
+	/**
+	 * @param context              The current context
+	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
+	 *                             It is not yet known whether those are pending or not.
+	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
+	 * @return The full migration chain.
+	 */
+	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
+
+		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses);
 
 		class ExtendedResultSummary {
 			final boolean showCurrentUserExists;
@@ -119,7 +132,7 @@ final class ChainBuilder {
 		}
 	}
 
-	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations) {
+	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
 
 		Map<MigrationVersion, Element> appliedMigrations = getChainOfAppliedMigrations(context);
 		if (discoveredMigrations.isEmpty()) {
@@ -138,7 +151,11 @@ final class ChainBuilder {
 			try {
 				newMigration = discoveredMigrations.get(i);
 			} catch (IndexOutOfBoundsException e) {
-				throw new MigrationsException("More migrations have been applied to the database than locally resolved", e);
+				String message = "More migrations have been applied to the database than locally resolved";
+				if (detailedCauses) {
+					throw new MigrationsException(message, e);
+				}
+				throw new MigrationsException(message);
 			}
 			if (!newMigration.getVersion().equals(expectedVersion)) {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));

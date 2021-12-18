@@ -1,0 +1,15 @@
+---
+artifact: ${project.groupId}:${project.artifactId}:${project.version}
+name: "Neo4j-Migrations"
+metadata:
+  keywords:
+  - "neo4j"
+  - "graph"
+  - "nosql"
+  - "datastore"
+  - "migrations"
+  - "refactoring"
+  categories:
+  - "data"
+  config:
+  - "quarkus.neo4j.migrations."

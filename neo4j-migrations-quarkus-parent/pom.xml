@@ -15,9 +15,9 @@
 	<description>Integration with Quarkus.</description>
 
 	<modules>
-		<module>neo4j-migrations-quarkus-deployment</module>
-		<module>neo4j-migrations-quarkus-runtime</module>
-		<module>neo4j-migrations-quarkus-integration-tests</module>
+		<module>deployment</module>
+		<module>runtime</module>
+		<module>integration-tests</module>
 	</modules>
 
 	<properties>

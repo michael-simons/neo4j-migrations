@@ -836,7 +836,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <p>Use your dependency management to include the <a href="https://quarkus.io">Quarkus</a> extension.
 This extension automatically triggers the dependency to the Neo4j extension containing the Neo4j-Java-Driver.
 The latter can be configured via properties in the <code>quarkus.neo4j.*</code> namespace.
-The namespace for this extension is <code>quarkus.neo4j.migrations.*</code>.</p>
+The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 5. Neo4j-Migrations for Quarkus as Maven dependency</div>
@@ -2223,7 +2223,7 @@ It does not scan by default for Java-based migrations.</p>
 quarkus.neo4j.authentication.username=neo4j
 quarkus.neo4j.authentication.password=secret
 
-quarkus.neo4j.migrations.packages-to-scan=foo.bar</code></pre>
+org.neo4j.migrations.packages-to-scan=foo.bar</code></pre>
 </div>
 </div>
 <div class="admonitionblock warning">
@@ -2235,13 +2235,13 @@ quarkus.neo4j.migrations.packages-to-scan=foo.bar</code></pre>
 <td class="content">
 The extension will not find Cypher-based migrations when the Quarkus application is packaged up as
          GraalVM native image. If you want to deploy your application as native image, you must store Cypher-based
-         migrations external to this application and use <code>quarkus.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons</code>.
+         migrations external to this application and use <code>org.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons</code>.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>If you disable Neo4j-Migrations via <code>quarkus.neo4j.migrations.enabled</code> we won&#8217;t apply Migrations at startup but the <code>Migrations</code> object
+<p>If you disable Neo4j-Migrations via <code>org.neo4j.migrations.enabled</code> we won&#8217;t apply Migrations at startup but the <code>Migrations</code> object
 will still be in the context to be used.</p>
 </div>
 <div class="admonitionblock tip">
@@ -2252,7 +2252,7 @@ will still be in the context to be used.</p>
 </td>
 <td class="content">
 All other properties available for the <a href="#usage_spring-boot_all-properties">Spring-Boot-Starter</a> are available for the Quarkus extension, too.
-Their namespace is <code>quarkus.neo4j.migrations</code> instead of <code>org.neo4j.migrations</code>.
+Their namespace is the same: <code>org.neo4j.migrations</code>.
 </td>
 </tr>
 </table>
@@ -2369,7 +2369,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-18 06:37:31 UTC
+Last updated 2021-12-18 07:51:48 UTC
 </div>
 </div>
 </body>

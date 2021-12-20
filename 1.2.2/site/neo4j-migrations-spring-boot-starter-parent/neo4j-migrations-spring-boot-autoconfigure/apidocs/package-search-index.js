@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();

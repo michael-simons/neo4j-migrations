@@ -21,11 +21,6 @@
             <source>${project.build.directory}/neo4j-migrations_completion</source>
             <outputDirectory>completion</outputDirectory>
         </file>
-        <file>
-            <source>${project.build.directory}/_neo4j-migrations</source>
-            <destName>_neo4j-migrations</destName>
-            <outputDirectory>completion/zsh</outputDirectory>
-        </file>
     </files>
     <fileSets>
         <fileSet>

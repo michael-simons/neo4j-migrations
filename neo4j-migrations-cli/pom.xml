@@ -13,6 +13,7 @@
 	<description>CLI module, packaged as JVM and native assemblies.</description>
 
 	<properties>
+		<assembly-suffix />
 		<covered-ratio-complexity>0.1</covered-ratio-complexity>
 		<covered-ratio-instructions>0.03</covered-ratio-instructions>
 		<executable-suffix/>
@@ -115,14 +116,14 @@
 						</goals>
 						<phase>package</phase>
 						<configuration combine.self="override">
-							<executable>${project.basedir}/../bin/generate-completion.sh</executable>
+							<executable>java</executable>
 							<arguments>
 								<argument>-classpath</argument>
 								<classpath/>
 								<argument>${name-of-main-class}</argument>
 								<argument>generate-completion</argument>
-								<argument>${project.build.directory}</argument>
 							</arguments>
+							<outputFile>target/neo4j-migrations_completion</outputFile>
 						</configuration>
 					</execution>
 				</executions>
@@ -199,6 +200,41 @@
 			</properties>
 		</profile>
 		<profile>
+			<id>osx</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<assembly-suffix>-osx</assembly-suffix>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>add-zsh-completion</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration combine.self="override">
+									<executable>${project.basedir}/../bin/add-zsh-completion-osx.sh</executable>
+									<arguments>
+										<argument>${project.build.directory}</argument>
+										<argument>neo4j-migrations_completion</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>native</id>
 			<activation>
 				<property>
@@ -241,7 +277,7 @@
 									<finalName>neo4j-migrations-${project.version}-${os.detected.classifier}</finalName>
 									<attach>false</attach>
 									<descriptors>
-										<descriptor>src/main/assembly/assembly-native.xml</descriptor>
+										<descriptor>src/main/assembly/assembly-native${assembly-suffix}.xml</descriptor>
 									</descriptors>
 								</configuration>
 							</execution>

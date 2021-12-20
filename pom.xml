@@ -77,7 +77,7 @@
 		<classgraph.version>4.8.138</classgraph.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
-		<docker-maven-plugin.version>0.38.0</docker-maven-plugin.version>
+		<docker-maven-plugin.version>0.38.1</docker-maven-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>

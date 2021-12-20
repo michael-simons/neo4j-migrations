@@ -55,6 +55,7 @@ the following coordinates:
 
 * Core API: `{groupId}:{artifactIdCore}:{latest_version}`
 * Spring-Boot-Starter: `{groupId}:{artifactIdSpringBoot}:{latest_version}`
+* Quarkus extension: `{groupId}:{artifactIdQuarkus}:{latest_version}`
 * Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{latest_version}`
 
 == Compatibility

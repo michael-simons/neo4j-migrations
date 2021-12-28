@@ -28,7 +28,7 @@
 		<maven-plugin-annotations.version>3.6.2</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plexus-classworlds.version>2.6.0</plexus-classworlds.version>
-		<plexus-component-annotations.version>2.1.0</plexus-component-annotations.version>
+		<plexus-component-annotations.version>2.1.1</plexus-component-annotations.version>
 		<plexus-utils.version>3.4.1</plexus-utils.version>
 		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>

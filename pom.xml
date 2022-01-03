@@ -916,16 +916,19 @@
 													<key>features</key>
 													<title>🚀 Features</title>
 													<labels>feat</labels>
+													<order>10</order>
 												</category>
 												<category>
 													<key>fixes</key>
 													<title>🐛 Bug Fixes</title>
 													<labels>fix</labels>
+													<order>20</order>
 												</category>
 												<category>
 													<key>docs</key>
 													<title>📝 Documentation</title>
 													<labels>docs</labels>
+													<order>30</order>
 												</category>
 												<category>
 													<title>🧹 Housekeeping</title>

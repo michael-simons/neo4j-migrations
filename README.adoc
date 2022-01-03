@@ -58,6 +58,9 @@ the following coordinates:
 * Quarkus extension: `{groupId}:{artifactIdQuarkus}:{latest_version}`
 * Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{latest_version}`
 
+The quickest way to use the CLI is https://www.jbang.dev[JBang]. With JBang installed, just enter `jbang neo4j-migrations@neo4j --help` to get started.
+Other options include Homebrew and Zip bundles. Please checkout the full list of https://michael-simons.github.io/neo4j-migrations/current/#download[download options].
+
 == Compatibility
 
 Neo4j-Migrations can be used against Neo4j 3.5 and all Neo4j 4.x versions upto 4.4, including Neo4j-Aura.

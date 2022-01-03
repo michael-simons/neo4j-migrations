@@ -971,6 +971,7 @@
 											<templateDirectory>etc/jreleaser/distributions/brew</templateDirectory>
 											<tap>
 												<name>homebrew-neo4j-migrations</name>
+												<commitMessage>Bump neo4j-migrations to {{tagName}}.</commitMessage>
 											</tap>
 											<formulaName>neo4j-migrations</formulaName>
 										</brew>
@@ -982,6 +983,22 @@
 												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}.zip</path>
 											</artifact>
 										</artifacts>
+										<java>
+											<version>8</version>
+											<mainClass>ac.simons.neo4j.migrations.cli.MigrationsCli</mainClass>
+										</java>
+										<jbang>
+											<active>ALWAYS</active>
+											<extraProperties>
+												<aliasName>neo4j-migrations</aliasName>
+												<scriptName>neo4j_migrations</scriptName>
+												<distributionGA>eu.michael-simons.neo4j:neo4j-migrations-cli</distributionGA>
+											</extraProperties>
+											<catalog>
+												<owner>neo4j</owner>
+												<commitMessage>Bump neo4j-migrations to {{tagName}}.</commitMessage>
+											</catalog>
+										</jbang>
 									</neo4j-migrations-no-arch>
 								</distributions>
 							</jreleaser>

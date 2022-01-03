@@ -43,6 +43,12 @@ Get this version here:
 curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
 ----
 
+TIP: The architecture independent version can be used via Neo4js official https://www.jbang.dev[JBang] catalog:
+     +
+     With JBang installed, run `jbang neo4j-migrations@neo4j --help` for printing our usage information.
+     +
+     The catalog offers a couple of other scripts as well, check them out with `jbang catalog list neo4j`.
+
 [[download_core]]
 == Core API
 

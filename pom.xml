@@ -840,7 +840,7 @@
 					<plugin>
 						<groupId>org.jreleaser</groupId>
 						<artifactId>jreleaser-maven-plugin</artifactId>
-						<version>0.9.1</version>
+						<version>0.10.0</version>
 						<inherited>false</inherited>
 						<configuration>
 							<jreleaser>
@@ -913,14 +913,17 @@
 											</replacers>
 											<categories>
 												<category>
+													<key>features</key>
 													<title>🚀 Features</title>
 													<labels>feat</labels>
 												</category>
 												<category>
+													<key>fixes</key>
 													<title>🐛 Bug Fixes</title>
 													<labels>fix</labels>
 												</category>
 												<category>
+													<key>docs</key>
 													<title>📝 Documentation</title>
 													<labels>docs</labels>
 												</category>
@@ -930,7 +933,8 @@
 													<order>70</order>
 												</category>
 												<category>
-													<title>🛠  Build</title>
+													<key>build</key>
+													<title>🛠 Build</title>
 													<order>80</order>
 												</category>
 												<category>

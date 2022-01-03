@@ -23,7 +23,7 @@ under the License.
     <link>https://github.com/michael-simons/neo4j-migrations/neo4j-migrations-maven-plugin</link>
     <description>Neo4j Migrations (Maven Plugin) - Checkstyle report</description>
     <language>en-us</language>
-    <copyright>&#169;2020 - 2021 Neo4j, Neo4j Sweden AB</copyright>
+    <copyright>&#169;2020 - 2022 Neo4j, Neo4j Sweden AB</copyright>
     <item>
       <title>File: 0,
              Errors: 0,

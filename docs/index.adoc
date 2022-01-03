@@ -18,7 +18,7 @@ endif::[]
 
 include::{manualIncludeDir}/README.adoc[tags=properties]
 
-:copyright: Copyright 2020-2021 the original author or authors.
+:copyright: Copyright 2020-2022 the original author or authors.
 
 (C) {copyright}
 

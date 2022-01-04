@@ -46,7 +46,6 @@ import org.springframework.core.io.ResourceLoader;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Migrations.class)
 @ConditionalOnBean(Driver.class)
-@ConditionalOnProperty(prefix = "org.neo4j.migrations", name = "enabled", matchIfMissing = true)
 @AutoConfigureAfter({ Neo4jAutoConfiguration.class })
 @AutoConfigureBefore({ Neo4jDataAutoConfiguration.class })
 @EnableConfigurationProperties({ MigrationsProperties.class })
@@ -82,6 +81,7 @@ public class MigrationsAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ MigrationsInitializer.class })
+	@ConditionalOnProperty(prefix = "org.neo4j.migrations", name = "enabled", matchIfMissing = true)
 	MigrationsInitializer neo4jMigrationsInitializer(Migrations neo4jMigrations) {
 
 		return new MigrationsInitializer(neo4jMigrations);

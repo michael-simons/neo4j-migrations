@@ -57,8 +57,7 @@ final class DiscoveryService {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
-		Collections
-			.sort(migrations, Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
+		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
 		return Collections.unmodifiableList(migrations);
 	}
 

@@ -18,20 +18,18 @@ package ac.simons.neo4j.migrations.quarkus.deployment;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
-import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsEnabled;
-import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsInitializer;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
 import ac.simons.neo4j.migrations.quarkus.runtime.ResourceWrapper;
 import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
 import ac.simons.neo4j.migrations.quarkus.runtime.StaticJavaBasedMigrationDiscoverer;
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
@@ -41,18 +39,20 @@ import java.util.stream.Collectors;
 
 /**
  * This processor produces two additional items:
- * A synthetic bean of type {@link Migrations} and an additional bean of type {@link MigrationsInitializer}, the latter
- * observing the start of an application and migration the database.
+ * A synthetic bean of type {@link Migrations} and an additional bean of type {@link ServiceStartBuildItem}, the latter
+ * indicating that all migrations have been applied (in case they are actually enabled).
  *
  * @author Michael J. Simons
  * @since 1.2.2
  */
 class MigrationsProcessor {
 
+	public static final String FEATURE_NAME = "neo4j-migrations";
+
 	@BuildStep
 	FeatureBuildItem createFeature() {
 
-		return new FeatureBuildItem("neo4j-migrations");
+		return new FeatureBuildItem(FEATURE_NAME);
 	}
 
 	@BuildStep
@@ -103,16 +103,15 @@ class MigrationsProcessor {
 		syntheticBeans.produce(
 			SyntheticBeanBuildItem.configure(Migrations.class).runtimeValue(migrationsRv).setRuntimeInit().done());
 
-		var migrationsEnabledRv = migrationsRecorder.recordIsEnabled(runtimeProperties);
-		syntheticBeans.produce(
-			SyntheticBeanBuildItem.configure(MigrationsEnabled.class).runtimeValue(migrationsEnabledRv).setRuntimeInit()
-				.done());
-
 		return new MigrationsBuildItem(migrationsRv);
 	}
 
 	@BuildStep
-	AdditionalBeanBuildItem createInitializer() {
-		return AdditionalBeanBuildItem.unremovableOf(MigrationsInitializer.class);
+	@Record(ExecutionTime.RUNTIME_INIT)
+	ServiceStartBuildItem applyMigrations(MigrationsProperties migrationsProperties,
+		MigrationsRecorder migrationsRecorder, MigrationsBuildItem migrationsBuildItem) {
+		migrationsRecorder.applyMigrations(migrationsBuildItem.getValue(),
+			migrationsRecorder.isEnabled(migrationsProperties));
+		return new ServiceStartBuildItem(FEATURE_NAME);
 	}
 }

@@ -25,7 +25,9 @@ import io.quarkus.runtime.annotations.Recorder;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.logging.Logger;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 
 /**
  * Records both initialization of the {@link MigrationsConfig migration config} and the {@link Migrations migrations} itself.
@@ -35,6 +37,8 @@ import org.neo4j.driver.Driver;
  */
 @Recorder
 public class MigrationsRecorder {
+
+	private static final Logger LOG = Logger.getLogger("ac.simons.neo4j.migrations.quarkus.runtime");
 
 	/**
 	 * Records the configuration
@@ -77,13 +81,13 @@ public class MigrationsRecorder {
 	}
 
 	/**
-	 * Records the enabled-flag
+	 * Records the enabled-flag. The actual value of the property <strong>must</strong> be recorded here as well before use.
 	 *
 	 * @param runtimeProperties runtime properties
 	 * @return A runtime value containing the enabled-flag
 	 */
-	public RuntimeValue<MigrationsEnabled> recordIsEnabled(MigrationsProperties runtimeProperties) {
-		return new RuntimeValue<>(new MigrationsEnabled(runtimeProperties.enabled));
+	public RuntimeValue<Boolean> isEnabled(MigrationsProperties runtimeProperties) {
+		return new RuntimeValue<>(runtimeProperties.enabled);
 	}
 
 	/**
@@ -97,5 +101,22 @@ public class MigrationsRecorder {
 		RuntimeValue<MigrationsConfig> migrationsConfig, RuntimeValue<Driver> driver
 	) {
 		return new RuntimeValue<>(new Migrations(migrationsConfig.getValue(), driver.getValue()));
+	}
+
+	/**
+	 * Applies the migrations if {@link MigrationsProperties#enabled} is {@literal true}.
+	 *
+	 * @param migrationsRv        The runtime value containing the migrations instance
+	 * @param migrationsEnabledRv The runtime value containing the flag whether migrations are enabled or not
+	 */
+	public void applyMigrations(RuntimeValue<Migrations> migrationsRv, RuntimeValue<Boolean> migrationsEnabledRv) {
+		if (Boolean.FALSE.equals(migrationsEnabledRv.getValue())) {
+			return;
+		}
+		try {
+			migrationsRv.getValue().apply();
+		} catch (ServiceUnavailableException e) {
+			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.", e);
+		}
 	}
 }

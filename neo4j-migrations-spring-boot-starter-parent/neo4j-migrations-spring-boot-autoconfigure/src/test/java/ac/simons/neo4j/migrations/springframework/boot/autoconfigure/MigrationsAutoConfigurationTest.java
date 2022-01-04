@@ -270,7 +270,10 @@ class MigrationsAutoConfigurationTest {
 			contextRunner
 				.withUserConfiguration(WithDriver.class)
 				.withPropertyValues("org.neo4j.migrations.enabled=false")
-				.run(ctx -> assertThat(ctx).doesNotHaveBean(Migrations.class));
+				.run(ctx -> assertThat(ctx)
+					.hasSingleBean(Migrations.class)
+					.doesNotHaveBean(MigrationsInitializer.class)
+				);
 		}
 	}
 

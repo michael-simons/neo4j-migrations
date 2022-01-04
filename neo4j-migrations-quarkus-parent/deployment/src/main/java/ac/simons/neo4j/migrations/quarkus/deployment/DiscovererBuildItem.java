@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.quarkus.runtime;
+package ac.simons.neo4j.migrations.quarkus.deployment;
 
-import java.util.function.BooleanSupplier;
+import ac.simons.neo4j.migrations.quarkus.runtime.StaticJavaBasedMigrationDiscoverer;
+import io.quarkus.builder.item.SimpleBuildItem;
 
 /**
  * @author Michael J. Simons
- * @since 1.2.2
+ * @soundtrack Antilopen Gang - Anarchie und Alltag
+ * @since 1.3.0
  */
-public class MigrationsEnabled implements BooleanSupplier {
+public final class DiscovererBuildItem extends SimpleBuildItem {
 
-	private final boolean value;
+	private final StaticJavaBasedMigrationDiscoverer discoverer;
 
-	/**
-	 * A new flag whether migrations will actually be applied during startup or not.
-	 *
-	 * @param value {@literal true} means migrations will be applied during startup
-	 */
-	public MigrationsEnabled(boolean value) {
-		this.value = value;
+	DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer discoverer) {
+		this.discoverer = discoverer;
 	}
 
-	@Override
-	public boolean getAsBoolean() {
-		return value;
+	/**
+	 * @return The actual discoverer (created at build-time)
+	 */
+	public StaticJavaBasedMigrationDiscoverer getDiscoverer() {
+		return discoverer;
 	}
 }

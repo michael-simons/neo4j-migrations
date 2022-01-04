@@ -17,9 +17,15 @@ package ac.simons.neo4j.migrations.quarkus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.QuarkusTestResource;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.inject.Inject;
 
@@ -36,10 +42,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 @QuarkusTestResource(value = Neo4jTestResource.class)
 class WithDifferentLocationIT {
+
+	static Path p;
+	static {
+		try {
+			var dir  = Files.createTempDirectory("more-migrations");
+			p = dir.resolve("V0002__2nd_migration.cypher");
+			Files.write(p, "CREATE (n:IWasHere) RETURN n".getBytes(StandardCharsets.UTF_8));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@RegisterExtension
 	static QuarkusUnitTest test = new QuarkusUnitTest()
 		.withConfigurationResource("application.properties")
 		.overrideConfigKey("org.neo4j.migrations.locations-to-scan", "classpath:neo4j/secondary-migrations")
+		.overrideConfigKey("org.neo4j.migrations.external-locations", p.getParent().toUri().toString())
 		.withEmptyApplication();
 
 	@Inject
@@ -54,9 +73,13 @@ class WithDifferentLocationIT {
 			var lastNode = session.run(
 					"MATCH (n:__Neo4jMigration) WHERE NOT (n)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN n").single()
 				.get("n").asNode();
-			assertThat(lastNode.get("version").asString()).isEqualTo("0001");
-			assertThat(lastNode.get("description").asString()).isEqualTo("2nd location");
+			assertThat(lastNode.get("version").asString()).isEqualTo("0002");
+			assertThat(lastNode.get("description").asString()).isEqualTo("2nd migration");
 		}
+
+		var elements = migrations.info().getElements();
+		assertThat(elements).hasSize(2).element(0)
+			.extracting(MigrationChain.Element::getDescription).isEqualTo("2nd location");
 	}
 
 	@AfterEach

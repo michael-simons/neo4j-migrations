@@ -15,8 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ScanResult;
+import ac.simons.neo4j.migrations.core.internal.Location;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -46,12 +45,13 @@ import java.util.stream.Collectors;
  */
 final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
-	static CypherResourceDiscoverer<Migration> forMigrations() {
-		return new CypherResourceDiscoverer<>(MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
+	static CypherResourceDiscoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
+		return new CypherResourceDiscoverer<>(
+			resourceScanner, MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
 	}
 
-	static CypherResourceDiscoverer<Callback> forCallbacks() {
-		return new CypherResourceDiscoverer<>(LifecyclePhase::canParse,
+	static CypherResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
+		return new CypherResourceDiscoverer<>(resourceScanner, LifecyclePhase::canParse,
 			ctx -> new CypherBasedCallback(ctx.url, ctx.config.isAutocrlf()));
 	}
 
@@ -68,11 +68,14 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
 	private static final Logger LOGGER = Logger.getLogger(CypherResourceDiscoverer.class.getName());
 
+	private final ClasspathResourceScanner scanner;
+
 	private final Predicate<String> resourceFilter;
 
 	private final Function<ResourceContext, T> mapper;
 
-	private CypherResourceDiscoverer(Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+	private CypherResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+		this.scanner = scanner;
 		this.resourceFilter = resourceFilter;
 		this.mapper = mapper;
 	}
@@ -113,16 +116,12 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
 		LOGGER.log(Level.FINE, "Scanning for classpath resources in {0}", classpathLocations);
 
-		String[] paths = classpathLocations.toArray(new String[0]);
-		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
-
-			return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
-					.stream()
-					.filter(r -> resourceFilter.test(r.getPath()))
-					.map(resource -> new ResourceContext(resource.getURL(), config))
-					.map(mapper)
-					.collect(Collectors.toList());
-		}
+		return this.scanner.scan(classpathLocations)
+			.stream()
+			.filter(r -> resourceFilter.test(r.getPath()))
+			.map(resource -> new ResourceContext(resource, config))
+			.map(mapper)
+			.collect(Collectors.toList());
 	}
 
 	private List<T> scanFilesystemLocations(List<String> filesystemLocations, MigrationsConfig config) {

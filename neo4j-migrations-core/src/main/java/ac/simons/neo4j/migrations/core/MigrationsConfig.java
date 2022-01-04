@@ -31,9 +31,6 @@ import org.neo4j.driver.summary.DatabaseInfo;
  */
 public final class MigrationsConfig {
 
-	static final String PREFIX_FILESYSTEM = "file";
-	static final String PREFIX_CLASSPATH = "classpath";
-
 	/**
 	 * Used for configuring the transaction mode in Cypher-based transactions.
 	 */
@@ -96,6 +93,10 @@ public final class MigrationsConfig {
 
 	private final boolean autocrlf;
 
+	private final Discoverer<JavaBasedMigration> migrationClassesDiscoverer;
+
+	private final ClasspathResourceScanner resourceScanner;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -110,6 +111,8 @@ public final class MigrationsConfig {
 		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty("user.name"));
 		this.validateOnMigrate = builder.validateOnMigrate;
 		this.autocrlf = builder.autocrlf;
+		this.migrationClassesDiscoverer = builder.migrationClassesDiscoverer == null ? new JavaBasedMigrationDiscoverer() : builder.migrationClassesDiscoverer;
+		this.resourceScanner = builder.resourceScanner == null ? new DefaultClasspathResourceScanner() : builder.resourceScanner;
 		this.schemaDatabase = builder.schemaDatabase;
 	}
 
@@ -194,6 +197,22 @@ public final class MigrationsConfig {
 
 	public boolean isAutocrlf() {
 		return autocrlf;
+	}
+
+	/**
+	 * @return The discoverer for class based migrations,  never {@literal null}
+	 * @since 1.3.0
+	 */
+	public Discoverer<JavaBasedMigration> getMigrationClassesDiscoverer() {
+		return migrationClassesDiscoverer;
+	}
+
+	/**
+	 * @return The resource scanner, never {@literal null}
+	 * @since 1.3.0
+	 */
+	public ClasspathResourceScanner getResourceScanner() {
+		return resourceScanner;
 	}
 
 	public void logTo(Logger logger, boolean verbose) {
@@ -285,6 +304,10 @@ public final class MigrationsConfig {
 		private boolean autocrlf = Defaults.AUTOCRLF;
 
 		private String schemaDatabase;
+
+		private Discoverer<JavaBasedMigration> migrationClassesDiscoverer;
+
+		private ClasspathResourceScanner resourceScanner;
 
 		/**
 		 * @deprecated since 1.1.0, will be made private in 2.0.0, please use {@link MigrationsConfig#builder()}.
@@ -423,6 +446,28 @@ public final class MigrationsConfig {
 		public Builder withSchemaDatabase(String newSchemaDatabase) {
 
 			this.schemaDatabase = newSchemaDatabase;
+			return this;
+		}
+
+		/**
+		 * @param newMigrationClassesDiscoverer The discoverer for (Java) class based migrations. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withMigrationClassesDiscoverer(Discoverer<JavaBasedMigration> newMigrationClassesDiscoverer) {
+
+			this.migrationClassesDiscoverer = newMigrationClassesDiscoverer;
+			return this;
+		}
+
+		/**
+		 * @param newResourceScanner The Cypher resource scanner to be used. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withResourceScanner(ClasspathResourceScanner newResourceScanner) {
+
+			this.resourceScanner = newResourceScanner;
 			return this;
 		}
 

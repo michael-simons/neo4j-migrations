@@ -13,31 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.utils;
+package ac.simons.neo4j.migrations.core.internal;
 
-import java.util.ResourceBundle;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * Accessor to messages shared between the core module and extensions.
- *
  * @author Michael J. Simons
- * @soundtrack Kid Rock - Devil Without A Cause
- * @since 1.2.0
  */
-public enum Messages {
+final class StringsTest {
 
-	INSTANCE;
-
-	private final ResourceBundle defaultBundle = ResourceBundle.getBundle(
-		"ac.simons.neo4j.migrations.core.messages");
-
-	/**
-	 * Retrieves the message with the given key.
-	 *
-	 * @param key The key in the bundle
-	 * @return A messsage
-	 */
-	public String get(String key) {
-		return defaultBundle.getString(key);
+	@ParameterizedTest
+	@CsvSource({
+		"DAS_IST_EIN_TEST,dasIstEinTest",
+		"DAS,das",
+		"DAS__AUCH,dasAuch",
+		"dasEbenfalls,dasEbenfalls",
+		"dasEBenfalls,dasEbenfalls"
+	})
+	void toCamelCaseShouldWork(String in, String expected) {
+		assertThat(Strings.toCamelCase(in)).isEqualTo(expected);
 	}
 }

@@ -30,8 +30,16 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 1.2.2
  */
-@ConfigRoot(name = "neo4j.migrations", prefix = "org", phase = ConfigPhase.RUN_TIME)
+@ConfigRoot(prefix = "org.neo4j", name = "migrations", phase = ConfigPhase.RUN_TIME)
 public class MigrationsProperties {
+
+	/**
+	 * An optional list of external locations that don't become part of the image. Those locations can be changed during
+	 * runtime in contrast to {@link MigrationsBuildTimeProperties#locationsToScan} but can only be used for locations
+	 * inside the filesystem.
+	 */
+	@ConfigItem
+	public Optional<List<String>> externalLocations;
 
 	/**
 	 * Set to {@literal false} to disable migrations at start. An instance of {@link ac.simons.neo4j.migrations.core.Migrations} will
@@ -39,18 +47,6 @@ public class MigrationsProperties {
 	 */
 	@ConfigItem(defaultValue = "true")
 	public boolean enabled;
-
-	/**
-	 * List of packages to scan for Java migrations.
-	 */
-	@ConfigItem
-	public Optional<List<String>> packagesToScan;
-
-	/**
-	 * Locations of migrations scripts.
-	 */
-	@ConfigItem(defaultValue = Defaults.LOCATIONS_TO_SCAN_VALUE)
-	public List<String> locationsToScan;
 
 	/**
 	 * The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).

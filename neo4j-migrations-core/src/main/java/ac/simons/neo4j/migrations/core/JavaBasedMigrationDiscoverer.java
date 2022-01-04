@@ -15,10 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Reflections;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
-import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
  * @author Michael J. Simons
  * @since 0.0.3
  */
-final class JavaBasedMigrationDiscoverer implements Discoverer<Migration> {
+final class JavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigration> {
 
 	@Override
-	public Collection<Migration> discover(MigrationContext context) {
+	public Collection<JavaBasedMigration> discover(MigrationContext context) {
 
 		MigrationsConfig config = context.getConfig();
 		if (config.getPackagesToScan().length == 0) {
@@ -46,22 +46,15 @@ final class JavaBasedMigrationDiscoverer implements Discoverer<Migration> {
 				.scan()) {
 
 			return scanResult
-					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(Migration.class)
+					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(JavaBasedMigration.class)
 					.stream()
 					.map(c -> {
 						try {
-							return getConstructor(c).newInstance();
+							return Reflections.getDefaultConstructorFor(c).newInstance();
 						} catch (Exception e) {
 							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 						}
 					}).collect(Collectors.toList());
 		}
-	}
-
-	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
-	private static Constructor<Migration> getConstructor(Class<Migration> c) throws NoSuchMethodException {
-		Constructor<Migration> ctr = c.getDeclaredConstructor();
-		ctr.setAccessible(true);
-		return ctr;
 	}
 }

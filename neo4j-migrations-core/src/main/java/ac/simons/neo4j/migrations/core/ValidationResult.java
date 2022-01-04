@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.utils.Messages;
+import ac.simons.neo4j.migrations.core.internal.Messages;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;

@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.utils;
+package ac.simons.neo4j.migrations.quarkus.deployment;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
+import io.quarkus.builder.item.SimpleBuildItem;
 
 /**
  * @author Michael J. Simons
+ * @since 1.3.0
  */
-final class StringsTest {
+public final class ClasspathResourceScannerBuildItem extends SimpleBuildItem {
 
-	@ParameterizedTest
-	@CsvSource({
-		"DAS_IST_EIN_TEST,dasIstEinTest",
-		"DAS,das",
-		"DAS__AUCH,dasAuch",
-		"dasEbenfalls,dasEbenfalls",
-		"dasEBenfalls,dasEbenfalls"
-	})
-	void toCamelCaseShouldWork(String in, String expected) {
-		assertThat(Strings.toCamelCase(in)).isEqualTo(expected);
+	private final StaticClasspathResourceScanner resourceScanner;
+
+	ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner resourceScanner) {
+		this.resourceScanner = resourceScanner;
+	}
+
+	/**
+	 * @return The actual scanner (created at build-time)
+	 */
+	public StaticClasspathResourceScanner getScanner() {
+		return resourceScanner;
 	}
 }

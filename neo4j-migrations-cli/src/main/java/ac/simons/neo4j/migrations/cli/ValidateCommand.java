@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.ValidationResult;
-import ac.simons.neo4j.migrations.core.utils.Messages;
+import ac.simons.neo4j.migrations.core.internal.Messages;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 

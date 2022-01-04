@@ -13,40 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.quarkus.it;
+package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.Migrations;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.Resource;
+import io.github.classgraph.ScanResult;
 
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 /**
- * Returning a list of migrations.
+ * A {@link ClasspathResourceScanner} that scans the class path for cypher resources on demand.
  *
  * @author Michael J. Simons
- * @since 1.2.2
+ * @since 1.3.0
  */
-@Path("/migrations")
-public class MigrationsResource {
+final class DefaultClasspathResourceScanner implements ClasspathResourceScanner {
 
-	@Inject
-	Migrations migrations;
+	@Override
+	public List<URL> scan(List<String> locations) {
 
-	/**
-	 * @return The list of migrations given by the info command.
-	 */
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> get() {
-		return migrations.info().getElements().stream()
-			.map(e -> e.getVersion() + ": " + e.getDescription() + " (" + e.getState() + ")")
-			.collect(Collectors.toList());
+		String[] paths = locations.toArray(new String[0]);
+		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
 
+			return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
+				.stream()
+				.map(Resource::getURL)
+				.collect(Collectors.toList());
+		}
 	}
 }

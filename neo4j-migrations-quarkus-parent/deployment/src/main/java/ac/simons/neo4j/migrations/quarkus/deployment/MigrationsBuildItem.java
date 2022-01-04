@@ -29,10 +29,13 @@ public final class MigrationsBuildItem extends SimpleBuildItem {
 
 	private final RuntimeValue<Migrations> value;
 
-	public MigrationsBuildItem(RuntimeValue<Migrations> value) {
+	MigrationsBuildItem(RuntimeValue<Migrations> value) {
 		this.value = value;
 	}
 
+	/**
+	 * @return The runtime value containing the instance of {@link Migrations}.
+	 */
 	public RuntimeValue<Migrations> getValue() {
 		return value;
 	}

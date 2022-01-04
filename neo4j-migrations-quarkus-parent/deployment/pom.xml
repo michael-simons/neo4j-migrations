@@ -63,6 +63,13 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration combine.self="append">
+					<!-- That will cause generated sources to be ignored -->
+					<sourcepath>${project.build.sourceDirectory}</sourcepath>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

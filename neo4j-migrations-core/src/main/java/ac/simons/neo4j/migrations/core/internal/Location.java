@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.core.internal;
+
+import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.util.Locale;
 
@@ -21,15 +23,42 @@ import java.util.Locale;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-final class Location {
+public final class Location {
 
-	enum LocationType {
+	/**
+	 * A location type.
+	 */
+	public enum LocationType {
 
-		CLASSPATH,
-		FILESYSTEM
+		/**
+		 * A location inside the classpath.
+		 */
+		CLASSPATH("classpath"),
+		/**
+		 * A location inside the filesystem.
+		 */
+		FILESYSTEM("file");
+
+		private final String prefix;
+
+		LocationType(String prefix) {
+			this.prefix = prefix;
+		}
+
+		/**
+		 * @return the prefix / protocol under which the location is recognized
+		 */
+		public String getPrefix() {
+			return prefix;
+		}
 	}
 
-	static Location of(String prefixAndName) {
+	/**
+	 * Creates a new {@link Location} object from a given location that has an optional prefix (protocol) and a name
+	 * @param prefixAndName A name with an optional prefix
+	 * @return A location object
+	 */
+	public static Location of(String prefixAndName) {
 		// Yep, Regex would work, too. I know how to do this with regex, but it's slower and not necessary.
 		int indexOfFirstColon = prefixAndName.indexOf(":");
 		if (indexOfFirstColon < 0) {
@@ -45,14 +74,17 @@ final class Location {
 		if (name.length() == 0) {
 			throw new MigrationsException("Invalid name.");
 		}
-		switch (prefix) {
-			case MigrationsConfig.PREFIX_CLASSPATH:
-				return new Location(LocationType.CLASSPATH, name);
-			case MigrationsConfig.PREFIX_FILESYSTEM:
-				return new Location(LocationType.FILESYSTEM, name);
-			default:
-				throw new MigrationsException(("Invalid resource prefix: '" + prefix + "'"));
+
+		LocationType type;
+		if (LocationType.CLASSPATH.getPrefix().equals(prefix)) {
+			type = LocationType.CLASSPATH;
+		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {
+			type = LocationType.FILESYSTEM;
+		} else {
+			throw new MigrationsException(("Invalid resource prefix: '" + prefix + "'"));
 		}
+
+		return new Location(type, name);
 	}
 
 	private final LocationType type;
@@ -63,10 +95,16 @@ final class Location {
 		this.name = name;
 	}
 
+	/**
+	 * @return the type of this location
+	 */
 	public LocationType getType() {
 		return type;
 	}
 
+	/**
+	 * @return the name of this location
+	 */
 	public String getName() {
 		return name;
 	}

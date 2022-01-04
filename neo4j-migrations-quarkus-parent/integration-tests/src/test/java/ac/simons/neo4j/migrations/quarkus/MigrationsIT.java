@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.quarkus;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+import ac.simons.neo4j.migrations.core.MigrationState;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 import io.restassured.RestAssured;
 
@@ -38,7 +39,13 @@ class MigrationsIT {
 	@Test
 	void cypherAndJavaBasedMigrationsShouldHaveBeenApplied() {
 
+		assertStateOfMigrations(MigrationState.APPLIED);
+	}
+
+	void assertStateOfMigrations(MigrationState expectedState) {
+
 		var expected = Stream.of("0001: 2nd location", "0002: SomethingJava")
+			.map(s -> s + " (" + expectedState + ")")
 			.collect(Collectors.joining("\",\"", "[\"", "\"]"));
 
 		RestAssured.given()

@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core.internal;
 
-	requires io.github.classgraph;
+import java.lang.reflect.Constructor;
 
-	requires transitive java.logging;
+/**
+ * Utilities to deal with some minor reflection tasks.
+ *
+ * @author Michael J. Simons
+ */
+public final class Reflections {
 
-	requires transitive org.neo4j.driver;
+	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
+	public static <T> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
+		Constructor<T> ctr = c.getDeclaredConstructor();
+		ctr.setAccessible(true);
+		return ctr;
+	}
 
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.internal to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven, ac.simons.neo4j.migrations.quarkus.runtime;
+	private Reflections() {
+	}
 }

@@ -40,6 +40,10 @@ public final class MigrationsInitializer {
 
 	private final MigrationsEnabled enabled;
 
+	/**
+	 * @param migrations The migrations for this application instance
+	 * @param enabled    A flag whether to apply them or not during startup
+	 */
 	@Inject
 	public MigrationsInitializer(Migrations migrations, MigrationsEnabled enabled) {
 		this.migrations = migrations;

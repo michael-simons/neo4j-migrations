@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.utils.Strings;
+import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.util.EnumSet;
 import java.util.regex.Pattern;

@@ -33,25 +33,32 @@ class MigrationsRecorderTest {
 	void migrationConfigShouldWork() {
 
 		var properties = new MigrationsProperties();
-		properties.packagesToScan = Optional.of(List.of("foo"));
 		properties.autocrlf = true;
 		properties.database = Optional.of("db");
 		properties.installedBy = Optional.of("ich");
 		properties.impersonatedUser = Optional.of("hg");
-		properties.locationsToScan = List.of("bar");
 		properties.schemaDatabase = Optional.of("db2");
 		properties.transactionMode = MigrationsConfig.TransactionMode.PER_STATEMENT;
 		properties.validateOnMigrate = false;
-		var config = new MigrationsRecorder().initializeConfig(properties).getValue();
+		properties.externalLocations = Optional.of(List.of("file:///bazbar", "dropped"));
 
-		assertThat(config.getPackagesToScan()).containsExactlyElementsOf(properties.packagesToScan.get());
+		var buildTimeProperties = new MigrationsBuildTimeProperties();
+		buildTimeProperties.packagesToScan = Optional.of(List.of("foo"));
+		buildTimeProperties.locationsToScan = List.of("bar");
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+
+		assertThat(config.getPackagesToScan()).containsExactlyElementsOf(buildTimeProperties.packagesToScan.get());
 		assertThat(config.isAutocrlf()).isTrue();
 		assertThat(config.getOptionalDatabase()).hasValue("db");
 		assertThat(config.getOptionalInstalledBy()).hasValue("ich");
 		assertThat(config.getOptionalImpersonatedUser()).hasValue("hg");
-		assertThat(config.getLocationsToScan()).containsExactly("bar");
+		assertThat(config.getLocationsToScan()).containsExactlyInAnyOrder("file:///bazbar", "bar");
 		assertThat(config.getOptionalSchemaDatabase()).hasValue("db2");
 		assertThat(config.getTransactionMode()).isEqualTo(MigrationsConfig.TransactionMode.PER_STATEMENT);
 		assertThat(config.isValidateOnMigrate()).isFalse();
+
+		assertThat(config.getMigrationClassesDiscoverer()).isNotNull();
+		assertThat(config.getResourceScanner()).isNotNull();
 	}
 }

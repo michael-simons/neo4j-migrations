@@ -111,6 +111,8 @@
 							 -->
 							<exclude>ac.simons.neo4j.migrations.core.Discoverer$CypherBasedMigrationDiscoverer</exclude>
 							<exclude>ac.simons.neo4j.migrations.core.Discoverer$JavaBasedMigrationDiscoverer</exclude>
+							<!-- This needs to be renamed to internal after 1.3.0 release -->
+							<exclude>ac.simons.neo4j.migrations.core.utils</exclude>
 						</excludes>
 					</parameter>
 				</configuration>

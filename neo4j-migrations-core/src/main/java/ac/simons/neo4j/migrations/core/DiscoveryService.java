@@ -31,16 +31,18 @@ import java.util.stream.Collectors;
  */
 final class DiscoveryService {
 
-	private final List<Discoverer<Migration>> migrationDiscoverers;
+	private final List<Discoverer<? extends Migration>> migrationDiscoverers;
 
 	private final List<Discoverer<Callback>> callbackDiscoverers;
 
 	DiscoveryService() {
-		this.migrationDiscoverers = Collections.unmodifiableList(
-			Arrays.asList(new JavaBasedMigrationDiscoverer(),
-				CypherResourceDiscoverer.forMigrations()));
+		this(new JavaBasedMigrationDiscoverer(), new DefaultClasspathResourceScanner());
+	}
 
-		this.callbackDiscoverers = Collections.singletonList(CypherResourceDiscoverer.forCallbacks());
+	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {
+
+		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, CypherResourceDiscoverer.forMigrations(resourceScanner)));
+		this.callbackDiscoverers = Collections.singletonList(CypherResourceDiscoverer.forCallbacks(resourceScanner));
 	}
 
 	/**
@@ -50,7 +52,7 @@ final class DiscoveryService {
 
 		List<Migration> migrations = new ArrayList<>();
 		try {
-			for (Discoverer<Migration> discoverer : this.migrationDiscoverers) {
+			for (Discoverer<? extends Migration> discoverer : this.migrationDiscoverers) {
 				migrations.addAll(discoverer.discover(context));
 			}
 		} catch (Exception e) {

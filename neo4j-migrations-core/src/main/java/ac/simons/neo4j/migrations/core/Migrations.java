@@ -78,7 +78,7 @@ public final class Migrations {
 		this.config = config;
 		this.driver = driver;
 
-		this.discoveryService = new DiscoveryService();
+		this.discoveryService = new DiscoveryService(this.config.getMigrationClassesDiscoverer(), this.config.getResourceScanner());
 		this.chainBuilder = new ChainBuilder();
 
 		this.context = new DefaultMigrationContext(this.config, this.driver);

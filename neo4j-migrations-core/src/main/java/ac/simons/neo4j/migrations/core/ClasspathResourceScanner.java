@@ -15,23 +15,25 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Collection;
+import java.net.URL;
+import java.util.List;
 
 /**
- * Discoverer of migrations.
+ * A scanner for Cypher resources (resources ending with {@link Defaults#CYPHER_SCRIPT_EXTENSION}) available in the classpath.
+ * <p>
+ * This is an interface that you would not normally implement. It is needed in scenarios where resources must be enumerated
+ * upfront (i.e. in a GraalVM native image).
  *
  * @author Michael J. Simons
- * @param <T> The type of things to discover
- * @soundtrack Motörhead - 1916
- * @since 0.0.3
+ * @since 1.3.0
  */
-public interface Discoverer<T> {
+public interface ClasspathResourceScanner {
 
 	/**
-	 * Discover migrations within the given context.
+	 * Scan the given locations for resources matching the criteria of this scanner. The resources might be filtered later again.
 	 *
-	 * @param context The context of the ongoing migration.
-	 * @return A collection of migrations.
+	 * @param locations The locations to scan
+	 * @return The resources found
 	 */
-	Collection<T> discover(MigrationContext context);
+	List<URL> scan(List<String> locations);
 }

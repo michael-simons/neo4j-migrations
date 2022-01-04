@@ -46,7 +46,7 @@ class DiscovererTest {
 				MigrationsConfig.builder().withPackagesToScan(
 					"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), Mockito.mock(Driver.class));
 
-			Collection<Migration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
+			Collection<JavaBasedMigration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
 			assertThat(migrations).hasSize(2)
 				.extracting(Migration::getDescription)
 				.contains("FirstMigration", "AnotherMigration");
@@ -59,7 +59,7 @@ class DiscovererTest {
 				MigrationsConfig.builder().withPackagesToScan(
 					"ac.simons.neo4j.migrations.core.test_migrations.changeset3").build(), Mockito.mock(Driver.class));
 
-			Collection<Migration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
+			Collection<JavaBasedMigration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
 			assertThat(migrations).hasSize(1)
 				.extracting(Migration::getDescription)
 				.contains("InnerMigration");
@@ -83,7 +83,7 @@ class DiscovererTest {
 				MigrationsConfig.builder().withLocationsToScan(
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
-			Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations().discover(context);
+			Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
 			assertThat(migrations).hasSize(9)
 				.extracting(Migration::getDescription)
 				.contains("delete old data", "create new data",
@@ -122,7 +122,7 @@ class DiscovererTest {
 						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath()).build(),
 					Mockito.mock(Driver.class));
 
-				Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations().discover(context);
+				Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
 				assertThat(migrations).hasSize(3)
 					.extracting(Migration::getDescription)
 					.contains("One", "Two", "Three");

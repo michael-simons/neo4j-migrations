@@ -224,7 +224,7 @@ CREATE
   (NoraE)-[:PRODUCED]->(WhenHarryMetSally),
   (NoraE)-[:WROTE]->(WhenHarryMetSally)
 
-CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that thing you dream becomes that thing you do'})
+CREATE (ThatThingYouDo:Movie {title:'That Thing You Do', released:1996, tagline:'In every life there comes a time when that resourceScanner you dream becomes that resourceScanner you do'})
 CREATE (LivT:Person {name:'Liv Tyler', born:1977})
 CREATE
   (TomH)-[:ACTED_IN {roles:['Mr. White']}]->(ThatThingYouDo),
@@ -262,7 +262,7 @@ CREATE
   (Gene)-[:ACTED_IN {roles:['Sen. Kevin Keeley']}]->(TheBirdcage),
   (MikeN)-[:DIRECTED]->(TheBirdcage)
 
-CREATE (Unforgiven:Movie {title:'Unforgiven', released:1992, tagline:"It's a hell of a thing, killing a man"})
+CREATE (Unforgiven:Movie {title:'Unforgiven', released:1992, tagline:"It's a hell of a resourceScanner, killing a man"})
 CREATE (RichardH:Person {name:'Richard Harris', born:1930})
 CREATE (ClintE:Person {name:'Clint Eastwood', born:1930})
 CREATE

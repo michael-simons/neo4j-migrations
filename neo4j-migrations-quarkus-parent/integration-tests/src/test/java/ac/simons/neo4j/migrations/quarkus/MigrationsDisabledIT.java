@@ -17,6 +17,10 @@ package ac.simons.neo4j.migrations.quarkus;
 
 import ac.simons.neo4j.migrations.core.MigrationState;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
+
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,11 +28,18 @@ import org.junit.jupiter.api.Test;
  * @author Michael J. Simons
  */
 @QuarkusIntegrationTest
-class MigrationsIT extends AbstractITTestBase {
+@TestProfile(MigrationsDisabledIT.MigrationsDisabled.class)
+class MigrationsDisabledIT extends AbstractITTestBase {
 
 	@Test
 	void cypherAndJavaBasedMigrationsShouldHaveBeenApplied() {
 
-		assertStateOfMigrations(MigrationState.APPLIED);
+		assertStateOfMigrations(MigrationState.PENDING);
+	}
+
+	public static class MigrationsDisabled implements QuarkusTestProfile {
+		@Override public Map<String, String> getConfigOverrides() {
+			return Map.of("org.neo4j.migrations.enabled", "false");
+		}
 	}
 }

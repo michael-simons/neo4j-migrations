@@ -52,12 +52,6 @@
 	</dependencies>
 
 	<build>
-		<resources>
-			<resource>
-				<filtering>true</filtering>
-				<directory>src/main/resources</directory>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>io.quarkus</groupId>
@@ -121,6 +115,8 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration combine.self="append">
 					<environmentVariables>
+						<QUARKUS_NEO4J_AUTHENTICATION_USERNAME>${neo4j.username}</QUARKUS_NEO4J_AUTHENTICATION_USERNAME>
+						<QUARKUS_NEO4J_AUTHENTICATION_PASSWORD>${neo4j.password}</QUARKUS_NEO4J_AUTHENTICATION_PASSWORD>
 						<QUARKUS_NEO4J_URI>bolt://localhost:${it-database-port}</QUARKUS_NEO4J_URI>
 					</environmentVariables>
 					<systemPropertyVariables>

@@ -2242,20 +2242,6 @@ quarkus.neo4j.authentication.password=secret
 org.neo4j.migrations.packages-to-scan=foo.bar</code></pre>
 </div>
 </div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-The extension will not find Cypher-based migrations when the Quarkus application is packaged up as
-         GraalVM native image. If you want to deploy your application as native image, you must store Cypher-based
-         migrations external to this application and use <code>org.neo4j.migrations.locations-to-scan=file://path/to/your/migraitons</code>.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>If you disable Neo4j-Migrations via <code>org.neo4j.migrations.enabled</code> we won&#8217;t apply Migrations at startup but the <code>Migrations</code> object
 will still be in the context to be used.</p>
@@ -2272,6 +2258,26 @@ Their namespace is the same: <code>org.neo4j.migrations</code>.
 </td>
 </tr>
 </table>
+</div>
+<div class="sect3">
+<h4 id="build-timevsruntimeconfig"><a class="anchor" href="#build-timevsruntimeconfig"></a>4.5.1. Build-time vs runtime config</h4>
+<div class="paragraph">
+<p><code>org.neo4j.migrations.packages-to-scan</code> and <code>org.neo4j.migrations.locations-to-scan</code> are build-time configuration options
+and cannot be changed during runtime. This allows for optimized images to be created: All migrations that are part of the
+classpath (both scripts and class based migrations) are discovered during  image build-time already and are included in
+the image themselves (this applies to both native and JVM images).</p>
+</div>
+<div class="paragraph">
+<p>While scripts in file system locations (all locations starting with <code>file://</code>) are still discovered during runtime and thus
+allows for scripts being added without recreating the application image, the location cannot be dynamically changed. If you
+need a dynamic, <code>file://</code> based location, use <code>org.neo4j.migrations.external-locations</code>. This property is changeable during
+runtime and allows for one image being used in different deployments pointing to different external locations with scripts
+outside the classpath</p>
+</div>
+<div class="paragraph">
+<p>An alternative approach to that is using the CLI in a sidecar container, pointing to the dynamic location and keep applying
+database migrations outside the application itself.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -2385,7 +2391,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-04 09:10:35 UTC
+Last updated 2022-01-05 22:14:51 UTC
 </div>
 </div>
 </body>

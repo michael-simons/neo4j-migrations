@@ -199,6 +199,16 @@ public final class MigrationsCli implements Runnable {
 	 */
 	MigrationsConfig getConfig() {
 
+		if (ImageInfo.inImageRuntimeCode() && packagesToScan.length != 0) {
+			throw new UnsupportedConfigException(
+					"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
+		}
+
+		if ((schemaDatabase != null && !schemaDatabase.trim().isEmpty()) && maxConnectionPoolSize < 2) {
+			throw new IllegalArgumentException(
+					"You must at least allow 2 connections in the pool to use a separate database.");
+		}
+
 		MigrationsConfig config = MigrationsConfig.builder()
 			.withLocationsToScan(resolveLocationsToScan())
 			.withPackagesToScan(packagesToScan)
@@ -209,16 +219,6 @@ public final class MigrationsCli implements Runnable {
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
 			.build();
-
-		if (ImageInfo.inImageRuntimeCode() && config.getPackagesToScan().length != 0) {
-			throw new UnsupportedConfigException(
-				"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
-		}
-
-		if (config.getOptionalSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {
-			throw new IllegalArgumentException(
-				"You must at least allow 2 connections in the pool to use a separate database.");
-		}
 
 		config.logTo(LOGGER, verbose);
 		return config;

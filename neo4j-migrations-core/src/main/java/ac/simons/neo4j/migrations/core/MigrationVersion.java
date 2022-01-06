@@ -81,6 +81,9 @@ public final class MigrationVersion {
 		this.description = description;
 	}
 
+	/**
+	 * @return the {@link String} value representing this version
+	 */
 	public String getValue() {
 		return value;
 	}

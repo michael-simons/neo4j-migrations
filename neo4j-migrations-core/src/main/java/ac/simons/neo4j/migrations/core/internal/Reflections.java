@@ -24,6 +24,15 @@ import java.lang.reflect.Constructor;
  */
 public final class Reflections {
 
+	/**
+	 * Helper method for retrieving the default constructor of a given class. When such a constructor exist, it will be
+	 * made accessible.
+	 *
+	 * @param c   The class whose constructor should be returned
+	 * @param <T> The type of the class
+	 * @return The default constructor
+	 * @throws NoSuchMethodException If there is no such default constructr
+	 */
 	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
 	public static <T> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
 		Constructor<T> ctr = c.getDeclaredConstructor();

@@ -26,6 +26,9 @@ import java.util.ResourceBundle;
  */
 public enum Messages {
 
+	/**
+	 * The single instance.
+	 */
 	INSTANCE;
 
 	private final ResourceBundle defaultBundle = ResourceBundle.getBundle(

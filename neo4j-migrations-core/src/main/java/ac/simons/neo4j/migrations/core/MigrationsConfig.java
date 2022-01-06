@@ -116,14 +116,23 @@ public final class MigrationsConfig {
 		this.schemaDatabase = builder.schemaDatabase;
 	}
 
+	/**
+	 * @return the list of packages to scan
+	 */
 	public String[] getPackagesToScan() {
 		return packagesToScan;
 	}
 
+	/**
+	 * @return the list of locations to scan
+	 */
 	public String[] getLocationsToScan() {
 		return locationsToScan;
 	}
 
+	/**
+	 * @return the transaction mode (whether to use one transaction for per migration or per statement)
+	 */
 	public TransactionMode getTransactionMode() {
 		return transactionMode;
 	}
@@ -191,10 +200,16 @@ public final class MigrationsConfig {
 		return optionalOf(installedBy);
 	}
 
+	/**
+	 * @return {@literal true} if resolved migrations and database state should be validated before a migration attempt is applied
+	 */
 	public boolean isValidateOnMigrate() {
 		return validateOnMigrate;
 	}
 
+	/**
+	 * @return whether {@literal CRLF} line endings should be automatically converted into {@literal LF}
+	 */
 	public boolean isAutocrlf() {
 		return autocrlf;
 	}
@@ -215,6 +230,12 @@ public final class MigrationsConfig {
 		return resourceScanner;
 	}
 
+	/**
+	 * Helper method to pretty print this configuration into a logger (on level {@literal INFO} respectively {@literal WARNING}.
+	 *
+	 * @param logger  the logger to print to
+	 * @param verbose set to {@literal true} if you want to print all details
+	 */
 	public void logTo(Logger logger, boolean verbose) {
 		if (!this.hasPlacesToLookForMigrations()) {
 			logger.log(Level.WARNING, "Cannot find migrations as neither locations or packages to scan are configured!");

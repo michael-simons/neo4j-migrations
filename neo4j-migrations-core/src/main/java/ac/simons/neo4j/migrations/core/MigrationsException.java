@@ -26,10 +26,21 @@ public final class MigrationsException extends RuntimeException {
 
 	static final long serialVersionUID = 1L;
 
+	/**
+	 * Constructs a new exception with the given message.
+	 *
+	 * @param message the detail message
+	 */
 	public MigrationsException(String message) {
 		super(message);
 	}
 
+	/**
+	 * Constructs a new exception with the given message and cause.
+	 *
+	 * @param message the detail message
+	 * @param cause   the cause of the exception
+	 */
 	public MigrationsException(String message, Throwable cause) {
 		super(message, cause);
 	}

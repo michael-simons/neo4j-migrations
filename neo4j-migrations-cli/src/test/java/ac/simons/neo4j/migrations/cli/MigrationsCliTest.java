@@ -61,7 +61,7 @@ class MigrationsCliTest {
 				throw new RuntimeException(e);
 			}
 
-			assertThatExceptionOfType(UnsupportedConfigException.class).isThrownBy(cli::getConfig)
+			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
 				.withMessage(
 					"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
 		});
@@ -116,51 +116,27 @@ class MigrationsCliTest {
 		field.setAccessible(true);
 		field.set(cli, 1);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> cli.getConfig().getOptionalSchemaDatabase())
+		assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
 			.withMessage("You must at least allow 2 connections in the pool to use a separate database.");
 	}
 
 	@Test
-	void shouldNotPrependFileProtocolToLocationsToScanIfRunningNonNative() throws Exception {
+	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined() throws Exception {
 		MigrationsCli cli = new MigrationsCli();
 		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
 				HierarchyTraversalMode.TOP_DOWN).get(0);
 		field.setAccessible(true);
-		field.set(cli, new String[] { "my/path" });
-
-		assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("my/path");
-	}
-
-	@Test
-	void shouldNotPrependFileProtocolToLocationsToScanIfRunningNativeButProtocolAlreadySpecified() throws Exception {
-		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
-				HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, new String[] { "classpath://my/path" });
+		field.set(cli, new String[] { "a/path", "classpath://my/path", "file://file/path" });
 
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
-			assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("classpath://my/path");
+			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
+					.withMessage("Implicit classpath resource locations are not support in native image: a/path, classpath://my/path");
 		});
 	}
 
 	@Test
-	void shouldPrependFileProtocolToLocationsToScanIfRunningNative() throws Exception {
-		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
-				HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, new String[] { "my/path" });
-
-		restoreSystemProperties(() -> {
-			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
-			assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("file://my/path");
-		});
-	}
-
-	@Test
-	void shouldHandleUnsupportedConfigException() throws Exception {
+	void shouldHandleIllegalArgumentsToConfiguration() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();
 		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),

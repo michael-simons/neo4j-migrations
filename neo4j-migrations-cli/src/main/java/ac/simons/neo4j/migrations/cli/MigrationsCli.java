@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.internal.Location;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -33,6 +34,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -199,9 +201,20 @@ public final class MigrationsCli implements Runnable {
 	 */
 	MigrationsConfig getConfig() {
 
-		if (ImageInfo.inImageRuntimeCode() && packagesToScan.length != 0) {
-			throw new UnsupportedConfigException(
+		boolean runsInNativeImage = ImageInfo.inImageRuntimeCode();
+
+		if (runsInNativeImage && packagesToScan.length != 0) {
+			throw new IllegalArgumentException(
 					"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
+		}
+
+		List<String> classpathLocations = Arrays.stream(locationsToScan)
+				.filter(location -> Location.of(location).getType() == Location.LocationType.CLASSPATH)
+				.collect(Collectors.toList());
+
+		if (runsInNativeImage && classpathLocations.size() > 1) {
+			throw new IllegalArgumentException(
+					"Implicit classpath resource locations are not support in native image: " + String.join(", ", classpathLocations));
 		}
 
 		if ((schemaDatabase != null && !schemaDatabase.trim().isEmpty()) && maxConnectionPoolSize < 2) {
@@ -210,7 +223,7 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		MigrationsConfig config = MigrationsConfig.builder()
-			.withLocationsToScan(resolveLocationsToScan())
+			.withLocationsToScan(locationsToScan)
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
@@ -222,20 +235,6 @@ public final class MigrationsCli implements Runnable {
 
 		config.logTo(LOGGER, verbose);
 		return config;
-	}
-
-	private String[] resolveLocationsToScan() {
-		return Arrays.stream(locationsToScan)
-				// The locations would also default to virtual classpath:// protocol for native binaries.
-				// Because this will always return empty, the locations will get prepended with the file protocol.
-				.map(locationToScan -> {
-					boolean mightContainProtocol = locationToScan.contains(":");
-					return !mightContainProtocol && ImageInfo.inImageRuntimeCode()
-							? "file://" + locationToScan
-							: locationToScan;
-				})
-				.collect(Collectors.toList())
-				.toArray(new String[]{});
 	}
 
 	AuthToken getAuthToken() {

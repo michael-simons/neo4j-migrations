@@ -212,14 +212,13 @@ public final class Migrations {
 			+ "ORDER BY migrationTarget ASC ";
 
 		try (Session session = context.getSchemaSession()) {
-			Result result = session.run(query, Values.parameters(
-				PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null),
-				"all", all));
-
-			return new DeletedChainsWithCounters(
-				result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
-				result.consume().counters()
-			);
+			return session.writeTransaction(tx -> {
+				Result result = tx.run(query, Values.parameters(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null), "all", all));
+				return new DeletedChainsWithCounters(
+					result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
+					result.consume().counters()
+				);
+			});
 		}
 	}
 

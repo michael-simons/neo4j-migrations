@@ -271,7 +271,7 @@ public final class MigrationsConfig {
 			// We need to connect to get this information
 			try (Session session = context.getSession()) {
 				optionalDatabase =
-					Optional.ofNullable(session.run("MATCH (n) RETURN count(n)").consume().database())
+					Optional.ofNullable(session.readTransaction(tx -> tx.run("MATCH (n) RETURN count(n)").consume()).database())
 						.map(DatabaseInfo::name);
 			}
 		}

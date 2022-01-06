@@ -181,21 +181,26 @@ final class ChainBuilder {
 
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
-		Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
+		String query = ""
+			+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
+			+ "WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
+			+ "RETURN p";
+
 		try (Session session = context.getSchemaSession()) {
-			Result result = session
-				.run("MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
-					+ "WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-					+ "RETURN p", Collections.singletonMap("migrationTarget", context.getConfig().getMigrationTargetIn(context).orElse(null)));
-			// Might be empty (when nothing has applied yet)
-			if (result.hasNext()) {
-				result.single().get("p").asPath().forEach(segment -> {
-					Element chainElement = DefaultChainElement.appliedElement(segment);
-					chain.put(MigrationVersion.withValue(chainElement.getVersion()), chainElement);
-				});
-			}
+			return session.readTransaction(tx -> {
+				Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
+				String migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);
+				Result result = tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget));
+				// Might be empty (when nothing has applied yet)
+				if (result.hasNext()) {
+					result.single().get("p").asPath().forEach(segment -> {
+						Element chainElement = DefaultChainElement.appliedElement(segment);
+						chain.put(MigrationVersion.withValue(chainElement.getVersion()), chainElement);
+					});
+				}
+				return chain;
+			});
 		}
-		return chain;
 	}
 
 	private static class DefaultMigrationChain implements MigrationChain {

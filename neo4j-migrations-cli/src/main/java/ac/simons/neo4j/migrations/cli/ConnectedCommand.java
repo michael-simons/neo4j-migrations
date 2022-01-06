@@ -53,7 +53,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 		MigrationsConfig config;
 		try {
 			config = migrationsCli.getConfig();
-		} catch (UnsupportedConfigException e) {
+		} catch (IllegalArgumentException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.USAGE;
 		}

@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.internal.Location;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -32,10 +33,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.neo4j.driver.AuthToken;
@@ -197,6 +201,27 @@ public final class MigrationsCli implements Runnable {
 	 */
 	MigrationsConfig getConfig() {
 
+		boolean runsInNativeImage = ImageInfo.inImageRuntimeCode();
+
+		if (runsInNativeImage && packagesToScan.length != 0) {
+			throw new IllegalArgumentException(
+					"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
+		}
+
+		List<String> classpathLocations = Arrays.stream(locationsToScan)
+				.filter(location -> Location.of(location).getType() == Location.LocationType.CLASSPATH)
+				.collect(Collectors.toList());
+
+		if (runsInNativeImage && classpathLocations.size() > 1) {
+			throw new IllegalArgumentException(
+					"Implicit classpath resource locations are not support in native image: " + String.join(", ", classpathLocations));
+		}
+
+		if ((schemaDatabase != null && !schemaDatabase.trim().isEmpty()) && maxConnectionPoolSize < 2) {
+			throw new IllegalArgumentException(
+					"You must at least allow 2 connections in the pool to use a separate database.");
+		}
+
 		MigrationsConfig config = MigrationsConfig.builder()
 			.withLocationsToScan(locationsToScan)
 			.withPackagesToScan(packagesToScan)
@@ -207,16 +232,6 @@ public final class MigrationsCli implements Runnable {
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
 			.build();
-
-		if (ImageInfo.inImageRuntimeCode() && config.getPackagesToScan().length != 0) {
-			throw new UnsupportedConfigException(
-				"Java-based migrations are not supported in native binaries. Please use the Java-based distribution.");
-		}
-
-		if (config.getOptionalSchemaDatabase().isPresent() && maxConnectionPoolSize < 2) {
-			throw new IllegalArgumentException(
-				"You must at least allow 2 connections in the pool to use a separate database.");
-		}
 
 		config.logTo(LOGGER, verbose);
 		return config;

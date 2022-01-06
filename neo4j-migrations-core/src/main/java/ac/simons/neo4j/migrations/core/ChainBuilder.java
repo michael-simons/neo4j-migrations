@@ -190,7 +190,7 @@ final class ChainBuilder {
 			return session.readTransaction(tx -> {
 				Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
 				String migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);
-				Result result = session.run(query, Collections.singletonMap("migrationTarget", migrationTarget));
+				Result result = tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget));
 				// Might be empty (when nothing has applied yet)
 				if (result.hasNext()) {
 					result.single().get("p").asPath().forEach(segment -> {

@@ -51,15 +51,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ ubuntu-latest, macOS-latest, windows-latest ]
-        gu-binary: [ gu, gu.cmd ]
-        exclude:
-          - os: ubuntu-latest
-            gu-binary: gu.cmd
-          - os: macos-latest
-            gu-binary: gu.cmd
-          - os: windows-latest
-            gu-binary: gu
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -75,19 +67,13 @@ jobs:
         with:
           ref: ${{ env.refName }}
 
-      - name: 'Add Developer Command Prompt for Microsoft Visual C++ '
-        if: ${{ runner.os == 'Windows' }}
-        uses: ilammy/msvc-dev-cmd@v1
-
       - name: 'Set up Graal'
-        uses: DeLaGuardo/setup-graalvm@4.0
+        uses: graalvm/setup-graalvm@v1
         with:
-          graalvm: '21.3.0'
-          java: 'java17'
-
-      - name: 'Install native-image component'
-        run: |
-          ${{ matrix.gu-binary }} install native-image
+          version: '21.3.0'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Create distribution'
         run: >

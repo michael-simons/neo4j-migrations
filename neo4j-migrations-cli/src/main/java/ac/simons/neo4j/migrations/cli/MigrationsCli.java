@@ -32,10 +32,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.neo4j.driver.AuthToken;
@@ -198,7 +200,7 @@ public final class MigrationsCli implements Runnable {
 	MigrationsConfig getConfig() {
 
 		MigrationsConfig config = MigrationsConfig.builder()
-			.withLocationsToScan(locationsToScan)
+			.withLocationsToScan(resolveLocationsToScan())
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
@@ -220,6 +222,15 @@ public final class MigrationsCli implements Runnable {
 
 		config.logTo(LOGGER, verbose);
 		return config;
+	}
+
+	private String[] resolveLocationsToScan() {
+		return Arrays.stream(locationsToScan)
+				// The locations would also default to virtual classpath:// protocol for native binaries.
+				// Because this will always return empty, the locations will get prepended with the file protocol.
+				.map(locationToScan -> ImageInfo.inImageRuntimeCode() ? "file://" + locationToScan : locationToScan)
+				.collect(Collectors.toList())
+				.toArray(new String[]{});
 	}
 
 	AuthToken getAuthToken() {

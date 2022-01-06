@@ -23,11 +23,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.SessionConfig;
 import org.powermock.reflect.Whitebox;
 
@@ -43,14 +45,14 @@ class DefaultMigrationContextTest {
 		MigrationsConfig migrationConfig = MigrationsConfig.builder().withImpersonatedUser("foo").build();
 
 		String fieldName = "WITH_IMPERSONATED_USER";
-		Method originalValue = Whitebox.getInternalState(Migrations.DefaultMigrationContext.class, fieldName);
+		Method originalValue = Whitebox.getInternalState(DefaultMigrationContext.class, fieldName);
 		try {
-			Whitebox.setInternalState(Migrations.DefaultMigrationContext.class, fieldName, (Method) null);
+			Whitebox.setInternalState(DefaultMigrationContext.class, fieldName, (Method) null);
 			assertThatIllegalArgumentException()
-				.isThrownBy(() -> new Migrations.DefaultMigrationContext(migrationConfig, null))
+				.isThrownBy(() -> new DefaultMigrationContext(migrationConfig, null))
 				.withMessage("User impersonation requires a driver that supports `withImpersonatedUser`.");
 		} finally {
-			Whitebox.setInternalState(Migrations.DefaultMigrationContext.class, fieldName, originalValue);
+			Whitebox.setInternalState(DefaultMigrationContext.class, fieldName, originalValue);
 		}
 	}
 
@@ -63,7 +65,7 @@ class DefaultMigrationContextTest {
 		MigrationsConfig migrationConfig = MigrationsConfig.builder().withImpersonatedUser("foo").build();
 
 		try (MockedStatic<SessionConfig> utilities = Mockito.mockStatic(SessionConfig.class)) {
-			MigrationContext ctx = new Migrations.DefaultMigrationContext(migrationConfig, null);
+			MigrationContext ctx = new DefaultMigrationContext(migrationConfig, null);
 			utilities.when(SessionConfig::builder).thenReturn(sessionConfigBuilder);
 			assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(ctx::getSessionConfig)
@@ -74,10 +76,25 @@ class DefaultMigrationContextTest {
 	@Test
 	void shouldApplyCustomizer() {
 
-		MigrationContext ctx = new Migrations.DefaultMigrationContext(
+		MigrationContext ctx = new DefaultMigrationContext(
 			MigrationsConfig.defaultConfig(), null);
 
 		SessionConfig config = ctx.getSessionConfig(builder -> builder.withDatabase("aDatabase"));
 		assertThat(config.database()).hasValue("aDatabase");
+	}
+
+	@Test
+	void copyIntoBuilderShouldWork() {
+
+		SessionConfig sessionConfig = SessionConfig.builder()
+			.withBookmarks(Collections.emptyList())
+			.withDatabase("f")
+			.withDefaultAccessMode(AccessMode.READ)
+			.withFetchSize(42711)
+			.withImpersonatedUser("Helge")
+			.build();
+
+		SessionConfig newConfig = DefaultMigrationContext.copyIntoBuilder(sessionConfig).build();
+		assertThat(newConfig).isEqualTo(sessionConfig);
 	}
 }

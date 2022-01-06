@@ -39,7 +39,7 @@ class ChainBuilderIT extends TestBase {
 			"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
 			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
 			.build();
-		MigrationContext context = new Migrations.DefaultMigrationContext(config, driver);
+		MigrationContext context = new DefaultMigrationContext(config, driver);
 		MigrationChain migrationChain = new ChainBuilder()
 			.buildChain(context, new DiscoveryService().findMigrations(context));
 

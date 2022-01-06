@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 
-import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
-
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;

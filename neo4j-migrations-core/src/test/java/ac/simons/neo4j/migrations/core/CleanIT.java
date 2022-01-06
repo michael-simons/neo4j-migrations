@@ -48,7 +48,7 @@ class CleanIT extends TestBase {
 		}
 		// Enforce creation of locks
 		MigrationsLock migrationsLock = new MigrationsLock(
-			new Migrations.DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
+			new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver));
 		try {
 			migrationsLock.lock();
 		} finally {

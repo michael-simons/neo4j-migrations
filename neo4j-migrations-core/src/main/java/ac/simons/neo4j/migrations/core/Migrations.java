@@ -17,8 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,15 +24,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -425,74 +420,4 @@ public final class Migrations {
 		return String.format("%s (\"%s\")", migration.getVersion(), migration.getDescription());
 	}
 
-	static class DefaultMigrationContext implements MigrationContext {
-
-		private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
-		private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
-
-		private static Method findWithImpersonatedUser() {
-			try {
-				return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
-			} catch (NoSuchMethodException e) {
-				return null; // This is fine
-			}
-		}
-
-		private final MigrationsConfig config;
-
-		private final Driver driver;
-
-		DefaultMigrationContext(MigrationsConfig config, Driver driver) {
-
-			if (config.getOptionalImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
-				throw new IllegalArgumentException(
-					"User impersonation requires a driver that supports `withImpersonatedUser`.");
-			}
-
-			this.config = config;
-			this.driver = driver;
-			this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
-				(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
-			).orElseGet(UnaryOperator::identity);
-		}
-
-		@Override
-		public MigrationsConfig getConfig() {
-			return config;
-		}
-
-		@Override
-		public Driver getDriver() {
-			return driver;
-		}
-
-		@Override
-		public SessionConfig getSessionConfig() {
-			return getSessionConfig(UnaryOperator.identity());
-		}
-
-		@Override
-		public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
-
-			SessionConfig.Builder builder = SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
-			this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
-			this.config.getOptionalImpersonatedUser().ifPresent(user -> {
-				try {
-					// This is fine, when an impersonated user is present, the availability of
-					// this method has been checked.
-					// noinspection ConstantConditions
-					WITH_IMPERSONATED_USER.invoke(builder, user);
-				} catch (IllegalAccessException | InvocationTargetException e) {
-					throw new MigrationsException("Could not impersonate a user on the driver level", e);
-				}
-			});
-
-			return configCustomizer.apply(builder).build();
-		}
-
-		@Override
-		public Session getSchemaSession() {
-			return getDriver().session(getSessionConfig(applySchemaDatabase));
-		}
-	}
 }

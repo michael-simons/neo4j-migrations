@@ -54,7 +54,7 @@ class UnsupportedTargetsIT {
 						.withSchemaDatabase("irrelevant")
 						.build();
 
-					MigrationContext ctx = new Migrations.DefaultMigrationContext(migrationsConfig, localDriver);
+					MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, localDriver);
 					Optional<String> migrationTarget = migrationsConfig.getMigrationTargetIn(ctx);
 
 					if (tag.contains("3.5")) {

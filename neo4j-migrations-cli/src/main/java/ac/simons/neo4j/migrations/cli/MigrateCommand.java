@@ -29,7 +29,7 @@ import java.util.logging.Level;
  * @author Michael J. Simons
  * @since 0.0.5
  */
-@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.")
+@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.", aliases = "apply")
 final class MigrateCommand extends ConnectedCommand {
 
 	@ParentCommand

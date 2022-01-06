@@ -120,14 +120,14 @@ Migrates Neo4j databases.
                               applied to the database match the ones available
                               locally and is on by default.
 Commands:
-  clean     Removes Neo4j-Migration specific data from the selected schema
-              database
-  help      Displays help information about the specified command
-  info      Retrieves all applied and pending informations, prints them and
-              exits.
-  migrate   Retrieves all pending migrations, verify and applies them.
-  validate  Resolves all local migrations and validates the state of the
-              configured database with them.
+  clean           Removes Neo4j-Migration specific data from the selected
+                    schema database
+  help            Displays help information about the specified command
+  info            Retrieves all applied and pending informations, prints them
+                    and exits.
+  migrate, apply  Retrieves all pending migrations, verify and applies them.
+  validate        Resolves all local migrations and validates the state of the
+                    configured database with them.
 ----
 
 === Safe passwords in CI/CD usage

@@ -4,8 +4,6 @@
 //DEPS org.slf4j:slf4j-simple:1.7.32
 //DEPS org.neo4j.driver:neo4j-java-driver:4.4.2
 //DEPS org.assertj:assertj-core:3.22.0
-package ac.simons.neo4j.migrations.quarkus;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;

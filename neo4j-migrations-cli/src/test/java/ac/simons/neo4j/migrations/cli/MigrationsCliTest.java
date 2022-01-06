@@ -121,6 +121,45 @@ class MigrationsCliTest {
 	}
 
 	@Test
+	void shouldNotPrependFileProtocolToLocationsToScanIfRunningNonNative() throws Exception {
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
+				HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, new String[] { "my/path" });
+
+		assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("my/path");
+	}
+
+	@Test
+	void shouldNotPrependFileProtocolToLocationsToScanIfRunningNativeButProtocolAlreadySpecified() throws Exception {
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
+				HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, new String[] { "classpath://my/path" });
+
+		restoreSystemProperties(() -> {
+			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
+			assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("classpath://my/path");
+		});
+	}
+
+	@Test
+	void shouldPrependFileProtocolToLocationsToScanIfRunningNative() throws Exception {
+		MigrationsCli cli = new MigrationsCli();
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
+				HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, new String[] { "my/path" });
+
+		restoreSystemProperties(() -> {
+			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
+			assertThat(cli.getConfig().getLocationsToScan()[0]).isEqualTo("file://my/path");
+		});
+	}
+
+	@Test
 	void shouldHandleUnsupportedConfigException() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();

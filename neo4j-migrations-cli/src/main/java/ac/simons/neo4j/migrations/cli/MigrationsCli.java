@@ -228,7 +228,12 @@ public final class MigrationsCli implements Runnable {
 		return Arrays.stream(locationsToScan)
 				// The locations would also default to virtual classpath:// protocol for native binaries.
 				// Because this will always return empty, the locations will get prepended with the file protocol.
-				.map(locationToScan -> ImageInfo.inImageRuntimeCode() ? "file://" + locationToScan : locationToScan)
+				.map(locationToScan -> {
+					boolean mightContainProtocol = locationToScan.contains(":");
+					return !mightContainProtocol && ImageInfo.inImageRuntimeCode()
+							? "file://" + locationToScan
+							: locationToScan;
+				})
 				.collect(Collectors.toList())
 				.toArray(new String[]{});
 	}

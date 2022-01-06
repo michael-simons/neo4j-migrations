@@ -163,6 +163,7 @@ public class V001__MyFirstMigration implements JavaBasedMigration {
     The latter is helpful when you want to have access to a reactive or asynchronous session.
     It is important that you use the convenient method `getSession()` or create a session with the provided config as only
     those guarantee hat your database session will be connected to the configured target database with the configured user.
+    In addition, our context will take care of managing Neo4j causal cluster bookmarks.
     However, if you feel like it is necessary to switch to a different database, you can use the driver instance any way you want.
     The transaction handling inside Java-based migrations is completely up to you.
 

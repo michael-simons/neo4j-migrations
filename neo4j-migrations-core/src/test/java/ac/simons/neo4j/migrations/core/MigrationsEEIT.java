@@ -381,13 +381,13 @@ class MigrationsEEIT {
 
 		TestBase.clearDatabase(driver, schemaDatabase);
 
-		MigrationsLock lock1 = new MigrationsLock(new Migrations.DefaultMigrationContext(MigrationsConfig.builder()
+		MigrationsLock lock1 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.builder()
 			.withDatabase(database1)
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver));
 		lock1.lock();
 		try {
-			MigrationsLock lock2 = new MigrationsLock(new Migrations.DefaultMigrationContext(MigrationsConfig
+			MigrationsLock lock2 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig
 				.builder()
 				.withDatabase(database2)
 				.withSchemaDatabase(schemaDatabase == null && !"neo4j".equalsIgnoreCase(database2) ? "neo4j" : schemaDatabase)
@@ -411,13 +411,13 @@ class MigrationsEEIT {
 
 		TestBase.clearDatabase(driver, schemaDatabase);
 
-		MigrationsLock lock1 = new MigrationsLock(new Migrations.DefaultMigrationContext(MigrationsConfig.builder()
+		MigrationsLock lock1 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig.builder()
 			.withDatabase(database1)
 			.withSchemaDatabase(schemaDatabase)
 			.build(), driver));
 		lock1.lock();
 		try {
-			MigrationsLock lock2 = new MigrationsLock(new Migrations.DefaultMigrationContext(MigrationsConfig
+			MigrationsLock lock2 = new MigrationsLock(new DefaultMigrationContext(MigrationsConfig
 				.builder()
 				.withDatabase(database2)
 				.withSchemaDatabase(schemaDatabase == null && !"neo4j".equalsIgnoreCase(database2) ? "neo4j" : schemaDatabase)

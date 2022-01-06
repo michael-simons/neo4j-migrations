@@ -17,8 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ac.simons.neo4j.migrations.core.Migrations.DefaultMigrationContext;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

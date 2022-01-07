@@ -932,10 +932,22 @@
 													<order>20</order>
 												</category>
 												<category>
+													<key>changes</key>
+													<title>🔄️ Refactorings</title>
+													<labels>refactor</labels>
+													<order>25</order>
+												</category>
+												<category>
 													<key>docs</key>
 													<title>📝 Documentation</title>
 													<labels>docs</labels>
 													<order>30</order>
+												</category>
+												<category>
+													<key>tasks</key>
+													<title>🧰 Tasks</title>
+													<labels>chore</labels>
+													<order>35</order>
 												</category>
 												<category>
 													<title>🧹 Housekeeping</title>

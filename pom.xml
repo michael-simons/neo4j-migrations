@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.3.0</version>
+	<version>1.3.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -51,7 +51,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>1.3.0</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -82,7 +82,7 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
-		<java-module-name/>
+		<java-module-name />
 		<java.version>8</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.0</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -112,7 +112,7 @@
 		<mockito.version>4.2.0</mockito.version>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
-		<neo4j-migrations.previous.version>1.2.3</neo4j-migrations.previous.version>
+		<neo4j-migrations.previous.version>1.3.0</neo4j-migrations.previous.version>
 		<neo4j.image>neo4j:4.4</neo4j.image>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 		<objenesis.version>3.2</objenesis.version>
@@ -580,7 +580,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence/>
+								<DependencyConvergence />
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -702,9 +702,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors/>
-						<idprefix/>
-						<idseparator/>
+						<setanchors />
+						<idprefix />
+						<idseparator />
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

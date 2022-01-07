@@ -67,6 +67,18 @@ jobs:
         with:
           ref: ${{ env.refName }}
 
+      - name: Install upx
+        run: sudo apt-get install upx
+        if: ${{ runner.os == 'Linux' }}
+
+      - name: Install upx
+        run: brew install upx
+        if: ${{ runner.os == 'macOS' }}
+
+      - name: Install upx
+        run: choco install upx
+        if: ${{ runner.os == 'Windows' }}
+
       - name: 'Set up Graal'
         uses: graalvm/setup-graalvm@v1
         with:

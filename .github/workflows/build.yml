@@ -59,6 +59,8 @@ jobs:
           java-version: '17'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install upx
+        run: sudo apt-get install upx
       - uses: actions/checkout@v2
       - name: 'Cache Maven packages'
         uses: actions/cache@v1

@@ -14,6 +14,7 @@
 
 	<properties>
 		<assembly-suffix/>
+		<skipCompress>false</skipCompress>
 		<covered-ratio-complexity>0.1</covered-ratio-complexity>
 		<covered-ratio-instructions>0.03</covered-ratio-instructions>
 		<executable-suffix/>
@@ -260,6 +261,26 @@
 									<goal>build</goal>
 								</goals>
 								<phase>package</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>compress-binary</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>package</phase>
+								<configuration combine.self="override">
+									<executable>upx</executable>
+									<skip>${skipCompress}</skip>
+									<arguments>
+										<argument>${project.build.directory}/neo4j-migrations${executable-suffix}</argument>
+									</arguments>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

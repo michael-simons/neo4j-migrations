@@ -35,13 +35,11 @@ jobs:
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2-
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
       - name: Clean and verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,12 +60,12 @@ jobs:
       - name: Install upx
         run: sudo apt-get install upx
       - uses: actions/checkout@v2
-      - name: 'Cache Maven packages'
+      - name: Restore Maven cache
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2-
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Clean and build
         run: ./mvnw --no-transfer-progress -Dnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli clean package
       - name: Run binary
@@ -87,11 +85,11 @@ jobs:
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v2
-      - name: 'Cache Maven packages'
+      - name: Restore Maven cache
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2-
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Clean and verify
         run: ./mvnw --no-transfer-progress -Dnative -pl :neo4j-migrations-quarkus-integration-tests clean verify

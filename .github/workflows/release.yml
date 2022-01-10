@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-release-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
 
       - name: 'Create distribution'
         run: >
@@ -125,7 +125,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          restore-keys: ${{ runner.os }}-m2-release
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-m2
 
       - name: 'Create release'
         env:

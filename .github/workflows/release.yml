@@ -28,8 +28,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2-
+          key: ${{ runner.os }}-m2-release-${{ hashFiles('**/pom.xml') }}
 
       - name: 'Create distribution'
         run: >
@@ -122,12 +121,11 @@ jobs:
           name: artifacts
           path: neo4j-migrations-cli/target
 
-      - name: 'Cache Maven packages'
+      - name: 'Restore Maven packages'
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2-
+          restore-keys: ${{ runner.os }}-m2-release
 
       - name: 'Create release'
         env:

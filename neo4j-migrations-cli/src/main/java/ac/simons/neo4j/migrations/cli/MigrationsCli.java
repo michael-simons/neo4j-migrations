@@ -212,7 +212,7 @@ public final class MigrationsCli implements Runnable {
 				.filter(location -> Location.of(location).getType() == Location.LocationType.CLASSPATH)
 				.collect(Collectors.toList());
 
-		if (runsInNativeImage && classpathLocations.size() > 1) {
+		if (runsInNativeImage && !classpathLocations.isEmpty()) {
 			throw new IllegalArgumentException(
 					"Implicit classpath resource locations are not support in native image: " + String.join(", ", classpathLocations));
 		}

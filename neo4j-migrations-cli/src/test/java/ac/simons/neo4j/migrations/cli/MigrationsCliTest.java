@@ -28,10 +28,13 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
 import org.mockito.Answers;
@@ -120,18 +123,19 @@ class MigrationsCliTest {
 			.withMessage("You must at least allow 2 connections in the pool to use a separate database.");
 	}
 
-	@Test
-	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = {"a/path, classpath://my/path, file://file/path", "a/single/path"})
+	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined(String locations) throws Exception {
 		MigrationsCli cli = new MigrationsCli();
 		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
 				HierarchyTraversalMode.TOP_DOWN).get(0);
 		field.setAccessible(true);
-		field.set(cli, new String[] { "a/path", "classpath://my/path", "file://file/path" });
+		field.set(cli, Arrays.stream(locations.split(",")).map(String::trim).toArray(String[]::new));
 
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
-					.withMessage("Implicit classpath resource locations are not support in native image: a/path, classpath://my/path");
+					.withMessageStartingWith("Implicit classpath resource locations are not support in native image: ");
 		});
 	}
 

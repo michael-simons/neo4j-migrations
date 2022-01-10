@@ -25,11 +25,11 @@ jobs:
           ref: ${{ env.refName }}
 
       - name: 'Cache Maven packages'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          restore-keys: ${{ runner.os }}-m2-
 
       - name: 'Create distribution'
         run: >
@@ -123,11 +123,11 @@ jobs:
           path: neo4j-migrations-cli/target
 
       - name: 'Cache Maven packages'
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          restore-keys: ${{ runner.os }}-m2-
 
       - name: 'Create release'
         env:

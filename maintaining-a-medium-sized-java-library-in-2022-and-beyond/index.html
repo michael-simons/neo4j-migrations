@@ -952,7 +952,7 @@ containers being used to verify migrations against.</p>
 <h4 id="_why_not_bazel"><a class="anchor" href="#_why_not_bazel"></a>2.1.2. Why not Bazel?</h4>
 <div class="paragraph">
 <p>Bazels focus seems to be a lot on incremental build, local or distributed caching. While it was intriguing to try out something
-completely new, it would have added a step learning curve for me and I was more focussed on solving a business usecase.</p>
+completely new, it would have added a steep learning curve for me and I was more focussed on solving a business usecase.</p>
 </div>
 </div>
 <div class="sect3">
@@ -987,6 +987,20 @@ doing both dependency management, build description and eventual being a represe
 <div class="paragraph">
 <p>I have decided that I can happily live with that.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Read the results from the Maven Dependencies Pop Quiz<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup> by
+     <a href="https://twitter.com/aalmiray/">Andres Almiray</a>. Especially before you post stuff like this thing here to the internet.
+     When in doubt, Andres is right.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -997,9 +1011,14 @@ doing both dependency management, build description and eventual being a represe
 <p>Even in single-module project (Neo4j-Migrations is a multi-module project), I put every version of every dependency and every plugin I use
 into a property in the <code>&lt;properties /&gt;</code> element.
 For dependencies, I use the <code>&lt;dependencyManagement /&gt;</code> element.
-The later might seem like overkill in a single module, but it will be a life saver when you encounter non-converging dependencies:
-Those are dependencies that are transitive dependencies of your direct dependencies with mismatching versions: Usually, Maven would
-resolve the higher version, but this is maybe not always what you want.</p>
+The later might seem like overkill in a single module, but it will be a lifesaver when you encounter non-converging dependencies:
+Those are dependencies that are transitive dependencies of your direct dependencies with mismatching versions: Your direct dependency
+A depends on X:1, your direct dependency B on X:2.</p>
+</div>
+<div class="paragraph">
+<p>When you declare a dependency on A before B, Maven will resolve X:1. When B is declared before A, it will resolve X:2. WHy?
+Maven does build a graph of dependencies. For transitive dependencies, it will pick out the nearest dependency. That is, the
+one that has the fewest number of hops from the direct dependency. This severely threatens the stability of your build.</p>
 </div>
 <div class="paragraph">
 <p>Instead of excluding the transitive dependency from one direct dependency, you should use dependency management to exactly
@@ -1008,8 +1027,8 @@ specify which version you want (and from which you hope that is compatible with 
 <div class="paragraph">
 <p>The list of properties containing the versions helps me to keep an overview of what I have.
 The dependency management allows me in submodules to omit the version altogether.
-Have a look at my pom.xml, in the properties section<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup> and the
-dependency management<sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnotedef_5" title="View footnote.">5</a>]</sup>.</p>
+Have a look at my pom.xml, in the properties section<sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnotedef_5" title="View footnote.">5</a>]</sup> and the
+dependency management<sup class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnotedef_6" title="View footnote.">6</a>]</sup>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1078,13 +1097,13 @@ I used it to</p>
 </div>
 </div>
 <div class="paragraph">
-<p>It is so good, it brings tears to peoples faces<sup class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnotedef_6" title="View footnote.">6</a>]</sup>.</p>
+<p>It is so good, it brings tears to peoples faces<sup class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnotedef_7" title="View footnote.">7</a>]</sup>.</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_more_conventions"><a class="anchor" href="#_more_conventions"></a>2.2.3. More conventions</h4>
 <div class="paragraph">
-<p>What is better than conventions? Well, more conventions<sup class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnotedef_7" title="View footnote.">7</a>]</sup>.
+<p>What is better than conventions? Well, more conventions<sup class="footnote">[<a id="_footnoteref_8" class="footnote" href="#_footnotedef_8" title="View footnote.">8</a>]</sup>.
 The first one who brought the order of elements in a POM-file to attention was longtime Java User Group contributor and friend <a href="https://twitter.com/FrVaBe">Franz van Betteraey</a>.
 The second one came from the Spring Boot team. I remember in one PR we discussed the order of dependencies.</p>
 </div>
@@ -1120,8 +1139,12 @@ projects like that:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Either it automatically sorts the poms in the <code>verify</code> phase or call if indepent: <code>./mvnw sortpom:verify@sort</code>.
-It orders the elements of my pom in a stable, consistent order and also the dependencies, grouped by scope.</p>
+<p>Either it automatically sorts the poms in the <code>verify</code> phase or call if independent: <code>./mvnw sortpom:verify@sort</code>.
+It orders the elements of my pom in a stable, consistent order and also the dependencies, grouped by scope.
+Remember what has been written about resolving transitive versions? When you just add a dependency on top of the dependency list,
+it might have the same dependency as another direct dependency has below. Now suddenly the new transitive dependency will be
+picked up. Sorting does not completely solve this problem, especially not without dependency management, but in many cases
+results might be less surprising.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1140,8 +1163,8 @@ the more issues might arise on "other peoples" machines:</p>
 <h5 id="_execute_a_java_program_with_your_current_classpath"><a class="anchor" href="#_execute_a_java_program_with_your_current_classpath"></a>Execute a Java program with your current classpath</h5>
 <div class="paragraph">
 <p>Maybe everything you need for a task is already inside your project. First step of escalating.
-For the CLI module I use <a href="#picocli">[picocli]</a> and I added the <code>AutoComplete.GenerateCompletion</code> subcommand in <code>MigrationsCli</code> <sup class="footnote">[<a id="_footnoteref_8" class="footnote" href="#_footnotedef_8" title="View footnote.">8</a>]</sup>.
-Thus, my CLI learned how to generate a shell completion script. There&#8217;s a lot about that topic in the "Autocomplete for Java Command Line Applications"<sup class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnotedef_9" title="View footnote.">9</a>]</sup>
+For the CLI module I use <a href="#picocli">[picocli]</a> and I added the <code>AutoComplete.GenerateCompletion</code> subcommand in <code>MigrationsCli</code> <sup class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnotedef_9" title="View footnote.">9</a>]</sup>.
+Thus, my CLI learned how to generate a shell completion script. There&#8217;s a lot about that topic in the "Autocomplete for Java Command Line Applications"<sup class="footnote">[<a id="_footnoteref_10" class="footnote" href="#_footnotedef_10" title="View footnote.">10</a>]</sup>
 manual. I want to distribute the script as a resource, too. I don&#8217;t want to manually add it as a resource. Therefore, my build
 should call the classes being build.
 This is an excellent use case to for <a href="#exec-maven-plugin">[exec-maven-plugin]</a> calling Java with the current classpath as shown in <a href="#exec-maven-plugin-java-example">Listing 3</a>:</p>
@@ -1400,27 +1423,30 @@ All the power of Java right at your hands, as a script via <a href="#JBang">[JBa
 <a href="#_footnoteref_3">3</a>. <a href="https://spring.io/blog/2020/06/08/migrating-spring-boot-s-build-to-gradle" class="bare">https://spring.io/blog/2020/06/08/migrating-spring-boot-s-build-to-gradle</a>
 </div>
 <div class="footnote" id="_footnotedef_4">
-<a href="#_footnoteref_4">4</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66</a>
+<a href="#_footnoteref_4">4</a>. <a href="https://andresalmiray.com/maven-dependencies-pop-quiz-results/" class="bare">https://andresalmiray.com/maven-dependencies-pop-quiz-results/</a>
 </div>
 <div class="footnote" id="_footnotedef_5">
-<a href="#_footnoteref_5">5</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135</a>
+<a href="#_footnoteref_5">5</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66</a>
 </div>
 <div class="footnote" id="_footnotedef_6">
-<a href="#_footnoteref_6">6</a>. <a href="https://twitter.com/aalmiray/status/1478036541238923267" class="bare">https://twitter.com/aalmiray/status/1478036541238923267</a>
+<a href="#_footnoteref_6">6</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135</a>
 </div>
 <div class="footnote" id="_footnotedef_7">
-<a href="#_footnoteref_7">7</a>. <a href="https://maven.apache.org/developers/conventions/code.html" class="bare">https://maven.apache.org/developers/conventions/code.html</a>
+<a href="#_footnoteref_7">7</a>. <a href="https://twitter.com/aalmiray/status/1478036541238923267" class="bare">https://twitter.com/aalmiray/status/1478036541238923267</a>
 </div>
 <div class="footnote" id="_footnotedef_8">
-<a href="#_footnoteref_8">8</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62</a>
+<a href="#_footnoteref_8">8</a>. <a href="https://maven.apache.org/developers/conventions/code.html" class="bare">https://maven.apache.org/developers/conventions/code.html</a>
 </div>
 <div class="footnote" id="_footnotedef_9">
-<a href="#_footnoteref_9">9</a>. <a href="https://picocli.info/autocomplete.html" class="bare">https://picocli.info/autocomplete.html</a>
+<a href="#_footnoteref_9">9</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62</a>
+</div>
+<div class="footnote" id="_footnotedef_10">
+<a href="#_footnoteref_10">10</a>. <a href="https://picocli.info/autocomplete.html" class="bare">https://picocli.info/autocomplete.html</a>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-14 08:15:34 +0100
+Last updated 2022-01-14 09:41:12 +0100
 </div>
 </div>
 </body>

@@ -559,7 +559,22 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 </li>
 <li><a href="#building-things">2. Building things</a>
 <ul class="sectlevel2">
-<li><a href="#_welcome_to_burning_geek_con_the_choice_of_a_build_tool">2.1. Welcome to Burning Geek Con: The choice of a build tool</a></li>
+<li><a href="#_welcome_to_burning_geek_con_the_choice_of_a_build_tool">2.1. Welcome to Burning Geek Con: The choice of a build tool</a>
+<ul class="sectlevel3">
+<li><a href="#_why_not_gradle">2.1.1. Why not Gradle?</a></li>
+<li><a href="#_why_not_bazel">2.1.2. Why not Bazel?</a></li>
+<li><a href="#_why_not_bach">2.1.3. Why not Bach?</a></li>
+<li><a href="#_maven_it_is">2.1.4. Maven it is</a></li>
+</ul>
+</li>
+<li><a href="#_my_maven_best_practices">2.2. My Maven best practices</a>
+<ul class="sectlevel3">
+<li><a href="#_use_properties_and_dependency_management_for_versions">2.2.1. Use properties and dependency management for versions</a></li>
+<li><a href="#_make_use_of_the_enforcer_plugin">2.2.2. Make use of the enforcer plugin</a></li>
+<li><a href="#_more_conventions">2.2.3. More conventions</a></li>
+<li><a href="#_escalate_away_from_conventions">2.2.4. Escalate away from conventions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_resources">Resources</a></li>
@@ -897,7 +912,408 @@ can be totally fine as well. Neo4j-Migrations can be seen as homegrown, too of c
 Just because a thing is on GitHub it doesn&#8217;t mean it&#8217;s automatically better than what you would write inside your company.</p>
 </div>
 <div class="paragraph">
-<p>Cliffhanger: Look in the sources or wait until next week for more :)</p>
+<p>To cut it short: I opted for good, old, boring Maven.
+Why? Because I am not only familiar with it, but it&#8217;s boring in a positive way: If you don&#8217;t escalate in a pom file, most
+projects look more or less the same and most of the time, they behave the same.</p>
+</div>
+<div class="sect3">
+<h4 id="_why_not_gradle"><a class="anchor" href="#_why_not_gradle"></a>2.1.1. Why not Gradle?</h4>
+<div class="paragraph">
+<p>I never felt like I need the promoted flexibility it brings.
+I don&#8217;t need the Groovy (or Kotlin) these days for the mast majority of tasks I have in my builds.
+Also, I did observe several times that using newer versions of Java than the ones that have been latest when a specific version
+of Gradle has been released, causes problems. This is because Gradle depends on <a href="#ASM">[ASM]</a>.
+ASM is an all-purpose Java bytecode manipulation and analysis framework. It can be used to modify existing classes or to
+dynamically generate classes, directly in binary form. As such it is tailored to specific Java versions.</p>
+</div>
+<div class="paragraph">
+<p>While this is not inherently a bad thing, I prefer not having to deal with it, especially as there wasn&#8217;t anything on the table
+I couldn&#8217;t get from Maven.</p>
+</div>
+<div class="paragraph">
+<p>Of course there is the valid argument of incremental builds: Gradle seems to be a lot better in that regard in contrast to Maven.
+Also, there is the <a href="https://docs.gradle.com/enterprise/tutorials/caching/">build cache</a> who has done great things for Spring Boot
+as reported back in 2020<sup class="footnote">[<a id="_footnoteref_3" class="footnote" href="#_footnotedef_3" title="View footnote.">3</a>]</sup>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+The Spring Boot team&#8217;s primary reason for considering a switch to Gradle was to reduce the time that it takes to build the project. We were becoming frustrated with the length of the feedback loop when making and testing changes.
+</blockquote>
+<div class="attribution">
+&#8212; Andy Wilkinson in "Migrating Spring Boot&#8217;s Build to Gradle"
+</div>
+</div>
+<div class="paragraph">
+<p>In this project here I would benefit much more in shaving more than just seconds from the lengthy restart time of the database
+containers being used to verify migrations against.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_why_not_bazel"><a class="anchor" href="#_why_not_bazel"></a>2.1.2. Why not Bazel?</h4>
+<div class="paragraph">
+<p>Bazels focus seems to be a lot on incremental build, local or distributed caching. While it was intriguing to try out something
+completely new, it would have added a step learning curve for me and I was more focussed on solving a business usecase.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_why_not_bach"><a class="anchor" href="#_why_not_bach"></a>2.1.3. Why not Bach?</h4>
+<div class="paragraph">
+<p><a href="https://github.com/sormuras/bach">Bach</a> is an interesting contender in that regard that it uses Java and Java Modules to build
+Java Modules.
+I did work a bit with the author, Christian Stein, on it, and we migrated one other pet project of mine to use it.
+I like the "Java only" approach a lot, and I think it has potential. However, it is Java Modules only. While I am gonna speak about
+modules in this publication, Neo4j-Migrations is not only Java modules.</p>
+</div>
+<div class="paragraph">
+<p>In addition, Bach is a lot of work in progress. Of course, this is not bad and someone has to solve the egg-and-hen-problem here,
+but I am just not up for that call.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_it_is"><a class="anchor" href="#_maven_it_is"></a>2.1.4. Maven it is</h4>
+<div class="paragraph">
+<p>Before I jump into how I configure my projects these days with Maven, just a quick recap:
+The word Maven is a Yiddish word for "expert", derived from the Hebrew word mayvin (מבין), which means "who understands."
+A maven is an expert who understands the skill or subject at hand:</p>
+</div>
+<div class="paragraph">
+<p>Maven approaches a couple of things with "convention over configuration": It tries to tackle dependency management, the build process
+and the deployment. It all evolves around a standard cycle of validate, compile, test, packaging, integration testing, installation and deploymenet.</p>
+</div>
+<div class="paragraph">
+<p>One of the biggest critics here is having the "Project Object Model descriptor" - POM for short - materialized as <code>pom.xml</code>
+doing both dependency management, build description and eventual being a representation of a deployed artifact.</p>
+</div>
+<div class="paragraph">
+<p>I have decided that I can happily live with that.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_my_maven_best_practices"><a class="anchor" href="#_my_maven_best_practices"></a>2.2. My Maven best practices</h3>
+<div class="sect3">
+<h4 id="_use_properties_and_dependency_management_for_versions"><a class="anchor" href="#_use_properties_and_dependency_management_for_versions"></a>2.2.1. Use properties and dependency management for versions</h4>
+<div class="paragraph">
+<p>Even in single-module project (Neo4j-Migrations is a multi-module project), I put every version of every dependency and every plugin I use
+into a property in the <code>&lt;properties /&gt;</code> element.
+For dependencies, I use the <code>&lt;dependencyManagement /&gt;</code> element.
+The later might seem like overkill in a single module, but it will be a life saver when you encounter non-converging dependencies:
+Those are dependencies that are transitive dependencies of your direct dependencies with mismatching versions: Usually, Maven would
+resolve the higher version, but this is maybe not always what you want.</p>
+</div>
+<div class="paragraph">
+<p>Instead of excluding the transitive dependency from one direct dependency, you should use dependency management to exactly
+specify which version you want (and from which you hope that is compatible with both direct dependencies).</p>
+</div>
+<div class="paragraph">
+<p>The list of properties containing the versions helps me to keep an overview of what I have.
+The dependency management allows me in submodules to omit the version altogether.
+Have a look at my pom.xml, in the properties section<sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnotedef_4" title="View footnote.">4</a>]</sup> and the
+dependency management<sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnotedef_5" title="View footnote.">5</a>]</sup>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you don&#8217;t want to read all the following, you might consider having a look at the OSS Quickstart archetype <a href="#oss-quickstart">[oss-quickstart]</a>
+from <a href="https://twitter.com/gunnarmorling">Gunnar Morling</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_make_use_of_the_enforcer_plugin"><a class="anchor" href="#_make_use_of_the_enforcer_plugin"></a>2.2.2. Make use of the enforcer plugin</h4>
+<div class="paragraph">
+<p>The self-titled "The Loving Iron Fist of Maven™", the <a href="#maven-enforcer-plugin">[maven-enforcer-plugin]</a>. It helps you to keep things straight.
+I used it to</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>enforce the Java version required to build this project</p>
+</li>
+<li>
+<p>the Maven version being used</p>
+</li>
+<li>
+<p>that all dependencies converge</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See my configuration in <a href="#enforcer-plugin-config">Listing 1</a>.</p>
+</div>
+<div id="enforcer-plugin-config" class="listingblock">
+<div class="title">Listing 1. My enforcer config</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>maven-enforcer-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>${maven-enforcer-plugin.version}<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;executions&gt;</span>
+        <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;id&gt;</span>enforce<span class="tag">&lt;/id&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+                <span class="tag">&lt;goal&gt;</span>enforce<span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+            <span class="tag">&lt;phase&gt;</span>validate<span class="tag">&lt;/phase&gt;</span>
+            <span class="tag">&lt;configuration&gt;</span>
+                <span class="tag">&lt;rules&gt;</span>
+                    <span class="tag">&lt;requireJavaVersion&gt;</span>
+                        <span class="tag">&lt;version&gt;</span>17<span class="tag">&lt;/version&gt;</span>
+                    <span class="tag">&lt;/requireJavaVersion&gt;</span>
+                    <span class="tag">&lt;DependencyConvergence</span> <span class="tag">/&gt;</span>
+                    <span class="tag">&lt;requireMavenVersion&gt;</span>
+                        <span class="tag">&lt;version&gt;</span>${maven.version}<span class="tag">&lt;/version&gt;</span>
+                    <span class="tag">&lt;/requireMavenVersion&gt;</span>
+                <span class="tag">&lt;/rules&gt;</span>
+            <span class="tag">&lt;/configuration&gt;</span>
+        <span class="tag">&lt;/execution&gt;</span>
+    <span class="tag">&lt;/executions&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is so good, it brings tears to peoples faces<sup class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnotedef_6" title="View footnote.">6</a>]</sup>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_more_conventions"><a class="anchor" href="#_more_conventions"></a>2.2.3. More conventions</h4>
+<div class="paragraph">
+<p>What is better than conventions? Well, more conventions<sup class="footnote">[<a id="_footnoteref_7" class="footnote" href="#_footnotedef_7" title="View footnote.">7</a>]</sup>.
+The first one who brought the order of elements in a POM-file to attention was longtime Java User Group contributor and friend <a href="https://twitter.com/FrVaBe">Franz van Betteraey</a>.
+The second one came from the Spring Boot team. I remember in one PR we discussed the order of dependencies.</p>
+</div>
+<div class="paragraph">
+<p>All of that got me thinking: I don&#8217;t want to think too much, and just get it done. Ever since then, I add the "Sortpom Maven Plugin" <a href="#sortpom">[sortpom]</a> to new
+projects like that:</p>
+</div>
+<div id="sortpom-config" class="listingblock">
+<div class="title">Listing 2. Apply automatic sorting to pom files</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>com.github.ekryd.sortpom<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>sortpom-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>${sortpom-maven-plugin.version}<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;configuration&gt;</span>
+        <span class="tag">&lt;encoding&gt;</span>${project.build.sourceEncoding}<span class="tag">&lt;/encoding&gt;</span>
+        <span class="tag">&lt;keepBlankLines&gt;</span>true<span class="tag">&lt;/keepBlankLines&gt;</span>
+        <span class="tag">&lt;nrOfIndentSpace&gt;</span>-1<span class="tag">&lt;/nrOfIndentSpace&gt;</span>
+        <span class="tag">&lt;sortProperties&gt;</span>true<span class="tag">&lt;/sortProperties&gt;</span>
+        <span class="tag">&lt;sortDependencies&gt;</span>scope,groupId,artifactId<span class="tag">&lt;/sortDependencies&gt;</span>
+        <span class="tag">&lt;createBackupFile&gt;</span>false<span class="tag">&lt;/createBackupFile&gt;</span>
+        <span class="tag">&lt;expandEmptyElements&gt;</span>false<span class="tag">&lt;/expandEmptyElements&gt;</span>
+    <span class="tag">&lt;/configuration&gt;</span>
+    <span class="tag">&lt;executions&gt;</span>
+        <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+                <span class="tag">&lt;goal&gt;</span>sort<span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+            <span class="tag">&lt;phase&gt;</span>verify<span class="tag">&lt;/phase&gt;</span>
+        <span class="tag">&lt;/execution&gt;</span>
+    <span class="tag">&lt;/executions&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Either it automatically sorts the poms in the <code>verify</code> phase or call if indepent: <code>./mvnw sortpom:verify@sort</code>.
+It orders the elements of my pom in a stable, consistent order and also the dependencies, grouped by scope.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_escalate_away_from_conventions"><a class="anchor" href="#_escalate_away_from_conventions"></a>2.2.4. Escalate away from conventions</h4>
+<div class="paragraph">
+<p>The moment I would have to jump through so many loops to get a thing done via Maven configuration, I escalate in two steps.
+Both are done via the Exec-Maven-Plugin <a href="#exec-maven-plugin">[exec-maven-plugin]</a>. The plugin is able to execute Java in the same JVM or alternatively,
+external processes, either other programms or Java based calls. The latter can be configured to use the same class path
+like the build.</p>
+</div>
+<div class="paragraph">
+<p>So here are my 3 approaches to go from conventions to a programmatic approach: The farer away it get&#8217;s from Maven and convention,
+the more issues might arise on "other peoples" machines:</p>
+</div>
+<div class="sect4">
+<h5 id="_execute_a_java_program_with_your_current_classpath"><a class="anchor" href="#_execute_a_java_program_with_your_current_classpath"></a>Execute a Java program with your current classpath</h5>
+<div class="paragraph">
+<p>Maybe everything you need for a task is already inside your project. First step of escalating.
+For the CLI module I use <a href="#picocli">[picocli]</a> and I added the <code>AutoComplete.GenerateCompletion</code> subcommand in <code>MigrationsCli</code> <sup class="footnote">[<a id="_footnoteref_8" class="footnote" href="#_footnotedef_8" title="View footnote.">8</a>]</sup>.
+Thus, my CLI learned how to generate a shell completion script. There&#8217;s a lot about that topic in the "Autocomplete for Java Command Line Applications"<sup class="footnote">[<a id="_footnoteref_9" class="footnote" href="#_footnotedef_9" title="View footnote.">9</a>]</sup>
+manual. I want to distribute the script as a resource, too. I don&#8217;t want to manually add it as a resource. Therefore, my build
+should call the classes being build.
+This is an excellent use case to for <a href="#exec-maven-plugin">[exec-maven-plugin]</a> calling Java with the current classpath as shown in <a href="#exec-maven-plugin-java-example">Listing 3</a>:</p>
+</div>
+<div id="exec-maven-plugin-java-example" class="listingblock">
+<div class="title">Listing 3. Using Maven exec plugin to call single program (neo4j-migrations-cli/pom.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.codehaus.mojo<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>exec-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;executions&gt;</span>
+        <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;id&gt;</span>generate-cli-completion<span class="tag">&lt;/id&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+                <span class="tag">&lt;goal&gt;</span>exec<span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+            <span class="tag">&lt;phase&gt;</span>package<span class="tag">&lt;/phase&gt;</span>
+            <span class="tag">&lt;configuration</span> <span class="attribute-name">combine.self</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">override</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;executable&gt;</span>java<span class="tag">&lt;/executable&gt;</span>
+                <span class="tag">&lt;arguments&gt;</span>
+                    <span class="tag">&lt;argument&gt;</span>-classpath<span class="tag">&lt;/argument&gt;</span>
+                    <span class="tag">&lt;classpath</span> <span class="tag">/&gt;</span>
+                    <span class="tag">&lt;argument&gt;</span>${name-of-main-class}<span class="tag">&lt;/argument&gt;</span>
+                    <span class="tag">&lt;argument&gt;</span>generate-completion<span class="tag">&lt;/argument&gt;</span>
+                <span class="tag">&lt;/arguments&gt;</span>
+                <span class="tag">&lt;outputFile&gt;</span>target/neo4j-migrations_completion<span class="tag">&lt;/outputFile&gt;</span>
+            <span class="tag">&lt;/configuration&gt;</span>
+        <span class="tag">&lt;/execution&gt;</span>
+    <span class="tag">&lt;/executions&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Note that we can use the <code>&lt;classpath /&gt;</code> element here that passes the whole classpath to the <code>java</code> executable</p>
+</li>
+<li>
+<p>Of course there is a property in the <code>pom.xml</code> holding the name of my main class, which is used in several places</p>
+</li>
+<li>
+<p>The rest are a couple of args to the actual class being called</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_call_a_single_program"><a class="anchor" href="#_call_a_single_program"></a>Call a single program</h5>
+<div class="paragraph">
+<p>This is the next step of escalation. If I am just dealing with a single thing I need todo outside Maven or a plugin, I check
+if it is a single call, simple to parameterize.
+Compressing my GraalVM native binaries with UPX is such a thing as shown in <a href="#exec-maven-plugin-directly-example">Listing 4</a>:</p>
+</div>
+<div id="exec-maven-plugin-directly-example" class="listingblock">
+<div class="title">Listing 4. Using Maven exec plugin to call s single program (neo4j-migrations-cli/pom.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.codehaus.mojo<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>exec-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;executions&gt;</span>
+        <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;id&gt;</span>compress-binary<span class="tag">&lt;/id&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+                <span class="tag">&lt;goal&gt;</span>exec<span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+            <span class="tag">&lt;phase&gt;</span>package<span class="tag">&lt;/phase&gt;</span>
+            <span class="tag">&lt;configuration</span> <span class="attribute-name">combine.self</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">override</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+                <span class="tag">&lt;executable&gt;</span>upx<span class="tag">&lt;/executable&gt;</span>
+                <span class="tag">&lt;skip&gt;</span>${skipCompress}<span class="tag">&lt;/skip&gt;</span>
+                <span class="tag">&lt;arguments&gt;</span>
+                    <span class="tag">&lt;argument&gt;</span>${project.build.directory}/neo4j-migrations${executable-suffix}<span class="tag">&lt;/argument&gt;</span>
+                <span class="tag">&lt;/arguments&gt;</span>
+            <span class="tag">&lt;/configuration&gt;</span>
+        <span class="tag">&lt;/execution&gt;</span>
+    <span class="tag">&lt;/executions&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_scripting_things"><a class="anchor" href="#_scripting_things"></a>Scripting things</h5>
+<div class="paragraph">
+<p>If there is neither a class in my project solving my needs nor a single executable, I resort to scripting.
+A <a href="#bash">[bash]</a> script seems reasonable these days, as bash or something compatible should be available in most places.
+If you want to stick to what you most like have in your project, use a Java script with <a href="#JBang">[JBang]</a>.</p>
+</div>
+<div class="paragraph">
+<p>I use <a href="#japicmd">[japicmd]</a> to compare previous and current versions of the project checking for semantic version or rather for changes
+that would break semantic versioning. For this I need the current version number (given of course via the <code>&lt;version&gt;</code> tag)
+and the previous version (given via a property named <code>neo4j-migrations.previous.version</code>).</p>
+</div>
+<div class="paragraph">
+<p>The previous version number needs to be updated when a release has been prepared, just before the release plugin will commit
+and tag the changes. I added a corresponding exec-maven configuration in the parent <code>pom.xml</code></p>
+</div>
+<div id="exec-maven-plugin-script-example" class="listingblock">
+<div class="title">Listing 5. Using Maven exec plugin to call a script (pom.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.codehaus.mojo<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>exec-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>${exec-maven-plugin.version}<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;configuration&gt;</span>
+        <span class="tag">&lt;skip&gt;</span>true<span class="tag">&lt;/skip&gt;</span>
+    <span class="tag">&lt;/configuration&gt;</span>
+    <span class="tag">&lt;executions&gt;</span>
+        <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;id&gt;</span>release-prepared<span class="tag">&lt;/id&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+                <span class="tag">&lt;goal&gt;</span>exec<span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+            <span class="tag">&lt;configuration&gt;</span>
+                <span class="tag">&lt;executable&gt;</span>bin/update-previous-version.sh<span class="tag">&lt;/executable&gt;</span>
+                <span class="tag">&lt;skip&gt;</span>true<span class="tag">&lt;/skip&gt;</span>
+            <span class="tag">&lt;/configuration&gt;</span>
+        <span class="tag">&lt;/execution&gt;</span>
+    <span class="tag">&lt;/executions&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You notice the execution has an identifier. It is referred in the release-plugin section:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 6. Calling a release completion goal (pom.xml)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>maven-release-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>${maven-release-plugin.version}<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;configuration&gt;</span>
+        <span class="tag">&lt;autoVersionSubmodules&gt;</span>true<span class="tag">&lt;/autoVersionSubmodules&gt;</span>
+        <span class="tag">&lt;useReleaseProfile&gt;</span>false<span class="tag">&lt;/useReleaseProfile&gt;</span>
+        <span class="tag">&lt;releaseProfiles&gt;</span>release<span class="tag">&lt;/releaseProfiles&gt;</span>
+        <span class="tag">&lt;tagNameFormat&gt;</span>@{project.version}<span class="tag">&lt;/tagNameFormat&gt;</span>
+        <span class="tag">&lt;goals&gt;</span>deploy<span class="tag">&lt;/goals&gt;</span>
+        <span class="tag">&lt;pushChanges&gt;</span>false<span class="tag">&lt;/pushChanges&gt;</span>
+        <span class="tag">&lt;localCheckout&gt;</span>true<span class="tag">&lt;/localCheckout&gt;</span>
+        <span class="tag">&lt;arguments&gt;</span>-Drelease -DisDryRun=${dryRun}<span class="tag">&lt;/arguments&gt;</span>
+        <span class="tag">&lt;preparationGoals&gt;</span>clean exec:exec@prepare-release verify<span class="tag">&lt;/preparationGoals&gt;</span>
+        <span class="tag">&lt;completionGoals&gt;</span>compile exec:exec@release-prepared<span class="tag">&lt;/completionGoals&gt;</span>
+    <span class="tag">&lt;/configuration&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The script is rather simple (you&#8217;ll find it in the <a href="https://github.com/michael-simons/neo4j-migrations/tree/1.3.1/bin">bin</a> folder):</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 7. Extracting a prepared version from Maven release files and updating a property (update-previous-version.sh)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">#!/usr/bin/env bash
+
+set -euo pipefail
+DIR=&quot;$(dirname &quot;$(realpath &quot;$0&quot;)&quot;)&quot;
+
+NEW_OLD_VERSION=$(sed -n 's/project\.rel\.eu\.michael-simons\.neo4j\\:neo4j-migrations-parent=\(.*\)/\1/p' $DIR/../release.properties)
+$DIR/../mvnw versions:set-property -DgenerateBackupPoms=false -Dproperty=neo4j-migrations.previous.version -DnewVersion=$NEW_OLD_VERSION -pl :neo4j-migrations-parent</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While a Maven maven would maybe have solved this with pure XML declaration, I couldn&#8217;t and would go as so far.
+This is easier to read.</p>
+</div>
+<div class="paragraph">
+<p>These days, you are not restricted to shell-scripts. You can just stick to Java if you want.
+Have a look at my <a href="https://github.com/michael-simons/neo4j-migrations/blob/1.3.1/bin/test_native_cli.java">test_native_cli.java</a> script  in the same folder.
+It is a Java program, orchestrating a <a href="#Testcontainer">[Testcontainer]</a> and testing the native build.
+Right now, it is called from a GitHub action, but it would be easy enough to call it from Maven.
+All the power of Java right at your hands, as a script via <a href="#JBang">[JBang]</a>.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -908,10 +1324,25 @@ Just because a thing is on GitHub it doesn&#8217;t mean it&#8217;s automatically
 <div class="ulist bibliography">
 <ul class="bibliography">
 <li>
+<p><a id="ASM"></a>[ASM] <a href="https://asm.ow2.io" class="bare">https://asm.ow2.io</a></p>
+</li>
+<li>
+<p><a id="bash"></a>[bash] <a href="https://www.gnu.org/software/bash/" class="bare">https://www.gnu.org/software/bash/</a></p>
+</li>
+<li>
 <p><a id="COCOMO"></a>[COCOMO] <a href="https://en.wikipedia.org/wiki/COCOMO" class="bare">https://en.wikipedia.org/wiki/COCOMO</a></p>
 </li>
 <li>
+<p><a id="exec-maven-plugin"></a>[exec-maven-plugin] <a href="https://www.mojohaus.org/exec-maven-plugin" class="bare">https://www.mojohaus.org/exec-maven-plugin</a></p>
+</li>
+<li>
 <p><a id="helidon"></a>[helidon] <a href="https://helidon.io" class="bare">https://helidon.io</a></p>
+</li>
+<li>
+<p><a id="JBang"></a>[JBang] <a href="https://www.jbang.dev" class="bare">https://www.jbang.dev</a></p>
+</li>
+<li>
+<p><a id="japicmd"></a>[japicmd] <a href="https://github.com/siom79/japicmp" class="bare">https://github.com/siom79/japicmp</a></p>
 </li>
 <li>
 <p><a id="jep238"></a>[jep238] <a href="https://openjdk.java.net/jeps/238" class="bare">https://openjdk.java.net/jeps/238</a></p>
@@ -929,13 +1360,28 @@ Just because a thing is on GitHub it doesn&#8217;t mean it&#8217;s automatically
 <p><a id="jep396"></a>[jep396] <a href="https://openjdk.java.net/jeps/396" class="bare">https://openjdk.java.net/jeps/396</a></p>
 </li>
 <li>
+<p><a id="maven-enforcer-plugin"></a>[maven-enforcer-plugin] <a href="https://maven.apache.org/enforcer/maven-enforcer-plugin/" class="bare">https://maven.apache.org/enforcer/maven-enforcer-plugin/</a></p>
+</li>
+<li>
+<p><a id="oss-quickstart"></a>[oss-quickstart] <a href="https://github.com/moditect/oss-quickstart" class="bare">https://github.com/moditect/oss-quickstart</a></p>
+</li>
+<li>
+<p><a id="picocli"></a>[picocli] <a href="https://picocli.info" class="bare">https://picocli.info</a></p>
+</li>
+<li>
 <p><a id="quarkus"></a>[quarkus] <a href="https://quarkus.io" class="bare">https://quarkus.io</a></p>
 </li>
 <li>
 <p><a id="scc"></a>[scc] <a href="https://github.com/boyter/scc" class="bare">https://github.com/boyter/scc</a></p>
 </li>
 <li>
+<p><a id="sortpom"></a>[sortpom] <a href="https://github.com/Ekryd/sortpom" class="bare">https://github.com/Ekryd/sortpom</a></p>
+</li>
+<li>
 <p><a id="stein-maven-coordinates-and-module-names"></a>[stein-maven-coordinates-and-module-names] <a href="https://sormuras.github.io/blog/2019-08-04-maven-coordinates-and-java-module-names.html" class="bare">https://sormuras.github.io/blog/2019-08-04-maven-coordinates-and-java-module-names.html</a></p>
+</li>
+<li>
+<p><a id="Testcontainer"></a>[Testcontainer] <a href="https://www.testcontainers.org" class="bare">https://www.testcontainers.org</a></p>
 </li>
 </ul>
 </div>
@@ -950,10 +1396,31 @@ Just because a thing is on GitHub it doesn&#8217;t mean it&#8217;s automatically
 <div class="footnote" id="_footnotedef_2">
 <a href="#_footnoteref_2">2</a>. <a href="https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html" class="bare">https://docs.oracle.com/en/java/javase/17/docs/specs/man/javac.html</a>
 </div>
+<div class="footnote" id="_footnotedef_3">
+<a href="#_footnoteref_3">3</a>. <a href="https://spring.io/blog/2020/06/08/migrating-spring-boot-s-build-to-gradle" class="bare">https://spring.io/blog/2020/06/08/migrating-spring-boot-s-build-to-gradle</a>
+</div>
+<div class="footnote" id="_footnotedef_4">
+<a href="#_footnoteref_4">4</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L66</a>
+</div>
+<div class="footnote" id="_footnotedef_5">
+<a href="#_footnoteref_5">5</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/pom.xml#L135</a>
+</div>
+<div class="footnote" id="_footnotedef_6">
+<a href="#_footnoteref_6">6</a>. <a href="https://twitter.com/aalmiray/status/1478036541238923267" class="bare">https://twitter.com/aalmiray/status/1478036541238923267</a>
+</div>
+<div class="footnote" id="_footnotedef_7">
+<a href="#_footnoteref_7">7</a>. <a href="https://maven.apache.org/developers/conventions/code.html" class="bare">https://maven.apache.org/developers/conventions/code.html</a>
+</div>
+<div class="footnote" id="_footnotedef_8">
+<a href="#_footnoteref_8">8</a>. <a href="https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62" class="bare">https://github.com/michael-simons/neo4j-migrations/blob/662018028e1ffc89bf4558eed23a463fe11e2ccf/neo4j-migrations-cli/src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java#L62</a>
+</div>
+<div class="footnote" id="_footnotedef_9">
+<a href="#_footnoteref_9">9</a>. <a href="https://picocli.info/autocomplete.html" class="bare">https://picocli.info/autocomplete.html</a>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-07 18:32:38 +0100
+Last updated 2022-01-14 08:15:34 +0100
 </div>
 </div>
 </body>

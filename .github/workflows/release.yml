@@ -32,11 +32,7 @@ jobs:
 
       - name: 'Create distribution'
         run: >
-          ./mvnw --no-transfer-progress -DskipTests
-          -pl eu.michael-simons.neo4j:neo4j-migrations
-          -pl eu.michael-simons.neo4j:neo4j-migrations-test-resources
-          -pl eu.michael-simons.neo4j:neo4j-migrations-cli
-          package
+          ./mvnw --no-transfer-progress -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli -am package
 
       - name: 'Upload build artifact'
         uses: actions/upload-artifact@v2
@@ -88,11 +84,7 @@ jobs:
 
       - name: 'Create distribution'
         run: >
-          ./mvnw --no-transfer-progress -Pnative -DskipTests
-          -pl eu.michael-simons.neo4j:neo4j-migrations
-          -pl eu.michael-simons.neo4j:neo4j-migrations-test-resources
-          -pl eu.michael-simons.neo4j:neo4j-migrations-cli
-          package
+          ./mvnw --no-transfer-progress -Pnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
 
       - name: 'Upload build artifact'
         uses: actions/upload-artifact@v2

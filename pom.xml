@@ -106,6 +106,7 @@
 		<maven-site-plugin.version>3.10.0</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.4</maven.version>
@@ -605,11 +606,17 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Xverify:all</argLine>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
+				<configuration>
+					<argLine>-Xverify:all</argLine>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>

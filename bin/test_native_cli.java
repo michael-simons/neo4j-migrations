@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
 import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * Needs to be called from the root of the project.
@@ -30,9 +29,8 @@ public class test_native_cli {
 		var executable = Paths.get("./neo4j-migrations-cli/target/neo4j-migrations").toAbsolutePath().normalize().toString();
 		var scripts = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize();
 
-		// Let Ryuk take care of it, so no try/catch with autockose
-		var reusable = TestcontainersConfiguration.getInstance().environmentSupportsReuse();
-		var neo4j = new Neo4jContainer<>("neo4j:4.3").withReuse(reusable);
+		// Let Ryuk take care of it, so no try/catch with autoclose
+		var neo4j = new Neo4jContainer<>("neo4j:4.3").withReuse(true);
 		neo4j.start();
 
 		try (var driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()));

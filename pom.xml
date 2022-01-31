@@ -82,9 +82,9 @@
 		<graalvm.version>21.3.0</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.6</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
-		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.0</junit-jupiter-causal-cluster-testcontainer-extension.version>
+		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.1</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
 		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -130,7 +130,7 @@
 		<sortpom-maven-plugin.version>3.0.1</sortpom-maven-plugin.version>
 		<spring-boot.version>2.6.3</spring-boot.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
-		<testcontainers.version>1.16.2</testcontainers.version>
+		<testcontainers.version>1.16.3</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
@@ -581,7 +581,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -709,9 +709,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

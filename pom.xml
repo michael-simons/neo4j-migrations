@@ -84,7 +84,7 @@
 		<japicmp-maven-plugin.version>0.15.4</japicmp-maven-plugin.version>
 		<java-module-name />
 		<java.version>8</java.version>
-		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.0</junit-jupiter-causal-cluster-testcontainer-extension.version>
+		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.1</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
 		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
@@ -285,7 +285,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.6.2</version>
+					<version>3.6.4</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>

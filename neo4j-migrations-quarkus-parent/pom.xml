@@ -59,6 +59,8 @@
 					<!-- Don't ask… JavDoc plugin insists on module path for whatever reason then stumbles crying about invalid automatic module name for io.quarkus:quarkus-class-change-agent -->
 					<configuration combine.self="append">
 						<release>8</release>
+						<detectOfflineLinks>false</detectOfflineLinks>
+						<detectJavaApiLink>false</detectJavaApiLink>
 						<additionalOptions>
 							<additionalOption>--release ${java.version}</additionalOption>
 						</additionalOptions>

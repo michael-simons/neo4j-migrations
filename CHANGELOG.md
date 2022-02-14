@@ -1,3 +1,28 @@
+# 1.3.3
+
+*No breaking changes*.  Biggest change is the upgrade to Quarkus 2.7 inside the Quarkus extension. Thanks to @lukehutch for a new release of [ClassGraph](https://github.com/classgraph/classgraph) that improves compatibility with Quarkus' classloader.
+
+## 📝 Documentation
+- 09cabe1 Add a local changelog.
+
+## 🧹 Housekeeping
+- 125540c Revert "Bump nexus-staging-maven-plugin from 1.6.8 to 1.6.10 (#402)"
+- a5a0c84 quarkus-neo4j extension from 1.0.2 to 1.0.3.
+- 13fcae8 Bump nexus-staging-maven-plugin from 1.6.8 to 1.6.10 (#402)
+- ca95751 Bump neo4j-harness from 4.4.3 to 4.4.4 (#403)
+- 112f38c Bump picocli from 4.6.2 to 4.6.3 (#404)
+- a75a0ef Bump slf4j.version from 1.7.35 to 1.7.36 (#406)
+- a6b6452 Bump byte-buddy.version from 1.12.7 to 1.12.8 (#407)
+- f5d8c32 Bump maven-javadoc-plugin from 3.3.1 to 3.3.2 (#408)
+- 2f281a3 Bump quarkus.version from 2.6.3.Final to 2.7.1.Final (#401)
+- fcebed4 Bump classgraph from 4.8.138 to 4.8.139 (#405)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
 # 1.3.2
 
 *No breaking changes*.  Mostly dependency upgrades.

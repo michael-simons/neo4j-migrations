@@ -108,7 +108,7 @@ class DiscovererTest {
 			files.add(new File(subDir, "V2__Broken"));
 
 			File dir2 = Files.createTempDirectory("neo4j-migrations2").toFile();
-			files.add(new File(dir, "V3__Three.cypher"));
+			files.add(new File(dir2, "V3__Three.cypher"));
 
 			for (File file : files) {
 				file.createNewFile();

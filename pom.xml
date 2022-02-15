@@ -425,8 +425,13 @@
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-maven-plugin.version}</version>
 					<configuration>
+						<includes>
+							<include>**/*</include>
+						</includes>
 						<excludes>
-							<exclude>**/versions/17/**/*</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/DatabaseOperationResult.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/Migration.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/OperationResult.class</exclude>
 						</excludes>
 					</configuration>
 					<executions>
@@ -608,7 +613,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Xverify:all</argLine>
+					<argLine>@{argLine} -Xverify:all</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -616,7 +621,7 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
 				<configuration>
-					<argLine>-Xverify:all</argLine>
+					<argLine>@{argLine} -Xverify:all</argLine>
 				</configuration>
 				<executions>
 					<execution>

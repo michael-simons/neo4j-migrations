@@ -100,24 +100,35 @@
 <th>GroupId</th>
 <th>ArtifactId</th>
 <th>Version</th>
+<th>Classifier</th>
 <th>Type</th>
 <th>Licenses</th></tr>
 <tr class="b">
 <td align="left">io.quarkus</td>
 <td><a class="externalLink" href="https://github.com/quarkusio/quarkus/quarkus-build-parent/quarkus-test-framework/quarkus-junit5-internal">quarkus-junit5-internal</a></td>
 <td>2.7.1.Final</td>
+<td>-</td>
 <td>jar</td>
 <td><a class="externalLink" href="https://www.apache.org/licenses/LICENSE-2.0.txt">The Apache Software License, Version 2.0</a></td></tr>
 <tr class="a">
 <td align="left">org.assertj</td>
 <td><a class="externalLink" href="https://assertj.github.io/doc/assertj-core/">assertj-core</a></td>
 <td>3.22.0</td>
+<td>-</td>
 <td>jar</td>
 <td><a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0.txt">Apache License, Version 2.0</a></td></tr>
 <tr class="b">
+<td align="left">org.jacoco</td>
+<td><a class="externalLink" href="http://org.jacoco.agent">org.jacoco.agent</a></td>
+<td>0.8.7</td>
+<td>runtime</td>
+<td>jar</td>
+<td><a class="externalLink" href="https://www.eclipse.org/legal/epl-2.0/">Eclipse Public License 2.0</a></td></tr>
+<tr class="a">
 <td align="left">org.testcontainers</td>
 <td><a class="externalLink" href="https://testcontainers.org">junit-jupiter</a></td>
 <td>1.16.3</td>
+<td>-</td>
 <td>jar</td>
 <td><a class="externalLink" href="http://opensource.org/licenses/MIT">MIT</a></td></tr></table></section></section><a name="Project_Transitive_Dependencies"></a><section>
 <h2><a name="Project_Transitive_Dependencies"></a>Project Transitive Dependencies</h2>
@@ -2703,7 +2714,16 @@ GraalVM removes the isolation between programming languages and enables interope
 <p><b>Description: </b>Rich and fluent assertions for testing for Java</p>
 <p><b>URL: </b><a class="externalLink" href="https://assertj.github.io/doc/assertj-core/">https://assertj.github.io/doc/assertj-core/</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0.txt">Apache License, Version 2.0</a></p></td></tr></table></div></li>
-<li>org.testcontainers:junit-jupiter:jar:1.16.3 (test) <img id="_img301" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep300', '_img301' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep300" style="display:none">
+<li>org.jacoco:org.jacoco.agent:jar:runtime:0.8.7 (test) <img id="_img301" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep300', '_img301' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep300" style="display:none">
+<table border="0" class="bodyTable">
+<tr class="a">
+<th>JaCoCo :: Agent</th></tr>
+<tr class="b">
+<td>
+<p><b>Description: </b>JaCoCo Agent</p>
+<p><b>URL: </b><a class="externalLink" href="http://org.jacoco.agent">http://org.jacoco.agent</a></p>
+<p><b>Project Licenses: </b><a class="externalLink" href="https://www.eclipse.org/legal/epl-2.0/">Eclipse Public License 2.0</a></p></td></tr></table></div></li>
+<li>org.testcontainers:junit-jupiter:jar:1.16.3 (test) <img id="_img303" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep302', '_img303' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep302" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Testcontainers :: JUnit Jupiter Extension</th></tr>
@@ -2713,7 +2733,7 @@ GraalVM removes the isolation between programming languages and enables interope
 <p><b>URL: </b><a class="externalLink" href="https://testcontainers.org">https://testcontainers.org</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://opensource.org/licenses/MIT">MIT</a></p></td></tr></table></div>
 <ul>
-<li>org.testcontainers:testcontainers:jar:1.16.3 (compile) <img id="_img303" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep302', '_img303' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep302" style="display:none">
+<li>org.testcontainers:testcontainers:jar:1.16.3 (compile) <img id="_img305" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep304', '_img305' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep304" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Testcontainers Core</th></tr>
@@ -2723,7 +2743,7 @@ GraalVM removes the isolation between programming languages and enables interope
 <p><b>URL: </b><a class="externalLink" href="https://testcontainers.org">https://testcontainers.org</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://opensource.org/licenses/MIT">MIT</a></p></td></tr></table></div>
 <ul>
-<li>junit:junit:jar:4.13.2 (compile) <img id="_img305" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep304', '_img305' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep304" style="display:none">
+<li>junit:junit:jar:4.13.2 (compile) <img id="_img307" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep306', '_img307' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep306" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>JUnit</th></tr>
@@ -2733,7 +2753,7 @@ GraalVM removes the isolation between programming languages and enables interope
 <p><b>URL: </b><a class="externalLink" href="http://junit.org">http://junit.org</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://www.eclipse.org/legal/epl-v10.html">Eclipse Public License 1.0</a></p></td></tr></table></div>
 <ul>
-<li>org.hamcrest:hamcrest-core:jar:1.3 (compile) <img id="_img307" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep306', '_img307' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep306" style="display:none">
+<li>org.hamcrest:hamcrest-core:jar:1.3 (compile) <img id="_img309" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep308', '_img309' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep308" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Hamcrest Core</th></tr>
@@ -2742,7 +2762,7 @@ GraalVM removes the isolation between programming languages and enables interope
 <p><b>Description: </b>This is the core API of hamcrest matcher framework to be used by third-party framework providers. This includes the a foundation set of matcher implementations for common operations.</p>
 <p><b>URL: </b><a class="externalLink" href="https://github.com/hamcrest/JavaHamcrest/hamcrest-core">https://github.com/hamcrest/JavaHamcrest/hamcrest-core</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://www.opensource.org/licenses/bsd-license.php">New BSD License</a></p></td></tr></table></div></li></ul></li>
-<li>org.apache.commons:commons-compress:jar:1.21 (compile) <img id="_img309" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep308', '_img309' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep308" style="display:none">
+<li>org.apache.commons:commons-compress:jar:1.21 (compile) <img id="_img311" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep310', '_img311' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep310" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Apache Commons Compress</th></tr>
@@ -2754,7 +2774,7 @@ lzma, xz, Snappy, traditional Unix Compress, DEFLATE, DEFLATE64, LZ4,
 Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>URL: </b><a class="externalLink" href="https://commons.apache.org/proper/commons-compress/">https://commons.apache.org/proper/commons-compress/</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License, Version 2.0</a></p></td></tr></table></div></li>
-<li>org.rnorth.duct-tape:duct-tape:jar:1.0.8 (compile) <img id="_img311" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep310', '_img311' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep310" style="display:none">
+<li>org.rnorth.duct-tape:duct-tape:jar:1.0.8 (compile) <img id="_img313" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep312', '_img313' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep312" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Duct Tape</th></tr>
@@ -2764,7 +2784,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>URL: </b><a class="externalLink" href="https://github.com/rnorth/duct-tape">https://github.com/rnorth/duct-tape</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://opensource.org/licenses/MIT">MIT</a></p></td></tr></table></div>
 <ul>
-<li>org.jetbrains:annotations:jar:17.0.0 (compile) <img id="_img313" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep312', '_img313' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep312" style="display:none">
+<li>org.jetbrains:annotations:jar:17.0.0 (compile) <img id="_img315" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep314', '_img315' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep314" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>JetBrains Java Annotations</th></tr>
@@ -2773,7 +2793,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>Description: </b>A set of annotations used for code inspection support and code documentation.</p>
 <p><b>URL: </b><a class="externalLink" href="https://github.com/JetBrains/java-annotations">https://github.com/JetBrains/java-annotations</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="https://www.apache.org/licenses/LICENSE-2.0.txt">The Apache Software License, Version 2.0</a></p></td></tr></table></div></li></ul></li>
-<li>com.github.docker-java:docker-java-transport-zerodep:jar:3.2.12 (compile) <img id="_img315" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep314', '_img315' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep314" style="display:none">
+<li>com.github.docker-java:docker-java-transport-zerodep:jar:3.2.12 (compile) <img id="_img317" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep316', '_img317' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep316" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>docker-java-transport-zerodep</th></tr>
@@ -2783,7 +2803,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>URL: </b><a class="externalLink" href="https://github.com/docker-java/docker-java">https://github.com/docker-java/docker-java</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0.txt">The Apache Software License, Version 2.0</a></p></td></tr></table></div>
 <ul>
-<li>com.github.docker-java:docker-java-transport:jar:3.2.12 (compile) <img id="_img317" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep316', '_img317' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep316" style="display:none">
+<li>com.github.docker-java:docker-java-transport:jar:3.2.12 (compile) <img id="_img319" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep318', '_img319' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep318" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>docker-java-transport</th></tr>
@@ -2792,7 +2812,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>Description: </b>Java API Client for Docker</p>
 <p><b>URL: </b><a class="externalLink" href="https://github.com/docker-java/docker-java">https://github.com/docker-java/docker-java</a></p>
 <p><b>Project Licenses: </b><a class="externalLink" href="http://www.apache.org/licenses/LICENSE-2.0.txt">The Apache Software License, Version 2.0</a></p></td></tr></table></div></li>
-<li>net.java.dev.jna:jna:jar:5.10.0 (compile) <img id="_img319" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep318', '_img319' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep318" style="display:none">
+<li>net.java.dev.jna:jna:jar:5.10.0 (compile) <img id="_img321" src="./images/icon_info_sml.gif" alt="[Information]" onclick="toggleDependencyDetails( '_dep320', '_img321' );" style="cursor: pointer; vertical-align: text-bottom;"></img><div id="_dep320" style="display:none">
 <table border="0" class="bodyTable">
 <tr class="a">
 <th>Java Native Access</th></tr>
@@ -2803,7 +2823,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <p><b>Project Licenses: </b><a class="externalLink" href="https://www.gnu.org/licenses/old-licenses/lgpl-2.1">LGPL-2.1-or-later</a>, <a class="externalLink" href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache-2.0</a></p></td></tr></table></div></li></ul></li></ul></li></ul></li></ul></li></ul></section></section><a name="Licenses"></a><section>
 <h2><a name="Licenses"></a>Licenses</h2>
 <p><b>Apache License, version 2.0: </b>JBoss Logging 3, JBoss Logging I18n Annotations</p>
-<p><b>Eclipse Public License 2.0: </b>JSON-P Default Provider</p>
+<p><b>Eclipse Public License 2.0: </b>JSON-P Default Provider, JaCoCo :: Agent</p>
 <p><b>The Apache License, Version 2.0: </b>org.apiguardian:apiguardian-api, org.opentest4j:opentest4j</p>
 <p><b>Apache 2.0: </b>Awaitility</p>
 <p><b>Eclipse Public License 1.0: </b>JUnit</p>
@@ -3841,6 +3861,14 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="center">1.5</td>
 <td align="center">Yes</td></tr>
 <tr class="a">
+<td align="left">org.jacoco.agent-0.8.7-runtime.jar</td>
+<td align="right">292.1 kB</td>
+<td align="right">191</td>
+<td align="right">156</td>
+<td align="right">17</td>
+<td align="center">1.5</td>
+<td align="center">Yes</td></tr>
+<tr class="b">
 <td align="left">jandex-2.4.2.Final.jar</td>
 <td align="right">230.8 kB</td>
 <td align="right">125</td>
@@ -3848,7 +3876,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.6</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">commons-logging-jboss-logging-1.0.0.Final.jar</td>
 <td align="right">16.6 kB</td>
 <td align="right">24</td>
@@ -3856,7 +3884,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">1.6</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">jboss-logging-3.4.3.Final.jar</td>
 <td align="right">60.8 kB</td>
 <td align="right">47</td>
@@ -3864,7 +3892,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">jboss-logging-annotations-2.2.1.Final.jar</td>
 <td align="right">20.6 kB</td>
 <td align="right">38</td>
@@ -3872,7 +3900,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">jboss-logmanager-embedded-1.0.9.jar</td>
 <td align="right">258.3 kB</td>
 <td align="right">197</td>
@@ -3880,7 +3908,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">5</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">shrinkwrap-api-1.2.6.jar</td>
 <td align="right">66.2 kB</td>
 <td align="right">97</td>
@@ -3888,7 +3916,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">9</td>
 <td align="center">1.5</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">shrinkwrap-depchain-1.2.6.pom</td>
 <td align="right">1.5 kB</td>
 <td align="right">-</td>
@@ -3896,7 +3924,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">-</td>
 <td align="center">-</td>
 <td align="center">-</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">shrinkwrap-impl-base-1.2.6.jar</td>
 <td align="right">193.3 kB</td>
 <td align="right">152</td>
@@ -3904,7 +3932,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">18</td>
 <td align="center">1.5</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">shrinkwrap-spi-1.2.6.jar</td>
 <td align="right">4.2 kB</td>
 <td align="right">16</td>
@@ -3912,7 +3940,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.5</td>
 <td align="center">No</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">slf4j-jboss-logmanager-1.1.0.Final.jar</td>
 <td align="right">10.7 kB</td>
 <td align="right">18</td>
@@ -3920,7 +3948,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">jboss-threads-3.4.2.Final.jar</td>
 <td align="right">103.2 kB</td>
 <td align="right">91</td>
@@ -3928,7 +3956,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">annotations-17.0.0.jar</td>
 <td align="right">19 kB</td>
 <td align="right">47</td>
@@ -3936,7 +3964,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">jsoup-1.14.2.jar</td>
 <td align="right">413.9 kB</td>
 <td align="right">276</td>
@@ -3944,7 +3972,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">7</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">junit-jupiter-5.8.2.jar</td>
 <td align="right">6.4 kB</td>
 <td align="right">5</td>
@@ -3952,7 +3980,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">-</td>
 <td align="center">No</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">junit-jupiter-api-5.8.2.jar</td>
 <td align="right">193.5 kB</td>
 <td align="right">183</td>
@@ -3960,7 +3988,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">8</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">junit-jupiter-engine-5.8.2.jar</td>
 <td align="right">229.7 kB</td>
 <td align="right">140</td>
@@ -3968,7 +3996,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">9</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">junit-jupiter-params-5.8.2.jar</td>
 <td align="right">577.3 kB</td>
 <td align="right">377</td>
@@ -3976,7 +4004,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">22</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">junit-platform-commons-1.8.2.jar</td>
 <td align="right">100.4 kB</td>
 <td align="right">63</td>
@@ -3984,7 +4012,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">7</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">junit-platform-engine-1.8.2.jar</td>
 <td align="right">185.8 kB</td>
 <td align="right">142</td>
@@ -3992,7 +4020,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">9</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">junit-platform-launcher-1.8.2.jar</td>
 <td align="right">159.5 kB</td>
 <td align="right">116</td>
@@ -4000,7 +4028,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">7</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">neo4j-java-driver-4.4.3.jar</td>
 <td align="right">4.9 MB</td>
 <td align="right">3087</td>
@@ -4008,7 +4036,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">100</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">opentest4j-1.2.0.jar</td>
 <td align="right">7.7 kB</td>
 <td align="right">11</td>
@@ -4016,7 +4044,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">asm-9.2.jar</td>
 <td align="right">122 kB</td>
 <td align="right">44</td>
@@ -4024,7 +4052,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">3</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">asm-analysis-9.2.jar</td>
 <td align="right">34.3 kB</td>
 <td align="right">22</td>
@@ -4032,7 +4060,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">asm-commons-9.2.jar</td>
 <td align="right">72.6 kB</td>
 <td align="right">34</td>
@@ -4040,7 +4068,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">asm-tree-9.2.jar</td>
 <td align="right">52.7 kB</td>
 <td align="right">45</td>
@@ -4048,7 +4076,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">asm-util-9.2.jar</td>
 <td align="right">84.9 kB</td>
 <td align="right">31</td>
@@ -4056,7 +4084,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">2</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">reactive-streams-1.0.3.jar</td>
 <td align="right">11.4 kB</td>
 <td align="right">17</td>
@@ -4064,7 +4092,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.6</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">duct-tape-1.0.8.jar</td>
 <td align="right">25.4 kB</td>
 <td align="right">37</td>
@@ -4072,7 +4100,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">6</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">slf4j-api-1.7.36.jar</td>
 <td align="right">41.1 kB</td>
 <td align="right">46</td>
@@ -4080,7 +4108,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">4</td>
 <td align="center">1.5</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">junit-jupiter-1.16.3.jar</td>
 <td align="right">11.4 kB</td>
 <td align="right">13</td>
@@ -4088,7 +4116,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">neo4j-1.16.3.jar</td>
 <td align="right">4.8 kB</td>
 <td align="right">6</td>
@@ -4096,7 +4124,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">1</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <td align="left">testcontainers-1.16.3.jar</td>
 <td align="right">12 MB</td>
 <td align="right">8741</td>
@@ -4104,7 +4132,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">364</td>
 <td align="center">1.8</td>
 <td align="center">Yes</td></tr>
-<tr class="b">
+<tr class="a">
 <td align="left">wildfly-common-1.5.4.Final-format-001.jar</td>
 <td align="right">307.1 kB</td>
 <td align="right">260</td>
@@ -4112,7 +4140,7 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">22</td>
 <td align="center">-</td>
 <td align="center">Yes</td></tr>
-<tr class="a">
+<tr class="b">
 <th>Total</th>
 <th>Size</th>
 <th>Entries</th>
@@ -4120,15 +4148,15 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <th>Packages</th>
 <th>Java Version</th>
 <th>Debug Information</th></tr>
-<tr class="b">
-<td align="right">159</td>
-<td align="right">69.5 MB</td>
-<td align="right">49173</td>
-<td align="right">34827</td>
-<td align="right">1738</td>
-<td align="center">1.8</td>
-<td align="right">150</td></tr>
 <tr class="a">
+<td align="right">160</td>
+<td align="right">69.8 MB</td>
+<td align="right">49364</td>
+<td align="right">34983</td>
+<td align="right">1755</td>
+<td align="center">1.8</td>
+<td align="right">151</td></tr>
+<tr class="b">
 <td align="right">compile: 143</td>
 <td align="right">compile: 62.9 MB</td>
 <td align="right">compile: 44491</td>
@@ -4136,15 +4164,15 @@ Brotli, Zstandard and ar, cpio, jar, tar, zip, dump, 7z, arj.</p>
 <td align="right">compile: 1596</td>
 <td align="center">-</td>
 <td align="right">compile: 137</td></tr>
-<tr class="b">
-<td align="right">test: 13</td>
-<td align="right">test: 6 MB</td>
-<td align="right">test: 4229</td>
-<td align="right">test: 3960</td>
-<td align="right">test: 122</td>
-<td align="center">-</td>
-<td align="right">test: 10</td></tr>
 <tr class="a">
+<td align="right">test: 14</td>
+<td align="right">test: 6.3 MB</td>
+<td align="right">test: 4420</td>
+<td align="right">test: 4116</td>
+<td align="right">test: 139</td>
+<td align="center">-</td>
+<td align="right">test: 11</td></tr>
+<tr class="b">
 <td align="right">runtime: 3</td>
 <td align="right">runtime: 625.6 kB</td>
 <td align="right">runtime: 453</td>

@@ -16,14 +16,11 @@
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import ac.simons.neo4j.migrations.core.ClasspathResourceScanner;
-import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.internal.Location;
-import io.github.classgraph.ClassGraph;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,32 +38,16 @@ import org.graalvm.nativeimage.ImageInfo;
 public final class StaticClasspathResourceScanner implements ClasspathResourceScanner {
 
 	/**
-	 * Creates a new scanner from a list of locations to scan. Non-classpath locations are filtered out
+	 * Creates a new scanner from a fixed set of predefined resources. No further checking is done if This exists or not.
 	 *
-	 * @param locationsToScan The list of locations to scan
+	 * @param resources The set of resources found elsewhere
 	 * @return a correctly initialized scanner
 	 */
-	public static StaticClasspathResourceScanner from(List<String> locationsToScan) {
-		var paths = locationsToScan
-			.stream()
-			.map(Location::of)
-			.filter(l -> l.getType() == Location.LocationType.CLASSPATH)
-			.map(Location::getName)
-			.toArray(String[]::new);
+	public static StaticClasspathResourceScanner of(Collection<ResourceWrapper> resources) {
 
-		try (var scanResult = new ClassGraph().acceptPaths(paths).scan()) {
-			var resources = scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION).stream()
-				.map(r -> {
-					var resource = new ResourceWrapper();
-					resource.setUrl(r.getURI().toString());
-					resource.setPath(r.getPath());
-					return resource;
-				})
-				.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-			var scanner = new StaticClasspathResourceScanner();
-			scanner.setResources(resources);
-			return scanner;
-		}
+		var discoverer = new StaticClasspathResourceScanner();
+		discoverer.setResources(Set.copyOf(resources));
+		return discoverer;
 	}
 
 	private Set<ResourceWrapper> resources = Set.of();

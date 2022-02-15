@@ -20,13 +20,10 @@ import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.internal.Reflections;
-import io.github.classgraph.ClassGraph;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,35 +35,24 @@ import java.util.stream.Collectors;
 public class StaticJavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigration> {
 
 	/**
-	 * Creates a new discoverer from a list of packages to scan.
+	 * Creates a new discoverer from a fixed set of already found and loaded classes.
 	 *
-	 * @param packagesToScan The list of packages to scan
+	 * @param migrationClasses The set of classes found elsewhere
 	 * @return a correctly initialized discoverer
 	 */
-	public static StaticJavaBasedMigrationDiscoverer from(List<String> packagesToScan) {
+	public static StaticJavaBasedMigrationDiscoverer of(Collection<Class<? extends JavaBasedMigration>> migrationClasses) {
 
-		try (var scanResult = new ClassGraph()
-			.enableAllInfo()
-			.acceptPackages(packagesToScan.toArray(new String[0]))
-			.enableExternalClasses()
-			.scan()) {
-
-			var classes = scanResult
-				.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(JavaBasedMigration.class)
-				.stream()
-				.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-			var discoverer = new StaticJavaBasedMigrationDiscoverer();
-			discoverer.setMigrationClasses(classes);
-			return discoverer;
-		}
+		var discoverer = new StaticJavaBasedMigrationDiscoverer();
+		discoverer.setMigrationClasses(Set.copyOf(migrationClasses));
+		return discoverer;
 	}
 
-	private Set<Class<JavaBasedMigration>> migrationClasses = Set.of();
+	private Set<Class<? extends JavaBasedMigration>> migrationClasses = Set.of();
 
 	/**
 	 * @return the list of discovered classes.
 	 */
-	public Set<Class<JavaBasedMigration>> getMigrationClasses() {
+	public Set<Class<? extends JavaBasedMigration>> getMigrationClasses() {
 		return migrationClasses;
 	}
 
@@ -75,7 +61,7 @@ public class StaticJavaBasedMigrationDiscoverer implements Discoverer<JavaBasedM
 	 *
 	 * @param migrationClasses a new list of discovered classes
 	 */
-	public void setMigrationClasses(Set<Class<JavaBasedMigration>> migrationClasses) {
+	public void setMigrationClasses(Set<Class<? extends JavaBasedMigration>> migrationClasses) {
 		this.migrationClasses = migrationClasses;
 	}
 

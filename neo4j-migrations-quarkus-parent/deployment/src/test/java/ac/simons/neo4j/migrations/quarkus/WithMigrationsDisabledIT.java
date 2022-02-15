@@ -41,7 +41,10 @@ class WithMigrationsDisabledIT {
 	static QuarkusUnitTest test = new QuarkusUnitTest()
 		.withConfigurationResource("application.properties")
 		.overrideConfigKey("org.neo4j.migrations.enabled", "false")
-		.withEmptyApplication();
+		.withApplicationRoot(archive -> {
+			archive.addAsResource("neo4j/migrations");
+			archive.addAsResource("neo4j/secondary-migrations");
+		});
 
 	@Inject
 	Driver driver;

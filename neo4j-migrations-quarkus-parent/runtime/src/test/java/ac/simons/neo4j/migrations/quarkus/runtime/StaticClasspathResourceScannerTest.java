@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,41 +27,11 @@ import org.junit.jupiter.api.Test;
 class StaticClasspathResourceScannerTest {
 
 	@Test
-	void scannerShouldWork() {
+	void shouldStoreResources() {
 
-		var scanner = StaticClasspathResourceScanner.from(List.of("classpath:static"));
-		assertThat(scanner.getResources())
-			.hasSize(1)
-			.first()
-			.satisfies(resource -> {
-				assertThat(resource.getPath()).isEqualTo("static/arbitrary.cypher");
-				assertThat(resource.getUrl()).isNotNull();
-			});
-	}
-
-	@Test
-	void shouldFilterByLocation() {
-
-		var scanner = StaticClasspathResourceScanner.from(List.of("classpath:static", "classpath:also"));
-		assertThat(scanner.getResources()).hasSize(2);
-
-		assertThat(scanner.scan(List.of("also"))).hasSize(1);
-		assertThat(scanner.scan(List.of("static"))).hasSize(1);
-
-		assertThat(scanner.scan(List.of("static", "also"))).hasSize(2);
-		assertThat(scanner.scan(List.of())).isEmpty();
-	}
-
-	@Test
-	void shouldStripLeadingSlash() {
-
-		var scanner = StaticClasspathResourceScanner.from(List.of("classpath:/static", "classpath:also"));
-		assertThat(scanner.getResources()).hasSize(2);
-
-		assertThat(scanner.scan(List.of("also"))).hasSize(1);
-		assertThat(scanner.scan(List.of("/static"))).hasSize(1);
-
-		assertThat(scanner.scan(List.of("/static", "also"))).hasSize(2);
-		assertThat(scanner.scan(List.of())).isEmpty();
+		var resource = new ResourceWrapper();
+		var scanner = new StaticClasspathResourceScanner();
+		scanner.setResources(Set.of(resource));
+		assertThat(scanner.getResources()).containsExactly(resource);
 	}
 }

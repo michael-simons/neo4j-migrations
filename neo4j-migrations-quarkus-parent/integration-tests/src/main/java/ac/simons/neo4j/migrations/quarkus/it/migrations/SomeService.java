@@ -13,34 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.quarkus.runtime;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package ac.simons.neo4j.migrations.quarkus.it.migrations;
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 
-import java.util.Set;
-
-import org.junit.jupiter.api.Test;
-
 /**
  * @author Michael J. Simons
  */
-class StaticJavaBasedMigrationDiscovererTest {
+public class SomeService {
 
-	@Test
-	void shouldStoreClass() {
+	private SomeService() {
+	}
 
-		class Hlp implements JavaBasedMigration {
+	@SuppressWarnings({ "squid:S101", "unused" })
+	static class V0003__SomethingStatic implements JavaBasedMigration {
 
-			@Override
-			public void apply(MigrationContext context) {
-			}
+		@Override
+		public void apply(MigrationContext context) {
+			// Left empty in purpose
 		}
-
-		var discoverer = new StaticJavaBasedMigrationDiscoverer();
-		discoverer.setMigrationClasses(Set.of(Hlp.class));
-		assertThat(discoverer.getMigrationClasses()).containsExactly(Hlp.class);
 	}
 }

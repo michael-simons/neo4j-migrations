@@ -15,8 +15,11 @@
  */
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.internal.Location;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -28,14 +31,28 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
+import io.quarkus.runtime.util.ClassPathUtils;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
 
 /**
  * This processor produces two additional items:
@@ -50,31 +67,111 @@ class MigrationsProcessor {
 	public static final String FEATURE_NAME = "neo4j-migrations";
 
 	@BuildStep
+	@SuppressWarnings("unused")
 	FeatureBuildItem createFeature() {
 
 		return new FeatureBuildItem(FEATURE_NAME);
 	}
 
-	@BuildStep
-	DiscovererBuildItem createDiscoverer(MigrationsBuildTimeProperties buildTimeProperties) {
-		return new DiscovererBuildItem(
-			StaticJavaBasedMigrationDiscoverer.from(buildTimeProperties.packagesToScan.orElseGet(List::of)));
+	static Set<Class<? extends JavaBasedMigration>> findClassBasedMigrations(Collection<String> packagesToScan, IndexView indexView) {
+
+		if (packagesToScan.isEmpty()) {
+			return Set.of();
+		}
+
+		var classesFoundAndLoaded = new HashSet<Class<? extends JavaBasedMigration>>();
+		indexView
+			.getAllKnownImplementors(DotName.createSimple(JavaBasedMigration.class.getName()))
+			.forEach(cf -> {
+				if (!packagesToScan.contains(cf.name().packagePrefix())) {
+					return;
+				}
+				try {
+					classesFoundAndLoaded.add(Thread.currentThread().getContextClassLoader()
+						.loadClass(cf.name().toString()).asSubclass(JavaBasedMigration.class));
+				} catch (ClassNotFoundException e) {
+					// We silently ignore this (same behaviour as the Core-API does)
+				}
+			});
+		return classesFoundAndLoaded;
 	}
 
 	@BuildStep
+	@SuppressWarnings("unused")
+	DiscovererBuildItem createDiscoverer(CombinedIndexBuildItem combinedIndexBuildItem, MigrationsBuildTimeProperties buildTimeProperties) {
+
+		var packagesToScan = buildTimeProperties.packagesToScan.orElseGet(List::of);
+		var classesFoundDuringBuild = findClassBasedMigrations(packagesToScan, combinedIndexBuildItem.getIndex());
+		return new DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer.of(classesFoundDuringBuild));
+	}
+
+	@BuildStep
+	@SuppressWarnings("unused")
 	ReflectiveClassBuildItem registerMigrationsForReflections(DiscovererBuildItem discovererBuildItem) {
+
 		return new ReflectiveClassBuildItem(true, true, true,
 			discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class<?>[0]));
 	}
 
-	@BuildStep
-	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) {
-		return new ClasspathResourceScannerBuildItem(
-			StaticClasspathResourceScanner.from(buildTimeProperties.locationsToScan));
+	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<String> locationsToScan) throws IOException {
+
+		if (locationsToScan.isEmpty()) {
+			return Set.of();
+		}
+
+		var resourcesFound = new HashSet<ResourceWrapper>();
+		var expectedCypherSuffix = "." + Defaults.CYPHER_SCRIPT_EXTENSION;
+		Predicate<Path> isCypherFile = path -> Files.isRegularFile(path) && path.getFileName().toString()
+			.toLowerCase(Locale.ROOT)
+			.endsWith(expectedCypherSuffix);
+
+		// This piece is deliberately not using the streams due to the heckmeck with catching IOExceptions
+		// and to avoid allocations of several sets.
+		for (var value : locationsToScan) {
+			var location = Location.of(value);
+			if (location.getType() != Location.LocationType.CLASSPATH) {
+				continue;
+			}
+			var name = location.getName();
+			if (name.startsWith("/")) {
+				name = name.substring(1);
+			}
+			var rootPath = Path.of(name);
+			ClassPathUtils.consumeAsPaths(name, rootResource -> {
+				try (var paths = Files.walk(rootResource)) {
+					paths
+						.filter(isCypherFile)
+						// Resolving the string and not the path object is done on purpose, as otherwise
+						// a provider mismatch can occur.
+						.map(it -> rootPath.resolve(rootResource.relativize(it).normalize().toString()))
+						.map(r -> {
+							var resource = new ResourceWrapper();
+							resource.setUrl(r.toUri().toString());
+							resource.setPath(r.toString().replace('\\', '/'));
+							return resource;
+						})
+						.forEach(resourcesFound::add);
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			});
+		}
+
+		return resourcesFound;
 	}
 
 	@BuildStep
+	@SuppressWarnings("unused")
+	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
+
+		var resourcesFoundDuringBuild = findResourceBasedMigrations(buildTimeProperties.locationsToScan);
+		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));
+	}
+
+	@BuildStep
+	@SuppressWarnings("unused")
 	NativeImageResourceBuildItem addCypherResources(
+
 		ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem) {
 		return new NativeImageResourceBuildItem(
 			classpathResourceScannerBuildItem.getScanner().getResources().stream().map(
@@ -84,6 +181,7 @@ class MigrationsProcessor {
 
 	@BuildStep
 	@Record(ExecutionTime.RUNTIME_INIT)
+	@SuppressWarnings("unused")
 	MigrationsBuildItem createMigrations(
 		MigrationsBuildTimeProperties buildTimeProperties,
 		MigrationsProperties runtimeProperties,
@@ -93,6 +191,7 @@ class MigrationsProcessor {
 		Neo4jDriverBuildItem driverBuildItem,
 		BuildProducer<SyntheticBeanBuildItem> syntheticBeans
 	) {
+
 		var configRv = migrationsRecorder.recordConfig(buildTimeProperties, runtimeProperties,
 			discovererBuildItem.getDiscoverer(),
 			classpathResourceScannerBuildItem.getScanner());
@@ -108,6 +207,7 @@ class MigrationsProcessor {
 
 	@BuildStep
 	@Record(ExecutionTime.RUNTIME_INIT)
+	@SuppressWarnings("unused")
 	ServiceStartBuildItem applyMigrations(MigrationsProperties migrationsProperties,
 		MigrationsRecorder migrationsRecorder, MigrationsBuildItem migrationsBuildItem) {
 		migrationsRecorder.applyMigrations(migrationsBuildItem.getValue(),

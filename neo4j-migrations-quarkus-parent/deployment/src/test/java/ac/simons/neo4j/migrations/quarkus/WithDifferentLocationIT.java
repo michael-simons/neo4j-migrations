@@ -59,7 +59,10 @@ class WithDifferentLocationIT {
 		.withConfigurationResource("application.properties")
 		.overrideConfigKey("org.neo4j.migrations.locations-to-scan", "classpath:neo4j/secondary-migrations")
 		.overrideConfigKey("org.neo4j.migrations.external-locations", p.getParent().toUri().toString())
-		.withEmptyApplication();
+		.withApplicationRoot(archive -> {
+			archive.addAsResource("neo4j/migrations");
+			archive.addAsResource("neo4j/secondary-migrations");
+		});
 
 	@Inject
 	Driver driver;

@@ -43,6 +43,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>org.jacoco.agent</artifactId>
+			<version>${jacoco-maven-plugin.version}</version>
+			<classifier>runtime</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
@@ -51,6 +58,43 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<!-- Sadly, the instrumentation is necessary twice, as the instrumented classes would end up in the jar files other wise -->
+					<execution>
+						<id>instrument-ut</id>
+						<goals>
+							<goal>instrument</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>restore-ut</id>
+						<goals>
+							<goal>restore-instrumented-classes</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>instrument-it</id>
+						<goals>
+							<goal>instrument</goal>
+						</goals>
+						<phase>pre-integration-test</phase>
+					</execution>
+					<execution>
+						<id>report-and-check</id>
+						<goals>
+							<goal>restore-instrumented-classes</goal>
+							<!-- Those are configured in the main parent pom, need to be repeated here, so that the restauration of the instrumented classes happens before -->
+							<goal>report</goal>
+							<goal>check</goal>
+						</goals>
+						<phase>post-integration-test</phase>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration combine.self="append">
@@ -68,6 +112,29 @@
 				<configuration combine.self="append">
 					<!-- That will cause generated sources to be ignored -->
 					<sourcepath>${project.build.sourceDirectory}</sourcepath>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration combine.self="append">
+					<argLine>-Xverify:all</argLine>
+					<systemPropertyVariables>
+						<jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
+						<jacoco-agent.append>true</jacoco-agent.append>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration combine.self="append">
+					<argLine>-Xverify:all</argLine>
+					<classesDirectory>${project.build.outputDirectory}</classesDirectory>
+					<systemPropertyVariables>
+						<jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
+						<jacoco-agent.append>true</jacoco-agent.append>
+						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+						<maven.home>${maven.home}</maven.home>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 		</plugins>

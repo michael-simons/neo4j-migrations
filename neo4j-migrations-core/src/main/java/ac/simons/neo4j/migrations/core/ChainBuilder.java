@@ -26,13 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.util.ServerVersion;
-import org.neo4j.driver.summary.DatabaseInfo;
-import org.neo4j.driver.summary.ResultSummary;
-import org.neo4j.driver.summary.ServerInfo;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
@@ -81,55 +76,7 @@ final class ChainBuilder {
 	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
 
 		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses);
-
-		class ExtendedResultSummary {
-			final boolean showCurrentUserExists;
-			final ServerVersion version;
-			final ServerInfo server;
-			final DatabaseInfo database;
-
-			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, ResultSummary actualSummary) {
-				this.showCurrentUserExists = showCurrentUserExists;
-				this.version = version;
-				this.server = actualSummary.server();
-				this.database = actualSummary.database();
-			}
-		}
-
-		try (Session session = context.getSchemaSession()) {
-
-			// Auth maybe disabled. In such cases, we cannot get the current user.
-			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
-				Result result = tx.run(""
-					+ "CALL dbms.procedures() YIELD name "
-					+ "WHERE name = 'dbms.showCurrentUser' "
-					+ "WITH count(*) > 0 AS showCurrentUserExists "
-					+ "CALL dbms.components() YIELD versions "
-					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
-				);
-				Record singleResultRecord = result.single();
-				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
-				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
-				ResultSummary summary = result.consume();
-				return new ExtendedResultSummary(showCurrentUserExists, version, summary);
-			});
-
-			String username = "anonymous";
-			if (databaseInformation.showCurrentUserExists) {
-
-				username = session.readTransaction(tx -> tx.run(""
-					+ "CALL dbms.procedures() YIELD name "
-					+ "WHERE name = 'dbms.showCurrentUser' "
-					+ "CALL dbms.showCurrentUser() YIELD username RETURN username"
-				).single().get("username").asString());
-			}
-
-			ServerInfo serverInfo = databaseInformation.server;
-			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
-			String targetDatabase = context.getConfig().getMigrationTargetIn(context).orElse(schemaDatabase);
-			return new DefaultMigrationChain(serverInfo.address(), databaseInformation.version.toString(),
-				username, targetDatabase, schemaDatabase, elements);
-		}
+		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
@@ -205,56 +152,44 @@ final class ChainBuilder {
 
 	private static class DefaultMigrationChain implements MigrationChain {
 
-		private final String serverAdress;
-
-		private final String serverVersion;
-
-		private final String username;
-
-		private final String databaseName;
-
-		private final String schemaDatabaseName;
+		private final ConnectionDetails connectionDetailsDelegate;
 
 		private final Map<MigrationVersion, Element> elements;
 
-		DefaultMigrationChain(String serverAdress, String serverVersion, String username, String databaseName, String schemaDatabaseName,
-			Map<MigrationVersion, Element> elements) {
-			this.serverAdress = serverAdress;
-			this.serverVersion = serverVersion;
-			this.username = username;
-			this.databaseName = databaseName;
-			this.schemaDatabaseName = schemaDatabaseName;
+		DefaultMigrationChain(ConnectionDetails connectionDetailsDelegate, Map<MigrationVersion, Element> elements) {
+			this.connectionDetailsDelegate = connectionDetailsDelegate;
 			this.elements = elements;
 		}
 
 		@Override
 		public String getServerAddress() {
-			return serverAdress;
+			return connectionDetailsDelegate.getServerAddress();
 		}
 
 		@Override
 		public String getServerVersion() {
-			return serverVersion;
+			return connectionDetailsDelegate.getServerVersion();
 		}
 
-		@Override public String getUsername() {
-			return username;
+		@Override
+		public String getUsername() {
+			return connectionDetailsDelegate.getUsername();
+		}
+
+		@Override
+		public Optional<String> getOptionalDatabaseName() {
+			return connectionDetailsDelegate.getOptionalDatabaseName();
+		}
+
+		@Override
+		public Optional<String> getOptionalSchemaDatabaseName() {
+			return connectionDetailsDelegate.getOptionalSchemaDatabaseName();
 		}
 
 		@SuppressWarnings("deprecation")
 		@Override
 		public String getDatabaseName() {
-			return databaseName;
-		}
-
-		@Override
-		public Optional<String> getOptionalDatabaseName() {
-			return Optional.ofNullable(databaseName);
-		}
-
-		@Override
-		public Optional<String> getOptionalSchemaDatabaseName() {
-			return Optional.ofNullable(schemaDatabaseName);
+			return getOptionalDatabaseName().orElse(null);
 		}
 
 		@Override

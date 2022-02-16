@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael J. Simons
  */
-class ProductionVersionTest {
+class ProductVersionTest {
 
 	@Test
 	void getValueShouldWork() {
-		Assertions.assertThat(ProductionVersion.getValue()).isEqualTo("unknown");
+		Assertions.assertThat(ProductVersion.getValue()).isEqualTo("unknown");
 	}
 
 	@Test

@@ -25,8 +25,14 @@ import java.util.function.UnaryOperator;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.internal.util.ServerVersion;
+import org.neo4j.driver.summary.DatabaseInfo;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.ServerInfo;
 
 /**
  * Default implementation of the {@link MigrationContext}, including the logic of wrapping driver and blocking sessions
@@ -53,6 +59,8 @@ final class DefaultMigrationContext implements MigrationContext {
 	private final BookmarkManager bookmarkManager;
 
 	private final Driver driver;
+
+	private volatile ConnectionDetails connectionDetails;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
@@ -123,6 +131,74 @@ final class DefaultMigrationContext implements MigrationContext {
 	@Override
 	public Session getSchemaSession() {
 		return getDriver().session(getSessionConfig(applySchemaDatabase));
+	}
+
+	@Override
+	public ConnectionDetails getConnectionDetails() {
+
+		ConnectionDetails availableConnectionDetails = this.connectionDetails;
+		if (availableConnectionDetails == null) {
+			synchronized (this) {
+				availableConnectionDetails = this.connectionDetails;
+				if (availableConnectionDetails == null) {
+					this.connectionDetails = getConnectionDetails0();
+					availableConnectionDetails = this.connectionDetails;
+				}
+			}
+		}
+		return availableConnectionDetails;
+	}
+
+	private ConnectionDetails getConnectionDetails0() {
+
+		class ExtendedResultSummary {
+			final boolean showCurrentUserExists;
+			final ServerVersion version;
+			final ServerInfo server;
+			final DatabaseInfo database;
+
+			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, ResultSummary actualSummary) {
+				this.showCurrentUserExists = showCurrentUserExists;
+				this.version = version;
+				this.server = actualSummary.server();
+				this.database = actualSummary.database();
+			}
+		}
+
+		try (Session session = this.getSchemaSession()) {
+
+			// Auth maybe disabled. In such cases, we cannot get the current user.
+			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
+				Result result = tx.run(""
+					+ "CALL dbms.procedures() YIELD name "
+					+ "WHERE name = 'dbms.showCurrentUser' "
+					+ "WITH count(*) > 0 AS showCurrentUserExists "
+					+ "CALL dbms.components() YIELD versions "
+					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
+				);
+				Record singleResultRecord = result.single();
+				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
+				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
+				ResultSummary summary = result.consume();
+				return new ExtendedResultSummary(showCurrentUserExists, version, summary);
+			});
+
+			String username = "anonymous";
+			if (databaseInformation.showCurrentUserExists) {
+
+				username = session.readTransaction(tx -> tx.run(""
+					+ "CALL dbms.procedures() YIELD name "
+					+ "WHERE name = 'dbms.showCurrentUser' "
+					+ "CALL dbms.showCurrentUser() YIELD username RETURN username"
+				).single().get("username").asString());
+			}
+
+			ServerInfo serverInfo = databaseInformation.server;
+			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
+			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
+			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(), username,
+				targetDatabase, schemaDatabase);
+		}
 	}
 
 	/**

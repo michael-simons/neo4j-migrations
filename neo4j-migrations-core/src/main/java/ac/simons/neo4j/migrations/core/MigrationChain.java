@@ -22,13 +22,13 @@ import java.util.Optional;
 
 /**
  * Public information about an applied migration. All migrations (applied and pending) form a chain of transformations
- * to a dabase. The chain starts implicit with a baseline version. The baseline version is not contained in this chain.
+ * to a database. The chain starts implicit with a baseline version. The baseline version is not contained in this chain.
  *
  * @author Michael J. Simons
  * @soundtrack Paul van Dyk - From Then On
  * @since 0.0.4
  */
-public interface MigrationChain {
+public interface MigrationChain extends ConnectionDetails {
 
 	/**
 	 * Pretty prints this chain as an ASCII table.
@@ -66,38 +66,11 @@ public interface MigrationChain {
 	}
 
 	/**
-	 * @return The address of the server used.
-	 */
-	String getServerAddress();
-
-	/**
-	 * @return The Neo4j version the server is running
-	 */
-	String getServerVersion();
-
-	/**
-	 * @return The Neo4j user that ran the migrations
-	 */
-	String getUsername();
-
-	/**
 	 * @return The database if applicable (Neo4j 4.0 and up), maybe null
 	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabaseName()} ()}
 	 */
 	@Deprecated
 	String getDatabaseName();
-
-	/**
-	 * @return The database if applicable (Neo4j 4.0 and up)
-	 * @since 1.1.0
-	 */
-	Optional<String> getOptionalDatabaseName();
-
-	/**
-	 * @return The database if applicable (Neo4j 4.0 and up)
-	 * @since 1.1.0
-	 */
-	Optional<String> getOptionalSchemaDatabaseName();
 
 	/**
 	 * @param version An arbitrary version string

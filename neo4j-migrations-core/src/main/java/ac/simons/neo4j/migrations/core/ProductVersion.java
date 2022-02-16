@@ -27,7 +27,7 @@ import java.util.jar.Manifest;
  * @author Michael J. Simons
  * @since 1.2.1
  */
-final class ProductionVersion {
+final class ProductVersion {
 
 	private static volatile String value;
 
@@ -35,7 +35,7 @@ final class ProductionVersion {
 
 		String computedVersion = value;
 		if (computedVersion == null) {
-			synchronized (ProductionVersion.class) {
+			synchronized (ProductVersion.class) {
 				computedVersion = value;
 				if (computedVersion == null) {
 					value = getVersionImpl();
@@ -66,7 +66,7 @@ final class ProductionVersion {
 
 	private static boolean isApplicableManifest(Manifest manifest) {
 		Attributes attributes = manifest.getMainAttributes();
-		return ProductionVersion.class.getPackage().getName()
+		return ProductVersion.class.getPackage().getName()
 			.equals(get(attributes, "Automatic-Module-Name"));
 	}
 
@@ -74,6 +74,6 @@ final class ProductionVersion {
 		return attributes.get(new Attributes.Name(key));
 	}
 
-	private ProductionVersion() {
+	private ProductVersion() {
 	}
 }

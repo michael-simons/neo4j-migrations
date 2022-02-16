@@ -70,4 +70,13 @@ public interface MigrationContext {
 	 * @return A session accessing the configured schema database if any or the default database.
 	 */
 	Session getSchemaSession();
+
+	/**
+	 * The details will give detailed information about the user being connected, server address and which databases - if available -
+	 * are being migrated and which are used to store the schema.
+	 *
+	 * @return Details about the connection being used within the context of migrations.
+	 * @since 1.4.0
+	 */
+	ConnectionDetails getConnectionDetails();
 }

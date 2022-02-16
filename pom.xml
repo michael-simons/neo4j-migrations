@@ -4,7 +4,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.3.4-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -429,6 +429,7 @@
 							<include>**/*</include>
 						</includes>
 						<excludes>
+							<exclude>ac/simons/neo4j/migrations/core/ConnectionDetails.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/DatabaseOperationResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/Migration.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/OperationResult.class</exclude>

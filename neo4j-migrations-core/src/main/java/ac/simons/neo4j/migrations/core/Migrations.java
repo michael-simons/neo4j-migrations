@@ -110,6 +110,15 @@ public final class Migrations {
 	}
 
 	/**
+	 * @return Information about the connection when migrations are applied, validated and so on.
+	 * @see MigrationContext#getConnectionDetails()
+	 * @since 1.4.0
+	 */
+	public ConnectionDetails getConnectionDetails() {
+		return context.getConnectionDetails();
+	}
+
+	/**
 	 * Returns information about the context, the database, all applied and all pending applications.
 	 *
 	 * @return The chain of migrations.
@@ -261,7 +270,7 @@ public final class Migrations {
 	 * @since 1.2.1
 	 */
 	public static String getUserAgent() {
-		return "neo4j-migrations/" + ProductionVersion.getValue();
+		return "neo4j-migrations/" + ProductVersion.getValue();
 	}
 
 	private <T> T executeWithinLock(Supplier<T> executable, LifecyclePhase before, LifecyclePhase after) {

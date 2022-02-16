@@ -39,7 +39,9 @@ public interface MigrationChain extends ConnectionDetails {
 	default String prettyPrint() {
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(MigrationChainFormat.LS).append(getServerVersion()).append("@").append(getServerAddress());
+		sb.append(MigrationChainFormat.LS)
+			.append(getUsername()).append("@").append(getServerAddress())
+			.append(" (").append(getServerVersion()).append(")");
 
 		Optional<String> optionalDatabase = getOptionalDatabaseName();
 		optionalDatabase.ifPresent(name ->

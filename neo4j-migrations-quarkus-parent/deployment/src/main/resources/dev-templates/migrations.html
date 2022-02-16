@@ -1,0 +1,68 @@
+{#include main}
+{#title}Available migrations{/title}
+{#body}
+
+
+{#let c=info:migrations.connectionDetails}
+<p>
+    <span id="user">{c.username}</span>@<span id="serverAddress">{c.serverAddress}</span> (<span id="serverVersion">{c.serverVersion}</span>)<br/>
+    {#if c.optionalDatabaseName.present}Database: <span id="database">{c.optionalDatabaseName}</span><br />{/if}
+    {#if c.optionalSchemaDatabaseName.present}Schema database: <span id="schemaDatabase">{c.optionalSchemaDatabaseName}</span>{/if}
+</p>
+{/let}
+
+{#let elements=info:migrations.info.elements}
+{#if elements.empty}
+<div class="alert alert-primary alert-dismissible fade show" role="alert" data-timer="30000">
+    No migrations have been discovered and the database is in a clean state. There's nothing to be done right now.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>
+{#else}
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Version</th>
+            <th scope="col">Description</th>
+            <th scope="col">Type</th>
+            <th scope="col">Installed on</th>
+            <th scope="col">by</th>
+            <th scope="col">Execution time</th>
+            <th scope="col">State</th>
+            <th scope="col">Source</th>
+        </tr>
+    </thead>
+    <tbody>
+        {#for element in elements}
+        <tr>
+            <td>{element.version}</td>
+            <td>{element.description}</td>
+            <td>{element.type.name}</td>
+            <td>{element.installedOn}</td>
+            <td>{element.installedBy or ''}</td>
+            <td>{element.executionTime}</td>
+            <td>{element.state.name}</td>
+            <td>{element.source}</td>
+        </tr>
+        {/for}
+    </tbody>
+</table>
+
+<div class="btn-group">
+    <form method="post" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="operation" value="apply">
+        <input id="migrate" type="submit" class="btn btn-primary btn-sm" value="Migrate">
+    </form>
+    &nbsp;
+    <form method="post" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="operation" value="clean">
+        <input id="clear" type="submit" class="btn btn-danger btn-sm" value="Clean"
+               onclick="return confirm('This will delete all objects created by Neo4j-Migrations in the currently configured schema database and for the selected target database. Do you want to continue?')">
+    </form>
+</div>
+
+{/if}
+{/let}
+{/body}
+{/include}

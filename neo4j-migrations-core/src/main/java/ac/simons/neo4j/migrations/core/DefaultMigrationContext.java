@@ -60,6 +60,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	private final Driver driver;
 
+	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile ConnectionDetails connectionDetails;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {

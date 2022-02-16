@@ -183,7 +183,7 @@ The example uses the `info` command to tell you which migrations have been appli
   --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
   info
 
-Neo4j/4.4.0@localhost:7687
+neo4j@localhost:7687 (Neo4j/4.4.0)
 Database: neo4j
 
 +---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------------+
@@ -588,6 +588,20 @@ outside the classpath
 
 An alternative approach to that is using the CLI in a sidecar container, pointing to the dynamic location and keep applying
 database migrations outside the application itself.
+
+=== Dev Services integration
+
+Neo4j-Migrations will appear as a tile in the Quarkus Dev UI under http://localhost:8080/q/dev/.
+It provides a http://localhost:8080/q/dev/eu.michael-simons.neo4j.neo4j-migrations-quarkus/migrations[list of migrations]
+which can be used to clean the database or apply all migrations.
+The latter is handy when migrate at start is disabled or in case there are callbacks that might reset or recreate testdata.
+
+++++
+<video controls>
+  <source src="videos/quarkus-dev-ui.webm" type="video/webm">
+</video>
+++++
+
 
 [[usage_maven-plugin]]
 == Maven-Plugin

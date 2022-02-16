@@ -834,6 +834,8 @@
 				<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
 				<sonar.organization>michael-simons-github</sonar.organization>
 				<sonar.projectKey>eu.michael-simons.neo4j:neo4j-migrations-parent</sonar.projectKey>
+				<!-- They are not properly instrumented during dev mode tests -->
+				<sonar.coverage.exclusions>**/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsDevConsole*.*</sonar.coverage.exclusions>
 			</properties>
 			<build>
 				<plugins>

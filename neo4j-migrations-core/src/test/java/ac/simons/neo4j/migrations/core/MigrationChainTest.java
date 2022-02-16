@@ -34,15 +34,15 @@ class MigrationChainTest {
 		Optional<String> schemaDatabaseName = Optional.empty();
 
 		@Override public String getServerAddress() {
-			return null;
+			return "aura";
 		}
 
 		@Override public String getServerVersion() {
-			return null;
+			return "hidden";
 		}
 
 		@Override public String getUsername() {
-			return null;
+			return "j";
 		}
 
 		@SuppressWarnings("deprecation")
@@ -65,6 +65,14 @@ class MigrationChainTest {
 		@Override public Collection<Element> getElements() {
 			return Collections.emptyList();
 		}
+	}
+
+	@Test
+	void shouldIncludeConnectionInfo() {
+
+		FakeChain chain = new FakeChain();
+		assertThat(chain.prettyPrint())
+			.contains("j@aura (hidden)");
 	}
 
 	@Test

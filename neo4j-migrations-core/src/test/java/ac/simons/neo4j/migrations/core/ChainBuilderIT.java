@@ -25,12 +25,13 @@ import org.junit.jupiter.api.Test;
 class ChainBuilderIT extends TestBase {
 
 	@Test
-	@SuppressWarnings("squid:S5961") // Pretty happy with the number of assertions.
+	@SuppressWarnings({ "squid:S5961", "deprecation" }) // Pretty happy with the number of assertions.
 	void migrationInfoShouldWork() {
 
 		// Apply some migrations
 		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
 			"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), driver);
+		assertThat(migrations.getConnectionDetails()).isNotNull();
 		migrations.apply();
 
 		// Now use only the chain service
@@ -47,6 +48,7 @@ class ChainBuilderIT extends TestBase {
 		assertThat(migrationChain.getServerVersion()).matches("Neo4j/4\\.3\\.\\d+");
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
 		assertThat(migrationChain.getOptionalDatabaseName()).hasValue("neo4j");
+		assertThat(migrationChain.getDatabaseName()).isEqualTo("neo4j");
 		assertThat(migrationChain.getElements()).hasSize(8);
 		assertThat(migrationChain.getElements()).element(0).satisfies(element -> {
 

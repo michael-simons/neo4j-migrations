@@ -22,7 +22,7 @@ import io.quarkus.builder.item.SimpleBuildItem;
  * @author Michael J. Simons
  * @since 1.3.0
  */
-public final class ClasspathResourceScannerBuildItem extends SimpleBuildItem {
+final class ClasspathResourceScannerBuildItem extends SimpleBuildItem {
 
 	private final StaticClasspathResourceScanner resourceScanner;
 
@@ -33,7 +33,7 @@ public final class ClasspathResourceScannerBuildItem extends SimpleBuildItem {
 	/**
 	 * @return The actual scanner (created at build-time)
 	 */
-	public StaticClasspathResourceScanner getScanner() {
+	StaticClasspathResourceScanner getScanner() {
 		return resourceScanner;
 	}
 }

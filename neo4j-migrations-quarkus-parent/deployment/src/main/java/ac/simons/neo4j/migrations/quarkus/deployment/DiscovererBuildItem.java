@@ -23,7 +23,7 @@ import io.quarkus.builder.item.SimpleBuildItem;
  * @soundtrack Antilopen Gang - Anarchie und Alltag
  * @since 1.3.0
  */
-public final class DiscovererBuildItem extends SimpleBuildItem {
+final class DiscovererBuildItem extends SimpleBuildItem {
 
 	private final StaticJavaBasedMigrationDiscoverer discoverer;
 
@@ -34,7 +34,7 @@ public final class DiscovererBuildItem extends SimpleBuildItem {
 	/**
 	 * @return The actual discoverer (created at build-time)
 	 */
-	public StaticJavaBasedMigrationDiscoverer getDiscoverer() {
+	StaticJavaBasedMigrationDiscoverer getDiscoverer() {
 		return discoverer;
 	}
 }

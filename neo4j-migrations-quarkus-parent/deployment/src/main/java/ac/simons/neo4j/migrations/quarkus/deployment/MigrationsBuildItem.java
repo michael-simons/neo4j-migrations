@@ -25,7 +25,7 @@ import io.quarkus.runtime.RuntimeValue;
  * @author Michael J. Simons
  * @since 1.2.2
  */
-public final class MigrationsBuildItem extends SimpleBuildItem {
+final class MigrationsBuildItem extends SimpleBuildItem {
 
 	private final RuntimeValue<Migrations> value;
 
@@ -36,7 +36,7 @@ public final class MigrationsBuildItem extends SimpleBuildItem {
 	/**
 	 * @return The runtime value containing the instance of {@link Migrations}.
 	 */
-	public RuntimeValue<Migrations> getValue() {
+	RuntimeValue<Migrations> getValue() {
 		return value;
 	}
 }

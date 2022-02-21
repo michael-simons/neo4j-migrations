@@ -98,14 +98,14 @@ final class ChainBuilder {
 			try {
 				newMigration = discoveredMigrations.get(i);
 			} catch (IndexOutOfBoundsException e) {
-				String message = "More migrations have been applied to the database than locally resolved";
+				String message = "More migrations have been applied to the database than locally resolved.";
 				if (detailedCauses) {
 					throw new MigrationsException(message, e);
 				}
 				throw new MigrationsException(message);
 			}
 			if (!newMigration.getVersion().equals(expectedVersion)) {
-				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration));
+				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
 			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !expectedChecksum.equals(newMigration.getChecksum())) {

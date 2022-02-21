@@ -26,7 +26,7 @@ import java.util.Locale;
 public final class Location {
 
 	/**
-	 * A location type.
+	 * A location type. If no prefix is given, we assume {@literal classpath:}.
 	 */
 	public enum LocationType {
 

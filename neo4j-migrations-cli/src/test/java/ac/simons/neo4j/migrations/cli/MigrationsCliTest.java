@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -28,6 +29,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import org.graalvm.nativeimage.ImageInfo;
@@ -55,14 +57,7 @@ class MigrationsCliTest {
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			MigrationsCli cli = new MigrationsCli();
-			Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-				HierarchyTraversalMode.TOP_DOWN).get(0);
-			field.setAccessible(true);
-			try {
-				field.set(cli, new String[] { "foo.bar" });
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
+			setPackagesToScan(cli, new String[] { "foo.bar" });
 
 			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
 				.withMessage(
@@ -74,9 +69,7 @@ class MigrationsCliTest {
 	void shouldNotFailToScanPackageInJVM() throws IllegalAccessException {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, new String[] { "foo.bar" });
+		setPackagesToScan(cli, new String[] { "foo.bar" });
 
 		assertThat(cli.getConfig()).isNotNull();
 	}
@@ -127,26 +120,34 @@ class MigrationsCliTest {
 	@ValueSource(strings = {"a/path, classpath://my/path, file://file/path", "a/single/path"})
 	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined(String locations) throws Exception {
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
-				HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, Arrays.stream(locations.split(",")).map(String::trim).toArray(String[]::new));
+		setLocationsToScan(cli, Arrays.stream(locations.split(",")).map(String::trim).toArray(String[]::new));
 
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
-					.withMessageStartingWith("Implicit classpath resource locations are not support in native image: ");
+					.withMessageStartingWith("Classpath based resource locations are not support in native image: ");
 		});
+	}
+
+	static void setPackagesToScan(MigrationsCli cli, String[] value) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
+			HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, value);
+	}
+
+	static void setLocationsToScan(MigrationsCli cli, String[] value) throws IllegalAccessException {
+		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
+			HierarchyTraversalMode.TOP_DOWN).get(0);
+		field.setAccessible(true);
+		field.set(cli, value);
 	}
 
 	@Test
 	void shouldHandleIllegalArgumentsToConfiguration() throws Exception {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-			HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, new String[] { "foo.bar" });
+		setPackagesToScan(cli, new String[] { "foo.bar" });
 
 		setUserName(cli);
 		setPassword(cli);
@@ -205,6 +206,40 @@ class MigrationsCliTest {
 		Config config = cli.createDriverConfig();
 		assertThat(config.maxConnectionPoolSize()).isEqualTo(4711);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
+	}
+
+	@Nested
+	class LocationsToScan {
+
+		@Test
+		void shouldUseConfiguredValues() throws IllegalAccessException {
+
+			MigrationsCli cli = new MigrationsCli();
+			setLocationsToScan(cli, new String[] {"a", "b"});
+
+			MigrationsConfig config = cli.getConfig();
+			assertThat(config.getLocationsToScan()).containsExactlyInAnyOrder("a", "b");
+		}
+
+		@Test
+		void shouldNotDefaultWhenPackagesAreSet() throws IllegalAccessException {
+
+			MigrationsCli cli = new MigrationsCli();
+			setPackagesToScan(cli, new String[] {"a.b"});
+
+			MigrationsConfig config = cli.getConfig();
+			assertThat(config.getLocationsToScan()).isEmpty();
+			assertThat(config.getPackagesToScan()).containsExactly("a.b");
+		}
+
+		@Test
+		void shouldUseDefault() {
+
+			MigrationsCli cli = new MigrationsCli();
+
+			MigrationsConfig config = cli.getConfig();
+			assertThat(config.getLocationsToScan()).containsExactly("file://" + Paths.get("neo4j/migrations").toAbsolutePath());
+		}
 	}
 
 	@Nested

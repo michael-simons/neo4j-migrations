@@ -56,12 +56,17 @@ public final class Defaults {
 	static final List<String> PACKAGES_TO_SCAN = Collections.emptyList();
 
 	/**
-	 * Default locations to scan.
+	 * Default package or folder name for locations to scan, agnostic to classpath or filesystem.
 	 */
-	public static final String LOCATIONS_TO_SCAN_VALUE = "classpath:neo4j/migrations";
+	public static final String LOCATIONS_TO_SCAN_WITHOUT_PREFIX = "neo4j/migrations";
 
 	/**
-	 * Default locations to scan.
+	 * Default locations to scan (with a {@link ac.simons.neo4j.migrations.core.internal.Location.LocationType} prefix).
+	 */
+	public static final String LOCATIONS_TO_SCAN_VALUE = "classpath:" + LOCATIONS_TO_SCAN_WITHOUT_PREFIX;
+
+	/**
+	 * Default locations to scan (with a {@link ac.simons.neo4j.migrations.core.internal.Location.LocationType} prefix).
 	 */
 	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList(LOCATIONS_TO_SCAN_VALUE);
 

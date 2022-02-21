@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,6 +62,55 @@ class MigrationsIT extends TestBase {
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements())
 			.hasSizeGreaterThan(0)
+			.allMatch(element -> element.getState() == MigrationState.APPLIED);
+	}
+
+	@Test
+	void shouldFailIfNoMigrationsAreDiscoveredButThingsAreInsideTheDatabase() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.build(), driver);
+		migrations.apply();
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
+
+		migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::info)
+			.withMessage("More migrations have been applied to the database than locally resolved.");
+	}
+
+	@Test
+	void localOnlyInfoShouldWork() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.build(), driver);
+		migrations.apply();
+
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
+
+		MigrationChain migrationChain = migrations.info(ChainBuilderMode.USE_LOCAL_ONLY);
+		assertThat(migrationChain.getElements())
+			.isNotEmpty()
+			.allMatch(element -> element.getState() == MigrationState.PENDING);
+	}
+
+	@Test
+	void remoteOnlyInfoShouldWork() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.build(), driver);
+		migrations.apply();
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
+
+		migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		MigrationChain migrationChain = migrations.info(ChainBuilderMode.USE_REMOTE_ONLY);
+		assertThat(migrationChain.getElements())
+			.isNotEmpty()
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 	}
 
@@ -187,7 +238,7 @@ class MigrationsIT extends TestBase {
 
 			File newMigration = new File(dir, "V3__SomethingNew.cypher");
 			files.add(newMigration);
-			Files.write(newMigration.toPath(), Arrays.asList("MATCH (n) RETURN n"));
+			Files.write(newMigration.toPath(), Collections.singletonList("MATCH (n) RETURN n"));
 
 			migrations = new Migrations(configuration, driver);
 			migrations.apply();

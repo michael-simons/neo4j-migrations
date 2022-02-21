@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.Element;
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -60,10 +61,10 @@ final class ChainBuilder {
 	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
 	 *                             It is not yet known whether those are pending or not.
 	 * @return The full migration chain.
-	 * @see #buildChain(MigrationContext, List, boolean)
+	 * @see #buildChain(MigrationContext, List, boolean, ChainBuilderMode)
 	 */
 	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations) {
-		return buildChain(context, discoveredMigrations, false);
+		return buildChain(context, discoveredMigrations, false, ChainBuilderMode.COMPARE);
 	}
 
 	/**
@@ -73,18 +74,20 @@ final class ChainBuilder {
 	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
 	 * @return The full migration chain.
 	 */
-	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
+	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
-		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses);
+		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses,
+			infoCmd);
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
-	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses) {
+	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
-		Map<MigrationVersion, Element> appliedMigrations = getChainOfAppliedMigrations(context);
-		if (discoveredMigrations.isEmpty()) {
-			// No migrations found, everything in the chain is applied
-			Collections.unmodifiableMap(appliedMigrations);
+		Map<MigrationVersion, Element> appliedMigrations =
+			infoCmd == ChainBuilderMode.USE_LOCAL_ONLY ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
+		if (infoCmd == ChainBuilderMode.USE_REMOTE_ONLY) {
+			// Only looking at remote, assume everything is applied
+			return Collections.unmodifiableMap(appliedMigrations);
 		}
 
 		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.Migrations;
 
 import org.junit.jupiter.api.Test;
@@ -36,12 +37,12 @@ class InfoCommandTest {
 		Migrations migrations = mock(Migrations.class);
 		MigrationChain info = mock(MigrationChain.class);
 		when(info.prettyPrint()).thenReturn("<<info>>");
-		when(migrations.info()).thenReturn(info);
+		when(migrations.info(ChainBuilderMode.COMPARE)).thenReturn(info);
 
 		InfoCommand cmd = new InfoCommand();
 		cmd.withMigrations(migrations);
 
-		verify(migrations).info();
+		verify(migrations).info(ChainBuilderMode.COMPARE);
 		verify(info).prettyPrint();
 
 		verifyNoMoreInteractions(migrations, info);

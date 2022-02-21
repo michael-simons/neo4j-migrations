@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -90,6 +91,7 @@ public final class MigrationsCli implements Runnable {
 	public static void main(String... args) {
 
 		CommandLine commandLine = new CommandLine(new MigrationsCli());
+		commandLine.setCaseInsensitiveEnumValuesAllowed(true);
 		CommandLine generateCompletionCmd = commandLine.getSubcommands().get("generate-completion");
 		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);
 

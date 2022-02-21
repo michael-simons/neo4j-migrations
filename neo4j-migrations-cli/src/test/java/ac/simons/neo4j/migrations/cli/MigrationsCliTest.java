@@ -25,11 +25,15 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import picocli.CommandLine;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 
 import org.graalvm.nativeimage.ImageInfo;
@@ -233,12 +237,33 @@ class MigrationsCliTest {
 		}
 
 		@Test
-		void shouldUseDefault() {
+		void shouldUseDefault() throws IOException {
 
 			MigrationsCli cli = new MigrationsCli();
 
-			MigrationsConfig config = cli.getConfig();
-			assertThat(config.getLocationsToScan()).containsExactly("file://" + Paths.get("neo4j/migrations").toAbsolutePath());
+			Path defaultPath = Paths.get("neo4j/migrations");
+			Path newDir = Files.createDirectories(defaultPath);
+
+			try {
+				MigrationsConfig config = cli.getConfig();
+				assertThat(config.getLocationsToScan()).containsExactly(
+					"file://" + Paths.get("neo4j/migrations").toAbsolutePath());
+			} finally {
+				if (!defaultPath.equals(newDir)) {
+					Files.walkFileTree(newDir.getParent(), new SimpleFileVisitor<Path>() {
+						@Override
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+							Files.delete(dir);
+							return FileVisitResult.CONTINUE;
+						}
+					});
+				}
+			}
 		}
 	}
 

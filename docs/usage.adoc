@@ -130,6 +130,8 @@ Commands:
                     configured database with them.
 ----
 
+If no values are given to either `location` or `packages` we check for a directory structure of `neo4j/migrations` inside
+the current working directory and use that as a default for `location` if such a structure exists.
 === Safe passwords in CI/CD usage
 
 There are 4 ways to specify the password:

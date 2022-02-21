@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 
 import java.util.Collections;
@@ -124,11 +125,28 @@ public final class Migrations {
 	 * @return The chain of migrations.
 	 * @throws ServiceUnavailableException in case the driver is not connected
 	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @see #info(ChainBuilderMode)
 	 * @since 0.0.4
 	 */
 	public MigrationChain info() {
 
 		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations()),
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
+	}
+
+	/**
+	 * Returns information about the context, the database, all applied and all pending applications.
+	 *
+	 * @param infoCmd Specify how the chain should be computed
+	 * @return The chain of migrations.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @since 1.4.0
+	 */
+	public MigrationChain info(ChainBuilderMode infoCmd) {
+
+		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations(), false,
+				infoCmd),
 			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
 	}
 
@@ -243,7 +261,7 @@ public final class Migrations {
 			List<Migration> migrations = this.getMigrations();
 			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
 			try {
-				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true);
+				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);
 				int numberOfAppliedMigrations = (int) migrationChain.getElements()
 					.stream().filter(m -> m.getState() == MigrationState.APPLIED)
 					.count();

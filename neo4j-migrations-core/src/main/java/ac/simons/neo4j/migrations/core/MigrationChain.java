@@ -31,6 +31,32 @@ import java.util.Optional;
 public interface MigrationChain extends ConnectionDetails {
 
 	/**
+	 * Used for selecting how the {@link MigrationChain} should be computed.
+	 *
+	 * @see Migrations#info(ChainBuilderMode)
+	 * @since 1.4.0
+	 */
+	enum ChainBuilderMode {
+
+		/**
+		 * Create the chain of applied and pending migrations by comparing the locally discovered migrations
+		 * and the migrations applied remotely. Validation will be performed (such as checking for the correct number of
+		 * migrations and checksum comparison).
+		 */
+		COMPARE,
+		/**
+		 * Build a chain only based on locally discovered migrations and assume all migrations are pending. No validation
+		 * will be performed.
+		 */
+		USE_LOCAL_ONLY,
+		/**
+		 * Build a chain only based on remotely applied migrations and assume all migrations are applied. No validation
+		 * will be performed.
+		 */
+		USE_REMOTE_ONLY
+	}
+
+	/**
 	 * Pretty prints this chain as an ASCII table.
 	 *
 	 * @return A formatted string (an ASCII table representing the chain)

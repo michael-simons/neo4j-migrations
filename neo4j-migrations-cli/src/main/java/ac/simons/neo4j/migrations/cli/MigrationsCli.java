@@ -21,6 +21,7 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.internal.Location;
+import ac.simons.neo4j.migrations.core.internal.Location.LocationType;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -209,12 +211,12 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		List<String> classpathLocations = Arrays.stream(locationsToScan)
-				.filter(location -> Location.of(location).getType() == Location.LocationType.CLASSPATH)
+				.filter(location -> Location.of(location).getType() == LocationType.CLASSPATH)
 				.collect(Collectors.toList());
 
 		if (runsInNativeImage && !classpathLocations.isEmpty()) {
 			throw new IllegalArgumentException(
-					"Implicit classpath resource locations are not support in native image: " + String.join(", ", classpathLocations));
+					"Classpath based resource locations are not support in native image: " + String.join(", ", classpathLocations));
 		}
 
 		if ((schemaDatabase != null && !schemaDatabase.trim().isEmpty()) && maxConnectionPoolSize < 2) {
@@ -223,7 +225,7 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		MigrationsConfig config = MigrationsConfig.builder()
-			.withLocationsToScan(locationsToScan)
+			.withLocationsToScan(getOrComputeLocationsToScan())
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)
@@ -235,6 +237,16 @@ public final class MigrationsCli implements Runnable {
 
 		config.logTo(LOGGER, verbose);
 		return config;
+	}
+
+	String[] getOrComputeLocationsToScan() {
+		if (locationsToScan.length != 0 || packagesToScan.length != 0) {
+			return locationsToScan;
+		}
+
+		String defaultLocationToScan = LocationType.FILESYSTEM.getPrefix() + "://" + Paths.get(Defaults.LOCATIONS_TO_SCAN_WITHOUT_PREFIX).toAbsolutePath().toString().replace('\\', '/');
+		LOGGER.log(Level.INFO, "Neither locations nor packages to scan configured, using {0}.", defaultLocationToScan);
+		return new String[] { defaultLocationToScan };
 	}
 
 	AuthToken getAuthToken() {

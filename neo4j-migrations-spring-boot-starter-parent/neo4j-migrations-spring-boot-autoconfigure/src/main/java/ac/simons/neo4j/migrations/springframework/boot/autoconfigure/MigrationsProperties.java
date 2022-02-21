@@ -49,7 +49,7 @@ public class MigrationsProperties {
 	/**
 	 * Locations of migrations scripts.
 	 */
-	private String[] locationsToScan = Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]);
+	private String[] locationsToScan = new String[] { Defaults.LOCATIONS_TO_SCAN_VALUE };
 
 	/**
 	 * The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).

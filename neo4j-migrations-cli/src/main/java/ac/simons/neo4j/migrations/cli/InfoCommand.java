@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.cli;
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
 /**
@@ -32,6 +33,14 @@ final class InfoCommand extends ConnectedCommand {
 	@ParentCommand
 	private MigrationsCli parent;
 
+	@Option(names = "mode",
+		defaultValue = "COMPARE",
+		description =
+			"Controls how the information should be computed. Valid options are ${COMPLETION-CANDIDATES} with ${DEFAULT-VALUE} being the default. "
+			+ "${DEFAULT-VALUE} will always compare locally discovered and remotely applied migrations, while the other options just check what's there."
+	)
+	private MigrationChain.ChainBuilderMode mode = MigrationChain.ChainBuilderMode.COMPARE;
+
 	@Override
 	public MigrationsCli getParent() {
 		return parent;
@@ -40,7 +49,7 @@ final class InfoCommand extends ConnectedCommand {
 	@Override
 	Integer withMigrations(Migrations migrations) {
 
-		MigrationChain migrationChain = migrations.info();
+		MigrationChain migrationChain = migrations.info(mode);
 		MigrationsCli.LOGGER.info(migrationChain::prettyPrint);
 		return 0;
 	}

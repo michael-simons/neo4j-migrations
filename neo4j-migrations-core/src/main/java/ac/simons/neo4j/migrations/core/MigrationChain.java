@@ -48,12 +48,12 @@ public interface MigrationChain extends ConnectionDetails {
 		 * Build a chain only based on locally discovered migrations and assume all migrations are pending. No validation
 		 * will be performed.
 		 */
-		USE_LOCAL_ONLY,
+		LOCAL,
 		/**
 		 * Build a chain only based on remotely applied migrations and assume all migrations are applied. No validation
 		 * will be performed.
 		 */
-		USE_REMOTE_ONLY
+		REMOTE
 	}
 
 	/**

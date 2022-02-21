@@ -91,7 +91,7 @@ class MigrationsIT extends TestBase {
 
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
 
-		MigrationChain migrationChain = migrations.info(ChainBuilderMode.USE_LOCAL_ONLY);
+		MigrationChain migrationChain = migrations.info(ChainBuilderMode.LOCAL);
 		assertThat(migrationChain.getElements())
 			.isNotEmpty()
 			.allMatch(element -> element.getState() == MigrationState.PENDING);
@@ -108,7 +108,7 @@ class MigrationsIT extends TestBase {
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(5);
 
 		migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
-		MigrationChain migrationChain = migrations.info(ChainBuilderMode.USE_REMOTE_ONLY);
+		MigrationChain migrationChain = migrations.info(ChainBuilderMode.REMOTE);
 		assertThat(migrationChain.getElements())
 			.isNotEmpty()
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);

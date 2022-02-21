@@ -84,8 +84,8 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
 		Map<MigrationVersion, Element> appliedMigrations =
-			infoCmd == ChainBuilderMode.USE_LOCAL_ONLY ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
-		if (infoCmd == ChainBuilderMode.USE_REMOTE_ONLY) {
+			infoCmd == ChainBuilderMode.LOCAL ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
+		if (infoCmd == ChainBuilderMode.REMOTE) {
 			// Only looking at remote, assume everything is applied
 			return Collections.unmodifiableMap(appliedMigrations);
 		}

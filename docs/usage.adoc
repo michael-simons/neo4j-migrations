@@ -132,6 +132,25 @@ Commands:
 
 If no values are given to either `location` or `packages` we check for a directory structure of `neo4j/migrations` inside
 the current working directory and use that as a default for `location` if such a structure exists.
+
+The `info` command takes a `mode` option as an optional argument:
+
+----
+Usage: neo4j-migrations info [mode=<mode>]
+Retrieves all applied and pending informations, prints them and exits.
+      mode=<mode>   Controls how the information should be computed. Valid
+                      options are COMPARE, LOCAL, REMOTE with COMPARE being the
+                      default. COMPARE will always compare locally discovered
+                      and remotely applied migrations, while the other options
+                      just check what's there.
+----
+
+This means that we by default compare what has been discovered locally with what has been applied in the database:
+We check for missing or superfluous migrations and also compare checksums.
+At times, you might want to have just a quick look at what is in the database, without configuring a local filesystem.
+Use `mode=remote` in that case: We just look at what is in the database and assume everything is applied.
+Use `mode=local` to print out what has been discovered locally with the current settings and would be applied to an empty database.
+
 === Safe passwords in CI/CD usage
 
 There are 4 ways to specify the password:

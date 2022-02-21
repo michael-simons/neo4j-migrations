@@ -105,7 +105,7 @@ class MigrationsIT extends TestBase {
 			.build(), driver);
 
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
-			.withMessage("Unexpected migration at index 0: 001 (\"FirstMigration\")");
+			.withMessage("Unexpected migration at index 0: 001 (\"FirstMigration\").");
 	}
 
 	@Test

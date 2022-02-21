@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsException;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -63,7 +64,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			Migrations migrations = new Migrations(config, driver);
 
 			return withMigrations(migrations);
-		} catch (AuthenticationException | ServiceUnavailableException e) {
+		} catch (AuthenticationException | ServiceUnavailableException | MigrationsException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.SOFTWARE;
 		}

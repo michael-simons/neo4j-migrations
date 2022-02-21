@@ -1628,6 +1628,31 @@ Commands:
                     configured database with them.</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>If no values are given to either <code>location</code> or <code>packages</code> we check for a directory structure of <code>neo4j/migrations</code> inside
+the current working directory and use that as a default for <code>location</code> if such a structure exists.</p>
+</div>
+<div class="paragraph">
+<p>The <code>info</code> command takes a <code>mode</code> option as an optional argument:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Usage: neo4j-migrations info [mode=&lt;mode&gt;]
+Retrieves all applied and pending informations, prints them and exits.
+      mode=&lt;mode&gt;   Controls how the information should be computed. Valid
+                      options are COMPARE, LOCAL, REMOTE with COMPARE being the
+                      default. COMPARE will always compare locally discovered
+                      and remotely applied migrations, while the other options
+                      just check what's there.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means that we by default compare what has been discovered locally with what has been applied in the database:
+We check for missing or superfluous migrations and also compare checksums.
+At times, you might want to have just a quick look at what is in the database, without configuring a local filesystem.
+Use <code>mode=remote</code> in that case: We just look at what is in the database and assume everything is applied.
+Use <code>mode=local</code> to print out what has been discovered locally with the current settings and would be applied to an empty database.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="safepasswordsincicdusage"><a class="anchor" href="#safepasswordsincicdusage"></a>4.2.2. Safe passwords in CI/CD usage</h4>
@@ -2405,7 +2430,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-02-21 13:39:15 UTC
+Last updated 2022-02-21 15:52:20 UTC
 </div>
 </div>
 </body>

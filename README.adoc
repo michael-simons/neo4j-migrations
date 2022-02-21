@@ -75,6 +75,12 @@ In addition, the Core API is provided as a Multi-Release-Jar, providing a `modul
 For JDK 17 and higher we do restrict the usage of some interfaces and have better boundaries for you what you can safely implement and what you should not.
 // end::compatibility[]
 
+While the CLI module actually does not require a JVM installed (it is a native binary, available for a Linux, macOS and Windows alike), some people might prefer a solution native to their ecosystem. The following projects serve the same purpose as Neo4j-Migrations and use the same graph, checksumming and versioning scheme as this project:
+
+* https://github.com/marianozunino/morpheus[Morpheus], written in TypeScript and published as NPM package, by https://github.com/marianozunino[@marianozunino]
+
+If you want to be listed here too, please reach out and we can collaborate to ensure compatibility.
+
 == Manual
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].

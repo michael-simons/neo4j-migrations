@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 /**
  * @author Michael J. Simons
  * @soundtrack Guns n' Roses - Appetite For Democracy 3D
+ * @since 1.4.0
  */
 @Command(name = "init", description = "Creates a migration project inside the current folder.")
 final class InitCommand implements Callable<Integer> {

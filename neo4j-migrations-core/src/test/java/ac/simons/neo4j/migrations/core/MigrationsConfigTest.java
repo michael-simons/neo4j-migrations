@@ -91,7 +91,7 @@ class MigrationsConfigTest {
 
 		config.logTo(logger, true);
 		assertThat(logCollector.logMessages)
-			.containsExactly("Cannot find migrations as neither locations or packages to scan are configured!");
+			.containsExactly("Cannot find migrations as neither locations nor packages to scan are configured!");
 	}
 
 	@Test

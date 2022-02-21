@@ -125,6 +125,7 @@ Commands:
   help            Displays help information about the specified command
   info            Retrieves all applied and pending informations, prints them
                     and exits.
+  init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
   validate        Resolves all local migrations and validates the state of the
                     configured database with them.
@@ -150,6 +151,11 @@ We check for missing or superfluous migrations and also compare checksums.
 At times, you might want to have just a quick look at what is in the database, without configuring a local filesystem.
 Use `mode=remote` in that case: We just look at what is in the database and assume everything is applied.
 Use `mode=local` to print out what has been discovered locally with the current settings and would be applied to an empty database.
+
+TIP: `neo4j-migrations` looks in the current working directory for a properties file called `.migration.properties` which
+     can contain all supported options. Use such a file to avoid repeating long command lines all the time.
+     Use `neo4j-migrations init` to create a file with the default values. Any options passed to `neo4j-migrations` before
+     the init command will also be store.
 
 === Safe passwords in CI/CD usage
 

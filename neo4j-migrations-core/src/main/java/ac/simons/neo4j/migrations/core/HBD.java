@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
@@ -54,13 +52,22 @@ final class HBD {
 			return false;
 		}
 		String bare = connectionDetails.getServerVersion().replaceFirst("(?i)^Neo4j/", "");
-		Matcher matcher = Pattern.compile("(\\d+)\\.(\\d+).*").matcher(bare);
-		if (!matcher.matches()) {
+		String[] values = bare.split("\\.");
+		if (values.length < 2) {
 			return false;
 		}
-		Integer major = Integer.valueOf(matcher.group(1));
-		Integer minor = Integer.valueOf(matcher.group(2));
+
+		Integer major = valueOf(values[0]);
+		Integer minor = valueOf(values[1]);
 		return major > 4 || (major >= 4 && minor >= 4);
+	}
+
+	static Integer valueOf(String value) {
+		try {
+			return Integer.valueOf(value);
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 
 	static Integer silentCreateConstraint(ConnectionDetails connectionDetails, Session session, String statement,

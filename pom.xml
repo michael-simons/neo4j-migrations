@@ -307,6 +307,7 @@
 							<arg>-Xlint:all,-options,-path,-processing,-classfile</arg>
 							<!-- -classfile due to some weird stuff happening in testCompile. -->
 							<arg>-Werror</arg>
+							<arg>-parameters</arg>
 						</compilerArgs>
 					</configuration>
 					<executions>

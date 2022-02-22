@@ -41,6 +41,7 @@ import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -62,7 +63,7 @@ class ConstraintsIT {
 	@ParameterizedTest
 	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, false", "neo4J/4.0, false", "Neo4j/4, false",
 		"Neo4j/4.4, true",
-		"4.5, true", "5.0, true", "5, false", "4.2, false",  "4.4.2, true", "N/A, false" }, nullValues = "N/A")
+		"4.5, true", "5.0, true", "5, false", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null);
@@ -90,46 +91,47 @@ class ConstraintsIT {
 		final String s1 = "CREATE CONSTRAINT ON ( person:Person ) ASSERT person.name IS UNIQUE";
 		final String s2 = "CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-			MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
-			MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
+				MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
+				MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
 
-			Supplier<String> errorMessage = () -> "oops";
-			ConnectionDetails cd = ctx.getConnectionDetails();
-			try (Session session = ctx.getSession()) {
-				assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraint(cd, session, s1, "BBB", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraint(cd, session, s2, null, errorMessage)).isOne();
-			}
-
-			boolean is35 = is35(tag);
-			String[] descriptions = Stream.of(s0, s1, s2).map(s -> {
-					String result = s
-						.replace("CREATE ", "")
-						.replace("$name ", "");
-					return is35 ? result : result.replaceAll("ASSERT (.+\\..+) IS", "ASSERT ($1) IS");
+				Supplier<String> errorMessage = () -> "oops";
+				ConnectionDetails cd = ctx.getConnectionDetails();
+				try (Session session = ctx.getSession()) {
+					assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
+					assertThat(HBD.silentCreateConstraint(cd, session, s1, "BBB", errorMessage)).isOne();
+					assertThat(HBD.silentCreateConstraint(cd, session, s2, null, errorMessage)).isOne();
 				}
-			).toArray(String[]::new);
-			try (Session session = ctx.getSession()) {
-				List<Record> result = session.run("call db.constraints()").list(Function.identity());
 
-				assertThat(result.stream().map(r -> r.get("description").asString()))
-					.containsExactlyInAnyOrder(descriptions);
+				boolean is35 = is35(tag);
+				String[] descriptions = Stream.of(s0, s1, s2).map(s -> {
+						String result = s
+							.replace("CREATE ", "")
+							.replace("$name ", "");
+						return is35 ? result : result.replaceAll("ASSERT (.+\\..+) IS", "ASSERT ($1) IS");
+					}
+				).toArray(String[]::new);
+				try (Session session = ctx.getSession()) {
+					List<Record> result = session.run("call db.constraints()").list(Function.identity());
 
-				Stream<String> names = result.stream().map(r -> r.get("name").asString(null));
-				if (is35) {
-					assertThat(names).allMatch(Objects::isNull);
-				} else {
-					Consumer<String> isRandomConstraintName = s -> assertThat(s).startsWith("constraint_");
-					assertThat(names)
-						.hasSize(3)
-						.satisfies(s -> assertThat(s).isEqualTo("AAA"), Index.atIndex(0))
-						.satisfies(isRandomConstraintName, Index.atIndex(1));
+					assertThat(result.stream().map(r -> r.get("description").asString()))
+						.containsExactlyInAnyOrder(descriptions);
+
+					Stream<String> names = result.stream().map(r -> r.get("name").asString(null));
+					if (is35) {
+						assertThat(names).allMatch(Objects::isNull);
+					} else {
+						Consumer<String> isRandomConstraintName = s -> assertThat(s).startsWith("constraint_");
+						assertThat(names)
+							.hasSize(3)
+							.satisfies(s -> assertThat(s).isEqualTo("AAA"), Index.atIndex(0))
+							.satisfies(isRandomConstraintName, Index.atIndex(1));
+					}
 				}
 			}
 		}
@@ -141,32 +143,33 @@ class ConstraintsIT {
 
 		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-			MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
-			MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
+				MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
+				MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
 
-			Supplier<String> errorMessage = () -> "oops";
-			ConnectionDetails cd = ctx.getConnectionDetails();
+				Supplier<String> errorMessage = () -> "oops";
+				ConnectionDetails cd = ctx.getConnectionDetails();
 
-			try (Session session = ctx.getSession()) {
-				assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
-			}
-
-			int dropped;
-			try (Session session = ctx.getSession()) {
-				if (is35(tag)) {
-					dropped = HBD.silentDropConstraint(cd, session,
-						"DROP CONSTRAINT ON ( n:Book ) ASSERT n.isbn IS UNIQUE", "AAA");
-				} else {
-					dropped = HBD.silentDropConstraint(cd, session, "messed up statement on purpose", "AAA");
+				try (Session session = ctx.getSession()) {
+					assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
 				}
+
+				int dropped;
+				try (Session session = ctx.getSession()) {
+					if (is35(tag)) {
+						dropped = HBD.silentDropConstraint(cd, session,
+							"DROP CONSTRAINT ON ( n:Book ) ASSERT n.isbn IS UNIQUE", "AAA");
+					} else {
+						dropped = HBD.silentDropConstraint(cd, session, "messed up statement on purpose", "AAA");
+					}
+				}
+				assertThat(dropped).isOne();
 			}
-			assertThat(dropped).isOne();
 		}
 	}
 
@@ -174,27 +177,28 @@ class ConstraintsIT {
 	@ValueSource(strings = { "neo4j:4.3", "neo4j:4.4" })
 	void shouldThrowExceptionWhenConstraintsWithSameNameExists(String tag) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-			MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
-			MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
+				MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
+				MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, driver);
 
-			Supplier<String> errorMessage = () -> "oops";
-			ConnectionDetails cd = ctx.getConnectionDetails();
-			try (Session session = ctx.getSession()) {
+				Supplier<String> errorMessage = () -> "oops";
+				ConnectionDetails cd = ctx.getConnectionDetails();
+				try (Session session = ctx.getSession()) {
 
-				int created = session.run("CREATE CONSTRAINT X ON (book:Book) ASSERT book.isbn IS UNIQUE").consume()
-					.counters().constraintsAdded();
-				assertThat(created).isOne();
+					int created = session.run("CREATE CONSTRAINT X ON (book:Book) ASSERT book.isbn IS UNIQUE").consume()
+						.counters().constraintsAdded();
+					assertThat(created).isOne();
 
-				assertThatExceptionOfType(MigrationsException.class)
-					.isThrownBy(() -> HBD.silentCreateConstraint(cd, session,
-						"CREATE CONSTRAINT X ON (n:SomethingElse) ASSERT n.whatever IS UNIQUE", null, errorMessage))
-					.matches(HBD::constraintWithNameAlreadyExists);
+					assertThatExceptionOfType(MigrationsException.class)
+						.isThrownBy(() -> HBD.silentCreateConstraint(cd, session,
+							"CREATE CONSTRAINT X ON (n:SomethingElse) ASSERT n.whatever IS UNIQUE", null, errorMessage))
+						.matches(HBD::constraintWithNameAlreadyExists);
+				}
 			}
 		}
 	}
@@ -207,39 +211,43 @@ class ConstraintsIT {
 	@ValueSource(strings = { "neo4j:4.3", "neo4j:4.4", "neo4j:4.4-enterprise" })
 	void shouldPreventDuplicateVersionsWithTarget(String tag) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-			MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
+				MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
 
-			Migrations migrations = new Migrations(migrationsConfig, driver);
-			migrations.clean(true);
-			migrations.apply();
+				Migrations migrations = new Migrations(migrationsConfig, driver);
+				migrations.clean(true);
+				migrations.apply();
 
-			try (Session session = new DefaultMigrationContext(migrationsConfig, driver).getSchemaSession()) {
+				try (Session session = new DefaultMigrationContext(migrationsConfig, driver).getSchemaSession()) {
 
-				session.run("CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})");
-				if ("neo4j:4.3".equals(tag)) {
-					assertThat(executeAndConsume(session, "CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})").nodesCreated()).isOne();
+					session.run("CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})");
+					if ("neo4j:4.3".equals(tag)) {
+						assertThat(executeAndConsume(session,
+							"CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})").nodesCreated()).isOne();
 
-					CleanResult result = migrations.clean(false);
-					assertThat(result.getConstraintsRemoved()).isZero();
+						CleanResult result = migrations.clean(false);
+						assertThat(result.getConstraintsRemoved()).isZero();
 
-					result = migrations.clean(true);
-					assertThat(result.getConstraintsRemoved()).isEqualTo(2L);
-				} else {
-					assertThatExceptionOfType(ClientException.class)
-						.isThrownBy(() -> executeAndConsume(session, "CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})"))
-						.withMessageEndingWith("already exists with label `__Neo4jMigration` and properties `version` = '1', `migrationTarget` = 'x'");
+						result = migrations.clean(true);
+						assertThat(result.getConstraintsRemoved()).isEqualTo(2L);
+					} else {
+						assertThatExceptionOfType(ClientException.class)
+							.isThrownBy(() -> executeAndConsume(session,
+								"CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})"))
+							.withMessageEndingWith(
+								"already exists with label `__Neo4jMigration` and properties `version` = '1', `migrationTarget` = 'x'");
 
-					CleanResult result = migrations.clean(false);
-					assertThat(result.getConstraintsRemoved()).isZero();
+						CleanResult result = migrations.clean(false);
+						assertThat(result.getConstraintsRemoved()).isZero();
 
-					result = migrations.clean(true);
-					assertThat(result.getConstraintsRemoved()).isEqualTo(3L);
+						result = migrations.clean(true);
+						assertThat(result.getConstraintsRemoved()).isEqualTo(3L);
+					}
 				}
 			}
 		}
@@ -247,7 +255,7 @@ class ConstraintsIT {
 
 	private Neo4jContainer<?> getNeo4j(String tag) {
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
-			.withReuse(true)
+			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withLabel("ac.simons.neo4j.migrations.core", "HBDIT");
 		neo4j.start();

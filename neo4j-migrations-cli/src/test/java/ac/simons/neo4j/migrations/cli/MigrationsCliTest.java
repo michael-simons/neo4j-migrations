@@ -203,6 +203,7 @@ class MigrationsCliTest {
 			assertThat(properties)
 				.containsEntry("package", "a,b")
 				.containsEntry("password", "1234")
+				.doesNotContainKey("location")
 				.doesNotContainKey("max-connection-pool-size");
 		}
 

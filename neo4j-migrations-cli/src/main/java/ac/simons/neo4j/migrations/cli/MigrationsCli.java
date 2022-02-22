@@ -42,7 +42,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -91,21 +90,6 @@ public final class MigrationsCli implements Runnable {
 		} catch (IOException e) {
 			throw new MigrationsException("logging.properties are missing. Is your distribution of neo4j-migrations broken?");
 		}
-	}
-
-	static Optional<Properties> loadProperties(String filename) {
-
-		Path path = Paths.get(filename);
-		if (Files.isRegularFile(path)) {
-			try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
-				Properties properties = new Properties();
-				properties.load(in);
-				return Optional.of(properties);
-			} catch (IOException e) {
-				LOGGER.log(Level.SEVERE, path.toAbsolutePath() + " is not readable.");
-			}
-		}
-		return Optional.empty();
 	}
 
 	/**
@@ -345,17 +329,28 @@ public final class MigrationsCli implements Runnable {
 				continue;
 			}
 			List<String> values = o.stringValues();
-			if (values.isEmpty()) {
-				String defaultValue = o.defaultValue();
-				if (defaultValue == null) {
-					continue;
-				}
-				values = Collections.singletonList(defaultValue);
+			String value = values.isEmpty() ? o.defaultValue() : String.join(",", values);
+			if (value != null) {
+				String key = o.longestName().replaceAll("^-+", "");
+				properties.put(key, value);
 			}
-			String key = o.longestName().replaceAll("^-+", "");
-			properties.put(key, String.join(",", values));
 		}
 		return properties;
+	}
+
+	static Optional<Properties> loadProperties(String filename) {
+
+		Path path = Paths.get(filename);
+		if (Files.isRegularFile(path)) {
+			try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
+				Properties properties = new Properties();
+				properties.load(in);
+				return Optional.of(properties);
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, "{0} is not readable.", path.toAbsolutePath());
+			}
+		}
+		return Optional.empty();
 	}
 
 	void storeProperties(String filename) {
@@ -364,7 +359,7 @@ public final class MigrationsCli implements Runnable {
 		try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
 			toProperties().store(out, null);
 		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, path.toAbsolutePath() + " is not writable.");
+			LOGGER.log(Level.SEVERE, "{0} is not writable.", path.toAbsolutePath());
 		}
 	}
 }

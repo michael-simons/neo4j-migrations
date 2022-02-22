@@ -15,12 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import ac.simons.neo4j.migrations.core.internal.Messages;
+
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,10 +39,7 @@ final class MigrationsLock {
 
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
 	private static final String DEFAULT_NAME_OF_LOCK = "John Doe";
-
-	private static final Set<String> CODES_FOR_EXISTING_CONSTRAINT
-		= Collections.unmodifiableSet(new HashSet<>(Arrays.asList("Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists", "Neo.ClientError.Schema.ConstraintAlreadyExists")));
-
+	private static final Supplier<String> LOCK_FAILED_MESSAGE_SUPPLIER = () -> Messages.INSTANCE.get("lock_failed");
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
 	private final String nameOfLock;
@@ -69,9 +65,10 @@ final class MigrationsLock {
 	private void createUniqueConstraintIfNecessary() {
 
 		int constraintsAdded = 0;
+		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			constraintsAdded += silentCreateConstraint(session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
-			constraintsAdded += silentCreateConstraint(session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
+			constraintsAdded += HBD.silentCreateConstraint(cd, session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE", null, LOCK_FAILED_MESSAGE_SUPPLIER);
+			constraintsAdded += HBD.silentCreateConstraint(cd, session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE", null, LOCK_FAILED_MESSAGE_SUPPLIER);
 		}
 		LOGGER.log(Level.FINE, "Created {0} constraints", constraintsAdded);
 	}
@@ -83,13 +80,14 @@ final class MigrationsLock {
 		int constraintsRemoved = 0;
 		int indexesRemoved = 0;
 
+		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
 			SummaryCounters summaryCounters = session.writeTransaction(
 				tx -> tx.run("MATCH (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
 			nodesDeleted += summaryCounters.nodesDeleted();
 			relationshipsDeleted += summaryCounters.relationshipsDeleted();
-			constraintsRemoved += silentDropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
-			constraintsRemoved += silentDropConstraint(session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
+			constraintsRemoved += HBD.silentDropConstraint(cd, session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE", null);
+			constraintsRemoved += HBD.silentDropConstraint(cd, session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE", null);
 		}
 
 		return new InternalSummaryCounters(
@@ -100,37 +98,6 @@ final class MigrationsLock {
 			0, indexesRemoved,
 			0, constraintsRemoved, 0
 		);
-	}
-
-	private static Integer silentCreateConstraint(Session session, String statement) {
-		try {
-			return session.writeTransaction(tx ->
-				tx.run(statement).consume().counters().constraintsAdded());
-		}  catch (Neo4jException e) {
-
-			if (!CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
-				throw new MigrationsException(""
-					+ "Could not ensure uniqueness of __Neo4jMigrationsLock. "
-					+ "Please make sure your instance is in a clean state, "
-					+ "no more than 1 lock should be there simultaneously!", e
-				);
-			}
-		}
-
-		return 0;
-	}
-
-	private static Integer silentDropConstraint(Session session, String statement) {
-		try {
-			return session.writeTransaction(tx ->
-				tx.run(statement).consume().counters().constraintsRemoved());
-		} catch (Neo4jException e) {
-			if (!"Neo.DatabaseError.Schema.ConstraintDropFailed".equals(e.code())) {
-				throw new MigrationsException("Could not remove locks", e);
-			}
-		}
-
-		return 0;
 	}
 
 	String lock() {

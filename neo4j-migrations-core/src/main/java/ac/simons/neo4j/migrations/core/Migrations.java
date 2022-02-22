@@ -48,6 +48,7 @@ public final class Migrations {
 	private static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+	private static final String UNIQUE_VERSION = "unique_version___Neo4jMigration";
 
 	private final MigrationsConfig config;
 	private final Driver driver;
@@ -194,7 +195,7 @@ public final class Migrations {
 
 		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();
 		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();
-		long constraintsRemoved = 0;
+		long constraintsRemoved = deletedChainsWithCounters.counter.constraintsRemoved() + deletedChainsWithCounters.additionalConstraintsRemoved;
 		long indexesRemoved = 0;
 		if (all) {
 			SummaryCounters additionalCounters = new MigrationsLock(context).clean();
@@ -213,10 +214,18 @@ public final class Migrations {
 
 		final List<String> chainsDeleted;
 		final SummaryCounters counter;
+		final long additionalConstraintsRemoved;
 
 		DeletedChainsWithCounters(List<String> chainsDeleted, SummaryCounters counter) {
 			this.chainsDeleted = chainsDeleted;
 			this.counter = counter;
+			this.additionalConstraintsRemoved = 0L;
+		}
+
+		DeletedChainsWithCounters(DeletedChainsWithCounters source, long additionalConstraintsRemoved) {
+			this.chainsDeleted = source.chainsDeleted;
+			this.counter = source.counter;
+			this.additionalConstraintsRemoved = additionalConstraintsRemoved;
 		}
 	}
 
@@ -234,13 +243,19 @@ public final class Migrations {
 			+ "ORDER BY migrationTarget ASC ";
 
 		try (Session session = context.getSchemaSession()) {
-			return session.writeTransaction(tx -> {
+			DeletedChainsWithCounters deletedChainsWithCounters = session.writeTransaction(tx -> {
 				Result result = tx.run(query, Values.parameters(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null), "all", all));
 				return new DeletedChainsWithCounters(
 					result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
 					result.consume().counters()
 				);
 			});
+			if (all && HBD.is44OrHigher(context.getConnectionDetails())) {
+				return new DeletedChainsWithCounters(deletedChainsWithCounters,
+					session.run("DROP CONSTRAINT " + UNIQUE_VERSION + " IF EXISTS").consume().counters().constraintsRemoved());
+			}
+
+			return deletedChainsWithCounters;
 		}
 	}
 
@@ -337,7 +352,22 @@ public final class Migrations {
 		}
 	}
 
+	static void ensureConstraints(MigrationContext context) {
+
+		// Composite unique constraints are not supported here
+		if (!HBD.is44OrHigher(context.getConnectionDetails())) {
+			return;
+		}
+
+		try (Session session = context.getSchemaSession()) {
+			final String stmt = "CREATE CONSTRAINT $name IF NOT EXISTS FOR (m:__Neo4jMigration) REQUIRE (m.version, m.migrationTarget) IS UNIQUE";
+			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, UNIQUE_VERSION, () -> "Could not create unique constraint for targeted migrations.");
+		}
+	}
+
 	private void apply0(List<Migration> migrations) {
+
+		ensureConstraints(context);
 
 		MigrationVersion previousVersion = getLastAppliedVersion()
 			.orElseGet(MigrationVersion::baseline);

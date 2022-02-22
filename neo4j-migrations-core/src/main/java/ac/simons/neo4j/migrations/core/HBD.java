@@ -118,4 +118,7 @@ final class HBD {
 		return e != null && e.getCause() instanceof ClientException && CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
 			((ClientException) e.getCause()).code());
 	}
+
+	private HBD() {
+	}
 }

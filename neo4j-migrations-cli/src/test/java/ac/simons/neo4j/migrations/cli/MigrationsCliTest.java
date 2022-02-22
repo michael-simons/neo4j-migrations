@@ -26,7 +26,6 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -35,16 +34,15 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.platform.commons.support.HierarchyTraversalMode;
-import org.junit.platform.commons.support.ReflectionSupport;
-import org.mockito.Answers;
-import org.mockito.Mockito;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Values;
@@ -79,72 +77,58 @@ class MigrationsCliTest {
 	}
 
 	@Test
-	void shouldConfigureImpersonatedUser() throws IllegalAccessException {
+	void shouldConfigureImpersonatedUser() {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "impersonatedUser".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, "someoneElse");
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--impersonate", "someoneElse");
 
 		assertThat(cli.getConfig().getOptionalImpersonatedUser()).hasValue("someoneElse");
 	}
 
 	@Test
-	void shouldConfigureSchemaDatabase() throws IllegalAccessException {
+	void shouldConfigureSchemaDatabase() {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "schemaDatabase".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, "aDatabaseForTheSchema");
-
-		field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, 2);
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--schema-database", "aDatabaseForTheSchema", "--max-connection-pool-size", "2");
 
 		assertThat(cli.getConfig().getOptionalSchemaDatabase()).hasValue("aDatabaseForTheSchema");
 	}
 
 	@Test
-	void shouldRequire2Connections() throws IllegalAccessException {
+	void shouldRequire2Connections() {
 
 		MigrationsCli cli = new MigrationsCli();
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "schemaDatabase".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, "aDatabaseForTheSchema");
-
-		field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, 1);
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--schema-database", "aDatabaseForTheSchema", "--max-connection-pool-size", "1");
 
 		assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
 			.withMessage("You must at least allow 2 connections in the pool to use a separate database.");
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"a/path, classpath://my/path, file://file/path", "a/single/path"})
-	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined(String locations) throws Exception {
+	@ValueSource(strings = { "a/path, classpath://my/path, file://file/path", "a/single/path" })
+	void shouldThrowExceptionForLocationsToScanIfRunningNativeAndImplicitClasspathIsDefined(String locations)
+		throws Exception {
 		MigrationsCli cli = new MigrationsCli();
 		setLocationsToScan(cli, Arrays.stream(locations.split(",")).map(String::trim).toArray(String[]::new));
 
 		restoreSystemProperties(() -> {
 			System.setProperty(ImageInfo.PROPERTY_IMAGE_CODE_KEY, ImageInfo.PROPERTY_IMAGE_CODE_VALUE_RUNTIME);
 			assertThatIllegalArgumentException().isThrownBy(cli::getConfig)
-					.withMessageStartingWith("Classpath based resource locations are not support in native image: ");
+				.withMessageStartingWith("Classpath based resource locations are not support in native image: ");
 		});
 	}
 
-	static void setPackagesToScan(MigrationsCli cli, String[] value) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "packagesToScan".equals(f.getName()),
-			HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, value);
+	static void setPackagesToScan(MigrationsCli cli, String[] value) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--package", Arrays.stream(value).collect(Collectors.joining(",")));
 	}
 
-	static void setLocationsToScan(MigrationsCli cli, String[] value) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "locationsToScan".equals(f.getName()),
-			HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, value);
+	static void setLocationsToScan(MigrationsCli cli, String[] value) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--location", Arrays.stream(value).collect(Collectors.joining(",")));
 	}
 
 	@Test
@@ -174,42 +158,64 @@ class MigrationsCliTest {
 		});
 	}
 
-	private void setUserName(MigrationsCli cli) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "user".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, "neo4j");
+	private void setUserName(MigrationsCli cli) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--username", "neo4j");
 	}
 
-	private void setPassword(MigrationsCli cli) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "password".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, "secret".toCharArray());
+	private void setPassword(MigrationsCli cli) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--password", "secret");
 	}
 
-	private void setPasswordEnv(MigrationsCli cli, String name) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "passwordEnv".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, name);
+	private void setPasswordEnv(MigrationsCli cli, String name) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--password:env", name);
 	}
 
-	private void setPasswordFile(MigrationsCli cli, File file) throws IllegalAccessException {
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "passwordFile".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, file);
+	private void setPasswordFile(MigrationsCli cli, File file) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--password:file", file.getAbsolutePath());
 	}
 
 	@Test
-	void createDriverConfigShouldSetCorrectValues() throws IllegalAccessException {
+	void createDriverConfigShouldSetCorrectValues() {
 
 		MigrationsCli cli = new MigrationsCli();
-
-		Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "maxConnectionPoolSize".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-		field.setAccessible(true);
-		field.set(cli, 4711);
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--max-connection-pool-size", "4711");
 
 		Config config = cli.createDriverConfig();
 		assertThat(config.maxConnectionPoolSize()).isEqualTo(4711);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
+	}
+
+	@Nested
+	class PropertiesSupport {
+
+		@Test
+		void shouldWriteToProperties() {
+			MigrationsCli cli = new MigrationsCli();
+
+			CommandLine commandLine = new CommandLine(cli);
+			commandLine.parseArgs("--package", "a", "--package", "b", "--password", "1234");
+			Properties properties = cli.toProperties();
+			assertThat(properties)
+				.containsEntry("package", "a,b")
+				.containsEntry("password", "1234")
+				.doesNotContainKey("location")
+				.doesNotContainKey("max-connection-pool-size");
+		}
+
+		@Test
+		void shouldReadProperties() throws IOException {
+
+			Path nm = Files.createTempFile("nm", ".properties");
+			Files.write(nm, "location=a,b,c".getBytes(StandardCharsets.UTF_8));
+			Optional<Properties> optionalProperties = MigrationsCli.loadProperties(nm.toAbsolutePath().toString());
+			assertThat(optionalProperties).isPresent()
+				.hasValueSatisfying(p -> assertThat(p).containsEntry("location", "a,b,c"));
+		}
 	}
 
 	@Nested
@@ -219,7 +225,7 @@ class MigrationsCliTest {
 		void shouldUseConfiguredValues() throws IllegalAccessException {
 
 			MigrationsCli cli = new MigrationsCli();
-			setLocationsToScan(cli, new String[] {"a", "b"});
+			setLocationsToScan(cli, new String[] { "a", "b" });
 
 			MigrationsConfig config = cli.getConfig();
 			assertThat(config.getLocationsToScan()).containsExactlyInAnyOrder("a", "b");
@@ -229,7 +235,7 @@ class MigrationsCliTest {
 		void shouldNotDefaultWhenPackagesAreSet() throws IllegalAccessException {
 
 			MigrationsCli cli = new MigrationsCli();
-			setPackagesToScan(cli, new String[] {"a.b"});
+			setPackagesToScan(cli, new String[] { "a.b" });
 
 			MigrationsConfig config = cli.getConfig();
 			assertThat(config.getLocationsToScan()).isEmpty();
@@ -243,28 +249,32 @@ class MigrationsCliTest {
 
 			Path defaultPath = Paths.get("neo4j/migrations");
 			Path newDir = Files.createDirectories(defaultPath);
-
 			try {
 				MigrationsConfig config = cli.getConfig();
 				assertThat(config.getLocationsToScan()).containsExactly(
 					"file://" + Paths.get("neo4j/migrations").toAbsolutePath());
 			} finally {
 				if (!defaultPath.equals(newDir)) {
-					Files.walkFileTree(newDir.getParent(), new SimpleFileVisitor<Path>() {
-						@Override
-						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-							return FileVisitResult.CONTINUE;
-						}
-
-						@Override
-						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-							Files.delete(dir);
-							return FileVisitResult.CONTINUE;
-						}
-					});
+					deltree(newDir);
 				}
 			}
 		}
+	}
+
+	static void deltree(Path dir) throws IOException {
+
+		Files.walkFileTree(dir.getParent(), new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+				Files.delete(dir);
+				return FileVisitResult.CONTINUE;
+			}
+		});
 	}
 
 	@Nested
@@ -309,35 +319,25 @@ class MigrationsCliTest {
 			assertAuthToken(authToken, "Vertraulich");
 		}
 
-		private void setCommandSpec(MigrationsCli cli) throws IllegalAccessException {
-
-			Field field = ReflectionSupport.findFields(MigrationsCli.class, f -> "commandSpec".equals(f.getName()), HierarchyTraversalMode.TOP_DOWN).get(0);
-			field.setAccessible(true);
-			CommandLine.Model.CommandSpec mock = Mockito.mock(CommandLine.Model.CommandSpec.class, Answers.RETURNS_MOCKS);
-			field.set(cli, mock);
-		}
-
 		@Test
-		void shouldCheckExistenceOfFile() throws Exception {
+		void shouldCheckExistenceOfFile() {
 
 			MigrationsCli cli = new MigrationsCli();
 
 			setUserName(cli);
 			setPasswordFile(cli, new File("non-existing"));
-			setCommandSpec(cli);
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
 				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
 		}
 
 		@Test
-		void shouldTrim() throws Exception {
+		void shouldTrim() {
 
 			MigrationsCli cli = new MigrationsCli();
 
 			setUserName(cli);
 			setPasswordEnv(cli, "emptyPassword");
-			setCommandSpec(cli);
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
 				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");

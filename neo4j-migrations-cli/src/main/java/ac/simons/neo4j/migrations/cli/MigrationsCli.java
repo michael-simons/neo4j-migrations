@@ -29,16 +29,22 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -62,12 +68,14 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, MigrateCommand.class, ValidateCommand.class },
+	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ValidateCommand.class },
 	versionProvider = ManifestVersionProvider.class
 )
 public final class MigrationsCli implements Runnable {
 
 	static final Logger LOGGER;
+	public static final String MIGRATIONS_PROPERTIES_FILENAME = ".migrations.properties";
+	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = "--max-connection-pool-size";
 
 	static {
 		configureLogging();
@@ -94,6 +102,10 @@ public final class MigrationsCli implements Runnable {
 		commandLine.setCaseInsensitiveEnumValuesAllowed(true);
 		CommandLine generateCompletionCmd = commandLine.getSubcommands().get("generate-completion");
 		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);
+
+		loadProperties(MIGRATIONS_PROPERTIES_FILENAME)
+			.map(CommandLine.PropertiesDefaultProvider::new)
+			.ifPresent(commandLine.getCommandSpec()::defaultValueProvider);
 
 		int exitCode = commandLine.execute(args);
 		System.exit(exitCode);
@@ -130,13 +142,15 @@ public final class MigrationsCli implements Runnable {
 
 	@Option(
 		names = { "--package" },
-		description = "Package to scan. Repeat for multiple packages."
+		description = "Package to scan. Repeat for multiple packages.",
+		split = ","
 	)
 	private String[] packagesToScan = new String[0];
 
 	@Option(
 		names = { "--location" },
-		description = "Location to scan. Repeat for multiple locations."
+		description = "Location to scan. Repeat for multiple locations.",
+		split = ","
 	)
 	private String[] locationsToScan = new String[0];
 
@@ -186,7 +200,7 @@ public final class MigrationsCli implements Runnable {
 	private boolean autocrlf;
 
 	@Option(
-		names = { "--with-max-connection-pool-size" },
+		names = { OPTION_NAME_MAX_CONNECTION_POOL_SIZE },
 		description = "Configure the connection pool size, hardly ever needed to change.",
 		defaultValue = "2",
 		hidden = true
@@ -241,8 +255,12 @@ public final class MigrationsCli implements Runnable {
 		return config;
 	}
 
+	boolean hasLocationsToScan() {
+		return locationsToScan.length != 0 || packagesToScan.length != 0;
+	}
+
 	String[] getOrComputeLocationsToScan() {
-		if (locationsToScan.length != 0 || packagesToScan.length != 0) {
+		if (hasLocationsToScan()) {
 			return locationsToScan;
 		}
 
@@ -251,7 +269,7 @@ public final class MigrationsCli implements Runnable {
 			return new String[0];
 		}
 		String defaultLocationToScan = LocationType.FILESYSTEM.getPrefix() + "://" + defaultPath.toString().replace('\\', '/');
-		LOGGER.log(Level.INFO, "Neither locations nor packages to scan configured, using {0}.", defaultLocationToScan);
+		LOGGER.log(Level.FINE, "Neither locations nor packages to scan configured, using {0}.", defaultLocationToScan);
 		return new String[] { defaultLocationToScan };
 	}
 
@@ -301,5 +319,47 @@ public final class MigrationsCli implements Runnable {
 			.withMaxConnectionPoolSize(maxConnectionPoolSize)
 			.withUserAgent(Migrations.getUserAgent())
 			.withLogging(Logging.console(Level.SEVERE)).build();
+	}
+
+	Properties toProperties() {
+
+		Properties properties = new Properties();
+		for (CommandLine.Model.OptionSpec o : commandSpec.options()) {
+			if (OPTION_NAME_MAX_CONNECTION_POOL_SIZE.equals(o.longestName())) {
+				continue;
+			}
+			List<String> values = o.stringValues();
+			String value = values.isEmpty() ? o.defaultValue() : String.join(",", values);
+			if (value != null) {
+				String key = o.longestName().replaceAll("^-+", "");
+				properties.put(key, value);
+			}
+		}
+		return properties;
+	}
+
+	static Optional<Properties> loadProperties(String filename) {
+
+		Path path = Paths.get(filename);
+		if (Files.isRegularFile(path)) {
+			try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {
+				Properties properties = new Properties();
+				properties.load(in);
+				return Optional.of(properties);
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, "{0} is not readable.", path.toAbsolutePath());
+			}
+		}
+		return Optional.empty();
+	}
+
+	void storeProperties(String filename) {
+
+		Path path = Paths.get(filename);
+		try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+			toProperties().store(out, null);
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, "{0} is not writable.", path.toAbsolutePath());
+		}
 	}
 }

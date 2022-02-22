@@ -238,7 +238,7 @@ public final class MigrationsConfig {
 	 */
 	public void logTo(Logger logger, boolean verbose) {
 		if (!this.hasPlacesToLookForMigrations()) {
-			logger.log(Level.WARNING, "Cannot find migrations as neither locations or packages to scan are configured!");
+			logger.log(Level.WARNING, "Cannot find migrations as neither locations nor packages to scan are configured!");
 		}
 
 		if (verbose && logger.isLoggable(Level.INFO)) {

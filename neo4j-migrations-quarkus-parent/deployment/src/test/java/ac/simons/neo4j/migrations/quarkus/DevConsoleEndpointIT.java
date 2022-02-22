@@ -68,7 +68,6 @@ public class DevConsoleEndpointIT {
 
 		RestAssured
 			.when().get("/cnt")
-			.prettyPeek()
 			.then().statusCode(200).body(Matchers.is("2"));
 
 		RestAssured
@@ -76,12 +75,10 @@ public class DevConsoleEndpointIT {
 			.contentType(FORM_CONTENT_TYPE)
 			.formParam("operation", "clean")
 			.when().post(DEV_TOOLS_ENDPOINT)
-			.prettyPeek()
 			.then().statusCode(200);
 
 		RestAssured
 			.when().get("/cnt")
-			.prettyPeek()
 			.then().statusCode(200).body(Matchers.is("0"));
 	}
 

@@ -1623,6 +1623,7 @@ Commands:
   help            Displays help information about the specified command
   info            Retrieves all applied and pending informations, prints them
                     and exits.
+  init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
   validate        Resolves all local migrations and validates the state of the
                     configured database with them.</code></pre>
@@ -1652,6 +1653,21 @@ We check for missing or superfluous migrations and also compare checksums.
 At times, you might want to have just a quick look at what is in the database, without configuring a local filesystem.
 Use <code>mode=remote</code> in that case: We just look at what is in the database and assume everything is applied.
 Use <code>mode=local</code> to print out what has been discovered locally with the current settings and would be applied to an empty database.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<code>neo4j-migrations</code> looks in the current working directory for a properties file called <code>.migration.properties</code> which
+     can contain all supported options. Use such a file to avoid repeating long command lines all the time.
+     Use <code>neo4j-migrations init</code> to create a file with the default values. Any options passed to <code>neo4j-migrations</code> before
+     the init command will also be store.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -2430,7 +2446,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-02-21 15:52:20 UTC
+Last updated 2022-02-22 07:55:53 UTC
 </div>
 </div>
 </body>

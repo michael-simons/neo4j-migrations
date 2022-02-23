@@ -62,7 +62,7 @@ import org.jboss.jandex.IndexView;
  * @author Michael J. Simons
  * @since 1.2.2
  */
-class MigrationsProcessor {
+public class MigrationsProcessor {
 
 	public static final String FEATURE_NAME = "neo4j-migrations";
 

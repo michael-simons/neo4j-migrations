@@ -34,7 +34,7 @@ public class MigrationsDevConsoleProcessor {
 	@BuildStep(onlyIf = IsDevelopment.class)
 	@Record(ExecutionTime.RUNTIME_INIT)
 	@SuppressWarnings("unused")
-	public DevConsoleRuntimeTemplateInfoBuildItem addMigrationsInfo(
+	DevConsoleRuntimeTemplateInfoBuildItem addMigrationsInfo(
 		MigrationsBuildItem migrationsBuildItem,
 		CurateOutcomeBuildItem curateOutcomeBuildItem,
 		MigrationsDevConsoleRecorder recorder

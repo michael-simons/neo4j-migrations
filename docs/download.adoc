@@ -67,7 +67,7 @@ Here are the coordinates:
 
 Or in case you fancy Gradle:
 
-[source,xml,subs="verbatim,attributes"]
+[source,groovy,subs="verbatim,attributes"]
 .Core API as Gradle dependency
 ----
 dependencies {

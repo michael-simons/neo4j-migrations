@@ -64,7 +64,7 @@ import org.jboss.jandex.IndexView;
  */
 public class MigrationsProcessor {
 
-	public static final String FEATURE_NAME = "neo4j-migrations";
+	static final String FEATURE_NAME = "neo4j-migrations";
 
 	@BuildStep
 	@SuppressWarnings("unused")

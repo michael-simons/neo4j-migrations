@@ -33,7 +33,7 @@ public class MigrationsDevConsoleHandler extends DevConsolePostHandler {
 
 	private final Migrations migrations;
 
-	public MigrationsDevConsoleHandler(Migrations migrations) {
+	MigrationsDevConsoleHandler(Migrations migrations) {
 		this.migrations = migrations;
 	}
 

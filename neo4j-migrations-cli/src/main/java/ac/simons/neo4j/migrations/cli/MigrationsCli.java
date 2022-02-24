@@ -74,7 +74,7 @@ import org.neo4j.driver.Logging;
 public final class MigrationsCli implements Runnable {
 
 	static final Logger LOGGER;
-	public static final String MIGRATIONS_PROPERTIES_FILENAME = ".migrations.properties";
+	static final String MIGRATIONS_PROPERTIES_FILENAME = ".migrations.properties";
 	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = "--max-connection-pool-size";
 
 	static {

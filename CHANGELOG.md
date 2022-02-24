@@ -1,3 +1,55 @@
+# 1.4.0
+
+*No breaking changes*.  The version is bumped due to a couple of new features that required additional API, for example using only remote or locally discovered migrations.
+
+A big "Thank you" goes out to @marianozunino, a long time Neo4j (and Spring Data Neo4j) user, who created his own refactor tooling dubbed [Morpheus](https://github.com/marianozunino/morpheus). We worked together so that this and his tooling use the same meta model. And afterwards, I took some inspiration from the features he had in Morpheus.
+
+The feature I like the most in this release is the new and shiny integration with Quarkus dev-services, check it out: [Dev Services integration](https://michael-simons.github.io/neo4j-migrations/1.4.0/#devservicesintegration).
+
+## 🚀 Features
+- c8f29d4 Add unique constraint for migration nodes on Neo4j 4.4. (#428)
+- ed04748 Write and read optional config file from CLI. (#427)
+- ad644a5 Add `mode` option to `InfoCmd`.
+- b9afdd8 Introduce a ChainBuilderMode to select local or remote chains only. (#425)
+- d63629e Make `file:./neo4j/migrations` the default for `--location` in the CLI. (#424)
+- f3ad97c Add Quarkus Dev-UI integration.
+- 5814489 Provide `ConnectionDetails` without retrieving the whole chain of applied migrations.
+
+## 🐛 Bug Fixes
+- 085cb4f Fix JaCoCo configuration.
+
+## 🔄️ Refactorings
+- b476a79 Avoid unnessary accessors for Quarkus processors.
+- 970c84c Use default location only if it exists.
+- 16eca1e Avoid printing a full stack trace for expected exceptions in the CLI. (#423)
+- 81048fa Reduce visibility of build items. (#412)
+- 46263f2 Use Quarkus' built-in class indes and classpath resource utils.
+- b5383f1 Improve test.
+
+## 📝 Documentation
+- 76e23ef Use correct language for Gradle snippet.
+- c2bfe46 Add morpheus to README.
+- 2e9594a Update local changelog.
+
+## 🧹 Housekeeping
+- ba4c60c Bump nexus-staging-maven-plugin from 1.6.11 to 1.6.12
+- 1a152eb quarkus-neo4j extension from 1.0.3 to 1.0.4. (#431)
+- 6f00824 Bump quarkus.version from 2.7.1.Final to 2.7.2.Final (#430)
+- 2cc1184 Bump maven-compiler-plugin from 3.9.0 to 3.10.0 (#418)
+- e47b2d3 Bump native-maven-plugin from 0.9.9 to 0.9.10 (#417)
+- 1b828bb Bump maven-site-plugin from 3.10.0 to 3.11.0 (#416)
+- 73963b4 Bump nexus-staging-maven-plugin from 1.6.8 to 1.6.11 (#415)
+
+## 🛠 Build
+- 2716106 Provide parameter names.
+- a2ac68f Remove sysouts.
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
 # 1.3.3
 
 *No breaking changes*.  Biggest change is the upgrade to Quarkus 2.7 inside the Quarkus extension. Thanks to @lukehutch for a new release of [ClassGraph](https://github.com/classgraph/classgraph) that improves compatibility with Quarkus' classloader.

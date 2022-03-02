@@ -577,6 +577,26 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 </li>
 </ul>
 </li>
+<li><a href="#Frameworks">3. Frameworks</a>
+<ul class="sectlevel2">
+<li><a href="#general-considerations">3.1. General considerations</a></li>
+<li><a href="#_spring_boot">3.2. Spring Boot</a></li>
+<li><a href="#_quarkus">3.3. Quarkus</a>
+<ul class="sectlevel3">
+<li><a href="#_creating_a_closed_world_at_build_time">3.3.1. Creating a closed world at build time</a></li>
+<li><a href="#_project_setup_for_an_extension">3.3.2. Project setup for an extension</a></li>
+<li><a href="#_the_effect_on_neo4j_migrations">3.3.3. The effect on Neo4j-Migrations</a></li>
+<li><a href="#_quintessence">3.3.4. Quintessence</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#releasing-things">4. Releasing things</a>
+<ul class="sectlevel2">
+<li><a href="#_semantic_versioning">4.1. Semantic versioning</a></li>
+<li><a href="#_release_tooling">4.2. Release tooling</a></li>
+</ul>
+</li>
 <li><a href="#_resources">Resources</a></li>
 </ul>
 </div>
@@ -675,7 +695,7 @@ you find some of them utterly and outright stupid.</p>
 <div class="sect2">
 <h3 id="_whats_the_size_of_the_project"><a class="anchor" href="#_whats_the_size_of_the_project"></a>What&#8217;s the size of the project?</h3>
 <div class="paragraph">
-<p>"Sloc Cloc and Code" <a href="#scc">[scc]</a> gives me the following output for version <a href="https://github.com/michael-simons/neo4j-migrations/releases/tag/1.3.0">1.3.0</a>, along with some cost estimation based on the COCOMO <a href="#COCOMO">[COCOMO]</a> model:</p>
+<p>"Sloc Cloc and Code" <a href="#scc">[scc]</a> gives me the following output for version <a href="https://github.com/michael-simons/neo4j-migrations/releases/tag/1.4.0">1.4.0</a>, along with some cost estimation based on the COCOMO <a href="#COCOMO">[COCOMO]</a> model:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -683,27 +703,28 @@ you find some of them utterly and outright stupid.</p>
 ───────────────────────────────────────────────────────────────────────────────
 Language                 Files     Lines   Blanks  Comments     Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-Java                       136     12581     1935      3764     6882        273
-XML                         29      3430      151       116     3163          0
-AsciiDoc                     8      1507      329         0     1178          0
-Properties File              7        36        3        13       20          0
-Shell                        5       373       44        63      266         37
-YAML                         5       305       28         0      277          0
+Java                       153     14206     2186      4184     7836        330
+XML                         29      3584      154       134     3296          0
+AsciiDoc                     8      1562      344         0     1218          0
+Properties File              7        37        3        13       21          0
+Shell                        6       392       49        65      278         38
+YAML                         5       294       28         0      266          0
 Smarty Template              3        44        7         0       37          2
 Groovy                       2        71        7        32       32          1
+HTML                         2        71        5         0       66          0
 JSON                         2        23        0         0       23          0
+Markdown                     2       755      238         0      517          0
 Plain Text                   2       219       33         0      186          0
 Batch                        1       182       35         0      147         30
-Markdown                     1       128       35         0       93          0
 gitignore                    1        33        5         4       24          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                      202     18932     2612      3992    12328        343
+Total                      223     21473     3094      4432    13947        401
 ───────────────────────────────────────────────────────────────────────────────
-Estimated Cost to Develop (organic) $377,600
-Estimated Schedule Effort (organic) 9.499187 months
-Estimated People Required (organic) 3.531523
+Estimated Cost to Develop (organic) $429,833
+Estimated Schedule Effort (organic) 9.978566 months
+Estimated People Required (organic) 3.826907
 ───────────────────────────────────────────────────────────────────────────────
-Processed 644610 bytes, 0.645 megabytes (SI)
+Processed 732729 bytes, 0.733 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────</code></pre>
 </div>
 </div>
@@ -777,8 +798,8 @@ decision was made for <strong>JDK 8,</strong> and I am happy with it.</p>
 <div class="paragraph">
 <p>At the time of writing JDK 17, the current LTS, has been out for 4 months already. JDK 17 brings many more things to the table.
 The most prominent features being text blocks, records, sealed classes and pattern matching. Those, together with the fact
-that some runtimes like Helidon <a href="#helidon">[helidon]</a> and Quarkus <a href="#quarkus">[quarkus]</a> already made the jump to 11 since 2020 and
-Spring Framework 6 will even have JDK 17 as baseline and has just dropped the first beta<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>
+that some runtimes like <a href="#Helidon">[Helidon]</a> and <a href="#Quarkus">[Quarkus]</a> already made the jump to 11 since 2020 and
+<a href="#SpringFramework">Spring Framework</a> 6 will even have JDK 17 as baseline and has just dropped the first beta<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>
 would have probably led to a different decision.</p>
 </div>
 </div>
@@ -1005,6 +1026,54 @@ Read the results from the Maven Dependencies Pop Quiz<sup class="footnote">[<a i
 </div>
 <div class="sect2">
 <h3 id="_my_maven_best_practices"><a class="anchor" href="#_my_maven_best_practices"></a>2.2. My Maven best practices</h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Whatever you take away from this section, please consider <strong>always</strong> having the following properties defined:</p>
+</div>
+<div class="paragraph">
+<p>First, specify the projects encoding with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;project.build.sourceEncoding&gt;</span>UTF-8<span class="tag">&lt;/project.build.sourceEncoding&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or with whatever you prefer. Otherwise, Maven - and Java - will default to the OS default encoding which is not always
+what you expect so that your build is suddenly OS dependent.</p>
+</div>
+<div class="paragraph">
+<p>Second, on Java versions prior to 11 and / or older versions of the Maven compiler plugin always define both</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;maven.compiler.source&gt;</span>1.8<span class="tag">&lt;/maven.compiler.source&gt;</span>
+<span class="tag">&lt;maven.compiler.target&gt;</span>1.8<span class="tag">&lt;/maven.compiler.target&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With recent JDK versions and Maven compiler plugin you would define this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;maven.compiler.release&gt;</span>11<span class="tag">&lt;/maven.compiler.release&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above example, you could safely use Java 17 and compile for 11 (or for 8): The system will guarantee that your source,
+the generated bytecode <strong>and</strong> the API used are appropriate for the chosen target. Prior to that you might have created a library
+that while being technically compatible with older versions but accidentally used newer API not available in older runtimes.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="_use_properties_and_dependency_management_for_versions"><a class="anchor" href="#_use_properties_and_dependency_management_for_versions"></a>2.2.1. Use properties and dependency management for versions</h4>
 <div class="paragraph">
@@ -1342,6 +1411,869 @@ All the power of Java right at your hands, as a script via <a href="#JBang">[JBa
 </div>
 </div>
 <div class="sect1">
+<h2 id="Frameworks"><a class="anchor" href="#Frameworks"></a>3. Frameworks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This part will speak about the "big" frameworks and what possibilities they offer and how you can hook up your library into them.
+This is not about "low level" frameworks, such as a class scanning library, a command line tooling, but more outwards or up the stack.</p>
+</div>
+<div class="paragraph">
+<p>I am talking about Spring Framework, Spring Boot, Quarkus, Helidon, Micronaut or similar. I will cover Spring Boot and Quarkus here
+as those are the ones Neo4j-Migrations offers direct support for.</p>
+</div>
+<div class="sect2">
+<h3 id="general-considerations"><a class="anchor" href="#general-considerations"></a>3.1. General considerations</h3>
+<div class="paragraph">
+<p>All the big frameworks come with a lot of dependencies already. If your library is written in such a way that it uses a ton
+of dependencies as well, you or your users end up in dependency issues pretty quickly. I honestly do think that the JDK offers
+so many great APIs, being it for all the datastructures you need, sorting algorithms, String and general I/O operations and even
+upto HTTP clients (just checkout out <code>java.net.http.HttpClient</code> for that matter), that there is often any good reason to
+add a heavyweight dependency to your project at all.</p>
+</div>
+<div class="paragraph">
+<p>Things I have in mind here are <code>commons-lang</code>, <code>guava</code> and the like: First, look at what the JDK offers for a task at hand
+or what is needed to create something decent yourself before you get yourself a couple of megabytes of dependencies.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, specialized needs such as connecting to a database with a JDBC implementation or a specialized driver such
+as in Neo4js case with the Bolt driver can&#8217;t be solved within a reasonable amount of work. The same applies to <a href="#ClassGraph">[ClassGraph]</a>
+for example. ClassGraph is a library I use for scanning the class path for resources and for classes implementing a given interface.
+I theoretically could do this all by myself but hardly as good (or as complete) as dedicated library.</p>
+</div>
+<div class="paragraph">
+<p>However, you should never expose the API of such a library directly on your API. Why? Because if you do, you will be inevitably
+glued to the evolution of a third party tool and that is probably not what you want if you like to follow semantic versioning or
+things like that. Another reason: Sometimes such an API might not work in a target environment like one of the frameworks to follow,
+and you might want to plug-in their solution for the same problem.</p>
+</div>
+<h4 id="_its_a_kind_of_magic" class="discrete">It&#8217;s a kind of magic!</h4>
+<div class="paragraph">
+<p>The above headline is not only the name of a great Queen song from 1986 accompanying the movie <em>Highlander</em> in which the same statement
+is used to "explain" the immortals fighting for "the price", but it can also be used as a question. "Is this a kind of magic?":</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Is
+@springboot
+still considered as <strong>magic</strong> by anyone or has it already become a default and understood level of abstraction?</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; Maciej Walkowiak<br>
+<cite>https://twitter.com/maciejwalkowiak/status/1495528915535814660</cite>
+</div>
+</div>
+<div class="paragraph">
+<p>The discussion following was good and interesting. I have that approach in a talk for a while now. As a user of a car or
+even of a computer itself: I don&#8217;t need to know how the single parts work or work together. To be honest, while I do know
+the basic principle of how a combustion engine or an electric engine works, I couldn&#8217;t care less most of the time. There
+are better trained specialists out there who can help me.</p>
+</div>
+<div class="paragraph">
+<p>It gets more complicated when looking at computer: As a software engineer I better know the basic concepts of I/O, processor,
+slow and fast memory and what have you. Should I be able to pick a computer apart and reassemble it? Does it make me a worse
+software engineer when I never built my own PC? Should I even be aware how the electronics works? Questionable.</p>
+</div>
+<div class="paragraph">
+<p>Things a are a bit different for a developer when looking at software: While some bootcamps are probably trying to cookie-cut
+as many developers as possible and telling people that at least some computer science knowledge is overrated and frameworks
+do all the heavy lifting, this is just not true. You should have a general ideas about complexity, memory usage, runtime behaviour
+of algorithms and the like. And you can&#8217;t get around that you need to know in the end how a target framework of choice behaves.</p>
+</div>
+<div class="paragraph">
+<p>I firmly believe understanding the mechanics of something like Spring Boot, Micronaut, Quarkus or even Helidon SE (which as a much more
+visible and explicit "functional" approach) is paramount, for both a developer using such tech for creating applications and
+business value as well as for developers wanting to contribute their thing to a framework.</p>
+</div>
+<div class="paragraph">
+<p>So here we are, let&#8217;s break the magician&#8217;s code once again:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_spring_boot"><a class="anchor" href="#_spring_boot"></a>3.2. Spring Boot</h3>
+<div class="paragraph">
+<p>A lot has been said already about "the magic" about Spring Boot. Actually, I am one of the people who did start talking about it early on, see
+<a href="#a-kind-of-magic-2016">[a-kind-of-magic-2016]</a>.
+As this is known now by a lot of people and the concept of Spring Boot starter and their autoconfiguration is along now for more than 6 years
+actually, I am going to refer to one of my talks from 2016 until the time being: "It&#8217;s a kind of magic? - Custom Spring Boot Starter"<sup class="footnote">[<a id="_footnoteref_11" class="footnote" href="#_footnotedef_11" title="View footnote.">11</a>]</sup></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_quarkus"><a class="anchor" href="#_quarkus"></a>3.3. Quarkus</h3>
+<div class="paragraph">
+<p>Quarkus is a framework primarily developed by Red Hat. It is a Java framework tailored for deployment on Kubernetes.
+Key technology components surrounding it are OpenJDK HotSpot and GraalVM. The goal of Quarkus is to make Java a leading
+platform in Kubernetes and serverless environments while offering developers a unified reactive and imperative programming
+model to optimally address a wider range of distributed application architectures. Its first version was published in March 2019.</p>
+</div>
+<div class="paragraph">
+<p>It has a couple of design principles such as</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Container first</p>
+</li>
+<li>
+<p>Developer productivity</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Wikipedia lists unifying imperative and reactive as well, but for the purpose of this chapter, the two above will do. Container first
+with an emphasis on low memory usage and fast startup times go hand in hand with developer productivity:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<a class="image" href="https://xkcd.com/303/"><img src="https://imgs.xkcd.com/comics/compiling.png" alt="Obligatory XKCD (303)"></a>
+</div>
+</div>
+<div class="paragraph">
+<p>While I get back to speed of compiling, startup or restart in a moment, other things important for Quarkus are</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>unified configuration (Spring Boot has this of course too, and I personally like Springs configuration support better
+than SmallRye&#8217;s one (SmallRye config is library use by Quarkus))</p>
+</li>
+<li>
+<p>"Batteries included" approach: Quarkus uses <a href="#Testcontainer">[Testcontainer]</a> for bringing up any downstream service dependencies such as
+databases, message brokers and the like. In case there is explicit configuration for such a service, the so called "Dev services"
+will kick in and bring up a Neo4j database for you for example</p>
+</li>
+<li>
+<p>Live coding: Quarkus undertakes some effort to determine whether classes or resources have changed when a request reaches
+an application started in development mode. If so, that class is transparently recompiled and all parts of the application
+affected will restart (that works actually much better than Spring Boots restart class loader)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The fast startup times, the unified configuration and the dev services are all relevant when you want to provide a Quarkus
+extension for your library or service. These three points are a good chunk of why the Quarkus extension are designed the way they are.</p>
+</div>
+<div class="sect3">
+<h4 id="_creating_a_closed_world_at_build_time"><a class="anchor" href="#_creating_a_closed_world_at_build_time"></a>3.3.1. Creating a closed world at build time</h4>
+<div class="paragraph">
+<p>The main "trick" inside Quarkus' sleeves is doing as much work and processing during build time to create a closed world.
+Closed world meaning that "everything" (i.e. configuration, CDI beans, resources, entities and such) is known before the
+startup of an application. That closed world is actually written to bytecode in many cases. Vice versa, stuff outside that
+assumption for which can be guaranteed that there&#8217;s no execution path touching it, will not be loaded into a JVM.</p>
+</div>
+<div class="paragraph">
+<p>All that goes together with avoiding reflection as much as possible. That would start by finding entities, JAX-RS resources,
+over to (re)configuring things during runtime and wiring up collaborators (aka autowiring or injecting things) and many more
+stuff we as developers using any framework with dependency injection take for granted.</p>
+</div>
+<div class="paragraph">
+<p>If the assumption of a closed world sounds familiar: You might have heard in the context of the <a href="#GraalVM">[GraalVM]</a>. More specifically
+together with its native image compilation: Turning a proper JVM program into a native machine binary. GraalVM itself removes any
+unreachable code found within the application as well as any of its dependencies for the image to be as small as possible.
+A native executable starts usually much faster and uses far less memory than a traditional JVM.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There are a couple of different approaches to that topic. <a href="#Micronaut">[Micronaut]</a> for examples goes "all in" in terms of annotation processing.
+      Or - in the words of their architect Graeme Rocher - "Micronaut is an implementation of an annotation-based programming model."<sup class="footnote">[<a id="_footnoteref_12" class="footnote" href="#_footnotedef_12" title="View footnote.">12</a>]</sup>
+      More specifically most if not all the annotations used in Micronaut applications are processed at compile time, not
+      at runtime as other frameworks do. "The AnnotationMetadata API is a construct that is used both a compilation time and at runtime by
+      framework components. AnnotationMetadata represents the computed fusion of annotation information for a particular type,
+      field, constructor, method or bean property and may include both annotations declared in the source code, but also
+      synthetic meta-annotations that can be used at runtime to implement framework logic."
+     <br>
+      I am pretty sure that Spring Framework 6 and the efforts undertaken at VMWare will move into a similar direction.
+      I have written a small annotation processor<sup class="footnote">[<a id="_footnoteref_13" class="footnote" href="#_footnotedef_13" title="View footnote.">13</a>]</sup>
+      for Neo4js <a href="#Cypher-DSL">[Cypher-DSL]</a> and the general Java Api for that is well-designed.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="build-steps"><a class="anchor" href="#build-steps"></a>Build steps</h5>
+<div class="paragraph">
+<p>Much of the following is taking straight from "Writing your own extension"<sup class="footnote">[<a id="_footnoteref_14" class="footnote" href="#_footnotedef_14" title="View footnote.">14</a>]</sup>,
+a page probably not many casual users of Quarkus will ever open. It does however contain a lot of valuable resources. Most important
+to understand the behaviour of your extension and an application eventually using it are the following three distinct phases of bootstrapping
+a Quarkus app:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Augmentation</dt>
+<dd>
+<p>This initial phase is done via <em>Build Step Processors</em>, having access to an index containing annotations found
+and ways of access to further descriptors, properties and <em>build items</em> created by previous processors. The outcome of those
+build steps can have many forms: It ranges from additional resources put into the applications, hints which classes
+to include in a GraalVM native image or (CDI) items available in your final application. Either way, the outcome is recorded into
+actual bytecode. Furthermore, all build step processors can interact with <em>Recorders</em>. Those records are a way of blue printing
+what should be eventually executed, so that it can be recorded into bytecode.</p>
+<div class="paragraph">
+<p>Bytecode recorded goes into <em>one</em> of the following phases:</p>
+</div>
+</dd>
+<dt class="hdlist1">Static init</dt>
+<dd>
+<p>The framework is going to create a static method to be called from a main class that is going to initialize as
+much of the application as possible.</p>
+<div class="paragraph">
+<p>The outcome of the static init phase can be recorded as is during augmentation / build time: Any library needed to produce it
+can be dropped from the final class path so that it will never be loaded into the JVM running the application.</p>
+</div>
+<div class="paragraph">
+<p>The static init is even more important for GraalVM native image: The static init is executed on a JVM during ahead-of-time
+compilation and any objects retained there are directly serialized into the native executable. This means that if a framework
+can boot in this phase then it will have its booted state directly written to the image. Of course this will be then executed
+but the computation has already be done at this point.</p>
+</div>
+</dd>
+<dt class="hdlist1">Runtime init</dt>
+<dd>
+<p>Steps recorded here are executed from an applications main method respectively during native executable boot.
+There are no restrictions what can be done here. Ports and such can be opened.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>It is hopefully apparent that as much as possible should be pushed into static init to achieve the quickest startup possible.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_project_setup_for_an_extension"><a class="anchor" href="#_project_setup_for_an_extension"></a>3.3.2. Project setup for an extension</h4>
+<div class="paragraph">
+<p>Quarkus extensions are usually setup as multi-module projects containing the following modules:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j-migrations-quarkus-parent
+├── deployment
+│   └── src
+├── integration-tests
+│   └── src
+└── runtime
+    └── src</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parent project is usually responsible for dependency, plugin and build management, while the deployment module contains
+all the necessary augmentation code and the runtime module the actual behaviour to be recorded. Integration tests are well,
+integration tests.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Those are not your usual integration test! To test your extension the best way possible you will have eventually to
+         create a real application like module and subject to augmentation. Just like a user would when using your extension.
+         I found this to be one of the hardest thing to understand and learn.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The flow of dependencies is crucial to understand: A deployment module actually <em>must</em> depend on the runtime module as
+the runtime module will contain the actual recorders and their dependencies. The reason: The recorded bytecode can of course
+only be executed when it has access to the runtime classes. A runtime module on the other hand <em>must not</em> dependent on the
+deployment module as that would pull in all Quarkus augmentation and deployment code into the runtime, quite the contrary of
+what should be achieved.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, deployment modules are of course allowed to depend on other deployment modules so that module <code>B</code> can consume
+any build items from <code>A</code> and use them. The same applies for runtime modules: They are free to depend on other runtime modules.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The Quarkus people use Maven a lot. The make use of artifacts and extensions in a couple of places. Basically, using de-jure
+or de-facto standards for getting you up to speed and running. You can use</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>mvn io.quarkus:quarkus-maven-plugin:create-extension \
+  -DextensionId=my-ext \
+  -Dname=&quot;My extension&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to create a new extension. The process will ask you for a group id and depending on that, you will end up with a "standalone"
+layout, the "Quarkiverse"<sup class="footnote">[<a id="_footnoteref_15" class="footnote" href="#_footnotedef_15" title="View footnote.">15</a>]</sup> layout (in case your group id starts with <code>io.quarkiverse.</code>)
+or from within the Quarkus source tree itself, the "Quarkus core" layout.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_the_effect_on_neo4j_migrations"><a class="anchor" href="#_the_effect_on_neo4j_migrations"></a>3.3.3. The effect on Neo4j-Migrations</h4>
+<div class="paragraph">
+<p>How does the above restrictions respectively the philosophy affect Neo4j-Migrations and what can I enlist to demonstrate the
+possibilities of a good deployment module? A couple of things, as it turns out:</p>
+</div>
+<div class="paragraph">
+<p>First, Neo4j-Migrations depends on another deployment module, namely the Quarkus-Neo4j extension. How to access its primary
+build item.</p>
+</div>
+<div class="paragraph">
+<p>Neo4j-Migrations searches for resources (Cypher-Scripts) in both the class path as well as the file system. The latter is less
+than a problem then the former: The file  system is of course always accessible (well, mostly always), regardless if things are
+run on the JVM or native image. The class path is certainly accessible as well, but as we learned before, stuff that is not
+accessed at build time or explicitly declared to be included in the image just won&#8217;t be there.</p>
+</div>
+<div class="paragraph">
+<p>The same rules apply for Java (or Kotlin for that matter) implementations of <code>JavaBasedMigration</code> (an interface that allows for
+programmatic migrations).</p>
+</div>
+<div class="paragraph">
+<p>While resources and classes will always appear in the Quarkus JVM based output, they won&#8217;t appear in a GraalVM native image
+without additional hints (compare <a href="#GraalVMTooling">the tooling available for creating native GraalVM images</a>). We are lucky,
+Quarkus offers a couple of hints that will make sure that classes and resources are both read during startup and appear in a
+native image.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore, I wanted to make sure that a <code>Migrations</code> instance is available as CDI bean, so that a user can access it and
+call for <code>info</code>, <code>clean</code> and other operations.</p>
+</div>
+<div class="paragraph">
+<p>And last but not least, can we add some decent information to the developer console? Let&#8217;s have a look at each of the above
+points.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The relevant Quarkus code of Neo4j-Migrations is in this module and its submodules: <a href="https://github.com/michael-simons/neo4j-migrations/tree/1.4.0/neo4j-migrations-quarkus-parent">neo4j-migrations-quarkus-parent</a>,
+     The main processor is of course in the deployment module <a href="https://github.com/michael-simons/neo4j-migrations/blob/6b6064c69d7429411e420895bafca8b4ac850fb2/neo4j-migrations-quarkus-parent/deployment/src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/MigrationsProcessor.java#L65"><code>ac.simons.neo4j.migrations.quarkus.deployment.MigrationsProcessor</code></a>
+     and the main recorder is <a href="https://github.com/michael-simons/neo4j-migrations/blob/6b6064c69d7429411e420895bafca8b4ac850fb2/neo4j-migrations-quarkus-parent/runtime/src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsRecorder.java#L39"><code>ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder</code>.</a>
+    <br>
+     <strong>Every</strong> method annotated with <code>@BuildStep</code> lives in a processor!
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_declaring_the_feature"><a class="anchor" href="#_declaring_the_feature"></a>Declaring the feature</h5>
+<div class="paragraph">
+<p>This is the easiest step of them all:</p>
+</div>
+<div id="createFeature" class="listingblock">
+<div class="title">Listing 8. MigrationsProcessor#createFeature</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">public</span> <span class="type">class</span> <span class="class">MigrationsProcessor</span> {
+
+        <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">String</span> FEATURE_NAME = <span class="string"><span class="delimiter">&quot;</span><span class="content">neo4j-migrations</span><span class="delimiter">&quot;</span></span>;
+
+        <span class="annotation">@BuildStep</span>
+        <span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+        FeatureBuildItem createFeature() {
+
+                <span class="keyword">return</span> <span class="keyword">new</span> FeatureBuildItem(FEATURE_NAME);
+        }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is a <code>FeatureBuildItem</code> which just indicates a name for the feature provided by the extensions.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+What&#8217;s with the <code>@SuppressWarnings("unused")</code>: That&#8217;s the downside of "magic" code: The <code>@BuildStep</code> gets invoked by
+      the Maven plugins, so a static analyzer like Sonar (and most IDEs) have a hard time figuring out that this method is
+      actually used. I spent enough time on the quadruple A-Rating in <a href="https://sonarcloud.io/summary/overall?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent">sonarcloud</a>
+      which I don&#8217;t want to be spoiled with false positive of unused code.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_depending_on_another_deployment_module"><a class="anchor" href="#_depending_on_another_deployment_module"></a>Depending on another deployment module</h5>
+<div class="paragraph">
+<p>Neo4j-Migrations needs a connection to the Neo4j database it should be used with. This connection is provided via an instance
+of Neo4js <code>Driver</code>. That driver comes from Quarkus Neo4j.
+As the driver instance is of course a runtime dependency - it&#8217;s a bit hard to create a persistent database connection
+during build time and then serialize it to byte code - we need to depend on the corresponding deployment module from our
+own deployment module of course:</p>
+</div>
+<div id="quarkus-neo4j-deployment-dependency" class="listingblock">
+<div class="title">Listing 9. pom.xml (in deployment)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>io.quarkiverse.neo4j<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>quarkus-neo4j-deployment<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And the for full measurement, the runtime dependency in the runtime module:</p>
+</div>
+<div id="quarkus-neo4j-dependency" class="listingblock">
+<div class="title">Listing 10. pom.xml (in runtime)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span>io.quarkiverse.neo4j<span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span>quarkus-neo4j<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, how to use it? We must step ahead to the build step that puts everything together. It looks like this:</p>
+</div>
+<div id="createMigrations" class="listingblock">
+<div class="title">Listing 11. MigrationsProcessor#createMigrations</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@BuildStep</span>
+<span class="annotation">@Record</span>(ExecutionTime.RUNTIME_INIT) <i class="conum" data-value="1"></i><b>(1)</b>
+<span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+MigrationsBuildItem createMigrations(
+        MigrationsBuildTimeProperties buildTimeProperties,
+        MigrationsProperties runtimeProperties,
+        DiscovererBuildItem discovererBuildItem,
+        ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem,
+        MigrationsRecorder migrationsRecorder,
+        Neo4jDriverBuildItem driverBuildItem, <i class="conum" data-value="2"></i><b>(2)</b>
+        BuildProducer&lt;SyntheticBeanBuildItem&gt; syntheticBeans
+) {
+        <span class="type">var</span> configRv = migrationsRecorder
+                .recordConfig(
+                        buildTimeProperties, runtimeProperties,
+                        discovererBuildItem.getDiscoverer(),
+                        classpathResourceScannerBuildItem.getScanner()
+                );
+        <span class="type">var</span> configBean = SyntheticBeanBuildItem
+                .configure(MigrationsConfig.class)
+                .runtimeValue(configRv).setRuntimeInit()
+                .done();
+        syntheticBeans.produce(configBean);
+
+        <span class="type">var</span> migrationsRv = migrationsRecorder
+                .recordMigrations(configRv, driverBuildItem.getValue()); <i class="conum" data-value="3"></i><b>(3)</b>
+        <span class="type">var</span> migrationsBean = SyntheticBeanBuildItem
+                .configure(Migrations.class)
+                .runtimeValue(migrationsRv)
+                .setRuntimeInit()
+                .done();
+        syntheticBeans.produce(migrationsBean);
+
+        <span class="keyword">return</span> <span class="keyword">new</span> MigrationsBuildItem(migrationsRv);
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Remember what has been said in <a href="#build-steps">Section 3.3.1.1</a>? This annotation moves the bunch of code
+eventually into runtime. The main reason here being the fact that we cannot longer postpone the access to a valid
+physical database connection</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is a build item produced by a different extension. By declaring it as a method parameter, the build-plugins will
+inject those items during build time for you</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Here we retrieve the value from the build item. Be aware, it&#8217;s return type is actually a <code>RuntimeValue&lt;Driver&gt;</code>.
+The name is true to its nature: It is a value only accessible during runtime. It <strong>cannot</strong>  be used
+here.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The usage of the runtime value of another extension must happen in a recorder in the runtime module.
+<a href="#recordMigrations">Listing 12</a> shows the relevant piece of the recorder and actually the smallest one in terms of LoC: All the heavy lifting
+has been done while creating the config:</p>
+</div>
+<div id="recordMigrations" class="listingblock">
+<div class="title">Listing 12. MigrationsRecorder#recordMigrations</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Recorder</span> <i class="conum" data-value="1"></i><b>(1)</b>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MigrationsRecorder</span> {
+
+        <span class="directive">public</span> RuntimeValue&lt;Migrations&gt; recordMigrations(
+                RuntimeValue&lt;MigrationsConfig&gt; migrationsConfig,
+                RuntimeValue&lt;<span class="predefined-type">Driver</span>&gt; driver
+        ) {
+                <span class="keyword">return</span> <span class="keyword">new</span> RuntimeValue&lt;&gt;(
+                        <span class="keyword">new</span> Migrations(migrationsConfig.getValue(), driver.getValue()) <i class="conum" data-value="2"></i><b>(2)</b>
+                );
+        }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Marks the class as <code>@Recorder</code>. Any processor method annotated with <code>@Record(ExecutionTime.RUNTIME_INIT)</code> must declare
+an argument being a recorder.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Both parameters passed to <code>recordMigrations</code> are runtime values. Only here (and actually, only when the byte code created with this method)
+is executed, access to the runtime values value is possible.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_properties_and_configuration"><a class="anchor" href="#_properties_and_configuration"></a>Properties and configuration</h5>
+<div class="paragraph">
+<p>To quote the Quarkus manual:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Some Quarkus configurations only take effect during build time, meaning is not possible to change them at runtime.
+These configurations are still available at runtime but as read-only […].
+A change to any of these configurations requires a rebuild of the application itself to reflect changes of such properties.</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>Which makes perfectly sense in terms of <a href="#build-steps">Section 3.3.1.1</a>: The more things are settled during build, the more things can be
+written in <s>stone</s> bytecode.</p>
+</div>
+<div class="paragraph">
+<p>So there 4 different configuration phases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>build time: Values are read and available for usage at build time.</p>
+</li>
+<li>
+<p>build and runtime fixed: Values are read and available for usage at build time, and available on a read-only basis at run time.</p>
+</li>
+<li>
+<p>bootstrap: Values are read and available for usage at run time and are re-read on each program execution.</p>
+</li>
+<li>
+<p>run time: Values are read and available for usage at run time and are re-read on each program execution.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Phases that are relevant for Neo4j-Migrations are build and runtime fixed as well as runtime.
+In therms of numbers, most options for Neo4j-Migrations are actually runtime options (compare the list <a href="https://michael-simons.github.io/neo4j-migrations/1.4.0/#usage_spring-boot_all-properties">here</a>),
+such as the schema database or the target database (they might change depending on the URL (which is also runtime)) as well
+as the name of the user who executed the migration and which user to impersonate. It&#8217;s just fair
+to assume that when an application is connected to a different database, those change.</p>
+</div>
+<div class="paragraph">
+<p>They go in a properties class annotated with <code>@ConfigRoot</code> indicating its phase as <code>ConfigPhase.RUN_TIME</code>:</p>
+</div>
+<div id="MigrationsProperties" class="listingblock">
+<div class="title">Listing 13. MigrationsProperties (Excerpt)</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@ConfigRoot</span>(prefix = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.neo4j</span><span class="delimiter">&quot;</span></span>, name = <span class="string"><span class="delimiter">&quot;</span><span class="content">migrations</span><span class="delimiter">&quot;</span></span>, phase = ConfigPhase.RUN_TIME)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MigrationsProperties</span> {
+
+        <span class="annotation">@ConfigItem</span>
+        <span class="directive">public</span> Optional&lt;<span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt;&gt; externalLocations; <i class="conum" data-value="1"></i><b>(1)</b>
+
+        <span class="annotation">@ConfigItem</span>
+        <span class="directive">public</span> Optional&lt;<span class="predefined-type">String</span>&gt; database;
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A way out of the build time properties later on.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Our build time properties is a lot smaller and the whole class fits in the book:</p>
+</div>
+<div id="MigrationsBuildTimeProperties" class="listingblock">
+<div class="title">Listing 14. MigrationsBuildTimeProperties.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@ConfigRoot</span>(prefix = <span class="string"><span class="delimiter">&quot;</span><span class="content">org.neo4j</span><span class="delimiter">&quot;</span></span>, name = <span class="string"><span class="delimiter">&quot;</span><span class="content">migrations</span><span class="delimiter">&quot;</span></span>, phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MigrationsBuildTimeProperties</span> {
+
+        <span class="annotation">@ConfigItem</span>
+        <span class="directive">public</span> Optional&lt;<span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt;&gt; packagesToScan;
+
+        <span class="annotation">@ConfigItem</span>(defaultValue = Defaults.LOCATIONS_TO_SCAN_VALUE)
+        <span class="directive">public</span> <span class="predefined-type">List</span>&lt;<span class="predefined-type">String</span>&gt; locationsToScan;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both these classes live in the runtime module and the only technical difference is the phase. In the <a href="#MigrationsBuildTimeProperties">Listing 14</a>
+it is <code>ConfigPhase.BUILD_AND_RUN_TIME_FIXED</code>: The source of those properties is consulted during build time, passed to the system,
+evaluated in a sensible way and eventually written to byte code.</p>
+</div>
+<div class="paragraph">
+<p>And what should be pushed into build time? Discovering of classes and resources! Both of which Neo4j-Migrations
+need to do its refactoring work.</p>
+</div>
+<div class="paragraph">
+<p>Why the <code>externalLocations</code> property during runtime? This is an additional feature that allows to
+configure filesystem only locations for those cases in which they aren&#8217;t any migrations to discover during build but
+instead are stored completely independent of the application.</p>
+</div>
+<div class="paragraph">
+<p>How to access these properties? They must be injected into <code>@BuildSteps</code>, <a href="#createMigrations">Listing 11</a> being one example. It receives
+both build- and runtime properties. <a href="#createDiscoverer">Listing 15</a> is one more example coming up:</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_discovering_and_registering_resources_and_classes_during_deployment"><a class="anchor" href="#_discovering_and_registering_resources_and_classes_during_deployment"></a>Discovering and registering resources and classes during deployment</h5>
+<div class="paragraph">
+<p>Quarkus uses <a href="#Jandex">[Jandex]</a> for discovering and indexing classes (of a given type, with certain annotations or listed in configuration files).
+The documentation is a bit sparse around that topic, but Baeldung<sup class="footnote">[<a id="_footnoteref_16" class="footnote" href="#_footnotedef_16" title="View footnote.">16</a>]</sup> has you covered.
+The index can be accessed through the core build items <code>BeanArchiveIndexBuildItem</code> and <code>CombinedIndexBuildItem</code>.
+The latter allows programmatically adding classes to the index via a computing view on the index:
+When a class is asked for by name, it will be added automatically.</p>
+</div>
+<div id="createDiscoverer" class="listingblock">
+<div class="title">Listing 15. MigrationsProcessor#createDiscoverer</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@BuildStep</span>
+<span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+DiscovererBuildItem createDiscoverer(
+        CombinedIndexBuildItem combinedIndexBuildItem,
+        MigrationsBuildTimeProperties buildTimeProperties
+) {
+
+        <span class="type">var</span> packagesToScan = buildTimeProperties.packagesToScan
+                .orElseGet(<span class="predefined-type">List</span>::of);
+        <span class="type">var</span> index = combinedIndexBuildItem.getIndex();
+        <span class="type">var</span> classesFoundDuringBuild = findClassBasedMigrations(
+                packagesToScan, index); <i class="conum" data-value="1"></i><b>(1)</b>
+        <span class="keyword">return</span> <span class="keyword">new</span> DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer
+                .of(classesFoundDuringBuild));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Remember what I said in <a href="#general-considerations">Section 3.1</a> about abstracting away any third-party API you might be using? This is the
+part where it becomes relevant. While I do love <a href="#ClassGraph">[ClassGraph]</a>, it is not the perfect candidate for the task at hand: Discovering
+resources and classes in a Quarkus build environment. While it worked in Quarkus 2.6, things broke in 2.7. Together <a href="https://twitter.com/lh">@lh</a>
+I was able to fix this, but I was convinced to try Quarkus way.
+In case you&#8217;re interested in the abstraction itself: It&#8217;s called <code>Discoverer&lt;JavaBasedMigration&gt;</code> and
+it lives in <code>neo4j-migrations-core</code> inside the <code>neo4j-migrations-core</code> package. In most scenarios it uses the
+ClassGraph implementation, in Quarkus it is a <code>StaticJavaBasedMigrationDiscoverer</code>
+that is preloaded during build time with a fixed set of classes.</p>
+</div>
+<div class="paragraph">
+<p>I spare you the gory details of <code>findClassBasedMigrations</code> and just pick the essential part:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 16. Asking the Jandex for all implementors of a given interface:</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="type">var</span> dotName = DotName.createSimple(JavaBasedMigration.class.getName());
+indexView
+    .getAllKnownImplementors(dotName)
+    .forEach(classInfo -&gt; {
+        <span class="comment">// Do things with the classInfo found</span>
+        <span class="comment">// For example loading it:</span>
+        <span class="keyword">try</span> {
+            <span class="predefined-type">Thread</span>.currentThread().getContextClassLoader()
+                .loadClass(cf.name().toString())
+                .asSubclass(JavaBasedMigration.class);
+        } <span class="keyword">catch</span> (<span class="exception">ClassNotFoundException</span> e) {
+            <span class="comment">// Whatever</span>
+        }
+    });</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need access to class during build time, it must be loaded with the current threads classloader.
+Now what to do with those classes? I first create a <code>DiscovererBuildItem</code> in <a href="#createMigrations">Listing 11</a>.
+<code>DiscovererBuildItem</code> is a custom class, shown in the following listing:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 17. DiscovererBuildItem.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="directive">final</span> <span class="type">class</span> <span class="class">DiscovererBuildItem</span> <span class="directive">extends</span> SimpleBuildItem {
+
+        <span class="directive">private</span> <span class="directive">final</span> StaticJavaBasedMigrationDiscoverer discoverer;
+
+        DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer discoverer) {
+                <span class="local-variable">this</span>.discoverer = discoverer;
+        }
+
+        StaticJavaBasedMigrationDiscoverer getDiscoverer() {
+                <span class="keyword">return</span> discoverer;
+        }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This build item can be passed along as needed. And it is needed indeed: It is not enough to tell Neo4j-Migrations core
+"here are a set of classes", but these classes need to be registered for reflections as they are - most likely - never
+called from application code and therefore removed.</p>
+</div>
+<div class="paragraph">
+<p>A <code>ReflectiveClassBuildItem</code> to the rescue. This is a build in class that is used like this:</p>
+</div>
+<div id="registerMigrationsForReflections" class="listingblock">
+<div class="title">Listing 18. MigrationsProcessor#registerMigrationsForReflections</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@BuildStep</span>
+<span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+ReflectiveClassBuildItem registerMigrationsForReflections(DiscovererBuildItem discovererBuildItem) {
+
+        <span class="type">var</span> classes = discovererBuildItem.getDiscoverer()
+                .getMigrationClasses().toArray(<span class="keyword">new</span> <span class="predefined-type">Class</span>&lt;?&gt;[<span class="integer">0</span>]);
+        <span class="keyword">return</span> <span class="keyword">new</span> ReflectiveClassBuildItem(<span class="predefined-constant">true</span>, <span class="predefined-constant">true</span>, <span class="predefined-constant">true</span>, classes);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The boolean parameters corresponds which parts are eligible for reflection (constructor, methods, fields).</p>
+</div>
+<div class="paragraph">
+<p>Last but not least: Why are resources (like in Cypher-script files) also build time fixed? Because they must be explicitly
+included in the native image when compiled via GraalVM, otherwise they are kept out. The abstraction of discovering is similar
+to searching for classes, you can find it in the processor, too.</p>
+</div>
+<div class="paragraph">
+<p>They key to have resources in the native image is the <code>NativeImageResourceBuildItem</code>:</p>
+</div>
+<div id="addCypherResources" class="listingblock">
+<div class="title">Listing 19. MigrationsProcessor#addCypherResources</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@BuildStep</span>
+<span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+NativeImageResourceBuildItem addCypherResources(
+        ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem
+) {
+
+        <span class="type">var</span> resources = classpathResourceScannerBuildItem.getScanner()
+                .getResources();
+        <span class="keyword">return</span> <span class="keyword">new</span> NativeImageResourceBuildItem(resources.stream()
+                .map(ResourceWrapper::getPath)
+                .collect(Collectors.toList()));
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Quarkus offers some ways to create additional resources during build. These most be added explicitly
+     to native as well, this is not done automatically.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_adding_synthetic_beans"><a class="anchor" href="#_adding_synthetic_beans"></a>Adding synthetic beans</h5>
+<div class="paragraph">
+<p>As a final step, I wanted the user to be able to access the <code>Migrations</code> object in their (CDI) code and if enabled,
+execute migrations as soon as the Quarkus application starts.</p>
+</div>
+<div class="paragraph">
+<p>The former is done via a  <code>BuildProducer&lt;SyntheticBeanBuildItem&gt;</code> dependency, seen in <a href="#createMigrations">Listing 11</a>.
+Such a producer is a way to return multiple (different) build items from a build step. Here, I add the configuration
+and migrations bean as <code>SyntheticBeanBuildItem</code>.</p>
+</div>
+<div class="paragraph">
+<p>Last but not least, things happening on startup is done via a <code>ServiceStartBuildItem</code>.
+What is passed to a startup build item needs to be recorded in the build step producing the item as shown in <a href="#applyMigrations">Listing 20</a>:</p>
+</div>
+<div id="applyMigrations" class="listingblock">
+<div class="title">Listing 20. MigrationsProcessor#applyMigrations</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@BuildStep</span>
+<span class="annotation">@Record</span>(ExecutionTime.RUNTIME_INIT)
+<span class="annotation">@SuppressWarnings</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">unused</span><span class="delimiter">&quot;</span></span>)
+ServiceStartBuildItem applyMigrations(
+        MigrationsProperties migrationsProperties,
+        MigrationsRecorder migrationsRecorder,
+        MigrationsBuildItem migrationsBuildItem
+) {
+
+        migrationsRecorder.applyMigrations(migrationsBuildItem.getValue(),
+                migrationsRecorder.isEnabled(migrationsProperties));
+        <span class="keyword">return</span> <span class="keyword">new</span> ServiceStartBuildItem(FEATURE_NAME);
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_contributing_to_the_developer_console"><a class="anchor" href="#_contributing_to_the_developer_console"></a>Contributing to the developer console</h5>
+<div class="paragraph">
+<p>I tried to cover what&#8217;s possible in a small video <a href="https://michael-simons.github.io/neo4j-migrations/current/#devservicesintegration">here</a>.
+These things are usually done via an additional processor if they have some dynamic nature or just with "plain" <a href="https://quarkus.io/guides/qute">Qute template</a>.</p>
+</div>
+<div class="paragraph">
+<p>In terms of dynamic features (like in our case, accessing the <code>Migrations</code> bean and calling methods on it), there&#8217;s an SPI for
+that allowing to register VertX-HTTP based handlers.</p>
+</div>
+<div class="paragraph">
+<p>In terms of build time and runtime behaviour they are similar to what has been discussed above, in terms of SPI I did read
+some Quarkus source code.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_quintessence"><a class="anchor" href="#_quintessence"></a>3.3.4. Quintessence</h4>
+<div class="paragraph">
+<p>Without deep understanding how a framework - in this case Quarkus <strong>and</strong> the underlying target deployment of GraalVM native - works,
+it is not really possible to integrate an like Neo4j-Migrations in an meaningful way.</p>
+</div>
+<div class="paragraph">
+<p>But I&#8217;d go a step further: Without understanding the implications of deployment augmentation and runtime behaviour: The startup
+time, the quick turnaround, it&#8217;s nice and shiny, but it&#8217;s too easy to miss on something when things go wrong.</p>
+</div>
+<div class="paragraph">
+<p>My recommendation: For a "day 2" scenario, make sure what kind of target environment you have.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="releasing-things"><a class="anchor" href="#releasing-things"></a>4. Releasing things</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this chapter, we will discuss such things as semantic versioning, indicating breaking changes early and of course, release tooling.</p>
+</div>
+<div class="sect2">
+<h3 id="_semantic_versioning"><a class="anchor" href="#_semantic_versioning"></a>4.1. Semantic versioning</h3>
+
+</div>
+<div class="sect2">
+<h3 id="_release_tooling"><a class="anchor" href="#_release_tooling"></a>4.2. Release tooling</h3>
+
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_resources"><a class="anchor" href="#_resources"></a>Resources</h2>
 <div class="sectionbody">
 <div class="ulist bibliography">
@@ -1350,19 +2282,37 @@ All the power of Java right at your hands, as a script via <a href="#JBang">[JBa
 <p><a id="ASM"></a>[ASM] <a href="https://asm.ow2.io" class="bare">https://asm.ow2.io</a></p>
 </li>
 <li>
+<p><a id="a-kind-of-magic-2016"></a>[a-kind-of-magic-2016] <a href="https://info.michael-simons.eu/2016/06/01/talking-about-custom-spring-boot-starter-at-spring-io/" class="bare">https://info.michael-simons.eu/2016/06/01/talking-about-custom-spring-boot-starter-at-spring-io/</a></p>
+</li>
+<li>
 <p><a id="bash"></a>[bash] <a href="https://www.gnu.org/software/bash/" class="bare">https://www.gnu.org/software/bash/</a></p>
+</li>
+<li>
+<p><a id="ClassGraph"></a>[ClassGraph] <a href="https://github.com/classgraph/classgraph" class="bare">https://github.com/classgraph/classgraph</a></p>
 </li>
 <li>
 <p><a id="COCOMO"></a>[COCOMO] <a href="https://en.wikipedia.org/wiki/COCOMO" class="bare">https://en.wikipedia.org/wiki/COCOMO</a></p>
 </li>
 <li>
+<p><a id="Cypher-DSL"></a>[Cypher-DSL] <a href="https://github.com/neo4j-contrib/cypher-dsl" class="bare">https://github.com/neo4j-contrib/cypher-dsl</a></p>
+</li>
+<li>
 <p><a id="exec-maven-plugin"></a>[exec-maven-plugin] <a href="https://www.mojohaus.org/exec-maven-plugin" class="bare">https://www.mojohaus.org/exec-maven-plugin</a></p>
 </li>
 <li>
-<p><a id="helidon"></a>[helidon] <a href="https://helidon.io" class="bare">https://helidon.io</a></p>
+<p><a id="GraalVM"></a>[GraalVM] <a href="https://www.graalvm.org" class="bare">https://www.graalvm.org</a></p>
+</li>
+<li>
+<p><a id="GraalVMTooling"></a>[GraalVMTooling] <a href="https://info.michael-simons.eu/2020/09/15/about-the-tooling-available-to-create-native-graalvm-images/" class="bare">https://info.michael-simons.eu/2020/09/15/about-the-tooling-available-to-create-native-graalvm-images/</a></p>
+</li>
+<li>
+<p><a id="Helidon"></a>[Helidon] <a href="https://helidon.io" class="bare">https://helidon.io</a></p>
 </li>
 <li>
 <p><a id="JBang"></a>[JBang] <a href="https://www.jbang.dev" class="bare">https://www.jbang.dev</a></p>
+</li>
+<li>
+<p><a id="Jandex"></a>[Jandex] <a href="https://github.com/wildfly/jandex" class="bare">https://github.com/wildfly/jandex</a></p>
 </li>
 <li>
 <p><a id="japicmd"></a>[japicmd] <a href="https://github.com/siom79/japicmp" class="bare">https://github.com/siom79/japicmp</a></p>
@@ -1386,19 +2336,28 @@ All the power of Java right at your hands, as a script via <a href="#JBang">[JBa
 <p><a id="maven-enforcer-plugin"></a>[maven-enforcer-plugin] <a href="https://maven.apache.org/enforcer/maven-enforcer-plugin/" class="bare">https://maven.apache.org/enforcer/maven-enforcer-plugin/</a></p>
 </li>
 <li>
+<p><a id="Micronaut"></a>[Micronaut] <a href="https://micronaut.io" class="bare">https://micronaut.io</a></p>
+</li>
+<li>
 <p><a id="oss-quickstart"></a>[oss-quickstart] <a href="https://github.com/moditect/oss-quickstart" class="bare">https://github.com/moditect/oss-quickstart</a></p>
 </li>
 <li>
 <p><a id="picocli"></a>[picocli] <a href="https://picocli.info" class="bare">https://picocli.info</a></p>
 </li>
 <li>
-<p><a id="quarkus"></a>[quarkus] <a href="https://quarkus.io" class="bare">https://quarkus.io</a></p>
+<p><a id="Quarkus"></a>[Quarkus] <a href="https://quarkus.io" class="bare">https://quarkus.io</a></p>
 </li>
 <li>
 <p><a id="scc"></a>[scc] <a href="https://github.com/boyter/scc" class="bare">https://github.com/boyter/scc</a></p>
 </li>
 <li>
 <p><a id="sortpom"></a>[sortpom] <a href="https://github.com/Ekryd/sortpom" class="bare">https://github.com/Ekryd/sortpom</a></p>
+</li>
+<li>
+<p><a id="SpringBoot"></a>[SpringBoot] <a href="https://spring.io/projects/spring-boot" class="bare">https://spring.io/projects/spring-boot</a></p>
+</li>
+<li>
+<p><a id="SpringFramework"></a>[SpringFramework] <a href="https://spring.io/projects/spring-framework" class="bare">https://spring.io/projects/spring-framework</a></p>
 </li>
 <li>
 <p><a id="stein-maven-coordinates-and-module-names"></a>[stein-maven-coordinates-and-module-names] <a href="https://sormuras.github.io/blog/2019-08-04-maven-coordinates-and-java-module-names.html" class="bare">https://sormuras.github.io/blog/2019-08-04-maven-coordinates-and-java-module-names.html</a></p>
@@ -1443,10 +2402,28 @@ All the power of Java right at your hands, as a script via <a href="#JBang">[JBa
 <div class="footnote" id="_footnotedef_10">
 <a href="#_footnoteref_10">10</a>. <a href="https://picocli.info/autocomplete.html" class="bare">https://picocli.info/autocomplete.html</a>
 </div>
+<div class="footnote" id="_footnotedef_11">
+<a href="#_footnoteref_11">11</a>. <a href="https://speakerdeck.com/michaelsimons/its-a-kind-of-magic-custom-spring-boot-starter" class="bare">https://speakerdeck.com/michaelsimons/its-a-kind-of-magic-custom-spring-boot-starter</a>
+</div>
+<div class="footnote" id="_footnotedef_12">
+<a href="#_footnoteref_12">12</a>. <a href="https://docs.micronaut.io/latest/guide/index.html#architecture" class="bare">https://docs.micronaut.io/latest/guide/index.html#architecture</a>
+</div>
+<div class="footnote" id="_footnotedef_13">
+<a href="#_footnoteref_13">13</a>. <a href="https://github.com/neo4j-contrib/cypher-dsl/tree/main/neo4j-cypher-dsl-codegen/neo4j-cypher-dsl-codegen-sdn6" class="bare">https://github.com/neo4j-contrib/cypher-dsl/tree/main/neo4j-cypher-dsl-codegen/neo4j-cypher-dsl-codegen-sdn6</a>
+</div>
+<div class="footnote" id="_footnotedef_14">
+<a href="#_footnoteref_14">14</a>. <a href="https://quarkus.io/guides/writing-extensions#bootstrap-three-phases" class="bare">https://quarkus.io/guides/writing-extensions#bootstrap-three-phases</a>
+</div>
+<div class="footnote" id="_footnotedef_15">
+<a href="#_footnoteref_15">15</a>. <a href="https://github.com/quarkiverse" class="bare">https://github.com/quarkiverse</a>
+</div>
+<div class="footnote" id="_footnotedef_16">
+<a href="#_footnoteref_16">16</a>. <a href="https://www.baeldung.com/quarkus-bean-discovery-index" class="bare">https://www.baeldung.com/quarkus-bean-discovery-index</a>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-14 09:41:12 +0100
+Last updated 2022-03-02 12:01:50 +0100
 </div>
 </div>
 </body>

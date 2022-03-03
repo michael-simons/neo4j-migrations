@@ -2,7 +2,7 @@
 //JAVA 17
 //DEPS org.testcontainers:neo4j:1.16.2
 //DEPS org.slf4j:slf4j-simple:1.7.32
-//DEPS org.neo4j.driver:neo4j-java-driver:4.4.2
+//DEPS org.neo4j.driver:neo4j-java-driver:4.4.3
 //DEPS org.assertj:assertj-core:3.22.0
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,8 +39,8 @@ public class test_native_cli {
 		}
 
 		var expectedOutput = List.of(
-			"Applied migration 0001 (\"delete old data\")",
-			"Applied migration 0002 (\"create new data\")",
+			"Applied migration 0001 (\"delete old data\").",
+			"Applied migration 0002 (\"create new data\").",
 			"Database migrated to version 0002."
 		);
 

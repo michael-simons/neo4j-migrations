@@ -52,7 +52,8 @@ final class CypherBasedCallback implements Callback {
 		}
 
 		this.phase = LifecyclePhase.fromCamelCase(matcher.group(1));
-		this.description = matcher.group(2);
+		String optionalDescription = matcher.group(2);
+		this.description = optionalDescription == null ? null : optionalDescription.trim().replace("_", " ");
 	}
 
 	@Override

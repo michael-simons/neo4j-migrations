@@ -17,8 +17,10 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,11 +32,11 @@ class LifecyclePhaseTest {
 
 	@ParameterizedTest
 	@CsvSource(value = {
-			"afterMigrate.cypher,n/a,true",
-			"beforeMigrate__01test.cypher,01test,true",
-			"beforeClean__test.cypher,test,true",
-			"beforeclean__test.cypher,n/a,false",
-			"afterMigrate.cyp,n/a,false"
+		"afterMigrate.cypher,n/a,true",
+		"beforeMigrate__01test.cypher,01test,true",
+		"beforeClean__test.cypher,test,true",
+		"beforeclean__test.cypher,n/a,false",
+		"afterMigrate.cyp,n/a,false"
 	}, nullValues = "n/a")
 	void patternShouldWork(String in, String description, boolean matches) {
 		Matcher m = LifecyclePhase.LIFECYCLE_PATTERN.matcher(in);
@@ -62,6 +64,17 @@ class LifecyclePhaseTest {
 			assertThat(matcher.matches()).isTrue();
 		} else {
 			assertThat(matcher.matches()).isFalse();
+		}
+	}
+
+	@Test
+	void readableShouldWork() {
+		Locale defaultLocale = Locale.getDefault();
+		try {
+			Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+			assertThat(LifecyclePhase.BEFORE_FIRST_USE.readable()).isEqualTo("before first use");
+		} finally {
+			Locale.setDefault(defaultLocale);
 		}
 	}
 }

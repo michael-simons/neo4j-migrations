@@ -331,7 +331,17 @@ public final class Migrations {
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())
-			.forEach(callback -> callback.on(event));
+			.forEach(callback -> {
+				callback.on(event);
+				LOGGER.log(Level.INFO, logMessageSupplier(callback, phase));
+			});
+	}
+
+	static Supplier<String> logMessageSupplier(Callback callback, LifecyclePhase phase) {
+		Optional<String> optionalDescription = callback.getOptionalDescription();
+		return () -> optionalDescription
+			.map(d -> String.format("Invoked \"%s\" %s.", d, phase.readable()))
+			.orElseGet(() -> String.format("Invoked %s callback.", phase.toCamelCase()));
 	}
 
 	private Optional<MigrationVersion> getLastAppliedVersion() {
@@ -388,7 +398,7 @@ public final class Migrations {
 				long executionTime = stopWatch.stop();
 				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
-				LOGGER.log(Level.INFO, "Applied migration {0}", toString(migration));
+				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
 			} catch (Exception e) {
 				throw new MigrationsException("Could not apply migration: " + toString(migration), e);
 			} finally {

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -23,9 +25,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
 import org.neo4j.driver.QueryRunner;
@@ -43,6 +47,7 @@ import org.neo4j.driver.summary.SummaryCounters;
 final class CypherResource {
 
 	private static final Logger LOGGER = Logger.getLogger(CypherResource.class.getName());
+	private static final Predicate<String> NOT_A_SINGLE_COMMENT = s -> !Strings.isSingleLineComment(s);
 
 	/**
 	 * The URL of the Cypher script.
@@ -116,6 +121,8 @@ final class CypherResource {
 
 		try (Session session = context.getDriver().session(context.getSessionConfig(sessionCustomizer))) {
 
+			List<String> executableStatements = getStatements(NOT_A_SINGLE_COMMENT);
+
 			int numberOfStatements = 0;
 			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();
 			if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
@@ -123,7 +130,7 @@ final class CypherResource {
 				LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", script);
 				numberOfStatements = session.writeTransaction(t -> {
 					int cnt = 0;
-					for (String statement : getStatements()) {
+					for (String statement : executableStatements) {
 						run(t, statement);
 						++cnt;
 					}
@@ -133,7 +140,7 @@ final class CypherResource {
 			} else if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT) {
 
 				LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", script);
-				for (String statement : getStatements()) {
+				for (String statement : executableStatements) {
 					numberOfStatements += session.writeTransaction(t -> {
 						run(t, statement);
 						return 1;
@@ -167,6 +174,13 @@ final class CypherResource {
 	 * @return The list of statements to apply.
 	 */
 	List<String> getStatements() {
+		return getStatements(null);
+	}
+
+	/**
+	 * @return A filtered list of statements
+	 */
+	List<String> getStatements(Predicate<String> filter) {
 
 		List<String> availableStatements = this.statements;
 		if (availableStatements == null) {
@@ -178,7 +192,7 @@ final class CypherResource {
 				}
 			}
 		}
-		return availableStatements;
+		return filter == null ? availableStatements : availableStatements.stream().filter(filter).collect(Collectors.toList());
 	}
 
 	/**

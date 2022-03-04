@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
@@ -57,6 +58,22 @@ public final class Strings {
 		}
 
 		return sb.toString();
+	}
+
+	/**
+	 * @param statement A statement to check
+	 * @return True if the statement is not null and is a single line comment
+	 */
+	public static boolean isSingleLineComment(String statement) {
+
+		Objects.requireNonNull(statement, "Statement to check must not be null");
+
+		String trimmed = statement.trim();
+		if (!trimmed.startsWith("//")) {
+			return false;
+		}
+
+		return !trimmed.contains("\n");
 	}
 
 	private Strings() {

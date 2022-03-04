@@ -16,9 +16,12 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
@@ -77,5 +80,22 @@ class PreconditionTest {
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(CypherPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = "// Hello, not a precondition")
+	void shouldIgnoreThingsThatAreNoPrecondition(String value) {
+
+		Precondition precondition = Precondition.parse(value);
+		assertThat(precondition).isNull();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
+	void shouldThrowWithWrongStuff(String value) {
+
+		Assertions.assertThatIllegalArgumentException()
+			.isThrownBy(() -> Precondition.parse(value))
+			.withMessage("Wrong precondition keyword. Allowed: `[assume, assert] that`");
 	}
 }

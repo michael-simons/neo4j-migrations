@@ -28,6 +28,12 @@ import java.util.function.UnaryOperator;
 public final class Strings {
 
 	/**
+	 * Single line comment indicator
+	 */
+	public static final String CYPHER_SINGLE_LINE_COMMENT = "//";
+
+
+	/**
 	 * Transforms a string with words separated by {@literal _} into a camelCase string.
 	 *
 	 * @param value The value to transform
@@ -61,6 +67,15 @@ public final class Strings {
 	}
 
 	/**
+	 * This won't match a statement like
+	 * <pre>
+	 *     // Right at the start
+	 *     MATCH (n) RETURN count(n) AS n;
+	 * </pre>
+	 * which will pe extracted from a Cypher file as one statement starting with a comment.
+	 * <p>
+	 * It would be nice to use the JavaCC Parser here as we do in Cypher-DSL, but that would require Java 11 for core.
+	 *
 	 * @param statement A statement to check
 	 * @return True if the statement is not null and is a single line comment
 	 */
@@ -69,11 +84,11 @@ public final class Strings {
 		Objects.requireNonNull(statement, "Statement to check must not be null");
 
 		String trimmed = statement.trim();
-		if (!trimmed.startsWith("//")) {
+		if (!trimmed.startsWith(CYPHER_SINGLE_LINE_COMMENT)) {
 			return false;
 		}
 
-		return !trimmed.contains("\n");
+		return !(trimmed.contains("\n") || trimmed.contains("\r"));
 	}
 
 	private Strings() {

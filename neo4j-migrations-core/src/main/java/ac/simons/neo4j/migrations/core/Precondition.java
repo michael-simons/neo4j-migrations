@@ -35,7 +35,7 @@ interface Precondition {
 		/**
 		 * Preconditions that are assumed and are not satisfied will lead to migrations being skipped.
 		 */
-		ASSUMPTION("// *assume that*"),
+		ASSUMPTION("// *assume (?: in (?:schema|target))? that*"),
 		/**
 		 * Preconditions that are asserted and are not satisfied will halt the migrations at the given migration.
 		 */

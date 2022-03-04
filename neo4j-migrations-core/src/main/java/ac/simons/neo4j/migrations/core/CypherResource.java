@@ -30,6 +30,7 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.CRC32;
 
 import org.neo4j.driver.QueryRunner;
@@ -121,7 +122,7 @@ final class CypherResource {
 
 		try (Session session = context.getDriver().session(context.getSessionConfig(sessionCustomizer))) {
 
-			List<String> executableStatements = getStatements(NOT_A_SINGLE_COMMENT);
+			List<String> executableStatements = getExecutableStatements();
 
 			int numberOfStatements = 0;
 			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();
@@ -221,5 +222,35 @@ final class CypherResource {
 		}
 
 		return Collections.unmodifiableList(newStatements);
+	}
+
+	/**
+	 * @return A list of executable statements (they might have or might not have comments in them, we don't care)
+	 */
+	List<String> getExecutableStatements() {
+		return getStatements(NOT_A_SINGLE_COMMENT);
+	}
+
+	/**
+	 * @return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement
+	 */
+	List<String> getSingleLineComments() {
+		return getStatements()
+			.stream()
+			.filter(s -> s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT))
+			.flatMap(s -> {
+				boolean notAComment;
+				Stream.Builder<String> builder = Stream.builder();
+				for (String line : s.split("\r?\n|\r")) {
+					line = line.trim();
+					notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);
+					if (notAComment) {
+						break;
+					}
+					builder.add(line);
+				}
+				return builder.build();
+			})
+			.collect(Collectors.toList());
 	}
 }

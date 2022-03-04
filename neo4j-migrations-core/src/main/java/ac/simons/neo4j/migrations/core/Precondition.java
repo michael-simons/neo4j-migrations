@@ -69,7 +69,7 @@ interface Precondition {
 		Matcher versionMatcher = Pattern.compile(".*neo4j is (?<versions>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (versionMatcher.matches()) {
 			String	 versionGroup = versionMatcher.group("versions");
-			versionGroup = versionGroup.replaceAll("or", "").replaceAll(" ", "");
+			versionGroup = versionGroup.replace("or", "").replace(" ", "");
 			Set<String> versions = Arrays.stream(versionGroup.split(","))
 				.map(version -> "Neo4j/" + version)
 				.collect(Collectors.toSet());
@@ -79,7 +79,7 @@ interface Precondition {
 		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (editionMatcher.matches()) {
 			String editionGroup = editionMatcher.group("edition");
-			HBD.Edition edition = HBD.Edition.valueOf(editionGroup.replaceAll(" ", "").toUpperCase(Locale.ROOT));
+			HBD.Edition edition = HBD.Edition.valueOf(editionGroup.replace(" ", "").toUpperCase(Locale.ROOT));
 
 			return new EditionPrecondition(type, edition);
 
@@ -90,7 +90,7 @@ interface Precondition {
 			String cypherGroup = cypherMatcher.group("cypher");
 			String databaseGroup = cypherMatcher.group("database");
 			if (databaseGroup != null) {
-				databaseGroup = databaseGroup.replace("in", "").replaceAll(" ", "").trim();
+				databaseGroup = databaseGroup.replace("in", "").replace(" ", "").trim();
 			}
 
 			return new CypherPrecondition(type, cypherGroup, databaseGroup);

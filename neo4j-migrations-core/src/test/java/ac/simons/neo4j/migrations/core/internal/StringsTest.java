@@ -16,9 +16,12 @@
 package ac.simons.neo4j.migrations.core.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
@@ -35,5 +38,24 @@ final class StringsTest {
 	})
 	void toCamelCaseShouldWork(String in, String expected) {
 		assertThat(Strings.toCamelCase(in)).isEqualTo(expected);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"// Simple comment",
+		"  // not so simple",
+		" //foo    ",
+		" //foo    \n",
+		" //foo  \n ",
+		" //foo \r\n "
+	})
+	void shouldDetectSingleLineComment(String in) {
+		assertThat(Strings.isSingleLineComment(in)).isTrue();
+	}
+
+	@Test
+	void shouldRequireValue() {
+		assertThatNullPointerException().isThrownBy(() -> Strings.isSingleLineComment(null))
+			.withMessage("Statement to check must not be null");
 	}
 }

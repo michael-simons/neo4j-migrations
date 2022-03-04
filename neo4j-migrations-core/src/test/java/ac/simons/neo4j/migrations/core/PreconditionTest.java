@@ -62,7 +62,9 @@ class PreconditionTest {
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
 		"// assume that edition is enterprise; ASSUMPTION",
-		"// assUMe that edition is community; ASSUMPTION",
+		"// assume that edition is EnteRprise; ASSUMPTION",
+		"// assume that edition is community; ASSUMPTION",
+		"// assUMe that edition is comMunity; ASSUMPTION",
 		"// ASSERT that edition is enterprise; ASSERTION",
 		"// assERT that edition is community; ASSERTION",
 		"//assUMe that edition is community; ASSUMPTION",
@@ -98,6 +100,8 @@ class PreconditionTest {
 		"//assert that RETURN TRUE; ASSERTION",
 		"// assume in target that RETURN TRUE; ASSUMPTION",
 		"// assume in schema that RETURN TRUE; ASSUMPTION",
+		"// assume in tARget that RETURN TRUE; ASSUMPTION",
+		"// assume in schEMa that RETURN TRUE; ASSUMPTION",
 	})
 	void shouldParseCypherPreconditions(String value, Precondition.Type expectedType) {
 

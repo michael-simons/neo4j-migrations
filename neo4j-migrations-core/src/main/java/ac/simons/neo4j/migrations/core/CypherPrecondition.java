@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Locale;
+
 /**
  * @since 1.4.1
  */
@@ -27,7 +29,7 @@ final class CypherPrecondition extends AbstractPrecondition implements Precondit
 	CypherPrecondition(Type type, String query, String targetDatabase) {
 		super(type);
 		this.query = query;
-		this.targetDatabase = targetDatabase == null ? "target" : targetDatabase;
+		this.targetDatabase = targetDatabase == null ? "target" : targetDatabase.toLowerCase(Locale.ROOT);
 	}
 
 	@Override
@@ -37,7 +39,7 @@ final class CypherPrecondition extends AbstractPrecondition implements Precondit
 		} else if ("target".equals(targetDatabase)) {
 			return migrationContext.getSession().run(query).single().get(0).asBoolean();
 		} else {
-			throw new IllegalStateException("not today");
+			throw new IllegalStateException("Target database not supported. Available databases are 'schmema' or 'target'.");
 		}
 	}
 }

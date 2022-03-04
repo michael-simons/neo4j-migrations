@@ -75,12 +75,14 @@ interface Precondition {
 			try {
 				String versionGroup = versionMatcher.group("versions");
 				versionGroup = versionGroup.replace("or", "").replace(" ", "");
-				Set<String> versions = Arrays.stream(versionGroup.split(","))
-						.peek(version -> {
-							if (!VERSION_PATTERN.matcher(version).matches()) {
-								throw new IllegalArgumentException(); // bubbles up to the outer catch
-							}
-						})
+
+				List<String> versionsValue = Arrays.asList(versionGroup.split(","));
+				versionsValue.forEach(version -> {
+					if (!VERSION_PATTERN.matcher(version).matches()) {
+						throw new IllegalArgumentException(); // bubbles up to the outer catch
+					}
+				});
+				Set<String> versions = versionsValue.stream()
 						.map(version -> "Neo4j/" + version)
 						.collect(Collectors.toSet());
 				return new VersionPrecondition(type, versions);

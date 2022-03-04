@@ -15,16 +15,16 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * @since 1.4.1
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition  {
 
-	private final Set<String> requestedVersion;
+	private final Collection<String> requestedVersion;
 
-	VersionPrecondition(Type type, Set<String> requestedVersions) {
+	VersionPrecondition(Type type, Collection<String> requestedVersions) {
 		super(type);
 		this.requestedVersion = requestedVersions;
 	}

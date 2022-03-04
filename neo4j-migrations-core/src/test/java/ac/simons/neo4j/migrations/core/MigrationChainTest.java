@@ -45,6 +45,11 @@ class MigrationChainTest {
 			return "j";
 		}
 
+		@Override
+		public Edition getEdition() {
+			return Edition.ENTERPRISE;
+		}
+
 		@SuppressWarnings("deprecation")
 		@Override public String getDatabaseName() {
 			return null;

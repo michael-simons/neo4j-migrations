@@ -15,6 +15,13 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 /**
  * @since 1.4.1
  */
@@ -26,6 +33,37 @@ interface Precondition {
 	}
 
 	static Precondition parse(String in) {
+		Predicate<String> assumptionPattern = Pattern.compile("// *assume that*", Pattern.CASE_INSENSITIVE).asPredicate();
+		Predicate<String> assertionPattern = Pattern.compile("// *assert that*", Pattern.CASE_INSENSITIVE).asPredicate();
+		Type type = null;
+
+		if (assumptionPattern.test(in)) {
+			type = Type.ASSUMPTION;
+		} else if (assertionPattern.test(in)) {
+			type = Type.ASSERTION;
+		} else {
+			throw new IllegalArgumentException("Wrong precondition keyword. Allowed: `[assume, assert] that`");
+		}
+
+		Matcher versionMatcher = Pattern.compile(".*neo4j is (?<versions>.+)").matcher(in);
+		if (versionMatcher.matches()) {
+			String versionGroup = versionMatcher.group("versions");
+			versionGroup = versionGroup.replaceAll("or", "").replaceAll(" ", "");
+			Set<String> versions = Arrays.stream(versionGroup.split(","))
+					.map(version -> "Neo4j/" + version)
+					.collect(Collectors.toSet());
+			return new VersionPrecondition(type, versions);
+		}
+
+		// todo fine tune regex to avoid multiple editions
+		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)").matcher(in);
+		if (editionMatcher.matches()) {
+			String editionGroup = editionMatcher.group("edition");
+			ConnectionDetails.Edition edition = ConnectionDetails.Edition.from(editionGroup.replaceAll(" ", ""));
+
+			return new EditionPrecondition(type, edition);
+
+		}
 
 		return null;
 	}

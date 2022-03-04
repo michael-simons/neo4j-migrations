@@ -157,10 +157,14 @@ final class DefaultMigrationContext implements MigrationContext {
 			final ServerVersion version;
 			final ServerInfo server;
 			final DatabaseInfo database;
+			final String edition;
 
-			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, ResultSummary actualSummary) {
+			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, String edition,
+							ResultSummary actualSummary) {
+
 				this.showCurrentUserExists = showCurrentUserExists;
 				this.version = version;
+				this.edition = edition;
 				this.server = actualSummary.server();
 				this.database = actualSummary.database();
 			}
@@ -174,14 +178,15 @@ final class DefaultMigrationContext implements MigrationContext {
 					+ "CALL dbms.procedures() YIELD name "
 					+ "WHERE name = 'dbms.showCurrentUser' "
 					+ "WITH count(*) > 0 AS showCurrentUserExists "
-					+ "CALL dbms.components() YIELD versions "
-					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version"
+					+ "CALL dbms.components() YIELD versions, edition "
+					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition"
 				);
 				Record singleResultRecord = result.single();
 				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
 				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
+				String edition = singleResultRecord.get("edition").asString();
 				ResultSummary summary = result.consume();
-				return new ExtendedResultSummary(showCurrentUserExists, version, summary);
+				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
 			});
 
 			String username = "anonymous";
@@ -197,8 +202,9 @@ final class DefaultMigrationContext implements MigrationContext {
 			ServerInfo serverInfo = databaseInformation.server;
 			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
 			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
-			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(), username,
-				targetDatabase, schemaDatabase);
+			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(),
+					ConnectionDetails.Edition.from(databaseInformation.edition.toString()), username, targetDatabase,
+					schemaDatabase);
 		}
 	}
 

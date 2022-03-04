@@ -56,7 +56,7 @@ class ConstraintsIT {
 		"4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetectCorrectVersion(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
 	}
 
@@ -66,7 +66,7 @@ class ConstraintsIT {
 		"4.5, true", "5.0, true", "5, false", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
 	}
 

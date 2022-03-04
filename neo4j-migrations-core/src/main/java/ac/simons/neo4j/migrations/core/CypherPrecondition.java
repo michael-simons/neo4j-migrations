@@ -20,12 +20,15 @@ package ac.simons.neo4j.migrations.core;
  */
 final class CypherPrecondition extends AbstractPrecondition implements Precondition {
 
-	CypherPrecondition(Type type) {
+	private final String query;
+
+	CypherPrecondition(Type type, String query) {
 		super(type);
+		this.query = query;
 	}
 
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
-		return false;
+		return migrationContext.getSession().run(query).single().get(0).asBoolean();
 	}
 }

@@ -15,16 +15,22 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Set;
+
 /**
  * @since 1.4.1
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition  {
 
-	VersionPrecondition(Type type) {
+	private final Set<String> requestedVersion;
+
+	VersionPrecondition(Type type, Set<String> requestedVersions) {
 		super(type);
+		this.requestedVersion = requestedVersions;
 	}
 
 	@Override public boolean isSatisfied(MigrationContext migrationContext) {
-		return false;
+		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
+		return requestedVersion.contains(serverVersion);
 	}
 }

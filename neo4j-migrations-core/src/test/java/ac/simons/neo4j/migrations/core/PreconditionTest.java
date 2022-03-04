@@ -29,9 +29,9 @@ class PreconditionTest {
 		"// assume that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSUMPTION",
 		"// ASSERT that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSERTION",
 		"// assert that neo4j is 3.4,3.5, 4.4 or 5.0; ASSERTION",
-		"// ASSERT that neo4j is 3.4; ASSUMPTION",
+		"// ASSERT that neo4j is 3.4; ASSERTION",
 		"//assume that neo4j is 3.4; ASSUMPTION",
-		"//assert that neo4j is 3.4; ASSUMPTION",
+		"//assert that neo4j is 3.4; ASSERTION",
 	})
 	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType) {
 

@@ -20,11 +20,15 @@ package ac.simons.neo4j.migrations.core;
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
-	public EditionPrecondition(Type type) {
+	private final ConnectionDetails.Edition edition;
+
+	EditionPrecondition(Type type, ConnectionDetails.Edition edition) {
 		super(type);
+		this.edition = edition;
 	}
 
-	@Override public boolean isSatisfied(MigrationContext migrationContext) {
-		return false;
+	@Override
+	public boolean isSatisfied(MigrationContext migrationContext) {
+		return migrationContext.getConnectionDetails().getEdition().equals(edition);
 	}
 }

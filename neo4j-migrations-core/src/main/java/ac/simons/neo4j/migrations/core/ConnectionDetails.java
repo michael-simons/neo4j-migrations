@@ -27,6 +27,29 @@ import java.util.Optional;
 public interface ConnectionDetails {
 
 	/**
+	 * Neo4j edition
+	 */
+	enum Edition {
+		ENTERPRISE("enterprise"),
+		COMMUNITY("community");
+
+		private final String edition;
+
+		Edition(String edition) {
+			this.edition = edition;
+		}
+
+		public static Edition from(String editionValue) {
+			for (Edition edition : values()) {
+				if (edition.edition.equals(editionValue)) {
+					return edition;
+				}
+			}
+			return null; // todo or fail
+		}
+	}
+
+	/**
 	 * @return the address of the server used
 	 */
 	String getServerAddress();
@@ -50,4 +73,9 @@ public interface ConnectionDetails {
 	 * @return the database if applicable (Neo4j 4.0 and up)
 	 */
 	Optional<String> getOptionalSchemaDatabaseName();
+
+	/**
+	 * @return the Neo4j {@link Edition}
+	 */
+	Edition getEdition();
 }

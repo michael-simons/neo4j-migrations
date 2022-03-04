@@ -28,19 +28,22 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	private final String serverVersion;
 
+	private final Edition edition;
+
 	private final String username;
 
 	private final String databaseName;
 
 	private final String schemaDatabaseName;
 
-	DefaultConnectionDetails(String serverAddress, String serverVersion, String username,
+	DefaultConnectionDetails(String serverAddress, String serverVersion, Edition edition, String username,
 		String databaseName, String schemaDatabaseName) {
 		this.serverAddress = serverAddress;
 		this.serverVersion = serverVersion;
 		this.username = username;
 		this.databaseName = databaseName;
 		this.schemaDatabaseName = schemaDatabaseName;
+		this.edition = edition;
 	}
 
 	@Override
@@ -66,5 +69,10 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 	@Override
 	public Optional<String> getOptionalSchemaDatabaseName() {
 		return Optional.ofNullable(schemaDatabaseName);
+	}
+
+	@Override
+	public Edition getEdition() {
+		return edition;
 	}
 }

@@ -20,15 +20,24 @@ package ac.simons.neo4j.migrations.core;
  */
 final class CypherPrecondition extends AbstractPrecondition implements Precondition {
 
+	private final String targetDatabase;
+
 	private final String query;
 
-	CypherPrecondition(Type type, String query) {
+	CypherPrecondition(Type type, String query, String targetDatabase) {
 		super(type);
 		this.query = query;
+		this.targetDatabase = targetDatabase == null ? "target" : targetDatabase;
 	}
 
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
-		return migrationContext.getSession().run(query).single().get(0).asBoolean();
+		if ("schema".equals(targetDatabase)) {
+			return migrationContext.getSchemaSession().run(query).single().get(0).asBoolean();
+		} else if ("target".equals(targetDatabase)) {
+			return migrationContext.getSession().run(query).single().get(0).asBoolean();
+		} else {
+			throw new IllegalStateException("not today");
+		}
 	}
 }

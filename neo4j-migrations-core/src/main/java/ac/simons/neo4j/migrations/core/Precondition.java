@@ -36,11 +36,11 @@ interface Precondition {
 		/**
 		 * Preconditions that are assumed and are not satisfied will lead to migrations being skipped.
 		 */
-		ASSUMPTION("// *assume (?: in (?:schema|target))? that*"),
+		ASSUMPTION("// *assume(?: in (?:schema|target))? that.*"),
 		/**
 		 * Preconditions that are asserted and are not satisfied will halt the migrations at the given migration.
 		 */
-		ASSERTION("// *assert that*");
+		ASSERTION("// *assert(?: in (?:schema|target))? that.*");
 
 		private final Pattern pattern;
 
@@ -54,7 +54,7 @@ interface Precondition {
 			} else if (ASSERTION.pattern.matcher(value).find()) {
 				return Type.ASSERTION;
 			} else {
-				throw new IllegalArgumentException("Wrong precondition keyword. Allowed: `[assume, assert] that`");
+				return null;
 			}
 		}
 	}
@@ -62,9 +62,13 @@ interface Precondition {
 	static Precondition parse(String in) {
 
 		Type type = Type.of(in);
-		Matcher versionMatcher = Pattern.compile(".*neo4j is (?<versions>.+)").matcher(in);
+		if (type == null) {
+			return null;
+		}
+
+		Matcher versionMatcher = Pattern.compile(".*neo4j is (?<versions>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (versionMatcher.matches()) {
-			String versionGroup = versionMatcher.group("versions");
+			String	 versionGroup = versionMatcher.group("versions");
 			versionGroup = versionGroup.replaceAll("or", "").replaceAll(" ", "");
 			Set<String> versions = Arrays.stream(versionGroup.split(","))
 				.map(version -> "Neo4j/" + version)
@@ -72,8 +76,7 @@ interface Precondition {
 			return new VersionPrecondition(type, versions);
 		}
 
-		// todo fine tune regex to avoid multiple editions
-		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)").matcher(in);
+		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (editionMatcher.matches()) {
 			String editionGroup = editionMatcher.group("edition");
 			HBD.Edition edition = HBD.Edition.valueOf(editionGroup.replaceAll(" ", "").toUpperCase(Locale.ROOT));
@@ -82,7 +85,19 @@ interface Precondition {
 
 		}
 
-		return null;
+		Matcher cypherMatcher = Pattern.compile("// *(assert|assume)(?<database> in (target|schema))? that (?<cypher>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
+		if (cypherMatcher.matches()) {
+			String cypherGroup = cypherMatcher.group("cypher");
+			String databaseGroup = cypherMatcher.group("database");
+			if (databaseGroup != null) {
+				databaseGroup = databaseGroup.replace("in", "").replaceAll(" ", "").trim();
+			}
+
+			return new CypherPrecondition(type, cypherGroup, databaseGroup);
+
+		}
+
+		throw new IllegalArgumentException("Wrong precondition keyword. Allowed: `[assume, assert] that`");
 	}
 
 	/**

@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -72,6 +71,8 @@ class PreconditionTest {
 		"// assERT that RETURN TRUE; ASSERTION",
 		"//assume that RETURN TRUE; ASSUMPTION",
 		"//assert that RETURN TRUE; ASSERTION",
+		"// assume in target that RETURN TRUE; ASSUMPTION",
+		"// assume in schema that RETURN TRUE; ASSUMPTION",
 	})
 	void shouldParseCypherPreconditions(String value, Precondition.Type expectedType) {
 
@@ -91,10 +92,8 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
-	void shouldThrowWithWrongStuff(String value) {
-
-		Assertions.assertThatIllegalArgumentException()
-			.isThrownBy(() -> Precondition.parse(value))
-			.withMessage("Wrong precondition keyword. Allowed: `[assume, assert] that`");
+	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
+		Precondition precondition = Precondition.parse(value);
+		assertThat(precondition).isNull();
 	}
 }

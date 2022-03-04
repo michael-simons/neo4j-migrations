@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -48,6 +49,18 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
+			"// assume that neo4j is something",
+			"// assume that neo4j is ",
+			"// assume that neo4j is",
+	})
+	void shouldFailOnWrongVersionPrecondition(String value) {
+		assertThatIllegalArgumentException()
+				.isThrownBy((() -> Precondition.parse(value)))
+				.withMessage("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>. With <versions> being a comma separated list.`");
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiterString = ";", value = {
 		"// assume that edition is enterprise; ASSUMPTION",
 		"// assUMe that edition is community; ASSUMPTION",
 		"// ASSERT that edition is enterprise; ASSERTION",
@@ -61,6 +74,18 @@ class PreconditionTest {
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(EditionPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiterString = ";", value = {
+			"// assume that edition is something",
+			"// assume that edition is ",
+			"// assume that edition is",
+	})
+	void shouldFailOnWrongEditionPrecondition(String value) {
+		assertThatIllegalArgumentException()
+				.isThrownBy((() -> Precondition.parse(value)))
+				.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
 	}
 
 	@ParameterizedTest
@@ -80,6 +105,18 @@ class PreconditionTest {
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(CypherPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiterString = ";", value = {
+			"// assume in target that",
+			"// assume that ",
+			"// assume that",
+	})
+	void shouldFailOnWrongCypherPrecondition(String value) {
+		assertThatIllegalArgumentException()
+				.isThrownBy((() -> Precondition.parse(value)))
+				.withMessage("Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
 	}
 
 	@ParameterizedTest

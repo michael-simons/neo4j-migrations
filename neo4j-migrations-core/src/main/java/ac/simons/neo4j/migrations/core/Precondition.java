@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -59,6 +60,9 @@ interface Precondition {
 		}
 	}
 
+	Pattern VERSION_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
+	List<String> SUPPORTED_EDITIONS = Arrays.asList("COMMUNITY", "ENTERPRISE");
+
 	static Precondition parse(String in) {
 
 		Type type = Type.of(in);
@@ -66,38 +70,60 @@ interface Precondition {
 			return null;
 		}
 
-		Matcher versionMatcher = Pattern.compile(".*neo4j is (?<versions>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
+		Matcher versionMatcher = Pattern.compile(".*neo4j is(?<versions>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (versionMatcher.matches()) {
-			String	 versionGroup = versionMatcher.group("versions");
-			versionGroup = versionGroup.replace("or", "").replace(" ", "");
-			Set<String> versions = Arrays.stream(versionGroup.split(","))
-				.map(version -> "Neo4j/" + version)
-				.collect(Collectors.toSet());
-			return new VersionPrecondition(type, versions);
+			try {
+				String versionGroup = versionMatcher.group("versions");
+				versionGroup = versionGroup.replace("or", "").replace(" ", "");
+				Set<String> versions = Arrays.stream(versionGroup.split(","))
+						.peek(version -> {
+							if (!VERSION_PATTERN.matcher(version).matches()) {
+								throw new IllegalArgumentException(); // bubbles up to the outer catch
+							}
+						})
+						.map(version -> "Neo4j/" + version)
+						.collect(Collectors.toSet());
+				return new VersionPrecondition(type, versions);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>. With <versions> being a comma separated list.`");
+			}
 		}
 
-		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
+		Matcher editionMatcher = Pattern.compile(".*edition is(?<edition>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
 		if (editionMatcher.matches()) {
-			String editionGroup = editionMatcher.group("edition");
-			HBD.Edition edition = HBD.Edition.valueOf(editionGroup.replace(" ", "").toUpperCase(Locale.ROOT));
-
-			return new EditionPrecondition(type, edition);
-
-		}
-
-		Matcher cypherMatcher = Pattern.compile("// *(assert|assume)(?<database> in (target|schema))? that (?<cypher>.+)", Pattern.CASE_INSENSITIVE).matcher(in);
-		if (cypherMatcher.matches()) {
-			String cypherGroup = cypherMatcher.group("cypher");
-			String databaseGroup = cypherMatcher.group("database");
-			if (databaseGroup != null) {
-				databaseGroup = databaseGroup.replace("in", "").replace(" ", "").trim();
+			try {
+				String editionGroup = editionMatcher.group("edition");
+				String editionValue = editionGroup.replace(" ", "").toUpperCase(Locale.ROOT);
+				if (!SUPPORTED_EDITIONS.contains(editionValue)) {
+					throw new IllegalArgumentException(); // bubbles up to the outer catch
+				}
+				HBD.Edition edition = HBD.Edition.valueOf(editionValue);
+				return new EditionPrecondition(type, edition);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
 			}
 
-			return new CypherPrecondition(type, cypherGroup, databaseGroup);
-
 		}
 
-		throw new IllegalArgumentException("Wrong precondition keyword. Allowed: `[assume, assert] that`");
+		Matcher cypherMatcher = Pattern.compile("// *(assert|assume)(?<database> in (target|schema))? that(?<cypher>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
+		if (cypherMatcher.matches()) {
+			try {
+				String cypherGroup = cypherMatcher.group("cypher");
+				if (cypherGroup == null || cypherGroup.trim().length() == 0) {
+					throw new IllegalArgumentException();  // bubbles up to the outer catch
+				}
+				String databaseGroup = cypherMatcher.group("database");
+				if (databaseGroup != null) {
+					databaseGroup = databaseGroup.replace("in", "").replace(" ", "").trim();
+				}
+
+				return new CypherPrecondition(type, cypherGroup, databaseGroup);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+			}
+		}
+		// since Cypher precondition catches more or less everything else, we should never be here, but hey, let's be friendly
+		throw new IllegalArgumentException("Wrong precondition. Please have a look at <insert docs reference here>.");
 	}
 
 	/**

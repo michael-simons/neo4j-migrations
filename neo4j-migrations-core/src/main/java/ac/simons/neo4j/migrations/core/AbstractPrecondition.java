@@ -7,4 +7,9 @@ abstract class AbstractPrecondition implements Precondition {
 	AbstractPrecondition(Type type) {
 		this.type = type;
 	}
+
+	@Override
+	public final Type getType() {
+		return type;
+	}
 }

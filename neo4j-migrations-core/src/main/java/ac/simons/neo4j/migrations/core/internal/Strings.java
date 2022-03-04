@@ -32,6 +32,26 @@ public final class Strings {
 	 */
 	public static final String CYPHER_SINGLE_LINE_COMMENT = "//";
 
+	/**
+	 * Capitalizees a string
+	 * @param value String to capitalize
+	 * @return Capitalized String or the original value if unchanged or if the value was {@literal null} or empty.
+	 */
+	public static String capitalize(String value) {
+		if (value == null || value.isEmpty()) {
+			return value;
+		}
+
+		char baseChar = value.charAt(0);
+		char updatedChar = Character.toUpperCase(baseChar);
+		if (baseChar == updatedChar) {
+			return value;
+		}
+
+		char[] chars = value.toCharArray();
+		chars[0] = updatedChar;
+		return new String(chars, 0, chars.length);
+	}
 
 	/**
 	 * Transforms a string with words separated by {@literal _} into a camelCase string.

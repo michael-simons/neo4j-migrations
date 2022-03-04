@@ -58,6 +58,11 @@ class ConstraintsIT {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
+
+		for (String edition : new String[] { "Community", "Enterprise" }) {
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
+		}
 	}
 
 	@ParameterizedTest
@@ -68,6 +73,11 @@ class ConstraintsIT {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
+
+		for (String edition : new String[] { "Community", "Enterprise" }) {
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
+		}
 	}
 
 	void dropAllConstraints(Driver driver) {

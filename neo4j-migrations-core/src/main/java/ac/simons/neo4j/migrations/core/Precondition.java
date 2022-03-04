@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +76,7 @@ interface Precondition {
 		Matcher editionMatcher = Pattern.compile(".*edition is (?<edition>.+)").matcher(in);
 		if (editionMatcher.matches()) {
 			String editionGroup = editionMatcher.group("edition");
-			ConnectionDetails.Edition edition = ConnectionDetails.Edition.from(editionGroup.replaceAll(" ", ""));
+			HBD.Edition edition = HBD.Edition.valueOf(editionGroup.replaceAll(" ", "").toUpperCase(Locale.ROOT));
 
 			return new EditionPrecondition(type, edition);
 

@@ -18,6 +18,11 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,21 +35,28 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that neo4j is 3.4; ASSUMPTION",
-		"// assUMe that neo4j is 3.4 or 3.5; ASSUMPTION",
-		"// assume that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSUMPTION",
-		"// ASSERT that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSERTION",
-		"// assert that neo4j is 3.4,3.5, 4.4 or 5.0; ASSERTION",
-		"// ASSERT that neo4j is 3.4; ASSERTION",
-		"//assume that neo4j is 3.4; ASSUMPTION",
-		"//assert that neo4j is 3.4; ASSERTION",
+		"// assume that neo4j is 3.4; ASSUMPTION; 3.4",
+		"// assUMe that neo4j is 3.4 or 3.5; ASSUMPTION; 3.4, 3.5",
+		"// assume that neO4j is 3.4, 3.5, 4.4 or 5.0; ASSUMPTION; 3.4, 3.5, 4.4, 5.0",
+		"// ASSERT that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
+		"// assert that neo4j is 3.4,3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
+		"// ASSERT that Neo4j is 3.4; ASSERTION; 3.4",
+		"//assume that neo4j is 3.4; ASSUMPTION; 3.4",
+		"//assert that neo4j is 3.4; ASSERTION; 3.4",
+		"//assert that neo4j is 3 or 4; ASSERTION; 3, 4",
 	})
-	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType) {
+	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType, String expectedVersions) {
+
+		Set<String> expectedVersions_ = Arrays.stream(expectedVersions.split(","))
+			.map(String::trim)
+			.map(s -> "Neo4j/" + s)
+			.collect(Collectors.toCollection(TreeSet::new));
 
 		Precondition precondition = Precondition.parse(value);
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(VersionPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
+		assertThat(((VersionPrecondition)precondition).getRequestedVersions()).containsExactlyElementsOf(expectedVersions_);;
 	}
 
 	@ParameterizedTest
@@ -56,7 +68,7 @@ class PreconditionTest {
 	void shouldFailOnWrongVersionPrecondition(String value) {
 		assertThatIllegalArgumentException()
 				.isThrownBy((() -> Precondition.parse(value)))
-				.withMessage("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>. With <versions> being a comma separated list.`");
+				.withMessage("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 	}
 
 	@ParameterizedTest

@@ -18,10 +18,9 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author Gerrit Meier
@@ -70,25 +69,12 @@ interface Precondition {
 			return null;
 		}
 
-		Matcher versionMatcher = Pattern.compile(".*neo4j is(?<versions>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
-		if (versionMatcher.matches()) {
-			try {
-				String versionGroup = versionMatcher.group("versions");
-				versionGroup = versionGroup.replace("or", "").replace(" ", "");
 
-				List<String> versionsValue = Arrays.asList(versionGroup.split(","));
-				versionsValue.forEach(version -> {
-					if (!VERSION_PATTERN.matcher(version).matches()) {
-						throw new IllegalArgumentException(); // bubbles up to the outer catch
-					}
-				});
-				Set<String> versions = versionsValue.stream()
-						.map(version -> "Neo4j/" + version)
-						.collect(Collectors.toSet());
-				return new VersionPrecondition(type, versions);
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>. With <versions> being a comma separated list.`");
-			}
+		Optional<Precondition> result;
+
+		result = VersionPrecondition.of(type, in);
+		if (result.isPresent()) {
+			return result.get();
 		}
 
 		Matcher editionMatcher = Pattern.compile(".*edition is(?<edition>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);

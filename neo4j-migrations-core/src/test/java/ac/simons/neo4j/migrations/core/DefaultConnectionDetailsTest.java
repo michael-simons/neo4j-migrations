@@ -18,8 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * @author Michael J. Simons
@@ -36,12 +34,5 @@ class DefaultConnectionDetailsTest {
 	void shouldCreateVersionAndEditionWithEdition() {
 		String versionAndEdition = DefaultConnectionDetails.createVersionAndEdition("Neo4j/4711", "special");
 		assertThat(versionAndEdition).isEqualTo("Neo4j/4711 Special edition");
-	}
-
-	@ParameterizedTest
-	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNKNOWN", "special, UNKNOWN" })
-	void editionShouldBeDetecable(String value, HBD.Edition edition) {
-		assertThat(HBD.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
-			.isEqualTo(edition);
 	}
 }

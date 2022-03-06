@@ -15,9 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,8 +56,7 @@ interface Precondition {
 		}
 	}
 
-	Pattern VERSION_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
-	List<String> SUPPORTED_EDITIONS = Arrays.asList("COMMUNITY", "ENTERPRISE");
+
 
 	static Precondition parse(String in) {
 
@@ -71,26 +67,14 @@ interface Precondition {
 
 
 		Optional<Precondition> result;
-
 		result = VersionPrecondition.of(type, in);
 		if (result.isPresent()) {
 			return result.get();
 		}
 
-		Matcher editionMatcher = Pattern.compile(".*edition is(?<edition>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
-		if (editionMatcher.matches()) {
-			try {
-				String editionGroup = editionMatcher.group("edition");
-				String editionValue = editionGroup.replace(" ", "").toUpperCase(Locale.ROOT);
-				if (!SUPPORTED_EDITIONS.contains(editionValue)) {
-					throw new IllegalArgumentException(); // bubbles up to the outer catch
-				}
-				HBD.Edition edition = HBD.Edition.valueOf(editionValue);
-				return new EditionPrecondition(type, edition);
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
-			}
-
+		result = EditionPrecondition.of(type, in);
+		if (result.isPresent()) {
+			return result.get();
 		}
 
 		Matcher cypherMatcher = Pattern.compile("// *(assert|assume)(?<database> in (target|schema))? that(?<cypher>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);

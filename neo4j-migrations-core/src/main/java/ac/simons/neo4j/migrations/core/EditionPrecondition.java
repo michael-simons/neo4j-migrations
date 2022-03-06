@@ -15,6 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Locale;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -22,15 +27,76 @@ package ac.simons.neo4j.migrations.core;
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private final HBD.Edition edition;
+	private static final Pattern HINT_PATTERN = Pattern.compile("(?i).*edition is *(?<edition>\\w+)?");
 
-	EditionPrecondition(Type type, HBD.Edition edition) {
+	/**
+	 * Neo4j edition
+	 */
+	enum Edition {
+		/**
+		 * Constant for the enterprise edition.
+		 */
+		ENTERPRISE,
+		/**
+		 * Constant for the community edition.
+		 */
+		COMMUNITY,
+		/**
+		 * Constant for an unknown edition.
+		 */
+		UNKNOWN
+	}
+
+	/**
+	 * Checks if the {@code hint} is matched by the {@link #HINT_PATTERN} and if so, tries to build a fitting precondition.
+	 *
+	 * @param type The type of the precondition to be created
+	 * @param hint The complete hint
+	 * @return A precondition or an empty optional if this factory doesn't match the hint
+	 */
+	static Optional<Precondition> of(Precondition.Type type, String hint) {
+
+		Matcher matcher = HINT_PATTERN.matcher(hint);
+		if (!matcher.matches()) {
+			return Optional.empty();
+		} else {
+			try {
+				String editionGroup = matcher.group("edition");
+				String editionValue = editionGroup.toUpperCase(Locale.ROOT);
+				Edition edition = Edition.valueOf(editionValue);
+				return Optional.of(new EditionPrecondition(type, edition));
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+					"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
+			}
+		}
+	}
+
+	static Edition getEdition(ConnectionDetails connectionDetails) {
+
+		String serverVersion = connectionDetails.getServerVersion().toUpperCase(Locale.ROOT);
+		if (serverVersion.contains(Edition.ENTERPRISE.name())) {
+			return Edition.ENTERPRISE;
+		} else if (serverVersion.contains(Edition.COMMUNITY.name())) {
+			return Edition.COMMUNITY;
+		} else {
+			return Edition.UNKNOWN;
+		}
+	}
+
+	private final Edition edition;
+
+	private EditionPrecondition(Type type, Edition edition) {
 		super(type);
 		this.edition = edition;
 	}
 
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
-		return HBD.getEdition(migrationContext.getConnectionDetails()).equals(edition);
+		return getEdition(migrationContext.getConnectionDetails()).equals(edition);
+	}
+
+	Edition getEdition() {
+		return edition;
 	}
 }

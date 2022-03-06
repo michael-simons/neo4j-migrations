@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -42,24 +41,6 @@ final class HBD {
 
 	private static final String CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE = "Neo.ClientError.Schema.ConstraintWithNameAlreadyExists";
 
-	/**
-	 * Neo4j edition
-	 */
-	public enum Edition {
-		/**
-		 * Constant for the enterprise edition.
-		 */
-		ENTERPRISE,
-		/**
-		 * Constant for the community edition.
-		 */
-		COMMUNITY,
-		/**
-		 * Constant for an unknown edition.
-		 */
-		UNKNOWN
-	}
-
 	static boolean is4xSeries(ConnectionDetails connectionDetails) {
 		return connectionDetails.getServerVersion() != null && connectionDetails.getServerVersion()
 			.replaceFirst("(?i)^Neo4j/", "").matches("^4\\.?.*");
@@ -81,21 +62,9 @@ final class HBD {
 		return major > 4 || (major >= 4 && minor >= 4);
 	}
 
-	static Edition getEdition(ConnectionDetails connectionDetails) {
-
-		String serverVersion = connectionDetails.getServerVersion().toUpperCase(Locale.ROOT);
-		if (serverVersion.contains(Edition.ENTERPRISE.name())) {
-			return Edition.ENTERPRISE;
-		} else if (serverVersion.contains(Edition.COMMUNITY.name())) {
-			return Edition.COMMUNITY;
-		} else {
-			return Edition.UNKNOWN;
-		}
-	}
-
 	static Integer valueOf(String value) {
 		try {
-			return Integer.valueOf(value.contains(" ") ? value.substring(0, value.indexOf(' ')) : value);
+			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
 			return -1;
 		}

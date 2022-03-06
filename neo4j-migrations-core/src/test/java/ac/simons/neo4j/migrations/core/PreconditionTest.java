@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import ac.simons.neo4j.migrations.core.EditionPrecondition.Edition;
+
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -56,7 +58,8 @@ class PreconditionTest {
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(VersionPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
-		assertThat(((VersionPrecondition)precondition).getRequestedVersions()).containsExactlyElementsOf(expectedVersions_);;
+		assertThat(((VersionPrecondition) precondition).getVersions()).containsExactlyElementsOf(
+			expectedVersions_);
 	}
 
 	@ParameterizedTest
@@ -67,27 +70,29 @@ class PreconditionTest {
 	})
 	void shouldFailOnWrongVersionPrecondition(String value) {
 		assertThatIllegalArgumentException()
-				.isThrownBy((() -> Precondition.parse(value)))
-				.withMessage("Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+			.isThrownBy((() -> Precondition.parse(value)))
+			.withMessage(
+				"Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that edition is enterprise; ASSUMPTION",
-		"// assume that edition is EnteRprise; ASSUMPTION",
-		"// assume that edition is community; ASSUMPTION",
-		"// assUMe that edition is comMunity; ASSUMPTION",
-		"// ASSERT that edition is enterprise; ASSERTION",
-		"// assERT that edition is community; ASSERTION",
-		"//assUMe that edition is community; ASSUMPTION",
-		"//ASSERT that edition is enterprise; ASSERTION",
+		"// assume that edition is enterprise; ASSUMPTION; ENTERPRISE",
+		"// assume that edition is EnteRprise; ASSUMPTION; ENTERPRISE",
+		"// assume that edition is community; ASSUMPTION; COMMUNITY",
+		"// assUMe that edition is comMunity; ASSUMPTION; COMMUNITY",
+		"// ASSERT that edition is enterprise; ASSERTION; ENTERPRISE",
+		"// assERT that edition is community; ASSERTION; COMMUNITY",
+		"//assUMe that edition is community; ASSUMPTION; COMMUNITY",
+		"//ASSERT that edition is enterprise; ASSERTION; ENTERPRISE",
 	})
-	void shouldParseEditionPreconditions(String value, Precondition.Type expectedType) {
+	void shouldParseEditionPreconditions(String value, Precondition.Type expectedType, Edition expectedEdition) {
 
 		Precondition precondition = Precondition.parse(value);
 		assertThat(precondition).isNotNull();
 		assertThat(precondition).isInstanceOf(EditionPrecondition.class);
 		assertThat(precondition.getType()).isEqualTo(expectedType);
+		assertThat(((EditionPrecondition) precondition).getEdition()).isEqualTo(expectedEdition);
 	}
 
 	@ParameterizedTest
@@ -148,5 +153,13 @@ class PreconditionTest {
 	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
 		Precondition precondition = Precondition.parse(value);
 		assertThat(precondition).isNull();
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNKNOWN", "special, UNKNOWN" })
+	void editionShouldBeDetectable(String value, Edition edition) {
+		assertThat(
+			EditionPrecondition.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
+			.isEqualTo(edition);
 	}
 }

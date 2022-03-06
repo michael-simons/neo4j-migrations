@@ -66,20 +66,20 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 		}
 	}
 
-	private final Set<String> requestedVersions;
+	private final Set<String> versions;
 
-	private VersionPrecondition(Type type, Set<String> requestedVersions) {
+	private VersionPrecondition(Type type, Set<String> versions) {
 		super(type);
-		this.requestedVersions = new TreeSet<>(requestedVersions);
+		this.versions = new TreeSet<>(versions);
 	}
 
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
-		return requestedVersions.contains(serverVersion);
+		return versions.contains(serverVersion);
 	}
 
-	Collection<String> getRequestedVersions() {
-		return Collections.unmodifiableCollection(requestedVersions);
+	Collection<String> getVersions() {
+		return Collections.unmodifiableCollection(versions);
 	}
 }

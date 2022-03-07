@@ -24,6 +24,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -251,6 +252,13 @@ final class CypherResource {
 				}
 				return builder.build();
 			})
+			.collect(Collectors.toList());
+	}
+
+	List<Precondition> getPreconditions() {
+		return getSingleLineComments().stream().map(Precondition::parse)
+			.filter(Optional::isPresent)
+			.map(Optional::get)
 			.collect(Collectors.toList());
 	}
 }

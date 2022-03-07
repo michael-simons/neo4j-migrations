@@ -17,6 +17,10 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
+import org.assertj.core.data.Index;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -33,6 +37,7 @@ class CypherResourceTest {
 
 		assertThat(cypherResource.getStatements()).hasSize(3);
 		assertThat(cypherResource.getSingleLineComments()).isEmpty();
+		assertThat(cypherResource.getPreconditions()).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -50,5 +55,28 @@ class CypherResourceTest {
 				"// in the middle",
 				"//the end"
 			);
+		assertThat(cypherResource.getPreconditions()).isEmpty();
+	}
+
+	@Test
+	void shouldRetrievePreconditions() {
+
+		CypherResource cypherResource = new CypherResource(CypherResourceTest.class.getResource("/parsing/several_preconditions.cypher"), false);
+		assertThat(cypherResource.getSingleLineComments()).hasSize(5);
+		List<Precondition> preconditions = cypherResource.getPreconditions();
+		assertThat(preconditions).hasSize(3);
+		assertThat(preconditions).satisfies(precondition -> {
+			assertThat(precondition).isInstanceOf(VersionPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(Precondition.Type.ASSUMPTION);
+		}, Index.atIndex(0));
+		assertThat(preconditions).satisfies(precondition -> {
+			assertThat(precondition).isInstanceOf(EditionPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(Precondition.Type.ASSERTION);
+		}, Index.atIndex(1));
+		assertThat(preconditions).satisfies(precondition -> {
+			assertThat(precondition).isInstanceOf(QueryPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(Precondition.Type.ASSERTION);
+			assertThat(((QueryPrecondition)precondition).getQuery()).isEqualTo("match (n:`007`) return count(n) = 0");
+		}, Index.atIndex(2));
 	}
 }

@@ -131,6 +131,7 @@ class PreconditionTest {
 			assertThat(precondition).isInstanceOf(QueryPrecondition.class);
 			assertThat(precondition.getType()).isEqualTo(expectedType);
 			assertThat(((QueryPrecondition) precondition).getDatabase()).isEqualTo(expectedTarget);
+			assertThat(((QueryPrecondition) precondition).getQuery()).isEqualTo("RETURN TRUE");
 		});
 	}
 

@@ -48,8 +48,6 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 		SCHEMA,
 	}
 
-
-
 	/**
 	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
 	 * a corresponding precondition.
@@ -74,7 +72,7 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 		} else {
 			database = Database.TARGET;
 		}
-		return Optional.of(type -> new QueryPrecondition(type, query, database));
+		return Optional.of(type -> new QueryPrecondition(type, query.trim(), database));
 	}
 
 	private final Database database;
@@ -93,6 +91,10 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 			migrationContext.getSession()) {
 			return session.readTransaction(tx -> tx.run(query).single().get(0).asBoolean());
 		}
+	}
+
+	String getQuery() {
+		return query;
 	}
 
 	Database getDatabase() {

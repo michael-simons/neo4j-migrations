@@ -55,15 +55,8 @@ final class DiscoveryService {
 		List<Migration> migrations = new ArrayList<>();
 		try {
 			for (Discoverer<? extends Migration> discoverer : this.migrationDiscoverers) {
+				migrations.addAll(discoverer.discover(context));
 				Collection<? extends Migration> discoveredMigrations = discoverer.discover(context);
-				for (Migration migration : discoveredMigrations) {
-					List<Precondition> unsatisfiedPreconditions = evaluatePreconditions(migration, context);
-					if (unsatisfiedPreconditions.isEmpty()) {
-						migrations.add(migration);
-					} else {
-						log(migration, unsatisfiedPreconditions);
-					}
-				}
 			}
 		} catch (Exception e) {
 			if (e instanceof MigrationsException) {
@@ -72,28 +65,23 @@ final class DiscoveryService {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
+		migrations.removeIf(migration -> hasUnmetPreconditions(migration, context));
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
 		return Collections.unmodifiableList(migrations);
 	}
 
-	void log(Migration migration, List<Precondition> unsatisfiedPreconditions) {
-		Migrations.LOGGER.log(Level.INFO,
-			() -> String.format("Skipping %s due to unsatisfied preconditions:%n%s", Migrations.toString(migration),
-				unsatisfiedPreconditions.stream().map(Precondition::toString).collect(
-					Collectors.joining(System.lineSeparator()))));
-	}
 
-	List<Precondition> evaluatePreconditions(Migration migration, MigrationContext context) {
+	boolean hasUnmetPreconditions(Migration migration, MigrationContext context) {
 
 		if (!(migration instanceof CypherBasedMigration)) {
-			return Collections.emptyList();
+			return false;
 		}
 
 		Map<Precondition.Type, List<Precondition>> preconditions = ((CypherBasedMigration) migration).getPreconditions()
 			.stream().collect(Collectors.groupingBy(Precondition::getType));
 
 		if (preconditions.isEmpty()) {
-			return Collections.emptyList();
+			return false;
 		}
 
 		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION,
@@ -103,8 +91,19 @@ final class DiscoveryService {
 			}
 		}
 
-		return preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
+		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
 			.stream().filter(precondition -> !precondition.isSatisfied(context)).collect(Collectors.toList());
+
+		if (unmet.isEmpty()) {
+			return false;
+		}
+
+		Migrations.LOGGER.log(Level.INFO,
+			() -> String.format("Skipping %s due to unmet preconditions:%n%s", Migrations.toString(migration),
+				unmet.stream().map(Precondition::toString).collect(
+					Collectors.joining(System.lineSeparator()))));
+
+		return true;
 	}
 
 	Map<LifecyclePhase, List<Callback>> findCallbacks(MigrationContext context) {

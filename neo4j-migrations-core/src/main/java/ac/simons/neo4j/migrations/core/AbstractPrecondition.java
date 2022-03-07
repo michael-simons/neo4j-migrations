@@ -15,6 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+/**
+ * Shared functionality of all {@link Precondition preconditions}.
+ *
+ * @author Michael J. Simons
+ * @since 1.5.0
+ */
 abstract class AbstractPrecondition implements Precondition {
 
 	private final Type type;

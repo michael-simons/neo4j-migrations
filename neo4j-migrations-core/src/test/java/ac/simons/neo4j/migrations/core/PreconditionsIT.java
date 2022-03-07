@@ -34,7 +34,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-public class PreconditionsIT {
+class PreconditionsIT {
 
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();

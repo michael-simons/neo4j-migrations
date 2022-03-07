@@ -31,7 +31,7 @@ import org.neo4j.driver.Session;
 final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 
 	private static final Pattern CONDITION_PATTERN = Pattern.compile(
-		"(?i).*?(?<database> in (target|schema))? (?<!that )q'(?<query>.+)?");
+		"(?i).*?(?<database> in (target|schema))? (?<!that )q'(?<query>.+)?+");
 
 	/**
 	 * Enum to specify in which database the query should be executed
@@ -86,7 +86,7 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 	}
 
 	@Override
-	public boolean isSatisfied(MigrationContext migrationContext) {
+	public boolean isMet(MigrationContext migrationContext) {
 		try (Session session = database == Database.SCHEMA ? migrationContext.getSchemaSession() :
 			migrationContext.getSession()) {
 			return session.readTransaction(tx -> tx.run(query).single().get(0).asBoolean());

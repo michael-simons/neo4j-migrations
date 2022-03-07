@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -56,12 +55,8 @@ final class DiscoveryService {
 		try {
 			for (Discoverer<? extends Migration> discoverer : this.migrationDiscoverers) {
 				migrations.addAll(discoverer.discover(context));
-				Collection<? extends Migration> discoveredMigrations = discoverer.discover(context);
 			}
 		} catch (Exception e) {
-			if (e instanceof MigrationsException) {
-				throw e;
-			}
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
@@ -84,15 +79,14 @@ final class DiscoveryService {
 			return false;
 		}
 
-		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION,
-			Collections.emptyList())) {
-			if (!assertion.isSatisfied(context)) {
+		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION, Collections.emptyList())) {
+			if (!assertion.isMet(context)) {
 				throw new MigrationsException("Could not satisfy `" + assertion + "`.");
 			}
 		}
 
 		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
-			.stream().filter(precondition -> !precondition.isSatisfied(context)).collect(Collectors.toList());
+			.stream().filter(precondition -> !precondition.isMet(context)).collect(Collectors.toList());
 
 		if (unmet.isEmpty()) {
 			return false;

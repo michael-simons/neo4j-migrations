@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is(?<versions>.+)?");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is(?<versions>.+)?+");
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
 
 	/**
@@ -76,7 +76,7 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 	}
 
 	@Override
-	public boolean isSatisfied(MigrationContext migrationContext) {
+	public boolean isMet(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
 		return versions.stream().anyMatch(serverVersion::contains);
 	}

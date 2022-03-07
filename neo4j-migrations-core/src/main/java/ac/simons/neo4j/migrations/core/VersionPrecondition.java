@@ -20,29 +20,30 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 1.4.1
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern HINT_PATTERN = Pattern.compile("(?i).*neo4j is(?<versions>(?:\\d|.)+)?");
-	private static final Pattern VERSION_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?neo4j is(?<versions>(?:\\d|.)+)?");
+	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
 
 	/**
-	 * Checks if the {@code hint} is matched by the {@link #HINT_PATTERN} and if so, tries to build a fitting precondition.
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to create a factory for
+	 * a corresponding precondition.
 	 *
-	 * @param type The type of the precondition to be created
 	 * @param hint The complete hint
-	 * @return A precondition or an empty optional if this factory doesn't match the hint
+	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
 	 */
-	static Optional<Precondition> of(Precondition.Type type, String hint) {
+	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
 
-		Matcher matcher = HINT_PATTERN.matcher(hint);
+		Matcher matcher = CONDITION_PATTERN.matcher(hint);
 		if (!matcher.matches()) {
 			return Optional.empty();
 		}
@@ -54,12 +55,12 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 			Set<String> formattedVersions = new TreeSet<>();
 			for (String rawVersion : rawVersions.split(",")) {
 				String version = rawVersion.trim();
-				if (!VERSION_PATTERN.matcher(version).matches()) {
+				if (!VERSION_SUB_PATTERN.matcher(version).matches()) {
 					throw new IllegalArgumentException();
 				}
 				formattedVersions.add("Neo4j/" + version);
 			}
-			return Optional.of(new VersionPrecondition(type, formattedVersions));
+			return Optional.of(type -> new VersionPrecondition(type, formattedVersions));
 		} catch (NullPointerException | IllegalArgumentException e) {
 			throw new IllegalArgumentException(
 				"Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");

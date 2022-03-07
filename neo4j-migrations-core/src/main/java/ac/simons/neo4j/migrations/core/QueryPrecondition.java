@@ -21,32 +21,34 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.neo4j.driver.Session;
+
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.4.1
  */
-final class EditionPrecondition extends AbstractPrecondition implements Precondition {
+final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?edition is *(?<edition>\\w+)?");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile(
+		"(?i).*?(?<database> in (target|schema))? that(?<query>.+)?");
 
 	/**
-	 * Neo4j edition
+	 * Enum to specify in which database the query should be executed
 	 */
-	enum Edition {
+	enum Database {
+
 		/**
-		 * Constant for the enterprise edition.
+		 * Inside the database being migrated.
 		 */
-		ENTERPRISE,
+		TARGET,
 		/**
-		 * Constant for the community edition.
+		 * Inside the schema database.
 		 */
-		COMMUNITY,
-		/**
-		 * Constant for an unknown edition.
-		 */
-		UNKNOWN
+		SCHEMA,
 	}
+
+
 
 	/**
 	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
@@ -60,44 +62,40 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 		Matcher matcher = CONDITION_PATTERN.matcher(hint);
 		if (!matcher.matches()) {
 			return Optional.empty();
-		} else {
-			try {
-				String editionGroup = matcher.group("edition");
-				String editionValue = editionGroup.toUpperCase(Locale.ROOT);
-				Edition edition = Edition.valueOf(editionValue);
-				return Optional.of(type -> new EditionPrecondition(type, edition));
-			} catch (Exception e) {
-				throw new IllegalArgumentException(
-					"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
-			}
 		}
+		String query = matcher.group("query");
+		if (query == null || query.trim().length() == 0) {
+			throw new IllegalArgumentException(
+				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+		}
+		Database database;
+		if (matcher.group("database") != null) {
+			database = Database.valueOf(matcher.group(2).toUpperCase(Locale.ROOT));
+		} else {
+			database = Database.TARGET;
+		}
+		return Optional.of(type -> new QueryPrecondition(type, query, database));
 	}
 
-	static Edition getEdition(ConnectionDetails connectionDetails) {
+	private final Database database;
 
-		String serverVersion = connectionDetails.getServerVersion().toUpperCase(Locale.ROOT);
-		if (serverVersion.contains(Edition.ENTERPRISE.name())) {
-			return Edition.ENTERPRISE;
-		} else if (serverVersion.contains(Edition.COMMUNITY.name())) {
-			return Edition.COMMUNITY;
-		} else {
-			return Edition.UNKNOWN;
-		}
-	}
+	private final String query;
 
-	private final Edition edition;
-
-	private EditionPrecondition(Type type, Edition edition) {
+	private QueryPrecondition(Type type, String query, Database database) {
 		super(type);
-		this.edition = edition;
+		this.query = query;
+		this.database = database;
 	}
 
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
-		return getEdition(migrationContext.getConnectionDetails()).equals(edition);
+		try (Session session = database == Database.SCHEMA ? migrationContext.getSchemaSession() :
+			migrationContext.getSession()) {
+			return session.readTransaction(tx -> tx.run(query).single().get(0).asBoolean());
+		}
 	}
 
-	Edition getEdition() {
-		return edition;
+	Database getDatabase() {
+		return database;
 	}
 }

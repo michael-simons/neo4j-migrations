@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import ac.simons.neo4j.migrations.core.EditionPrecondition.Edition;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -54,19 +55,20 @@ class PreconditionTest {
 			.map(s -> "Neo4j/" + s)
 			.collect(Collectors.toCollection(TreeSet::new));
 
-		Precondition precondition = Precondition.parse(value);
-		assertThat(precondition).isNotNull();
-		assertThat(precondition).isInstanceOf(VersionPrecondition.class);
-		assertThat(precondition.getType()).isEqualTo(expectedType);
-		assertThat(((VersionPrecondition) precondition).getVersions()).containsExactlyElementsOf(
-			expectedVersions_);
+		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
+		assertThat(optionalPrecondition).hasValueSatisfying(precondition -> {
+			assertThat(precondition).isInstanceOf(VersionPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(expectedType);
+			assertThat(((VersionPrecondition) precondition).getVersions()).containsExactlyElementsOf(
+				expectedVersions_);
+		});
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-			"// assume that neo4j is something",
-			"// assume that neo4j is ",
-			"// assume that neo4j is",
+		"// assume that neo4j is something",
+		"// assume that neo4j is ",
+		"// assume that neo4j is",
 	})
 	void shouldFailOnWrongVersionPrecondition(String value) {
 		assertThatIllegalArgumentException()
@@ -88,71 +90,76 @@ class PreconditionTest {
 	})
 	void shouldParseEditionPreconditions(String value, Precondition.Type expectedType, Edition expectedEdition) {
 
-		Precondition precondition = Precondition.parse(value);
-		assertThat(precondition).isNotNull();
-		assertThat(precondition).isInstanceOf(EditionPrecondition.class);
-		assertThat(precondition.getType()).isEqualTo(expectedType);
-		assertThat(((EditionPrecondition) precondition).getEdition()).isEqualTo(expectedEdition);
+		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
+		assertThat(optionalPrecondition).hasValueSatisfying(precondition -> {
+			assertThat(precondition).isInstanceOf(EditionPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(expectedType);
+			assertThat(((EditionPrecondition) precondition).getEdition()).isEqualTo(expectedEdition);
+		});
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-			"// assume that edition is something",
-			"// assume that edition is ",
-			"// assume that edition is",
+		"// assume that edition is something",
+		"// assume that edition is ",
+		"// assume that edition is",
 	})
 	void shouldFailOnWrongEditionPrecondition(String value) {
 		assertThatIllegalArgumentException()
-				.isThrownBy((() -> Precondition.parse(value)))
-				.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
+			.isThrownBy((() -> Precondition.parse(value)))
+			.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that RETURN TRUE; ASSUMPTION",
-		"// assert that RETURN TRUE; ASSERTION",
-		"// assUME that RETURN TRUE; ASSUMPTION",
-		"// assERT that RETURN TRUE; ASSERTION",
-		"//assume that RETURN TRUE; ASSUMPTION",
-		"//assert that RETURN TRUE; ASSERTION",
-		"// assume in target that RETURN TRUE; ASSUMPTION",
-		"// assume in schema that RETURN TRUE; ASSUMPTION",
-		"// assume in tARget that RETURN TRUE; ASSUMPTION",
-		"// assume in schEMa that RETURN TRUE; ASSUMPTION",
+		"// assume that RETURN TRUE; ASSUMPTION; TARGET",
+		"// assert that RETURN TRUE; ASSERTION; TARGET",
+		"// assUME that RETURN TRUE; ASSUMPTION; TARGET",
+		"// assERT that RETURN TRUE; ASSERTION; TARGET",
+		"//assume that RETURN TRUE; ASSUMPTION; TARGET",
+		"//assert that RETURN TRUE; ASSERTION; TARGET",
+		"// assume in target that RETURN TRUE; ASSUMPTION; TARGET",
+		"// assume in schema that RETURN TRUE; ASSUMPTION; SCHEMA",
+		"// assume in tARget that RETURN TRUE; ASSUMPTION; TARGET",
+		"// assume in schEMa that RETURN TRUE; ASSUMPTION; SCHEMA",
 	})
-	void shouldParseCypherPreconditions(String value, Precondition.Type expectedType) {
+	void shouldParseCypherPreconditions(String value, Precondition.Type expectedType,
+		QueryPrecondition.Database expectedTarget) {
 
-		Precondition precondition = Precondition.parse(value);
-		assertThat(precondition).isNotNull();
-		assertThat(precondition).isInstanceOf(CypherPrecondition.class);
-		assertThat(precondition.getType()).isEqualTo(expectedType);
+		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
+		assertThat(optionalPrecondition).hasValueSatisfying(precondition -> {
+			assertThat(precondition).isInstanceOf(QueryPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(expectedType);
+			assertThat(((QueryPrecondition) precondition).getDatabase()).isEqualTo(expectedTarget);
+		});
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-			"// assume in target that",
-			"// assume that ",
-			"// assume that",
+		"// assume in target that",
+		"// assume that ",
+		"// assume that",
 	})
 	void shouldFailOnWrongCypherPrecondition(String value) {
 		assertThatIllegalArgumentException()
-				.isThrownBy((() -> Precondition.parse(value)))
-				.withMessage("Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+			.isThrownBy((() -> Precondition.parse(value)))
+			.withMessage(
+				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = "// Hello, not a precondition")
 	void shouldIgnoreThingsThatAreNoPrecondition(String value) {
 
-		Precondition precondition = Precondition.parse(value);
-		assertThat(precondition).isNull();
+		Optional<Precondition> precondition = Precondition.parse(value);
+		assertThat(precondition).isEmpty();
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
 	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
-		Precondition precondition = Precondition.parse(value);
-		assertThat(precondition).isNull();
+		Optional<Precondition> precondition = Precondition.parse(value);
+		assertThat(precondition).isEmpty();
 	}
 
 	@ParameterizedTest

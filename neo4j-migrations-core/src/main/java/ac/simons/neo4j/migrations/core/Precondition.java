@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Optional;
-import java.util.regex.Matcher;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -45,57 +45,39 @@ interface Precondition {
 			this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
 		}
 
-		static Type of(String value) {
+		static Optional<Type> of(String value) {
 			if (ASSUMPTION.pattern.matcher(value).find()) {
-				return Type.ASSUMPTION;
+				return Optional.of(Type.ASSUMPTION);
 			} else if (ASSERTION.pattern.matcher(value).find()) {
-				return Type.ASSERTION;
+				return Optional.of(Type.ASSERTION);
 			} else {
-				return null;
+				return Optional.empty();
 			}
 		}
 	}
 
+	static Optional<Precondition> parse(String in) {
 
+		return Type.of(in).flatMap(type -> {
+			Optional<Function<Type, Precondition>> producer;
 
-	static Precondition parse(String in) {
-
-		Type type = Type.of(in);
-		if (type == null) {
-			return null;
-		}
-
-
-		Optional<Precondition> result;
-		result = VersionPrecondition.of(type, in);
-		if (result.isPresent()) {
-			return result.get();
-		}
-
-		result = EditionPrecondition.of(type, in);
-		if (result.isPresent()) {
-			return result.get();
-		}
-
-		Matcher cypherMatcher = Pattern.compile("// *(assert|assume)(?<database> in (target|schema))? that(?<cypher>.+)?", Pattern.CASE_INSENSITIVE).matcher(in);
-		if (cypherMatcher.matches()) {
-			try {
-				String cypherGroup = cypherMatcher.group("cypher");
-				if (cypherGroup == null || cypherGroup.trim().length() == 0) {
-					throw new IllegalArgumentException();  // bubbles up to the outer catch
-				}
-				String databaseGroup = cypherMatcher.group("database");
-				if (databaseGroup != null) {
-					databaseGroup = databaseGroup.replace("in", "").replace(" ", "").trim();
-				}
-
-				return new CypherPrecondition(type, cypherGroup, databaseGroup);
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+			producer = VersionPrecondition.tryToParse(in);
+			if (producer.isPresent()) {
+				return producer.map(f -> f.apply(type));
 			}
-		}
-		// since Cypher precondition catches more or less everything else, we should never be here, but hey, let's be friendly
-		throw new IllegalArgumentException("Wrong precondition. Please have a look at <insert docs reference here>.");
+
+			producer = EditionPrecondition.tryToParse(in);
+			if (producer.isPresent()) {
+				return producer.map(f -> f.apply(type));
+			}
+
+			producer = QueryPrecondition.tryToParse(in);
+			if (producer.isPresent()) {
+				return producer.map(f -> f.apply(type));
+			}
+
+			return Optional.empty();
+		});
 	}
 
 	/**

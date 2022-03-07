@@ -113,7 +113,7 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"// assume that neo4j is 4711"})
+	@ValueSource(strings = {"// assume that neo4j is 4711", "// assume that q' RETURN false"})
 	void shouldFailOnSomethingThatLooksLikeAPreconditionButIsnt(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
@@ -168,7 +168,7 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix", "// assume that q' RETURN false" })
+	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
 	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
 		Optional<Precondition> precondition = Precondition.parse(value);
 		assertThat(precondition).isEmpty();

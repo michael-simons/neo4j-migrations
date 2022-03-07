@@ -45,7 +45,7 @@ interface Precondition {
 
 		Type(String keyword) {
 			this.keyword = keyword;
-			this.pattern = Pattern.compile("// *" + keyword + "(?: in (?:schema|target))? (that(?! q')|q').*", Pattern.CASE_INSENSITIVE);
+			this.pattern = Pattern.compile("(?i)// *" + keyword + "(?: in (?:schema|target))? (that|q').*");
 		}
 
 		String keyword() {

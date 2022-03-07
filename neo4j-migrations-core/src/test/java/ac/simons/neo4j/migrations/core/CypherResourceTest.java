@@ -63,9 +63,9 @@ class CypherResourceTest {
 		CypherResource cypherResource = new CypherResource(
 			CypherResourceTest.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"), false);
 		assertThat(cypherResource.getStatements()).hasSize(1);
-		assertThat(cypherResource.getSingleLineComments()).hasSize(2);
+		assertThat(cypherResource.getSingleLineComments()).hasSize(3);
 		List<Precondition> preconditions = cypherResource.getPreconditions();
-		assertThat(preconditions).hasSize(2);
+		assertThat(preconditions).hasSize(3);
 	}
 
 	@Test

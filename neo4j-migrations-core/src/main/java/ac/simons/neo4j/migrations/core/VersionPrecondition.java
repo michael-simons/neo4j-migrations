@@ -32,8 +32,7 @@ import java.util.stream.Collectors;
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
-	@SuppressWarnings("RegExpRedundantEscape") // Sonar begs to differ, so does https://regex101.com with Java 8 flavor (it's about the dot)
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is *(?<versions>[\\w\\s\\.,]+)?+");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is *(?<versions>\\d[\\w\\s.,]+)?+");
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
 
 	/**
@@ -46,7 +45,7 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
 
 		Matcher matcher = CONDITION_PATTERN.matcher(hint);
-		if (!matcher.matches()) {
+		if (!matcher.find()) {
 			return Optional.empty();
 		}
 

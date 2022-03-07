@@ -71,6 +71,7 @@ class PreconditionTest {
 		"// assume that version is something",
 		"// assume that version is ",
 		"// assume that version is",
+		"// assume that version is ,"
 	})
 	void shouldFailOnWrongVersionPrecondition(String value) {
 		assertThatIllegalArgumentException()

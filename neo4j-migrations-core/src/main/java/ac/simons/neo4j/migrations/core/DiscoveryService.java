@@ -77,10 +77,10 @@ final class DiscoveryService {
 	}
 
 	void log(Migration migration, List<Precondition> unsatisfiedPreconditions) {
-		Migrations.LOGGER.log(Level.INFO, "Skipping {0} due to unsatisfied preconditions: {1}.",
-			new Object[] { Migrations.toString(migration),
+		Migrations.LOGGER.log(Level.INFO,
+			() -> String.format("Skipping %s due to unsatisfied preconditions:%n%s", Migrations.toString(migration),
 				unsatisfiedPreconditions.stream().map(Precondition::toString).collect(
-					Collectors.joining(",")) });
+					Collectors.joining(System.lineSeparator()))));
 	}
 
 	List<Precondition> evaluatePreconditions(Migration migration, MigrationContext context) {

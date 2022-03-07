@@ -72,13 +72,13 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 
 	private VersionPrecondition(Type type, Set<String> versions) {
 		super(type);
-		this.versions = new TreeSet<>(versions);
+		this.versions = versions;
 	}
 
 	@Override
 	public boolean isMet(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
-		return versions.stream().anyMatch(serverVersion::contains);
+		return versions.stream().anyMatch(serverVersion::startsWith);
 	}
 
 	Collection<String> getVersions() {

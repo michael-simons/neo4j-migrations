@@ -189,7 +189,7 @@ Our <<concepts_migrations_cypher-based,Cypher based migrations>> support a set o
 prior to execution.
 
 Preconditions can be added as a single-line Cypher comment to a script. Multiple preconditions in one script must all be
-satisfied (logically chained with `AND`).
+met (logically chained with `AND`).
 
 Assertions::
 Preconditions starting with `// assert` are hard requirements. If they cannot be satisfied by the target database, Neo4j-Migrations
@@ -201,7 +201,19 @@ and not be part of any chain.
 
 === Require a certain edition
 
-The Neo4j edition can be required with `// assume that edition is enterprise` or `// assume that edition is community`.
+The Neo4j edition can be required with either
+
+[source,cypher]
+----
+// assume that edition is enterprise
+----
+
+or
+
+[source,cypher]
+----
+// assume that edition is community.
+----
 
 === Require a certain version
 
@@ -225,13 +237,26 @@ You can require a precondition based on a query that must return a single, `bool
 
 The above case will of course always be satisfied.
 
-NOTE: Why only preconditions for scripts? Since we offer <<concepts_migrations_java-based,full programmatic access>> to migrations
-      together with the context that has information about the Neo4j version, edition and access to both target and schema database,
-      it would be duplicate work if we take the decision from your hand.
-      You are completely free inside a programmatic refactoring not to do anything in a given context. The migration will be
-      dutifully recorded nevertheless.
-      On the other hand, that would not be possible in a (simple) Cypher-script.
+Here's a complete example:
 
+[source,cypher]
+----
+// assert that edition is enterprise
+// assert that version is 4.4
+// assume q' MATCH (book:Library) RETURN count(book) = 0
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;
+----
+
+This refactoring will only execute on Neo4j 4.4 enterprise (due to the requirements of existence constraints and the 4.4 syntax being used)
+and will be ignored when there are already nodes labeled `Library`.
+
+
+=== Why only preconditions for scripts?
+
+Since we offer <<concepts_migrations_java-based,full programmatic access>> to migrations
+together with the context that has information about the Neo4j version, edition and access to both target and schema database,
+it would be duplicate work if we take the decision away from you. You are completely free inside a programmatic refactoring
+not to do anything in a given context. The migration will be dutifully recorded nevertheless.
 
 [[concepts_callbacks]]
 == Callbacks

@@ -62,9 +62,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.empty();
 		} else {
 			try {
-				String editionGroup = matcher.group("edition");
-				String editionValue = editionGroup.toUpperCase(Locale.ROOT);
-				Edition edition = Edition.valueOf(editionValue);
+				Edition edition = Edition.valueOf(matcher.group("edition").toUpperCase(Locale.ROOT));
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(

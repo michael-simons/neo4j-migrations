@@ -31,7 +31,7 @@ import org.neo4j.driver.Session;
 final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 
 	private static final Pattern CONDITION_PATTERN = Pattern.compile(
-		"(?i)^.*?(?<database> in (target|schema))? (?<!that )q'(?<query>.+)?+$");
+		"(?i)^.*?(?<database> in (target|schema))? (?<!that )q'(?<query>.++)?$");
 
 	/**
 	 * Enum to specify in which database the query should be executed

@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?edition is *(?<edition>\\w+)?+");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^.*?edition is *(?<edition>\\w+)?+$");
 
 	/**
 	 * Neo4j edition

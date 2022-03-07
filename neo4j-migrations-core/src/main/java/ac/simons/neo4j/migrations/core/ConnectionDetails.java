@@ -37,6 +37,12 @@ public interface ConnectionDetails {
 	String getServerVersion();
 
 	/**
+	 * @return the Neo4j edition the server is running
+	 * @since 1.5.0
+	 */
+	String getServerEdition();
+
+	/**
 	 * @return the Neo4j user that ran the migrations
 	 */
 	String getUsername();

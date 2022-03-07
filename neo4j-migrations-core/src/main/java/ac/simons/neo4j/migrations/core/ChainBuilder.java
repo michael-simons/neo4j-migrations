@@ -175,6 +175,11 @@ final class ChainBuilder {
 		}
 
 		@Override
+		public String getServerEdition() {
+			return connectionDetailsDelegate.getServerEdition();
+		}
+
+		@Override
 		public String getUsername() {
 			return connectionDetailsDelegate.getUsername();
 		}

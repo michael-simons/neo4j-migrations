@@ -41,6 +41,10 @@ class MigrationChainTest {
 			return "hidden";
 		}
 
+		@Override public String getServerEdition() {
+			return "Special Edition";
+		}
+
 		@Override public String getUsername() {
 			return "j";
 		}

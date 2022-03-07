@@ -62,9 +62,9 @@ final class HBD {
 		return major > 4 || (major >= 4 && minor >= 4);
 	}
 
-	private static Integer valueOf(String value) {
+	static Integer valueOf(String value) {
 		try {
-			return Integer.valueOf(value.contains(" ") ? value.substring(0, value.indexOf(' ')) : value);
+			return Integer.valueOf(value);
 		} catch (NumberFormatException e) {
 			return -1;
 		}

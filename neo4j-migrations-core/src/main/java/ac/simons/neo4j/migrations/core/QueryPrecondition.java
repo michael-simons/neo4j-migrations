@@ -26,7 +26,7 @@ import org.neo4j.driver.Session;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.4.1
+ * @since 1.5.0
  */
 final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 

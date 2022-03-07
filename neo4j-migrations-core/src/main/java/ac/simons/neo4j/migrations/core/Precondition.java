@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.4.1
+ * @since 1.5.0
  */
 interface Precondition {
 

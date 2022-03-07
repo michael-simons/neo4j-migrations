@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.4.1
+ * @since 1.5.0
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 

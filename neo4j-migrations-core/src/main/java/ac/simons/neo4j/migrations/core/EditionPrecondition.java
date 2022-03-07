@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since 1.4.1
+ * @since 1.5.0
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
@@ -75,12 +75,10 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 
 	static Edition getEdition(ConnectionDetails connectionDetails) {
 
-		String serverVersion = connectionDetails.getServerVersion().toUpperCase(Locale.ROOT);
-		if (serverVersion.contains(Edition.ENTERPRISE.name())) {
-			return Edition.ENTERPRISE;
-		} else if (serverVersion.contains(Edition.COMMUNITY.name())) {
-			return Edition.COMMUNITY;
-		} else {
+		try {
+			String serverEdition = connectionDetails.getServerEdition();
+			return serverEdition == null ? Edition.UNKNOWN : Edition.valueOf(serverEdition.toUpperCase(Locale.ROOT));
+		} catch (IllegalArgumentException e) {
 			return Edition.UNKNOWN;
 		}
 	}

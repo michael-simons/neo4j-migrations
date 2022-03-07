@@ -45,7 +45,8 @@ class ChainBuilderIT extends TestBase {
 			.buildChain(context, new DiscoveryService().findMigrations(context));
 
 		assertThat(migrationChain.getServerAddress()).isEqualTo(getServerAddress());
-		assertThat(migrationChain.getServerVersion()).matches("Neo4j/4\\.3\\.\\d+ \\w+ edition");
+		assertThat(migrationChain.getServerVersion()).matches("Neo4j/4\\.3\\.\\d+");
+		assertThat(migrationChain.getServerEdition()).isEqualTo("Community");
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
 		assertThat(migrationChain.getOptionalDatabaseName()).hasValue("neo4j");
 		assertThat(migrationChain.getDatabaseName()).isEqualTo("neo4j");

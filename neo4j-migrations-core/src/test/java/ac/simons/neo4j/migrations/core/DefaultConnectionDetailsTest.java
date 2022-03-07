@@ -26,13 +26,13 @@ class DefaultConnectionDetailsTest {
 
 	@Test
 	void shouldCreateVersionAndEditionWithoutEdition() {
-		String versionAndEdition = DefaultConnectionDetails.createVersionAndEdition("Neo4j/4711", null);
-		assertThat(versionAndEdition).isEqualTo("Neo4j/4711");
+		ConnectionDetails connectionDetails = new DefaultConnectionDetails(null, "Neo4j/4711", null, null, null, null);
+		assertThat(connectionDetails.getServerVersion()).isEqualTo("Neo4j/4711");
 	}
 
 	@Test
 	void shouldCreateVersionAndEditionWithEdition() {
-		String versionAndEdition = DefaultConnectionDetails.createVersionAndEdition("Neo4j/4711", "special");
-		assertThat(versionAndEdition).isEqualTo("Neo4j/4711 Special edition");
+		ConnectionDetails connectionDetails = new DefaultConnectionDetails(null, "Neo4j/4711", "special", null, null, null);
+		assertThat(connectionDetails.getServerEdition()).isEqualTo("Special");
 	}
 }

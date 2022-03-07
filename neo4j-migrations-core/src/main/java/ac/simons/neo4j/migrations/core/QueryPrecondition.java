@@ -31,7 +31,7 @@ import org.neo4j.driver.Session;
 final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 
 	private static final Pattern CONDITION_PATTERN = Pattern.compile(
-		"(?i).*?(?<database> in (target|schema))? that(?<query>.+)?");
+		"(?i).*?(?<database> in (target|schema))? q'(?<query>.+)?");
 
 	/**
 	 * Enum to specify in which database the query should be executed
@@ -64,7 +64,7 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 		String query = matcher.group("query");
 		if (query == null || query.trim().length() == 0) {
 			throw new IllegalArgumentException(
-				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
 		}
 		Database database;
 		if (matcher.group("database") != null) {
@@ -99,5 +99,10 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 
 	Database getDatabase() {
 		return database;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("// %s in %s q'%s", getType().keyword(), getDatabase(), query);
 	}
 }

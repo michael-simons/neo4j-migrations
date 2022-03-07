@@ -33,16 +33,23 @@ interface Precondition {
 		/**
 		 * Preconditions that are assumed and are not satisfied will lead to migrations being skipped.
 		 */
-		ASSUMPTION("// *assume(?: in (?:schema|target))? that.*"),
+		ASSUMPTION("assume"),
 		/**
 		 * Preconditions that are asserted and are not satisfied will halt the migrations at the given migration.
 		 */
-		ASSERTION("// *assert(?: in (?:schema|target))? that.*");
+		ASSERTION("assert");
+
+		private final String keyword;
 
 		private final Pattern pattern;
 
-		Type(String pattern) {
-			this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+		Type(String keyword) {
+			this.keyword = keyword;
+			this.pattern = Pattern.compile("// *" + keyword + "(?: in (?:schema|target))? (that(?! q')|q').*", Pattern.CASE_INSENSITIVE);
+		}
+
+		String keyword() {
+			return keyword;
 		}
 
 		static Optional<Type> of(String value) {
@@ -76,7 +83,7 @@ interface Precondition {
 				return producer.map(f -> f.apply(type));
 			}
 
-			return Optional.empty();
+			throw new IllegalArgumentException("Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 		});
 	}
 

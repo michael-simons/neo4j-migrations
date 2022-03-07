@@ -72,4 +72,8 @@ final class CypherBasedMigration implements Migration {
 	List<String> getStatements() {
 		return this.cypherResource.getStatements();
 	}
+
+	List<Precondition> getPreconditions() {
+		return cypherResource.getPreconditions();
+	}
 }

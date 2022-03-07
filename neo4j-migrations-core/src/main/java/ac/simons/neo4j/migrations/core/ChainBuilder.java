@@ -90,7 +90,6 @@ final class ChainBuilder {
 			return Collections.unmodifiableMap(appliedMigrations);
 		}
 
-
 		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(
 			discoveredMigrations.size() + appliedMigrations.size());
 		int i = 0;

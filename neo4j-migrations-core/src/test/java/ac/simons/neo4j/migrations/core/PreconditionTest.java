@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -38,15 +40,15 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that neo4j is 3.4; ASSUMPTION; 3.4",
-		"// assUMe that neo4j is 3.4 or 3.5; ASSUMPTION; 3.4, 3.5",
-		"// assume that neO4j is 3.4, 3.5, 4.4 or 5.0; ASSUMPTION; 3.4, 3.5, 4.4, 5.0",
-		"// ASSERT that neo4j is 3.4, 3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
-		"// assert that neo4j is 3.4,3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
-		"// ASSERT that Neo4j is 3.4; ASSERTION; 3.4",
-		"//assume that neo4j is 3.4; ASSUMPTION; 3.4",
-		"//assert that neo4j is 3.4; ASSERTION; 3.4",
-		"//assert that neo4j is 3 or 4; ASSERTION; 3, 4",
+		"// assume that version is 3.4; ASSUMPTION; 3.4",
+		"// assUMe that version is 3.4 or 3.5; ASSUMPTION; 3.4, 3.5",
+		"// assume that vErsion is 3.4, 3.5, 4.4 or 5.0; ASSUMPTION; 3.4, 3.5, 4.4, 5.0",
+		"// ASSERT that version is 3.4, 3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
+		"// assert that VERSION is 3.4,3.5, 4.4 or 5.0; ASSERTION; 3.4, 3.5, 4.4, 5.0",
+		"// ASSERT that Version is 3.4; ASSERTION; 3.4",
+		"//assume that version is 3.4; ASSUMPTION; 3.4",
+		"//assert that version is 3.4; ASSERTION; 3.4",
+		"//assert that version is 3 or 4; ASSERTION; 3, 4",
 	})
 	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType, String expectedVersions) {
 
@@ -66,15 +68,15 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that neo4j is something",
-		"// assume that neo4j is ",
-		"// assume that neo4j is",
+		"// assume that version is something",
+		"// assume that version is ",
+		"// assume that version is",
 	})
 	void shouldFailOnWrongVersionPrecondition(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+				"Wrong version precondition. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 	}
 
 	@ParameterizedTest
@@ -82,8 +84,8 @@ class PreconditionTest {
 		"// assume that edition is enterprise; ASSUMPTION; ENTERPRISE",
 		"// assume that edition is EnteRprise; ASSUMPTION; ENTERPRISE",
 		"// assume that edition is community; ASSUMPTION; COMMUNITY",
-		"// assUMe that edition is comMunity; ASSUMPTION; COMMUNITY",
-		"// ASSERT that edition is enterprise; ASSERTION; ENTERPRISE",
+		"// assUMe that Edition is comMunity; ASSUMPTION; COMMUNITY",
+		"// ASSERT that EDITION is enterprise; ASSERTION; ENTERPRISE",
 		"// assERT that edition is community; ASSERTION; COMMUNITY",
 		"//assUMe that edition is community; ASSUMPTION; COMMUNITY",
 		"//ASSERT that edition is enterprise; ASSERTION; ENTERPRISE",
@@ -99,7 +101,7 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource(delimiterString = ";", value = {
+	@ValueSource(strings = {
 		"// assume that edition is something",
 		"// assume that edition is ",
 		"// assume that edition is",
@@ -107,21 +109,30 @@ class PreconditionTest {
 	void shouldFailOnWrongEditionPrecondition(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
-			.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
+			.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"// assume that neo4j is 4711"})
+	void shouldFailOnSomethingThatLooksLikeAPreconditionButIsnt(String value) {
+		assertThatIllegalArgumentException()
+			.isThrownBy((() -> Precondition.parse(value)))
+			.withMessage("Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 	}
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume that RETURN TRUE; ASSUMPTION; TARGET",
-		"// assert that RETURN TRUE; ASSERTION; TARGET",
-		"// assUME that RETURN TRUE; ASSUMPTION; TARGET",
-		"// assERT that RETURN TRUE; ASSERTION; TARGET",
-		"//assume that RETURN TRUE; ASSUMPTION; TARGET",
-		"//assert that RETURN TRUE; ASSERTION; TARGET",
-		"// assume in target that RETURN TRUE; ASSUMPTION; TARGET",
-		"// assume in schema that RETURN TRUE; ASSUMPTION; SCHEMA",
-		"// assume in tARget that RETURN TRUE; ASSUMPTION; TARGET",
-		"// assume in schEMa that RETURN TRUE; ASSUMPTION; SCHEMA",
+		"// assume q'RETURN TRUE; ASSUMPTION; TARGET",
+		"// assert q'RETURN TRUE; ASSERTION; TARGET",
+		"// assUME q'RETURN TRUE; ASSUMPTION; TARGET",
+		"// assERT q'RETURN TRUE; ASSERTION; TARGET",
+		"//assume q'RETURN TRUE; ASSUMPTION; TARGET",
+		"//assume q' RETURN TRUE; ASSUMPTION; TARGET",
+		"//assert q'RETURN TRUE; ASSERTION; TARGET",
+		"// assume in target q'RETURN TRUE; ASSUMPTION; TARGET",
+		"// assume in schema q'RETURN TRUE; ASSUMPTION; SCHEMA",
+		"// assume in tARget q'RETURN TRUE; ASSUMPTION; TARGET",
+		"// assume in schEMa q'RETURN TRUE; ASSUMPTION; SCHEMA",
 	})
 	void shouldParseCypherPreconditions(String value, Precondition.Type expectedType,
 		QueryPrecondition.Database expectedTarget) {
@@ -137,15 +148,15 @@ class PreconditionTest {
 
 	@ParameterizedTest
 	@CsvSource(delimiterString = ";", value = {
-		"// assume in target that",
-		"// assume that ",
-		"// assume that",
+		"// assume in target q'",
+		"// assume q' ",
+		"// assume q'"
 	})
 	void shouldFailOnWrongCypherPrecondition(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] that <cypher statement>`");
+				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
 	}
 
 	@ParameterizedTest
@@ -157,7 +168,7 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
+	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix", "// assume that q' RETURN false" })
 	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
 		Optional<Precondition> precondition = Precondition.parse(value);
 		assertThat(precondition).isEmpty();
@@ -169,5 +180,30 @@ class PreconditionTest {
 		assertThat(
 			EditionPrecondition.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
 			.isEqualTo(edition);
+	}
+
+	@Nested
+	class ToString {
+
+		@Test
+		void ofEditionPrecondition() {
+
+			assertThat(Precondition.parse("// assume that edition is enterprise").map(Precondition::toString))
+				.hasValue("// assume that edition is ENTERPRISE");
+		}
+
+		@Test
+		void ofVersionPrecondition() {
+
+			assertThat(Precondition.parse("// assume that version is 3.5, 4.0 or 4.4").map(Precondition::toString))
+				.hasValue("// assume that version is 3.5, 4.0, 4.4");
+		}
+
+		@Test
+		void ofQueryPrecondition() {
+
+			assertThat(Precondition.parse("// assume q' RETURN false").map(Precondition::toString))
+				.hasValue("// assume in TARGET q'RETURN false");
+		}
 	}
 }

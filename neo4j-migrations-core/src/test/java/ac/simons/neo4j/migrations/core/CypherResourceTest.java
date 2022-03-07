@@ -59,6 +59,16 @@ class CypherResourceTest {
 	}
 
 	@Test
+	void singleLineFollowingEachOther() {
+		CypherResource cypherResource = new CypherResource(
+			CypherResourceTest.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"), false);
+		assertThat(cypherResource.getStatements()).hasSize(1);
+		assertThat(cypherResource.getSingleLineComments()).hasSize(2);
+		List<Precondition> preconditions = cypherResource.getPreconditions();
+		assertThat(preconditions).hasSize(2);
+	}
+
+	@Test
 	void shouldRetrievePreconditions() {
 
 		CypherResource cypherResource = new CypherResource(CypherResourceTest.class.getResource("/parsing/several_preconditions.cypher"), false);
@@ -76,7 +86,7 @@ class CypherResourceTest {
 		assertThat(preconditions).satisfies(precondition -> {
 			assertThat(precondition).isInstanceOf(QueryPrecondition.class);
 			assertThat(precondition.getType()).isEqualTo(Precondition.Type.ASSERTION);
-			assertThat(((QueryPrecondition)precondition).getQuery()).isEqualTo("match (n:`007`) return count(n) = 0");
+			assertThat(((QueryPrecondition) precondition).getQuery()).isEqualTo("match (n:`007`) return count(n) = 0");
 		}, Index.atIndex(2));
 	}
 }

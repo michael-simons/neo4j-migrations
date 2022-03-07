@@ -182,6 +182,57 @@ While you can theoretically extend the public base interface `Migration` too, we
 In fact, on JDK 17 we forbid it.
 Please use only `JavaBasedMigration` as the base interface for your programmatic migrations.
 
+[[concepts_preconditions]]
+== Preconditions
+
+Our <<concepts_migrations_cypher-based,Cypher based migrations>> support a set of simple assertions and assumptions as preconditions
+prior to execution.
+
+Preconditions can be added as a single-line Cypher comment to a script. Multiple preconditions in one script must all be
+satisfied (logically chained with `AND`).
+
+Assertions::
+Preconditions starting with `// assert` are hard requirements. If they cannot be satisfied by the target database, Neo4j-Migrations
+will abort.
+
+Assumptions::
+Preconditions starting with `// assume` are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
+and not be part of any chain.
+
+=== Require a certain edition
+
+The Neo4j edition can be required with `// assume that edition is enterprise` or `// assume that edition is community`.
+
+=== Require a certain version
+
+The Neo4j version can be required with
+
+[source,cypher]
+----
+// assume that version is 4.3
+----
+
+Multiple versions can be enumerated after the `is` separated by a `,`.
+
+=== Preconditions based on Cypher queries
+
+You can require a precondition based on a query that must return a single, `boolean` value via
+
+[source,cypher]
+----
+// assume q' RETURN true
+----
+
+The above case will of course always be satisfied.
+
+NOTE: Why only preconditions for scripts? Since we offer <<concepts_migrations_java-based,full programmatic access>> to migrations
+      together with the context that has information about the Neo4j version, edition and access to both target and schema database,
+      it would be duplicate work if we take the decision from your hand.
+      You are completely free inside a programmatic refactoring not to do anything in a given context. The migration will be
+      dutifully recorded nevertheless.
+      On the other hand, that would not be possible in a (simple) Cypher-script.
+
+
 [[concepts_callbacks]]
 == Callbacks
 

@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Gerrit Meier
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?neo4j is(?<versions>(?:\\d|.)+)?");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is(?<versions>(?:\\d|.)+)?");
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
 
 	/**
@@ -63,7 +64,7 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.of(type -> new VersionPrecondition(type, formattedVersions));
 		} catch (NullPointerException | IllegalArgumentException e) {
 			throw new IllegalArgumentException(
-				"Wrong version precondition. Usage: `<assume|assert> that neo4j is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+				"Wrong version precondition. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 		}
 	}
 
@@ -77,10 +78,17 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 	@Override
 	public boolean isSatisfied(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
-		return versions.contains(serverVersion);
+		return versions.stream().anyMatch(serverVersion::contains);
 	}
 
 	Collection<String> getVersions() {
 		return Collections.unmodifiableCollection(versions);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("// %s that version is %s", getType().keyword(),
+			versions.stream().map(s -> s.replace("Neo4j/", "")).collect(
+				Collectors.joining(", ")).trim());
 	}
 }

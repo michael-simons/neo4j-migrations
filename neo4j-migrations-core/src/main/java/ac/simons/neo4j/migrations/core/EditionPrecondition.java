@@ -68,7 +68,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
-					"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`");
+					"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
 			}
 		}
 	}
@@ -99,5 +99,10 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 
 	Edition getEdition() {
 		return edition;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("// %s that edition is %s", getType().keyword(), getEdition().name());
 	}
 }

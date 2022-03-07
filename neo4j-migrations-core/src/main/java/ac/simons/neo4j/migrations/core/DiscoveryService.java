@@ -17,10 +17,12 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -53,14 +55,56 @@ final class DiscoveryService {
 		List<Migration> migrations = new ArrayList<>();
 		try {
 			for (Discoverer<? extends Migration> discoverer : this.migrationDiscoverers) {
-				migrations.addAll(discoverer.discover(context));
+				Collection<? extends Migration> discoveredMigrations = discoverer.discover(context);
+				for (Migration migration : discoveredMigrations) {
+					List<Precondition> unsatisfiedPreconditions = evaluatePreconditions(migration, context);
+					if (unsatisfiedPreconditions.isEmpty()) {
+						migrations.add(migration);
+					} else {
+						log(migration, unsatisfiedPreconditions);
+					}
+				}
 			}
 		} catch (Exception e) {
+			if (e instanceof MigrationsException) {
+				throw e;
+			}
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
 		return Collections.unmodifiableList(migrations);
+	}
+
+	void log(Migration migration, List<Precondition> unsatisfiedPreconditions) {
+		Migrations.LOGGER.log(Level.INFO, "Skipping {0} due to unsatisfied preconditions: {1}.",
+			new Object[] { Migrations.toString(migration),
+				unsatisfiedPreconditions.stream().map(Precondition::toString).collect(
+					Collectors.joining(",")) });
+	}
+
+	List<Precondition> evaluatePreconditions(Migration migration, MigrationContext context) {
+
+		if (!(migration instanceof CypherBasedMigration)) {
+			return Collections.emptyList();
+		}
+
+		Map<Precondition.Type, List<Precondition>> preconditions = ((CypherBasedMigration) migration).getPreconditions()
+			.stream().collect(Collectors.groupingBy(Precondition::getType));
+
+		if (preconditions.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION,
+			Collections.emptyList())) {
+			if (!assertion.isSatisfied(context)) {
+				throw new MigrationsException("Could not satisfy `" + assertion + "`.");
+			}
+		}
+
+		return preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
+			.stream().filter(precondition -> !precondition.isSatisfied(context)).collect(Collectors.toList());
 	}
 
 	Map<LifecyclePhase, List<Callback>> findCallbacks(MigrationContext context) {

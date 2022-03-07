@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is *(?<versions>[\\w\\s .,]+)?+");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i).*?version is *(?<versions>[\\w\\s \\.,]+)?+");
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile("\\d+(\\.\\d+)?(\\.\\d+)?");
 
 	/**

@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -111,7 +111,7 @@ final class ChainBuilder {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
-			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !expectedChecksum.equals(newMigration.getChecksum())) {
+			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !matches(expectedChecksum, newMigration)) {
 				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 			}
 			// This is not a pending migration anymore
@@ -127,6 +127,19 @@ final class ChainBuilder {
 		}
 
 		return Collections.unmodifiableMap(fullMigrationChain);
+	}
+
+	static boolean matches(Optional<String> expectedChecksum, Migration newMigration) {
+
+		if (expectedChecksum.equals(newMigration.getChecksum())) {
+			return true;
+		}
+
+		if (!(newMigration instanceof CypherBasedMigration) || !expectedChecksum.isPresent()) {
+			return false;
+		}
+
+		return ((CypherBasedMigration) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
 	}
 
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
@@ -172,6 +185,11 @@ final class ChainBuilder {
 		@Override
 		public String getServerVersion() {
 			return connectionDetailsDelegate.getServerVersion();
+		}
+
+		@Override
+		public String getServerEdition() {
+			return connectionDetailsDelegate.getServerEdition();
 		}
 
 		@Override

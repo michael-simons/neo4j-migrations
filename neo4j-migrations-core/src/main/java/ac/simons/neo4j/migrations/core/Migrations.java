@@ -45,7 +45,7 @@ import org.neo4j.driver.types.Node;
  */
 public final class Migrations {
 
-	private static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
+	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
 	private static final String UNIQUE_VERSION = "unique_version___Neo4jMigration";

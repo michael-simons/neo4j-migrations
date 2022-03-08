@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 import java.util.Optional;
 
 /**
@@ -28,16 +30,19 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	private final String serverVersion;
 
+	private final String edition;
+
 	private final String username;
 
 	private final String databaseName;
 
 	private final String schemaDatabaseName;
 
-	DefaultConnectionDetails(String serverAddress, String serverVersion, String username,
+	DefaultConnectionDetails(String serverAddress, String serverVersion, String edition, String username,
 		String databaseName, String schemaDatabaseName) {
 		this.serverAddress = serverAddress;
 		this.serverVersion = serverVersion;
+		this.edition = Strings.capitalize(edition);
 		this.username = username;
 		this.databaseName = databaseName;
 		this.schemaDatabaseName = schemaDatabaseName;
@@ -51,6 +56,11 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 	@Override
 	public String getServerVersion() {
 		return serverVersion;
+	}
+
+	@Override
+	public String getServerEdition() {
+		return edition;
 	}
 
 	@Override

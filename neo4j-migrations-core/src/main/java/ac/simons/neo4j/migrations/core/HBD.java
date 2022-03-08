@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,15 +53,9 @@ final class HBD {
 		if (connectionDetails.getServerVersion() == null) {
 			return false;
 		}
-		String bare = connectionDetails.getServerVersion().replaceFirst("(?i)^Neo4j/", "");
-		String[] values = bare.split("\\.");
-		if (values.length < 2) {
-			return false;
-		}
 
-		Integer major = valueOf(values[0]);
-		Integer minor = valueOf(values[1]);
-		return major > 4 || (major >= 4 && minor >= 4);
+		Neo4jVersionComparator versionComparator = new Neo4jVersionComparator();
+		return versionComparator.compare(connectionDetails.getServerVersion(), "4.4") >= 0;
 	}
 
 	static Integer valueOf(String value) {

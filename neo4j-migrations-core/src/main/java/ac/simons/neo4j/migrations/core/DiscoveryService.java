@@ -19,8 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -59,8 +62,70 @@ final class DiscoveryService {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
+		List<CypherBasedMigration> cyperBasedMigrations = migrations.stream().filter(CypherBasedMigration.class::isInstance)
+			.map(CypherBasedMigration.class::cast)
+			.collect(Collectors.toList());
+		Map<Migration, List<Precondition>> migrationsAndPreconditions = new HashMap<>();
+		computeAlternativeChecksums(cyperBasedMigrations, migrationsAndPreconditions);
+
+		migrations.removeIf(migration -> hasUnmetPreconditions(migrationsAndPreconditions, migration, context));
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
 		return Collections.unmodifiableList(migrations);
+	}
+
+	private void computeAlternativeChecksums(List<CypherBasedMigration> migrations,
+		Map<Migration, List<Precondition>> migrationsAndPreconditions) {
+		migrations.forEach(m -> {
+			List<Precondition> preconditions = m.getPreconditions();
+			migrationsAndPreconditions.put(m, preconditions);
+		});
+
+		migrations.forEach(m -> {
+			if (migrationsAndPreconditions.get(m).isEmpty()) {
+				return;
+			}
+			List<String> alternativeChecksums = migrations.stream()
+				.filter(o -> o != m && o.getSource().equals(m.getSource()) && !migrationsAndPreconditions.get(o).isEmpty())
+				.map(Migration::getChecksum)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toList());
+			m.setAlternativeChecksums(alternativeChecksums);
+		});
+	}
+
+	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration, MigrationContext context) {
+
+		if (!(migration instanceof CypherBasedMigration)) {
+			return false;
+		}
+
+		Map<Precondition.Type, List<Precondition>> preconditions = migrationsAndPreconditions.get(migration)
+			.stream().collect(Collectors.groupingBy(Precondition::getType));
+
+		if (preconditions.isEmpty()) {
+			return false;
+		}
+
+		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION, Collections.emptyList())) {
+			if (!assertion.isMet(context)) {
+				throw new MigrationsException("Could not satisfy `" + assertion + "`.");
+			}
+		}
+
+		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
+			.stream().filter(precondition -> !precondition.isMet(context)).collect(Collectors.toList());
+
+		if (unmet.isEmpty()) {
+			return false;
+		}
+
+		Migrations.LOGGER.log(Level.INFO,
+			() -> String.format("Skipping %s due to unmet preconditions:%n%s", Migrations.toString(migration),
+				unmet.stream().map(Precondition::toString).collect(
+					Collectors.joining(System.lineSeparator()))));
+
+		return true;
 	}
 
 	Map<LifecyclePhase, List<Callback>> findCallbacks(MigrationContext context) {

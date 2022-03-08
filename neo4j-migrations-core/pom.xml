@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>1.4.1-SNAPSHOT</version>
+		<version>1.5.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations</artifactId>
@@ -115,6 +115,7 @@
 							 -->
 							<exclude>ac.simons.neo4j.migrations.core.Discoverer$CypherBasedMigrationDiscoverer</exclude>
 							<exclude>ac.simons.neo4j.migrations.core.Discoverer$JavaBasedMigrationDiscoverer</exclude>
+							<exclude>ac.simons.neo4j.migrations.core.Precondition$Type</exclude>
 							<!--
 							 | Internal classes, restricted via JMS on JDK11+ anyway.
 							 -->

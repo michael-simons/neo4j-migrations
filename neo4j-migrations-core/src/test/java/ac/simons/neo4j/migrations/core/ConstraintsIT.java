@@ -56,18 +56,28 @@ class ConstraintsIT {
 		"4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetectCorrectVersion(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
+
+		for (String edition : new String[] { "Community", "Enterprise" }) {
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
+		}
 	}
 
 	@ParameterizedTest
 	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, false", "neo4J/4.0, false", "Neo4j/4, false",
 		"Neo4j/4.4, true",
-		"4.5, true", "5.0, true", "5, false", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
+		"4.5, true", "5.0, true", "5, true", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
 		assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
+
+		for (String edition : new String[] { "Community", "Enterprise" }) {
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
+		}
 	}
 
 	void dropAllConstraints(Driver driver) {

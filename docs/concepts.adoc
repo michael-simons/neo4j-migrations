@@ -182,6 +182,123 @@ While you can theoretically extend the public base interface `Migration` too, we
 In fact, on JDK 17 we forbid it.
 Please use only `JavaBasedMigration` as the base interface for your programmatic migrations.
 
+[[concepts_preconditions]]
+== Preconditions
+
+Our <<concepts_migrations_cypher-based,Cypher based migrations>> support a set of simple assertions and assumptions as preconditions
+prior to execution.
+
+Preconditions can be added as a single-line Cypher comment to a script. Multiple preconditions in one script must all be
+met (logically chained with `AND`).
+
+Assertions::
+Preconditions starting with `// assert` are hard requirements. If they cannot be satisfied by the target database, Neo4j-Migrations
+will abort.
+
+Assumptions::
+Preconditions starting with `// assume` are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
+and not be part of any chain.
+
+[[multiple-assumptions]]
+WARNING: If you think that preconditions might change (for example when asking for a specific version):
+         Make sure you have alternative scripts with the same filename available, both having preconditions meeting
+         the matching cases. We will treat them as alternatives and make sure that a changed checksum is not treated as
+         an error. For example this would happen if you suddenly one migration has its precondition met which it didn't
+         before and therefore changing the chain of applied migrations.
+
+=== Require a certain edition
+
+The Neo4j edition can be required with either
+
+[source,cypher]
+----
+// assume that edition is enterprise
+----
+
+or
+
+[source,cypher]
+----
+// assume that edition is community.
+----
+
+=== Require a certain version
+
+The Neo4j version can be required with
+
+[source,cypher]
+----
+// assume that version is 4.3
+----
+
+Multiple versions can be enumerated after the `is` separated by a `,`.
+
+Version ranges can be required with `lt` (lower than) or `ge` (greater than or equals), for example:
+
+[source,cypher]
+----
+// assume that version is ge 4.0
+----
+
+Both assumptions combined makes it safe to use version assumptions (see <<multiple-assumptions, the warning above>>).
+We recommend using one refactoring for the minimum version you support and one for all higher that support the feature you
+want. For example: Your minimum supported database version is 4.3 and you want to create an existential constraint.
+You want to have 2 migrations:
+
+[source,cypher]
+.43/V0001__Create_existence_constraint.cypher
+----
+// assert that edition is enterprise
+// assume that version is 4.3
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS ON (book:Library) ASSERT exists(book.isbn);
+----
+
+And the different one for 4.4 or higher:
+
+[source,cypher]
+.44/V0001__Create_existence_constraint.cypher
+----
+// assert that edition is enterprise
+// assume that version is ge 4.4
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;
+----
+
+The former will only applied to the 4.3, the latter to 4.4 or higher. If your user upgrades their
+database at some point, Neo4j-Migrations will recognize that it used an older, compatible script
+with it and wont fail, even though the new script has a different checksum.
+
+=== Preconditions based on Cypher queries
+
+You can require a precondition based on a query that must return a single, `boolean` value via
+
+[source,cypher]
+----
+// assume q' RETURN true
+----
+
+The above case will of course always be satisfied.
+
+Here's a complete example:
+
+[source,cypher]
+----
+// assert that edition is enterprise
+// assert that version is 4.4
+// assume q' MATCH (book:Library) RETURN count(book) = 0
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;
+----
+
+This refactoring will only execute on Neo4j 4.4 enterprise (due to the requirements of existence constraints and the 4.4 syntax being used)
+and will be ignored when there are already nodes labeled `Library`.
+
+
+=== Why only preconditions for scripts?
+
+Since we offer <<concepts_migrations_java-based,full programmatic access>> to migrations
+together with the context that has information about the Neo4j version, edition and access to both target and schema database,
+it would be duplicate work if we take the decision away from you. You are completely free inside a programmatic refactoring
+not to do anything in a given context. The migration will be dutifully recorded nevertheless.
+
 [[concepts_callbacks]]
 == Callbacks
 

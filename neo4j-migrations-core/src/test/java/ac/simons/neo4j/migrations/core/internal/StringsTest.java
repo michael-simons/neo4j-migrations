@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -57,5 +58,35 @@ final class StringsTest {
 	void shouldRequireValue() {
 		assertThatNullPointerException().isThrownBy(() -> Strings.isSingleLineComment(null))
 			.withMessage("Statement to check must not be null");
+	}
+
+	@Nested
+	class Capitalization {
+
+		@Test
+		void shouldDealWithNull() {
+			assertThat(Strings.capitalize(null)).isNull();
+		}
+
+		@Test
+		void shouldDealWithEmpty() {
+
+			String val = " ";
+			assertThat(Strings.capitalize(val)).isSameAs(val);
+		}
+
+		@Test
+		void shouldNotFixThingsThatDontNeedFixing() {
+
+			String val = "Abc";
+			assertThat(Strings.capitalize(val)).isSameAs(val);
+		}
+
+		@Test
+		void shouldCapitalize() {
+
+			String val = "abc";
+			assertThat(Strings.capitalize(val)).isEqualTo("Abc");
+		}
 	}
 }

@@ -19,6 +19,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -36,7 +37,7 @@ final class CypherBasedMigration implements Migration {
 	/**
 	 * In case a migration with the {@link #getSource() source} with different preconditions is available, we treat those as alternatives
 	 */
-	private List<String> alternativeChecksums;
+	private List<String> alternativeChecksums = Collections.emptyList();
 
 	CypherBasedMigration(URL url) {
 		this(url, Defaults.AUTOCRLF);
@@ -74,6 +75,8 @@ final class CypherBasedMigration implements Migration {
 	}
 
 	void setAlternativeChecksums(List<String> alternativeChecksums) {
+
+		Objects.requireNonNull(alternativeChecksums);
 		this.alternativeChecksums = new ArrayList<>(alternativeChecksums);
 	}
 

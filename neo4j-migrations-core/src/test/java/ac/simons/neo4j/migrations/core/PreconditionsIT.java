@@ -27,13 +27,12 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
  */
-@Testcontainers(disabledWithoutDocker = true)
+//@Testcontainers(disabledWithoutDocker = true)
 class PreconditionsIT {
 
 	static {
@@ -89,6 +88,51 @@ class PreconditionsIT {
 				assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
 					.withMessage("Could not satisfy `// assert that edition is ENTERPRISE`.");
 			}
+		}
+	}
+
+	@Test
+	void thingsShouldNotFailWhenAssumptionsChangeDueToVersionUpgrade() {
+		try (
+			Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")
+				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
+		) {
+			neo4j.start();
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+
+				Migrations migrations;
+				migrations = new Migrations(MigrationsConfig.builder()
+					.withLocationsToScan("classpath:preconditions2")
+					.build(), driver);
+
+				migrations.apply();
+				assertStateBeforeAndAfterPreconditionChanged(driver);
+
+				try (Session session = driver.session()) {
+					session.writeTransaction(tx -> tx.run("CREATE(v:Version {name:'4.1'})").consume());
+				}
+
+				migrations = new Migrations(MigrationsConfig.builder()
+					.withLocationsToScan("classpath:preconditions2")
+					.build(), driver);
+
+				migrations.apply();
+				assertStateBeforeAndAfterPreconditionChanged(driver);
+			}
+		}
+	}
+
+	private void assertStateBeforeAndAfterPreconditionChanged(Driver driver) {
+		try (Session session = driver.session()) {
+			long cnt = session.run("MATCH (n:__Neo4jMigration) RETURN count(n) AS cnt").single().get("cnt")
+				.asLong();
+			assertThat(cnt).isEqualTo(2L);
+			cnt = session.run(("MATCH (m:Node {tag: 'I was here (old)'}) RETURN count(m) AS cnt")).single()
+				.get("cnt")
+				.asLong();
+			assertThat(cnt).isEqualTo(1L);
 		}
 	}
 }

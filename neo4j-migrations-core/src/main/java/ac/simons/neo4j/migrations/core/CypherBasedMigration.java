@@ -16,6 +16,8 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -31,6 +33,10 @@ final class CypherBasedMigration implements Migration {
 	private final CypherResource cypherResource;
 	private final String description;
 	private final MigrationVersion version;
+	/**
+	 * In case a migration with the {@link #getSource() source} with different preconditions is available, we treat those as alternatives
+	 */
+	private List<String> alternativeChecksums;
 
 	CypherBasedMigration(URL url) {
 		this(url, Defaults.AUTOCRLF);
@@ -63,10 +69,17 @@ final class CypherBasedMigration implements Migration {
 		return Optional.of(cypherResource.getChecksum());
 	}
 
+	List<String> getAlternativeChecksums() {
+		return Collections.unmodifiableList(alternativeChecksums);
+	}
+
+	void setAlternativeChecksums(List<String> alternativeChecksums) {
+		this.alternativeChecksums = new ArrayList<>(alternativeChecksums);
+	}
+
 	@Override
 	public void apply(MigrationContext context) throws MigrationsException {
-
-			cypherResource.executeIn(context, UnaryOperator.identity());
+		cypherResource.executeIn(context, UnaryOperator.identity());
 	}
 
 	List<String> getStatements() {

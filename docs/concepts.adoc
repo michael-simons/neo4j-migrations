@@ -199,6 +199,12 @@ Assumptions::
 Preconditions starting with `// assume` are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
 and not be part of any chain.
 
+WARNING: If you think that preconditions might change (for example when asking for a specific version):
+         Make sure you have alternative scripts with the same filename available, both having preconditions meeting
+         the matching cases. We will treat them as alternatives and make sure that a changed checksum is not treated as
+         an error. For example this would happen if you suddenly one migration has its precondition met which it didn't
+         before and therefore changing the chain of applied migrations.
+
 === Require a certain edition
 
 The Neo4j edition can be required with either

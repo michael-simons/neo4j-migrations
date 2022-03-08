@@ -73,7 +73,6 @@ class CypherResourceTest {
 
 		CypherResource cypherResource = new CypherResource(
 			CypherResourceTest.class.getResource("/parsing/several_preconditions.cypher"), false);
-		assertThat(cypherResource.getSingleLineComments()).hasSize(5);
 		List<Precondition> preconditions = cypherResource.getPreconditions();
 		assertThat(preconditions)
 			.hasSize(3)
@@ -91,5 +90,6 @@ class CypherResourceTest {
 				assertThat(((QueryPrecondition) precondition).getQuery()).isEqualTo(
 					"match (n:`007`) return count(n) = 0");
 			}, Index.atIndex(2));
+		assertThat(cypherResource.getSingleLineComments()).hasSize(5);
 	}
 }

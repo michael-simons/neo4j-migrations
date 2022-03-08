@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Nested;
@@ -31,6 +32,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 
 /**
  * @author Michael J. Simons
@@ -49,6 +53,9 @@ class PreconditionTest {
 		"//assume that version is 3.4; ASSUMPTION; 3.4",
 		"//assert that version is 3.4; ASSERTION; 3.4",
 		"//assert that version is 3 or 4; ASSERTION; 3, 4",
+		"//assert that version is lt 4.0; ASSERTION; 4.0",
+		"//assert that version is ge 4.0; ASSERTION; 4.0",
+		"//assert that version is ge 4.0.0; ASSERTION; 4.0.0",
 	})
 	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType, String expectedVersions) {
 
@@ -110,15 +117,17 @@ class PreconditionTest {
 	void shouldFailOnWrongEditionPrecondition(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
-			.withMessage("Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
+			.withMessage(
+				"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"// assume that neo4j is 4711", "// assume that q' RETURN false"})
+	@ValueSource(strings = { "// assume that neo4j is 4711", "// assume that q' RETURN false" })
 	void shouldFailOnSomethingThatLooksLikeAPreconditionButIsnt(String value) {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
-			.withMessage("Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
+			.withMessage(
+				"Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 	}
 
 	@ParameterizedTest
@@ -144,6 +153,51 @@ class PreconditionTest {
 			assertThat(precondition.getType()).isEqualTo(expectedType);
 			assertThat(((QueryPrecondition) precondition).getDatabase()).isEqualTo(expectedTarget);
 			assertThat(((QueryPrecondition) precondition).getQuery()).isEqualTo("RETURN TRUE");
+		});
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiterString = ";", value = {
+		"//assert that version is ge 4; ASSERTION; true",
+		"//assert that version is ge 4.0; ASSERTION; true",
+		"//assert that version is ge 4.0.0; ASSERTION; true",
+		"//assert that version is lt 3.99; ASSERTION; false",
+		"//assert that version is lt 4; ASSERTION; false",
+		"//assert that version is lt 4.0; ASSERTION; false",
+		"//assert that version is lt 4.0.0; ASSERTION; false",
+	})
+	void versionRangePreconditionShouldWork(String value, Precondition.Type expectedType, boolean met) {
+		MigrationContext ctx = new MigrationContext() {
+			@Override public MigrationsConfig getConfig() {
+				return null;
+			}
+
+			@Override public Driver getDriver() {
+				return null;
+			}
+
+			@Override public SessionConfig getSessionConfig() {
+				return null;
+			}
+
+			@Override public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
+				return null;
+			}
+
+			@Override public Session getSchemaSession() {
+				return null;
+			}
+
+			@Override public ConnectionDetails getConnectionDetails() {
+				return new DefaultConnectionDetails(null, "Neo4j/4.4", null, null, null, null);
+			}
+		};
+
+		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
+		assertThat(optionalPrecondition).hasValueSatisfying(precondition -> {
+			assertThat(precondition).isInstanceOf(VersionPrecondition.class);
+			assertThat(precondition.getType()).isEqualTo(expectedType);
+			assertThat(precondition.isMet(ctx)).isEqualTo(met);
 		});
 	}
 

@@ -199,6 +199,7 @@ Assumptions::
 Preconditions starting with `// assume` are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
 and not be part of any chain.
 
+[[multiple-assumptions]]
 WARNING: If you think that preconditions might change (for example when asking for a specific version):
          Make sure you have alternative scripts with the same filename available, both having preconditions meeting
          the matching cases. We will treat them as alternatives and make sure that a changed checksum is not treated as
@@ -231,6 +232,40 @@ The Neo4j version can be required with
 ----
 
 Multiple versions can be enumerated after the `is` separated by a `,`.
+
+Version ranges can be required with `lt` (lower than) or `ge` (greater than or equals), for example:
+
+[source,cypher]
+----
+// assume that version is ge 4.0
+----
+
+Both assumptions combined makes it safe to use version assumptions (see <<multiple-assumptions, the warning above>>).
+We recommend using one refactoring for the minimum version you support and one for all higher that support the feature you
+want. For example: Your minimum supported database version is 4.3 and you want to create an existential constraint.
+You want to have 2 migrations:
+
+[source,cypher]
+.43/V0001__Create_existence_constraint.cypher
+----
+// assert that edition is enterprise
+// assume that version is 4.3
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS ON (book:Library) ASSERT exists(book.isbn);
+----
+
+And the different one for 4.4 or higher:
+
+[source,cypher]
+.44/V0001__Create_existence_constraint.cypher
+----
+// assert that edition is enterprise
+// assume that version is ge 4.4
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;
+----
+
+The former will only applied to the 4.3, the latter to 4.4 or higher. If your user upgrades their
+database at some point, Neo4j-Migrations will recognize that it used an older, compatible script
+with it and wont fail, even though the new script has a different checksum.
 
 === Preconditions based on Cypher queries
 

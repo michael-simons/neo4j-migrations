@@ -68,7 +68,7 @@ class ConstraintsIT {
 	@ParameterizedTest
 	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, false", "neo4J/4.0, false", "Neo4j/4, false",
 		"Neo4j/4.4, true",
-		"4.5, true", "5.0, true", "5, false", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
+		"4.5, true", "5.0, true", "5, true", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);

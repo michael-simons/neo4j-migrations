@@ -51,7 +51,7 @@ class Neo4jVersionComparatorTest {
 		"4.1.0, 4.1.1"
 	})
 	void lessShouldWork(String v1, String v2) {
-		Assertions.assertThat(VERSION_COMPARATOR.compare(v1, v2)).isLessThan(0);
+		Assertions.assertThat(VERSION_COMPARATOR.compare(v1, v2)).isNegative();
 	}
 
 	@ParameterizedTest
@@ -66,6 +66,6 @@ class Neo4jVersionComparatorTest {
 		"4.4, 5"
 	})
 	void greaterShouldWork(String v1, String v2) {
-		Assertions.assertThat(VERSION_COMPARATOR.compare(v2, v1)).isGreaterThan(0);
+		Assertions.assertThat(VERSION_COMPARATOR.compare(v2, v1)).isPositive();
 	}
 }

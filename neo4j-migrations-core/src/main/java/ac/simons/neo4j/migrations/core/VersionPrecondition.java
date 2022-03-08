@@ -102,17 +102,17 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 		this.versions = versions;
 	}
 
-	@SuppressWarnings("OptionalGetWithoutIsPresent") // There is at least one version
 	@Override
 	public boolean isMet(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
-		switch (mode) {
-			case LT:
-				return new Neo4jVersionComparator().compare(serverVersion, versions.stream().findFirst().get()) < 0;
-			case GE:
-				return new Neo4jVersionComparator().compare(serverVersion, versions.stream().findFirst().get()) >= 0;
+		if (mode == Mode.EXACT) {
+			return versions.stream().anyMatch(serverVersion::startsWith);
+		} else {
+			return versions.stream().findFirst().map(version -> {
+				int result = new Neo4jVersionComparator().compare(serverVersion, version);
+				return (mode == Mode.LT) == (result < 0);
+			}).orElse(false);
 		}
-		return versions.stream().anyMatch(serverVersion::startsWith);
 	}
 
 	Collection<String> getVersions() {

@@ -316,6 +316,18 @@ The `beforeFirstUse` callback is especially handy in cases in which you want to 
 are applied: It will always be invoked inside the home database of the connected user, so at this point, the target database
 does not need to exist yet.
 
+NOTE: Be aware that for this to work you *must* specify both *target* and *schema* database: The schema database must exist
+      and cannot be created with a `beforeFirstUse` callback. This due to the fact that migrations will always be run inside
+      lock represented by a couple of Nodes.
+      +
+      An appropriate CLI call would look like this:
+      +
+      `neo4j-migrations --schema-database neo4j --database canBeCreatedWithCallback apply`
+      +
+      A corresponding callback would contain:
+      +
+      `CREATE DATABASE canBeCreatedWithCallback IF NOT EXISTS;`
+
 [[concepts_lifecycle-phases]]
 === Lifecycle phases
 

@@ -67,6 +67,18 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Test
+	void shouldBeAwareThatThingsHaveBeenApplied() {
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
+			"classpath:doublewillfail").build(), driver);
+		assertThat(migrations.apply()).hasValueSatisfying(v -> assertThat(v.getValue()).isEqualTo("0001"));
+		MigrationChain info = migrations.info();
+		assertThat(migrations.apply()).hasValueSatisfying(v -> assertThat(v.getValue()).isEqualTo("0001"));
+		MigrationChain info2 = migrations.info();
+		assertThat(info.getElements()).first().satisfies(e -> assertThat(e.getInstalledOn()).isEqualTo(info2.getElements().iterator().next().getInstalledOn()));
+	}
+
+	@Test
 	void shouldFailIfNoMigrationsAreDiscoveredButThingsAreInsideTheDatabase() {
 
 		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(

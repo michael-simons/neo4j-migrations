@@ -88,6 +88,7 @@ abstract class TestBase {
 
 		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
 		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
+		dropConstraint(driver, database, "DROP CONSTRAINT ON (f:A) ASSERT f.id IS UNIQUE");
 	}
 
 	static int lengthOfMigrations(Driver driver, String database) {

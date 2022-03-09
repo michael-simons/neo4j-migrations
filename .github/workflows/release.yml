@@ -123,4 +123,6 @@ jobs:
       - name: 'Create release'
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
+          JRELEASER_SDKMAN_CONSUMER_KEY: ${{ secrets.JRELEASER_SDKMAN_CONSUMER_KEY }}
+          JRELEASER_SDKMAN_CONSUMER_TOKEN: ${{ secrets.JRELEASER_SDKMAN_CONSUMER_TOKEN }}
         run: ./mvnw --no-transfer-progress -Pjreleaser -pl :neo4j-migrations-parent jreleaser:full-release

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -157,6 +158,17 @@ class MigrationsIT extends TestBase {
 
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
 			.withMessage("Unexpected migration at index 0: 001 (\"FirstMigration\").");
+	}
+
+	@Test
+	void shouldNotSwallowMigrationExceptions() {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:broken").build(), driver);
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(migrations::apply)
+			.withCauseInstanceOf(ClientException.class);
 	}
 
 	@Test

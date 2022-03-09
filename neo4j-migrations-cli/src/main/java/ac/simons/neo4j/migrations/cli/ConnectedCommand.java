@@ -26,6 +26,8 @@ import java.util.logging.Level;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.AuthenticationException;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.FatalDiscoveryException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 
 /**
@@ -64,8 +66,18 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			Migrations migrations = new Migrations(config, driver);
 
 			return withMigrations(migrations);
-		} catch (AuthenticationException | ServiceUnavailableException | MigrationsException e) {
+		} catch (AuthenticationException | ServiceUnavailableException | FatalDiscoveryException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
+			return CommandLine.ExitCode.SOFTWARE;
+		} catch (MigrationsException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof ClientException) {
+				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}{1}\t{2}: {3}",
+					new Object[] { e.getMessage(), System.lineSeparator(), ((ClientException) cause).code(),
+						cause.getMessage() });
+			} else {
+				MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
+			}
 			return CommandLine.ExitCode.SOFTWARE;
 		}
 	}

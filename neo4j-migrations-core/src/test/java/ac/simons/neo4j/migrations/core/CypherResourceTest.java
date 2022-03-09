@@ -59,6 +59,30 @@ class CypherResourceTest {
 	}
 
 	@Test
+	void onlyCommentsShouldBeTreatedAsSuch() {
+		CypherResource cypherResource = new CypherResource(
+			CypherResourceTest.class.getResource("/parsing/onlycomments.cypher"), false);
+
+		assertThat(cypherResource.getStatements()).hasSize(1);
+		assertThat(cypherResource.getExecutableStatements()).isEmpty();
+		assertThat(cypherResource.getSingleLineComments()).containsExactly("// Line 1", "// Line 2");
+	}
+
+	@Test
+	void onlyCommentsShouldBeTreatedAsSuch2() {
+		CypherResource cypherResource = new CypherResource(
+			CypherResourceTest.class.getResource("/parsing/multiple_comments_one_command.cypher"), false);
+
+		assertThat(cypherResource.getStatements()).hasSize(1);
+		assertThat(cypherResource.getExecutableStatements()).containsExactly(
+			"// Line 1\n"
+			+ "// Line 2\n"
+			+ "RETURN TRUE"
+		);
+		assertThat(cypherResource.getSingleLineComments()).containsExactly("// Line 1", "// Line 2");
+	}
+
+	@Test
 	void singleLineFollowingEachOther() {
 		CypherResource cypherResource = new CypherResource(
 			CypherResourceTest.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"), false);

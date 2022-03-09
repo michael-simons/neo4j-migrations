@@ -560,12 +560,12 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <ul class="sectlevel2">
 <li><a href="#concepts_connectivity">3.1. Connectivity</a></li>
 <li><a href="#concepts_migrations">3.2. Migrations</a></li>
-<li><a href="#concepts_preconditions">3.3. Preconditions</a></li>
-<li><a href="#concepts_callbacks">3.4. Callbacks</a></li>
-<li><a href="#concepts_naming-conventions">3.5. Naming conventions</a></li>
-<li><a href="#concepts_chain">3.6. Chain of applied migrations</a></li>
-<li><a href="#concepts_separate-databases">3.7. Separate schema databases</a></li>
-<li><a href="#concepts_transactions">3.8. Transactions</a></li>
+<li><a href="#concepts_callbacks">3.3. Callbacks</a></li>
+<li><a href="#concepts_naming-conventions">3.4. Naming conventions</a></li>
+<li><a href="#concepts_chain">3.5. Chain of applied migrations</a></li>
+<li><a href="#concepts_separate-databases">3.6. Separate schema databases</a></li>
+<li><a href="#concepts_transactions">3.7. Transactions</a></li>
+<li><a href="#concepts_preconditions">3.8. Preconditions</a></li>
 </ul>
 </li>
 <li><a href="#usage">4. Usage</a>
@@ -595,7 +595,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 1.5.1-SNAPSHOT.</p>
+<p>This is the Neo4j-Migrations manual version 1.5.2-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -727,7 +727,22 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 <div class="sect2">
 <h3 id="download_cli"><a class="anchor" href="#download_cli"></a>2.1. CLI</h3>
 <div class="sect3">
-<h4 id="download_cli_brew"><a class="anchor" href="#download_cli_brew"></a>2.1.1. For homebrew users on macOS</h4>
+<h4 id="sdkman"><a class="anchor" href="#sdkman"></a>2.1.1. SDKMAN!</h4>
+<div class="paragraph">
+<p>Neo4j-Migrations is on <a href="https://sdkman.io/sdks#neo4jmigrations">SDKMAN!</a> and can be installed via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">sdk install neo4jmigrations</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>on Windows, Linux and macOS x86_64.
+Arm binaries are not yet available.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="download_cli_brew"><a class="anchor" href="#download_cli_brew"></a>2.1.2. For homebrew users on macOS</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">brew install michael-simons/homebrew-neo4j-migrations/neo4j-migrations</code></pre>
@@ -738,29 +753,29 @@ Neo4j-Migrations filled that gap in early 2020 and has grown ever since.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="linux"><a class="anchor" href="#linux"></a>2.1.2. Linux</h4>
+<h4 id="linux"><a class="anchor" href="#linux"></a>2.1.3. Linux</h4>
 <div class="paragraph">
 <p>As download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.1-SNAPSHOT/neo4j-migrations-1.5.1-SNAPSHOT-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.2-SNAPSHOT/neo4j-migrations-1.5.2-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="windows"><a class="anchor" href="#windows"></a>2.1.3. Windows</h4>
+<h4 id="windows"><a class="anchor" href="#windows"></a>2.1.4. Windows</h4>
 <div class="paragraph">
 <p>As download from our <a href="https://github.com/michael-simons/neo4j-migrations/releases">release page</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.1-SNAPSHOT/neo4j-migrations-1.5.1-SNAPSHOT-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.2-SNAPSHOT/neo4j-migrations-1.5.2-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="architectureindependent"><a class="anchor" href="#architectureindependent"></a>2.1.4. Architecture independent</h4>
+<h4 id="architectureindependent"><a class="anchor" href="#architectureindependent"></a>2.1.5. Architecture independent</h4>
 <div class="paragraph">
 <p>In addition to the above native binaries we still offer a JVM, architecture independent version of Neo4j-Migrations-CLI.
 Only the JVM version does support custom, Java-based migrations as shown via the argument <code>--package</code>, the natively compiled versions do not.
@@ -768,7 +783,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.1-SNAPSHOT/neo4j-migrations-1.5.1-SNAPSHOT.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.2-SNAPSHOT/neo4j-migrations-1.5.2-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -801,7 +816,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -812,7 +827,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.5.1-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.5.2-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -831,7 +846,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -843,7 +858,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.5.1-SNAPSHOT'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.5.2-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -863,7 +878,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -880,7 +895,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -913,7 +928,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
 <div class="sectionbody">
 <div class="paragraph">
 <p>This chapter deals with various concepts that are applicable for all modules offered.
-Especially checkout <a href="#concepts_naming-conventions">Section 3.5</a> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.</p>
+Especially checkout <a href="#concepts_naming-conventions">Section 3.4</a> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.</p>
 </div>
 <div class="sect2">
 <h3 id="concepts_connectivity"><a class="anchor" href="#concepts_connectivity"></a>3.1. Connectivity</h3>
@@ -1061,7 +1076,7 @@ RETURN n
 </div>
 <div class="paragraph">
 <p>Neo4j-Migrations will by default look in <code>classpath:neo4j/migrations</code> for all <code>*.cypher</code> files matching the name described in
-<a href="#concepts_naming-conventions">Section 3.5</a>. You can change (or add to this default) with the Core API or the appropriate properties in
+<a href="#concepts_naming-conventions">Section 3.4</a>. You can change (or add to this default) with the Core API or the appropriate properties in
 Spring-Boot-Starter or the Maven-Plugin like this:</p>
 </div>
 <div class="listingblock">
@@ -1099,7 +1114,7 @@ There a couple of thinks to remember, though:</p>
 </li>
 <li>
 <p>If you have more than one statement per script (which is completely not a problem) and one of them should use <code>USE</code> you must
-configure Neo4j-Migrations to use <code>TransactionMode#PER_STATEMENT</code> (see <a href="#concepts_transactions">Section 3.8</a>, meaning to run each statement of a script in a separate transaction.
+configure Neo4j-Migrations to use <code>TransactionMode#PER_STATEMENT</code> (see <a href="#concepts_transactions">Section 3.7</a>, meaning to run each statement of a script in a separate transaction.
 This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
 before has already been committed.</p>
 </li>
@@ -1154,7 +1169,7 @@ The transaction handling inside Java-based migrations is completely up to you.</
 <div class="paragraph">
 <p>You don&#8217;t have to annotate your Java-based migrations in any way.
 Neo4j-Migrations will find them on the classpath as is.
-The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <a href="#concepts_naming-conventions">Section 3.5</a>.</p>
+The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <a href="#concepts_naming-conventions">Section 3.4</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1181,157 +1196,7 @@ Please use only <code>JavaBasedMigration</code> as the base interface for your p
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_preconditions"><a class="anchor" href="#concepts_preconditions"></a>3.3. Preconditions</h3>
-<div class="paragraph">
-<p>Our <a href="#concepts_migrations_cypher-based">Cypher based migrations</a> support a set of simple assertions and assumptions as preconditions
-prior to execution.</p>
-</div>
-<div class="paragraph">
-<p>Preconditions can be added as a single-line Cypher comment to a script. Multiple preconditions in one script must all be
-met (logically chained with <code>AND</code>).</p>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Assertions</dt>
-<dd>
-<p>Preconditions starting with <code>// assert</code> are hard requirements. If they cannot be satisfied by the target database, Neo4j-Migrations
-will abort.</p>
-</dd>
-<dt class="hdlist1">Assumptions</dt>
-<dd>
-<p>Preconditions starting with <code>// assume</code> are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
-and not be part of any chain.</p>
-</dd>
-</dl>
-</div>
-<div id="multiple-assumptions" class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If you think that preconditions might change (for example when asking for a specific version):
-         Make sure you have alternative scripts with the same filename available, both having preconditions meeting
-         the matching cases. We will treat them as alternatives and make sure that a changed checksum is not treated as
-         an error. For example this would happen if you suddenly one migration has its precondition met which it didn&#8217;t
-         before and therefore changing the chain of applied migrations.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect3">
-<h4 id="requireacertainedition"><a class="anchor" href="#requireacertainedition"></a>3.3.1. Require a certain edition</h4>
-<div class="paragraph">
-<p>The Neo4j edition can be required with either</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assume that edition is enterprise</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>or</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assume that edition is community.</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="requireacertainversion"><a class="anchor" href="#requireacertainversion"></a>3.3.2. Require a certain version</h4>
-<div class="paragraph">
-<p>The Neo4j version can be required with</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assume that version is 4.3</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Multiple versions can be enumerated after the <code>is</code> separated by a <code>,</code>.</p>
-</div>
-<div class="paragraph">
-<p>Version ranges can be required with <code>lt</code> (lower than) or <code>ge</code> (greater than or equals), for example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assume that version is ge 4.0</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Both assumptions combined makes it safe to use version assumptions (see <a href="#multiple-assumptions">the warning above</a>).
-We recommend using one refactoring for the minimum version you support and one for all higher that support the feature you
-want. For example: Your minimum supported database version is 4.3 and you want to create an existential constraint.
-You want to have 2 migrations:</p>
-</div>
-<div class="listingblock">
-<div class="title">Listing 10. 43/V0001__Create_existence_constraint.cypher</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
-// assume that version is 4.3
-CREATE CONSTRAINT isbn_exists IF NOT EXISTS ON (book:Library) ASSERT exists(book.isbn);</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>And the different one for 4.4 or higher:</p>
-</div>
-<div class="listingblock">
-<div class="title">Listing 11. 44/V0001__Create_existence_constraint.cypher</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
-// assume that version is ge 4.4
-CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The former will only applied to the 4.3, the latter to 4.4 or higher. If your user upgrades their
-database at some point, Neo4j-Migrations will recognize that it used an older, compatible script
-with it and wont fail, even though the new script has a different checksum.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="preconditionsbasedoncypherqueries"><a class="anchor" href="#preconditionsbasedoncypherqueries"></a>3.3.3. Preconditions based on Cypher queries</h4>
-<div class="paragraph">
-<p>You can require a precondition based on a query that must return a single, <code>boolean</code> value via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assume q' RETURN true</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The above case will of course always be satisfied.</p>
-</div>
-<div class="paragraph">
-<p>Here&#8217;s a complete example:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
-// assert that version is 4.4
-// assume q' MATCH (book:Library) RETURN count(book) = 0
-CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This refactoring will only execute on Neo4j 4.4 enterprise (due to the requirements of existence constraints and the 4.4 syntax being used)
-and will be ignored when there are already nodes labeled <code>Library</code>.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="whyonlypreconditionsforscripts"><a class="anchor" href="#whyonlypreconditionsforscripts"></a>3.3.4. Why only preconditions for scripts?</h4>
-<div class="paragraph">
-<p>Since we offer <a href="#concepts_migrations_java-based">full programmatic access</a> to migrations
-together with the context that has information about the Neo4j version, edition and access to both target and schema database,
-it would be duplicate work if we take the decision away from you. You are completely free inside a programmatic refactoring
-not to do anything in a given context. The migration will be dutifully recorded nevertheless.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="concepts_callbacks"><a class="anchor" href="#concepts_callbacks"></a>3.4. Callbacks</h3>
+<h3 id="concepts_callbacks"><a class="anchor" href="#concepts_callbacks"></a>3.3. Callbacks</h3>
 <div class="paragraph">
 <p>Callbacks are part of a refactoring or a chain of migration that lives outside the chain of things.
 As such these callbacks can be used to make sure certain data, constructs or other preconditions are available or fulfilled before anything else happens.
@@ -1372,7 +1237,7 @@ Be aware that for this to work you <strong>must</strong> specify both <strong>ta
 </table>
 </div>
 <div class="sect3">
-<h4 id="concepts_lifecycle-phases"><a class="anchor" href="#concepts_lifecycle-phases"></a>3.4.1. Lifecycle phases</h4>
+<h4 id="concepts_lifecycle-phases"><a class="anchor" href="#concepts_lifecycle-phases"></a>3.3.1. Lifecycle phases</h4>
 <div class="paragraph">
 <p>The following phases are supported:</p>
 </div>
@@ -1424,9 +1289,9 @@ This can be used to create the target database before any migrations or validati
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_naming-conventions"><a class="anchor" href="#concepts_naming-conventions"></a>3.5. Naming conventions</h3>
+<h3 id="concepts_naming-conventions"><a class="anchor" href="#concepts_naming-conventions"></a>3.4. Naming conventions</h3>
 <div class="sect3">
-<h4 id="cypher-basedresources"><a class="anchor" href="#cypher-basedresources"></a>3.5.1. Cypher-based resources</h4>
+<h4 id="cypher-basedresources"><a class="anchor" href="#cypher-basedresources"></a>3.4.1. Cypher-based resources</h4>
 <div class="paragraph">
 <p>All Cypher-based resources (especially migration and callback scripts) require <code>.cypher</code> as extension.
 The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in <code>classpath:neo4j/migrations</code>.
@@ -1491,7 +1356,7 @@ nameOfTheLifecyclePhase__optional_description.cypher</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>nameOfTheLifecyclePhase</code> must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <a href="#concepts_lifecycle-phases">Section 3.4.1</a>),
+<p><code>nameOfTheLifecyclePhase</code> must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <a href="#concepts_lifecycle-phases">Section 3.3.1</a>),
 followed by an optional description and the suffix <code>.cypher</code>, separated from the name of the phase by two underscores (<code>__</code>).
 The description is used to order different callback scripts for the same lifecycle phase.
 If you use more than one script in the same lifecycle phase without a description, the order is undefined.</p>
@@ -1513,7 +1378,7 @@ option in your desired clause so that these statements become idempotent.
 </div>
 </div>
 <div class="sect3">
-<h4 id="java-basedmigrations"><a class="anchor" href="#java-basedmigrations"></a>3.5.2. Java-based migrations</h4>
+<h4 id="java-basedmigrations"><a class="anchor" href="#java-basedmigrations"></a>3.4.2. Java-based migrations</h4>
 <div class="paragraph">
 <p>For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
 <a href="#concepts_naming-conventions_migration_scripts">Cypher-based scripts</a> apart from the extension.
@@ -1549,7 +1414,7 @@ or in source form, <code>V1_2_3__Add_last_name_index.java</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_chain"><a class="anchor" href="#concepts_chain"></a>3.6. Chain of applied migrations</h3>
+<h3 id="concepts_chain"><a class="anchor" href="#concepts_chain"></a>3.5. Chain of applied migrations</h3>
 <div class="paragraph">
 <p>All migrations applied to a target database are stored in the schema database.
 The target and the schema database can be the same database.
@@ -1575,7 +1440,7 @@ In case you want to get rid of it, please use the <a href="#usage_common_clean">
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_separate-databases"><a class="anchor" href="#concepts_separate-databases"></a>3.7. Separate schema databases</h3>
+<h3 id="concepts_separate-databases"><a class="anchor" href="#concepts_separate-databases"></a>3.6. Separate schema databases</h3>
 <div class="paragraph">
 <p>Since version 1.1.0 you can use a different database for storing information about migrations.
 You need to run a Neo4j 4+ Enterprise Edition.
@@ -1606,7 +1471,7 @@ so that this feature doesn&#8217;t break compatibility with schemas created befo
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.8. Transactions</h3>
+<h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.7. Transactions</h3>
 <div class="paragraph">
 <p>All operations executed directly by Neo4j-Migrations are executed inside transactional functions.
 This is essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).</p>
@@ -1616,7 +1481,7 @@ This is essentially a scope around one or more statements which will be retried 
 transactional function or if each statement goes into its own transactional scope:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 12. Choose transaction behaviour</div>
+<div class="title">Listing 10. Choose transaction behaviour</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">MigrationsConfig configPerMigration = MigrationsConfig.builder()
     .withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
@@ -1634,6 +1499,156 @@ MigrationsConfig configPerStatement = MigrationsConfig.builder()
 Either the whole migration is applied (or failed) or none.
 But there are certain scenarios that require a transaction per statement, for example most DDL operations such as creating
 databases might not be run together with DML operations in the same transaction.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="concepts_preconditions"><a class="anchor" href="#concepts_preconditions"></a>3.8. Preconditions</h3>
+<div class="paragraph">
+<p>Our <a href="#concepts_migrations_cypher-based">Cypher based migrations</a> support a set of simple assertions and assumptions as preconditions
+prior to execution.</p>
+</div>
+<div class="paragraph">
+<p>Preconditions can be added as a single-line Cypher comment to a script. Multiple preconditions in one script must all be
+met (logically chained with <code>AND</code>).</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Assertions</dt>
+<dd>
+<p>Preconditions starting with <code>// assert</code> are hard requirements. If they cannot be satisfied by the target database, Neo4j-Migrations
+will abort.</p>
+</dd>
+<dt class="hdlist1">Assumptions</dt>
+<dd>
+<p>Preconditions starting with <code>// assume</code> are soft requirements. If they cannot be satisfied, the corresponding script will be skipped
+and not be part of any chain.</p>
+</dd>
+</dl>
+</div>
+<div id="multiple-assumptions" class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+If you think that preconditions might change (for example when asking for a specific version):
+Make sure you have alternative scripts with the same filename available, both having preconditions meeting
+the matching cases. We will treat them as alternatives and make sure that a changed checksum is not treated as
+an error. For example this would happen if you suddenly one migration has its precondition met which it didn&#8217;t
+before and therefore changing the chain of applied migrations.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="requireacertainedition"><a class="anchor" href="#requireacertainedition"></a>3.8.1. Require a certain edition</h4>
+<div class="paragraph">
+<p>The Neo4j edition can be required with either</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assume that edition is enterprise</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assume that edition is community.</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="requireacertainversion"><a class="anchor" href="#requireacertainversion"></a>3.8.2. Require a certain version</h4>
+<div class="paragraph">
+<p>The Neo4j version can be required with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assume that version is 4.3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Multiple versions can be enumerated after the <code>is</code> separated by a <code>,</code>.</p>
+</div>
+<div class="paragraph">
+<p>Version ranges can be required with <code>lt</code> (lower than) or <code>ge</code> (greater than or equals), for example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assume that version is ge 4.0</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both assumptions combined makes it safe to use version assumptions (see <a href="#multiple-assumptions">the warning above</a>).
+We recommend using one refactoring for the minimum version you support and one for all higher that support the feature you
+want. For example: Your minimum supported database version is 4.3 and you want to create an existential constraint.
+You want to have 2 migrations:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 11. 43/V0001__Create_existence_constraint.cypher</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
+// assume that version is 4.3
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS ON (book:Library) ASSERT exists(book.isbn);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And the different one for 4.4 or higher:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 12. 44/V0001__Create_existence_constraint.cypher</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
+// assume that version is ge 4.4
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The former will only applied to the 4.3, the latter to 4.4 or higher. If your user upgrades their
+database at some point, Neo4j-Migrations will recognize that it used an older, compatible script
+with it and wont fail, even though the new script has a different checksum.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="preconditionsbasedoncypherqueries"><a class="anchor" href="#preconditionsbasedoncypherqueries"></a>3.8.3. Preconditions based on Cypher queries</h4>
+<div class="paragraph">
+<p>You can require a precondition based on a query that must return a single, <code>boolean</code> value via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assume q' RETURN true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above case will of course always be satisfied.</p>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s a complete example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
+// assert that version is 4.4
+// assume q' MATCH (book:Library) RETURN count(book) = 0
+CREATE CONSTRAINT isbn_exists IF NOT EXISTS FOR (book:Library) REQUIRE book.isbn IS NOT NULL;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This refactoring will only execute on Neo4j 4.4 enterprise (due to the requirements of existence constraints and the 4.4 syntax being used)
+and will be ignored when there are already nodes labeled <code>Library</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="whyonlypreconditionsforscripts"><a class="anchor" href="#whyonlypreconditionsforscripts"></a>3.8.4. Why only preconditions for scripts?</h4>
+<div class="paragraph">
+<p>Since we offer <a href="#concepts_migrations_java-based">full programmatic access</a> to migrations
+together with the context that has information about the Neo4j version, edition and access to both target and schema database,
+it would be duplicate work if we take the decision away from you. You are completely free inside a programmatic refactoring
+not to do anything in a given context. The migration will be dutifully recorded nevertheless.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1720,9 +1735,9 @@ For that version to work, you need to have JDK 8 or higher installed:</p>
 <div class="title">Listing 13. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.1-SNAPSHOT/neo4j-migrations-1.5.1-SNAPSHOT.zip
-unzip neo4j-migrations-1.5.1-SNAPSHOT.zip
-cd neo4j-migrations-1.5.1-SNAPSHOT
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.2-SNAPSHOT/neo4j-migrations-1.5.2-SNAPSHOT.zip
+unzip neo4j-migrations-1.5.2-SNAPSHOT.zip
+cd neo4j-migrations-1.5.2-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -2031,9 +2046,9 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.1-SNAPSHOT/neo4j-migrations-1.5.1-SNAPSHOT.zip
-unzip neo4j-migrations-1.5.1-SNAPSHOT.zip
-cd neo4j-migrations-1.5.1-SNAPSHOT
+<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.5.2-SNAPSHOT/neo4j-migrations-1.5.2-SNAPSHOT.zip
+unzip neo4j-migrations-1.5.2-SNAPSHOT.zip
+cd neo4j-migrations-1.5.2-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -2076,7 +2091,7 @@ We do add this here for completeness, but we do think that Java-based migrations
 <div class="sect2">
 <h3 id="coreapi"><a class="anchor" href="#coreapi"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.5.1-SNAPSHOT API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.5.2-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">Section 2.2</a>.</p>
 </div>
 <div class="paragraph">
@@ -2159,7 +2174,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2432,7 +2447,7 @@ Declare the following dependency in your Quarkus application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2526,7 +2541,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.5.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.5.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -2619,7 +2634,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-09 16:40:40 UTC
+Last updated 2022-03-09 18:56:42 UTC
 </div>
 </div>
 </body>

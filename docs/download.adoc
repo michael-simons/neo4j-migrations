@@ -4,6 +4,18 @@
 [[download_cli]]
 == CLI
 
+=== SDKMAN!
+
+Neo4j-Migrations is on https://sdkman.io/sdks#neo4jmigrations[SDKMAN!] and can be installed via
+
+[source,console]
+----
+sdk install neo4jmigrations
+----
+
+on Windows, Linux and macOS x86_64.
+Arm binaries are not yet available.
+
 [[download_cli_brew]]
 === For homebrew users on macOS
 

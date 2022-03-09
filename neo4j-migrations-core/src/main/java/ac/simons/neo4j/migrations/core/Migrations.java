@@ -323,7 +323,11 @@ public final class Migrations {
 				invokeCallbacks(after);
 			}
 		} finally {
-			lock.unlock();
+			try {
+				lock.unlock();
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Could not unlock… Please check for residues (Nodes labeled `__Neo4jMigrationsLock`).");
+			}
 		}
 	}
 

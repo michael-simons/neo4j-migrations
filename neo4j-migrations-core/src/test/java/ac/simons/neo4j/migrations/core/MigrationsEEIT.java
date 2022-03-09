@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -43,6 +44,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.exceptions.FatalDiscoveryException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -107,6 +109,14 @@ class MigrationsEEIT {
 		LOCK_LOGGER.removeHandler(SIMPLE_CONSOLE_HANDLER);
 	}
 
+	@BeforeEach
+	void additionalClearance() {
+
+		try (Session session = driver.session()) {
+			session.run("DROP DATABASE callbackTarget IF EXISTS");
+		}
+	}
+
 	@Test
 	void shouldBeAbleToCreateDatabaseInASimpleWay() {
 
@@ -125,6 +135,21 @@ class MigrationsEEIT {
 			long cnt = session.run("MATCH (n:`MigrationNode`) RETURN count(n) AS cnt").single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
+	}
+
+	@Test
+	void needsSchemaDatabase() {
+
+		TestBase.clearDatabase(driver, "neo4j");
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:callbackee")
+			.withDatabase("callbackTarget")
+			.build(), driver);
+
+		assertThatExceptionOfType(FatalDiscoveryException.class).isThrownBy(migrations::apply)
+			.withMessage("Database does not exist. Database name: 'callbackTarget'.");
 	}
 
 	@Test

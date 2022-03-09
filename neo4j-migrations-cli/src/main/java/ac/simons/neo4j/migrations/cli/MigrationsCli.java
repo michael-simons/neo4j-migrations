@@ -180,7 +180,7 @@ public final class MigrationsCli implements Runnable {
 	private String impersonatedUser;
 
 	@Option(
-		names = { "-v" },
+		names = { "-v", "--verbose" },
 		description = "Log the configuration and a couple of other things."
 	)
 	private boolean verbose;

@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +50,17 @@ import org.neo4j.driver.summary.SummaryCounters;
 final class CypherResource {
 
 	private static final Logger LOGGER = Logger.getLogger(CypherResource.class.getName());
-	private static final Predicate<String> NOT_A_SINGLE_COMMENT = s -> !Strings.isSingleLineComment(s);
+	private static final Predicate<String> NOT_A_SINGLE_COMMENT =
+		s -> {
+			if (!Strings.isSingleLineComment(s)) {
+				if (s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT)) {
+					return Arrays.stream(s.split(Strings.LINE_DELIMITER))
+						.anyMatch(sub -> !Strings.isSingleLineComment(sub));
+				}
+				return true;
+			}
+			return false;
+		};
 
 	/**
 	 * The URL of the Cypher script.
@@ -244,7 +255,7 @@ final class CypherResource {
 			.flatMap(s -> {
 				boolean notAComment;
 				Stream.Builder<String> builder = Stream.builder();
-				for (String line : s.split("\r?\n|\r")) {
+				for (String line : s.split(Strings.LINE_DELIMITER)) {
 					line = line.trim();
 					notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);
 					if (notAComment) {

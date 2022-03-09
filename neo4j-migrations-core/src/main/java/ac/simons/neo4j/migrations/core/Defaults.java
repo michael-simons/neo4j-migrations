@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +49,7 @@ public final class Defaults {
 	/**
 	 * Cypher delimiter
 	 */
-	static final String CYPHER_STATEMENT_DELIMITER = ";(:?\r?\n|\r)";
+	static final String CYPHER_STATEMENT_DELIMITER = ";(:?" + Strings.LINE_DELIMITER + ")";
 
 	/**
 	 * Default packages to scan.

@@ -28,9 +28,13 @@ import java.util.function.UnaryOperator;
 public final class Strings {
 
 	/**
-	 * Single line comment indicator
+	 * Single line comment indicator.
 	 */
 	public static final String CYPHER_SINGLE_LINE_COMMENT = "//";
+	/**
+	 * Pattern used for splitting lines.
+	 */
+	public static final String LINE_DELIMITER = "\r?\n|\r";
 
 	/**
 	 * Capitalizees a string

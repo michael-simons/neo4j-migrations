@@ -336,16 +336,25 @@ public final class Migrations {
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())
 			.forEach(callback -> {
-				callback.on(event);
+				try {
+					callback.on(event);
+				} catch (Exception e) {
+					throw new MigrationsException("Could not invoke " + toString(callback, phase) + ".", e);
+				}
 				LOGGER.log(Level.INFO, logMessageSupplier(callback, phase));
 			});
 	}
 
 	static Supplier<String> logMessageSupplier(Callback callback, LifecyclePhase phase) {
+
+		return () -> String.format("Invoked %s.", toString(callback, phase));
+	}
+
+	static String toString(Callback callback, LifecyclePhase phase) {
 		Optional<String> optionalDescription = callback.getOptionalDescription();
-		return () -> optionalDescription
-			.map(d -> String.format("Invoked \"%s\" %s.", d, phase.readable()))
-			.orElseGet(() -> String.format("Invoked %s callback.", phase.toCamelCase()));
+		return optionalDescription
+			.map(d -> String.format("\"%s\" %s", d, phase.readable()))
+			.orElseGet(() -> String.format("%s callback", phase.toCamelCase()));
 	}
 
 	private Optional<MigrationVersion> getLastAppliedVersion() {
@@ -404,7 +413,7 @@ public final class Migrations {
 
 				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
 			} catch (Exception e) {
-				throw new MigrationsException("Could not apply migration: " + toString(migration), e);
+				throw new MigrationsException("Could not apply migration: " + toString(migration) + ".", e);
 			} finally {
 				stopWatch.reset();
 			}

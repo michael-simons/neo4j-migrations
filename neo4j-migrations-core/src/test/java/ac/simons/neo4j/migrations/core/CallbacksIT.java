@@ -16,10 +16,12 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.exceptions.ClientException;
 
 /**
  * @author Michael J. Simons
@@ -79,6 +81,18 @@ class CallbacksIT extends TestBase {
 		assertThat(cleanResult.getRelationshipsDeleted()).isEqualTo(1);
 		assertThat(count("BeforeClean")).isOne();
 		assertThat(count("AfterClean")).isOne();
+	}
+
+	@Test
+	void callbackExceptionsShouldBeWrapped() {
+
+		Migrations migrations = new Migrations(
+			MigrationsConfig.builder().withLocationsToScan("classpath:callbacksbroken").build(), driver);
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(migrations::apply)
+			.withMessage("Could not invoke beforeFirstUse callback.")
+			.withCauseInstanceOf(ClientException.class)
+			.withStackTraceContaining("Tried to execute Write query after executing Schema modification");
 	}
 
 	private long count(String label) {

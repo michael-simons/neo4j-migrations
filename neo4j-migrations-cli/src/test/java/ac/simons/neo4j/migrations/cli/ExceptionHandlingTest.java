@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.exceptions.ClientException;
 
 /**
  * @author Michael J. Simons
@@ -53,10 +54,25 @@ class ExceptionHandlingTest {
 			}
 		};
 
+		ConnectedCommand cmd2 = new ConnectedCommand() {
+			@Override
+			MigrationsCli getParent() {
+				return cli;
+			}
+
+			@Override Integer withMigrations(Migrations migrations) {
+				throw new MigrationsException("Could not apply migration: 0020 (\"Create unique movie title\").", new ClientException("Neo4j.YouMessedUp", "This was not valid."));
+			}
+		};
+
 		String result = tapSystemOut(() -> {
 			cmd.call();
+			cmd2.call();
 			System.out.flush();
 		});
-		assertThat(result).isEqualTo("Oh wie schade." + System.lineSeparator());
+		assertThat(result).isEqualTo("Oh wie schade." + System.lineSeparator()
+			+ "Could not apply migration: 0020 (\"Create unique movie title\")."
+			+ System.lineSeparator() + "\tNeo4j.YouMessedUp: This was not valid."
+			+ System.lineSeparator());
 	}
 }

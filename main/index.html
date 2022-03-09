@@ -1349,28 +1349,6 @@ This gives you a hook to add some more volatile things to your refactoring.</p>
 are applied: It will always be invoked inside the home database of the connected user, so at this point, the target database
 does not need to exist yet.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Be aware that for this to work you <strong>must</strong> specify both <strong>target</strong> and <strong>schema</strong> database: The schema database must exist
-      and cannot be created with a <code>beforeFirstUse</code> callback. This due to the fact that migrations will always be run inside
-      lock represented by a couple of Nodes.
-     <br>
-      An appropriate CLI call would look like this:
-     <br>
-      <code>neo4j-migrations --schema-database neo4j --database canBeCreatedWithCallback apply</code>
-     <br>
-      A corresponding callback would contain:
-     <br>
-      <code>CREATE DATABASE canBeCreatedWithCallback IF NOT EXISTS;</code>
-</td>
-</tr>
-</table>
-</div>
 <div class="sect3">
 <h4 id="concepts_lifecycle-phases"><a class="anchor" href="#concepts_lifecycle-phases"></a>3.4.1. Lifecycle phases</h4>
 <div class="paragraph">
@@ -2619,7 +2597,7 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-09 15:07:16 UTC
+Last updated 2022-03-09 15:37:41 UTC
 </div>
 </div>
 </body>

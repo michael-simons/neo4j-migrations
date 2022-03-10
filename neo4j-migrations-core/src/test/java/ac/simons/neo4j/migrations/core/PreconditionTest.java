@@ -254,6 +254,20 @@ class PreconditionTest {
 				.hasValue("// assume that version is 3.5, 4.0, 4.4");
 		}
 
+		@Test // 446
+		void ofVersionPreconditionLt() {
+
+			assertThat(Precondition.parse("// assume that version is lt 4.0").map(Precondition::toString))
+				.hasValue("// assume that version is lt 4.0");
+		}
+
+		@Test // 446
+		void ofVersionPreconditionGe() {
+
+			assertThat(Precondition.parse("// assume that version is ge 4.0").map(Precondition::toString))
+				.hasValue("// assume that version is ge 4.0");
+		}
+
 		@Test
 		void ofQueryPrecondition() {
 

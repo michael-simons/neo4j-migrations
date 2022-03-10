@@ -121,7 +121,9 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 
 	@Override
 	public String toString() {
-		return String.format("// %s that version is %s", getType().keyword(),
+		return String.format("// %s that version is %s%s",
+			getType().keyword(),
+			mode == Mode.EXACT ? "" : mode.name().toLowerCase(Locale.ROOT) + " ",
 			versions.stream().map(s -> s.replace("Neo4j/", "")).collect(
 				Collectors.joining(", ")).trim());
 	}

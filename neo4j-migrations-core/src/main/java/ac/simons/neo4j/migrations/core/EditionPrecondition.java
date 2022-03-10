@@ -66,7 +66,9 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
-					"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
+					String.format(
+							"Wrong edition precondition %s. Usage: `<assume|assert> that edition is <enterprise|community>`.",
+							Precondition.formattedHint(hint)));
 			}
 		}
 	}

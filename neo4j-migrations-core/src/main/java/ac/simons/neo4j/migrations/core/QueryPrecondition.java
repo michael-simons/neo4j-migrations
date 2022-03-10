@@ -64,7 +64,9 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 		String query = matcher.group("query");
 		if (query == null || query.trim().length() == 0) {
 			throw new IllegalArgumentException(
-				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
+					String.format(
+							"Wrong Cypher precondition %s. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.",
+							Precondition.formattedHint(hint)));
 		}
 		Database database;
 		if (matcher.group("database") != null) {

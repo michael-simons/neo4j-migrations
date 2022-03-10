@@ -96,7 +96,7 @@ interface Precondition {
 			}
 
 			throw new IllegalArgumentException(
-				"Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
+				"Wrong precondition " + formattedHint(in) + ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 		});
 	}
 
@@ -116,4 +116,8 @@ interface Precondition {
 	 * @return The type of the precondition.
 	 */
 	Type getType();
+
+	static String formattedHint(String hint) {
+		return "`" + hint.replace("//", "").trim() + "`";
+	}
 }

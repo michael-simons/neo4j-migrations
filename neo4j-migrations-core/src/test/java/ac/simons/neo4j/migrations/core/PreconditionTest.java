@@ -84,7 +84,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong version precondition. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+				"Wrong version precondition `" + value.replace("//", "").trim() + "`. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 	}
 
 	@ParameterizedTest
@@ -118,7 +118,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
+				"Wrong edition precondition " + formattedHint(value) + ". Usage: `<assume|assert> that edition is <enterprise|community>`.");
 	}
 
 	@ParameterizedTest
@@ -127,7 +127,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
+				"Wrong precondition " + formattedHint(value) + ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 	}
 
 	@ParameterizedTest
@@ -211,7 +211,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
+				"Wrong Cypher precondition " + formattedHint(value) + ". Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
 	}
 
 	@ParameterizedTest
@@ -274,5 +274,10 @@ class PreconditionTest {
 			assertThat(Precondition.parse("// assume q' RETURN false").map(Precondition::toString))
 				.hasValue("// assume in TARGET q'RETURN false");
 		}
+	}
+
+	// copied from Precondition#formattedHint
+	private static String formattedHint(String hint) {
+		return "`" + hint.replace("//", "").trim() + "`";
 	}
 }

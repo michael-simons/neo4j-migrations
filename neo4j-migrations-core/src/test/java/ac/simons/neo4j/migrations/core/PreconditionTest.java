@@ -276,7 +276,7 @@ class PreconditionTest {
 		}
 	}
 
-	// copied from Precondition#formattedHint 
+	// copied from Precondition#formattedHint
 	private static String formattedHint(String hint) {
 		return "`" + hint.replace("//", "").trim() + "`";
 	}

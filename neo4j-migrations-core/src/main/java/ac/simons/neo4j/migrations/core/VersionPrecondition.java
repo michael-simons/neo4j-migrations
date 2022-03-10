@@ -89,7 +89,9 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.of(type -> new VersionPrecondition(type, mode, formattedVersions));
 		} catch (NullPointerException | IllegalArgumentException e) {
 			throw new IllegalArgumentException(
-				"Wrong version precondition. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+					String.format(
+							"Wrong version precondition %s. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.",
+							Precondition.formattedHint(hint)));
 		}
 	}
 

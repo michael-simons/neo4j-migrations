@@ -84,7 +84,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong version precondition. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
+				"Wrong version precondition `" + value.replace("//", "").trim() + "`. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.");
 	}
 
 	@ParameterizedTest
@@ -118,7 +118,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong edition precondition. Usage: `<assume|assert> that edition is <enterprise|community>`.");
+				"Wrong edition precondition " + Precondition.formattedHint(value) + ". Usage: `<assume|assert> that edition is <enterprise|community>`.");
 	}
 
 	@ParameterizedTest
@@ -127,7 +127,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong precondition. Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
+				"Wrong precondition " + Precondition.formattedHint(value) + ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 	}
 
 	@ParameterizedTest
@@ -211,7 +211,7 @@ class PreconditionTest {
 		assertThatIllegalArgumentException()
 			.isThrownBy((() -> Precondition.parse(value)))
 			.withMessage(
-				"Wrong Cypher precondition. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
+				"Wrong Cypher precondition " + Precondition.formattedHint(value) + ". Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.");
 	}
 
 	@ParameterizedTest

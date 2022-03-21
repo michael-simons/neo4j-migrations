@@ -112,7 +112,7 @@
 		<maven.version>3.8.5</maven.version>
 		<mockito.version>4.4.0</mockito.version>
 		<native.maven.plugin.version>0.9.10</native.maven.plugin.version>
-		<neo4j-java-driver.version>4.4.3</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.4.5</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>1.5.1</neo4j-migrations.previous.version>
 		<neo4j.image>neo4j:4.4</neo4j.image>
 		<nexus-staging-maven-plugin.version>1.6.12</nexus-staging-maven-plugin.version>
@@ -123,7 +123,7 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>1.0.5</quarkus-neo4j.version>
+		<quarkus-neo4j.version>1.0.6</quarkus-neo4j.version>
 		<quarkus.version>2.7.5.Final</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>

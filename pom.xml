@@ -80,7 +80,7 @@
 		<docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>
 		<exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 		<graalvm.version>22.0.0.2</graalvm.version>
-		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.7</japicmp-maven-plugin.version>
 		<java-module-name />
 		<java.version>8</java.version>

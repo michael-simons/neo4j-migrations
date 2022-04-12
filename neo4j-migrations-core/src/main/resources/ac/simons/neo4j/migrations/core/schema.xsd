@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   targetNamespace="http://michael-simons.github.io/neo4j-migrations"
+		   xmlns="http://michael-simons.github.io/neo4j-migrations"
+		   elementFormDefault="qualified">
+	<xs:element name="constraints" type="constraintsType"/>
+	<xs:complexType name="propertiesType">
+		<xs:sequence>
+			<xs:element type="xs:string" name="property"
+						maxOccurs="unbounded" minOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="constraintType">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="label" type="xs:string"/>
+				<xs:element name="type" type="xs:string"/>
+			</xs:choice>
+			<xs:element type="propertiesType" name="properties"/>
+		</xs:sequence>
+		<xs:attribute name="name" use="required" type="xs:string"/>
+		<xs:attribute name="type" use="required" type="constraintTypeType"/>
+		<xs:attribute name="idempotent" use="optional" type="xs:boolean"/>
+	</xs:complexType>
+	<xs:complexType name="constraintsType">
+		<xs:sequence>
+			<xs:element type="constraintType" name="constraint"
+						maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="constraintTypeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="unique"/>
+			<xs:enumeration value="exists"/>
+			<xs:enumeration value="key"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+</xs:schema>

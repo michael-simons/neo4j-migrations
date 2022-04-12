@@ -1,6 +1,5 @@
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -10,20 +9,20 @@ import org.w3c.dom.NodeList;
 
 public class Constraint {
 
-	public static Constraint item(Element constraintElement) {
+	public static Constraint of(Element constraintElement) {
 
-		String name = constraintElement.getAttribute("name");
+		String name = constraintElement.getAttribute("id");
 		Type type = Type.valueOf(constraintElement.getAttribute("type").toUpperCase(Locale.ROOT));
-		NodeList labelorType = constraintElement.getElementsByTagName("label");
+		NodeList labelOrType = constraintElement.getElementsByTagName("label");
 		Target target;
 		String identifier;
-		if (labelorType.getLength() == 0) {
-			labelorType = constraintElement.getElementsByTagName("type");
+		if (labelOrType.getLength() == 0) {
+			labelOrType = constraintElement.getElementsByTagName("type");
 			target = Target.RELATIONSHIP;
 		} else {
 			target = Target.NODE;
 		}
-		identifier = labelorType.item(0).getTextContent();
+		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
 			.getElementsByTagName("properties").item(0)).getElementsByTagName("property");
@@ -32,8 +31,7 @@ public class Constraint {
 			properties.add(propertyNodes.item(i).getTextContent());
 		}
 
-		return new Constraint(name, type, target, identifier, properties,
-			Boolean.parseBoolean(constraintElement.getAttribute("idempotent")));
+		return new Constraint(name, type, target, identifier, properties);
 	}
 
 	enum Type {
@@ -57,16 +55,12 @@ public class Constraint {
 
 	private final Set<String> properties;
 
-	private boolean idempotent;
-
-	private Constraint(String name, Type type, Target target, String identifier, Collection<String> properties,
-		boolean idempotent) {
+	private Constraint(String name, Type type, Target target, String identifier, Set<String> properties) {
 		this.name = name;
 		this.type = type;
 		this.target = target;
 		this.identifier = identifier;
-		this.properties = new HashSet<>(properties);
-		this.idempotent = idempotent;
+		this.properties = properties;
 	}
 
 	public String getName() {
@@ -85,6 +79,7 @@ public class Constraint {
 		return identifier;
 	}
 
+	/*
 	public String to35() {
 
 		return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT n.%s IS %s", identifier, properties.iterator().next(),
@@ -116,7 +111,7 @@ public class Constraint {
 		return String.format("CREATE CONSTRAINT %s %sFOR (n:%s) REQUIRE n.%s IS %s", name,
 			idempotent ? "IF NOT EXISTS " : "", identifier,
 			properties.iterator().next(), type);
-	}
+	}*/
 
 	@Override public String toString() {
 		return "Constraint{" +

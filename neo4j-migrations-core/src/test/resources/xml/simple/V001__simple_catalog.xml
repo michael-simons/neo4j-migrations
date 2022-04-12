@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes/>
+		<constraints>
+			<constraint id="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+			<constraint id="constraint_with_options" type="unique">
+				<label>Label</label>
+				<properties>
+					<property>prop1</property>
+					<property>prop2</property>
+				</properties>
+				<options>
+					indexProvider: 'lucene+native-3.0',
+					indexConfig: {`spatial.wgs-84.min`: [-100.0, -80.0], `spatial.wgs-84.max`: [100.0, 80.0]}
+				</options>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<drop item="AnItemNotDefinedHere" idempotent="false"/>
+	<drop ref="constraint_with_options"/>
+	<create item="unique_isbn"/>
+</migration>

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration;
+
 import java.util.Optional;
 
 /**
@@ -23,7 +25,7 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 0.0.1
  */
-public sealed interface Migration permits CypherBasedMigration, JavaBasedMigration {
+public sealed interface Migration permits CatalogBasedMigration, CypherBasedMigration, JavaBasedMigration {
 
 	/**
 	 * {@return the version}

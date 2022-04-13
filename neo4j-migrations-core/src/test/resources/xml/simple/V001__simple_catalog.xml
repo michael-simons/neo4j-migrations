@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
 	<catalog>
-		<indexes/>
+		<indexes />
 		<constraints>
-			<constraint id="unique_isbn" type="unique">
+			<constraint id="unique_isbn" kind="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
 				</properties>
 			</constraint>
-			<constraint id="constraint_with_options" type="unique">
+			<constraint id="constraint_with_options" kind="unique">
 				<label>Label</label>
 				<properties>
 					<property>prop1</property>
-					<property>prop2</property>
+				<!--	<property>prop2</property>-->
 				</properties>
 				<options>
 					indexProvider: 'lucene+native-3.0',

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -137,10 +139,6 @@ public final class MigrationsConfig {
 		return transactionMode;
 	}
 
-	private static boolean valueIsNotBlank(String value) {
-		return !value.trim().isEmpty();
-	}
-
 	/**
 	 * @return An optional target database, maybe {@literal null}
 	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabase()}
@@ -155,7 +153,7 @@ public final class MigrationsConfig {
 	 * @since 1.1.0
 	 */
 	public Optional<String> getOptionalDatabase() {
-		return optionalOf(database);
+		return Strings.optionalOf(database);
 	}
 
 	/**
@@ -163,7 +161,7 @@ public final class MigrationsConfig {
 	 * @since 1.1.0
 	 */
 	public Optional<String> getOptionalSchemaDatabase() {
-		return optionalOf(schemaDatabase);
+		return Strings.optionalOf(schemaDatabase);
 	}
 
 	/**
@@ -180,7 +178,7 @@ public final class MigrationsConfig {
 	 * @since 1.1.0
 	 */
 	public Optional<String> getOptionalImpersonatedUser() {
-		return optionalOf(impersonatedUser);
+		return Strings.optionalOf(impersonatedUser);
 	}
 
 	/**
@@ -197,7 +195,7 @@ public final class MigrationsConfig {
 	 * @since 1.1.0
 	 */
 	public Optional<String> getOptionalInstalledBy() {
-		return optionalOf(installedBy);
+		return Strings.optionalOf(installedBy);
 	}
 
 	/**
@@ -266,12 +264,6 @@ public final class MigrationsConfig {
 	@Deprecated
 	public boolean hasPlacesToLookForMigrations() {
 		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
-	}
-
-	Optional<String> optionalOf(String value) {
-		return Optional.ofNullable(value)
-			.filter(MigrationsConfig::valueIsNotBlank)
-			.map(String::trim);
 	}
 
 	/**

@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
@@ -37,7 +38,8 @@ public final class Strings {
 	public static final String LINE_DELIMITER = "\r?\n|\r";
 
 	/**
-	 * Capitalizees a string
+	 * Capitalizes a string
+	 *
 	 * @param value String to capitalize
 	 * @return Capitalized String or the original value if unchanged or if the value was {@literal null} or empty.
 	 */
@@ -113,6 +115,22 @@ public final class Strings {
 		}
 
 		return !(trimmed.contains("\n") || trimmed.contains("\r"));
+	}
+
+	private static boolean valueIsNotBlank(String value) {
+		return !value.trim().isEmpty();
+	}
+
+	/**
+	 * Creates an optional value from a given string value, filtering additionally on blankness.
+	 *
+	 * @param value The value to create an optional from
+	 * @return An optional
+	 */
+	public static Optional<String> optionalOf(String value) {
+		return Optional.ofNullable(value)
+			.filter(Strings::valueIsNotBlank)
+			.map(String::trim);
 	}
 
 	private Strings() {

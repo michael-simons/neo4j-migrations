@@ -1,6 +1,4 @@
-package ac.simons.neo4j.migrations.core;
-
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import java.io.IOException;
 
@@ -79,8 +77,12 @@ public class XmlMigrationTest {
 			//				System.out.println(Constraint.of(parse.getElementById(item.getAttribute("item"))));
 			*/
 			if (!item.getAttribute("ref").isEmpty()) {
-				System.out.println(Constraint.of(parse.getElementById(item.getAttribute("ref"))));
+				Constraint ref = Constraint.of(parse.getElementById(item.getAttribute("ref")));
+
+				System.out.println(ref);
+				ref.getOptionalOptions().ifPresent(System.out::println);
 			}
+
 		}
 	}
 }

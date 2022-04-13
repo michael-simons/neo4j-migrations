@@ -11,8 +11,8 @@
 		<xs:sequence>
 			<xs:element name="catalog" minOccurs="0" maxOccurs="1" type="catalog"/>
 			<xs:choice maxOccurs="unbounded">
-				<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="idempotentStatement"/>
-				<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="idempotentStatement"/>
+				<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
+				<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
 			</xs:choice>
 		</xs:sequence>
 	</xs:complexType>
@@ -30,7 +30,7 @@
 			<xs:element name="indexes" minOccurs="0" maxOccurs="1">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element type="constraint" name="constraint"
+						<xs:element type="index" name="index"
 									maxOccurs="unbounded" minOccurs="0"/>
 					</xs:sequence>
 				</xs:complexType>
@@ -38,14 +38,14 @@
 		</xs:all>
 	</xs:complexType>
 
-	<xs:complexType name="statement">
+	<xs:complexType name="operation">
 		<xs:attribute name="item" type="xs:string"/>
 		<xs:attribute name="ref" type="xs:IDREF"/>
 	</xs:complexType>
 
-	<xs:complexType name="idempotentStatement">
+	<xs:complexType name="idempotentOperation">
 		<xs:complexContent>
-			<xs:extension base="statement">
+			<xs:extension base="operation">
 				<xs:attribute name="idempotent" type="xs:boolean" default="true"/>
 			</xs:extension>
 		</xs:complexContent>
@@ -57,7 +57,6 @@
 						maxOccurs="unbounded" minOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
-
 
 	<xs:complexType name="options">
 		<xs:sequence>
@@ -74,31 +73,38 @@
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:complexType name="constraint">
-		<xs:sequence>
-			<xs:choice>
-				<xs:element name="label" type="xs:string"/>
-				<xs:element name="type" type="xs:string"/>
-			</xs:choice>
-			<xs:element type="properties" name="properties"/>
-			<xs:element type="xs:string" name="options" minOccurs="0"/>
-		</xs:sequence>
+	<xs:complexType name="catalogItem">
 		<xs:attribute name="id" use="required" type="xs:ID"/>
-		<xs:attribute name="type" use="required">
-			<xs:simpleType>
-				<xs:restriction base="xs:string">
-					<xs:enumeration value="unique"/>
-					<xs:enumeration value="exists"/>
-					<xs:enumeration value="key"/>
-				</xs:restriction>
-			</xs:simpleType>
-		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="constraint">
+		<xs:complexContent>
+			<xs:extension base="catalogItem">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="label" type="xs:string"/>
+						<xs:element name="type" type="xs:string"/>
+					</xs:choice>
+					<xs:element type="properties" name="properties"/>
+					<xs:element type="xs:string" name="options" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="kind" use="required">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="unique"/>
+							<xs:enumeration value="exists"/>
+							<xs:enumeration value="key"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 
 	<xs:complexType name="index">
-		<xs:sequence>
-			<xs:element type="constraint" name="constraint"
-						maxOccurs="unbounded" minOccurs="0"/>
-		</xs:sequence>
+		<xs:complexContent>
+			<xs:extension base="catalogItem">
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 </xs:schema>

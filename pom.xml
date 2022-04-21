@@ -74,7 +74,7 @@
 		<assertj.version>3.22.0</assertj.version>
 		<byte-buddy.version>1.12.9</byte-buddy.version>
 		<checkstyle.version>10.1</checkstyle.version>
-		<classgraph.version>4.8.143</classgraph.version>
+		<classgraph.version>4.8.146</classgraph.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>

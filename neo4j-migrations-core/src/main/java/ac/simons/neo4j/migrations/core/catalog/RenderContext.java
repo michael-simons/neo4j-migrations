@@ -17,6 +17,12 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 /**
  * Contextual information passed to renderers.
  *
@@ -26,6 +32,10 @@ import ac.simons.neo4j.migrations.core.Neo4jEdition;
  */
 final class RenderContext {
 
+	private static final Set<String> PRIOR_TO_44 = Stream.concat(Stream.of("3.5"),
+		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
+		Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+
 	private final String version;
 
 	private final Neo4jEdition edition;
@@ -34,11 +44,14 @@ final class RenderContext {
 
 	private final boolean idempotent;
 
+	private final boolean versionPriorTo44;
+
 	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
 		this.version = version;
 		this.edition = edition;
 		this.operator = operator;
 		this.idempotent = idempotent;
+		this.versionPriorTo44 = PRIOR_TO_44.stream().anyMatch(version::startsWith);
 	}
 
 	public String getVersion() {
@@ -55,5 +68,9 @@ final class RenderContext {
 
 	public boolean isIdempotent() {
 		return idempotent;
+	}
+
+	public boolean isVersionPriorTo44() {
+		return versionPriorTo44;
 	}
 }

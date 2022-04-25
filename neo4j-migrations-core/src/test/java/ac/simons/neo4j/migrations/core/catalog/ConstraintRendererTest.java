@@ -1,25 +1,81 @@
+/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ac.simons.neo4j.migrations.core.catalog;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * @author Michael J. Simons
  */
 class ConstraintRendererTest {
+
+	static Stream<Arguments> multiplePropertiesAreOnlySupportedOn44AndHigher() {
+
+		return Stream.concat(
+			Stream.of(Arguments.of("3.5", true), Arguments.of("4.4", false), Arguments.of("5.0", false)),
+			IntStream.range(0, 4).mapToObj(i -> Arguments.of("4." + i, true)));
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void multiplePropertiesAreOnlySupportedOn44AndHigher(String serverVersion, boolean shouldFail) {
+
+		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.COMMUNITY, Operator.CREATE, false);
+		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.UNIQUE, Constraint.Target.NODE,
+			"Book",
+			Arrays.asList("a", "b"));
+
+		Renderer<Constraint> renderer = new ConstraintRenderer();
+		if (shouldFail) {
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> renderer.render(constraint, renderContext));
+		} else {
+			assertThat(renderer.render(constraint, renderContext)).isEqualTo(
+				"CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE (n.a, n.b) IS UNIQUE");
+		}
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Constraint.Kind.class, names = { "UNIQUE", "KEY" }, mode = EnumSource.Mode.EXCLUDE)
+	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Kind kind) {
+
+		RenderContext renderContext = new RenderContext("4.4", Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
+		Constraint constraint = new Constraint("constraint_name", kind, Constraint.Target.NODE, "Book",
+			Arrays.asList("a", "b"));
+
+		Renderer<Constraint> renderer = new ConstraintRenderer();
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(() -> renderer.render(constraint, renderContext));
+	}
 
 	static Stream<Arguments> shouldRenderSimpleUniqueConstraint() {
 
@@ -51,6 +107,21 @@ class ConstraintRendererTest {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = { "3.5", "4.0" })
+	void shouldNotDoIdempotencyOnOldVersions(String version) {
+
+		RenderContext renderContext = new RenderContext(version, Neo4jEdition.COMMUNITY, Operator.CREATE, true);
+		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.UNIQUE, Constraint.Target.NODE,
+			"Book",
+			Collections.singleton("isbn"));
+
+		Renderer<Constraint> renderer = new ConstraintRenderer();
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(() -> renderer.render(constraint, renderContext))
+			.withMessage("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version);
+	}
+
+	@ParameterizedTest
 	@EnumSource(value = Neo4jEdition.class, names = "ENTERPRISE", mode = EnumSource.Mode.EXCLUDE)
 	void nodePropertyExistenceConstraintShouldRequireEE(Neo4jEdition edition) {
 
@@ -59,8 +130,9 @@ class ConstraintRendererTest {
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
-		Assertions.assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> renderer.render(constraint, renderContext));
+		assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> renderer.render(constraint, renderContext))
+				.withMessage("This constraint cannot be be used with %s edition.", edition);
 	}
 
 	static Stream<Arguments> shouldRenderSimpleNodePropertyExistenceConstraint() {
@@ -92,7 +164,6 @@ class ConstraintRendererTest {
 	}
 
 	static Stream<Arguments> shouldRenderSimpleRelPropertyExistenceConstraint() {
-
 		return Stream.of(
 				Arguments.of("3.5", false, "CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
 				Arguments.of("4.0", false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
@@ -114,6 +185,35 @@ class ConstraintRendererTest {
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, Operator.CREATE, idempotent);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.EXISTS, Constraint.Target.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
+
+		Renderer<Constraint> renderer = new ConstraintRenderer();
+		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> shouldRendereNodeKeyConstraint() {
+
+		return Stream.of(
+			Arguments.of("3.5", false, "CREATE CONSTRAINT ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.0", false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.1", false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.1", true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.2", false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.2", true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.3", false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.3", true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.4", false, "CREATE CONSTRAINT constraint_name FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.4", true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY")
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldRendereNodeKeyConstraint(String serverVersion, boolean idempotent, String expected) {
+
+		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, Operator.CREATE,
+			idempotent);
+		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.KEY, Constraint.Target.NODE, "Person",
+			Arrays.asList("firstname", "surname"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
 		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);

@@ -117,14 +117,14 @@ final class Constraint implements CatalogItem {
 	 */
 	private final String options;
 
-	Constraint(String name, Kind kind, Target target, String identifier, Set<String> properties) {
+	Constraint(String name, Kind kind, Target target, String identifier, Collection<String> properties) {
 		this(name, kind, target, identifier, properties, null);
 	}
 
 	Constraint(String name, Kind kind, Target target, String identifier, Collection<String> properties, String options) {
 
-		if (kind == Kind.UNIQUE && properties.size() != 1) {
-			throw new IllegalArgumentException("Unique constraints require exactly one property.");
+		if (properties.isEmpty()) {
+			throw new IllegalArgumentException("Constraints require one or more properties.");
 		}
 
 		this.name = name;
@@ -133,11 +133,6 @@ final class Constraint implements CatalogItem {
 		this.identifier = identifier;
 		this.properties = new LinkedHashSet<>(properties);
 		this.options = options;
-	}
-
-	String getRequiredSingleProperty() {
-
-		return this.properties.iterator().next();
 	}
 
 	@Override
@@ -149,7 +144,7 @@ final class Constraint implements CatalogItem {
 		return name;
 	}
 
-	public Kind getType() {
+	public Kind getKind() {
 		return kind;
 	}
 

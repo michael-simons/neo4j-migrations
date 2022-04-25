@@ -124,7 +124,7 @@
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<quarkus-neo4j.version>1.1.0</quarkus-neo4j.version>
-		<quarkus.version>2.8.0.Final</quarkus.version>
+		<quarkus.version>2.8.1.Final</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.0.1</sortpom-maven-plugin.version>

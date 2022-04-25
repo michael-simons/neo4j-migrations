@@ -163,42 +163,4 @@ final class Constraint implements CatalogItem {
 	public Optional<String> getOptionalOptions() {
 		return Strings.optionalOf(options);
 	}
-
-	/*
-
-	public String to40() {
-		return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT n.%s IS %s", name, identifier,
-			properties.iterator().next(), type);
-	}
-
-	public String to41() {
-		return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT n.%s IS %s", name,
-			idempotent ? "IF NOT EXISTS " : "", identifier,
-			properties.iterator().next(), type);
-	}
-
-	public String to42() {
-		return to41();
-	}
-
-	public String to43() {
-		return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT n.%s IS %s", name,
-			idempotent ? "IF NOT EXISTS " : "", identifier,
-			properties.iterator().next(), type);
-	}
-
-	public String to44() {
-		return String.format("CREATE CONSTRAINT %s %sFOR (n:%s) REQUIRE n.%s IS %s", name,
-			idempotent ? "IF NOT EXISTS " : "", identifier,
-			properties.iterator().next(), type);
-	}*/
-
-	@Override public String toString() {
-		return "Constraint{" +
-			   "name='" + name + '\'' +
-			   ", type=" + kind +
-			   ", target=" + target +
-			   ", identifier='" + identifier + '\'' +
-			   '}';
-	}
 }

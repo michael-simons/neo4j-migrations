@@ -15,29 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.Collection;
-
 /**
- * A somewhat Neo4j version independent representation of an index.
+ * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class Index extends AbstractCatalogItem<Index.Type> {
-
-	/**
-	 * Enumerates the different kinds of indexes.
-	 */
-	enum Type implements CatalogItemType {
-		BTREE,
-		FULLTEXT,
-		LOOKUP,
-		POINT,
-		RANGE,
-		TEXT
-	}
-
-	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
-		super(name, type, targetEntity, identifier, properties, options);
-	}
+interface CatalogItemType {
 }

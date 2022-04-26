@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -50,7 +49,7 @@ class ConstraintRendererTest {
 	void multiplePropertiesAreOnlySupportedOn44AndHigher(String serverVersion, boolean shouldFail) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.COMMUNITY, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.UNIQUE, Constraint.Target.NODE,
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
 			"Book",
 			Arrays.asList("a", "b"));
 
@@ -65,11 +64,11 @@ class ConstraintRendererTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Constraint.Kind.class, names = { "UNIQUE", "KEY" }, mode = EnumSource.Mode.EXCLUDE)
-	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Kind kind) {
+	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY" }, mode = EnumSource.Mode.EXCLUDE)
+	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Type type) {
 
 		RenderContext renderContext = new RenderContext("4.4", Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", kind, Constraint.Target.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", type, TargetEntity.NODE, "Book",
 			Arrays.asList("a", "b"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -99,7 +98,7 @@ class ConstraintRendererTest {
 	                                        String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, edition, Operator.CREATE, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.UNIQUE, Constraint.Target.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -111,7 +110,7 @@ class ConstraintRendererTest {
 	void shouldNotDoIdempotencyOnOldVersions(String version) {
 
 		RenderContext renderContext = new RenderContext(version, Neo4jEdition.COMMUNITY, Operator.CREATE, true);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.UNIQUE, Constraint.Target.NODE,
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
 			"Book",
 			Collections.singleton("isbn"));
 
@@ -126,7 +125,7 @@ class ConstraintRendererTest {
 	void nodePropertyExistenceConstraintShouldRequireEE(Neo4jEdition edition) {
 
 		RenderContext renderContext = new RenderContext("3.5", edition, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.EXISTS, Constraint.Target.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -156,7 +155,7 @@ class ConstraintRendererTest {
 	void shouldRenderSimpleNodePropertyExistenceConstraint(String serverVersion, boolean idempotent, String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, Operator.CREATE, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.EXISTS, Constraint.Target.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -183,7 +182,7 @@ class ConstraintRendererTest {
 	void shouldRenderSimpleRelPropertyExistenceConstraint(String serverVersion, boolean idempotent, String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, Operator.CREATE, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.EXISTS, Constraint.Target.RELATIONSHIP, "LIKED",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -212,7 +211,7 @@ class ConstraintRendererTest {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, Operator.CREATE,
 			idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Kind.KEY, Constraint.Target.NODE, "Person",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();

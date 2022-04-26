@@ -7,10 +7,12 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-interface CatalogItem {
+interface CatalogItem<T extends CatalogItemType> {
 
 	/**
 	 * @return A unique identifier for a catalog item.
 	 */
 	String getId();
+
+	T getType();
 }

@@ -15,13 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,132 +32,54 @@ import org.w3c.dom.NodeList;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-final class Constraint implements CatalogItem {
+final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 	public static Constraint of(Element constraintElement) {
 
 		String name = constraintElement.getAttribute("id");
-		Kind kind = Kind.valueOf(constraintElement.getAttribute("kind").toUpperCase(Locale.ROOT));
+		Type type = Type.valueOf(constraintElement.getAttribute("type").toUpperCase(Locale.ROOT));
 		NodeList labelOrType = constraintElement.getElementsByTagName("label");
-		Target target;
+		TargetEntity targetEntity;
 		String identifier;
 		if (labelOrType.getLength() == 0) {
 			labelOrType = constraintElement.getElementsByTagName("type");
-			target = Target.RELATIONSHIP;
+			targetEntity = TargetEntity.RELATIONSHIP;
 		} else {
-			target = Target.NODE;
+			targetEntity = TargetEntity.NODE;
 		}
 		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName("properties").item(0)).getElementsByTagName("property");
+				.getElementsByTagName("properties").item(0)).getElementsByTagName("property");
 		Set<String> properties = new LinkedHashSet<>();
 		for (int i = 0; i < propertyNodes.getLength(); ++i) {
 			properties.add(propertyNodes.item(i).getTextContent());
 		}
 
-		NodeList optionanElement = constraintElement.getElementsByTagName("options");
+		NodeList optionsElement = constraintElement.getElementsByTagName("options");
 		String options = null;
-		if (optionanElement.getLength() == 1) {
-			options = Arrays.stream(optionanElement.item(0).getTextContent()
-				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
+		if (optionsElement.getLength() == 1) {
+			options = Arrays.stream(optionsElement.item(0).getTextContent()
+					.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
 		}
 
-		return new Constraint(name, kind, target, identifier, properties, options);
+		return new Constraint(name, type, targetEntity, identifier, properties, options);
 	}
 
 	/**
 	 * Enumerates the different kinds of constraints.
 	 */
-	enum Kind {
+	enum Type implements CatalogItemType {
 		UNIQUE,
 		EXISTS,
 		KEY
 	}
 
-	/**
-	 * Enumerates possible target entities of constraints.
-	 */
-	enum Target {
-		NODE,
-		RELATIONSHIP
+	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
+		this(name, type, targetEntity, identifier, properties, null);
 	}
 
-	/**
-	 * The name of this constraint, equivalent to the id of the element in the xml scheme.
-	 */
-	private final String name;
-
-	/**
-	 * The type of this constraint.
-	 */
-	private final Kind kind;
-
-	/**
-	 * The type of database entity targeted.
-	 */
-	private final Target target;
-
-	/**
-	 * The identifier of that entity, either a label or a (relationship) type.
-	 */
-	private final String identifier;
-
-	/**
-	 * The set of properties to be included in the constraint. Not all Neo4j versions support more than one property
-	 * for some given constraint types.
-	 */
-	private final Set<String> properties;
-
-	/**
-	 * Any additional options to be passed to the constraint. Might be {@literal null}.
-	 */
-	private final String options;
-
-	Constraint(String name, Kind kind, Target target, String identifier, Collection<String> properties) {
-		this(name, kind, target, identifier, properties, null);
-	}
-
-	Constraint(String name, Kind kind, Target target, String identifier, Collection<String> properties, String options) {
-
-		if (properties.isEmpty()) {
-			throw new IllegalArgumentException("Constraints require one or more properties.");
-		}
-
-		this.name = name;
-		this.kind = kind;
-		this.target = target;
-		this.identifier = identifier;
-		this.properties = new LinkedHashSet<>(properties);
-		this.options = options;
-	}
-
-	@Override
-	public String getId() {
-		return getName();
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Kind getKind() {
-		return kind;
-	}
-
-	public Target getTarget() {
-		return target;
-	}
-
-	public String getIdentifier() {
-		return identifier;
-	}
-
-	public Set<String> getProperties() {
-		return properties;
-	}
-
-	public Optional<String> getOptionalOptions() {
-		return Strings.optionalOf(options);
+	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+		super(name, type, targetEntity, identifier, properties, options);
 	}
 }

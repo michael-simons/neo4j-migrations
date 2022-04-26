@@ -88,7 +88,7 @@
 					<xs:element type="properties" name="properties"/>
 					<xs:element type="xs:string" name="options" minOccurs="0"/>
 				</xs:sequence>
-				<xs:attribute name="kind" use="required">
+				<xs:attribute name="type" use="required">
 					<xs:simpleType>
 						<xs:restriction base="xs:string">
 							<xs:enumeration value="unique"/>

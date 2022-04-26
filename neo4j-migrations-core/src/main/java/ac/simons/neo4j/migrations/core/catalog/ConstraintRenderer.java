@@ -46,16 +46,16 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		}
 
 		if (item.getProperties().size() > 1) {
-			if (!EnumSet.of(Constraint.Kind.UNIQUE, Constraint.Kind.KEY).contains(item.getKind())) {
+			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(item.getType())) {
 				throw new MigrationsException("Only unique and node key constraints support multiple properties.");
 			}
 
-			if (context.isVersionPriorTo44() && item.getKind() != Constraint.Kind.KEY) {
+			if (context.isVersionPriorTo44() && item.getType() != Constraint.Type.KEY) {
 				throw new MigrationsException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
 
-		switch (item.getKind()) {
+		switch (item.getType()) {
 			case UNIQUE:
 				return renderUniqueConstraint(item, context);
 			case EXISTS:
@@ -63,7 +63,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 			case KEY:
 				return renderNodeKey(item, context);
 			default:
-				throw new IllegalArgumentException("Unsupported type of constraint: " + item.getKind());
+				throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
 		}
 	}
 
@@ -74,7 +74,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
 		}
 
-		if (item.getTarget() != Constraint.Target.NODE) {
+		if (item.getTarget() != TargetEntity.NODE) {
 			throw new MigrationsException("Key constraints are only supported for nodes, not for relationships.");
 		}
 
@@ -104,7 +104,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
 		}
 
-		if (item.getTarget() == Constraint.Target.NODE) {
+		if (item.getTarget() == TargetEntity.NODE) {
 			return renderNodePropertyExists(item, context);
 		}
 		return renderRelationshipPropertyExists(item, context);
@@ -169,7 +169,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		String version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
-		Constraint.Kind type = item.getKind();
+		Constraint.Type type = item.getType();
 
 		if (version.startsWith("3.5")) {
 			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT %s IS %s", identifier,

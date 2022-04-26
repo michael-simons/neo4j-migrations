@@ -37,9 +37,9 @@ final class Operation {
 	/**
 	 * Zero or more items to operate on. If the list is empty, the operator will be applied to the whole catalog.
 	 */
-	private final List<CatalogItem> operands;
+	private final List<CatalogItem<?>> operands;
 
-	Operation(Operator operator, Collection<CatalogItem> operands) {
+	Operation(Operator operator, Collection<CatalogItem<?>> operands) {
 		this.operator = operator;
 		this.operands = new ArrayList<>(operands);
 	}
@@ -48,7 +48,7 @@ final class Operation {
 		return operator;
 	}
 
-	List<CatalogItem> getOperands() {
+	List<CatalogItem<?>> getOperands() {
 		return Collections.unmodifiableList(operands);
 	}
 }

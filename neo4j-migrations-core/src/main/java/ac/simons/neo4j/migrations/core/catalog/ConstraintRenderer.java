@@ -48,15 +48,19 @@ class ConstraintRenderer implements Renderer<Constraint> {
 			}
 		}
 
-		switch (item.getType()) {
-			case UNIQUE:
-				return renderUniqueConstraint(item, context);
-			case EXISTS:
-				return renderPropertyExists(item, context);
-			case KEY:
-				return renderNodeKey(item, context);
-			default:
-				throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
+		if(context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5) {
+			return String.format("DROP CONSTRAINT %s%s", item.getName(), ifNotExistsOrEmpty(context));
+		} else {
+			switch (item.getType()) {
+				case UNIQUE:
+					return renderUniqueConstraint(item, context);
+				case EXISTS:
+					return renderPropertyExists(item, context);
+				case KEY:
+					return renderNodeKey(item, context);
+				default:
+					throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
+			}
 		}
 	}
 
@@ -77,7 +81,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		String properties = renderProperties("n", item);
 
 		if (version == Version.V3_5) {
-			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT %s IS NODE KEY", identifier, properties);
+			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS NODE KEY", context.getOperator(), identifier, properties);
 		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS NODE KEY", name, identifier, properties);
 		} else if (Version.RANGE_41_TO_43.contains(version)) {
@@ -111,7 +115,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		String properties = renderProperties("r", item);
 
 		if (version == Version.V3_5) {
-			return String.format("CREATE CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", identifier, properties);
+			return String.format("%s CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", context.getOperator(), identifier, properties);
 		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON ()-[r:%s]-() ASSERT exists(%s)", name, identifier,
 				properties);
@@ -136,7 +140,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		String properties = renderProperties("n", item);
 
 		if (version == Version.V3_5) {
-			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT exists(%s)", identifier, properties);
+			return String.format("%s CONSTRAINT ON (n:%s) ASSERT exists(%s)", context.getOperator(), identifier, properties);
 		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT exists(%s)", name, identifier, properties);
 		} else if (Version.RANGE_41_TO_42.contains(version)) {
@@ -153,7 +157,13 @@ class ConstraintRenderer implements Renderer<Constraint> {
 	}
 
 	private static String ifNotExistsOrEmpty(RenderContext context) {
-		return context.isIdempotent() ? "IF NOT EXISTS " : "";
+		switch (context.getOperator()) {
+			case CREATE:
+				return context.isIdempotent() ? "IF NOT EXISTS " : "";
+			case DROP:
+				return context.isIdempotent() ? " IF EXISTS" : "";
+		}
+		throw new IllegalStateException();
 	}
 
 	private String renderUniqueConstraint(Constraint item, RenderContext context) {
@@ -165,7 +175,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		Constraint.Type type = item.getType();
 
 		if (version == Version.V3_5) {
-			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT %s IS %s", identifier,
+			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS %s", context.getOperator(), identifier,
 				properties, type);
 		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS %s", name, identifier, properties, type);

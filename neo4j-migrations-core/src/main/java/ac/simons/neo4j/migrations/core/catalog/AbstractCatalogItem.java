@@ -33,7 +33,6 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 	 */
 	private final String name;
 
-
 	/**
 	 * The type of this item.
 	 */

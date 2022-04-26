@@ -18,10 +18,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,15 +28,11 @@ import java.util.stream.Collectors;
  */
 class ConstraintRenderer implements Renderer<Constraint> {
 
-	private static final Set<String> RANGE_41_TO_43 = new LinkedHashSet<>(Arrays.asList("4.1", "4.2", "4.3"));
-	private static final Set<String> RANGE_41_TO_42 = new LinkedHashSet<>(Arrays.asList("4.1", "4.2"));
-	private static final Set<String> NO_IDEM_POTENCY = new LinkedHashSet<>(Arrays.asList("3.5", "4.0"));
-
 	@Override
 	public String render(Constraint item, RenderContext context) {
 
-		String version = context.getVersion();
-		if (context.isIdempotent() && NO_IDEM_POTENCY.stream().anyMatch(version::startsWith)) {
+		Version version = context.getVersion();
+		if (context.isIdempotent() && Version.NO_IDEM_POTENCY.contains(version)) {
 			throw new MigrationsException(
 				String.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
@@ -79,15 +72,15 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		}
 
 		String name = item.getName();
-		String version = context.getVersion();
+		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 
-		if (version.startsWith("3.5")) {
+		if (version == Version.V3_5) {
 			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT %s IS NODE KEY", identifier, properties);
-		} else if (version.startsWith("4.0")) {
+		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS NODE KEY", name, identifier, properties);
-		} else if (RANGE_41_TO_43.stream().anyMatch(version::startsWith)) {
+		} else if (Version.RANGE_41_TO_43.contains(version)) {
 			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS NODE KEY", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
@@ -113,19 +106,19 @@ class ConstraintRenderer implements Renderer<Constraint> {
 	private String renderRelationshipPropertyExists(Constraint item, RenderContext context) {
 
 		String name = item.getName();
-		String version = context.getVersion();
+		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("r", item);
 
-		if (version.startsWith("3.5")) {
+		if (version == Version.V3_5) {
 			return String.format("CREATE CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", identifier, properties);
-		} else if (version.startsWith("4.0")) {
+		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON ()-[r:%s]-() ASSERT exists(%s)", name, identifier,
 				properties);
-		} else if (RANGE_41_TO_42.stream().anyMatch(version::startsWith)) {
+		} else if (Version.RANGE_41_TO_42.contains(version)) {
 			return String.format("CREATE CONSTRAINT %s %sON ()-[r:%s]-() ASSERT exists(%s)", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
-		} else if (version.startsWith("4.3")) {
+		} else if (version == Version.V4_3) {
 			return String.format("CREATE CONSTRAINT %s %sON ()-[r:%s]-() ASSERT %s IS NOT NULL", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
@@ -138,18 +131,18 @@ class ConstraintRenderer implements Renderer<Constraint> {
 	private String renderNodePropertyExists(Constraint item, RenderContext context) {
 
 		String name = item.getName();
-		String version = context.getVersion();
+		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 
-		if (version.startsWith("3.5")) {
+		if (version == Version.V3_5) {
 			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT exists(%s)", identifier, properties);
-		} else if (version.startsWith("4.0")) {
+		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT exists(%s)", name, identifier, properties);
-		} else if (RANGE_41_TO_42.stream().anyMatch(version::startsWith)) {
+		} else if (Version.RANGE_41_TO_42.contains(version)) {
 			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT exists(%s)", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
-		} else if (version.startsWith("4.3")) {
+		} else if (version == Version.V4_3) {
 			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS NOT NULL", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
@@ -166,17 +159,17 @@ class ConstraintRenderer implements Renderer<Constraint> {
 	private String renderUniqueConstraint(Constraint item, RenderContext context) {
 
 		String name = item.getName();
-		String version = context.getVersion();
+		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 		Constraint.Type type = item.getType();
 
-		if (version.startsWith("3.5")) {
+		if (version == Version.V3_5) {
 			return String.format("CREATE CONSTRAINT ON (n:%s) ASSERT %s IS %s", identifier,
 				properties, type);
-		} else if (version.startsWith("4.0")) {
+		} else if (version == Version.V4_0) {
 			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS %s", name, identifier, properties, type);
-		} else if (RANGE_41_TO_43.stream().anyMatch(version::startsWith)) {
+		} else if (Version.RANGE_41_TO_43.contains(version)) {
 			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS %s", name, ifNotExistsOrEmpty(context),
 				identifier, properties, type);
 		} else {

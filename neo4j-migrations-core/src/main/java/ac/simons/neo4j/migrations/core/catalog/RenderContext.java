@@ -36,7 +36,7 @@ final class RenderContext {
 		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
 		Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
-	private final String version;
+	private final Version version;
 
 	private final Neo4jEdition edition;
 
@@ -47,14 +47,14 @@ final class RenderContext {
 	private final boolean versionPriorTo44;
 
 	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
-		this.version = version;
+		this.version = Version.of(version);
 		this.edition = edition;
 		this.operator = operator;
 		this.idempotent = idempotent;
 		this.versionPriorTo44 = PRIOR_TO_44.stream().anyMatch(version::startsWith);
 	}
 
-	public String getVersion() {
+	public Version getVersion() {
 		return version;
 	}
 

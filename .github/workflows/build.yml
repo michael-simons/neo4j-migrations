@@ -16,12 +16,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-            java-version: 17
-      - name: Enable Sonar for local PRs not from Dependabot
-        if:  ${{ github.event.sender.login != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-        run: echo "USE_SONAR=sonar" >> $GITHUB_ENV
+          java-version: 17
       - name: Disable Sonar for foreign PRs or from Dependabot
-        if:  ${{ github.event.sender.login == 'dependabot[bot]' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
         run: echo "USE_SONAR=-sonar" >> $GITHUB_ENV
       - name: Prepare testcontainers.cloud agent
         if: env.TC_CLOUD_TOKEN != ''
@@ -44,11 +40,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --no-transfer-progress clean install -P$USE_SONAR
+        run: ./mvnw --no-transfer-progress -Dfast clean install -P$USE_SONAR
 
   test_cli_native:
     name: Test CLI native binary
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ [ubuntu-latest], [self-hosted, linux, ARM64] ]
+
+    runs-on: ${{ matrix.os }}
     needs: build
     steps:
       - uses: graalvm/setup-graalvm@v1
@@ -59,6 +60,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install upx
         run: sudo apt-get install upx
+        if: ${{ runner.arch != 'ARM64' }}
       - uses: actions/checkout@v2
       - name: Restore Maven cache
         uses: actions/cache@v2

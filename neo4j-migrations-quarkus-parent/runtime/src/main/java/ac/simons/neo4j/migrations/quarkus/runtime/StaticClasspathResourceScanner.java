@@ -91,7 +91,8 @@ public final class StaticClasspathResourceScanner implements ClasspathResourceSc
 			.map(rw -> {
 				try {
 					if (ImageInfo.inImageRuntimeCode()) {
-						return new URL("resource:" + rw.getPath());
+						// See https://github.com/oracle/graal/issues/4514#issuecomment-1111216980
+						return new URL("resource:/" + rw.getPath());
 					} else {
 						var classpathURL = ccl.getResource(rw.getPath());
 						// The classpath URL is most likely null when the thing is only accessible via file protocol

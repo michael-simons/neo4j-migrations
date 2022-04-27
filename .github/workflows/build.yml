@@ -44,12 +44,7 @@ jobs:
 
   test_cli_native:
     name: Test CLI native binary
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ [ubuntu-latest], [self-hosted, linux, ARM64] ]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, linux, ARM64]
     needs: build
     steps:
       - uses: graalvm/setup-graalvm@v1

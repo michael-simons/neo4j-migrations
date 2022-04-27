@@ -45,6 +45,7 @@ jobs:
   test_cli_native:
     name: Test CLI native binary
     strategy:
+      fail-fast: false
       matrix:
         os: [ [ubuntu-latest], [self-hosted, linux, ARM64] ]
 

@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          key: ${{ runner.os }}-mvn-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
       - name: Clean and verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          key: ${{ runner.os }}-mvn-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
           restore-keys: ${{ runner.os }}-m2
       - name: Clean and build
         run: ./mvnw --no-transfer-progress -Dnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli clean package

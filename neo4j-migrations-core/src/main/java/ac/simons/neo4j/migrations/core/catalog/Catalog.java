@@ -43,7 +43,7 @@ final class Catalog {
 	public synchronized void addAll(MigrationVersion version, List<Constraint> newConstraints) {
 
 		newConstraints.forEach(constraint -> {
-			CatalogId id = new CatalogId(constraint.getName(), version);
+			CatalogId id = new CatalogId(constraint.getId(), version);
 			constraints.put(id, constraint);
 		});
 	}

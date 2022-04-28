@@ -39,6 +39,12 @@
 	</xs:complexType>
 
 	<xs:complexType name="operation">
+		<xs:sequence>
+			<xs:choice minOccurs="0" maxOccurs="1">
+				<xs:element name="constraint" type="constraint"/>
+				<xs:element name="index" type="index"/>
+			</xs:choice>
+		</xs:sequence>
 		<xs:attribute name="item" type="xs:string"/>
 		<xs:attribute name="ref" type="xs:IDREF"/>
 	</xs:complexType>

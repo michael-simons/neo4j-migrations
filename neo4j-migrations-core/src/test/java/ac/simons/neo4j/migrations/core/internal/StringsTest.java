@@ -60,6 +60,13 @@ final class StringsTest {
 			.withMessage("Statement to check must not be null");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "", " ", "\t\t", "NULL"})
+	void isBlankShouldWork(String value) {
+
+		assertThat(Strings.isBlank("NULL".equals(value) ? null : value)).isTrue();
+	}
+
 	@Nested
 	class Capitalization {
 

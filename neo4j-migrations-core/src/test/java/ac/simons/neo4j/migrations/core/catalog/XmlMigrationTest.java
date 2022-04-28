@@ -1,3 +1,18 @@
+/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ac.simons.neo4j.migrations.core.catalog;
 
 import java.io.IOException;
@@ -17,6 +32,9 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+/**
+ * @author Michael J. Simons
+ */
 public class XmlMigrationTest {
 	public static void main(String... a)
 		throws SAXException, IOException, ParserConfigurationException {
@@ -59,30 +77,17 @@ public class XmlMigrationTest {
 		for (int i = 0; i < constraints.getLength(); ++i) {
 			Element item = (Element) constraints.item(i);
 			Constraint constraint = Constraint.of(item);
-			/*
-			System.out.println(constraint.to35());
-			System.out.println(constraint.to40());
-			System.out.println(constraint.to41());
-			System.out.println(constraint.to42());
-			System.out.println(constraint.to43());
-			System.out.println(constraint.to44());*/
 		}
 
 		NodeList drops = parse.getElementsByTagName("drop");
 		for (int i = 0; i < drops.getLength(); ++i) {
 			Element item = (Element) drops.item(i);
 
-			/*
-			// if (item.getAttribute("item") != null)
-			//				System.out.println(Constraint.of(parse.getElementById(item.getAttribute("item"))));
-			*/
 			if (!item.getAttribute("ref").isEmpty()) {
 				Constraint ref = Constraint.of(parse.getElementById(item.getAttribute("ref")));
 
-				System.out.println(ref);
 				ref.getOptionalOptions().ifPresent(System.out::println);
 			}
-
 		}
 	}
 }

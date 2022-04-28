@@ -48,8 +48,8 @@ class ConstraintRenderer implements Renderer<Constraint> {
 			}
 		}
 
-		if(context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5) {
-			return String.format("DROP CONSTRAINT %s%s", item.getName(), ifNotExistsOrEmpty(context));
+		if (context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5 && item.hasName()) {
+			return String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context));
 		} else {
 			switch (item.getType()) {
 				case UNIQUE:
@@ -75,7 +75,7 @@ class ConstraintRenderer implements Renderer<Constraint> {
 			throw new MigrationsException("Key constraints are only supported for nodes, not for relationships.");
 		}
 
-		String name = item.getName();
+		Name name = item.getName();
 		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
@@ -83,13 +83,13 @@ class ConstraintRenderer implements Renderer<Constraint> {
 		if (version == Version.V3_5) {
 			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS NODE KEY", context.getOperator(), identifier, properties);
 		} else if (version == Version.V4_0) {
-			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS NODE KEY", name, identifier, properties);
+			return String.format("CREATE CONSTRAINT%s ON (n:%s) ASSERT %s IS NODE KEY", name, identifier, properties);
 		} else if (Version.RANGE_41_TO_43.contains(version)) {
-			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS NODE KEY", name,
+			return String.format("CREATE CONSTRAINT%s %sON (n:%s) ASSERT %s IS NODE KEY", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
 			// We just assume the newest
-			return String.format("CREATE CONSTRAINT %s %sFOR (n:%s) REQUIRE %s IS NODE KEY", name,
+			return String.format("CREATE CONSTRAINT%s %sFOR (n:%s) REQUIRE %s IS NODE KEY", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		}
 	}
@@ -109,50 +109,58 @@ class ConstraintRenderer implements Renderer<Constraint> {
 
 	private String renderRelationshipPropertyExists(Constraint item, RenderContext context) {
 
-		String name = item.getName();
+		Name name = item.getName();
 		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("r", item);
+		Operator operator = context.getOperator();
+		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
 		if (version == Version.V3_5) {
-			return String.format("%s CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", context.getOperator(), identifier, properties);
+			return String.format("%s CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", operator, identifier, properties);
 		} else if (version == Version.V4_0) {
-			return String.format("CREATE CONSTRAINT %s ON ()-[r:%s]-() ASSERT exists(%s)", name, identifier,
+			return String.format("%s CONSTRAINT%s ON ()-[r:%s]-() ASSERT exists(%s)", operator, name, identifier,
 				properties);
 		} else if (Version.RANGE_41_TO_42.contains(version)) {
-			return String.format("CREATE CONSTRAINT %s %sON ()-[r:%s]-() ASSERT exists(%s)", name,
+			return String.format("%s CONSTRAINT%s %sON ()-[r:%s]-() ASSERT exists(%s)", operator, name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else if (version == Version.V4_3) {
-			return String.format("CREATE CONSTRAINT %s %sON ()-[r:%s]-() ASSERT %s IS NOT NULL", name,
-				ifNotExistsOrEmpty(context), identifier, properties);
+			return String.format("%s CONSTRAINT%s %sON ()-[r:%s]-() ASSERT %s", operator, name,
+				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
+			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
+			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
 			// We just assume the newest
-			return String.format("CREATE CONSTRAINT %s %sFOR ()-[r:%s]-() REQUIRE %s IS NOT NULL", name,
-				ifNotExistsOrEmpty(context), identifier, properties);
+			return String.format("%s CONSTRAINT%s %s%s ()-[r:%s]-() %s %s", operator, name,
+				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
 		}
 	}
 
 	private String renderNodePropertyExists(Constraint item, RenderContext context) {
 
-		String name = item.getName();
+		Name name = item.getName();
 		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
+		Operator operator = context.getOperator();
+		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
 		if (version == Version.V3_5) {
-			return String.format("%s CONSTRAINT ON (n:%s) ASSERT exists(%s)", context.getOperator(), identifier, properties);
+			return String.format("%s CONSTRAINT ON (n:%s) ASSERT exists(%s)", operator, identifier, properties);
 		} else if (version == Version.V4_0) {
-			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT exists(%s)", name, identifier, properties);
+			return String.format("%s CONSTRAINT%s ON (n:%s) ASSERT exists(%s)", operator, name, identifier, properties);
 		} else if (Version.RANGE_41_TO_42.contains(version)) {
-			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT exists(%s)", name,
+			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT exists(%s)", operator, name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else if (version == Version.V4_3) {
-			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS NOT NULL", name,
-				ifNotExistsOrEmpty(context), identifier, properties);
+			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT %s", operator, name,
+				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
+			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
+			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
 			// We just assume the newest
-			return String.format("CREATE CONSTRAINT %s %sFOR (n:%s) REQUIRE %s IS NOT NULL", name,
-				ifNotExistsOrEmpty(context), identifier, properties);
+			return String.format("%s CONSTRAINT%s %s%s (n:%s) %s %s", operator, name,
+				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
 		}
 	}
 
@@ -168,24 +176,27 @@ class ConstraintRenderer implements Renderer<Constraint> {
 
 	private String renderUniqueConstraint(Constraint item, RenderContext context) {
 
-		String name = item.getName();
+		Name name = item.getName();
 		Version version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 		Constraint.Type type = item.getType();
+		Operator operator = context.getOperator();
 
 		if (version == Version.V3_5) {
-			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS %s", context.getOperator(), identifier,
+			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS %s", operator, identifier,
 				properties, type);
 		} else if (version == Version.V4_0) {
-			return String.format("CREATE CONSTRAINT %s ON (n:%s) ASSERT %s IS %s", name, identifier, properties, type);
+			return String.format("%s CONSTRAINT%s ON (n:%s) ASSERT %s IS %s", operator, name, identifier, properties, type);
 		} else if (Version.RANGE_41_TO_43.contains(version)) {
-			return String.format("CREATE CONSTRAINT %s %sON (n:%s) ASSERT %s IS %s", name, ifNotExistsOrEmpty(context),
+			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT %s IS %s", operator, name, ifNotExistsOrEmpty(context),
 				identifier, properties, type);
 		} else {
+			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
+			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
 			// We just assume the newest
-			return String.format("CREATE CONSTRAINT %s %sFOR (n:%s) REQUIRE %s IS %s", name,
-				ifNotExistsOrEmpty(context), identifier, properties, type);
+			return String.format("%s CONSTRAINT%s %s%s (n:%s) %s %s IS %s", operator, name,
+				ifNotExistsOrEmpty(context), adjective, identifier, verb, properties, type);
 		}
 	}
 

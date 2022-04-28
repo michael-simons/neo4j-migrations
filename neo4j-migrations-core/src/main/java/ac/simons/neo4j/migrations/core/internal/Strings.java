@@ -133,6 +133,14 @@ public final class Strings {
 			.map(String::trim);
 	}
 
+	/**
+	 * @param value The value to check
+	 * @return {@literal true} if {@code value} is null or completely blank.
+	 */
+	public static boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
+	}
+
 	private Strings() {
 	}
 }

@@ -31,7 +31,7 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 	/**
 	 * The name of this item, equivalent to the id of the element in the xml scheme.
 	 */
-	private final String name;
+	private final Name name;
 
 	/**
 	 * The type of this item.
@@ -65,7 +65,7 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
 		}
 
-		this.name = name;
+		this.name = Name.of(name);
 		this.type = type;
 		this.targetEntity = targetEntity;
 		this.identifier = identifier;
@@ -75,11 +75,15 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 
 	@Override
 	public String getId() {
-		return getName();
+		return getName().getValue(); // TODO Replace with a generated id if null
 	}
 
-	public String getName() {
+	public Name getName() {
 		return name;
+	}
+
+	public boolean hasName() {
+		return !name.isBlank();
 	}
 
 	@Override

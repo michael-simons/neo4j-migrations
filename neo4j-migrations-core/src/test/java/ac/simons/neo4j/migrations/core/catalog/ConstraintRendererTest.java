@@ -79,37 +79,42 @@ class ConstraintRendererTest {
 	static Stream<Arguments> shouldRenderSimpleUniqueConstraint() {
 
 		return Stream.of(
-				Arguments.of("3.5", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.0", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.1", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.1", Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.2", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.2", Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.3", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.3", Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.4", Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
-				Arguments.of("4.4", Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
+			Arguments.of("3.5", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.0", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
+			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
 
-				Arguments.of("3.5", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-				Arguments.of("4.0", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.2", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.2", Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.3", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.3", Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.4", Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.4", Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS")
+			Arguments.of("3.5", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.0", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+
+			Arguments.of("4.0", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.4", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderSimpleUniqueConstraint(String serverVersion, Neo4jEdition edition, Operator operator, boolean idempotent,
-	                                        String expected) {
+	void shouldRenderSimpleUniqueConstraint(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, edition, operator, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -148,36 +153,42 @@ class ConstraintRendererTest {
 	static Stream<Arguments> shouldRenderSimpleNodePropertyExistenceConstraint() {
 
 		return Stream.of(
-				Arguments.of("3.5", Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.0", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.1", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.1", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.2", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.2", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.3", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS NOT NULL"),
-				Arguments.of("4.3", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS NOT NULL"),
-				Arguments.of("4.4", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS NOT NULL"),
-				Arguments.of("4.4", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS NOT NULL"),
+			Arguments.of("3.5", true, Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.0", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.1", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.1", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.2", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.2", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.3", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS NOT NULL"),
+			Arguments.of("4.3", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS NOT NULL"),
+			Arguments.of("4.4", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS NOT NULL"),
+			Arguments.of("4.4", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS NOT NULL"),
 
-				Arguments.of("3.5", Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
-				Arguments.of("4.0", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.2", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.2", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.3", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.3", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.4", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.4", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS")
+			Arguments.of("3.5", true, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.0", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+
+			Arguments.of("4.0", false, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.1", false, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.2", false, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.3", false, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)"),
+			Arguments.of("4.4", false, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT exists(n.isbn)")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderSimpleNodePropertyExistenceConstraint(String serverVersion, Operator operator, boolean idempotent, String expected) {
+	void shouldRenderSimpleNodePropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, operator, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();
@@ -186,36 +197,42 @@ class ConstraintRendererTest {
 
 	static Stream<Arguments> shouldRenderSimpleRelPropertyExistenceConstraint() {
 		return Stream.of(
-				Arguments.of("3.5", Operator.CREATE, false, "CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.0", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.1", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.1", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.2", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.2", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.3", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT r.day IS NOT NULL"),
-				Arguments.of("4.3", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT r.day IS NOT NULL"),
-				Arguments.of("4.4", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL"),
-				Arguments.of("4.4", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL"),
+			Arguments.of("3.5", true, Operator.CREATE, false, "CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.0", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.1", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.1", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.2", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.2", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.3", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON ()-[r:LIKED]-() ASSERT r.day IS NOT NULL"),
+			Arguments.of("4.3", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON ()-[r:LIKED]-() ASSERT r.day IS NOT NULL"),
+			Arguments.of("4.4", true, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL"),
+			Arguments.of("4.4", true, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL"),
 
-				Arguments.of("3.5", Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
-				Arguments.of("4.0", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.1", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.2", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.2", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.3", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.3", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-				Arguments.of("4.4", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-				Arguments.of("4.4", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS")
+			Arguments.of("3.5", true, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.0", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", true, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", true, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+
+			Arguments.of("4.0", false, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.1", false, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.2", false, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.3", false, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
+			Arguments.of("4.4", false, Operator.DROP, false, "DROP CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderSimpleRelPropertyExistenceConstraint(String serverVersion, Operator operator, boolean idempotent, String expected) {
+	void shouldRenderSimpleRelPropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
 		RenderContext renderContext = new RenderContext(serverVersion, Neo4jEdition.ENTERPRISE, operator, idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
 
 		Renderer<Constraint> renderer = new ConstraintRenderer();

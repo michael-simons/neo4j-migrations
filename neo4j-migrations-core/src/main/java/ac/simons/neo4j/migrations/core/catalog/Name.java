@@ -15,22 +15,45 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.util.Formattable;
+import java.util.Formatter;
+
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ * A value of a catalog item.
  *
  * @author Michael J. Simons
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-interface CatalogItem<T extends CatalogItemType> {
+final class Name implements Formattable {
 
 	/**
-	 * @return A unique identifier for a catalog item.
+	 * Value of this name, might be {@literal null} or blank.
 	 */
-	String getId();
+	private final String value;
 
-	/**
-	 * @return Type information for the given item, specialized to the item type itself.
-	 */
-	T getType();
+	static Name of(String value) {
+		return new Name(value);
+	}
+
+	private Name(String value) {
+		this.value = value;
+	}
+
+	String getValue() {
+		return value;
+	}
+
+	boolean isBlank() {
+		return Strings.isBlank(this.value);
+	}
+
+	@Override
+	public void formatTo(Formatter formatter, int flags, int width, int precision) {
+
+		if (!Strings.isBlank(value)) {
+			formatter.format(" %s", value);
+		}
+	}
 }

@@ -30,15 +30,11 @@ import java.util.stream.Stream;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-final class RenderContext {
+final class RenderContext extends AbstractContext {
 
 	private static final Set<String> PRIOR_TO_44 = Stream.concat(Stream.of("3.5"),
 		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
 		Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-
-	private final Version version;
-
-	private final Neo4jEdition edition;
 
 	private final Operator operator;
 
@@ -47,19 +43,10 @@ final class RenderContext {
 	private final boolean versionPriorTo44;
 
 	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
-		this.version = Version.of(version);
-		this.edition = edition;
+		super(version, edition);
 		this.operator = operator;
 		this.idempotent = idempotent;
 		this.versionPriorTo44 = PRIOR_TO_44.stream().anyMatch(version::startsWith);
-	}
-
-	public Version getVersion() {
-		return version;
-	}
-
-	public Neo4jEdition getEdition() {
-		return edition;
 	}
 
 	public Operator getOperator() {

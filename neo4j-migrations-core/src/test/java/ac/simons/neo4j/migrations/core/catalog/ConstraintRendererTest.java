@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -148,6 +149,25 @@ class ConstraintRendererTest {
 		assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext))
 				.withMessage("This constraint cannot be be used with %s edition.", edition);
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "CREATE, false", "DROP, true" })
+	void idempotencyShouldRequireName(Operator operator, boolean fails) {
+
+		Constraint constraint = new Constraint(Constraint.Type.UNIQUE, TargetEntity.NODE,
+			"Book",
+			Collections.singleton("isbn"));
+		RenderContext renderContext = new RenderContext("4.4.4", Neo4jEdition.COMMUNITY, operator, true);
+
+		Renderer<Constraint> renderer = new ConstraintRenderer();
+		if (fails) {
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> renderer.render(constraint, renderContext))
+				.withMessage("The constraint can only be rendered in the given context when having a name.");
+		} else {
+			assertThat(renderer.render(constraint, renderContext)).isEqualTo("CREATE CONSTRAINT IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
+		}
 	}
 
 	static Stream<Arguments> shouldRenderSimpleNodePropertyExistenceConstraint() {

@@ -22,11 +22,13 @@ import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 /**
+ * Renders constraints (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}).
+ *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-class ConstraintRenderer implements Renderer<Constraint> {
+final class ConstraintRenderer implements Renderer<Constraint> {
 
 	@Override
 	public String render(Constraint item, RenderContext context) {
@@ -48,20 +50,32 @@ class ConstraintRenderer implements Renderer<Constraint> {
 			}
 		}
 
+		if (!item.hasName() && context.isIdempotent() && context.getOperator() == Operator.DROP) {
+			throw new MigrationsException("The constraint can only be rendered in the given context when having a name.");
+		}
+
+		String f;
 		if (context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5 && item.hasName()) {
-			return String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context));
+			f = String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context));
 		} else {
 			switch (item.getType()) {
 				case UNIQUE:
-					return renderUniqueConstraint(item, context);
+					f =  renderUniqueConstraint(item, context);
+					break;
 				case EXISTS:
-					return renderPropertyExists(item, context);
+					f =  renderPropertyExists(item, context);
+					break;
 				case KEY:
-					return renderNodeKey(item, context);
+					f =  renderNodeKey(item, context);
+					break;
 				default:
 					throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
 			}
 		}
+		if(version == Version.V3_5 && context.getOperator() == Operator.CREATE) {
+			System.out.println(f);
+		}
+		return f;
 	}
 
 	private String renderNodeKey(Constraint item, RenderContext context) {

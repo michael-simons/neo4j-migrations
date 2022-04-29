@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.util.Formattable;
 import java.util.Formatter;
+import java.util.Objects;
 
 /**
  * A value of a catalog item.
@@ -55,5 +56,21 @@ final class Name implements Formattable {
 		if (!Strings.isBlank(value)) {
 			formatter.format(" %s", value);
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Name name = (Name) o;
+		return Objects.equals(value, name.value);
+	}
+
+	@Override public int hashCode() {
+		return Objects.hash(value);
 	}
 }

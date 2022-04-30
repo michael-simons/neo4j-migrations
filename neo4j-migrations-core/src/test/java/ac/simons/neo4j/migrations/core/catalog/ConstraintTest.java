@@ -52,4 +52,56 @@ class ConstraintTest {
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
 		assertThat(constraint.getProperties()).containsExactly("isbn");
 	}
+
+	static Stream<Arguments> shouldParseSimpleNodePropertyExistenceConstraint() {
+		return Stream.of(
+			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)" )
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldParseSimpleNodePropertyExistenceConstraint(String version, String name, String description) {
+
+		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
+			description);
+		Constraint constraint = Constraint.of(constraintDescription);
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
+		if (name == null) {
+			assertThat(constraint.getName().isBlank()).isTrue();
+		} else {
+			assertThat(constraint.getName()).isEqualTo(Name.of(name));
+		}
+		assertThat(constraint.getIdentifier()).isEqualTo("Book");
+		assertThat(constraint.getProperties()).containsExactly("isbn");
+	}
+
+	static Stream<Arguments> shouldParseNodeKeyConstraint() {
+		return Stream.of(
+			Arguments.of("3.5", null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY" )
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldParseNodeKeyConstraint(String version, String name, String description) {
+
+		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
+			description);
+		Constraint constraint = Constraint.of(constraintDescription);
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
+		if (name == null) {
+			assertThat(constraint.getName().isBlank()).isTrue();
+		} else {
+			assertThat(constraint.getName()).isEqualTo(Name.of(name));
+		}
+		assertThat(constraint.getIdentifier()).isEqualTo("Person");
+		assertThat(constraint.getProperties()).containsExactly("firstname", "surname");
+	}
+
+	static Stream<Arguments> shouldParseSimpleRelPropertyExistenceConstraint() {
+		return Stream.of(
+			Arguments.of("3.5", null, "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)"   )
+		);
+	}
 }

@@ -38,8 +38,33 @@ import org.w3c.dom.NodeList;
  */
 final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
-	private static final Pattern UNIQUE_PATTERN =
-		Pattern.compile("CONSTRAINT ON \\( ?(?<name>.+):(?<identifier>.+) ?\\) ASSERT \\(\\k<name>\\.(?<property>.*)\\) IS UNIQUE");
+
+	private static class PatternAndType {
+
+		private final Pattern pattern;
+		private final Constraint.Type type;
+
+		PatternAndType(String pattern, Type type) {
+			this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+			this.type = type;
+		}
+	}
+
+
+	private static final PatternAndType PATTERN_NODE_PROPERTY_IS_UNIQUE = new PatternAndType(
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<name>\\.(?<properties>.*)\\)? IS UNIQUE",
+		Type.UNIQUE
+	);
+
+	private static final PatternAndType PATTERN_NODE_PROPERTY_EXISTS = new PatternAndType(
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\(\\k<name>.(?<properties>.*)\\)(?: IS NOT NULL)?",
+		Type.EXISTS
+	);
+
+	private static final PatternAndType PATTERN_NODE_KEY = new PatternAndType(
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>.*)\\) IS NODE KEY",
+		Type.KEY
+	);
 
 	/**
 	 * Creates a constraint from a (3.5) database description
@@ -49,12 +74,26 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 */
 	public static Constraint of(ConstraintDescription description) {
 
-		Matcher matcher;
-		matcher = UNIQUE_PATTERN.matcher(description.getValue());
+		Matcher matcher = null;
+		Type type = null;
+		for (PatternAndType patternAndType : new PatternAndType[] {
+			PATTERN_NODE_PROPERTY_IS_UNIQUE,
+			PATTERN_NODE_PROPERTY_EXISTS,
+			PATTERN_NODE_KEY }
+		) {
+			matcher = patternAndType.pattern.matcher(description.getValue());
+			if (matcher.matches()) {
+				type = patternAndType.type;
+				break;
+			}
+		}
+
 		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
-			String[] properties = matcher.group("property").split(",");
-			return new Constraint(description.getName(), Type.UNIQUE, TargetEntity.NODE, identifier,
+			String name = matcher.group("name") + ".";
+			String[] properties = Arrays.stream(matcher.group("properties").split(","))
+				.map(s -> s.trim().replace(name, "")).toArray(String[]::new);
+			return new Constraint(description.getName(), type, TargetEntity.NODE, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 

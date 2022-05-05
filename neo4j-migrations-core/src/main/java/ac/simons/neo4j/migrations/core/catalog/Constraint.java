@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -50,21 +51,24 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 	}
 
-
 	private static final PatternAndType PATTERN_NODE_PROPERTY_IS_UNIQUE = new PatternAndType(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<name>\\.(?<properties>.*)\\)? IS UNIQUE",
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<name>\\.(?<properties>.+?)\\)? IS UNIQUE",
 		Type.UNIQUE
 	);
 
 	private static final PatternAndType PATTERN_NODE_PROPERTY_EXISTS = new PatternAndType(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\(\\k<name>.(?<properties>.*)\\)(?: IS NOT NULL)?",
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\(\\k<name>.(?<properties>.+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS
 	);
 
 	private static final PatternAndType PATTERN_NODE_KEY = new PatternAndType(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>.*)\\) IS NODE KEY",
+		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>.+?)\\) IS NODE KEY",
 		Type.KEY
 	);
+
+	// TODO invoking
+	// 3.5 call db.constraints()
+	// 4.0 call db.constraints(), need to fill in name
 
 	/**
 	 * Creates a constraint from a (3.5) database description
@@ -90,9 +94,10 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
-			String name = matcher.group("name") + ".";
-			String[] properties = Arrays.stream(matcher.group("properties").split(","))
-				.map(s -> s.trim().replace(name, "")).toArray(String[]::new);
+			String name = Pattern.quote(matcher.group("name") + ".");
+			String propertiesGroup = matcher.group("properties");
+			Stream<String> propertiesStream = type == Type.KEY ? Arrays.stream(propertiesGroup.split(", ")).map(String::trim) : Stream.of(propertiesGroup.trim());
+			String[] properties = propertiesStream.map(s -> s.replaceFirst(name, "")).toArray(String[]::new);
 			return new Constraint(description.getName(), type, TargetEntity.NODE, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}

@@ -32,7 +32,9 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseUniqueNode() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE")
+			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),
+			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE")
 		);
 	}
 
@@ -44,18 +46,26 @@ class ConstraintTest {
 			description);
 		Constraint constraint = Constraint.of(constraintDescription);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
-		if (name == null) {
-			assertThat(constraint.getName().isBlank()).isTrue();
-		} else {
-			assertThat(constraint.getName()).isEqualTo(Name.of(name));
-		}
+		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
-		assertThat(constraint.getProperties()).containsExactly("isbn");
+		if ("stupid_stuff".equals(name)) {
+			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny 😱. Wow.");
+		} else {
+			if (name == null) {
+				assertThat(constraint.getName().isBlank()).isTrue();
+			} else {
+				assertThat(constraint.getName()).isEqualTo(Name.of(name));
+			}
+
+			assertThat(constraint.getProperties()).containsExactly("isbn");
+		}
 	}
 
 	static Stream<Arguments> shouldParseSimpleNodePropertyExistenceConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)" )
+			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)" ),
+			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)")
 		);
 	}
 
@@ -67,18 +77,25 @@ class ConstraintTest {
 			description);
 		Constraint constraint = Constraint.of(constraintDescription);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
-		if (name == null) {
-			assertThat(constraint.getName().isBlank()).isTrue();
-		} else {
-			assertThat(constraint.getName()).isEqualTo(Name.of(name));
-		}
+		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
-		assertThat(constraint.getProperties()).containsExactly("isbn");
+		if ("stupid_stuff".equals(name)) {
+			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny and why not, add more fun. Wow 😱");
+		} else {
+			if (name == null) {
+				assertThat(constraint.getName().isBlank()).isTrue();
+			} else {
+				assertThat(constraint.getName()).isEqualTo(Name.of(name));
+			}
+			assertThat(constraint.getProperties()).containsExactly("isbn");
+		}
 	}
 
 	static Stream<Arguments> shouldParseNodeKeyConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY" )
+			Arguments.of("3.5", null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY" ),
+			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY")
 		);
 	}
 
@@ -90,18 +107,46 @@ class ConstraintTest {
 			description);
 		Constraint constraint = Constraint.of(constraintDescription);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
-		if (name == null) {
-			assertThat(constraint.getName().isBlank()).isTrue();
-		} else {
-			assertThat(constraint.getName()).isEqualTo(Name.of(name));
-		}
+		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Person");
-		assertThat(constraint.getProperties()).containsExactly("firstname", "surname");
+		if("stupid_stuff".equals(name)) {
+			assertThat(constraint.getProperties()).containsExactly("firstname", "surname", "person.whatever", "person.a,person.b");
+		}
+		 else {
+			if (name == null) {
+				assertThat(constraint.getName().isBlank()).isTrue();
+			} else {
+				assertThat(constraint.getName()).isEqualTo(Name.of(name));
+			}
+			assertThat(constraint.getProperties()).containsExactly("firstname", "surname");
+		}
 	}
 
 	static Stream<Arguments> shouldParseSimpleRelPropertyExistenceConstraint() {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)"   )
 		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldParseSimpleRelPropertyExistenceConstraint(String version, String name, String description) {
+
+		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
+			description);
+		Constraint constraint = Constraint.of(constraintDescription);
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
+		assertThat(constraint.getIdentifier()).isEqualTo("Book");
+		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.RELATIONSHIP);
+		if ("stupid_stuff".equals(name)) {
+			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny and why not, add more fun. Wow 😱");
+		} else {
+			if (name == null) {
+				assertThat(constraint.getName().isBlank()).isTrue();
+			} else {
+				assertThat(constraint.getName()).isEqualTo(Name.of(name));
+			}
+			assertThat(constraint.getProperties()).containsExactly("isbn");
+		}
 	}
 }

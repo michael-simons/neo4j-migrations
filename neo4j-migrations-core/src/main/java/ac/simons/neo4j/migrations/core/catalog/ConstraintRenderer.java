@@ -72,7 +72,7 @@ final class ConstraintRenderer implements Renderer<Constraint> {
 					throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
 			}
 		}
-		if(version == Version.V4_0 && context.getOperator() == Operator.CREATE) {
+		if(version == Version.V4_2 && context.getOperator() == Operator.CREATE) {
 			System.out.println(f);
 		}
 		return f;

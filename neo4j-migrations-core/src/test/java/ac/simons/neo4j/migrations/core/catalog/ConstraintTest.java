@@ -19,11 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
 
 /**
  * @author Michael J. Simons
@@ -34,7 +45,8 @@ class ConstraintTest {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE")
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
+			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
 		);
 	}
 
@@ -65,7 +77,8 @@ class ConstraintTest {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)" ),
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)")
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)"),
+			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)")
 		);
 	}
 
@@ -95,7 +108,8 @@ class ConstraintTest {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY" ),
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY")
+			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY"),
+			Arguments.of("4.1", "constraint_name1", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY")
 		);
 	}
 
@@ -124,7 +138,10 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseSimpleRelPropertyExistenceConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)"   )
+			Arguments.of("3.5", null, "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)"),
+			Arguments.of("3.5", "stupid_stuff", "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.x,liked.y)"),
+			Arguments.of("4.0", "constraint_name", "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)"),
+			Arguments.of("4.1", "constraint_name", "CONSTRAINT ON ()-[ liked:LIKED ]-() ASSERT exists(liked.day)")
 		);
 	}
 
@@ -136,17 +153,151 @@ class ConstraintTest {
 			description);
 		Constraint constraint = Constraint.of(constraintDescription);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
-		assertThat(constraint.getIdentifier()).isEqualTo("Book");
+		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.RELATIONSHIP);
 		if ("stupid_stuff".equals(name)) {
-			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny and why not, add more fun. Wow 😱");
+			assertThat(constraint.getProperties()).containsExactly("x,liked.y");
 		} else {
 			if (name == null) {
 				assertThat(constraint.getName().isBlank()).isTrue();
 			} else {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}
-			assertThat(constraint.getProperties()).containsExactly("isbn");
+			assertThat(constraint.getProperties()).containsExactly("day");
 		}
+	}
+
+	static class MapAccessorImpl implements MapAccessor {
+
+		private final Map<String, Value> content;
+
+		MapAccessorImpl(Map<String, Value> content) {
+			this.content = content;
+		}
+
+		@Override
+		public Iterable<String> keys() {
+			return content.keySet();
+		}
+
+		@Override
+		public boolean containsKey(String key) {
+			return content.containsKey(key);
+		}
+
+		@Override
+		public Value get(String key) {
+			return content.getOrDefault(key, Values.NULL);
+		}
+
+		@Override
+		public int size() {
+			return content.size();
+		}
+
+		@Override
+		public Iterable<Value> values() {
+			return content.values();
+		}
+
+		@Override
+		public <T> Iterable<T> values(Function<Value, T> mapFunction) {
+			return content.values().stream().map(mapFunction).collect(Collectors.toList());
+		}
+
+		@Override
+		public Map<String, Object> asMap() {
+			return content.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asObject()));
+		}
+
+		@Override
+		public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
+			return content.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapFunction.apply(e.getValue())));
+		}
+	}
+
+	@SafeVarargs
+	static Map<String, Value> makeMap(SimpleEntry<String, Value>... entries) {
+		Map<String, Value> result = new HashMap<>(entries.length);
+		for (SimpleEntry<String, Value> entry : entries) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
+	}
+
+	static Stream<Arguments> shouldDealWithShowConstraints() {
+		return Stream.of(
+			Arguments.of(
+				Constraint.Type.KEY,
+				"Person",
+				TargetEntity.NODE,
+				Arrays.asList("firstname", "surname"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("NODE_KEY")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Person"))),
+					new SimpleEntry<>("properties", Values.value(Arrays.asList("firstname", "surname")))
+				)
+			),
+			Arguments.of(
+				Constraint.Type.EXISTS,
+				"Book",
+				TargetEntity.NODE,
+				Collections.singletonList("isbn"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("NODE_PROPERTY_EXISTENCE")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				)
+			),
+			Arguments.of(
+				Constraint.Type.EXISTS,
+				"LIKED",
+				TargetEntity.RELATIONSHIP,
+				Collections.singletonList("day"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE")),
+					new SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("LIKED"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("day")))
+				)
+			),
+			Arguments.of(
+				Constraint.Type.UNIQUE,
+				"Book",
+				TargetEntity.NODE,
+				Collections.singletonList("isbn"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				)
+			)
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldDealWithShowConstraints(
+		Constraint.Type expectedType,
+		String expectedIdentifier,
+		TargetEntity expectedTarget,
+		Collection<String> expectedProperties,
+		Map<String, Value> content) {
+
+		MapAccessor row = new MapAccessorImpl(content);
+		Constraint constraint = Constraint.of(row);
+
+		assertThat(constraint.getType()).isEqualTo(expectedType);
+		assertThat(constraint.getIdentifier()).isEqualTo(expectedIdentifier);
+		assertThat(constraint.getTarget()).isEqualTo(expectedTarget);
+		assertThat(constraint.getProperties()).containsExactlyElementsOf(expectedProperties);
+		assertThat(constraint.getName()).isEqualTo(Name.of("constraint_name"));
 	}
 }

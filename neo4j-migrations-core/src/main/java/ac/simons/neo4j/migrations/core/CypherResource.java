@@ -82,8 +82,6 @@ final class CypherResource {
 	@SuppressWarnings("squid:S3077")
 	private volatile List<String> statements;
 	private volatile String checksum;
-	@SuppressWarnings("squid:S3077")
-	private volatile List<Precondition> preconditions;
 
 	CypherResource(URL url, boolean autocrlf) {
 

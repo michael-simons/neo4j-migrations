@@ -31,7 +31,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -44,6 +46,10 @@ import org.w3c.dom.NodeList;
  */
 final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
+	// Constants used throughout parsing and reading / writing elements and attributes
+	private static final String KW_LABEL = "label";
+	private static final String KW_PROPERTY = "property";
+	private static final String KW_OPTIONS = "options";
 
 	private static class PatternHolder {
 
@@ -59,30 +65,33 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	private static final PatternHolder PATTERN_NODE_PROPERTY_IS_UNIQUE = new PatternHolder(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<name>\\.(?<properties>.+?)\\)? IS UNIQUE",
+		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<var>\\.(?<properties>.+?)\\)? IS UNIQUE",
 		Type.UNIQUE,
 		TargetEntity.NODE
 	);
 
 	private static final PatternHolder PATTERN_NODE_PROPERTY_EXISTS = new PatternHolder(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\((?<properties>\\k<name>\\..+?)\\)(?: IS NOT NULL)?",
+		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\((?<properties>\\k<var>\\..+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS,
 		TargetEntity.NODE
 	);
 
 	private static final PatternHolder PATTERN_NODE_KEY = new PatternHolder(
-		"CONSTRAINT ON \\(\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>\\k<name>\\..+?)\\) IS NODE KEY",
+		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>\\k<var>\\..+?)\\) IS NODE KEY",
 		Type.KEY,
 		TargetEntity.NODE
 	);
 
 	private static PatternHolder PATTERN_REL_PROPERTY_EXISTS = new PatternHolder(
-		"CONSTRAINT ON \\(\\)-\\[\\s?(?<name>\\w+):(?<identifier>\\w+)\\s?]-\\(\\) ASSERT (?:exists)?\\((?<properties>\\k<name>\\..+?)\\)(?: IS NOT NULL)?",
+		"CONSTRAINT ON \\(\\)-\\[\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?]-\\(\\) ASSERT (?:exists)?\\((?<properties>\\k<var>\\..+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS,
 		TargetEntity.RELATIONSHIP
 	);
 
-	private static Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name", "type", "entityType", "labelsOrTypes", "properties")));
+	public static final String KW_TYPE = "type";
+	public static final String KW_PROPERTIES = "properties";
+	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
+		KW_TYPE, "entityType", "labelsOrTypes", KW_PROPERTIES)));
 
 	// TODO invoking
 	// 3.5 call db.constraints()
@@ -90,15 +99,22 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	// 4.1 call db.constraints(), need to fill in name
 	// 4.2 SHOW CONSTRAINTS
 
-	public static Constraint of(MapAccessor row) {
+	public static Constraint parse(MapAccessor row, ParseContext context) {
+
+		Value descriptionValue = row.get("description");
+		Value nameValue = row.get("name");
+		if (descriptionValue != Values.NULL) {
+			String name = nameValue != Values.NULL ? nameValue.asString() : null;
+			return parse(descriptionValue.asString(), name);
+		}
 
 		if (!REQUIRED_KEYS.stream().allMatch(row::containsKey)) {
 			throw new IllegalArgumentException("Required keys are missing in the row describing the constraint");
 		}
 
-		String name = row.get("name").asString();
+		String name = nameValue.asString();
 		Constraint.Type type;
-		switch (row.get("type").asString()) {
+		switch (row.get(KW_TYPE).asString()) {
 			case "NODE_KEY":
 				type = Type.KEY;
 				break;
@@ -110,12 +126,12 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				type = Type.UNIQUE;
 				break;
 			default:
-				throw new IllegalArgumentException("Unsupported constraint type " + row.get("name").asString());
+				throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
 		}
 
 		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
-		List<String> properties = row.get("properties").asList(Value::asString);
+		List<String> properties = row.get(KW_PROPERTIES).asList(Value::asString);
 
 		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
 	}
@@ -123,10 +139,11 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	/**
 	 * Creates a constraint from a [3.5, 4.1] database description
 	 *
-	 * @param description as returned by {@code CALL db.constraints}, contains (optional) name and required description.
+	 * @param description as returned by {@code CALL db.constraints}
+	 * @param name        an optional name, might be {@literal null}
 	 * @return The new constraint if the description is parseable
 	 */
-	public static Constraint of(ConstraintDescription description) {
+	private static Constraint parse(String description, String name) {
 
 		Matcher matcher = null;
 		PatternHolder match = null;
@@ -137,7 +154,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			PATTERN_REL_PROPERTY_EXISTS
 		}
 		) {
-			matcher = patternHolder.pattern.matcher(description.getValue());
+			matcher = patternHolder.pattern.matcher(description);
 			if (matcher.matches()) {
 				match = patternHolder;
 				break;
@@ -146,15 +163,17 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
-			String name = Pattern.quote(matcher.group("name") + ".");
-			String propertiesGroup = matcher.group("properties");
-			Stream<String> propertiesStream = match.type == Type.KEY ? Arrays.stream(propertiesGroup.split(", ")).map(String::trim) : Stream.of(propertiesGroup.trim());
-			String[] properties = propertiesStream.map(s -> s.replaceFirst(name, "")).toArray(String[]::new);
-			return new Constraint(description.getName(), match.type, match.targetEntity, identifier,
+			String var = Pattern.quote(matcher.group("var") + ".");
+			String propertiesGroup = matcher.group(KW_PROPERTIES);
+			Stream<String> propertiesStream = match.type == Type.KEY ?
+				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
+				Stream.of(propertiesGroup.trim());
+			String[] properties = propertiesStream.map(s -> s.replaceFirst(var, "")).toArray(String[]::new);
+			return new Constraint(name, match.type, match.targetEntity, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 
-		throw new MigrationsException(String.format("Could not parse %s", description.getValue()));
+		throw new MigrationsException(String.format("Could not parse %s", description));
 	}
 
 	/**
@@ -163,15 +182,15 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param constraintElement as defined in {@code migration.xsd}.
 	 * @return The new constraint if the element as parseable
 	 */
-	public static Constraint of(Element constraintElement) {
+	public static Constraint parse(Element constraintElement) {
 
 		String name = constraintElement.getAttribute("id");
-		Type type = Type.valueOf(constraintElement.getAttribute("type").toUpperCase(Locale.ROOT));
-		NodeList labelOrType = constraintElement.getElementsByTagName("label");
+		Type type = Type.valueOf(constraintElement.getAttribute(KW_TYPE).toUpperCase(Locale.ROOT));
+		NodeList labelOrType = constraintElement.getElementsByTagName(KW_LABEL);
 		TargetEntity targetEntity;
 		String identifier;
 		if (labelOrType.getLength() == 0) {
-			labelOrType = constraintElement.getElementsByTagName("type");
+			labelOrType = constraintElement.getElementsByTagName(KW_TYPE);
 			targetEntity = TargetEntity.RELATIONSHIP;
 		} else {
 			targetEntity = TargetEntity.NODE;
@@ -179,13 +198,13 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName("properties").item(0)).getElementsByTagName("property");
+			.getElementsByTagName(KW_PROPERTIES).item(0)).getElementsByTagName(KW_PROPERTY);
 		Set<String> properties = new LinkedHashSet<>();
 		for (int i = 0; i < propertyNodes.getLength(); ++i) {
 			properties.add(propertyNodes.item(i).getTextContent());
 		}
 
-		NodeList optionsElement = constraintElement.getElementsByTagName("options");
+		NodeList optionsElement = constraintElement.getElementsByTagName(KW_OPTIONS);
 		String options = null;
 		if (optionsElement.getLength() == 1) {
 			options = Arrays.stream(optionsElement.item(0).getTextContent()
@@ -193,6 +212,38 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 
 		return new Constraint(name, type, targetEntity, identifier, properties, options);
+	}
+
+	Element toXML(Document document) {
+		Element element = document.createElement("constraint");
+		element.setAttribute("id", getId());
+		element.setIdAttribute("id", true);
+		element.setAttribute(KW_TYPE, getType().name().toLowerCase(Locale.ROOT));
+
+		Element labelOrType;
+		if (getTarget() == TargetEntity.NODE) {
+			labelOrType = document.createElement(KW_LABEL);
+		} else {
+			labelOrType = document.createElement(KW_TYPE);
+		}
+		labelOrType.setTextContent(getIdentifier());
+		element.appendChild(labelOrType);
+
+		Element properties = document.createElement(KW_PROPERTIES);
+		for (String propertyValue : getProperties()) {
+			Element property = document.createElement(KW_PROPERTY);
+			property.setTextContent(propertyValue);
+			properties.appendChild(property);
+		}
+		element.appendChild(properties);
+
+		getOptionalOptions().ifPresent(optionsValue -> {
+			Element options = document.createElement(KW_OPTIONS);
+			options.setTextContent(optionsValue);
+			element.appendChild(options);
+		});
+
+		return element;
 	}
 
 	/**

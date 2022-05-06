@@ -36,17 +36,18 @@ final class RenderContext extends AbstractContext {
 		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
 		Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 
+	static RenderContext defaultContext() {
+		return new RenderContext(null, Neo4jEdition.UNDEFINED, null, true);
+	}
+
 	private final Operator operator;
 
 	private final boolean idempotent;
-
-	private final boolean versionPriorTo44;
 
 	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
 		super(version, edition);
 		this.operator = operator;
 		this.idempotent = idempotent;
-		this.versionPriorTo44 = PRIOR_TO_44.stream().anyMatch(version::startsWith);
 	}
 
 	public Operator getOperator() {
@@ -58,6 +59,6 @@ final class RenderContext extends AbstractContext {
 	}
 
 	public boolean isVersionPriorTo44() {
-		return versionPriorTo44;
+		return getVersion().isPriorTo44();
 	}
 }

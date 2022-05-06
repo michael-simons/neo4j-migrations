@@ -19,34 +19,14 @@ import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
 /**
  * Contextual information passed to parsers. It is an enriched version of a structured description coming from a given
- * datbaase method.
+ * database method.
  *
  * @author michael J. Simons
  * @since TBA
  */
-final class ConstraintDescription extends AbstractContext {
+final class ParseContext extends AbstractContext {
 
-	/**
-	 * An optional name, might be {@literal null} in case the neo4j version used didn't have names yet.
-	 */
-	private final String name;
-
-	/**
-	 * The description as returned by the database.
-	 */
-	private final String value;
-
-	ConstraintDescription(String version, Neo4jEdition edition, String name, String value) {
+	ParseContext(String version, Neo4jEdition edition) {
 		super(version, edition);
-		this.name = name;
-		this.value = value;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getValue() {
-		return value;
 	}
 }

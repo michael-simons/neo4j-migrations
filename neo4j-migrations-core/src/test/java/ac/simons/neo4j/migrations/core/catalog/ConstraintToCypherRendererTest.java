@@ -36,7 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Michael J. Simons
  */
-class ConstraintRendererTest {
+class ConstraintToCypherRendererTest {
 
 	static Stream<Arguments> multiplePropertiesAreOnlySupportedOn44AndHigher() {
 
@@ -54,7 +54,7 @@ class ConstraintRendererTest {
 			"Book",
 			Arrays.asList("a", "b"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		if (shouldFail) {
 			assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext));
@@ -72,7 +72,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint("constraint_name", type, TargetEntity.NODE, "Book",
 			Arrays.asList("a", "b"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThatExceptionOfType(MigrationsException.class)
 			.isThrownBy(() -> renderer.render(constraint, renderContext));
 	}
@@ -80,33 +80,33 @@ class ConstraintRendererTest {
 	static Stream<Arguments> shouldRenderSimpleUniqueConstraint() {
 
 		return Stream.of(
-			Arguments.of("3.5", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.0", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
-			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
+			Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE"),
 
-			Arguments.of("3.5", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.0", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-			Arguments.of("4.1", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-			Arguments.of("4.2", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-			Arguments.of("4.3", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
-			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
-			Arguments.of("4.4", true, Neo4jEdition.UNKNOWN, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
 
-			Arguments.of("4.0", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.1", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.2", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.3", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
-			Arguments.of("4.4", false, Neo4jEdition.UNKNOWN, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE")
+			Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.1", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.2", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.3", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE"),
+			Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE")
 		);
 	}
 
@@ -118,7 +118,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
 	}
 
@@ -131,7 +131,7 @@ class ConstraintRendererTest {
 			"Book",
 			Collections.singleton("isbn"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThatExceptionOfType(MigrationsException.class)
 			.isThrownBy(() -> renderer.render(constraint, renderContext))
 			.withMessage("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version);
@@ -145,7 +145,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext))
 				.withMessage("This constraint cannot be be used with %s edition.", edition);
@@ -160,7 +160,7 @@ class ConstraintRendererTest {
 			Collections.singleton("isbn"));
 		RenderContext renderContext = new RenderContext("4.4.4", Neo4jEdition.COMMUNITY, operator, true);
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		if (fails) {
 			assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext))
@@ -211,7 +211,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
 	}
 
@@ -255,7 +255,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
 	}
 
@@ -295,7 +295,7 @@ class ConstraintRendererTest {
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 
-		Renderer<Constraint> renderer = new ConstraintRenderer();
+		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
 	}
 }

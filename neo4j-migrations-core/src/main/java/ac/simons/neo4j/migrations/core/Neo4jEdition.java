@@ -34,5 +34,5 @@ public enum Neo4jEdition {
 	/**
 	 * Constant for an unknown edition.
 	 */
-	UNKNOWN
+	UNDEFINED
 }

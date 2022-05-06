@@ -45,7 +45,8 @@ class ConstraintTest {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
+			Arguments.of("4.0", "stupid_stuff",
+				"CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
 			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
 		);
 	}
@@ -54,9 +55,12 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseUniqueNode(String version, String name, String description) {
 
-		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.UNKNOWN, name,
-			description);
-		Constraint constraint = Constraint.of(constraintDescription);
+		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.UNDEFINED);
+		Constraint constraint = Constraint.parse(
+			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+				new SimpleEntry<>("description", Values.value(description)))),
+			constraintDescription
+		);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -75,9 +79,10 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseSimpleNodePropertyExistenceConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)" ),
+			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)"),
+			Arguments.of("4.0", "stupid_stuff",
+				"CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)"),
 			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)")
 		);
 	}
@@ -86,14 +91,18 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseSimpleNodePropertyExistenceConstraint(String version, String name, String description) {
 
-		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
-			description);
-		Constraint constraint = Constraint.of(constraintDescription);
+		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
+		Constraint constraint = Constraint.parse(
+			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+				new SimpleEntry<>("description", Values.value(description)))),
+			constraintDescription
+		);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
 		if ("stupid_stuff".equals(name)) {
-			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny and why not, add more fun. Wow 😱");
+			assertThat(constraint.getProperties()).containsExactly(
+				"fünny things are fünny and why not, add more fun. Wow 😱");
 		} else {
 			if (name == null) {
 				assertThat(constraint.getName().isBlank()).isTrue();
@@ -106,10 +115,14 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseNodeKeyConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY" ),
-			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
-			Arguments.of("4.0", "stupid_stuff", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY"),
-			Arguments.of("4.1", "constraint_name1", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY")
+			Arguments.of("3.5", null,
+				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
+			Arguments.of("4.0", "a_name",
+				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
+			Arguments.of("4.0", "stupid_stuff",
+				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY"),
+			Arguments.of("4.1", "constraint_name1",
+				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY")
 		);
 	}
 
@@ -117,16 +130,19 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseNodeKeyConstraint(String version, String name, String description) {
 
-		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
-			description);
-		Constraint constraint = Constraint.of(constraintDescription);
+		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
+		Constraint constraint = Constraint.parse(
+			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+				new SimpleEntry<>("description", Values.value(description)))),
+			constraintDescription
+		);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Person");
-		if("stupid_stuff".equals(name)) {
-			assertThat(constraint.getProperties()).containsExactly("firstname", "surname", "person.whatever", "person.a,person.b");
-		}
-		 else {
+		if ("stupid_stuff".equals(name)) {
+			assertThat(constraint.getProperties()).containsExactly("firstname", "surname", "person.whatever",
+				"person.a,person.b");
+		} else {
 			if (name == null) {
 				assertThat(constraint.getName().isBlank()).isTrue();
 			} else {
@@ -149,9 +165,12 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseSimpleRelPropertyExistenceConstraint(String version, String name, String description) {
 
-		ConstraintDescription constraintDescription = new ConstraintDescription(version, Neo4jEdition.ENTERPRISE, name,
-			description);
-		Constraint constraint = Constraint.of(constraintDescription);
+		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
+		Constraint constraint = Constraint.parse(
+			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+				new SimpleEntry<>("description", Values.value(description)))),
+			constraintDescription
+		);
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.RELATIONSHIP);
@@ -207,12 +226,14 @@ class ConstraintTest {
 
 		@Override
 		public Map<String, Object> asMap() {
-			return content.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asObject()));
+			return content.entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asObject()));
 		}
 
 		@Override
 		public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
-			return content.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapFunction.apply(e.getValue())));
+			return content.entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, e -> mapFunction.apply(e.getValue())));
 		}
 	}
 
@@ -225,9 +246,26 @@ class ConstraintTest {
 		return result;
 	}
 
-	static Stream<Arguments> shouldDealWithShowConstraints() {
+	static Stream<Arguments> showConstraints44() {
+		String v = "4.4";
+
 		return Stream.of(
 			Arguments.of(
+				v,
+				Constraint.Type.UNIQUE,
+				"Book",
+				TargetEntity.NODE,
+				Collections.singletonList("title"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("title")))
+				)
+			),
+			Arguments.of(
+				v,
 				Constraint.Type.KEY,
 				"Person",
 				TargetEntity.NODE,
@@ -241,6 +279,21 @@ class ConstraintTest {
 				)
 			),
 			Arguments.of(
+				v,
+				Constraint.Type.UNIQUE,
+				"Book",
+				TargetEntity.NODE,
+				Arrays.asList("a", "b"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Arrays.asList("a", "b")))
+				)
+			),
+			Arguments.of(
+				v,
 				Constraint.Type.EXISTS,
 				"Book",
 				TargetEntity.NODE,
@@ -254,6 +307,7 @@ class ConstraintTest {
 				)
 			),
 			Arguments.of(
+				v,
 				Constraint.Type.EXISTS,
 				"LIKED",
 				TargetEntity.RELATIONSHIP,
@@ -267,6 +321,7 @@ class ConstraintTest {
 				)
 			),
 			Arguments.of(
+				v,
 				Constraint.Type.UNIQUE,
 				"Book",
 				TargetEntity.NODE,
@@ -282,9 +337,72 @@ class ConstraintTest {
 		);
 	}
 
+	static Stream<Arguments> shouldDealWithShowConstraints() {
+
+		return Stream.concat(Stream.of("4.2", "4.3").flatMap(v -> Stream.of(
+			Arguments.of(
+				v,
+				Constraint.Type.KEY,
+				"Person",
+				TargetEntity.NODE,
+				Arrays.asList("firstname", "surname"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("NODE_KEY")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Person"))),
+					new SimpleEntry<>("properties", Values.value(Arrays.asList("firstname", "surname")))
+				)
+			),
+			Arguments.of(
+				v,
+				Constraint.Type.EXISTS,
+				"Book",
+				TargetEntity.NODE,
+				Collections.singletonList("isbn"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("NODE_PROPERTY_EXISTENCE")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				)
+			),
+			Arguments.of(
+				v,
+				Constraint.Type.EXISTS,
+				"LIKED",
+				TargetEntity.RELATIONSHIP,
+				Collections.singletonList("day"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE")),
+					new SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("LIKED"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("day")))
+				)
+			),
+			Arguments.of(
+				v,
+				Constraint.Type.UNIQUE,
+				"Book",
+				TargetEntity.NODE,
+				Collections.singletonList("isbn"),
+				makeMap(
+					new SimpleEntry<>("name", Values.value("constraint_name")),
+					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
+					new SimpleEntry<>("entityType", Values.value("NODE")),
+					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
+					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				)
+			)
+		)), showConstraints44());
+	}
+
 	@ParameterizedTest
 	@MethodSource
 	void shouldDealWithShowConstraints(
+		String version,
 		Constraint.Type expectedType,
 		String expectedIdentifier,
 		TargetEntity expectedTarget,
@@ -292,7 +410,7 @@ class ConstraintTest {
 		Map<String, Value> content) {
 
 		MapAccessor row = new MapAccessorImpl(content);
-		Constraint constraint = Constraint.of(row);
+		Constraint constraint = Constraint.parse(row, new ParseContext(version, Neo4jEdition.UNDEFINED));
 
 		assertThat(constraint.getType()).isEqualTo(expectedType);
 		assertThat(constraint.getIdentifier()).isEqualTo(expectedIdentifier);

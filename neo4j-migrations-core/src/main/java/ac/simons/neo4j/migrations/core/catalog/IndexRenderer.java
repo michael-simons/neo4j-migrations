@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.io.OutputStream;
+
 /**
  * Renders indexes (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}).
  *
@@ -24,7 +26,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 final class IndexRenderer implements Renderer<Index> {
 
 	@Override
-	public String render(Index item, RenderContext context) {
-		return null;
+	public void render(Index item, RenderContext context, OutputStream target) {
+
 	}
 }

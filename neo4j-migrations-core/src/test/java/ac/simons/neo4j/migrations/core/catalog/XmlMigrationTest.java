@@ -76,7 +76,7 @@ public class XmlMigrationTest {
 		NodeList constraints = parse.getElementsByTagName("constraint");
 		for (int i = 0; i < constraints.getLength(); ++i) {
 			Element item = (Element) constraints.item(i);
-			Constraint constraint = Constraint.of(item);
+			Constraint constraint = Constraint.parse(item);
 		}
 
 		NodeList drops = parse.getElementsByTagName("drop");
@@ -84,7 +84,7 @@ public class XmlMigrationTest {
 			Element item = (Element) drops.item(i);
 
 			if (!item.getAttribute("ref").isEmpty()) {
-				Constraint ref = Constraint.of(parse.getElementById(item.getAttribute("ref")));
+				Constraint ref = Constraint.parse(parse.getElementById(item.getAttribute("ref")));
 
 				ref.getOptionalOptions().ifPresent(System.out::println);
 			}

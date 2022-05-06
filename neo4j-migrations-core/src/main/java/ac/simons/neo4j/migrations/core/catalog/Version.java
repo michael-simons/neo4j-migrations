@@ -26,13 +26,14 @@ import java.util.Set;
  */
 enum Version {
 
-	V3_5,
-	V4_0,
-	V4_1,
-	V4_2,
-	V4_3,
+	V3_5(true),
+	V4_0(true),
+	V4_1(true),
+	V4_2(true),
+	V4_3(true),
 	V4_4,
-	LATEST;
+	LATEST,
+	UNDEFINED;
 
 	static final Set<Version> NO_IDEM_POTENCY = EnumSet.of(V3_5, V4_0);
 	static final Set<Version> RANGE_41_TO_43 = EnumSet.of(V4_1, V4_2, V4_3);
@@ -40,7 +41,9 @@ enum Version {
 
 	static Version of(String version) {
 
-		if (version.startsWith("3.5")) {
+		if (version == null) {
+			return UNDEFINED;
+		} else if (version.startsWith("3.5")) {
 			return V3_5;
 		} else if (version.startsWith("4.0")) {
 			return V4_0;
@@ -57,8 +60,22 @@ enum Version {
 		}
 	}
 
+	private final boolean priorTo44;
+
+	Version() {
+		this(false);
+	}
+
+	Version(boolean priorTo44) {
+		this.priorTo44 = priorTo44;
+	}
+
 	@Override
 	public String toString() {
 		return name().replace("V", "").replace("_", ".");
+	}
+
+	public boolean isPriorTo44() {
+		return priorTo44;
 	}
 }

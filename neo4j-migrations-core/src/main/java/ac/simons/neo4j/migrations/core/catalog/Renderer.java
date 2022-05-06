@@ -15,6 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+
 /**
  * Renders constraints. This indirection exists to decouple the definition of a constraint from the underlying database.
  *
@@ -29,7 +35,26 @@ interface Renderer<T extends CatalogItem<?>> {
 	 *
 	 * @param item    The item to be rendered
 	 * @param context The context in which the constraint is to be rendered.
+	 * @param target The target to write to. Will not be closed.
+	 */
+	void render(T item, RenderContext context, OutputStream target) throws IOException;
+
+	/**
+	 * Renders a catalog item.
+	 *
+	 * @param item    The item to be rendered
+	 * @param context The context in which the constraint is to be rendered.
 	 * @return The textual representation of the item in the given context, ready to be executed.
 	 */
-	String render(T item, RenderContext context);
+	default String render(T item, RenderContext context) {
+		try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
+
+			render(item, context, bout);
+			bout.flush();
+
+			return new String(bout.toByteArray(), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
 }

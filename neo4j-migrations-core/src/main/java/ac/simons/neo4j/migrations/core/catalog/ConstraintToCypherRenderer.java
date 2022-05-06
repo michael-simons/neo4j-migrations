@@ -18,20 +18,26 @@ package ac.simons.neo4j.migrations.core.catalog;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 /**
- * Renders constraints (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}).
+ * Renders constraints (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}) as Cypher.
  *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-final class ConstraintRenderer implements Renderer<Constraint> {
+final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	@Override
-	public String render(Constraint item, RenderContext context) {
+	public void render(Constraint item, RenderContext context, OutputStream target) throws IOException {
 
 		Version version = context.getVersion();
 		if (context.isIdempotent() && Version.NO_IDEM_POTENCY.contains(version)) {
@@ -54,28 +60,25 @@ final class ConstraintRenderer implements Renderer<Constraint> {
 			throw new MigrationsException("The constraint can only be rendered in the given context when having a name.");
 		}
 
-		String f;
+		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 		if (context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5 && item.hasName()) {
-			f = String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context));
+			w.write(String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context)));
 		} else {
 			switch (item.getType()) {
 				case UNIQUE:
-					f =  renderUniqueConstraint(item, context);
+					w.write(renderUniqueConstraint(item, context));
 					break;
 				case EXISTS:
-					f =  renderPropertyExists(item, context);
+					w.write(renderPropertyExists(item, context));
 					break;
 				case KEY:
-					f =  renderNodeKey(item, context);
+					w.write(renderNodeKey(item, context));
 					break;
 				default:
 					throw new IllegalArgumentException("Unsupported type of constraint: " + item.getType());
 			}
 		}
-		if(version == Version.V4_2 && context.getOperator() == Operator.CREATE) {
-			System.out.println(f);
-		}
-		return f;
+		w.flush();
 	}
 
 	private String renderNodeKey(Constraint item, RenderContext context) {

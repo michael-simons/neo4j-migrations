@@ -70,7 +70,8 @@ final class Name implements Formattable {
 		return Objects.equals(value, name.value);
 	}
 
-	@Override public int hashCode() {
+	@Override
+	public int hashCode() {
 		return Objects.hash(value);
 	}
 }

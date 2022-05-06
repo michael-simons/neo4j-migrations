@@ -59,9 +59,9 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 
 		try {
 			String serverEdition = connectionDetails.getServerEdition();
-			return serverEdition == null ? Neo4jEdition.UNKNOWN : Neo4jEdition.valueOf(serverEdition.toUpperCase(Locale.ROOT));
+			return serverEdition == null ? Neo4jEdition.UNDEFINED : Neo4jEdition.valueOf(serverEdition.toUpperCase(Locale.ROOT));
 		} catch (IllegalArgumentException e) {
-			return Neo4jEdition.UNKNOWN;
+			return Neo4jEdition.UNDEFINED;
 		}
 	}
 

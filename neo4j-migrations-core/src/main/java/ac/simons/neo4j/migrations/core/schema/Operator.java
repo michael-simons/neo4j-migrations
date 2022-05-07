@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ * The operator to an operation.
  *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-interface CatalogItem<T extends CatalogItemType> {
+enum Operator {
 
 	/**
-	 * @return A unique identifier for a catalog item.
+	 * The operands should be created.
 	 */
-	String getId();
-
+	CREATE,
 	/**
-	 * @return Type information for the given item, specialized to the item type itself.
+	 * The operands should be dropped;
 	 */
-	T getType();
+	DROP
 }

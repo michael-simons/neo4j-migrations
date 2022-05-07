@@ -13,36 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
-import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.internal.Strings;
 
+import java.util.Formattable;
+import java.util.Formatter;
 import java.util.Objects;
 
 /**
- * Represents the id of an entry in the catalog.
+ * A value of a schema item.
  *
  * @author Michael J. Simons
- * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-final class CatalogId {
+final class Name implements Formattable, Id {
 
+	/**
+	 * Value of this name, might be {@literal null} or blank.
+	 */
 	private final String value;
 
-	private final MigrationVersion version;
-
-	CatalogId(String value, MigrationVersion version) {
-		this.value = value;
-		this.version = version;
+	static Name of(String value) {
+		return new Name(value);
 	}
 
-	String getValue() {
+	private Name(String value) {
+		this.value = value;
+	}
+
+	@Override
+	public String getValue() {
 		return value;
 	}
 
-	MigrationVersion getVersion() {
-		return version;
+	boolean isBlank() {
+		return Strings.isBlank(this.value);
+	}
+
+	@Override
+	public void formatTo(Formatter formatter, int flags, int width, int precision) {
+
+		if (!Strings.isBlank(value)) {
+			formatter.format(" %s", value);
+		}
 	}
 
 	@Override
@@ -53,12 +67,12 @@ final class CatalogId {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		CatalogId catalogId = (CatalogId) o;
-		return value.equals(catalogId.value) && version.equals(catalogId.version);
+		Name name = (Name) o;
+		return Objects.equals(value, name.value);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value, version);
+		return Objects.hash(value);
 	}
 }

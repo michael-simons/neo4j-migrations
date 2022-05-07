@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
@@ -44,7 +44,7 @@ import org.w3c.dom.NodeList;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-final class Constraint extends AbstractCatalogItem<Constraint.Type> {
+public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 
 	// Constants used throughout parsing and reading / writing elements and attributes
 	private static final String KW_LABEL = "label";
@@ -82,7 +82,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		TargetEntity.NODE
 	);
 
-	private static PatternHolder PATTERN_REL_PROPERTY_EXISTS = new PatternHolder(
+	private static final PatternHolder PATTERN_REL_PROPERTY_EXISTS = new PatternHolder(
 		"CONSTRAINT ON \\(\\)-\\[\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?]-\\(\\) ASSERT (?:exists)?\\((?<properties>\\k<var>\\..+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS,
 		TargetEntity.RELATIONSHIP
@@ -99,7 +99,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	// 4.1 call db.constraints(), need to fill in name
 	// 4.2 SHOW CONSTRAINTS
 
-	public static Constraint parse(MapAccessor row, ParseContext context) {
+	static Constraint parse(MapAccessor row, ParseContext context) {
 
 		Value descriptionValue = row.get("description");
 		Value nameValue = row.get("name");
@@ -182,7 +182,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param constraintElement as defined in {@code migration.xsd}.
 	 * @return The new constraint if the element as parseable
 	 */
-	public static Constraint parse(Element constraintElement) {
+	static Constraint parse(Element constraintElement) {
 
 		String name = constraintElement.getAttribute("id");
 		Type type = Type.valueOf(constraintElement.getAttribute(KW_TYPE).toUpperCase(Locale.ROOT));
@@ -216,7 +216,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 	Element toXML(Document document) {
 		Element element = document.createElement("constraint");
-		element.setAttribute("id", getId());
+		element.setAttribute("id", getId().getValue());
 		element.setIdAttribute("id", true);
 		element.setAttribute(KW_TYPE, getType().name().toLowerCase(Locale.ROOT));
 
@@ -249,7 +249,7 @@ final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	/**
 	 * Enumerates the different kinds of constraints.
 	 */
-	enum Type implements CatalogItemType {
+	public enum Type implements ItemType {
 		UNIQUE,
 		EXISTS,
 		KEY

@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import ac.simons.neo4j.migrations.core.schema.Schema;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -188,6 +190,12 @@ class PreconditionTest {
 
 			@Override public ConnectionDetails getConnectionDetails() {
 				return new DefaultConnectionDetails(null, "Neo4j/4.4", null, null, null, null);
+			}
+
+			@Override
+			public Schema getSchema() {
+				return new Schema() {
+				};
 			}
 		};
 

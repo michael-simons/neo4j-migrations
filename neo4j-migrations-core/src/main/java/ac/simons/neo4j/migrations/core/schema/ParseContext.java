@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
-abstract class AbstractContext {
+/**
+ * Contextual information passed to parsers. It is an enriched version of a structured description coming from a given
+ * database method.
+ *
+ * @author michael J. Simons
+ * @since TBA
+ */
+final class ParseContext extends AbstractContext {
 
-	/**
-	 * Neo4j version used to get any of the contained information.
-	 */
-	private final Version version;
-
-	/**
-	 * Neo4j edition used to get any of the contained information.
-	 */
-	private final Neo4jEdition edition;
-
-	protected AbstractContext(String version, Neo4jEdition edition) {
-		this.version = Version.of(version);
-		this.edition = edition;
-	}
-
-	public Version getVersion() {
-		return version;
-	}
-
-	public Neo4jEdition getEdition() {
-		return edition;
+	ParseContext(String version, Neo4jEdition edition) {
+		super(version, edition);
 	}
 }

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core.schema;
 
-	requires io.github.classgraph;
+/**
+ * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
+ *
+ * @author Michael J. Simons
+ * @since TBA
+ */
+public interface ItemType {
 
-	requires transitive java.logging;
+	// TODO add a sealed version of this type.
 
-	requires transitive org.neo4j.driver;
-
-	exports ac.simons.neo4j.migrations.catalog;
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.internal to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven, ac.simons.neo4j.migrations.quarkus.runtime;
+	String name();
 }

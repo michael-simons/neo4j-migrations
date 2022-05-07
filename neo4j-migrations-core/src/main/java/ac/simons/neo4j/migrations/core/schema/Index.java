@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
+
+import java.util.Collection;
 
 /**
- * Enumerates possible target entities of constraints and indexes.
+ * A somewhat Neo4j version independent representation of an index.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-enum TargetEntity {
+final class Index extends AbstractSchemaItem<Index.Type> {
 
 	/**
-	 * The target entity is a node, the identifier is used as a label.
+	 * Enumerates the different kinds of indexes.
 	 */
-	NODE,
-	/**
-	 * The target entity is a relationship, the identifier is used as a type.
-	 */
-	RELATIONSHIP
+	enum Type implements ItemType {
+		BTREE,
+		FULLTEXT,
+		LOOKUP,
+		POINT,
+		RANGE,
+		TEXT
+	}
+
+	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+		super(name, type, targetEntity, identifier, properties, options);
+	}
 }

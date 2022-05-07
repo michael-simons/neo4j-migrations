@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
-
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+package ac.simons.neo4j.migrations.core.schema;
 
 /**
- * Represents a catalog of
+ * Represents a schema of
  * <ul>
  *     <li>Constraints</li>
  *     <li>Indizes</li>
  * </ul>
- * and probably other things in the future to come. The complete catalog of a {@link ac.simons.neo4j.migrations.core.MigrationContext migration context}
- * will be made up of all catalog entries found in the migrations discovered. Catalog entries of the same type and with the
+ * and probably other things in the future to come. The complete schema of a {@link ac.simons.neo4j.migrations.core.MigrationContext migration context}
+ * will be made up of all schema entries found in the migrations discovered. schema entries of the same type and with the
  * same id will all live up in the corresponding bucket so that for example a drop operation can refer to an older version
  * of a constraint to be dropped, either explicitly or implicit.
  *
@@ -36,15 +30,16 @@ import java.util.Map;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-final class Catalog {
-
-	private final Map<CatalogId, Constraint> constraints = new HashMap<>();
+public interface Schema {
+/*
+	private final Map<schemaId, Constraint> constraints = new HashMap<>();
 
 	public synchronized void addAll(MigrationVersion version, List<Constraint> newConstraints) {
 
 		newConstraints.forEach(constraint -> {
-			CatalogId id = new CatalogId(constraint.getId(), version);
+			schemaId id = new schemaId(constraint.getId(), version);
 			constraints.put(id, constraint);
 		});
 	}
+ */
 }

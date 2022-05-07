@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An operation on items of a catalog.
+ * An operation on items of a schema.
  *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
@@ -35,11 +35,11 @@ final class Operation {
 	private final Operator operator;
 
 	/**
-	 * Zero or more items to operate on. If the list is empty, the operator will be applied to the whole catalog.
+	 * Zero or more items to operate on. If the list is empty, the operator will be applied to the whole schema.
 	 */
-	private final List<CatalogItem<?>> operands;
+	private final List<SchemaItem<?>> operands;
 
-	Operation(Operator operator, Collection<CatalogItem<?>> operands) {
+	Operation(Operator operator, Collection<SchemaItem<?>> operands) {
 		this.operator = operator;
 		this.operands = new ArrayList<>(operands);
 	}
@@ -48,7 +48,7 @@ final class Operation {
 		return operator;
 	}
 
-	List<CatalogItem<?>> getOperands() {
+	List<SchemaItem<?>> getOperands() {
 		return Collections.unmodifiableList(operands);
 	}
 }

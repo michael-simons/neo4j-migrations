@@ -75,6 +75,18 @@ This instance needs to be passed than to the Neo4j-Migrations Core API in case y
 Mostly everything else than can be done via Cypher scripts alone.
 If you need more control about what happens in a migration, have a look at our Java-based migration support in <<concepts_migrations_java-based>>.
 
+[[concepts_schema]]
+== Schema
+
+Neo4j is a schema free or a database with little schema. There are labels for nodes, types for relationships and both can
+have properties. Hence, property graph. But there's no "hard" schema determining that all nodes have all the same properties
+with the same type.
+
+However, there are concepts to force the existence of properties on entities: Constraints.
+Constraints can also enforce uniqueness and keys; they go hand in hand with indexes.
+
+Constraints and indexes are what we refer to in Neo4j-Migrations as schema.
+
 [[concepts_migrations]]
 == Migrations
 
@@ -129,6 +141,11 @@ There a couple of thinks to remember, though:
 configure Neo4j-Migrations to use `TransactionMode#PER_STATEMENT` (see <<concepts_transactions>>, meaning to run each statement of a script in a separate transaction.
 This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
 before has already been committed.
+
+[[concepts_migrations_schema]]
+=== Based on schema items
+
+TODO Write me
 
 [[concepts_migrations_java-based]]
 === Java-based

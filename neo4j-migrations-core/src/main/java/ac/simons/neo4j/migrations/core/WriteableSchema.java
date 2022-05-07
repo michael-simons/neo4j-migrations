@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.schema.Constraint;
+import ac.simons.neo4j.migrations.core.schema.Schema;
+
+import java.util.List;
 
 /**
- * The operator to an operation.
+ * A marker interface that can be added to a {@link ac.simons.neo4j.migrations.core.schema.Schema} making it writable.
  *
  * @author Michael J. Simons
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-enum Operator {
+interface WriteableSchema extends Schema {
 
-	/**
-	 * The operands should be created.
-	 */
-	CREATE,
-	/**
-	 * The operands should be dropped;
-	 */
-	DROP
+	void addAll(MigrationVersion version, List<Constraint> newConstraints);
 }

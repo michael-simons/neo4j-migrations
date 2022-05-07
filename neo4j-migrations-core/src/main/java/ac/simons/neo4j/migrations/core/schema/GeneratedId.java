@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
-import java.util.Collection;
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.nio.charset.StandardCharsets;
 
 /**
- * A somewhat Neo4j version independent representation of an index.
+ * Generates an {@link Id} for a {@link SchemaItem}.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class Index extends AbstractCatalogItem<Index.Type> {
+final class GeneratedId implements Id {
 
-	/**
-	 * Enumerates the different kinds of indexes.
-	 */
-	enum Type implements CatalogItemType {
-		BTREE,
-		FULLTEXT,
-		LOOKUP,
-		POINT,
-		RANGE,
-		TEXT
+	private final String value;
+
+	static Id of(SchemaItem<?> item) {
+		return new GeneratedId(item);
 	}
 
-	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
-		super(name, type, targetEntity, identifier, properties, options);
+	private GeneratedId(SchemaItem<?> forItem) {
+
+		this.value = String.format("%s_%s",
+			forItem.getClass().getSimpleName(),
+			Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(forItem.toString().getBytes(StandardCharsets.UTF_8))
+		);
+	}
+
+	@Override
+	public String getValue() {
+		return value;
 	}
 }

@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
-module ac.simons.neo4j.migrations.core {
+package ac.simons.neo4j.migrations.core.schema;
 
-	requires io.github.classgraph;
+/**
+ * An item in the schema (of either a single migration or the whole context with the merged schema).
+ *
+ * @author Michael J. Simons
+ * @param <T> The concrete type of this item, either a constraint or an index.
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since TBA
+ */
+public interface SchemaItem<T extends ItemType> {
 
-	requires transitive java.logging;
+	// TODO add a sealed version of this type.
 
-	requires transitive org.neo4j.driver;
+	/**
+	 * @return A unique identifier for a schema item.
+	 */
+	Id getId();
 
-	exports ac.simons.neo4j.migrations.catalog;
-	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.internal to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven, ac.simons.neo4j.migrations.quarkus.runtime;
+	/**
+	 * @return Type information for the given item, specialized to the item type itself.
+	 */
+	T getType();
 }

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.schema.Schema;
+
 import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.Driver;
@@ -79,4 +81,9 @@ public interface MigrationContext {
 	 * @since 1.4.0
 	 */
 	ConnectionDetails getConnectionDetails();
+
+	/**
+	 * @return the schema known to this context.
+	 */
+	Schema getSchema();
 }

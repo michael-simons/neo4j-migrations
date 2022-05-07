@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,10 +28,10 @@ import java.nio.charset.StandardCharsets;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-interface Renderer<T extends CatalogItem<?>> {
+interface Renderer<T extends SchemaItem<?>> {
 
 	/**
-	 * Renders a catalog item.
+	 * Renders a schema item.
 	 *
 	 * @param item    The item to be rendered
 	 * @param context The context in which the constraint is to be rendered.
@@ -40,7 +40,7 @@ interface Renderer<T extends CatalogItem<?>> {
 	void render(T item, RenderContext context, OutputStream target) throws IOException;
 
 	/**
-	 * Renders a catalog item.
+	 * Renders a schema item.
 	 *
 	 * @param item    The item to be rendered
 	 * @param context The context in which the constraint is to be rendered.

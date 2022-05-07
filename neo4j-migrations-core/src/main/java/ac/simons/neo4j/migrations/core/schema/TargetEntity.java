@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 /**
- * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
+ * Enumerates possible target entities of constraints and indexes.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-interface CatalogItemType {
+public enum TargetEntity {
+
+	/**
+	 * The target entity is a node, the identifier is used as a label.
+	 */
+	NODE,
+	/**
+	 * The target entity is a relationship, the identifier is used as a type.
+	 */
+	RELATIONSHIP
 }

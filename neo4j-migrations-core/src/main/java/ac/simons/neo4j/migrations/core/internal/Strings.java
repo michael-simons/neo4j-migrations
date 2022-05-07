@@ -15,8 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
@@ -36,6 +39,23 @@ public final class Strings {
 	 * Pattern used for splitting lines.
 	 */
 	public static final String LINE_DELIMITER = "\r?\n|\r";
+
+	public static final Function<byte[], byte[]> MD5 = bytes -> {
+		try {
+			return MessageDigest.getInstance("MD5").digest(bytes);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	};
+	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
+	public static final Function<byte[], String> BASE64_ENCODING = bytes -> {
+		final StringBuilder sb = new StringBuilder(2 * bytes.length);
+		for (byte b : bytes) {
+			sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
+		}
+		return sb.toString();
+	};
 
 	/**
 	 * Capitalizes a string

@@ -15,10 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.Migration;
-import ac.simons.neo4j.migrations.core.MigrationContext;
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-
 /**
  * A migration based on a catalog. The migration itself can contain a (partial) catalog with items that will be added
  * to the {@link MigrationContext Migration contexts} global catalog. Items with the same ids in newer migrations will
@@ -28,6 +24,8 @@ import ac.simons.neo4j.migrations.core.MigrationVersion;
  * @since TBA
  */
 final class CatalogBasedMigration implements Migration {
+
+	// TODO add to migration seal
 
 	@Override
 	public MigrationVersion getVersion() {
@@ -44,7 +42,8 @@ final class CatalogBasedMigration implements Migration {
 		return null;
 	}
 
-	@Override public void apply(MigrationContext context) {
+	@Override
+	public void apply(MigrationContext context) {
 
 	}
 }

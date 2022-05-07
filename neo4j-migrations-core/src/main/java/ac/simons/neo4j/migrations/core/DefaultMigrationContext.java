@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.schema.Schema;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -148,6 +150,11 @@ final class DefaultMigrationContext implements MigrationContext {
 			}
 		}
 		return availableConnectionDetails;
+	}
+
+	@Override
+	public Schema getSchema() {
+		throw new UnsupportedOperationException("boom");
 	}
 
 	private ConnectionDetails getConnectionDetails0() {

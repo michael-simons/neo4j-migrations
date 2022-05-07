@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
+package ac.simons.neo4j.migrations.core.schema;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Michael J. Simons
  * @since TBA
  */
-abstract class AbstractCatalogItem<T extends CatalogItemType> implements CatalogItem<T> {
+abstract class AbstractSchemaItem<T extends ItemType> implements SchemaItem<T> {
 
 	/**
 	 * The name of this item, equivalent to the id of the element in the xml scheme.
@@ -59,7 +59,8 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 	 */
 	private final String options;
 
-	AbstractCatalogItem(String name, T type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+	AbstractSchemaItem(String name, T type, TargetEntity targetEntity, String identifier, Collection<String> properties,
+		String options) {
 
 		if (properties.isEmpty()) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
@@ -74,8 +75,11 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 	}
 
 	@Override
-	public String getId() {
-		return getName().getValue(); // TODO Replace with a generated id if null
+	public Id getId() {
+		if (name.isBlank()) {
+			return GeneratedId.of(this);
+		}
+		return name;
 	}
 
 	public Name getName() {
@@ -105,5 +109,17 @@ abstract class AbstractCatalogItem<T extends CatalogItemType> implements Catalog
 
 	public Optional<String> getOptionalOptions() {
 		return Strings.optionalOf(options);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{" +
+			"name=" + name +
+			", type=" + type +
+			", targetEntity=" + targetEntity +
+			", identifier='" + identifier + '\'' +
+			", properties=" + String.join(",", properties) +
+			", options='" + options + '\'' +
+			'}';
 	}
 }

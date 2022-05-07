@@ -9,8 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK

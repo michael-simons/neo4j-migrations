@@ -1,3 +1,170 @@
+# 1.5.5
+
+## 🐛 Bug Fixes
+- 49815d1 Add a test for the GraalVM 22.1 fix. (#488)
+
+## 🔄️ Refactorings
+- 4b2d882 Remove superflous field.
+
+## 🧹 Housekeeping
+- 3bfc860 Bump quarkus-neo4j.version from 1.1.0 to 1.1.1
+- 80575cd Bump quarkus.version from 2.8.2.Final to 2.8.3.Final
+- 22a9349 Bump maven-project-info-reports-plugin from 3.2.2 to 3.3.0 (#486)
+- be35a51 Bump quarkus.version from 2.8.1.Final to 2.8.2.Final (#485)
+- 97de770 Bump byte-buddy.version from 1.12.9 to 1.12.10 (#484)
+- 10051a9 Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.0.3 to 2022.0.4 and testcontainers.version from 1.16.3 to 1.17.1 (#472)
+- 8fdf843 Bump maven-javadoc-plugin from 3.3.2 to 3.4.0 (#481)
+- e1a541b Bump neo4j-harness from 4.4.5 to 4.4.6 (#480)
+- 887de5d Bump mockito.version from 4.4.0 to 4.5.1 (#479)
+- 918f9e4 Bump quarkus.version from 2.8.0.Final to 2.8.1.Final (#478)
+- 7a90b2a Bump checkstyle from 10.1 to 10.2 (#477)
+- 6d1c4c6 Bump nexus-staging-maven-plugin from 1.6.12 to 1.6.13 (#476)
+- 14a68e7 Bump maven-site-plugin from 3.11.0 to 3.12.0 (#475)
+- 0cbe2de Bump spring-boot.version from 2.6.6 to 2.6.7 (#474)
+- 5f5df4e Bump classgraph from 4.8.143 to 4.8.146 (#473)
+
+## 🛠 Build
+- a135e42 Create windows binaries with prior version of GraalVM.
+- b7ffcbb Disable tc cloud.
+- 31c4dd2 Update github-push-action to 0.6.0.
+- 557699e Upgrade to GraalVM 22.1.0. (#482)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.5.4
+
+This is a release to acknowledge the work done by @aalmiray with @jreleaser which just released itself over the weekend in version 1.0.0 and to which I just bumped this repository. 
+
+Thank you for making me rethink releasing my stuff a lot. I truly enjoyed our collaboration.
+
+## 🧹 Housekeeping
+- 96438d1 Bump jreleaser-maven-plugin from 0.10.0 to 1.0.0 (#469)
+- e86469b Bump byte-buddy.version from 1.12.8 to 1.12.9 (#471)
+- 338d0a8 Bump jacoco-maven-plugin.version from 0.8.7 to 0.8.8 (#470)
+- d2224e9 Bump maven-clean-plugin from 3.1.0 to 3.2.0 (#468)
+
+
+# 1.5.3
+
+## 🧹 Housekeeping
+- 4227864 Bump quarkus.version from 2.7.5.Final to 2.8.0.Final (#465)
+- eec9b8f (deps-dev) Bump junit-jupiter-causal-cluster-testcontainer-extension (#467)
+- 23fac84 Bump spring-boot.version from 2.6.5 to 2.6.6 (#466)
+- f51a072 Bump checkstyle from 10.0 to 10.1 (#461)
+- 396b83c Bump spring-boot.version from 2.6.4 to 2.6.5 (#459)
+- 2f7ee1e Bump jna from 5.10.0 to 5.11.0 (#460)
+- e59a0d6 Bump neo4j-harness from 4.4.4 to 4.4.5 (#462)
+- 5f52e20 Bump native-maven-plugin from 0.9.10 to 0.9.11 (#463)
+- 46dc74b Bump classgraph from 4.8.141 to 4.8.143 (#464)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.5.2
+
+## 🐛 Bug Fixes
+- 44a52c5 Produce correct String representation for `VersionPrecondition`.
+- 2c2db1a Improve parsing of single line comments. (#447)
+- 5379068 Make sure verbose option is recognized in CLI.
+
+## 🔄️ Refactorings
+- b8a43fb Add unparsable precondition to exception message. (#448)
+
+## 📝 Documentation
+- f60247e Add SDKMAN! installation instructions.
+- d763be7 Improve order of concepts.
+
+## 🧹 Housekeeping
+- 9a52ef8 Bump neo4j-java-driver from 4.4.3 to 4.4.5 (#457)
+- 4e0e616 (deps-dev) Bump junit-jupiter-causal-cluster-testcontainer-extension (#458)
+- 8b0f8a5 Bump quarkus.version from 2.7.4.Final to 2.7.5.Final (#456)
+- bba3d0d Bump maven.version from 3.8.4 to 3.8.5 (#450)
+- 03f1564 Bump quarkus.version from 2.7.3.Final to 2.7.4.Final (#451)
+- 7d241fd Bump mockito.version from 4.3.1 to 4.4.0 (#452)
+- 0fe080d Bump quarkus-neo4j.version from 1.0.4 to 1.0.5 (#453)
+- 6c550a3 Bump maven-compiler-plugin from 3.10.0 to 3.10.1 (#455)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @meistermeier
+
+
+# 1.5.1
+
+## 🐛 Bug Fixes
+- f6ed145 Don't swallow exceptions when unlocking fails.
+
+## 🔄️ Refactorings
+- 50abfd1 Add additional tests.
+- a280036 Improve exception handling and CLI messages.
+
+## 📝 Documentation
+- c1d04fa Add better explanation how to create a target database via callbacks.
+
+## 🛠 Build
+- 3b1098b Add Sdkman distribution.
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @marc0der for super quick onboarding to SDKMAN!
+
+
+# 1.5.0
+
+*No breaking changes* but an exciting new feature: have preconditions asserted against your target database before we try to run your refactoring. This way you can make sure you’ll never end up in an invalid state just because Cypher syntax changed in between versions. 
+
+Preconditions we support out of the box:
+* Edition check (enterprise or community)
+* Version check (enumerated versions or ranges)
+* Custom queries returning a boolean value
+
+All preconditions can be asserted (refactoring will stop when unmet) or assumed (single migration will be skipped). 
+
+Have a look at the docs and learn more about [Preconditions](https://michael-simons.github.io/neo4j-migrations/current/#concepts_preconditions).
+
+Thanks to @fbiville for an inspirational presentation!
+
+## 🚀 Features
+- c19fafa Add Support for preconditions. (#443)
+- b66dee1 Log invocation of callbacks. (#439)
+
+## 🐛 Bug Fixes
+- a3c6547 nexus-staging-maven-plugin JDK17 have been fixed in their latest release.
+- 653c06c Don’t try to send single line comments as statements. (#440)
+
+## 🔄️ Refactorings
+- 569e03c Reduce visibility of internal API. (#432)
+
+## 📝 Documentation
+- b6e75f5 Update local changelog.
+
+## 🧹 Housekeeping
+- 4810626 Bump checkstyle from 9.3 to 10.0 (#441)
+- a503c55 Bump quarkus.version from 2.7.2.Final to 2.7.3.Final (#442)
+- 2ea8fbe Bump docker-maven-plugin from 0.39.0 to 0.39.1 (#437)
+- 0dcfd07 Bump classgraph from 4.8.139 to 4.8.141 (#436)
+- d9ba177 Bump japicmp-maven-plugin from 0.15.6 to 0.15.7 (#435)
+- ac9e9b1 Bump spring-boot.version from 2.6.3 to 2.6.4 (#434)
+- 9aaefe9 Bump maven-project-info-reports-plugin from 3.2.1 to 3.2.2 (#433)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @meistermeier
+
+
 # 1.4.0
 
 *No breaking changes*.  The version is bumped due to a couple of new features that required additional API, for example using only remote or locally discovered migrations.

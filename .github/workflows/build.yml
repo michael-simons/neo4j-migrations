@@ -42,7 +42,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --no-transfer-progress clean install -P$USE_SONAR
+        run: ./mvnw --no-transfer-progress clean install -P-sonar -Dfast
+      - name: Upload assembly
+        uses: actions/upload-artifact@v1
+        with:
+          name: assembly
+          path: neo4j-migrations-cli/target/assembly
+
+  ensure_jdk_compat:
+    name: Ensure compatibilty with minimum required Java version
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Download assembly
+        uses: actions/download-artifact@v1
+        with:
+          name: assembly
+          path: assembly
+      - name: Print CLI version
+        run: assembly/bin/neo4j-migrations --version
 
   test_cli_native:
     name: Test CLI native binary

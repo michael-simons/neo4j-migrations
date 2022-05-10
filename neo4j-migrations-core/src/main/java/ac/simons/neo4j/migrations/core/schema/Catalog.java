@@ -30,7 +30,7 @@ package ac.simons.neo4j.migrations.core.schema;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-public interface Schema {
+public interface Catalog {
 /*
 	private final Map<schemaId, Constraint> constraints = new HashMap<>();
 

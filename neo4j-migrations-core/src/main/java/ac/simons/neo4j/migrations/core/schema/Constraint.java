@@ -44,7 +44,7 @@ import org.w3c.dom.NodeList;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
+public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 	private static class PatternHolder {
 

@@ -9,7 +9,7 @@
 	<xs:complexType name="migration">
 
 		<xs:sequence>
-			<xs:element name="catalog" minOccurs="0" maxOccurs="1" type="schema"/>
+			<xs:element name="catalog" minOccurs="0" maxOccurs="1" type="catalog"/>
 			<xs:choice maxOccurs="unbounded">
 				<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
 				<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
@@ -17,7 +17,7 @@
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:complexType name="schema">
+	<xs:complexType name="catalog">
 		<xs:all>
 			<xs:element name="constraints" minOccurs="0" maxOccurs="1">
 				<xs:complexType>

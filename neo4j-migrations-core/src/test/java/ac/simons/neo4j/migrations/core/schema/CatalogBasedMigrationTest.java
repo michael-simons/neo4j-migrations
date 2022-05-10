@@ -28,13 +28,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Michael J. Simons
  */
-class SchemaBasedMigrationTest {
+class CatalogBasedMigrationTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = { "01.xml", "02.xml", "03.xml" })
 	void checksumShouldBeCorrect(String in) throws IOException {
-		try (InputStream source = SchemaBasedMigration.class.getResourceAsStream("/xml/identical-migrations/" + in)) {
-			Migration schemaBasedMigration = SchemaBasedMigration.of(source);
+		try (InputStream source = CatalogBasedMigration.class.getResourceAsStream("/xml/identical-migrations/" + in)) {
+			Migration schemaBasedMigration = CatalogBasedMigration.of(source);
 			assertThat(schemaBasedMigration.getChecksum()).hasValue("562754918");
 		}
 	}

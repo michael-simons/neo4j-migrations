@@ -87,6 +87,45 @@ Constraints can also enforce uniqueness and keys; they go hand in hand with inde
 
 Constraints and indexes are what we refer to in Neo4j-Migrations as schema.
 
+Inside Neo4j-Migrations the concept of a catalog has been introduced.
+A catalog holds the same type of entities as a schema and migrations can pick up elements from the catalog to define the
+final schema.
+
+Items can reside multiple times inside the catalog, identified by their id and the version of the migration in which
+they have been defined. This is so that a drop operation for example can refer to the last version of an entity applied
+to the schema and not to the latest, in which properties or options might have change.
+
+Operations available to catalog based migrations are
+
+`create`:: Creates an item
+`drop`:: Drops an item
+
+While `create` and `drop` work on single item, there are also `assert` and `apply` that work on the whole, known catalog
+in a defined version range.
+
+=== Assertions
+
+`assert` asserts that all items in the catalog are present in exactly the same definition in the database. This is a useful
+step inside a migration to make sure things are "as you expect" before applying further migrations.
+
+The catalog items that are subject to the assertions are made up from all prior versions to the migration in which the `assert`
+appears. As an example, inside migration `V2.1` an `assert` appears. All catalog items from versions 1.0 upto 2.0 will
+take part of the assertion. Items defined in 2.1 with the same name won't be asserted, so that you can assert a given state
+and than redefine parts of it for example.
+
+=== Applying the whole catalog
+
+`apply` on the other hands drops all items in the current physical schema and creates all items in state of the catalog
+at the current version of migration. From the same example as above, everything from 1.0 upto and including 2.1 will be
+included, definitions will be identified by their name respectively id.
+
+=== Create a catalog from the actual database schema
+
+The API has an additional method `dump` that is exposed in various forms, for example through the CLI, that allows to dump
+all items in the actual, physical schema as a catalog definition.
+
+NOTE: TODO Explain XML Schema
+
 [[concepts_migrations]]
 == Migrations
 

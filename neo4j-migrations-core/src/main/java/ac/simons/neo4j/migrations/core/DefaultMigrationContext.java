@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Schema;
+import ac.simons.neo4j.migrations.core.schema.Catalog;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -153,7 +153,7 @@ final class DefaultMigrationContext implements MigrationContext {
 	}
 
 	@Override
-	public Schema getSchema() {
+	public Catalog getCatalog() {
 		throw new UnsupportedOperationException("boom");
 	}
 

@@ -67,7 +67,7 @@ import org.xml.sax.SAXParseException;
  * @soundtrack Tom Holkenborg - Terminator: Dark Fate
  * @since TBA
  */
-public final class SchemaBasedMigration implements Migration {
+public final class CatalogBasedMigration implements Migration {
 
 	// TODO add to migration seal
 
@@ -78,7 +78,7 @@ public final class SchemaBasedMigration implements Migration {
 		try {
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 			MIGRATION_SCHEMA = schemaFactory.newSchema(new StreamSource(
-				SchemaBasedMigration.class.getResourceAsStream("/ac/simons/neo4j/migrations/core/migration.xsd")));
+				CatalogBasedMigration.class.getResourceAsStream("/ac/simons/neo4j/migrations/core/migration.xsd")));
 		} catch (SAXException e) {
 			throw new MigrationsException("Could not load XML schema definition for schema based migrations.", e);
 		}
@@ -219,7 +219,7 @@ public final class SchemaBasedMigration implements Migration {
 				constraints.add(Constraint.parse(item));
 			}
 
-			return new SchemaBasedMigration(computeChecksum(document), constraints);
+			return new CatalogBasedMigration(computeChecksum(document), constraints);
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			throw new MigrationsException("Could not parse the given document.", e);
 		}
@@ -229,7 +229,7 @@ public final class SchemaBasedMigration implements Migration {
 
 	private final List<Constraint> constraints;
 
-	private SchemaBasedMigration(String checksum, List<Constraint> constraints) {
+	private CatalogBasedMigration(String checksum, List<Constraint> constraints) {
 		this.checksum = checksum;
 		this.constraints = constraints;
 	}

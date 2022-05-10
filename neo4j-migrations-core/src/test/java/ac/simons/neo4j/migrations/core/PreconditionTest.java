@@ -18,7 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import ac.simons.neo4j.migrations.core.schema.Schema;
+import ac.simons.neo4j.migrations.core.schema.Catalog;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -193,8 +193,8 @@ class PreconditionTest {
 			}
 
 			@Override
-			public Schema getSchema() {
-				return new Schema() {
+			public Catalog getCatalog() {
+				return new Catalog() {
 				};
 			}
 		};

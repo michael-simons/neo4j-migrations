@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Schema;
+import ac.simons.neo4j.migrations.core.schema.Catalog;
 
 import java.util.function.UnaryOperator;
 
@@ -83,7 +83,7 @@ public interface MigrationContext {
 	ConnectionDetails getConnectionDetails();
 
 	/**
-	 * @return the schema known to this context.
+	 * @return the catalog known to this context.
 	 */
-	Schema getSchema();
+	Catalog getCatalog();
 }

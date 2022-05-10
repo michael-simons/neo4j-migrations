@@ -26,7 +26,7 @@ import java.util.Objects;
  * @author Michael J. Simons
  * @since TBA
  */
-class DefaultSchema implements WriteableSchema {
+class DefaultCatalog implements WriteableCatalog {
 
 	/**
 	 * Represents the id of an entry in the catalog. This takes the original id and adds the version to id.
@@ -35,13 +35,13 @@ class DefaultSchema implements WriteableSchema {
 	 * @soundtrack Metallica - Ride The Lightning
 	 * @since TBA
 	 */
-	static final class SchemaId {
+	static final class CatalogId {
 
 		private final String value;
 
 		private final MigrationVersion version;
 
-		SchemaId(String value, MigrationVersion version) {
+		CatalogId(String value, MigrationVersion version) {
 			this.value = value;
 			this.version = version;
 		}
@@ -62,8 +62,8 @@ class DefaultSchema implements WriteableSchema {
 			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
-			SchemaId schemaId = (SchemaId) o;
-			return value.equals(schemaId.value) && version.equals(schemaId.version);
+			CatalogId catalogId = (CatalogId) o;
+			return value.equals(catalogId.value) && version.equals(catalogId.version);
 		}
 
 		@Override

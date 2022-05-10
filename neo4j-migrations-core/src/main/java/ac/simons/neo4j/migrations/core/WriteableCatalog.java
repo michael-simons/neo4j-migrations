@@ -15,18 +15,18 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.schema.Catalog;
 import ac.simons.neo4j.migrations.core.schema.Constraint;
-import ac.simons.neo4j.migrations.core.schema.Schema;
 
 import java.util.List;
 
 /**
- * A marker interface that can be added to a {@link ac.simons.neo4j.migrations.core.schema.Schema} making it writable.
+ * A marker interface that can be added to a {@link Catalog} making it writable.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-interface WriteableSchema extends Schema {
+interface WriteableCatalog extends Catalog {
 
 	void addAll(MigrationVersion version, List<Constraint> newConstraints);
 }

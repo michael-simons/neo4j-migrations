@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Schema;
-import ac.simons.neo4j.migrations.core.schema.SchemaBasedMigration;
+import ac.simons.neo4j.migrations.core.schema.Catalog;
+import ac.simons.neo4j.migrations.core.schema.CatalogBasedMigration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,10 +73,10 @@ final class DiscoveryService {
 
 		migrations.removeIf(migration -> hasUnmetPreconditions(migrationsAndPreconditions, migration, context));
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
-		Schema schema = context.getSchema();
-		if (schema instanceof WriteableSchema) {
-			WriteableSchema writeableSchema = (WriteableSchema) schema;
-			migrations.stream().filter(SchemaBasedMigration.class::isInstance).forEach(migration -> {
+		Catalog catalog = context.getCatalog();
+		if (catalog instanceof WriteableCatalog) {
+			WriteableCatalog writeableSchema = (WriteableCatalog) catalog;
+			migrations.stream().filter(CatalogBasedMigration.class::isInstance).forEach(migration -> {
 
 				writeableSchema.addAll(migration.getVersion(), Collections.emptyList());
 			});

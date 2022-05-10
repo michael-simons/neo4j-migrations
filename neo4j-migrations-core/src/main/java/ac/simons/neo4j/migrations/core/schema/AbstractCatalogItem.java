@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Michael J. Simons
  * @since TBA
  */
-abstract class AbstractSchemaItem<T extends ItemType> implements SchemaItem<T> {
+abstract class AbstractCatalogItem<T extends ItemType> implements SchemaItem<T> {
 
 	/**
 	 * The name of this item, equivalent to the id of the element in the xml scheme.
@@ -59,7 +59,7 @@ abstract class AbstractSchemaItem<T extends ItemType> implements SchemaItem<T> {
 	 */
 	private final String options;
 
-	AbstractSchemaItem(String name, T type, TargetEntity targetEntity, String identifier, Collection<String> properties,
+	AbstractCatalogItem(String name, T type, TargetEntity targetEntity, String identifier, Collection<String> properties,
 		String options) {
 
 		if (properties.isEmpty()) {

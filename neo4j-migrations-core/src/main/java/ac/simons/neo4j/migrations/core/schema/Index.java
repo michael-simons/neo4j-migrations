@@ -23,7 +23,7 @@ import java.util.Collection;
  * @author Michael J. Simons
  * @since TBA
  */
-final class Index extends AbstractSchemaItem<Index.Type> {
+final class Index extends AbstractCatalogItem<Index.Type> {
 
 	/**
 	 * Enumerates the different kinds of indexes.

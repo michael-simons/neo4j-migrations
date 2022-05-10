@@ -46,11 +46,6 @@ import org.w3c.dom.NodeList;
  */
 public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 
-	// Constants used throughout parsing and reading / writing elements and attributes
-	private static final String KW_LABEL = "label";
-	private static final String KW_PROPERTY = "property";
-	private static final String KW_OPTIONS = "options";
-
 	private static class PatternHolder {
 
 		private final Pattern pattern;
@@ -88,10 +83,8 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 		TargetEntity.RELATIONSHIP
 	);
 
-	public static final String KW_TYPE = "type";
-	public static final String KW_PROPERTIES = "properties";
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
-		KW_TYPE, "entityType", "labelsOrTypes", KW_PROPERTIES)));
+		Constants.TYPE, "entityType", "labelsOrTypes", Constants.PROPERTIES)));
 
 	// TODO invoking
 	// 3.5 call db.constraints()
@@ -114,7 +107,7 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 
 		String name = nameValue.asString();
 		Constraint.Type type;
-		switch (row.get(KW_TYPE).asString()) {
+		switch (row.get(Constants.TYPE).asString()) {
 			case "NODE_KEY":
 				type = Type.KEY;
 				break;
@@ -131,7 +124,7 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 
 		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
-		List<String> properties = row.get(KW_PROPERTIES).asList(Value::asString);
+		List<String> properties = row.get(Constants.PROPERTIES).asList(Value::asString);
 
 		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
 	}
@@ -164,7 +157,7 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
 			String var = Pattern.quote(matcher.group("var") + ".");
-			String propertiesGroup = matcher.group(KW_PROPERTIES);
+			String propertiesGroup = matcher.group(Constants.PROPERTIES);
 			Stream<String> propertiesStream = match.type == Type.KEY ?
 				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
 				Stream.of(propertiesGroup.trim());
@@ -184,13 +177,13 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 	 */
 	static Constraint parse(Element constraintElement) {
 
-		String name = constraintElement.getAttribute("id");
-		Type type = Type.valueOf(constraintElement.getAttribute(KW_TYPE).toUpperCase(Locale.ROOT));
-		NodeList labelOrType = constraintElement.getElementsByTagName(KW_LABEL);
+		String name = constraintElement.getAttribute(Constants.ID);
+		Type type = Type.valueOf(constraintElement.getAttribute(Constants.TYPE).toUpperCase(Locale.ROOT));
+		NodeList labelOrType = constraintElement.getElementsByTagName(Constants.LABEL);
 		TargetEntity targetEntity;
 		String identifier;
 		if (labelOrType.getLength() == 0) {
-			labelOrType = constraintElement.getElementsByTagName(KW_TYPE);
+			labelOrType = constraintElement.getElementsByTagName(Constants.TYPE);
 			targetEntity = TargetEntity.RELATIONSHIP;
 		} else {
 			targetEntity = TargetEntity.NODE;
@@ -198,13 +191,13 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName(KW_PROPERTIES).item(0)).getElementsByTagName(KW_PROPERTY);
+			.getElementsByTagName(Constants.PROPERTIES).item(0)).getElementsByTagName(Constants.PROPERTY);
 		Set<String> properties = new LinkedHashSet<>();
 		for (int i = 0; i < propertyNodes.getLength(); ++i) {
 			properties.add(propertyNodes.item(i).getTextContent());
 		}
 
-		NodeList optionsElement = constraintElement.getElementsByTagName(KW_OPTIONS);
+		NodeList optionsElement = constraintElement.getElementsByTagName(Constants.OPTIONS);
 		String options = null;
 		if (optionsElement.getLength() == 1) {
 			options = Arrays.stream(optionsElement.item(0).getTextContent()
@@ -215,30 +208,30 @@ public final class Constraint extends AbstractSchemaItem<Constraint.Type> {
 	}
 
 	Element toXML(Document document) {
-		Element element = document.createElement("constraint");
-		element.setAttribute("id", getId().getValue());
-		element.setIdAttribute("id", true);
-		element.setAttribute(KW_TYPE, getType().name().toLowerCase(Locale.ROOT));
+		Element element = document.createElement(Constants.CONSTRAINT);
+		element.setAttribute(Constants.ID, getId().getValue());
+		element.setIdAttribute(Constants.ID, true);
+		element.setAttribute(Constants.TYPE, getType().name().toLowerCase(Locale.ROOT));
 
 		Element labelOrType;
 		if (getTarget() == TargetEntity.NODE) {
-			labelOrType = document.createElement(KW_LABEL);
+			labelOrType = document.createElement(Constants.LABEL);
 		} else {
-			labelOrType = document.createElement(KW_TYPE);
+			labelOrType = document.createElement(Constants.TYPE);
 		}
 		labelOrType.setTextContent(getIdentifier());
 		element.appendChild(labelOrType);
 
-		Element properties = document.createElement(KW_PROPERTIES);
+		Element properties = document.createElement(Constants.PROPERTIES);
 		for (String propertyValue : getProperties()) {
-			Element property = document.createElement(KW_PROPERTY);
+			Element property = document.createElement(Constants.PROPERTY);
 			property.setTextContent(propertyValue);
 			properties.appendChild(property);
 		}
 		element.appendChild(properties);
 
 		getOptionalOptions().ifPresent(optionsValue -> {
-			Element options = document.createElement(KW_OPTIONS);
+			Element options = document.createElement(Constants.OPTIONS);
 			options.setTextContent(optionsValue);
 			element.appendChild(options);
 		});

@@ -2,18 +2,20 @@
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
 	<catalog>
 		<indexes />
-		<constraints>
+		<constraints >
 			<constraint id="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
 				</properties>
 			</constraint>
-			<constraint       type="unique" id="constraint_with_options">
+
+
+			<constraint id="constraint_with_options"  type="unique">
 				<label>Label</label>
+				<!--	<property>prop2</property>-->
 				<properties>
 					<property>prop1</property>
-				<!--	<property>prop2</property>-->
 				</properties>
 				<options>
 					indexProvider: 'lucene+native-3.0',
@@ -23,7 +25,5 @@
 		</constraints>
 	</catalog>
 
-	<drop item="AnItemNotDefinedHere" idempotent="false"/>
-	<drop ref="constraint_with_options"/>
 	<create item="unique_isbn"/>
 </migration>

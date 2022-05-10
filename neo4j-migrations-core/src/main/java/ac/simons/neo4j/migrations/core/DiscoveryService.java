@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.schema.Schema;
+import ac.simons.neo4j.migrations.core.schema.SchemaBasedMigration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,7 +76,7 @@ final class DiscoveryService {
 		Schema schema = context.getSchema();
 		if (schema instanceof WriteableSchema) {
 			WriteableSchema writeableSchema = (WriteableSchema) schema;
-			migrations.stream().filter(CatalogBasedMigration.class::isInstance).forEach(migration -> {
+			migrations.stream().filter(SchemaBasedMigration.class::isInstance).forEach(migration -> {
 
 				writeableSchema.addAll(migration.getVersion(), Collections.emptyList());
 			});

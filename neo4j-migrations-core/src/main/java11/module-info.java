@@ -22,7 +22,7 @@ module ac.simons.neo4j.migrations.core {
 
 	requires transitive org.neo4j.driver;
 
-	exports ac.simons.neo4j.migrations.catalog;
+	exports ac.simons.neo4j.migrations.core.schema;
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.internal to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven, ac.simons.neo4j.migrations.quarkus.runtime;
 }

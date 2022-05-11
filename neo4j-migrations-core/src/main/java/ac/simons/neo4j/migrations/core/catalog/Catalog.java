@@ -55,7 +55,7 @@ public interface Catalog {
 			Element item = (Element) constraintNodeList.item(i);
 			constraints.add(Constraint.parse(item));
 		}
-		return new MigrationCatalog(constraints);
+		return new CatalogImpl(constraints);
 	}
 
 	/**
@@ -69,16 +69,4 @@ public interface Catalog {
 	 * @return the list of constraint in this catalog
 	 */
 	List<Constraint> getConstraints();
-
-	/*
-	private final Map<schemaId, Constraint> constraints = new HashMap<>();
-
-	public synchronized void addAll(MigrationVersion version, List<Constraint> newConstraints) {
-
-		newConstraints.forEach(constraint -> {
-			schemaId id = new schemaId(constraint.getId(), version);
-			constraints.put(id, constraint);
-		});
-	}
- 	*/
 }

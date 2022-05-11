@@ -34,7 +34,7 @@ public final class Name implements Formattable, Id {
 	 */
 	private final String value;
 
-	static Name of(String value) {
+	public static Name of(String value) {
 		return new Name(value);
 	}
 

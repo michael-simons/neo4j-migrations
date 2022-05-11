@@ -68,8 +68,6 @@ import org.xml.sax.SAXParseException;
  */
 final class CatalogBasedMigration implements Migration {
 
-	// TODO add to migration seal
-
 	private static final Schema MIGRATION_SCHEMA;
 	private static final ThreadLocal<DocumentBuilderFactory> DOCUMENT_BUILDER_FACTORY;
 
@@ -198,7 +196,8 @@ final class CatalogBasedMigration implements Migration {
 			os.flush();
 
 			final CRC32 crc32 = new CRC32();
-			crc32.update(os.toByteArray());
+			byte[] bytes = os.toByteArray();
+			crc32.update(bytes, 0, bytes.length);
 			return Long.toString(crc32.getValue());
 		} catch (TransformException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | IOException e) {
 			throw new MigrationsException("Could not canonicalize an xml document", e);
@@ -265,12 +264,12 @@ final class CatalogBasedMigration implements Migration {
 		return source;
 	}
 
+	Catalog getCatalog() {
+		return catalog;
+	}
+
 	@Override
 	public void apply(MigrationContext context) {
 
-	}
-
-	Catalog getCatalog() {
-		return catalog;
 	}
 }

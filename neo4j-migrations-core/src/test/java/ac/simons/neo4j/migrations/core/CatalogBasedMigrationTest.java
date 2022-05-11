@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.net.URL;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,8 +29,8 @@ class CatalogBasedMigrationTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = { "01.xml", "02.xml", "03.xml" })
-	void checksumShouldBeCorrect(String in) throws IOException {
-		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/" + in);
+	void checksumShouldBeCorrect(String in) {
+		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/V01__" + in);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
 		assertThat(schemaBasedMigration.getChecksum()).hasValue("562754918");
 		assertThat(schemaBasedMigration.getCatalog().getConstraints()).hasSize(2);

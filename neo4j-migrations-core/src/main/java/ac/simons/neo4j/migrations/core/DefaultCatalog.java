@@ -15,71 +15,82 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.ItemType;
-import ac.simons.neo4j.migrations.core.catalog.TargetEntity;
+import ac.simons.neo4j.migrations.core.catalog.Id;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * @author Michael J. Simons
+ * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
-class DefaultCatalog implements WriteableCatalog {
+class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 
-	/**
-	 * Represents the id of an entry in the catalog. This takes the original id and adds the version to id.
-	 *
-	 * @author Michael J. Simons
-	 * @soundtrack Metallica - Ride The Lightning
-	 * @since TBA
-	 */
-	static final class CatalogId {
-
-		private final String value;
-
-		private final MigrationVersion version;
-
-		CatalogId(String value, MigrationVersion version) {
-			this.value = value;
-			this.version = version;
-		}
-
-		String getValue() {
-			return value;
-		}
-
-		MigrationVersion getVersion() {
-			return version;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			CatalogId catalogId = (CatalogId) o;
-			return value.equals(catalogId.value) && version.equals(catalogId.version);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(value, version);
-		}
-	}
+	private final Map<Id, NavigableMap<MigrationVersion, Constraint>> constraints = new HashMap<>();
 
 	@Override
-	public void addAll(MigrationVersion version, List<Constraint> newConstraints) {
-		ItemType type = newConstraints.get(0).getType();
-		TargetEntity target = newConstraints.get(0).getTarget();
+	public void addAll(MigrationVersion version, Catalog other) {
+
+		for (Constraint constraint : other.getConstraints()) {
+			NavigableMap<MigrationVersion, Constraint> versionedItems = constraints.computeIfAbsent(
+				constraint.getId(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
+			if (versionedItems.containsKey(version)) {
+				throw new MigrationsException(String.format(
+					"A constraint with the id '%s' has already been added to this catalog under the version %s.",
+					constraint.getId().getValue(), version.getValue()));
+			}
+			versionedItems.put(version, constraint);
+		}
 	}
 
 	@Override
 	public List<Constraint> getConstraints() {
-		throw new UnsupportedOperationException("Not there yet");
+		return constraints.values().stream().map(NavigableMap::lastEntry).map(Map.Entry::getValue)
+			.collect(Collectors.toList());
 	}
+
+	@Override
+	public List<Constraint> getConstraintsPriorTo(MigrationVersion version) {
+
+		return constraints.values().stream()
+			.map(m -> Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public Optional<Constraint> getConstraintPriorTo(Id id, MigrationVersion version) {
+
+		return Optional.ofNullable(constraints.get(id))
+			.map(m -> m.lowerEntry(version))
+			.map(Map.Entry::getValue);
+	}
+
+	@Override
+	public List<Constraint> getConstraints(MigrationVersion version) {
+
+		return constraints.values().stream()
+			.map(m -> Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public Optional<Constraint> getConstraint(Id id, MigrationVersion version) {
+
+		return Optional.ofNullable(constraints.get(id))
+			.map(m -> m.floorEntry(version))
+			.map(Map.Entry::getValue);
+	}
+
 }

@@ -26,16 +26,16 @@ import java.util.List;
  * @soundtrack Carcass - Surgical Steel
  * @since TBA
  */
-final class MigrationCatalog implements Catalog {
+final class CatalogImpl implements Catalog {
 
 	private final List<Constraint> constraints;
 
-	MigrationCatalog(List<Constraint> constraints) {
+	CatalogImpl(List<Constraint> constraints) {
 		this.constraints = Collections.unmodifiableList(new ArrayList<>(constraints));
 	}
 
 	@Override
 	public List<Constraint> getConstraints() {
-		return this.constraints;
+		return constraints;
 	}
 }

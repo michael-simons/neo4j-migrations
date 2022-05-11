@@ -16,9 +16,6 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
-
-import java.util.List;
 
 /**
  * A marker interface that can be added to a {@link Catalog} making it writable.
@@ -28,5 +25,13 @@ import java.util.List;
  */
 interface WriteableCatalog extends Catalog {
 
-	void addAll(MigrationVersion version, List<Constraint> newConstraints);
+	/**
+	 * Adds all entries of the given {@link Catalog catalog} received in a specific {@link MigrationVersion} throwing a
+	 * {@link MigrationsException} if a given {@link ac.simons.neo4j.migrations.core.catalog.CatalogItem} is already
+	 * present in that version
+	 *
+	 * @param version The version in which the {@literal catalog} was received
+	 * @param other   The catalog to add
+	 */
+	void addAll(MigrationVersion version, Catalog other);
 }

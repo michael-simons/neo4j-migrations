@@ -75,10 +75,9 @@ final class DiscoveryService {
 		Catalog catalog = context.getCatalog();
 		if (catalog instanceof WriteableCatalog) {
 			WriteableCatalog writeableSchema = (WriteableCatalog) catalog;
-			migrations.stream().filter(CatalogBasedMigration.class::isInstance).forEach(migration -> {
-
-				writeableSchema.addAll(migration.getVersion(), Collections.emptyList());
-			});
+			migrations.stream().filter(CatalogBasedMigration.class::isInstance)
+				.map(CatalogBasedMigration.class::cast)
+				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog()));
 		}
 		return Collections.unmodifiableList(migrations);
 	}

@@ -34,7 +34,9 @@ import java.util.stream.Collectors;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-final class ConstraintToCypherRenderer implements Renderer<Constraint> {
+enum ConstraintToCypherRenderer implements Renderer<Constraint> {
+
+	INSTANCE;
 
 	@Override
 	public void render(Constraint item, RenderContext context, OutputStream target) throws IOException {
@@ -61,7 +63,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
-		if (context.getOperator() == Operator.DROP && context.getVersion() != Neo4jVersion.V3_5 && item.hasName()) {
+		if (context.getOperator() == Operator.DROP && context.getVersion() != Neo4jVersion.V3_5 && item.hasName() && !context.isIgnoreName()) {
 			w.write(String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context)));
 		} else {
 			switch (item.getType()) {
@@ -92,7 +94,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 			throw new IllegalStateException("Key constraints are only supported for nodes, not for relationships.");
 		}
 
-		Name name = item.getName();
+		Name name = getNameOrEmpty(item, context);
 		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
@@ -126,7 +128,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderRelationshipPropertyExists(Constraint item, RenderContext context) {
 
-		Name name = item.getName();
+		Name name = getNameOrEmpty(item, context);
 		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("r", item);
@@ -155,7 +157,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderNodePropertyExists(Constraint item, RenderContext context) {
 
-		Name name = item.getName();
+		Name name = getNameOrEmpty(item, context);
 		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
@@ -193,7 +195,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderUniqueConstraint(Constraint item, RenderContext context) {
 
-		Name name = item.getName();
+		Name name = getNameOrEmpty(item, context);
 		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
@@ -224,5 +226,9 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 
 		return item.getProperties().stream().map(v -> prefix + "." + v).collect(Collectors.joining(", ", "(", ")"));
+	}
+
+	private Name getNameOrEmpty(Constraint item, RenderContext context) {
+		return context.isIgnoreName() ? Name.empty() : item.getName();
 	}
 }

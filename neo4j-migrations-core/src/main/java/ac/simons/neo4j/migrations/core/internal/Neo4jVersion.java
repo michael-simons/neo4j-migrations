@@ -41,19 +41,20 @@ public enum Neo4jVersion {
 
 	public static Neo4jVersion of(String version) {
 
-		if (version == null) {
+		String value = version == null ? null : version.replaceFirst("(?i)Neo4j/", "");
+		if (value == null) {
 			return UNDEFINED;
-		} else if (version.startsWith("3.5")) {
+		} else if (value.startsWith("3.5")) {
 			return V3_5;
-		} else if (version.startsWith("4.0")) {
+		} else if (value.startsWith("4.0")) {
 			return V4_0;
-		} else if (version.startsWith("4.1")) {
+		} else if (value.startsWith("4.1")) {
 			return V4_1;
-		} else if (version.startsWith("4.2")) {
+		} else if (value.startsWith("4.2")) {
 			return V4_2;
-		} else if (version.startsWith("4.3")) {
+		} else if (value.startsWith("4.3")) {
 			return V4_3;
-		} else if (version.startsWith("4.4")) {
+		} else if (value.startsWith("4.4")) {
 			return V4_4;
 		} else {
 			return LATEST;

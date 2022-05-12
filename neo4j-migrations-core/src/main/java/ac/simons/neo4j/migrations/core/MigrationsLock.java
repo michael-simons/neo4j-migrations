@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.RenderContext;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.internal.Messages;
 
 import java.util.Locale;
@@ -40,9 +43,21 @@ final class MigrationsLock {
 	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());
 	private static final String DEFAULT_NAME_OF_LOCK = "John Doe";
 	private static final Supplier<String> LOCK_FAILED_MESSAGE_SUPPLIER = () -> Messages.INSTANCE.get("lock_failed");
+	private static final Renderer<Constraint> CONSTRAINT_RENDERER = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
 	private final String nameOfLock;
+
+	private final Constraint[] REQUIRED_CONSTRAINTS = new Constraint[] {
+		Constraint.forNode("__Neo4jMigrationsLock")
+			.named("__Neo4jMigrationsLock__has_unique_id")
+			.unique("id"),
+
+		Constraint.forNode("__Neo4jMigrationsLock")
+			.named("__Neo4jMigrationsLock__has_unique_name")
+			.unique("name")
+	};
 
 	private final Thread cleanUpTask = new Thread(this::unlock0);
 
@@ -67,8 +82,12 @@ final class MigrationsLock {
 		int constraintsAdded = 0;
 		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			constraintsAdded += HBD.silentCreateConstraint(cd, session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE", null, LOCK_FAILED_MESSAGE_SUPPLIER);
-			constraintsAdded += HBD.silentCreateConstraint(cd, session, "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE", null, LOCK_FAILED_MESSAGE_SUPPLIER);
+			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+			RenderContext createContext = RenderContext.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
+				String cypher = renderer.render(constraint, createContext);
+				constraintsAdded += HBD.silentCreateConstraint(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
+			}
 		}
 		LOGGER.log(Level.FINE, "Created {0} constraints", constraintsAdded);
 	}
@@ -86,8 +105,18 @@ final class MigrationsLock {
 				tx -> tx.run("MATCH (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
 			nodesDeleted += summaryCounters.nodesDeleted();
 			relationshipsDeleted += summaryCounters.relationshipsDeleted();
-			constraintsRemoved += HBD.silentDropConstraint(cd, session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE", null);
-			constraintsRemoved += HBD.silentDropConstraint(cd, session, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE", null);
+
+			RenderContext dropContext = RenderContext.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
+				String cypher = CONSTRAINT_RENDERER.render(constraint, dropContext);
+				Integer singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
+				if (singleConstraint == 0) {
+					// Enforce unnamed
+					cypher = CONSTRAINT_RENDERER.render(constraint, dropContext.ignoreName());
+					singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
+				}
+				constraintsRemoved += singleConstraint;
+			}
 		}
 
 		return new InternalSummaryCounters(

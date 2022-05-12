@@ -18,12 +18,6 @@ package ac.simons.neo4j.migrations.core.catalog;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 /**
  * Contextual information passed to renderers.
  *
@@ -31,14 +25,89 @@ import java.util.stream.Stream;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-final class RenderContext {
-
-	private static final Set<String> PRIOR_TO_44 = Stream.concat(Stream.of("3.5"),
-		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
-		Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+public final class RenderContext {
 
 	static RenderContext defaultContext() {
-		return new RenderContext(null, Neo4jEdition.UNDEFINED, null, true);
+		return new RenderContext(Neo4jVersion.UNDEFINED, Neo4jEdition.UNDEFINED, null, true);
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfNotExistsRenderContextBuilder extends RenderContextBuilder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		RenderContextBuilder ifNotExists();
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfExistsRenderContextBuilder extends RenderContextBuilder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		RenderContextBuilder ifExists();
+	}
+
+	/**
+	 * Defines the version and the edition of the current context. They will be parsed in a lenient way.
+	 */
+	public interface RenderContextBuilder {
+
+		/**
+		 * @param version will be parsed lenient into a {@link Neo4jVersion} abd defazkt to {@link Neo4jVersion#LATEST}
+		 * @param edition will be parsed lenient into a {@link Neo4jEdition} and default to {@link Neo4jEdition#UNDEFINED}
+		 * @return a context accomodating the given version and context
+		 */
+		RenderContext forVersionAndEdition(String version, String edition);
+	}
+
+	private static class DefaultRenderContextBuilder implements IfNotExistsRenderContextBuilder, IfExistsRenderContextBuilder {
+
+		private final Operator operator;
+
+		private boolean idempotent;
+
+		private DefaultRenderContextBuilder(Operator operator) {
+			this.operator = operator;
+		}
+
+		@Override
+		public RenderContext forVersionAndEdition(String version, String edition) {
+			return new RenderContext(Neo4jVersion.of(version), Neo4jEdition.of(edition), operator, idempotent);
+		}
+
+		@Override
+		public RenderContext.RenderContextBuilder ifNotExists() {
+			this.idempotent = true;
+			return this;
+		}
+
+		@Override
+		public RenderContextBuilder ifExists() {
+			this.idempotent = true;
+			return this;
+		}
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal CREATE ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfNotExistsRenderContextBuilder create() {
+		return new DefaultRenderContextBuilder(Operator.CREATE);
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal DROP ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfExistsRenderContextBuilder drop() {
+		return new DefaultRenderContextBuilder(Operator.DROP);
 	}
 
 	/**
@@ -55,31 +124,53 @@ final class RenderContext {
 
 	private final boolean idempotent;
 
-	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
-		this.version = Neo4jVersion.of(version);
+	/**
+	 * Flag if the name should be ignored.
+	 */
+	private final boolean ignoreName;
+
+	RenderContext(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
+		this(version, edition, operator, idempotent, false);
+	}
+
+	RenderContext(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent,
+		boolean ignoreName) {
+		this.version = version;
 		this.edition = edition;
 		this.operator = operator;
 		this.idempotent = idempotent;
+		this.ignoreName = ignoreName;
 	}
 
-
-	public Neo4jVersion getVersion() {
+	Neo4jVersion getVersion() {
 		return version;
 	}
 
-	public Neo4jEdition getEdition() {
+	Neo4jEdition getEdition() {
 		return edition;
 	}
 
-	public Operator getOperator() {
+	Operator getOperator() {
 		return operator;
 	}
 
-	public boolean isIdempotent() {
+	boolean isIdempotent() {
 		return idempotent;
 	}
 
-	public boolean isVersionPriorTo44() {
+	boolean isVersionPriorTo44() {
 		return getVersion().isPriorTo44();
+	}
+
+	boolean isIgnoreName() {
+		return ignoreName;
+	}
+
+	/**
+	 * This is useful to get a render context that ignores the name of an object to force dropping things created without a name.
+	 * @return a new context ignoring the name
+	 */
+	public RenderContext ignoreName() {
+		return new RenderContext(version, edition, operator, idempotent, true);
 	}
 }

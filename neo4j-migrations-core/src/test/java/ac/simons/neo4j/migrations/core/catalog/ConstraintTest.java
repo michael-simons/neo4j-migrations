@@ -27,8 +27,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -45,7 +48,7 @@ class ConstraintTest {
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
 			Arguments.of("4.0", "stupid_stuff",
 				"CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
-			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
+			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Bookund  ) ASSERT (book.isbn) IS UNIQUE")
 		);
 	}
 
@@ -403,5 +406,35 @@ class ConstraintTest {
 		assertThat(constraint.getTarget()).isEqualTo(expectedTarget);
 		assertThat(constraint.getProperties()).containsExactlyElementsOf(expectedProperties);
 		assertThat(constraint.getName()).isEqualTo(Name.of("constraint_name"));
+	}
+
+	@Nested
+	class Builder {
+
+		@ParameterizedTest
+		@EnumSource(Constraint.Type.class)
+		void nodeConstraintBuilderShouldWork(Constraint.Type type) {
+			Constraint constraint = null;
+
+			switch (type) {
+				case UNIQUE:
+					constraint = Constraint.forNode("Book").named("foo").unique("bar");
+					break;
+				case EXISTS:
+					constraint = Constraint.forNode("Book").named("foo").exists("bar");
+					break;
+				case KEY:
+					constraint = Constraint.forNode("Book").named("foo").key("bar");
+					break;
+				default:
+					Assertions.fail("Unsupported type: " + type);
+			}
+
+			assertThat(constraint.getIdentifier()).isEqualTo("Book");
+			assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
+			assertThat(constraint.getProperties()).containsExactly("bar");
+			assertThat(constraint.getType()).isEqualTo(type);
+			assertThat(constraint.getName()).isEqualTo(Name.of("foo"));
+		}
 	}
 }

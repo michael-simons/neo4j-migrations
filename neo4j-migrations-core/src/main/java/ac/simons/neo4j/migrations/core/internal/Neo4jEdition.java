@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.util.Locale;
+
 /**
  * Represents a Neo4j edition.
  *
@@ -34,5 +36,26 @@ public enum Neo4jEdition {
 	/**
 	 * Constant for an unknown edition.
 	 */
-	UNDEFINED
+	UNDEFINED;
+
+	/**
+	 * @param edition A string value describing the edition, may be {@literal null}
+	 * @return The enum constant for the given edition or {@link Neo4jEdition#UNDEFINED} if lenient parsing is not possible.
+	 */
+	public static Neo4jEdition of(String edition) {
+
+		if (edition == null) {
+			return Neo4jEdition.UNDEFINED;
+		} else {
+			String value = edition.trim().toUpperCase(Locale.ROOT);
+			switch (value) {
+				case "ENTERPRISE":
+					return Neo4jEdition.ENTERPRISE;
+				case "COMMUNITY":
+					return Neo4jEdition.COMMUNITY;
+				default:
+					return Neo4jEdition.UNDEFINED;
+			}
+		}
+	}
 }

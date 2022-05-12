@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -46,7 +45,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.empty();
 		} else {
 			try {
-				Neo4jEdition edition = Neo4jEdition.valueOf(matcher.group("edition").toUpperCase(Locale.ROOT));
+				Neo4jEdition edition = Neo4jEdition.of(matcher.group("edition"));
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
@@ -59,12 +58,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 
 	static Neo4jEdition getEdition(ConnectionDetails connectionDetails) {
 
-		try {
-			String serverEdition = connectionDetails.getServerEdition();
-			return serverEdition == null ? Neo4jEdition.UNDEFINED : Neo4jEdition.valueOf(serverEdition.toUpperCase(Locale.ROOT));
-		} catch (IllegalArgumentException e) {
-			return Neo4jEdition.UNDEFINED;
-		}
+		return Neo4jEdition.of(connectionDetails.getServerEdition());
 	}
 
 	private final Neo4jEdition edition;

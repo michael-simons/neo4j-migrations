@@ -166,7 +166,8 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 
-		throw new IllegalArgumentException(String.format("The description '%s' does not match any known pattern.", description));
+		throw new IllegalArgumentException(
+			String.format("The description '%s' does not match any known pattern.", description));
 	}
 
 	/**
@@ -191,7 +192,8 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(XMLSchemaConstants.PROPERTY);
+			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
+			XMLSchemaConstants.PROPERTY);
 		Set<String> properties = new LinkedHashSet<>();
 		for (int i = 0; i < propertyNodes.getLength(); ++i) {
 			properties.add(propertyNodes.item(i).getTextContent());
@@ -240,11 +242,104 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	/**
+	 * Programmatic way of defining constraints.
+	 */
+	public interface ConstraintBuilder {
+
+		NamedConstraintBuilder named(String name);
+	}
+
+	/**
+	 * Allows to specify the type of the constraint.
+	 */
+	public interface NamedConstraintBuilder {
+
+		/**
+		 * Creates a unique constraint for the given property
+		 *
+		 * @param property the property that should be unique
+		 * @return the new constraint
+		 */
+		Constraint unique(String property);
+
+		/**
+		 * Creates an existential constraint for the given property
+		 *
+		 * @param property the property that is required to exist
+		 * @return the new constraint
+		 */
+		Constraint exists(String property);
+
+		/**
+		 * Creates a key constraint for the given property
+		 *
+		 * @param properties the property that should be part of the key
+		 * @return the new constraint
+		 */
+		Constraint key(String... properties);
+	}
+
+	private static class DefaultNodeConstraintBuilder implements ConstraintBuilder, NamedConstraintBuilder {
+		private final TargetEntity targetEntity;
+
+		private final String identifier;
+
+		private String name;
+
+		private DefaultNodeConstraintBuilder(TargetEntity targetEntity, String identifier) {
+			this.targetEntity = targetEntity;
+			this.identifier = identifier;
+		}
+
+		@Override
+		public NamedConstraintBuilder named(String newName) {
+
+			this.name = newName;
+			return this;
+		}
+
+		@Override
+		public Constraint unique(String property) {
+			return new Constraint(name, Type.UNIQUE, targetEntity, identifier, Collections.singleton(property));
+		}
+
+		@Override
+		public Constraint exists(String property) {
+			return new Constraint(name, Type.EXISTS, targetEntity, identifier, Collections.singleton(property));
+		}
+
+		@Override
+		public Constraint key(String... properties) {
+			return new Constraint(name, Type.KEY, targetEntity, identifier, Arrays.asList(properties));
+		}
+	}
+
+	/**
+	 * Starts defining a new instance of a node constraint.
+	 *
+	 * @param label The label on which the constraint should be applied
+	 * @return The ongoing builder
+	 */
+	public static ConstraintBuilder forNode(String label) {
+		return new DefaultNodeConstraintBuilder(TargetEntity.NODE, label);
+	}
+
+	/**
 	 * Enumerates the different kinds of constraints.
 	 */
 	public enum Type implements ItemType {
+
+		/**
+		 * Unique constraints.
+		 */
 		UNIQUE,
+		/**
+		 * Existential constraints.
+		 */
 		EXISTS,
+		/**
+		 * Key constraints.
+		 */
 		KEY
 	}
 

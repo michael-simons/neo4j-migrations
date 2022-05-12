@@ -29,13 +29,19 @@ import java.util.Objects;
  */
 public final class Name implements Formattable, Id {
 
+	private static final Name EMPTY = new Name(null);
+
 	/**
 	 * Value of this name, might be {@literal null} or blank.
 	 */
 	private final String value;
 
 	public static Name of(String value) {
-		return new Name(value);
+		return value == null ? EMPTY : new Name(value);
+	}
+
+	static Name empty() {
+		return EMPTY;
 	}
 
 	private Name(String value) {

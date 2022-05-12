@@ -44,8 +44,8 @@ public interface Catalog {
 	/**
 	 * Creates a catalog based on a document following the schema of {@literal /ac/simons/neo4j/migrations/core/migration.xsd}.
 	 *
-	 * @param document The document containg one catalog item.
-	 * @return A new catalog
+	 * @param document A document containing a catalog element and / or one or more nested catalog item elements.
+	 * @return A new catalog, containing all items that can be extracted from the document
 	 */
 	static Catalog of(Document document) {
 

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -82,13 +83,14 @@ abstract class TestBase {
 
 		SessionConfig sessionConfig = getSessionConfig(database);
 
+		List<String> constraintsToBeDropped;
 		try (Session session = driver.session(sessionConfig)) {
 			session.run("MATCH (n) DETACH DELETE n");
+			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD 'DROP CONSTRAINT ' + name as cmd").list(r -> r.get("cmd").asString());
 		}
 
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (f:A) ASSERT f.id IS UNIQUE");
+		constraintsToBeDropped.forEach(cmd ->
+			dropConstraint(driver, database, cmd));
 	}
 
 	static int lengthOfMigrations(Driver driver, String database) {

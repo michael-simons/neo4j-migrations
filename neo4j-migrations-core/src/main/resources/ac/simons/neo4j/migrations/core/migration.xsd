@@ -7,7 +7,6 @@
 	<xs:element name="migration" type="migration"/>
 
 	<xs:complexType name="migration">
-
 		<xs:sequence>
 			<xs:element name="catalog" minOccurs="0" maxOccurs="1" type="catalog"/>
 			<xs:choice maxOccurs="unbounded">

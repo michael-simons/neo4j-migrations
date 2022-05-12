@@ -46,8 +46,8 @@
 		</xs:sequence>
 		<xs:attribute name="item" type="xs:string"/>
 		<xs:attribute name="ref" type="xs:IDREF"/>
-	</xs:complexType>
-
+	</xs:complexType>h
+TODO replace with ifExists/ifNotExists
 	<xs:complexType name="idempotentOperation">
 		<xs:complexContent>
 			<xs:extension base="operation">

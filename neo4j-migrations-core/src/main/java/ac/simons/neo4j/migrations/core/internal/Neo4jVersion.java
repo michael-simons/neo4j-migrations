@@ -26,19 +26,58 @@ import java.util.Set;
  */
 public enum Neo4jVersion {
 
+	/**
+	 * Constant for everything Neo4j 3.5 and earlier.
+	 */
 	V3_5(true),
+	/**
+	 * Constant for everything Neo4j 4.0.
+	 */
 	V4_0(true),
+	/**
+	 * Constant for everything Neo4j 4.1.
+	 */
 	V4_1(true),
+	/**
+	 * Constant for everything Neo4j 4.2.
+	 */
 	V4_2(true),
+	/**
+	 * Constant for everything Neo4j 4.3.
+	 */
 	V4_3(true),
+	/**
+	 * Constant for everything Neo4j 4.4.
+	 */
 	V4_4,
+	/**
+	 * Constant when we assume the latest version.
+	 */
 	LATEST,
+	/**
+	 * Constant for an undefined version.
+	 */
 	UNDEFINED;
 
+	/**
+	 * A set of versions that don't have the concept of idempotent constraint / index statements.
+	 */
 	public static final Set<Neo4jVersion> NO_IDEM_POTENCY = EnumSet.of(V3_5, V4_0);
+	/**
+	 * A range of versions from 4.1 to 4.3.
+	 */
 	public static final Set<Neo4jVersion> RANGE_41_TO_43 = EnumSet.of(V4_1, V4_2, V4_3);
+	/**
+	 * A range of versions from 4.1 to 4.2.
+	 */
 	public static final Set<Neo4jVersion> RANGE_41_TO_42 = EnumSet.of(V4_1, V4_2);
 
+	/**
+	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.
+	 *
+	 * @param version A version string
+	 * @return A version
+	 */
 	public static Neo4jVersion of(String version) {
 
 		String value = version == null ? null : version.replaceFirst("(?i)Neo4j/", "");
@@ -76,6 +115,9 @@ public enum Neo4jVersion {
 		return name().replace("V", "").replace("_", ".");
 	}
 
+	/**
+	 * @return true if this is a version prior to 4.4.
+	 */
 	public boolean isPriorTo44() {
 		return priorTo44;
 	}

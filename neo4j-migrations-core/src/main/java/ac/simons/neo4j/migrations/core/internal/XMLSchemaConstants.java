@@ -23,17 +23,46 @@ package ac.simons.neo4j.migrations.core.internal;
  */
 public final class XMLSchemaConstants {
 
+	/**
+	 * Constant for {@literal type} (both used as attribute and element).
+	 */
 	public static final String TYPE = "type";
+	/**
+	 * Constant for the element {@literal properties}.
+	 */
 	public static final String PROPERTIES = "properties";
-
+	/**
+	 * Constant for the attribute {@literal id}.
+	 */
 	public static final String ID = "id";
 
+	/**
+	 * Constant for the element {@literal constraint}.
+	 */
 	public static final String CONSTRAINT = "constraint";
+	/**
+	 * Constant for the element {@literal label}.
+	 */
 	public static final String LABEL = "label";
+	/**
+	 * Constant for the element {@literal property}.
+	 */
 	public static final String PROPERTY = "property";
+	/**
+	 * Constant for the element {@literal options}.
+	 */
 	public static final String OPTIONS = "options";
+	/**
+	 * Constant for the element {@literal catalog}.
+	 */
 	public static final String CATALOG = "catalog";
+	/**
+	 * Constant for the element {@literal indexes}.
+	 */
 	public static final String INDEXES = "indexes";
+	/**
+	 * Constant for the element {@literal constraints}.
+	 */
 	public static final String CONSTRAINTS = "constraints";
 
 	private XMLSchemaConstants() {

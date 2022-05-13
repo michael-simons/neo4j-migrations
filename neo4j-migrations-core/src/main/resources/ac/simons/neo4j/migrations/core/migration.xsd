@@ -46,8 +46,9 @@
 		</xs:sequence>
 		<xs:attribute name="item" type="xs:string"/>
 		<xs:attribute name="ref" type="xs:IDREF"/>
-	</xs:complexType>h
-TODO replace with ifExists/ifNotExists
+	</xs:complexType>
+
+	<!-- TODO replace with ifExists/ifNotExists -->
 	<xs:complexType name="idempotentOperation">
 		<xs:complexContent>
 			<xs:extension base="operation">
@@ -63,23 +64,8 @@ TODO replace with ifExists/ifNotExists
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:complexType name="options">
-		<xs:sequence>
-			<xs:element name="option"
-						maxOccurs="unbounded" minOccurs="1">
-				<xs:complexType>
-					<xs:simpleContent>
-						<xs:extension base="xs:string">
-							<xs:attribute name="name" type="xs:string"/>
-						</xs:extension>
-					</xs:simpleContent>
-				</xs:complexType>
-			</xs:element>
-		</xs:sequence>
-	</xs:complexType>
-
 	<xs:complexType name="catalogItem">
-		<xs:attribute name="id" use="required" type="xs:ID"/>
+		<xs:attribute name="name" use="required" type="xs:ID"/>
 	</xs:complexType>
 
 	<xs:complexType name="constraint">

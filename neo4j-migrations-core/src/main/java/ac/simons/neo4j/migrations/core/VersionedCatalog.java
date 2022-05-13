@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.Id;
+import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,10 +42,11 @@ public interface VersionedCatalog extends Catalog {
 	/**
 	 * A single constraints prior to a given version. The result will be empty if the constraint has not yet been defined.
 	 *
+	 * @param name      The id of the item to retrieve
 	 * @param version The version up to but not including to retrieve the constraint for
 	 * @return an optional constraint as defined prior to the introduction of {@literal version}
 	 */
-	Optional<Constraint> getConstraintPriorTo(Id id, MigrationVersion version);
+	Optional<Constraint> getConstraintPriorTo(Name name, MigrationVersion version);
 
 	/**
 	 * A list of all constraints up to and including a given version.
@@ -58,8 +59,9 @@ public interface VersionedCatalog extends Catalog {
 	/**
 	 * A single constraints for a given version. The result will be empty if the constraint has not yet been defined.
 	 *
+	 * @param name      The id of the item to retrieve
 	 * @param version The version in which to retrieve the constraint for
 	 * @return an optional constraint as defined with to the introduction of {@literal version}
 	 */
-	Optional<Constraint> getConstraint(Id id, MigrationVersion version);
+	Optional<Constraint> getConstraint(Name name, MigrationVersion version);
 }

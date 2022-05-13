@@ -23,14 +23,19 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael J. Simons
  */
-class GeneratedIdTest {
+class GeneratedNameTest {
 
 	@Test
 	void idGenerationShouldWork() {
 
 		Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
-		Id id = constraint.getId();
-		Assertions.assertThat(id).isInstanceOf(GeneratedId.class).extracting(Id::getValue).isEqualTo("Constraint_224D74417CCBC05AFD3631324D705CD3");
+		Name name = constraint.getName();
+		Assertions.assertThat(name).isInstanceOf(GeneratedName.class).extracting(Name::getValue)
+			.isEqualTo("Constraint_4006808BBCCF49878FDFA78BF2148FAD");
+
+		Constraint constraint2 = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+			Arrays.asList("firstname", "surname"));
+		Assertions.assertThat(constraint2.getName()).isEqualTo(name);
 	}
 }

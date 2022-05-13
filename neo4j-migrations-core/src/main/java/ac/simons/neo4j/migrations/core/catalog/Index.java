@@ -37,7 +37,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		TEXT
 	}
 
-	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+	Index(String id, String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
 		super(name, type, targetEntity, identifier, properties, options);
 	}
 }

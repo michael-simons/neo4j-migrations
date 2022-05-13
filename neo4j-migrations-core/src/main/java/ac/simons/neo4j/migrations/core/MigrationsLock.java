@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.RenderContext;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.internal.Messages;
 
@@ -83,9 +83,9 @@ final class MigrationsLock {
 		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
 			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-			RenderContext createContext = RenderContext.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
-				String cypher = renderer.render(constraint, createContext);
+				String cypher = renderer.render(constraint, createConfig);
 				constraintsAdded += HBD.silentCreateConstraint(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
 			}
 		}
@@ -106,13 +106,13 @@ final class MigrationsLock {
 			nodesDeleted += summaryCounters.nodesDeleted();
 			relationshipsDeleted += summaryCounters.relationshipsDeleted();
 
-			RenderContext dropContext = RenderContext.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			RenderConfig dropConfig = RenderConfig.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
-				String cypher = CONSTRAINT_RENDERER.render(constraint, dropContext);
+				String cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig);
 				Integer singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
 				if (singleConstraint == 0) {
 					// Enforce unnamed
-					cypher = CONSTRAINT_RENDERER.render(constraint, dropContext.ignoreName());
+					cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig.ignoreName());
 					singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
 				}
 				constraintsRemoved += singleConstraint;

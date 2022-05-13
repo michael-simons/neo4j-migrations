@@ -35,11 +35,15 @@ public final class Strings {
 	 * Single line comment indicator.
 	 */
 	public static final String CYPHER_SINGLE_LINE_COMMENT = "//";
+
 	/**
 	 * Pattern used for splitting lines.
 	 */
 	public static final String LINE_DELIMITER = "\r?\n|\r";
 
+	/**
+	 * Function for creating an MD5 representation of a byte array.
+	 */
 	public static final Function<byte[], byte[]> MD5 = bytes -> {
 		try {
 			return MessageDigest.getInstance("MD5").digest(bytes);
@@ -49,6 +53,9 @@ public final class Strings {
 	};
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
+	/**
+	 * A Base64 encoder.
+	 */
 	public static final Function<byte[], String> BASE64_ENCODING = bytes -> {
 		final StringBuilder sb = new StringBuilder(2 * bytes.length);
 		for (byte b : bytes) {

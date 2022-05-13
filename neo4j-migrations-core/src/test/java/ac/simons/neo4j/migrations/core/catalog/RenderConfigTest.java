@@ -25,12 +25,12 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael J. Simons
  */
-class RenderContextTest {
+class RenderConfigTest {
 
 	@Test
 	void ifNotExistsShouldWork() {
 
-		RenderContext ctx = RenderContext.create().ifNotExists().forVersionAndEdition("4.0", "ENTERPRISE");
+		RenderConfig ctx = RenderConfig.create().ifNotExists().forVersionAndEdition("4.0", "ENTERPRISE");
 		assertThat(ctx.getOperator()).isEqualTo(Operator.CREATE);
 		assertThat(ctx.isIdempotent()).isTrue();
 		assertThat(ctx.getVersion()).isEqualTo(Neo4jVersion.V4_0);
@@ -40,7 +40,7 @@ class RenderContextTest {
 	@Test
 	void ifExistsShouldWork() {
 
-		RenderContext ctx = RenderContext.drop().ifExists().forVersionAndEdition("4.0", "ENTERPRISE");
+		RenderConfig ctx = RenderConfig.drop().ifExists().forVersionAndEdition("4.0", "ENTERPRISE");
 		assertThat(ctx.getOperator()).isEqualTo(Operator.DROP);
 		assertThat(ctx.isIdempotent()).isTrue();
 		assertThat(ctx.getVersion()).isEqualTo(Neo4jVersion.V4_0);
@@ -50,7 +50,7 @@ class RenderContextTest {
 	@Test
 	void nonIdempotentShouldBeOk() {
 
-		RenderContext ctx = RenderContext.drop().forVersionAndEdition("4.0", "ENTERPRISE");
+		RenderConfig ctx = RenderConfig.drop().forVersionAndEdition("4.0", "ENTERPRISE");
 		assertThat(ctx.getOperator()).isEqualTo(Operator.DROP);
 		assertThat(ctx.isIdempotent()).isFalse();
 		assertThat(ctx.getVersion()).isEqualTo(Neo4jVersion.V4_0);
@@ -60,8 +60,8 @@ class RenderContextTest {
 	@Test
 	void ignoreNameShouldWork() {
 
-		RenderContext ctx = RenderContext.drop().forVersionAndEdition("4.0", "ENTERPRISE");
-		RenderContext ctx2 = ctx.ignoreName();
+		RenderConfig ctx = RenderConfig.drop().forVersionAndEdition("4.0", "ENTERPRISE");
+		RenderConfig ctx2 = ctx.ignoreName();
 
 		assertThat(ctx2.getOperator()).isEqualTo(Operator.DROP);
 		assertThat(ctx2.isIdempotent()).isFalse();

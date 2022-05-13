@@ -32,7 +32,7 @@ class CatalogBasedMigrationTest {
 	void checksumShouldBeCorrect(String in) {
 		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/V01__" + in);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
-		assertThat(schemaBasedMigration.getChecksum()).hasValue("562754918");
+		assertThat(schemaBasedMigration.getChecksum()).hasValue("620177586");
 		assertThat(schemaBasedMigration.getCatalog().getConstraints()).hasSize(2);
 	}
 }

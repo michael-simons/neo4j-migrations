@@ -34,10 +34,16 @@ public final class ResourceContext {
 		this.config = config;
 	}
 
+	/**
+	 * @return the resources {@link URL}
+	 */
 	public URL getUrl() {
 		return url;
 	}
 
+	/**
+	 * @return the configuration with which the resource has been discovered
+	 */
 	public MigrationsConfig getConfig() {
 		return config;
 	}

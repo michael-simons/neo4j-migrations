@@ -15,70 +15,26 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
-import java.util.Formattable;
-import java.util.Formatter;
-import java.util.Objects;
-
 /**
- * A value of a schema item.
+ * The unique id of an {@link CatalogItem item}.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-public final class Name implements Formattable, Id {
-
-	private static final Name EMPTY = new Name(null);
+public interface Name {
 
 	/**
-	 * Value of this name, might be {@literal null} or blank.
+	 * Turns a name value into a {@link Name}. The value might be {@literal null}
+	 *
+	 * @param value The value of the name
+	 * @return A name
 	 */
-	private final String value;
-
-	public static Name of(String value) {
-		return value == null ? EMPTY : new Name(value);
+	static Name of(String value) {
+		return value == null ? DefaultName.EMPTY : new DefaultName(value);
 	}
 
-	static Name empty() {
-		return EMPTY;
-	}
-
-	private Name(String value) {
-		this.value = value;
-	}
-
-	@Override
-	public String getValue() {
-		return value;
-	}
-
-	boolean isBlank() {
-		return Strings.isBlank(this.value);
-	}
-
-	@Override
-	public void formatTo(Formatter formatter, int flags, int width, int precision) {
-
-		if (!Strings.isBlank(value)) {
-			formatter.format(" %s", value);
-		}
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		Name name = (Name) o;
-		return Objects.equals(value, name.value);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(value);
-	}
+	/**
+	 * @return the {@link String string representation} of this instance
+	 */
+	String getValue();
 }

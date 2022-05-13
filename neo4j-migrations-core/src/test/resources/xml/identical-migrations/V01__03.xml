@@ -2,14 +2,14 @@
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
 	<catalog >
 		<constraints >
-			<constraint id="unique_isbn" type="unique">
+			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
 				</properties>
 			</constraint>
 
-			<constraint id="constraint_with_options"  type="unique">
+			<constraint name="constraint_with_options"  type="unique">
 				<label>Label</label>
 				<!--	<property>prop2</property>-->
 				<properties>

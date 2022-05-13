@@ -15,23 +15,50 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.util.Objects;
+
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ * Default implementation of a {@link Name}.
  *
  * @author Michael J. Simons
- * @param <T> The concrete type of this item, either a constraint or an index.
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface CatalogItem<T extends ItemType> {
+final class DefaultName implements Name {
+
+	static final DefaultName EMPTY = new DefaultName(null);
+
+	static DefaultName empty() {
+		return EMPTY;
+	}
 
 	/**
-	 * @return A unique name for a catalog item.
+	 * Value of this name, might be {@literal null} or blank.
 	 */
-	Name getName();
+	private final String value;
 
-	/**
-	 * @return Type information for the given item, specialized to the item type itself.
-	 */
-	T getType();
+	DefaultName(String value) {
+		this.value = value;
+	}
+
+	@Override
+	public String getValue() {
+		return value;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		DefaultName that = (DefaultName) o;
+		return Objects.equals(value, that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(value);
+	}
 }

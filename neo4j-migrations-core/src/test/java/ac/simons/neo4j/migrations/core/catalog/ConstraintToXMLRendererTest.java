@@ -37,7 +37,7 @@ class ConstraintToXMLRendererTest {
 					new Constraint("name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book", Collections.singleton("isbn"),
 						"")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint id=\"name\" type=\"exists\">\n"
+				+ "<constraint name=\"name\" type=\"exists\">\n"
 				+ "    <label>Book</label>\n"
 				+ "    <properties>\n"
 				+ "        <property>isbn</property>\n"
@@ -48,7 +48,7 @@ class ConstraintToXMLRendererTest {
 					new Constraint("name", Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
 						Collections.singleton("day"), "")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint id=\"name\" type=\"exists\">\n"
+				+ "<constraint name=\"name\" type=\"exists\">\n"
 				+ "    <type>LIKED</type>\n"
 				+ "    <properties>\n"
 				+ "        <property>day</property>\n"
@@ -59,7 +59,7 @@ class ConstraintToXMLRendererTest {
 					new Constraint("name", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("isbn"),
 						"")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint id=\"name\" type=\"unique\">\n"
+				+ "<constraint name=\"name\" type=\"unique\">\n"
 				+ "    <label>Book</label>\n"
 				+ "    <properties>\n"
 				+ "        <property>isbn</property>\n"
@@ -70,7 +70,7 @@ class ConstraintToXMLRendererTest {
 					new Constraint("name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
 						Arrays.asList("firstname", "surname"), "")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint id=\"name\" type=\"key\">\n"
+				+ "<constraint name=\"name\" type=\"key\">\n"
 				+ "    <label>Person</label>\n"
 				+ "    <properties>\n"
 				+ "        <property>firstname</property>\n"
@@ -85,7 +85,7 @@ class ConstraintToXMLRendererTest {
 	@MethodSource
 	void shouldRenderConstraintsToXML(Constraint constraint, String expected) {
 
-		assertThat(new ConstraintToXMLRenderer().render(constraint, RenderContext.defaultContext()).trim()).isEqualTo(
+		assertThat(new ConstraintToXMLRenderer().render(constraint, RenderConfig.defaultConfig()).trim()).isEqualTo(
 			expected);
 	}
 }

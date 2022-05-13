@@ -25,7 +25,14 @@ package ac.simons.neo4j.migrations.core;
  */
 public interface Ordered {
 
+	/**
+	 * Constant for the order with the highest precedence.
+	 */
 	int HIGHEST_PRECEDENCE = Integer.MIN_VALUE;
+
+	/**
+	 * Constant for the order with the lowest precedence.
+	 */
 	int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
 
 	/**

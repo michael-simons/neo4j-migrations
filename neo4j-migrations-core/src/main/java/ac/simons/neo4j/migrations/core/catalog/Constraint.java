@@ -46,6 +46,198 @@ import org.w3c.dom.NodeList;
  */
 public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
+	/**
+	 * Enumerates the different kinds of constraints.
+	 */
+	public enum Type implements ItemType {
+
+		/**
+		 * Unique constraints.
+		 */
+		UNIQUE,
+		/**
+		 * Existential constraints.
+		 */
+		EXISTS,
+		/**
+		 * Key constraints.
+		 */
+		KEY
+	}
+
+	/**
+	 * Programmatic way of defining constraints.
+	 */
+	public interface Builder {
+
+		/**
+		 * Adds a name to the constraint
+		 *
+		 * @param name The new name
+		 * @return The next step when building a constraint
+		 */
+		NamedBuilder named(String name);
+	}
+
+	/**
+	 * Allows to specify the type of the constraint.
+	 */
+	public interface NamedBuilder {
+
+		/**
+		 * Creates a unique constraint for the given property
+		 *
+		 * @param property the property that should be unique
+		 * @return the new constraint
+		 */
+		Constraint unique(String property);
+
+		/**
+		 * Creates an existential constraint for the given property
+		 *
+		 * @param property the property that is required to exist
+		 * @return the new constraint
+		 */
+		Constraint exists(String property);
+
+		/**
+		 * Creates a key constraint for the given property
+		 *
+		 * @param properties the property that should be part of the key
+		 * @return the new constraint
+		 */
+		Constraint key(String... properties);
+	}
+
+	private static class DefaultBuilder implements Builder, NamedBuilder {
+		private final TargetEntity targetEntity;
+
+		private final String identifier;
+
+		private String name;
+
+		private DefaultBuilder(TargetEntity targetEntity, String identifier) {
+			this.targetEntity = targetEntity;
+			this.identifier = identifier;
+		}
+
+		@Override
+		public NamedBuilder named(String newName) {
+
+			this.name = newName;
+			return this;
+		}
+
+		@Override
+		public Constraint unique(String property) {
+			return new Constraint(name, Type.UNIQUE, targetEntity, identifier, Collections.singleton(property));
+		}
+
+		@Override
+		public Constraint exists(String property) {
+			return new Constraint(name, Type.EXISTS, targetEntity, identifier, Collections.singleton(property));
+		}
+
+		@Override
+		public Constraint key(String... properties) {
+			return new Constraint(name, Type.KEY, targetEntity, identifier, Arrays.asList(properties));
+		}
+	}
+
+	/**
+	 * Starts defining a new instance of a node constraint.
+	 *
+	 * @param label The label on which the constraint should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forNode(String label) {
+		return new DefaultBuilder(TargetEntity.NODE, label);
+	}
+
+	/**
+	 * Parses a constraint from a {@link MapAccessor}, which will either contain a result from {@code call db.constraints()}
+	 * (Neo4j 3.5 upto 4.1) or from {@code SHOW CONSTRAINTS YIELD *} from Neo4j 4.2 and upwards
+	 *
+	 * @param row the result row
+	 * @return A constraint
+	 * @throws IllegalArgumentException if the row cannot be processed
+	 */
+	static Constraint parse(MapAccessor row) {
+
+		Value descriptionValue = row.get("description");
+		Value nameValue = row.get("name");
+		if (descriptionValue != Values.NULL) {
+			String name = nameValue != Values.NULL ? nameValue.asString() : null;
+			return parse(descriptionValue.asString(), name);
+		}
+
+		if (!REQUIRED_KEYS.stream().allMatch(row::containsKey)) {
+			throw new IllegalArgumentException("Required keys are missing in the row describing the constraint");
+		}
+
+		String name = nameValue.asString();
+		Constraint.Type type;
+		switch (row.get(XMLSchemaConstants.TYPE).asString()) {
+			case "NODE_KEY":
+				type = Type.KEY;
+				break;
+			case "NODE_PROPERTY_EXISTENCE":
+			case "RELATIONSHIP_PROPERTY_EXISTENCE":
+				type = Type.EXISTS;
+				break;
+			case "UNIQUENESS":
+				type = Type.UNIQUE;
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
+		}
+
+		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
+		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
+		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
+
+		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
+	}
+
+	/**
+	 * Creates a constraint from a xml definition.
+	 *
+	 * @param constraintElement as defined in {@code migration.xsd}.
+	 * @return The new constraint if the element as parseable
+	 */
+	static Constraint parse(Element constraintElement) {
+
+		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);
+		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
+		NodeList labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.LABEL);
+		TargetEntity targetEntity;
+		String identifier;
+		if (labelOrType.getLength() == 0) {
+			labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.TYPE);
+			targetEntity = TargetEntity.RELATIONSHIP;
+		} else {
+			targetEntity = TargetEntity.NODE;
+		}
+		identifier = labelOrType.item(0).getTextContent();
+
+		NodeList propertyNodes = ((Element) constraintElement
+			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
+			XMLSchemaConstants.PROPERTY);
+		Set<String> properties = new LinkedHashSet<>();
+		for (int i = 0; i < propertyNodes.getLength(); ++i) {
+			properties.add(propertyNodes.item(i).getTextContent());
+		}
+
+		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
+		String options = null;
+		if (optionsElement.getLength() == 1) {
+			options = Arrays.stream(optionsElement.item(0).getTextContent()
+				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
+		}
+
+		return new Constraint(name, type, targetEntity, identifier, properties, options);
+	}
+
 	private static class PatternHolder {
 
 		private final Pattern pattern;
@@ -85,49 +277,6 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
 		XMLSchemaConstants.TYPE, "entityType", "labelsOrTypes", XMLSchemaConstants.PROPERTIES)));
-
-	// TODO invoking
-	// 3.5 call db.constraints()
-	// 4.0 call db.constraints(), need to fill in name
-	// 4.1 call db.constraints(), need to fill in name
-	// 4.2 SHOW CONSTRAINTS
-
-	static Constraint parse(MapAccessor row) {
-
-		Value descriptionValue = row.get("description");
-		Value nameValue = row.get("name");
-		if (descriptionValue != Values.NULL) {
-			String name = nameValue != Values.NULL ? nameValue.asString() : null;
-			return parse(descriptionValue.asString(), name);
-		}
-
-		if (!REQUIRED_KEYS.stream().allMatch(row::containsKey)) {
-			throw new IllegalArgumentException("Required keys are missing in the row describing the constraint");
-		}
-
-		String name = nameValue.asString();
-		Constraint.Type type;
-		switch (row.get(XMLSchemaConstants.TYPE).asString()) {
-			case "NODE_KEY":
-				type = Type.KEY;
-				break;
-			case "NODE_PROPERTY_EXISTENCE":
-			case "RELATIONSHIP_PROPERTY_EXISTENCE":
-				type = Type.EXISTS;
-				break;
-			case "UNIQUENESS":
-				type = Type.UNIQUE;
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
-		}
-
-		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
-		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
-		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
-
-		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
-	}
 
 	/**
 	 * Creates a constraint from a [3.5, 4.1] database description
@@ -170,49 +319,23 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			String.format("The description '%s' does not match any known pattern.", description));
 	}
 
-	/**
-	 * Creates a constraint from a xml definition.
-	 *
-	 * @param constraintElement as defined in {@code migration.xsd}.
-	 * @return The new constraint if the element as parseable
-	 */
-	static Constraint parse(Element constraintElement) {
+	Constraint(Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
+		this(null, type, targetEntity, identifier, properties, null);
+	}
 
-		String name = constraintElement.getAttribute(XMLSchemaConstants.ID);
-		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
-		NodeList labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.LABEL);
-		TargetEntity targetEntity;
-		String identifier;
-		if (labelOrType.getLength() == 0) {
-			labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.TYPE);
-			targetEntity = TargetEntity.RELATIONSHIP;
-		} else {
-			targetEntity = TargetEntity.NODE;
-		}
-		identifier = labelOrType.item(0).getTextContent();
+	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
+		this(name, type, targetEntity, identifier, properties, null);
+	}
 
-		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
-			XMLSchemaConstants.PROPERTY);
-		Set<String> properties = new LinkedHashSet<>();
-		for (int i = 0; i < propertyNodes.getLength(); ++i) {
-			properties.add(propertyNodes.item(i).getTextContent());
-		}
-
-		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
-		String options = null;
-		if (optionsElement.getLength() == 1) {
-			options = Arrays.stream(optionsElement.item(0).getTextContent()
-				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
-		}
-
-		return new Constraint(name, type, targetEntity, identifier, properties, options);
+	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties,
+		String options) {
+		super(name, type, targetEntity, identifier, properties, options);
 	}
 
 	Element toXML(Document document) {
 		Element element = document.createElement(XMLSchemaConstants.CONSTRAINT);
-		element.setAttribute(XMLSchemaConstants.ID, getId().getValue());
-		element.setIdAttribute(XMLSchemaConstants.ID, true);
+		element.setAttribute(XMLSchemaConstants.NAME, getName().getValue());
+		element.setIdAttribute(XMLSchemaConstants.NAME, true);
 		element.setAttribute(XMLSchemaConstants.TYPE, getType().name().toLowerCase(Locale.ROOT));
 
 		Element labelOrType;
@@ -239,120 +362,5 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		});
 
 		return element;
-	}
-
-	/**
-	 * Programmatic way of defining constraints.
-	 */
-	public interface ConstraintBuilder {
-
-		NamedConstraintBuilder named(String name);
-	}
-
-	/**
-	 * Allows to specify the type of the constraint.
-	 */
-	public interface NamedConstraintBuilder {
-
-		/**
-		 * Creates a unique constraint for the given property
-		 *
-		 * @param property the property that should be unique
-		 * @return the new constraint
-		 */
-		Constraint unique(String property);
-
-		/**
-		 * Creates an existential constraint for the given property
-		 *
-		 * @param property the property that is required to exist
-		 * @return the new constraint
-		 */
-		Constraint exists(String property);
-
-		/**
-		 * Creates a key constraint for the given property
-		 *
-		 * @param properties the property that should be part of the key
-		 * @return the new constraint
-		 */
-		Constraint key(String... properties);
-	}
-
-	private static class DefaultNodeConstraintBuilder implements ConstraintBuilder, NamedConstraintBuilder {
-		private final TargetEntity targetEntity;
-
-		private final String identifier;
-
-		private String name;
-
-		private DefaultNodeConstraintBuilder(TargetEntity targetEntity, String identifier) {
-			this.targetEntity = targetEntity;
-			this.identifier = identifier;
-		}
-
-		@Override
-		public NamedConstraintBuilder named(String newName) {
-
-			this.name = newName;
-			return this;
-		}
-
-		@Override
-		public Constraint unique(String property) {
-			return new Constraint(name, Type.UNIQUE, targetEntity, identifier, Collections.singleton(property));
-		}
-
-		@Override
-		public Constraint exists(String property) {
-			return new Constraint(name, Type.EXISTS, targetEntity, identifier, Collections.singleton(property));
-		}
-
-		@Override
-		public Constraint key(String... properties) {
-			return new Constraint(name, Type.KEY, targetEntity, identifier, Arrays.asList(properties));
-		}
-	}
-
-	/**
-	 * Starts defining a new instance of a node constraint.
-	 *
-	 * @param label The label on which the constraint should be applied
-	 * @return The ongoing builder
-	 */
-	public static ConstraintBuilder forNode(String label) {
-		return new DefaultNodeConstraintBuilder(TargetEntity.NODE, label);
-	}
-
-	/**
-	 * Enumerates the different kinds of constraints.
-	 */
-	public enum Type implements ItemType {
-
-		/**
-		 * Unique constraints.
-		 */
-		UNIQUE,
-		/**
-		 * Existential constraints.
-		 */
-		EXISTS,
-		/**
-		 * Key constraints.
-		 */
-		KEY
-	}
-
-	Constraint(Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
-		this(null, type, targetEntity, identifier, properties, null);
-	}
-
-	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
-		this(name, type, targetEntity, identifier, properties, null);
-	}
-
-	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties,
-		String options) {
-		super(name, type, targetEntity, identifier, properties, options);
 	}
 }

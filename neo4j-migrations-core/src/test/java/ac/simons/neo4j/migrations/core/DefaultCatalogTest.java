@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.Id;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.Arrays;
@@ -51,18 +50,15 @@ class DefaultCatalogTest {
 
 		c1v1 = Mockito.mock(Constraint.class);
 		Name name1 = Name.of("cv1");
-		when(c1v1.getId()).thenReturn(name1);
 		when(c1v1.getName()).thenReturn(name1);
 		when(c1v1.getProperties()).thenReturn(new HashSet<>(Arrays.asList("a", "b")));
 
 		c1v2 = mock(Constraint.class);
-		when(c1v2.getId()).thenReturn(name1);
 		when(c1v2.getName()).thenReturn(name1);
 		when(c1v2.getProperties()).thenReturn(new HashSet<>(Arrays.asList("a", "b", "c")));
 
 		Constraint c2v1 = mock(Constraint.class);
 		Name name2 = Name.of("cv2");
-		when(c2v1.getId()).thenReturn(name2);
 		when(c2v1.getName()).thenReturn(name2);
 		when(c2v1.getProperties()).thenReturn(Collections.singleton("d"));
 
@@ -81,8 +77,8 @@ class DefaultCatalogTest {
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
 		assertThat(catalog.getConstraints())
-			.map(Constraint::getId)
-			.map(Id::getValue)
+			.map(Constraint::getName)
+			.map(Name::getValue)
 			.containsExactly("cv1", "cv2");
 	}
 
@@ -96,8 +92,8 @@ class DefaultCatalogTest {
 		assertThat(catalog.getConstraintsPriorTo(MigrationVersion.withValue("1"))).isEmpty();
 
 		assertThat(catalog.getConstraintsPriorTo(MigrationVersion.withValue("2")))
-			.map(Constraint::getId)
-			.map(Id::getValue)
+			.map(Constraint::getName)
+			.map(Name::getValue)
 			.containsExactly("cv1");
 	}
 
@@ -115,7 +111,7 @@ class DefaultCatalogTest {
 			.isEmpty();
 
 		assertThat(catalog.getConstraintPriorTo(Name.of("cv1"), MigrationVersion.withValue("2")))
-			.map(Constraint::getId).map(Id::getValue).hasValue("cv1");
+			.map(Constraint::getName).map(Name::getValue).hasValue("cv1");
 
 		assertThat(catalog.getConstraintPriorTo(Name.of("cv2"), MigrationVersion.withValue("2")))
 			.isEmpty();
@@ -129,13 +125,13 @@ class DefaultCatalogTest {
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
 		assertThat(catalog.getConstraints(MigrationVersion.withValue("1")))
-			.map(Constraint::getId)
-			.map(Id::getValue)
+			.map(Constraint::getName)
+			.map(Name::getValue)
 			.containsExactly("cv1");
 
 		assertThat(catalog.getConstraints(MigrationVersion.withValue("2")))
-			.map(Constraint::getId)
-			.map(Id::getValue)
+			.map(Constraint::getName)
+			.map(Name::getValue)
 			.containsExactly("cv1", "cv2");
 	}
 
@@ -147,13 +143,13 @@ class DefaultCatalogTest {
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
 		assertThat(catalog.getConstraint(Name.of("cv1"), MigrationVersion.withValue("1")))
-			.map(Constraint::getId).map(Id::getValue).hasValue("cv1");
+			.map(Constraint::getName).map(Name::getValue).hasValue("cv1");
 
 		assertThat(catalog.getConstraint(Name.of("cv2"), MigrationVersion.withValue("1")))
 			.isEmpty();
 
 		assertThat(catalog.getConstraint(Name.of("cv2"), MigrationVersion.withValue("2")))
-			.map(Constraint::getId).map(Id::getValue).hasValue("cv2");
+			.map(Constraint::getName).map(Name::getValue).hasValue("cv2");
 	}
 
 	@Test
@@ -165,7 +161,7 @@ class DefaultCatalogTest {
 		catalog.addAll(v1, catalog1);
 		assertThatExceptionOfType(MigrationsException.class)
 			.isThrownBy(() -> catalog.addAll(v1, catalog2))
-			.withMessage("A constraint with the id '%s' has already been added to this catalog under the version %s.",
+			.withMessage("A constraint with the name '%s' has already been added to this catalog under the version %s.",
 				c1v1.getName().getValue(), v1.getValue());
 	}
 }

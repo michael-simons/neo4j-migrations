@@ -77,20 +77,22 @@ public interface Renderer<T extends CatalogItem<?>> {
 	 * @param context The context in which the constraint is to be rendered.
 	 * @param target  The target to write to. Will not be closed.
 	 * @throws IllegalStateException in case a given item cannot be rendered with the features requested in the given context.
+	 * @throws IOException           If rendering fails due to issues with the {@literal target}
 	 */
-	void render(T item, RenderContext context, OutputStream target) throws IOException;
+	void render(T item, RenderConfig context, OutputStream target) throws IOException;
 
 	/**
 	 * Renders a schema item.
 	 *
-	 * @param item    The item to be rendered
-	 * @param context The context in which the constraint is to be rendered.
+	 * @param item   The item to be rendered
+	 * @param config The configuration to render
 	 * @return The textual representation of the item in the given context, ready to be executed.
+	 * @throws UncheckedIOException any {@link IOException} from {@link #render(CatalogItem, RenderConfig, OutputStream)} is rethrown here
 	 */
-	default String render(T item, RenderContext context) {
+	default String render(T item, RenderConfig config) {
 		try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
 
-			render(item, context, bout);
+			render(item, config, bout);
 			bout.flush();
 
 			return new String(bout.toByteArray(), StandardCharsets.UTF_8);

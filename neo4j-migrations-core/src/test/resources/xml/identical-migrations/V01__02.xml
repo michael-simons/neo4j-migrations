@@ -3,7 +3,7 @@
 	<catalog>
 		<indexes />
 		<constraints >
-			<constraint id="unique_isbn" type="unique">
+			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
@@ -11,7 +11,7 @@
 			</constraint>
 
 
-			<constraint id="constraint_with_options"  type="unique">
+			<constraint name="constraint_with_options"  type="unique">
 				<label>Label</label>
 				<!--	<property>prop2</property>-->
 				<properties>

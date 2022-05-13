@@ -49,7 +49,7 @@ class ConstraintToCypherRendererTest {
 	@MethodSource
 	void multiplePropertiesAreOnlySupportedOn44AndHigher(String serverVersion, boolean shouldFail) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(serverVersion), Neo4jEdition.COMMUNITY, Operator.CREATE, false);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.COMMUNITY, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
 			"Book",
 			Arrays.asList("a", "b"));
@@ -57,9 +57,9 @@ class ConstraintToCypherRendererTest {
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		if (shouldFail) {
 			assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> renderer.render(constraint, renderContext));
+				.isThrownBy(() -> renderer.render(constraint, renderConfig));
 		} else {
-			assertThat(renderer.render(constraint, renderContext)).isEqualTo(
+			assertThat(renderer.render(constraint, renderConfig)).isEqualTo(
 				"CREATE CONSTRAINT constraint_name FOR (n:Book) REQUIRE (n.a, n.b) IS UNIQUE");
 		}
 	}
@@ -68,13 +68,13 @@ class ConstraintToCypherRendererTest {
 	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY" }, mode = EnumSource.Mode.EXCLUDE)
 	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Type type) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", type, TargetEntity.NODE, "Book",
 			Arrays.asList("a", "b"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatExceptionOfType(IllegalStateException.class)
-			.isThrownBy(() -> renderer.render(constraint, renderContext));
+			.isThrownBy(() -> renderer.render(constraint, renderConfig));
 	}
 
 	static Stream<Arguments> shouldRenderSimpleUniqueConstraint() {
@@ -114,26 +114,26 @@ class ConstraintToCypherRendererTest {
 	@MethodSource
 	void shouldRenderSimpleUniqueConstraint(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = { "3.5", "4.0" })
 	void shouldNotDoIdempotencyOnOldVersions(String version) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(version), Neo4jEdition.COMMUNITY, Operator.CREATE, true);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(version), Neo4jEdition.COMMUNITY, Operator.CREATE, true);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
 			"Book",
 			Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatExceptionOfType(IllegalStateException.class)
-			.isThrownBy(() -> renderer.render(constraint, renderContext))
+			.isThrownBy(() -> renderer.render(constraint, renderConfig))
 			.withMessage("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version);
 	}
 
@@ -141,13 +141,13 @@ class ConstraintToCypherRendererTest {
 	@EnumSource(value = Neo4jEdition.class, names = "ENTERPRISE", mode = EnumSource.Mode.EXCLUDE)
 	void nodePropertyExistenceConstraintShouldRequireEE(Neo4jEdition edition) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.V3_5, edition, Operator.CREATE, false);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V3_5, edition, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> renderer.render(constraint, renderContext))
+				.isThrownBy(() -> renderer.render(constraint, renderConfig))
 				.withMessage("This constraint cannot be be used with %s edition.", edition);
 	}
 
@@ -158,15 +158,15 @@ class ConstraintToCypherRendererTest {
 		Constraint constraint = new Constraint(Constraint.Type.UNIQUE, TargetEntity.NODE,
 			"Book",
 			Collections.singleton("isbn"));
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of("4.4.4"), Neo4jEdition.COMMUNITY, operator, true);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of("4.4.4"), Neo4jEdition.COMMUNITY, operator, true);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		if (fails) {
 			assertThatExceptionOfType(IllegalStateException.class)
-				.isThrownBy(() -> renderer.render(constraint, renderContext))
+				.isThrownBy(() -> renderer.render(constraint, renderConfig))
 				.withMessage("The constraint can only be rendered in the given context when having a name.");
 		} else {
-			assertThat(renderer.render(constraint, renderContext)).isEqualTo("CREATE CONSTRAINT IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
+			assertThat(renderer.render(constraint, renderConfig)).isEqualTo("CREATE CONSTRAINT IF NOT EXISTS FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
 		}
 	}
 
@@ -207,12 +207,12 @@ class ConstraintToCypherRendererTest {
 	@MethodSource
 	void shouldRenderSimpleNodePropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
 	static Stream<Arguments> shouldRenderSimpleRelPropertyExistenceConstraint() {
@@ -251,12 +251,12 @@ class ConstraintToCypherRendererTest {
 	@MethodSource
 	void shouldRenderSimpleRelPropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
 	static Stream<Arguments> shouldRendereNodeKeyConstraint() {
@@ -290,12 +290,55 @@ class ConstraintToCypherRendererTest {
 	@MethodSource
 	void shouldRendereNodeKeyConstraint(String serverVersion, Operator operator, boolean idempotent, String expected) {
 
-		RenderContext renderContext = new RenderContext(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
 			idempotent);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThat(renderer.render(constraint, renderContext)).isEqualTo(expected);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> ignoreNameShouldWork() {
+
+		return Stream.of(
+			Arguments.of("3.5", Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.0", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.1", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.1", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.2", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.2", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.3", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.3", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.4", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.4", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY"),
+
+			Arguments.of("3.5", Operator.DROP, false, "DROP CONSTRAINT ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY"),
+			Arguments.of("4.0", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS")
+		);
+	}
+
+	@ParameterizedTest
+	@EnumSource(Neo4jVersion.class)
+	void ignoreNameShouldWork(Neo4jVersion version) {
+
+		Constraint constraint =
+			Constraint.forNode("__Neo4jMigrationsLock")
+				.named("__Neo4jMigrationsLock__has_unique_id")
+				.unique("id");
+
+		RenderConfig dropConfig = RenderConfig.drop()
+			.forVersionAndEdition(version, Neo4jEdition.ENTERPRISE)
+			.ignoreName();
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		assertThat(renderer.render(constraint, dropConfig)).isEqualTo("DROP CONSTRAINT ON (n:__Neo4jMigrationsLock) ASSERT n.id IS UNIQUE");
 	}
 }

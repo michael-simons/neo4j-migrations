@@ -39,7 +39,7 @@ import org.w3c.dom.Document;
 final class ConstraintToXMLRenderer implements Renderer<Constraint> {
 
 	@Override
-	public void render(Constraint item, RenderContext context, OutputStream target) throws IOException {
+	public void render(Constraint item, RenderConfig context, OutputStream target) throws IOException {
 		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();

@@ -17,8 +17,13 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.Formattable;
+import java.util.Formatter;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,10 +31,10 @@ import java.util.Set;
  * @author Michael J. Simons
  * @since TBA
  */
-abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T> {
+abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
 
 	/**
-	 * The name of this item, equivalent to the id of the element in the xml scheme.
+	 * The unique name of this item.
 	 */
 	private final Name name;
 
@@ -59,35 +64,33 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	 */
 	private final String options;
 
-	AbstractCatalogItem(String name, T type, TargetEntity targetEntity, String identifier, Collection<String> properties,
-		String options) {
+	AbstractCatalogItem(String name, T type, TargetEntity targetEntity, String identifier,
+		Collection<String> properties, String options) {
 
 		if (properties.isEmpty()) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
 		}
 
-		this.name = Name.of(name);
 		this.type = type;
 		this.targetEntity = targetEntity;
 		this.identifier = identifier;
 		this.properties = new LinkedHashSet<>(properties);
 		this.options = options;
+
+		if (Strings.isBlank(name)) {
+			this.name = GeneratedName.generate(this.getClass(), type, targetEntity, identifier, properties, options);
+		} else {
+			this.name = Name.of(name);
+		}
 	}
 
 	@Override
-	public Id getId() {
-		if (name.isBlank()) {
-			return GeneratedId.of(this);
-		}
-		return name;
-	}
-
 	public Name getName() {
 		return name;
 	}
 
-	public boolean hasName() {
-		return !name.isBlank();
+	boolean hasName() {
+		return !(name instanceof GeneratedName);
 	}
 
 	@Override
@@ -95,31 +98,45 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		return this.type;
 	}
 
+	/**
+	 * @return The target entity of this item.
+	 */
 	public TargetEntity getTarget() {
 		return targetEntity;
 	}
 
+	/**
+	 * @return Identifier of this item to be used in create statements
+	 */
 	public String getIdentifier() {
 		return identifier;
 	}
 
+	/**
+	 * @return Set of properties to be included with the item
+	 */
 	public Set<String> getProperties() {
 		return properties;
 	}
 
+	/**
+	 * @return Optional options to be passed down during creation of the item
+	 */
 	public Optional<String> getOptionalOptions() {
 		return Strings.optionalOf(options);
 	}
 
 	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "{" +
-			"name=" + name +
-			", type=" + type +
-			", targetEntity=" + targetEntity +
-			", identifier='" + identifier + '\'' +
-			", properties=" + String.join(",", properties) +
-			", options='" + options + '\'' +
-			'}';
+	public final void formatTo(Formatter formatter, int flags, int width, int precision) {
+
+		Appendable out = formatter.out();
+		try {
+			out.append(this.getClass().getSimpleName().toUpperCase(Locale.ROOT));
+			if (!(name instanceof GeneratedName)) {
+				out.append(' ').append(name.getValue());
+			}
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 }

@@ -22,8 +22,4 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @since TBA
  */
 public interface ItemType {
-
-	// TODO add a sealed version of this type.
-
-	String name();
 }

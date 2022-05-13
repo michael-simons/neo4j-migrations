@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
- * Type of a migration.
+ * Type of migration.
  *
  * @author Michael J. Simons
  * @since 0.0.2
@@ -30,5 +30,9 @@ public enum MigrationType {
 	/**
 	 * Indicates a Cypher-based migration.
 	 */
-	CYPHER
+	CYPHER,
+	/**
+	 * Indicates a catalog based migration
+	 */
+	CATALOG
 }

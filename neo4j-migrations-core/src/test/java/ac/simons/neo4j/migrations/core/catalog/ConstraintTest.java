@@ -66,7 +66,7 @@ class ConstraintTest {
 			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny 😱. Wow.");
 		} else {
 			if (name == null) {
-				assertThat(constraint.getName().isBlank()).isTrue();
+				assertThat(constraint.hasName()).isFalse();
 			} else {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}
@@ -100,7 +100,7 @@ class ConstraintTest {
 				"fünny things are fünny and why not, add more fun. Wow 😱");
 		} else {
 			if (name == null) {
-				assertThat(constraint.getName().isBlank()).isTrue();
+				assertThat(constraint.hasName()).isFalse();
 			} else {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}
@@ -136,7 +136,7 @@ class ConstraintTest {
 				"person.a,person.b");
 		} else {
 			if (name == null) {
-				assertThat(constraint.getName().isBlank()).isTrue();
+				assertThat(constraint.hasName()).isFalse();
 			} else {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}
@@ -167,7 +167,7 @@ class ConstraintTest {
 			assertThat(constraint.getProperties()).containsExactly("x,liked.y");
 		} else {
 			if (name == null) {
-				assertThat(constraint.getName().isBlank()).isTrue();
+				assertThat(constraint.hasName()).isFalse();
 			} else {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}

@@ -16,22 +16,10 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
  *
  * @author Michael J. Simons
- * @param <T> The concrete type of this item, either a constraint or an index.
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface CatalogItem<T extends ItemType> {
-
-	/**
-	 * @return A unique name for a catalog item.
-	 */
-	Name getName();
-
-	/**
-	 * @return Type information for the given item, specialized to the item type itself.
-	 */
-	T getType();
+public sealed interface ItemType permits Constraint.Type, Index.Type {
 }

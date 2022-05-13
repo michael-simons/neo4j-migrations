@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.Id;
+import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,18 +34,18 @@ import java.util.stream.Collectors;
  */
 class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 
-	private final Map<Id, NavigableMap<MigrationVersion, Constraint>> constraints = new HashMap<>();
+	private final Map<Name, NavigableMap<MigrationVersion, Constraint>> constraints = new HashMap<>();
 
 	@Override
 	public void addAll(MigrationVersion version, Catalog other) {
 
 		for (Constraint constraint : other.getConstraints()) {
 			NavigableMap<MigrationVersion, Constraint> versionedItems = constraints.computeIfAbsent(
-				constraint.getId(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
+				constraint.getName(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
 			if (versionedItems.containsKey(version)) {
 				throw new MigrationsException(String.format(
-					"A constraint with the id '%s' has already been added to this catalog under the version %s.",
-					constraint.getId().getValue(), version.getValue()));
+					"A constraint with the name '%s' has already been added to this catalog under the version %s.",
+					constraint.getName().getValue(), version.getValue()));
 			}
 			versionedItems.put(version, constraint);
 		}
@@ -68,9 +68,9 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public Optional<Constraint> getConstraintPriorTo(Id id, MigrationVersion version) {
+	public Optional<Constraint> getConstraintPriorTo(Name name, MigrationVersion version) {
 
-		return Optional.ofNullable(constraints.get(id))
+		return Optional.ofNullable(constraints.get(name))
 			.map(m -> m.lowerEntry(version))
 			.map(Map.Entry::getValue);
 	}
@@ -86,9 +86,9 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public Optional<Constraint> getConstraint(Id id, MigrationVersion version) {
+	public Optional<Constraint> getConstraint(Name name, MigrationVersion version) {
 
-		return Optional.ofNullable(constraints.get(id))
+		return Optional.ofNullable(constraints.get(name))
 			.map(m -> m.floorEntry(version))
 			.map(Map.Entry::getValue);
 	}

@@ -15,34 +15,32 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Formattable;
+import java.util.Formatter;
+import java.util.Locale;
 
 /**
- * Generates an {@link Id} for a {@link CatalogItem}.
+ * Anonymize a catalog item.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class GeneratedId implements Id {
+final class AnonymousCatalogItem implements Formattable {
 
-	private final String value;
+	private final AbstractCatalogItem<?> delegate;
 
-	static Id of(CatalogItem<?> item) {
-		return new GeneratedId(item);
-	}
-
-	private GeneratedId(CatalogItem<?> forItem) {
-
-		this.value = String.format("%s_%s",
-			forItem.getClass().getSimpleName(),
-			Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(forItem.toString().getBytes(StandardCharsets.UTF_8))
-		);
+	AnonymousCatalogItem(AbstractCatalogItem<?> delegate) {
+		this.delegate = delegate;
 	}
 
 	@Override
-	public String getValue() {
-		return value;
+	public void formatTo(Formatter formatter, int flags, int width, int precision) {
+		try {
+			formatter.out().append(delegate.getClass().getSimpleName().toUpperCase(Locale.ROOT));
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 }

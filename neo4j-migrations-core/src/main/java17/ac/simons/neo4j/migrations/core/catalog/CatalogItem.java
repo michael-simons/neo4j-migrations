@@ -16,17 +16,22 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * The unique id of an {@link CatalogItem item}.
+ * An item in the catalog (of either a single migration or the whole context with the merged catalog).
  *
  * @author Michael J. Simons
+ * @param <T> The concrete type of this item, either a constraint or an index.
+ * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface Id {
-
-	// TODO add a sealed version of this type.
+public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogItem {
 
 	/**
-	 * @return the {@link String string representation} of this instance
+	 * @return A unique name for a catalog item.
 	 */
-	String getValue();
+	Name getName();
+
+	/**
+	 * @return Type information for the given item, specialized to the item type itself.
+	 */
+	T getType();
 }

@@ -32,10 +32,9 @@ public final class XMLSchemaConstants {
 	 */
 	public static final String PROPERTIES = "properties";
 	/**
-	 * Constant for the attribute {@literal id}.
+	 * Constant for the attribute {@literal name}.
 	 */
-	public static final String ID = "id";
-
+	public static final String NAME = "name";
 	/**
 	 * Constant for the element {@literal constraint}.
 	 */

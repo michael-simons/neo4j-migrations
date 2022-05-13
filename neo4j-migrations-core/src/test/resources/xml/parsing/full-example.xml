@@ -3,13 +3,13 @@
 	<catalog>
 		<indexes/>
 		<constraints>
-			<constraint id="unique_isbn" type="unique">
+			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
 				</properties>
 			</constraint>
-			<constraint id="exists_isbn" type="exists">
+			<constraint name="exists_isbn" type="exists">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
@@ -20,7 +20,7 @@
 
 	<create item="unique_isbn"/>
 	<drop>
-		<constraint id="old_keys" type="key">
+		<constraint name="old_keys" type="key">
 			<label>Book</label>
 			<properties>
 				<property>p1</property>

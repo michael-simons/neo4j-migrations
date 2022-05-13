@@ -103,6 +103,10 @@ Operations available to catalog based migrations are
 While `create` and `drop` work on single item, there are also `assert` and `apply` that work on the whole, known catalog
 in a defined version range.
 
+NOTE: A word on naming: Neo4j-Migrations requires unique names of catalog items across the catalog. In contrast to the
+      Neo4j database itself, using the name `wurstsalat` for both a constraint and an index is prohibited. Recommended
+      names in this case would be `wurstsalat_exists` and `wurstsalat_index`.
+
 === Assertions
 
 `assert` asserts that all items in the catalog are present in exactly the same definition in the database. This is a useful

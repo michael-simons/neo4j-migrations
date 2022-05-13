@@ -3,13 +3,13 @@
 	<catalog>
 		<indexes />
 		<constraints >
-			<constraint id="unique_isbn" type="unique">
+			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>
 					<property>isbn</property>
 				</properties>
 			</constraint>
-			<constraint       type="unique" id="constraint_with_options">
+			<constraint       type="unique" name="constraint_with_options">
 				<label>Label</label>
 				<properties>
 					<property>prop1</property>

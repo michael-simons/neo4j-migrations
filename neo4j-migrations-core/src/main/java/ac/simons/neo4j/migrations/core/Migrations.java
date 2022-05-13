@@ -489,6 +489,8 @@ public final class Migrations {
 			type = MigrationType.JAVA;
 		} else if (migration instanceof CypherBasedMigration) {
 			type = MigrationType.CYPHER;
+		} else if (migration instanceof CatalogBasedMigration) {
+			type = MigrationType.CATALOG;
 		} else {
 			throw new MigrationsException("Unknown migration type: " + migration.getClass());
 		}
@@ -499,5 +501,4 @@ public final class Migrations {
 
 		return String.format("%s (\"%s\")", migration.getVersion(), migration.getDescription());
 	}
-
 }

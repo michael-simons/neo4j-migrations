@@ -341,7 +341,7 @@ class MigrationsIT extends TestBase {
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 		migrations.apply();
 
-		assertThat(lengthOfMigrations(driver, null)).isEqualTo(10);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(11);
 
 		try (Session session = driver.session()) {
 			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();
@@ -355,7 +355,7 @@ class MigrationsIT extends TestBase {
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
 				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "200310393",
-						"949907516", "949907516", "2884945437", "1491717096");
+						"949907516", "949907516", "2884945437", "1491717096", "3433167963");
 		}
 	}
 }

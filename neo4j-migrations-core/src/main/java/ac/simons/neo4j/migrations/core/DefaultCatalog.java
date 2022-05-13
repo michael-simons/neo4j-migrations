@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.HashMap;
@@ -25,6 +25,10 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -34,61 +38,81 @@ import java.util.stream.Collectors;
  */
 class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 
-	private final Map<Name, NavigableMap<MigrationVersion, Constraint>> constraints = new HashMap<>();
+	private final Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items = new HashMap<>();
+	private final ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
 
 	@Override
 	public void addAll(MigrationVersion version, Catalog other) {
 
-		for (Constraint constraint : other.getConstraints()) {
-			NavigableMap<MigrationVersion, Constraint> versionedItems = constraints.computeIfAbsent(
-				constraint.getName(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
-			if (versionedItems.containsKey(version)) {
-				throw new MigrationsException(String.format(
-					"A constraint with the name '%s' has already been added to this catalog under the version %s.",
-					constraint.getName().getValue(), version.getValue()));
+		WriteLock lock = locks.writeLock();
+		try {
+			lock.lock();
+			for (CatalogItem<?> item : other.getItems()) {
+				NavigableMap<MigrationVersion, CatalogItem<?>> versionedItems = items.computeIfAbsent(
+					item.getName(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
+				if (versionedItems.containsKey(version)) {
+					throw new MigrationsException(String.format(
+						"A constraint with the name '%s' has already been added to this catalog under the version %s.",
+						item.getName().getValue(), version.getValue()));
+				}
+				versionedItems.put(version, item);
 			}
-			versionedItems.put(version, constraint);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	<T> T withReadLockGet(Supplier<T> s) {
+
+		ReadLock lock = locks.readLock();
+		try {
+			lock.lock();
+			return s.get();
+		} finally {
+			lock.unlock();
 		}
 	}
 
 	@Override
-	public List<Constraint> getConstraints() {
-		return constraints.values().stream().map(NavigableMap::lastEntry).map(Map.Entry::getValue)
-			.collect(Collectors.toList());
+	public List<CatalogItem<?>> getItems() {
+
+		return withReadLockGet(() -> items.values().stream().map(NavigableMap::lastEntry)
+			.map(Map.Entry::getValue)
+			.collect(Collectors.toList()));
 	}
 
 	@Override
-	public List<Constraint> getConstraintsPriorTo(MigrationVersion version) {
+	public List<CatalogItem<?>> getItemsPriorTo(MigrationVersion version) {
 
-		return constraints.values().stream()
+		return withReadLockGet(() -> items.values().stream()
 			.map(m -> Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
-			.collect(Collectors.toList());
+			.collect(Collectors.toList()));
 	}
 
 	@Override
-	public Optional<Constraint> getConstraintPriorTo(Name name, MigrationVersion version) {
+	public Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version) {
 
-		return Optional.ofNullable(constraints.get(name))
+		return withReadLockGet(() -> Optional.ofNullable(items.get(name))
 			.map(m -> m.lowerEntry(version))
-			.map(Map.Entry::getValue);
+			.map(Map.Entry::getValue));
 	}
 
 	@Override
-	public List<Constraint> getConstraints(MigrationVersion version) {
+	public List<CatalogItem<?>> getItems(MigrationVersion version) {
 
-		return constraints.values().stream()
+		return withReadLockGet(() -> items.values().stream()
 			.map(m -> Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
-			.collect(Collectors.toList());
+			.collect(Collectors.toList()));
 	}
 
 	@Override
-	public Optional<Constraint> getConstraint(Name name, MigrationVersion version) {
+	public Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version) {
 
-		return Optional.ofNullable(constraints.get(name))
+		return Optional.ofNullable(items.get(name))
 			.map(m -> m.floorEntry(version))
 			.map(Map.Entry::getValue);
 	}

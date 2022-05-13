@@ -86,13 +86,9 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderNodeKey(Constraint constraint, RenderConfig context) {
 
-		if (context.getEdition() != Neo4jEdition.ENTERPRISE) {
+		if (context.getOperator() == Operator.CREATE && context.getEdition() != Neo4jEdition.ENTERPRISE) {
 			throw new IllegalStateException(
-				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
-		}
-
-		if (constraint.getTarget() != TargetEntity.NODE) {
-			throw new IllegalStateException("Key constraints are only supported for nodes, not for relationships.");
+				String.format("This constraint cannot be created with %s edition.", context.getEdition()));
 		}
 
 		Formattable item = formattableItem(constraint, context);
@@ -117,9 +113,9 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderPropertyExists(Constraint item, RenderConfig context) {
 
-		if (context.getEdition() != Neo4jEdition.ENTERPRISE) {
+		if (context.getOperator() == Operator.CREATE && context.getEdition() != Neo4jEdition.ENTERPRISE) {
 			throw new IllegalStateException(
-				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
+				String.format("This constraint cannot be created with %s edition.", context.getEdition()));
 		}
 
 		if (item.getTarget() == TargetEntity.NODE) {

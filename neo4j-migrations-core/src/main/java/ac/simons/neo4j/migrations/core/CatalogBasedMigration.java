@@ -15,8 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.catalog.Operator;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,6 +56,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.neo4j.driver.QueryRunner;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -270,6 +278,103 @@ final class CatalogBasedMigration implements Migration {
 
 	@Override
 	public void apply(MigrationContext context) {
+	}
 
+	static class OperationContext {
+
+		final Neo4jVersion version;
+
+		final Neo4jEdition edition;
+
+		OperationContext(Neo4jVersion version, Neo4jEdition edition) {
+			this.version = version;
+			this.edition = edition;
+		}
+	}
+
+	interface Operation {
+
+		static <T extends Operation> BuilderWithCatalog<T> use(VersionedCatalog catalog) {
+			return new DefaultOperationBuilder<T>(catalog);
+		}
+
+		void apply(OperationContext context, QueryRunner queryRunner);
+	}
+
+	interface DropOperation extends Operation {
+	}
+
+	interface BuilderWithCatalog<T extends Operation> {
+
+		BuilderWithTargetItem<DropOperation> drop(Name name, boolean ifExits);
+	}
+
+	interface BuilderWithTargetItem<T extends Operation> {
+
+		T with(MigrationVersion version);
+	}
+
+	private static class DefaultOperationBuilder<T extends Operation>
+		implements BuilderWithCatalog<T>, BuilderWithTargetItem<T> {
+
+		private final VersionedCatalog catalog;
+
+		private Operator operator;
+
+		private Name reference;
+
+		private boolean idempotent;
+
+		DefaultOperationBuilder(VersionedCatalog catalog) {
+			this.catalog = catalog;
+		}
+
+		@SuppressWarnings({ "unchecked", "HiddenField" })
+		@Override
+		public BuilderWithTargetItem<DropOperation> drop(Name reference, boolean idempotent) {
+
+			this.operator = Operator.DROP;
+			this.reference = reference;
+			this.idempotent = idempotent;
+			return (BuilderWithTargetItem<DropOperation>) this;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public T with(MigrationVersion version) {
+
+			if (this.operator == Operator.DROP) {
+				return (T) new DefaultDropOperation(version, reference, idempotent, catalog);
+			}
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	static class DefaultDropOperation implements DropOperation {
+
+		private final MigrationVersion definedAt;
+
+		private final Name reference;
+
+		private final boolean idempotent;
+
+		private final VersionedCatalog catalog;
+
+		DefaultDropOperation(MigrationVersion definedAt, Name reference, boolean idempotent, VersionedCatalog catalog) {
+			this.definedAt = definedAt;
+			this.reference = reference;
+			this.idempotent = idempotent;
+			this.catalog = catalog;
+		}
+
+		@Override
+		public void apply(OperationContext context, QueryRunner queryRunner) {
+
+			CatalogItem<?> item = catalog.getItem(reference, definedAt).get();
+			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
+			queryRunner.run(
+				renderer.render(item, RenderConfig.drop().forVersionAndEdition(context.version, context.edition))
+			);
+		}
 	}
 }

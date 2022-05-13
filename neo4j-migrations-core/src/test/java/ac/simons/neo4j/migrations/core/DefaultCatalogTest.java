@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
@@ -41,6 +42,8 @@ class DefaultCatalogTest {
 
 	Constraint c1v2;
 
+	Constraint c2v1;
+
 	Catalog catalog1;
 
 	Catalog catalog2;
@@ -57,99 +60,96 @@ class DefaultCatalogTest {
 		when(c1v2.getName()).thenReturn(name1);
 		when(c1v2.getProperties()).thenReturn(new HashSet<>(Arrays.asList("a", "b", "c")));
 
-		Constraint c2v1 = mock(Constraint.class);
+		c2v1 = mock(Constraint.class);
 		Name name2 = Name.of("cv2");
 		when(c2v1.getName()).thenReturn(name2);
 		when(c2v1.getProperties()).thenReturn(Collections.singleton("d"));
 
-		catalog1 = mock(Catalog.class);
-		when(catalog1.getConstraints()).thenReturn(Collections.singletonList(c1v1));
-
-		catalog2 = mock(Catalog.class);
-		when(catalog2.getConstraints()).thenReturn(Arrays.asList(c1v2, c2v1));
+		catalog1 = () -> Collections.singletonList(c1v1);
+		catalog2 = () -> Arrays.asList(c1v2, c2v1);
 	}
 
 	@Test
-	void getAllConstraintsShouldWork() {
+	void getAllItemsShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
-		assertThat(catalog.getConstraints())
-			.map(Constraint::getName)
+		assertThat(catalog.getItems())
+			.map(CatalogItem::getName)
 			.map(Name::getValue)
 			.containsExactly("cv1", "cv2");
 	}
 
 	@Test
-	void getAllConstraintsPriorToShouldWork() {
+	void getAllItemsPriorToShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
-		assertThat(catalog.getConstraintsPriorTo(MigrationVersion.withValue("1"))).isEmpty();
+		assertThat(catalog.getItemsPriorTo(MigrationVersion.withValue("1"))).isEmpty();
 
-		assertThat(catalog.getConstraintsPriorTo(MigrationVersion.withValue("2")))
-			.map(Constraint::getName)
+		assertThat(catalog.getItemsPriorTo(MigrationVersion.withValue("2")))
+			.map(CatalogItem::getName)
 			.map(Name::getValue)
 			.containsExactly("cv1");
 	}
 
 	@Test
-	void getConstraintPriorToShouldWork() {
+	void getItemPriorToShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
-		assertThat(catalog.getConstraintPriorTo(Name.of("cv1"), MigrationVersion.withValue("1")))
+		assertThat(catalog.getItemPriorTo(Name.of("cv1"), MigrationVersion.withValue("1")))
 			.isEmpty();
 
-		assertThat(catalog.getConstraintPriorTo(Name.of("cv2"), MigrationVersion.withValue("1")))
+		assertThat(catalog.getItemPriorTo(Name.of("cv2"), MigrationVersion.withValue("1")))
 			.isEmpty();
 
-		assertThat(catalog.getConstraintPriorTo(Name.of("cv1"), MigrationVersion.withValue("2")))
-			.map(Constraint::getName).map(Name::getValue).hasValue("cv1");
+		assertThat(catalog.getItemPriorTo(Name.of("cv1"), MigrationVersion.withValue("2")))
+			.map(CatalogItem::getName).map(Name::getValue).hasValue("cv1");
 
-		assertThat(catalog.getConstraintPriorTo(Name.of("cv2"), MigrationVersion.withValue("2")))
+		assertThat(catalog.getItemPriorTo(Name.of("cv2"), MigrationVersion.withValue("2")))
 			.isEmpty();
 	}
 
 	@Test
-	void getConstraintsShouldWork() {
+	void getItemsShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
-		assertThat(catalog.getConstraints(MigrationVersion.withValue("1")))
-			.map(Constraint::getName)
+		assertThat(catalog.getItems(MigrationVersion.withValue("1")))
+			.map(CatalogItem::getName)
 			.map(Name::getValue)
 			.containsExactly("cv1");
 
-		assertThat(catalog.getConstraints(MigrationVersion.withValue("2")))
-			.map(Constraint::getName)
+		assertThat(catalog.getItems(MigrationVersion.withValue("2")))
+			.map(CatalogItem::getName)
 			.map(Name::getValue)
 			.containsExactly("cv1", "cv2");
 	}
 
 	@Test
-	void getConstraintShouldWork() {
+	void getItemShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
 
-		assertThat(catalog.getConstraint(Name.of("cv1"), MigrationVersion.withValue("1")))
-			.map(Constraint::getName).map(Name::getValue).hasValue("cv1");
+		assertThat(catalog.getItem(Name.of("cv1"), MigrationVersion.withValue("1")))
+			.map(CatalogItem::getName).map(Name::getValue).hasValue("cv1");
 
-		assertThat(catalog.getConstraint(Name.of("cv2"), MigrationVersion.withValue("1")))
+		assertThat(catalog.getItem(Name.of("cv2"), MigrationVersion.withValue("1")))
 			.isEmpty();
 
-		assertThat(catalog.getConstraint(Name.of("cv2"), MigrationVersion.withValue("2")))
-			.map(Constraint::getName).map(Name::getValue).hasValue("cv2");
+		assertThat(catalog.getItem(Name.of("cv2"), MigrationVersion.withValue("2")))
+			.map(CatalogItem::getName).map(Name::getValue).hasValue("cv2");
 	}
 
 	@Test

@@ -29,7 +29,7 @@ enum EmptyCatalog implements Catalog {
 	INSTANCE;
 
 	@Override
-	public List<Constraint> getConstraints() {
+	public List<CatalogItem<?>> getItems() {
 		return Collections.emptyList();
 	}
 }

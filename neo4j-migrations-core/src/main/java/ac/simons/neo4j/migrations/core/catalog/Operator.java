@@ -25,11 +25,12 @@ package ac.simons.neo4j.migrations.core.catalog;
 public enum Operator {
 
 	/**
-	 * The operands should be created.
+	 * The operand should be created.
 	 */
 	CREATE,
+
 	/**
-	 * The operands should be dropped;
+	 * The operand should be dropped;
 	 */
 	DROP
 }

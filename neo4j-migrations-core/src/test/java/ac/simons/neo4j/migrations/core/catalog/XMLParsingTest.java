@@ -54,7 +54,8 @@ class XMLParsingTest {
 	@Test
 	void shouldFindAllConstraints() {
 		Catalog catalog = load(XMLParsingTest.class.getResource("/xml/parsing/full-example.xml"));
-		assertThat(catalog.getConstraints())
+		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
+			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
 			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"), Name.of("old_keys"));
 	}

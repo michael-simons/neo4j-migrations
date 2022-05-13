@@ -16,12 +16,14 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -435,6 +438,18 @@ class ConstraintTest {
 			assertThat(constraint.getProperties()).containsExactly("bar");
 			assertThat(constraint.getType()).isEqualTo(type);
 			assertThat(constraint.getName()).isEqualTo(Name.of("foo"));
+		}
+	}
+
+	@Nested
+	class Invalid {
+
+		@Test
+		void keyConstraintsShouldNotBeSupportedOnRelationships() {
+			List<String> properties = Collections.singletonList("x");
+			assertThatIllegalArgumentException().isThrownBy(
+				() -> new Constraint(Constraint.Type.KEY, TargetEntity.RELATIONSHIP, "LIKES", properties)
+			).withMessage("Key constraints are only supported for nodes, not for relationships.");
 		}
 	}
 }

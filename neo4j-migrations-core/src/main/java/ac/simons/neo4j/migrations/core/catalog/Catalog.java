@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
  * @soundtrack Metallica - Ride The Lightning
  * @since TBA
  */
+@FunctionalInterface
 public interface Catalog {
 
 	/**
@@ -66,7 +67,7 @@ public interface Catalog {
 	}
 
 	/**
-	 * @return the list of constraint in this catalog
+	 * @return the list of all items in this catalog
 	 */
-	List<Constraint> getConstraints();
+	List<CatalogItem<?>> getItems();
 }

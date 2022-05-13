@@ -46,6 +46,20 @@ public interface Renderer<T extends CatalogItem<?>> {
 	}
 
 	/**
+	 * Retrieves a renderer for the given {@link Format} and given {@code item}.
+	 *
+	 * @param format The format in which to render
+	 * @param type   The item that should be rendered
+	 * @param <T>    The type of the item
+	 * @return A renderer for the given type
+	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
+	 */
+	@SuppressWarnings("unchecked")
+	static <T extends CatalogItem<?>> Renderer<T> get(Format format, T type) {
+		return Renderer.get(format, (Class<T>) type.getClass());
+	}
+
+	/**
 	 * Retrieves a renderer for the given {@link Format} and the type matching {@literal type}.
 	 *
 	 * @param format The format in which to render

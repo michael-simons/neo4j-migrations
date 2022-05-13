@@ -148,7 +148,7 @@ class ConstraintToCypherRendererTest {
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderConfig))
-				.withMessage("This constraint cannot be be used with %s edition.", edition);
+				.withMessage("This constraint cannot be created with %s edition.", edition);
 	}
 
 	@ParameterizedTest

@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.List;
@@ -32,36 +32,36 @@ import java.util.Optional;
 public interface VersionedCatalog extends Catalog {
 
 	/**
-	 * A list of all constraints prior to a given version.
+	 * A list of all items prior to a given version.
 	 *
-	 * @param version The version up to but not including to retrieve constraints for
-	 * @return a list of all constraints prior to the introduction of {@literal version}.
+	 * @param version The version up to but not including to retrieve items for
+	 * @return a list of all items prior to the introduction of {@literal version}.
 	 */
-	List<Constraint> getConstraintsPriorTo(MigrationVersion version);
+	List<CatalogItem<?>> getItemsPriorTo(MigrationVersion version);
 
 	/**
-	 * A single constraints prior to a given version. The result will be empty if the constraint has not yet been defined.
+	 * A single item prior to a given version. The result will be empty if the item has not yet been defined.
 	 *
-	 * @param name      The id of the item to retrieve
+	 * @param name    The id of the item to retrieve
 	 * @param version The version up to but not including to retrieve the constraint for
-	 * @return an optional constraint as defined prior to the introduction of {@literal version}
+	 * @return an optional item as defined prior to the introduction of {@literal version}
 	 */
-	Optional<Constraint> getConstraintPriorTo(Name name, MigrationVersion version);
+	Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version);
 
 	/**
-	 * A list of all constraints up to and including a given version.
+	 * A list of all items up to and including a given version.
 	 *
 	 * @param version The version up to retrieve constraints for
-	 * @return a list of all constraints up to the introduction of {@literal version}.
+	 * @return a list of all items up to the introduction of {@literal version}.
 	 */
-	List<Constraint> getConstraints(MigrationVersion version);
+	List<CatalogItem<?>> getItems(MigrationVersion version);
 
 	/**
-	 * A single constraints for a given version. The result will be empty if the constraint has not yet been defined.
+	 * A single item for a given version. The result will be empty if the item has not yet been defined.
 	 *
-	 * @param name      The id of the item to retrieve
+	 * @param name    The id of the item to retrieve
 	 * @param version The version in which to retrieve the constraint for
-	 * @return an optional constraint as defined with to the introduction of {@literal version}
+	 * @return an optional item as defined with to the introduction of {@literal version}
 	 */
-	Optional<Constraint> getConstraint(Name name, MigrationVersion version);
+	Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version);
 }

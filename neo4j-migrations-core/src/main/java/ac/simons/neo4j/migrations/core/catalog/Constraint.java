@@ -330,6 +330,10 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties,
 		String options) {
 		super(name, type, targetEntity, identifier, properties, options);
+
+		if (type == Type.KEY && getTarget() != TargetEntity.NODE) {
+			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
+		}
 	}
 
 	Element toXML(Document document) {

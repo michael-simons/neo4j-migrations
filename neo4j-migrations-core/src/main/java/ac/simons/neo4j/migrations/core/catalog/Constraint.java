@@ -155,6 +155,16 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	/**
+	 * Starts defining a new instance of a relationship constraint.
+	 *
+	 * @param type The type on which the constraint should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forRelationship(String type) {
+		return new DefaultBuilder(TargetEntity.RELATIONSHIP, type);
+	}
+
+	/**
 	 * Parses a constraint from a {@link MapAccessor}, which will either contain a result from {@code call db.constraints()}
 	 * (Neo4j 3.5 upto 4.1) or from {@code SHOW CONSTRAINTS YIELD *} from Neo4j 4.2 and upwards
 	 *
@@ -162,7 +172,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @return A constraint
 	 * @throws IllegalArgumentException if the row cannot be processed
 	 */
-	static Constraint parse(MapAccessor row) {
+	public static Constraint parse(MapAccessor row) {
 
 		Value descriptionValue = row.get("description");
 		Value nameValue = row.get("name");
@@ -366,5 +376,29 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		});
 
 		return element;
+	}
+
+	/**
+	 * {@literal true}, if {@literal item} is a constraint of the same type for the same entity containing the same properties.
+	 *
+	 * @param item the other item to compare to
+	 * @return {@literal true} if this and the other {@literal item} are aquivalent
+	 */
+	public boolean isEquivalentTo(CatalogItem<?> item) {
+
+		if (this == item) {
+			return true;
+		}
+
+		if (!(item instanceof Constraint)) {
+			return false;
+		}
+
+		Constraint other = (Constraint) item;
+
+		return this.getType().equals(other.getType()) &&
+			this.getTarget().equals(other.getTarget()) &&
+			this.getIdentifier().equals(other.getIdentifier()) &&
+			this.getProperties().equals(other.getProperties());
 	}
 }

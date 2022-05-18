@@ -43,7 +43,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	public void render(Constraint constraint, RenderConfig context, OutputStream target) throws IOException {
 
 		Neo4jVersion version = context.getVersion();
-		if (context.isIdempotent() && Neo4jVersion.NO_IDEM_POTENCY.contains(version)) {
+		if (context.isIdempotent() && Neo4jVersion.NO_IDEM_POTENCY.contains(version) && !context.isIgnoreName()) {
 			throw new IllegalStateException(
 				String.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));

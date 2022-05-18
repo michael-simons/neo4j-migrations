@@ -121,4 +121,11 @@ public enum Neo4jVersion {
 	public boolean isPriorTo44() {
 		return priorTo44;
 	}
+
+	/**
+	 * @return true if this version has idempotent operations
+	 */
+	public boolean hasIdempotentOperations() {
+		return !NO_IDEM_POTENCY.contains(this);
+	}
 }

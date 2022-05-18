@@ -39,7 +39,9 @@ public final class RenderConfig {
 		/**
 		 * @return a context that renders its statements in an idempotent fashion if possible
 		 */
-		Builder ifNotExists();
+		default Builder ifNotExists() {
+			return idempotent(true);
+		}
 	}
 
 	/**
@@ -50,7 +52,9 @@ public final class RenderConfig {
 		/**
 		 * @return a context that renders its statements in an idempotent fashion if possible
 		 */
-		Builder ifExists();
+		default Builder ifExists() {
+			return idempotent(true);
+		}
 	}
 
 	/**
@@ -73,6 +77,14 @@ public final class RenderConfig {
 		 * @return a config accommodating the given version and edition
 		 */
 		RenderConfig forVersionAndEdition(Neo4jVersion version, Neo4jEdition edition);
+
+		/**
+		 * Turn the outcome into a potentially idempotent fashion
+		 *
+		 * @param idempotent set to {@literal true} to produce an idempotent config
+		 * @return this builder
+		 */
+		Builder idempotent(boolean idempotent);
 	}
 
 	private static class DefaultBuilder implements IfNotExistsConfigBuilder, IfExistsConfigBuilder {
@@ -91,14 +103,9 @@ public final class RenderConfig {
 		}
 
 		@Override
-		public Builder ifNotExists() {
-			this.idempotent = true;
-			return this;
-		}
-
-		@Override
-		public Builder ifExists() {
-			this.idempotent = true;
+		@SuppressWarnings("HiddenField")
+		public Builder idempotent(boolean idempotent) {
+			this.idempotent = idempotent;
 			return this;
 		}
 	}

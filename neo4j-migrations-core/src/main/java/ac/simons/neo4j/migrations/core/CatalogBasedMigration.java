@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
@@ -57,6 +58,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.exceptions.Neo4jException;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -370,11 +372,56 @@ final class CatalogBasedMigration implements Migration {
 		@Override
 		public void apply(OperationContext context, QueryRunner queryRunner) {
 
-			CatalogItem<?> item = catalog.getItem(reference, definedAt).get();
+			CatalogItem<?> item = catalog.getItem(reference, definedAt).orElseThrow(() -> new MigrationsException(
+				String.format("An item named '%s' has not been defined as of version %s.", reference.getValue(), definedAt.getValue())));
 			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
-			queryRunner.run(
-				renderer.render(item, RenderConfig.drop().forVersionAndEdition(context.version, context.edition))
-			);
+			RenderConfig config = RenderConfig.drop()
+				.idempotent(idempotent)
+				.forVersionAndEdition(context.version, context.edition);
+
+			if (idempotent && !context.version.hasIdempotentOperations()) {
+				config = config.ignoreName();
+				dropIfExists(item, queryRunner, renderer, config, true);
+			} else {
+				queryRunner.run(renderer.render(item, config)).consume();
+			}
+		}
+
+		private void dropIfExists(CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer, RenderConfig config, boolean fallbackToPrior) {
+
+			try {
+				queryRunner.run(renderer.render(item, config)).consume();
+			} catch (Neo4jException e) {
+				// Directly throw anything that can't match
+				if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {
+					throw e;
+				}
+				// Make sure the thing actually not there. Here, we can assume old syntax.
+				List<Constraint> constraints = queryRunner.run("CALL db.constraints()").list(Constraint::parse);
+
+				// Let's skip all the hard work directly
+				if (constraints.isEmpty()) {
+					return;
+				}
+
+				// Directly throw if it is still there
+				if (constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+					throw e;
+				}
+
+				if (!fallbackToPrior) {
+					return;
+				}
+
+				// If it has been defined in an older version users might have redefined it in this version,
+				// such that couldn't have been dropped
+				catalog.getItemPriorTo(reference, definedAt)
+					.filter(
+						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
+					.ifPresent(olderItem -> {
+						dropIfExists(olderItem, queryRunner, renderer, config, false);
+					});
+			}
 		}
 	}
 }

@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core.catalog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import ac.simons.neo4j.migrations.core.MapAccessorAndRecordImpl;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,8 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
@@ -60,7 +60,7 @@ class ConstraintTest {
 	void shouldParseUniqueNode(String version, String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
@@ -93,7 +93,7 @@ class ConstraintTest {
 	void shouldParseSimpleNodePropertyExistenceConstraint(String version, String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
@@ -129,7 +129,7 @@ class ConstraintTest {
 	void shouldParseNodeKeyConstraint(String version, String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
@@ -161,7 +161,7 @@ class ConstraintTest {
 	void shouldParseSimpleRelPropertyExistenceConstraint(String version, String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
+			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
@@ -175,57 +175,6 @@ class ConstraintTest {
 				assertThat(constraint.getName()).isEqualTo(Name.of(name));
 			}
 			assertThat(constraint.getProperties()).containsExactly("day");
-		}
-	}
-
-	static class MapAccessorImpl implements MapAccessor {
-
-		private final Map<String, Value> content;
-
-		MapAccessorImpl(Map<String, Value> content) {
-			this.content = content;
-		}
-
-		@Override
-		public Iterable<String> keys() {
-			return content.keySet();
-		}
-
-		@Override
-		public boolean containsKey(String key) {
-			return content.containsKey(key);
-		}
-
-		@Override
-		public Value get(String key) {
-			return content.getOrDefault(key, Values.NULL);
-		}
-
-		@Override
-		public int size() {
-			return content.size();
-		}
-
-		@Override
-		public Iterable<Value> values() {
-			return content.values();
-		}
-
-		@Override
-		public <T> Iterable<T> values(Function<Value, T> mapFunction) {
-			return content.values().stream().map(mapFunction).collect(Collectors.toList());
-		}
-
-		@Override
-		public Map<String, Object> asMap() {
-			return content.entrySet().stream()
-				.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asObject()));
-		}
-
-		@Override
-		public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
-			return content.entrySet().stream()
-				.collect(Collectors.toMap(Map.Entry::getKey, e -> mapFunction.apply(e.getValue())));
 		}
 	}
 
@@ -401,7 +350,7 @@ class ConstraintTest {
 		Collection<String> expectedProperties,
 		Map<String, Value> content) {
 
-		MapAccessor row = new MapAccessorImpl(content);
+		MapAccessor row = new MapAccessorAndRecordImpl(content);
 		Constraint constraint = Constraint.parse(row);
 
 		assertThat(constraint.getType()).isEqualTo(expectedType);
@@ -450,6 +399,94 @@ class ConstraintTest {
 			assertThatIllegalArgumentException().isThrownBy(
 				() -> new Constraint(Constraint.Type.KEY, TargetEntity.RELATIONSHIP, "LIKES", properties)
 			).withMessage("Key constraints are only supported for nodes, not for relationships.");
+		}
+	}
+
+	@Nested
+	class Equivalence {
+
+		Constraint uniqueBookIdV1 = Constraint
+			.forNode("Book")
+			.named("book_id_unique")
+			.unique("id");
+
+		@Test
+		void shouldNotBeEquivalentToOtherThings() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(new AbstractCatalogItem<Constraint.Type>("book_id_unique", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singletonList("id"), null) {
+			})).isFalse();
+		}
+
+		@Test
+		void shouldNotBeEquivalentToSame() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(uniqueBookIdV1)).isTrue();
+		}
+
+		@Test
+		void sameTypeIsRequired() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forNode("Book")
+					.named("book_id_unique")
+					.exists("id")
+			)).isFalse();
+		}
+
+		@Test
+		void sameEntityIsRequired() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forRelationship("LIKES")
+					.named("book_id_unique")
+					.unique("id")
+			)).isFalse();
+		}
+
+		@Test
+		void sameIdentifierIsRequired() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forNode("SomethingElse")
+					.named("book_id_unique")
+					.unique("id")
+			)).isFalse();
+		}
+
+		@Test
+		void samePropertiesAreRequired() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forNode("Book")
+					.named("book_id_unique")
+					.unique("ids")
+			)).isFalse();
+		}
+
+		@Test
+		void nameIsIrrelevant() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forNode("Book")
+					.named("foo")
+					.unique("id")
+			)).isTrue();
+		}
+
+		@Test
+		void allFieldsAndTheNameShouldWorkToo() {
+
+			assertThat(uniqueBookIdV1.isEquivalentTo(
+				Constraint
+					.forNode("Book")
+					.named("book_id_unique")
+					.unique("id")
+			)).isTrue();
 		}
 	}
 }

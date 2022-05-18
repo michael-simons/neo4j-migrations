@@ -17,10 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.neo4j.driver.Session;
@@ -35,13 +31,6 @@ import org.neo4j.driver.exceptions.Neo4jException;
  * @since 1.4.0
  */
 final class HBD {
-
-	private static final Set<String> CODES_FOR_EXISTING_CONSTRAINT
-		= Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList("Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists",
-			"Neo.ClientError.Schema.ConstraintAlreadyExists")));
-
-	private static final String CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE = "Neo.ClientError.Schema.ConstraintWithNameAlreadyExists";
 
 	static boolean is4xSeries(ConnectionDetails connectionDetails) {
 		return connectionDetails.getServerVersion() != null && connectionDetails.getServerVersion()
@@ -80,7 +69,7 @@ final class HBD {
 			return session.writeTransaction(tx -> tx.run(finalStatement).consume().counters().constraintsAdded());
 		} catch (Neo4jException e) {
 
-			if (!CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
+			if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
 				throw new MigrationsException(failureMessage.get(), e);
 			}
 		}
@@ -102,7 +91,7 @@ final class HBD {
 			return session.writeTransaction(tx ->
 				tx.run(finalStatement).consume().counters().constraintsRemoved());
 		} catch (Neo4jException e) {
-			if (!"Neo.DatabaseError.Schema.ConstraintDropFailed".equals(e.code())) {
+			if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {
 				throw new MigrationsException("Could not remove locks", e);
 			}
 		}
@@ -111,7 +100,7 @@ final class HBD {
 	}
 
 	static boolean constraintWithNameAlreadyExists(MigrationsException e) {
-		return e != null && e.getCause() instanceof ClientException && CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
+		return e != null && e.getCause() instanceof ClientException && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
 			((ClientException) e.getCause()).code());
 	}
 

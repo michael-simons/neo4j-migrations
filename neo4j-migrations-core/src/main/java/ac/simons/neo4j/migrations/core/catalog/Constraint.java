@@ -17,14 +17,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -399,6 +392,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		return this.getType().equals(other.getType()) &&
 			this.getTarget().equals(other.getTarget()) &&
 			this.getIdentifier().equals(other.getIdentifier()) &&
-			this.getProperties().equals(other.getProperties());
+			this.getProperties().equals(other.getProperties()) &&
+			this.getOptionalOptions().equals(other.getOptionalOptions());
 	}
 }

@@ -457,6 +457,20 @@ class ConstraintTest {
 		}
 
 		@Test
+		void sameOptionsAreRequired() {
+
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("id"), "foo");
+			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isFalse();
+		}
+
+		@Test
+		void nullOptionsShouldBeSame() {
+			
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("id"), " ");
+			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
+		}
+
+		@Test
 		void samePropertiesAreRequired() {
 
 			assertThat(uniqueBookIdV1.isEquivalentTo(

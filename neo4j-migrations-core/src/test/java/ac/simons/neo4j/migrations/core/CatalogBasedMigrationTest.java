@@ -29,6 +29,7 @@ import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Operation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.OperationContext;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.catalog.Operator;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
@@ -50,11 +51,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.exceptions.Neo4jException;
 
 /**
  * @author Michael J. Simons
@@ -71,10 +77,8 @@ class CatalogBasedMigrationTest {
 		assertThat(schemaBasedMigration.getCatalog().getItems()).hasSize(2);
 	}
 
-	@Nested
 	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-	class Drops {
-
+	static abstract class AbstractItemBasedOperations {
 		ArgumentCaptor<String> configArgumentCaptor;
 
 		Constraint uniqueBookIdV1 = Constraint
@@ -109,30 +113,248 @@ class CatalogBasedMigrationTest {
 		}
 
 		@SuppressWarnings("unused")
-		Stream<Arguments> simpleDropShouldWork() {
+		abstract Stream<Arguments> simpleOpsShouldWork();
 
-			return Stream.of(
-				Arguments.of(Neo4jVersion.V3_5, "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE"),
-				Arguments.of(Neo4jVersion.V4_4, "DROP CONSTRAINT book_id_unique")
-			);
-		}
+		abstract Operator getOperatorUnderTest();
 
 		@ParameterizedTest
 		@MethodSource
-		void simpleDropShouldWork(Neo4jVersion version, String expected) {
+		void simpleOpsShouldWork(Neo4jVersion version, String expected) {
 
-			DropOperation drop = Operation.use(catalog)
-				.drop(Name.of("book_id_unique"), false)
-				.with(MigrationVersion.withValue("1"));
+			Operation operation;
+			Operator operatorUnderTest = getOperatorUnderTest();
+			if (operatorUnderTest == Operator.CREATE) {
+				operation = Operation.use(catalog)
+					.create(Name.of("book_id_unique"), false)
+					.with(MigrationVersion.withValue("1"));
+			} else if (operatorUnderTest == Operator.DROP) {
+				operation = Operation.use(catalog)
+					.drop(Name.of("book_id_unique"), false)
+					.with(MigrationVersion.withValue("1"));
+			} else {
+				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
+			}
 
 			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE);
-			drop.apply(context, runner);
+			operation.apply(context, runner);
 
 			verify(runner, times(1)).run(configArgumentCaptor.capture());
 			String query = configArgumentCaptor.getValue();
 			assertThat(query).isEqualTo(expected);
 			verify(defaultResult).consume();
 			verifyNoMoreInteractions(runner, defaultResult);
+		}
+	}
+
+	@Test
+	void fDeleteMe() {
+		System.out.println("Really, delete this test");
+		try (Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"))) {
+			Session session = driver.session();
+			session.run("CREATE CONSTRAINT IF NOT EXISTS  FOR (n:Book) REQUIRE n.id IS UNIQUE");
+			session.run("CREATE CONSTRAINT foo IF NOT EXISTS ON (n:Book) ASSERT n.id IS UNIQUE ");
+		} catch (Neo4jException e) {
+			System.out.println(e.code());
+		}
+	}
+
+	@Nested
+	class Creates extends AbstractItemBasedOperations {
+
+		@Override
+		Operator getOperatorUnderTest() {
+			return Operator.CREATE;
+		}
+
+		@Override
+		Stream<Arguments> simpleOpsShouldWork() {
+
+			return Stream.of(
+				Arguments.of(Neo4jVersion.V3_5, "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE"),
+				Arguments.of(Neo4jVersion.V4_4, "CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE")
+			);
+		}
+
+		@Test
+		void shouldCheckForExistence() {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("trololo"), false)
+				.with(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE);
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> op.apply(context, runner))
+				.withMessage("An item named 'trololo' has not been defined as of version 1.");
+		}
+
+		@Test
+		void idempotencyOnSupportedTargetsShouldWork() {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			op.apply(context, runner);
+
+			verify(runner, times(1)).run(configArgumentCaptor.capture());
+			String query = configArgumentCaptor.getValue();
+			assertThat(query).isEqualTo(
+				"CREATE CONSTRAINT book_id_unique IF NOT EXISTS FOR (n:Book) REQUIRE n.id IS UNIQUE");
+			verify(defaultResult).consume();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void idempotencyOnUnsupportedTargetsShouldWork() {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			op.apply(context, runner);
+
+			verify(runner, times(1)).run(configArgumentCaptor.capture());
+			String query = configArgumentCaptor.getValue();
+			assertThat(query).isEqualTo("CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE");
+			verify(defaultResult).consume();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { Neo4jCodes.EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS,
+			Neo4jCodes.CONSTRAINT_ALREADY_EXISTS })
+		void idempotencyOnUnsupportedTargetsShouldIgnoreNoSuchConstraintErrors(String code) {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			Result result = mock(Result.class);
+			when(result.list(Mockito.<Function<Record, Constraint>>any()))
+				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
+						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
+					.collect(Collectors.toList()));
+
+			String expectedDrop = "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
+			when(runner.run(expectedDrop))
+				.thenThrow(new DatabaseException(code, "Oh :("));
+			String expectedCall = "CALL db.constraints()";
+			when(runner.run(expectedCall)).thenReturn(result);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			op.apply(context, runner);
+
+			verify(runner).run(expectedDrop);
+			verify(runner).run(expectedCall);
+			verify(result).list(Mockito.<Function<Record, Constraint>>any());
+			verifyNoInteractions(defaultResult);
+			verifyNoMoreInteractions(runner, result, defaultResult);
+		}
+
+		@Test
+		void idempotencyOnUnsupportedTargetsShouldRethrowExceptions() {
+
+			Operation drop = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			String expectedDrop = "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
+			when(runner.run(expectedDrop))
+				.thenThrow(new DatabaseException("Something else is broken", "Oh :("));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			assertThatExceptionOfType(DatabaseException.class)
+				.isThrownBy(() -> drop.apply(context, runner))
+				.withMessage("Oh :(");
+
+			verify(runner).run(expectedDrop);
+			verifyNoInteractions(defaultResult);
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void idempotencyOnUnsupportedTargetsShouldByHappyWithOtherConstraints() {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			Result result = mock(Result.class);
+
+			when(result.list(Mockito.<Function<Record, Constraint>>any()))
+				.thenAnswer(i -> Stream.of(
+						new MapAccessorAndRecordImpl(Collections.singletonMap("description",
+							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"))),
+						new MapAccessorAndRecordImpl(Collections.singletonMap("description",
+							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))
+					).map(i.getArgument(0))
+					.collect(Collectors.toList()));
+
+			String expectedDrop = "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
+			when(runner.run(expectedDrop))
+				.thenThrow(new DatabaseException(Neo4jCodes.CONSTRAINT_ALREADY_EXISTS, "Oh :("));
+			String expectedCall = "CALL db.constraints()";
+			when(runner.run(expectedCall))
+				.thenReturn(result);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			op.apply(context, runner);
+
+			verify(runner).run(expectedDrop);
+			verify(runner).run(expectedCall);
+			verify(result).list(Mockito.<Function<Record, Constraint>>any());
+			verifyNoInteractions(defaultResult);
+			verifyNoMoreInteractions(runner, result, defaultResult);
+		}
+
+		@Test
+		void idempotencyOnUnsupportedTargetsShouldRethrowExceptionsWhenNotExistsInTheEnd() {
+
+			Operation op = Operation.use(catalog)
+				.create(Name.of("book_id_unique"), true)
+				.with(MigrationVersion.withValue("1"));
+
+			Result result = mock(Result.class);
+			when(result.list(Mockito.<Function<Record, Constraint>>any())).thenReturn(Collections.emptyList());
+
+			String expectedDrop = "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
+			when(runner.run(expectedDrop))
+				.thenThrow(new DatabaseException(Neo4jCodes.CONSTRAINT_ALREADY_EXISTS, "Oh :("));
+			String expectedCall = "CALL db.constraints()";
+			when(runner.run(expectedCall)).thenReturn(result);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			assertThatExceptionOfType(DatabaseException.class)
+				.isThrownBy(() -> op.apply(context, runner))
+				.withMessage("Oh :(");
+
+			verify(runner).run(expectedDrop);
+			verify(runner).run(expectedCall);
+			verify(result).list(Mockito.<Function<Record, Constraint>>any());
+			verifyNoInteractions(defaultResult);
+			verifyNoMoreInteractions(runner, result, defaultResult);
+		}
+
+	}
+
+	@Nested
+	class Drops extends AbstractItemBasedOperations {
+
+		@Override
+		Operator getOperatorUnderTest() {
+			return Operator.DROP;
+		}
+
+		@Override
+		Stream<Arguments> simpleOpsShouldWork() {
+
+			return Stream.of(
+				Arguments.of(Neo4jVersion.V3_5, "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE"),
+				Arguments.of(Neo4jVersion.V4_4, "DROP CONSTRAINT book_id_unique")
+			);
 		}
 
 		@Test

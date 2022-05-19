@@ -24,6 +24,9 @@ import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.internal.NodeSetDataImpl;
+import ac.simons.neo4j.migrations.core.internal.NoopDOMCryptoContext;
+import ac.simons.neo4j.migrations.core.internal.ThrowingErrorHandler;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -36,16 +39,13 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
 import javax.xml.XMLConstants;
-import javax.xml.crypto.NodeSetData;
 import javax.xml.crypto.XMLCryptoContext;
-import javax.xml.crypto.dom.DOMCryptoContext;
 import javax.xml.crypto.dom.DOMStructure;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.crypto.dsig.TransformException;
@@ -63,9 +63,7 @@ import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * A migration based on a catalog. The migration itself can contain a (partial) catalog with items that will be added
@@ -78,7 +76,13 @@ import org.xml.sax.SAXParseException;
  */
 final class CatalogBasedMigration implements Migration {
 
+	/**
+	 * A reference to the schema for validating our input.
+	 */
 	private static final Schema MIGRATION_SCHEMA;
+	/**
+	 * Neither document builder factories nor document builders are thread safe, so here we are…
+	 */
 	private static final ThreadLocal<DocumentBuilderFactory> DOCUMENT_BUILDER_FACTORY;
 
 	static {
@@ -97,52 +101,6 @@ final class CatalogBasedMigration implements Migration {
 			value.setNamespaceAware(true);
 			return value;
 		});
-	}
-
-	static class ThrowingErrorHandler implements ErrorHandler {
-
-		@Override
-		public void warning(SAXParseException exception) throws SAXException {
-			throw exception;
-		}
-
-		@Override
-		public void error(SAXParseException exception) throws SAXException {
-			// We do check for names later on, so we ignore this id
-			// https://wiki.xmldation.com/Support/Validator/cvc-id-1
-			if (!exception.getMessage().startsWith("cvc-id.1")) {
-				throw exception;
-			}
-		}
-
-		@Override
-		public void fatalError(SAXParseException exception) throws SAXException {
-			throw exception;
-		}
-
-	}
-
-	static class NoopDOMCryptoContext extends DOMCryptoContext {
-
-	}
-
-	static class NodeSetDataImpl implements NodeSetData {
-
-		static NodeSetData of(List<Node> elements) {
-			return new NodeSetDataImpl(elements);
-		}
-
-		private final List<Node> elements;
-
-		private NodeSetDataImpl(List<Node> elements) {
-			this.elements = elements;
-		}
-
-		@Override
-		public Iterator<Node> iterator() {
-			return this.elements.iterator();
-		}
-
 	}
 
 	private static String computeChecksum(Document document) {
@@ -294,6 +252,9 @@ final class CatalogBasedMigration implements Migration {
 		}
 	}
 
+	/**
+	 * Something that can be executed from withing a catalog based migration.
+	 */
 	interface Operation {
 
 		static <T extends Operation> BuilderWithCatalog<T> use(VersionedCatalog catalog) {
@@ -303,14 +264,49 @@ final class CatalogBasedMigration implements Migration {
 		void apply(OperationContext context, QueryRunner queryRunner);
 	}
 
+	/**
+	 * An operation that creates an item from the catalog inside the database.
+	 */
+	interface CreateOperation extends Operation {
+	}
+
+	/**
+	 * An operation that drops an item from the catalog from the database.
+	 */
 	interface DropOperation extends Operation {
 	}
 
+	/**
+	 * Entry point for getting hold of operations.
+	 *
+	 * @param <T> The type of operation to build
+	 */
 	interface BuilderWithCatalog<T extends Operation> {
 
+		/**
+		 * Creates a new drop operation
+		 *
+		 * @param name    The name of the item to drop
+		 * @param ifExits should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
 		BuilderWithTargetItem<DropOperation> drop(Name name, boolean ifExits);
+
+		/**
+		 * Creates a new create operation
+		 *
+		 * @param name        The name of the item to create
+		 * @param ifNotExists should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		BuilderWithTargetItem<CreateOperation> create(Name name, boolean ifNotExists);
 	}
 
+	/**
+	 * Specifies the version in which the item that is dealt with has been reference
+	 *
+	 * @param <T> The type of operation to build
+	 */
 	interface BuilderWithTargetItem<T extends Operation> {
 
 		T with(MigrationVersion version);
@@ -333,47 +329,127 @@ final class CatalogBasedMigration implements Migration {
 
 		@SuppressWarnings({ "unchecked", "HiddenField" })
 		@Override
-		public BuilderWithTargetItem<DropOperation> drop(Name reference, boolean idempotent) {
+		public BuilderWithTargetItem<DropOperation> drop(Name reference, boolean ifExits) {
 
 			this.operator = Operator.DROP;
 			this.reference = reference;
-			this.idempotent = idempotent;
+			this.idempotent = ifExits;
 			return (BuilderWithTargetItem<DropOperation>) this;
+		}
+
+		@SuppressWarnings({ "unchecked", "HiddenField" })
+		@Override
+		public BuilderWithTargetItem<CreateOperation> create(Name reference, boolean ifNotExists) {
+
+			this.operator = Operator.CREATE;
+			this.reference = reference;
+			this.idempotent = ifNotExists;
+			return (BuilderWithTargetItem<CreateOperation>) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public T with(MigrationVersion version) {
 
-			if (this.operator == Operator.DROP) {
-				return (T) new DefaultDropOperation(version, reference, idempotent, catalog);
+			switch (this.operator) {
+				case DROP:
+					return (T) new DefaultDropOperation(version, reference, idempotent, catalog);
+				case CREATE:
+					return (T) new DefaultCreateOperation(version, reference, idempotent, catalog);
 			}
 			throw new UnsupportedOperationException();
 		}
 	}
 
-	static class DefaultDropOperation implements DropOperation {
+	/**
+	 * Some state for all operations working on a specific item defined by a named reference.
+	 */
+	private static abstract class AbstractItemBasedOperation implements Operation {
 
-		private final MigrationVersion definedAt;
+		protected final MigrationVersion definedAt;
 
-		private final Name reference;
+		protected final Name reference;
 
-		private final boolean idempotent;
+		protected final boolean idempotent;
 
-		private final VersionedCatalog catalog;
+		protected final VersionedCatalog catalog;
 
-		DefaultDropOperation(MigrationVersion definedAt, Name reference, boolean idempotent, VersionedCatalog catalog) {
+		AbstractItemBasedOperation(MigrationVersion definedAt, Name reference, boolean idempotent,
+			VersionedCatalog catalog) {
 			this.definedAt = definedAt;
 			this.reference = reference;
 			this.idempotent = idempotent;
 			this.catalog = catalog;
 		}
 
+		CatalogItem<?> getRequiredItem() {
+			return catalog.getItem(reference, definedAt).orElseThrow(() -> new MigrationsException(
+				String.format("An item named '%s' has not been defined as of version %s.", reference.getValue(),
+					definedAt.getValue())));
+		}
+	}
+
+	/**
+	 * Executes creates.
+	 */
+	static final class DefaultCreateOperation extends AbstractItemBasedOperation implements CreateOperation {
+
+		DefaultCreateOperation(MigrationVersion definedAt, Name reference, boolean idempotent,
+			VersionedCatalog catalog) {
+			super(definedAt, reference, idempotent, catalog);
+		}
+
 		@Override
 		public void apply(OperationContext context, QueryRunner queryRunner) {
 
-			CatalogItem<?> item = catalog.getItem(reference, definedAt).orElseThrow(() -> new MigrationsException(
-				String.format("An item named '%s' has not been defined as of version %s.", reference.getValue(), definedAt.getValue())));
+			CatalogItem<?> item = getRequiredItem();
+			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
+			RenderConfig config = RenderConfig.create()
+				.idempotent(idempotent)
+				.forVersionAndEdition(context.version, context.edition);
+
+			if (idempotent && !context.version.hasIdempotentOperations()) {
+				config = config.ignoreName();
+				createIfNotExists(context, item, queryRunner, renderer, config);
+			} else {
+				queryRunner.run(renderer.render(item, config)).consume();
+			}
+		}
+
+		private void createIfNotExists(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer, RenderConfig config) {
+
+			try {
+				queryRunner.run(renderer.render(item, config)).consume();
+			} catch (Neo4jException e) {
+				// Directly throw anything that can't match
+				if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
+					throw e;
+				}
+				// Make sure the thing actually is there.
+				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse);
+
+				// If there are no constraints there at all, something fishy is going on for sure
+				// otherwise, there must now an equivalent version of it
+				if (constraints.isEmpty() || constraints.stream().noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+					throw e;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Executes drops.
+	 */
+	static final class DefaultDropOperation extends AbstractItemBasedOperation implements DropOperation {
+
+		DefaultDropOperation(MigrationVersion definedAt, Name reference, boolean idempotent, VersionedCatalog catalog) {
+			super(definedAt, reference, idempotent, catalog);
+		}
+
+		@Override
+		public void apply(OperationContext context, QueryRunner queryRunner) {
+
+			CatalogItem<?> item = getRequiredItem();
 			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 			RenderConfig config = RenderConfig.drop()
 				.idempotent(idempotent)
@@ -381,13 +457,14 @@ final class CatalogBasedMigration implements Migration {
 
 			if (idempotent && !context.version.hasIdempotentOperations()) {
 				config = config.ignoreName();
-				dropIfExists(item, queryRunner, renderer, config, true);
+				drop(context, item, queryRunner, renderer, config, true);
 			} else {
 				queryRunner.run(renderer.render(item, config)).consume();
 			}
 		}
 
-		private void dropIfExists(CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer, RenderConfig config, boolean fallbackToPrior) {
+		private void drop(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer,
+			RenderConfig config, boolean fallbackToPrior) {
 
 			try {
 				queryRunner.run(renderer.render(item, config)).consume();
@@ -396,8 +473,8 @@ final class CatalogBasedMigration implements Migration {
 				if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {
 					throw e;
 				}
-				// Make sure the thing actually not there. Here, we can assume old syntax.
-				List<Constraint> constraints = queryRunner.run("CALL db.constraints()").list(Constraint::parse);
+				// Make sure the thing actually not there.
+				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse);
 
 				// Let's skip all the hard work directly
 				if (constraints.isEmpty()) {
@@ -419,7 +496,7 @@ final class CatalogBasedMigration implements Migration {
 					.filter(
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
 					.ifPresent(olderItem -> {
-						dropIfExists(olderItem, queryRunner, renderer, config, false);
+						drop(context, olderItem, queryRunner, renderer, config, false);
 					});
 			}
 		}

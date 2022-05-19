@@ -29,23 +29,23 @@ public enum Neo4jVersion {
 	/**
 	 * Constant for everything Neo4j 3.5 and earlier.
 	 */
-	V3_5(true),
+	V3_5(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
 	/**
 	 * Constant for everything Neo4j 4.0.
 	 */
-	V4_0(true),
+	V4_0(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
 	/**
 	 * Constant for everything Neo4j 4.1.
 	 */
-	V4_1(true),
+	V4_1(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
 	/**
 	 * Constant for everything Neo4j 4.2.
 	 */
-	V4_2(true),
+	V4_2(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS),
 	/**
 	 * Constant for everything Neo4j 4.3.
 	 */
-	V4_3(true),
+	V4_3(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS),
 	/**
 	 * Constant for everything Neo4j 4.4.
 	 */
@@ -58,6 +58,9 @@ public enum Neo4jVersion {
 	 * Constant for an undefined version.
 	 */
 	UNDEFINED;
+
+	private final static String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
+	private final static String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
 
 	/**
 	 * A set of versions that don't have the concept of idempotent constraint / index statements.
@@ -102,12 +105,15 @@ public enum Neo4jVersion {
 
 	private final boolean priorTo44;
 
+	private final String showConstraints;
+
 	Neo4jVersion() {
-		this(false);
+		this(false, NEW_SHOW_CONSTRAINTS);
 	}
 
-	Neo4jVersion(boolean priorTo44) {
+	Neo4jVersion(boolean priorTo44, String showConstraints) {
 		this.priorTo44 = priorTo44;
+		this.showConstraints = showConstraints;
 	}
 
 	@Override
@@ -127,5 +133,9 @@ public enum Neo4jVersion {
 	 */
 	public boolean hasIdempotentOperations() {
 		return !NO_IDEM_POTENCY.contains(this);
+	}
+
+	public String getShowConstraints() {
+		return showConstraints;
 	}
 }

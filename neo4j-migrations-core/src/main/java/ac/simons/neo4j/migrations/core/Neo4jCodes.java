@@ -29,13 +29,22 @@ import java.util.Set;
  */
 final class Neo4jCodes {
 
-	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList("Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists",
-			"Neo.ClientError.Schema.ConstraintAlreadyExists")));
-
 	static final String CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE = "Neo.ClientError.Schema.ConstraintWithNameAlreadyExists";
 
 	static final String CONSTRAINT_DROP_FAILED = "Neo.DatabaseError.Schema.ConstraintDropFailed";
+
+	/**
+	 * Used in [3.5, 4.4] when a constraint without a name is defined twice and the 2nd one is equivalent
+	 */
+	static final String EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS = "Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists";
+
+	/**
+	 * Used in [4,4, x] when a constraint with a name is semantically equivalent to a constraint defined without a name
+	 */
+	static final String CONSTRAINT_ALREADY_EXISTS = "Neo.ClientError.Schema.ConstraintAlreadyExists";
+
+	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet<>(
+		Arrays.asList(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS, CONSTRAINT_ALREADY_EXISTS)));
 
 	private Neo4jCodes() {
 	}

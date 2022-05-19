@@ -414,6 +414,9 @@ class ConstraintTest {
 		void shouldNotBeEquivalentToOtherThings() {
 
 			assertThat(uniqueBookIdV1.isEquivalentTo(new AbstractCatalogItem<Constraint.Type>("book_id_unique", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singletonList("id"), null) {
+				@Override public boolean isEquivalentTo(CatalogItem<?> that) {
+					return false;
+				}
 			})).isFalse();
 		}
 
@@ -465,7 +468,7 @@ class ConstraintTest {
 
 		@Test
 		void nullOptionsShouldBeSame() {
-			
+
 			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("id"), " ");
 			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
 		}

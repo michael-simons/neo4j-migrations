@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +36,7 @@ final class CatalogImpl implements Catalog {
 	}
 
 	@Override
-	public List<CatalogItem<?>> getItems() {
+	public Collection<CatalogItem<?>> getItems() {
 		return constraints;
 	}
 }

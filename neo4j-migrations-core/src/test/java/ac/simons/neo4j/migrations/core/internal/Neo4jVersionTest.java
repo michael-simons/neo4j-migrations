@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class Neo4jVersionTest {
 
 	@ParameterizedTest
-	@ValueSource(strings = { "4.3", "Neo4j/4.3", "4.3.4711", "Neo4j/4.3.21" })
+	@ValueSource(strings = { "4.3", "Neo4j/4.3", "4.3.4711", "Neo4j/4.3.21", "Neo4j:4.3", "neo4j:4.3.23"})
 	void shouldParseDespitePrefixAndSuffix(String value) {
 		Neo4jVersion version = Neo4jVersion.of(value);
 		assertThat(version).isEqualTo(Neo4jVersion.V4_3);

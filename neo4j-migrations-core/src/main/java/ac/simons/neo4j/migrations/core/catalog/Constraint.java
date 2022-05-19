@@ -17,7 +17,14 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -374,20 +381,21 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	/**
 	 * {@literal true}, if {@literal item} is a constraint of the same type for the same entity containing the same properties.
 	 *
-	 * @param item the other item to compare to
+	 * @param that the other item to compare to
 	 * @return {@literal true} if this and the other {@literal item} are aquivalent
 	 */
-	public boolean isEquivalentTo(CatalogItem<?> item) {
+	@Override
+	public boolean isEquivalentTo(CatalogItem<?> that) {
 
-		if (this == item) {
+		if (this == that) {
 			return true;
 		}
 
-		if (!(item instanceof Constraint)) {
+		if (!(that instanceof Constraint)) {
 			return false;
 		}
 
-		Constraint other = (Constraint) item;
+		Constraint other = (Constraint) that;
 
 		return this.getType().equals(other.getType()) &&
 			this.getTarget().equals(other.getTarget()) &&
@@ -395,4 +403,6 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			this.getProperties().equals(other.getProperties()) &&
 			this.getOptionalOptions().equals(other.getOptionalOptions());
 	}
+
+
 }

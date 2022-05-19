@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * The empty catalog.
@@ -29,7 +29,7 @@ enum EmptyCatalog implements Catalog {
 	INSTANCE;
 
 	@Override
-	public List<CatalogItem<?>> getItems() {
+	public Collection<CatalogItem<?>> getItems() {
 		return Collections.emptyList();
 	}
 }

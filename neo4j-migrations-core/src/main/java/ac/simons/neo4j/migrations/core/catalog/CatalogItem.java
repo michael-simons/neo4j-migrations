@@ -34,4 +34,12 @@ public interface CatalogItem<T extends ItemType> {
 	 * @return Type information for the given item, specialized to the item type itself.
 	 */
 	T getType();
+
+	/**
+	 * @param that The other item to check
+	 * @return {@literal true} if this item is equivalent to {@code that} item
+	 */
+	default boolean isEquivalentTo(CatalogItem<?> that) {
+		throw new UnsupportedOperationException();
+	}
 }

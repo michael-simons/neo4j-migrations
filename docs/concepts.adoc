@@ -137,6 +137,12 @@ and than redefine parts of it for example.
 at the current version of migration. From the same example as above, everything from 1.0 upto and including 2.1 will be
 included, definitions will be identified by their name respectively id.
 
+WARNING: The `apply` operation loads all supported item types from the database, drops them and then creates all items of
+         the local catalog. This is a potentially destructive operation as it might drop items you have no replacement for.
+         +
+         Also be aware that neo4j-migrations will never drop the constraints needed for the locking node to function proper
+         (Basically, none of the constraints defined for the lable `__Neo4jMigrationsLock`).
+
 === Create a catalog from the actual database schema
 
 The API has an additional method `dump` that is exposed in various forms, for example through the CLI, that allows to dump

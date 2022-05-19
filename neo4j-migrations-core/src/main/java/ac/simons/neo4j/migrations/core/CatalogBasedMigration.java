@@ -277,6 +277,12 @@ final class CatalogBasedMigration implements Migration {
 	}
 
 	/**
+	 * This operation loads all supported item types from the database, drops them and then creates all items of the local catalog.
+	 */
+	interface ApplyOperation extends Operation {
+	}
+
+	/**
 	 * Entry point for getting hold of operations.
 	 *
 	 * @param <T> The type of operation to build
@@ -300,6 +306,14 @@ final class CatalogBasedMigration implements Migration {
 		 * @return Ongoing definition
 		 */
 		BuilderWithTargetItem<CreateOperation> create(Name name, boolean ifNotExists);
+
+		/**
+		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
+		 * item types from the database, drop them and eventually create the content of the catalog.
+		 *
+		 * @return The operation ready to apply.
+		 */
+		ApplyOperation apply();
 	}
 
 	/**
@@ -345,6 +359,11 @@ final class CatalogBasedMigration implements Migration {
 			this.reference = reference;
 			this.idempotent = ifNotExists;
 			return (BuilderWithTargetItem<CreateOperation>) this;
+		}
+
+		@Override
+		public ApplyOperation apply() {
+			return new DefaultApplyOperation();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -416,7 +435,8 @@ final class CatalogBasedMigration implements Migration {
 			}
 		}
 
-		private void createIfNotExists(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer, RenderConfig config) {
+		private void createIfNotExists(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
+			Renderer<CatalogItem<?>> renderer, RenderConfig config) {
 
 			try {
 				queryRunner.run(renderer.render(item, config)).consume();
@@ -426,11 +446,13 @@ final class CatalogBasedMigration implements Migration {
 					throw e;
 				}
 				// Make sure the thing actually is there.
-				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse);
+				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
+					.list(Constraint::parse);
 
 				// If there are no constraints there at all, something fishy is going on for sure
 				// otherwise, there must now an equivalent version of it
-				if (constraints.isEmpty() || constraints.stream().noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+				if (constraints.isEmpty() || constraints.stream()
+					.noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
 					throw e;
 				}
 			}
@@ -463,7 +485,8 @@ final class CatalogBasedMigration implements Migration {
 			}
 		}
 
-		private void drop(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner, Renderer<CatalogItem<?>> renderer,
+		private void drop(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
+			Renderer<CatalogItem<?>> renderer,
 			RenderConfig config, boolean fallbackToPrior) {
 
 			try {
@@ -474,7 +497,8 @@ final class CatalogBasedMigration implements Migration {
 					throw e;
 				}
 				// Make sure the thing actually not there.
-				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse);
+				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
+					.list(Constraint::parse);
 
 				// Let's skip all the hard work directly
 				if (constraints.isEmpty()) {
@@ -499,6 +523,14 @@ final class CatalogBasedMigration implements Migration {
 						drop(context, olderItem, queryRunner, renderer, config, false);
 					});
 			}
+		}
+	}
+
+	static final class DefaultApplyOperation implements ApplyOperation {
+
+		@Override
+		public void apply(OperationContext context, QueryRunner queryRunner) {
+
 		}
 	}
 }

@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.w3c.dom.Document;
@@ -69,5 +70,15 @@ public interface Catalog {
 	/**
 	 * @return the list of all items in this catalog
 	 */
-	List<CatalogItem<?>> getItems();
+	Collection<CatalogItem<?>> getItems();
+
+	/**
+	 * Helper method to check weather this catalog contains an equivalent item
+	 *
+	 * @param other The item for which an equivalent is search
+	 * @return True if an equivalent item exists
+	 */
+	default boolean containsEquivalentItem(CatalogItem<?> other) {
+		return this.getItems().stream().anyMatch(item -> item.isEquivalentTo(other));
+	}
 }

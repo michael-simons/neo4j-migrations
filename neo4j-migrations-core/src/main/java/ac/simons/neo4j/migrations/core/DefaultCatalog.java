@@ -19,8 +19,8 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
@@ -74,7 +74,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public List<CatalogItem<?>> getItems() {
+	public Collection<CatalogItem<?>> getItems() {
 
 		return withReadLockGet(() -> items.values().stream().map(NavigableMap::lastEntry)
 			.map(Map.Entry::getValue)
@@ -82,7 +82,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public List<CatalogItem<?>> getItemsPriorTo(MigrationVersion version) {
+	public Collection<CatalogItem<?>> getItemsPriorTo(MigrationVersion version) {
 
 		return withReadLockGet(() -> items.values().stream()
 			.map(m -> Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))
@@ -100,7 +100,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public List<CatalogItem<?>> getItems(MigrationVersion version) {
+	public Collection<CatalogItem<?>> getItems(MigrationVersion version) {
 
 		return withReadLockGet(() -> items.values().stream()
 			.map(m -> Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))

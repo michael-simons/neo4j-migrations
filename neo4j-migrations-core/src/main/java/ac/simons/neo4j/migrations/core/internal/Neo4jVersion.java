@@ -41,7 +41,7 @@ public enum Neo4jVersion {
 	/**
 	 * Constant for everything Neo4j 4.2.
 	 */
-	V4_2(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS),
+	V4_2(true, "SHOW CONSTRAINTS"),
 	/**
 	 * Constant for everything Neo4j 4.3.
 	 */
@@ -63,9 +63,9 @@ public enum Neo4jVersion {
 	private final static String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
 
 	/**
-	 * A set of versions that don't have the concept of idempotent constraint / index statements.
+	 * A set of versions that have a concept of idempotent constraint / index statements.
 	 */
-	public static final Set<Neo4jVersion> NO_IDEM_POTENCY = EnumSet.of(V3_5, V4_0);
+	private static final Set<Neo4jVersion> WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));
 	/**
 	 * A range of versions from 4.1 to 4.3.
 	 */
@@ -83,7 +83,7 @@ public enum Neo4jVersion {
 	 */
 	public static Neo4jVersion of(String version) {
 
-		String value = version == null ? null : version.replaceFirst("(?i)Neo4j/", "");
+		String value = version == null ? null : version.replaceFirst("(?i)Neo4j[/:]", "");
 		if (value == null) {
 			return UNDEFINED;
 		} else if (value.startsWith("3.5")) {
@@ -131,10 +131,14 @@ public enum Neo4jVersion {
 	/**
 	 * @return true if this version has idempotent operations
 	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer readability
 	public boolean hasIdempotentOperations() {
-		return !NO_IDEM_POTENCY.contains(this);
+		return WITH_IDEM_POTENCY.contains(this);
 	}
 
+	/**
+	 * @return The command recommended for this specific version to get a list of all known constraints
+	 */
 	public String getShowConstraints() {
 		return showConstraints;
 	}

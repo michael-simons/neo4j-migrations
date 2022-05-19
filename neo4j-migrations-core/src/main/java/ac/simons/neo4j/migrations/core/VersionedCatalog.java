@@ -19,7 +19,7 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -37,7 +37,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version up to but not including to retrieve items for
 	 * @return a list of all items prior to the introduction of {@literal version}.
 	 */
-	List<CatalogItem<?>> getItemsPriorTo(MigrationVersion version);
+	Collection<CatalogItem<?>> getItemsPriorTo(MigrationVersion version);
 
 	/**
 	 * A single item prior to a given version. The result will be empty if the item has not yet been defined.
@@ -54,7 +54,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version up to retrieve constraints for
 	 * @return a list of all items up to the introduction of {@literal version}.
 	 */
-	List<CatalogItem<?>> getItems(MigrationVersion version);
+	Collection<CatalogItem<?>> getItems(MigrationVersion version);
 
 	/**
 	 * A single item for a given version. The result will be empty if the item has not yet been defined.

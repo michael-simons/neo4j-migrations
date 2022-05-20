@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import ac.simons.neo4j.migrations.core.CatalogBasedMigration.DropOperation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Operation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.OperationContext;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
@@ -57,6 +56,8 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
 
 /**
  * @author Michael J. Simons
@@ -107,6 +108,55 @@ class CatalogBasedMigrationTest {
 			runner = mock(QueryRunner.class);
 			when(runner.run(Mockito.anyString())).thenReturn(defaultResult);
 			argumentCaptor = ArgumentCaptor.forClass(String.class);
+		}
+	}
+
+	@Nested
+	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	class Applies extends MockHolder {
+
+		@Test
+		void shouldDealWithEmptyCatalogs() {
+			Operation operation = Operation.use(new DefaultCatalog()).apply();
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			operation.apply(context, runner);
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void shouldDealWithEmptyDatabasecatalog() {
+			Operation operation = Operation.use(catalog).apply();
+
+			Result createResult = mock(Result.class);
+			ResultSummary summary = mock(ResultSummary.class);
+			SummaryCounters counters = mock(SummaryCounters.class);
+			when(counters.constraintsAdded()).thenReturn(22);
+			when(counters.indexesAdded()).thenReturn(20);
+			when(summary.counters()).thenReturn(counters);
+			when(createResult.consume()).thenReturn(summary);
+
+			String createQuery = "CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.isbn IS UNIQUE";
+			when(runner.run(createQuery)).thenReturn(createResult);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			operation.apply(context, runner);
+
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(argumentCaptor.getAllValues())
+					.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), createQuery);
+			verify(defaultResult).stream();
+			verify(createResult).consume();
+			verify(summary).counters();
+			verify(counters).constraintsAdded();
+			verify(counters).indexesAdded();
+			verifyNoMoreInteractions(runner, defaultResult, summary, counters);
 		}
 	}
 
@@ -413,7 +463,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldByHappyWithOtherConstraints() {
 
-			DropOperation drop = Operation.use(catalog)
+			Operation drop = Operation.use(catalog)
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -444,7 +494,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldRethrowExceptionsWhenStillExists() {
 
-			DropOperation drop = Operation.use(catalog)
+			Operation drop = Operation.use(catalog)
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -475,7 +525,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldTryDroppingOlderVersions() {
 
-			DropOperation drop = Operation.use(catalog)
+			Operation drop = Operation.use(catalog)
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("2"));
 
@@ -510,7 +560,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void shouldNotEndlessLoopWhenTryingOlderVersions() {
 
-			DropOperation drop = Operation.use(catalog)
+			Operation drop = Operation.use(catalog)
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("2"));
 

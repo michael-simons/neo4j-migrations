@@ -104,7 +104,7 @@ class DatabaseCatalogIT {
 				if (cmd.trim().isEmpty()) {
 					continue;
 				}
-				session.run(cmd).consume();
+				assertThat(session.run(cmd).consume().counters().constraintsAdded()).isNotZero();
 			}
 		}
 

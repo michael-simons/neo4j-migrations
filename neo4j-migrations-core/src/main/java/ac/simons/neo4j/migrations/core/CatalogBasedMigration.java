@@ -41,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
@@ -59,6 +62,7 @@ import javax.xml.validation.SchemaFactory;
 
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -75,6 +79,8 @@ import org.xml.sax.SAXException;
  * @since TBA
  */
 final class CatalogBasedMigration implements Migration {
+
+	private static final Logger LOGGER = Logger.getLogger(CatalogBasedMigration.class.getName());
 
 	/**
 	 * A reference to the schema for validating our input.
@@ -238,6 +244,8 @@ final class CatalogBasedMigration implements Migration {
 
 	@Override
 	public void apply(MigrationContext context) {
+
+		throw new UnsupportedOperationException("Not there yet");
 	}
 
 	static class OperationContext {
@@ -258,7 +266,7 @@ final class CatalogBasedMigration implements Migration {
 	interface Operation {
 
 		static <T extends Operation> BuilderWithCatalog<T> use(VersionedCatalog catalog) {
-			return new DefaultOperationBuilder<T>(catalog);
+			return new DefaultOperationBuilder<>(catalog);
 		}
 
 		void apply(OperationContext context, QueryRunner queryRunner);
@@ -296,7 +304,7 @@ final class CatalogBasedMigration implements Migration {
 		 * @param ifExits should it be an idempotent operation or not?
 		 * @return Ongoing definition
 		 */
-		BuilderWithTargetItem<DropOperation> drop(Name name, boolean ifExits);
+		BuilderWithTargetItem<T> drop(Name name, boolean ifExits);
 
 		/**
 		 * Creates a new create operation
@@ -305,7 +313,7 @@ final class CatalogBasedMigration implements Migration {
 		 * @param ifNotExists should it be an idempotent operation or not?
 		 * @return Ongoing definition
 		 */
-		BuilderWithTargetItem<CreateOperation> create(Name name, boolean ifNotExists);
+		BuilderWithTargetItem<T> create(Name name, boolean ifNotExists);
 
 		/**
 		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
@@ -341,29 +349,29 @@ final class CatalogBasedMigration implements Migration {
 			this.catalog = catalog;
 		}
 
-		@SuppressWarnings({ "unchecked", "HiddenField" })
+		@SuppressWarnings({"HiddenField" })
 		@Override
-		public BuilderWithTargetItem<DropOperation> drop(Name reference, boolean ifExits) {
+		public BuilderWithTargetItem<T> drop(Name reference, boolean ifExits) {
 
 			this.operator = Operator.DROP;
 			this.reference = reference;
 			this.idempotent = ifExits;
-			return (BuilderWithTargetItem<DropOperation>) this;
+			return this;
 		}
 
-		@SuppressWarnings({ "unchecked", "HiddenField" })
+		@SuppressWarnings({"HiddenField" })
 		@Override
-		public BuilderWithTargetItem<CreateOperation> create(Name reference, boolean ifNotExists) {
+		public BuilderWithTargetItem<T> create(Name reference, boolean ifNotExists) {
 
 			this.operator = Operator.CREATE;
 			this.reference = reference;
 			this.idempotent = ifNotExists;
-			return (BuilderWithTargetItem<CreateOperation>) this;
+			return this;
 		}
 
 		@Override
 		public ApplyOperation apply() {
-			return new DefaultApplyOperation();
+			return new DefaultApplyOperation(catalog);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -519,18 +527,51 @@ final class CatalogBasedMigration implements Migration {
 				catalog.getItemPriorTo(reference, definedAt)
 					.filter(
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
-					.ifPresent(olderItem -> {
-						drop(context, olderItem, queryRunner, renderer, config, false);
-					});
+					.ifPresent(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false));
 			}
 		}
 	}
 
+	/**
+	 * Drops everything from the database catalog, adds everything from the migrations catalog.
+	 */
 	static final class DefaultApplyOperation implements ApplyOperation {
+
+		private final Catalog currentCatalog;
+
+		DefaultApplyOperation(Catalog currentCatalog) {
+			this.currentCatalog = currentCatalog;
+		}
 
 		@Override
 		public void apply(OperationContext context, QueryRunner queryRunner) {
 
+			// Get all the constraints
+			Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner);
+
+			// Make them go away
+			RenderConfig dropConfig = RenderConfig.drop()
+					.forVersionAndEdition(context.version, context.edition);
+			AtomicInteger droppedCnt = new AtomicInteger(0);
+			databaseCatalog.getItems().forEach(catalogItem -> {
+				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, catalogItem);
+				SummaryCounters counters = queryRunner.run(renderer.render(catalogItem, dropConfig)).consume().counters();
+				droppedCnt.addAndGet(counters.constraintsRemoved());
+				droppedCnt.addAndGet(counters.indexesRemoved());
+			});
+
+			// Add the new ones
+			RenderConfig createConfig = RenderConfig.create()
+					.forVersionAndEdition(context.version, context.edition);
+			AtomicInteger addedCnt = new AtomicInteger(0);
+			currentCatalog.getItems().forEach(item -> {
+				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
+				SummaryCounters counters = queryRunner.run(renderer.render(item, createConfig)).consume().counters();
+				addedCnt.addAndGet(counters.constraintsAdded());
+				addedCnt.addAndGet(counters.indexesAdded());
+			});
+
+			LOGGER.log(Level.INFO, () -> String.format("Dropped %d items, added %d new items.", droppedCnt.get(), addedCnt.get()));
 		}
 	}
 }

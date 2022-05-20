@@ -34,7 +34,9 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -53,7 +55,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.summary.ResultSummary;
@@ -130,7 +134,7 @@ class CatalogBasedMigrationTest {
 		}
 
 		@Test
-		void shouldDealWithEmptyDatabasecatalog() {
+		void shouldDealWithEmptyDatabaseCatalog() {
 			Operation operation = Operation.use(catalog).apply();
 
 			Result createResult = mock(Result.class);
@@ -148,7 +152,6 @@ class CatalogBasedMigrationTest {
 			operation.apply(context, runner);
 
 			verify(runner, times(2)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
 			assertThat(argumentCaptor.getAllValues())
 					.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), createQuery);
 			verify(defaultResult).stream();
@@ -156,6 +159,40 @@ class CatalogBasedMigrationTest {
 			verify(summary).counters();
 			verify(counters).constraintsAdded();
 			verify(counters).indexesAdded();
+			verifyNoMoreInteractions(runner, defaultResult, summary, counters);
+		}
+
+		@Test
+		void shouldDealWithEmptyCatalog() {
+			Operation operation = Operation.use(new DefaultCatalog()).apply();
+
+			Result dropResult = mock(Result.class);
+			ResultSummary summary = mock(ResultSummary.class);
+			SummaryCounters counters = mock(SummaryCounters.class);
+			when(counters.constraintsRemoved()).thenReturn(22);
+			when(counters.indexesRemoved()).thenReturn(20);
+			when(summary.counters()).thenReturn(counters);
+			when(dropResult.consume()).thenReturn(summary);
+
+			Map<String, Value> constraints = new HashMap<>();
+			constraints.put("name", Values.value(uniqueBookIdV1.getName().getValue()));
+			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
+			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
+
+			String dropQuery = "DROP CONSTRAINT book_id_unique";
+			when(runner.run(dropQuery)).thenReturn(dropResult);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			operation.apply(context, runner);
+
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			assertThat(argumentCaptor.getAllValues())
+					.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), dropQuery);
+			verify(defaultResult).stream();
+			verify(dropResult).consume();
+			verify(summary).counters();
+			verify(counters).constraintsRemoved();
+			verify(counters).indexesRemoved();
 			verifyNoMoreInteractions(runner, defaultResult, summary, counters);
 		}
 	}

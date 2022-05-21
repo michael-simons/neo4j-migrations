@@ -291,6 +291,16 @@ final class CatalogBasedMigration implements Migration {
 	}
 
 	/**
+	 * This operation takes the current catalog and checks whether all items in the version second to last are
+	 * defined in the same or equivalent fashion in the database or if both this catalog or the database are empty. The
+	 * assertion is done before the most recent version so that - if necessary - all create and drop operations can be
+	 * safely applied. Thus, you can even assert an empty catalog. This behaviour can be switched to using the current
+	 * version by using the appropriate argument to builder method.
+	 */
+	interface VerifyOperation extends Operation {
+	}
+
+	/**
 	 * Entry point for getting hold of operations.
 	 *
 	 * @param <T> The type of operation to build
@@ -322,6 +332,13 @@ final class CatalogBasedMigration implements Migration {
 		 * @return The operation ready to apply.
 		 */
 		ApplyOperation apply();
+
+		/**
+		 * Create a new {@link VerifyOperation}.
+		 * @param useCurrent Use {@literal true} to verify / assert the current version, use {@literal false} to verify the previous.
+		 * @return The operation ready to apply.
+		 */
+		VerifyOperation verify(boolean useCurrent);
 	}
 
 	/**
@@ -372,6 +389,11 @@ final class CatalogBasedMigration implements Migration {
 		@Override
 		public ApplyOperation apply() {
 			return new DefaultApplyOperation(catalog);
+		}
+
+		@Override
+		public VerifyOperation verify(boolean useCurrent) {
+			return new DefaultVerifyOperation(catalog, useCurrent);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -529,6 +551,25 @@ final class CatalogBasedMigration implements Migration {
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
 					.ifPresent(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false));
 			}
+		}
+	}
+
+	/**
+	 * Default implementation of verification.
+	 */
+	static final class DefaultVerifyOperation implements VerifyOperation {
+
+		private final Catalog currentCatalog;
+		private final boolean useCurrent;
+
+		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent) {
+			this.currentCatalog = currentCatalog;
+			this.useCurrent = useCurrent;
+		}
+
+		@Override
+		public void apply(OperationContext context, QueryRunner queryRunner) {
+
 		}
 	}
 

@@ -26,12 +26,25 @@ package ac.simons.neo4j.migrations.core.catalog;
 public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogItem {
 
 	/**
-	 * @return A unique name for a catalog item.
+	 * {@return A unique name for a catalog item}
 	 */
 	Name getName();
 
 	/**
-	 * @return Type information for the given item, specialized to the item type itself.
+	 * {@return Type information for the given item, specialized to the item type itself}
 	 */
 	T getType();
+
+	/**
+	 * @param that The other item to check
+	 * @return {@literal true} if this item is equivalent to {@code that} item
+	 */
+	default boolean isEquivalentTo(CatalogItem<?> that) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * {@return {@literal true} if this item has a generated name}
+	 */
+	boolean hasGeneratedName();
 }

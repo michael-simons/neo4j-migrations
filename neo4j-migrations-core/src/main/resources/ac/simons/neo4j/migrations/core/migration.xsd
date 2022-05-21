@@ -8,17 +8,21 @@
 
 	<xs:complexType name="migration">
 		<xs:sequence>
-			<xs:element name="catalog" minOccurs="0" maxOccurs="1" type="catalog"/>
-			<xs:choice maxOccurs="unbounded">
-				<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
-				<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="idempotentOperation"/>
+			<xs:element name="catalog" minOccurs="0" type="catalog"/>
+			<xs:element name="verify" minOccurs="0" type="verifyOperation" />
+			<xs:choice maxOccurs="1">
+				<xs:choice maxOccurs="unbounded">
+					<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="createOperation"/>
+					<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="dropOperation"/>
+				</xs:choice>
+				<xs:element name="apply" minOccurs="0" type="applyOperation"/>
 			</xs:choice>
 		</xs:sequence>
 	</xs:complexType>
 
 	<xs:complexType name="catalog">
 		<xs:all>
-			<xs:element name="constraints" minOccurs="0" maxOccurs="1">
+			<xs:element name="constraints" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element type="constraint" name="constraint"
@@ -26,7 +30,7 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="indexes" minOccurs="0" maxOccurs="1">
+			<xs:element name="indexes" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element type="index" name="index"
@@ -37,22 +41,49 @@
 		</xs:all>
 	</xs:complexType>
 
-	<xs:complexType name="operation">
-		<xs:sequence>
-			<xs:choice minOccurs="0" maxOccurs="1">
-				<xs:element name="constraint" type="constraint"/>
-				<xs:element name="index" type="index"/>
-			</xs:choice>
-		</xs:sequence>
-		<xs:attribute name="item" type="xs:string"/>
-		<xs:attribute name="ref" type="xs:IDREF"/>
+	<xs:complexType name="operation" />
+
+	<xs:complexType name="applyOperation">
+		<xs:complexContent>
+			<xs:extension base="operation" />
+		</xs:complexContent>
 	</xs:complexType>
 
-	<!-- TODO replace with ifExists/ifNotExists -->
-	<xs:complexType name="idempotentOperation">
+	<xs:complexType name="verifyOperation">
+		<xs:complexContent>
+			<xs:extension base="operation" >
+				<xs:attribute name="useCurrent" type="xs:boolean" default="false"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="itemOperation">
 		<xs:complexContent>
 			<xs:extension base="operation">
-				<xs:attribute name="idempotent" type="xs:boolean" default="true"/>
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="constraint" type="constraint"/>
+						<xs:element name="index" type="index"/>
+					</xs:choice>
+				</xs:sequence>
+				<xs:attribute name="item" type="xs:string"/>
+				<xs:attribute name="ref" type="xs:IDREF"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="createOperation">
+		<xs:complexContent>
+			<xs:extension base="itemOperation">
+				<xs:attribute name="ifNotExists" type="xs:boolean" default="true"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="dropOperation">
+		<xs:complexContent>
+			<xs:extension base="itemOperation">
+				<xs:attribute name="ifExists" type="xs:boolean" default="true"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

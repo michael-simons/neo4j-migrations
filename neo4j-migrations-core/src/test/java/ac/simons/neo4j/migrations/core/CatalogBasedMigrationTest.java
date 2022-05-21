@@ -55,7 +55,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -74,7 +73,7 @@ class CatalogBasedMigrationTest {
 		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/V01__" + in);
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
-		assertThat(schemaBasedMigration.getChecksum()).hasValue("620177586");
+		assertThat(schemaBasedMigration.getChecksum()).hasValue("1098321819");
 		assertThat(schemaBasedMigration.getCatalog().getItems()).hasSize(2);
 	}
 

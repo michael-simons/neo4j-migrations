@@ -107,9 +107,11 @@ NOTE: A word on naming: Neo4j-Migrations requires unique names of catalog items 
       Neo4j database itself, using the name `wurstsalat` for both a constraint and an index is prohibited. Recommended
       names in this case would be `wurstsalat_exists` and `wurstsalat_index`.
 
-Both `create` and `drop` operations can be make idempotent by using `ifNotExists` and `ifExists` attributes.
+Both `create` and `drop` operations are idempotent by default.
+This behaviour can be changed using `ifNotExists` and `ifExists` attributes with a value of `false`.
+
 Be aware that idempotent does not mean "force", especially in the `create` case. If you want to update / replace an existing
-constraint and you are unsure if it does exist or not, use
+constraint, and you are unsure if it does exist or not, use
 
 [source, xml]
 ----
@@ -121,15 +123,18 @@ constraint and you are unsure if it does exist or not, use
 
 The drop operation will ensure that the constraint goes away, and the `create` operation will safely build a new one.
 
-=== Assertions
+=== Verification (or assertions)
 
-`assert` asserts that all items in the catalog are present in exactly the same definition in the database. This is a useful
-step inside a migration to make sure things are "as you expect" before applying further migrations.
+`verify` asserts that all items in the catalog are present in an equivalent or identical form in the database. This is a useful
+step inside a migration to make sure things are "as you expect" before applying further migrations. Thus, it can only be
+used before running any `create`, `drop` or `apply` commands.
 
-The catalog items that are subject to the assertions are made up from all prior versions to the migration in which the `assert`
-appears. As an example, inside migration `V2.1` an `assert` appears. All catalog items from versions 1.0 upto 2.0 will
-take part of the assertion. Items defined in 2.1 with the same name won't be asserted, so that you can assert a given state
-and than redefine parts of it for example.
+The catalog items that are subject to the verification are by default made up from all prior versions to the migration
+in which the `verify` appears. As an example, inside migration `V2.1` a `verify` appears. All catalog items from versions
+1.0 upto 2.0 will take part of the assertion. Items defined in 2.1 with the same name won't be asserted, so that you can
+assert a given state and then redefine parts of it for example.
+This behavior can be changed by using the attribute `latest`, setting it to `true` on the element (`<verify latest="true" />`).
+This will take the catalog as defined in *this* version.
 
 === Applying the whole catalog
 
@@ -141,7 +146,9 @@ WARNING: The `apply` operation loads all supported item types from the database,
          the local catalog. This is a potentially destructive operation as it might drop items you have no replacement for.
          +
          Also be aware that neo4j-migrations will never drop the constraints needed for the locking node to function proper
-         (Basically, none of the constraints defined for the lable `__Neo4jMigrationsLock`).
+         (Basically, none of the constraints defined for the label `__Neo4jMigrationsLock`).
+
+`apply` can't be used together with `drop` or `create` in the same migration.
 
 === Create a catalog from the actual database schema
 

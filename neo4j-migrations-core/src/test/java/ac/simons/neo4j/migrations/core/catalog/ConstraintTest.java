@@ -113,20 +113,16 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseNodeKeyConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null,
-				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
-			Arguments.of("4.0", "a_name",
-				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
-			Arguments.of("4.0", "stupid_stuff",
-				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY"),
-			Arguments.of("4.1", "constraint_name1",
-				"CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY")
+			Arguments.of(null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
+			Arguments.of("a_name", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
+			Arguments.of("stupid_stuff", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname, person.person.whatever, person.person.a,person.b) IS NODE KEY"),
+			Arguments.of("constraint_name1", "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldParseNodeKeyConstraint(String version, String name, String description) {
+	void shouldParseNodeKeyConstraint(String name, String description) {
 
 		Constraint constraint = Constraint.parse(
 			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
@@ -358,6 +354,28 @@ class ConstraintTest {
 		assertThat(constraint.getTarget()).isEqualTo(expectedTarget);
 		assertThat(constraint.getProperties()).containsExactlyElementsOf(expectedProperties);
 		assertThat(constraint.getName()).isEqualTo(Name.of("constraint_name"));
+	}
+
+	@Nested
+	class Names {
+
+		@Test
+		void defaultNameShouldWork() {
+
+			Constraint constraint = Constraint
+					.forNode("Book")
+					.named("book_id_unique")
+					.unique("id");
+			assertThat(constraint.hasGeneratedName()).isFalse();
+		}
+
+		@Test
+		void generatedNameShouldBeIdentifiable() {
+
+			Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+					Arrays.asList("firstname", "surname"));
+			assertThat(constraint.hasGeneratedName()).isTrue();
+		}
 	}
 
 	@Nested

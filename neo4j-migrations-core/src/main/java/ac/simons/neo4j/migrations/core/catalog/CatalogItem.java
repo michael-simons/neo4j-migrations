@@ -42,4 +42,9 @@ public interface CatalogItem<T extends ItemType> {
 	default boolean isEquivalentTo(CatalogItem<?> that) {
 		throw new UnsupportedOperationException();
 	}
+
+	/**
+	 * @return {@literal true} if this item has a generated name.
+	 */
+	boolean hasGeneratedName();
 }

@@ -127,6 +127,11 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	}
 
 	@Override
+	public boolean hasGeneratedName() {
+		return this.getName() instanceof GeneratedName;
+	}
+
+	@Override
 	public final void formatTo(Formatter formatter, int flags, int width, int precision) {
 
 		Appendable out = formatter.out();

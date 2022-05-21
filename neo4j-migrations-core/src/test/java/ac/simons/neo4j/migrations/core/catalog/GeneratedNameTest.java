@@ -28,13 +28,13 @@ class GeneratedNameTest {
 	@Test
 	void idGenerationShouldWork() {
 
-		Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+		Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 		Name name = constraint.getName();
 		Assertions.assertThat(name).isInstanceOf(GeneratedName.class).extracting(Name::getValue)
 			.isEqualTo("Constraint_4006808BBCCF49878FDFA78BF2148FAD");
 
-		Constraint constraint2 = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+		Constraint constraint2 = new Constraint(Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 		Assertions.assertThat(constraint2.getName()).isEqualTo(name);
 	}

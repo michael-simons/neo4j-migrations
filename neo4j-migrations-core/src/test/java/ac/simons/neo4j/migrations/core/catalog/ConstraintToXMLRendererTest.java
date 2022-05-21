@@ -34,7 +34,7 @@ class ConstraintToXMLRendererTest {
 	static Stream<Arguments> shouldRenderConstraintsToXML() {
 		return Stream.of(
 			Arguments.of(Named.of("node property exists",
-					new Constraint("name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book", Collections.singleton("isbn"),
+					new Constraint("name", Constraint.Type.EXISTS, TargetEntityType.NODE, "Book", Collections.singleton("isbn"),
 						"")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 				+ "<constraint name=\"name\" type=\"exists\">\n"
@@ -45,7 +45,7 @@ class ConstraintToXMLRendererTest {
 				+ "</constraint>"
 			),
 			Arguments.of(Named.of("relationship property exists",
-					new Constraint("name", Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
+					new Constraint("name", Constraint.Type.EXISTS, TargetEntityType.RELATIONSHIP, "LIKED",
 						Collections.singleton("day"), "")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 				+ "<constraint name=\"name\" type=\"exists\">\n"
@@ -56,7 +56,7 @@ class ConstraintToXMLRendererTest {
 				+ "</constraint>"
 			),
 			Arguments.of(Named.of("node property is unique",
-					new Constraint("name", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("isbn"),
+					new Constraint("name", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("isbn"),
 						"")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 				+ "<constraint name=\"name\" type=\"unique\">\n"
@@ -67,7 +67,7 @@ class ConstraintToXMLRendererTest {
 				+ "</constraint>"
 			),
 			Arguments.of(Named.of("node key",
-					new Constraint("name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
+					new Constraint("name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 						Arrays.asList("firstname", "surname"), "")),
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 				+ "<constraint name=\"name\" type=\"key\">\n"

@@ -63,7 +63,7 @@ class ConstraintTest {
 			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
-		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
 		if ("stupid_stuff".equals(name)) {
 			assertThat(constraint.getProperties()).containsExactly("fünny things are fünny 😱. Wow.");
@@ -96,7 +96,7 @@ class ConstraintTest {
 			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
-		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
 		if ("stupid_stuff".equals(name)) {
 			assertThat(constraint.getProperties()).containsExactly(
@@ -128,7 +128,7 @@ class ConstraintTest {
 			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
-		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Person");
 		if ("stupid_stuff".equals(name)) {
 			assertThat(constraint.getProperties()).containsExactly("firstname", "surname", "person.whatever",
@@ -161,7 +161,7 @@ class ConstraintTest {
 				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
-		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.RELATIONSHIP);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
 		if ("stupid_stuff".equals(name)) {
 			assertThat(constraint.getProperties()).containsExactly("x,liked.y");
 		} else {
@@ -191,7 +191,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.UNIQUE,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Collections.singletonList("title"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -205,7 +205,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.KEY,
 				"Person",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Arrays.asList("firstname", "surname"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -219,7 +219,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.UNIQUE,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Arrays.asList("a", "b"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -233,7 +233,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.EXISTS,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -247,7 +247,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.EXISTS,
 				"LIKED",
-				TargetEntity.RELATIONSHIP,
+				TargetEntityType.RELATIONSHIP,
 				Collections.singletonList("day"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -261,7 +261,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.UNIQUE,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -281,7 +281,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.KEY,
 				"Person",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Arrays.asList("firstname", "surname"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -295,7 +295,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.EXISTS,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -309,7 +309,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.EXISTS,
 				"LIKED",
-				TargetEntity.RELATIONSHIP,
+				TargetEntityType.RELATIONSHIP,
 				Collections.singletonList("day"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -323,7 +323,7 @@ class ConstraintTest {
 				v,
 				Constraint.Type.UNIQUE,
 				"Book",
-				TargetEntity.NODE,
+				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
 				makeMap(
 					new SimpleEntry<>("name", Values.value("constraint_name")),
@@ -342,7 +342,7 @@ class ConstraintTest {
 		String version,
 		Constraint.Type expectedType,
 		String expectedIdentifier,
-		TargetEntity expectedTarget,
+		TargetEntityType expectedTarget,
 		Collection<String> expectedProperties,
 		Map<String, Value> content) {
 
@@ -351,7 +351,7 @@ class ConstraintTest {
 
 		assertThat(constraint.getType()).isEqualTo(expectedType);
 		assertThat(constraint.getIdentifier()).isEqualTo(expectedIdentifier);
-		assertThat(constraint.getTarget()).isEqualTo(expectedTarget);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(expectedTarget);
 		assertThat(constraint.getProperties()).containsExactlyElementsOf(expectedProperties);
 		assertThat(constraint.getName()).isEqualTo(Name.of("constraint_name"));
 	}
@@ -372,7 +372,7 @@ class ConstraintTest {
 		@Test
 		void generatedNameShouldBeIdentifiable() {
 
-			Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+			Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 					Arrays.asList("firstname", "surname"));
 			assertThat(constraint.hasGeneratedName()).isTrue();
 		}
@@ -401,7 +401,7 @@ class ConstraintTest {
 			}
 
 			assertThat(constraint.getIdentifier()).isEqualTo("Book");
-			assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
+			assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 			assertThat(constraint.getProperties()).containsExactly("bar");
 			assertThat(constraint.getType()).isEqualTo(type);
 			assertThat(constraint.getName()).isEqualTo(Name.of("foo"));
@@ -415,7 +415,7 @@ class ConstraintTest {
 		void keyConstraintsShouldNotBeSupportedOnRelationships() {
 			List<String> properties = Collections.singletonList("x");
 			assertThatIllegalArgumentException().isThrownBy(
-				() -> new Constraint(Constraint.Type.KEY, TargetEntity.RELATIONSHIP, "LIKES", properties)
+				() -> new Constraint(Constraint.Type.KEY, TargetEntityType.RELATIONSHIP, "LIKES", properties)
 			).withMessage("Key constraints are only supported for nodes, not for relationships.");
 		}
 	}
@@ -431,7 +431,7 @@ class ConstraintTest {
 		@Test
 		void shouldNotBeEquivalentToOtherThings() {
 
-			assertThat(uniqueBookIdV1.isEquivalentTo(new AbstractCatalogItem<Constraint.Type>("book_id_unique", Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singletonList("id"), null) {
+			assertThat(uniqueBookIdV1.isEquivalentTo(new AbstractCatalogItem<Constraint.Type>("book_id_unique", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singletonList("id"), null) {
 				@Override public boolean isEquivalentTo(CatalogItem<?> that) {
 					return false;
 				}
@@ -480,14 +480,14 @@ class ConstraintTest {
 		@Test
 		void sameOptionsAreRequired() {
 
-			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("id"), "foo");
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), "foo");
 			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isFalse();
 		}
 
 		@Test
 		void nullOptionsShouldBeSame() {
 
-			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book", Collections.singleton("id"), " ");
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), " ");
 			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
 		}
 

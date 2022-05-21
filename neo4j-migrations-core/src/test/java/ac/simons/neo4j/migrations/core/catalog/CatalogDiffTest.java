@@ -17,7 +17,9 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,14 +30,24 @@ import org.junit.jupiter.api.Test;
 class CatalogDiffTest {
 
 	final Constraint uniqueBookIdV1 = Constraint
-		.forNode("Book")
-		.named("book_id_unique")
-		.unique("id");
+			.forNode("Book")
+			.named("book_id_unique")
+			.unique("id");
 
-	final Constraint uniqueBookIdV2 = Constraint
-		.forNode("Book")
-		.named("book_id_unique")
-		.unique("isbn");
+	final Constraint uniqueBookIdV2a = Constraint
+			.forNode("Book")
+			.named("book_id_unique")
+			.unique("isbn");
+
+	final Constraint uniqueBookIdV2b = Constraint
+			.forNode("Book")
+			.named("eindeutige_buch_id")
+			.unique("isbn");
+
+	final Constraint likeAt = Constraint
+			.forRelationship("LIKED")
+			.named("book_id_unique")
+			.exists("at");
 
 	@Test
 	void emptyCatalogsShouldBeIdentical() {
@@ -77,5 +89,30 @@ class CatalogDiffTest {
 			assertThat(diff.getItemsOnlyInLeft()).containsExactly(uniqueBookIdV1);
 			assertThat(diff.getItemsOnlyInRight()).isEmpty();
 		}
+	}
+
+	@Test
+	void shouldFindElementsOfLeftNotInRightAndVsVersa() {
+
+		List<CatalogItem<?>> left = Arrays.asList(uniqueBookIdV1, uniqueBookIdV2a);
+		List<CatalogItem<?>> right = Arrays.asList(uniqueBookIdV1, likeAt);
+		CatalogDiff diff = CatalogDiff.between(Catalog.of(left), Catalog.of(right));
+		assertThat(diff.identical()).isFalse();
+		assertThat(diff.equivalent()).isFalse();
+		assertThat(diff.getItemsOnlyInLeft()).containsExactly(uniqueBookIdV2a);
+		assertThat(diff.getItemsOnlyInRight()).containsExactly(likeAt);
+	}
+
+	@Test
+	void shouldFindEquivalent() {
+
+		List<CatalogItem<?>> left = Arrays.asList(uniqueBookIdV2a, likeAt);
+		List<CatalogItem<?>> right = Arrays.asList(uniqueBookIdV2b, likeAt);
+		CatalogDiff diff = CatalogDiff.between(Catalog.of(left), Catalog.of(right));
+		assertThat(diff.identical()).isFalse();
+		assertThat(diff.equivalent()).isTrue();
+		assertThat(diff.getItemsOnlyInLeft()).containsExactly(uniqueBookIdV2a);
+		assertThat(diff.getItemsOnlyInRight()).containsExactly(uniqueBookIdV2b);
+		assertThat(diff.getEquivalentItems()).containsExactlyInAnyOrder(uniqueBookIdV2a, uniqueBookIdV2b);
 	}
 }

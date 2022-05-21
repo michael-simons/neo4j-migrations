@@ -118,7 +118,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				String.format("This constraint cannot be created with %s edition.", context.getEdition()));
 		}
 
-		if (item.getTarget() == TargetEntity.NODE) {
+		if (item.getTargetEntityType() == TargetEntityType.NODE) {
 			return renderNodePropertyExists(item, context);
 		}
 		return renderRelationshipPropertyExists(item, context);

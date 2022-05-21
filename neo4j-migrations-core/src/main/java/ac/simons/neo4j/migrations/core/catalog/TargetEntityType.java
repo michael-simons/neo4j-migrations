@@ -21,7 +21,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @author Michael J. Simons
  * @since TBA
  */
-public enum TargetEntity {
+public enum TargetEntityType {
 
 	/**
 	 * The target entity is a node, the identifier is used as a label.

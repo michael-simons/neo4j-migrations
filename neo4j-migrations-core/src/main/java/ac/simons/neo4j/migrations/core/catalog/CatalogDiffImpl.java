@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Michael J. Simons
@@ -30,29 +30,24 @@ final class CatalogDiffImpl implements CatalogDiff {
 
 	private final boolean equivalent;
 
-	private final List<CatalogItem<?>> itemsOnlyInLeft;
+	private final Collection<CatalogItem<?>> itemsOnlyInLeft;
 
-	private final List<CatalogItem<?>> itemsOnlyInRight;
+	private final Collection<CatalogItem<?>> itemsOnlyInRight;
 
-	private final List<List<CatalogItem<?>>> equivalentItemsWithDifferentNames;
+	private final Collection<CatalogItem<?>> equivalentItems;
 
-	CatalogDiffImpl(boolean identical, boolean equivalent) {
-		this.identical = identical;
-		this.equivalent = equivalent;
-		this.itemsOnlyInLeft = Collections.emptyList();
-		this.itemsOnlyInRight = Collections.emptyList();
-		this.equivalentItemsWithDifferentNames = Collections.emptyList();
+	CatalogDiffImpl() {
+		this(Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 	}
 
-	CatalogDiffImpl(boolean identical, boolean equivalent,
-		List<CatalogItem<?>> itemsOnlyInLeft,
-		List<CatalogItem<?>> itemsOnlyInRight,
-		List<List<CatalogItem<?>>> equivalentItemsWithDifferentNames) {
-		this.identical = identical;
-		this.equivalent = equivalent;
+	CatalogDiffImpl(Set<CatalogItem<?>> itemsOnlyInLeft, Set<CatalogItem<?>> itemsOnlyInRight, Set<CatalogItem<?>> equivalentItems) {
+
 		this.itemsOnlyInLeft = itemsOnlyInLeft;
 		this.itemsOnlyInRight = itemsOnlyInRight;
-		this.equivalentItemsWithDifferentNames = equivalentItemsWithDifferentNames;
+		this.equivalentItems = equivalentItems;
+
+		this.identical = itemsOnlyInLeft.isEmpty() && itemsOnlyInRight.isEmpty();
+		this.equivalent = identical || (this.equivalentItems.containsAll(itemsOnlyInLeft) && this.equivalentItems.containsAll(itemsOnlyInRight));
 	}
 
 	@Override
@@ -67,11 +62,16 @@ final class CatalogDiffImpl implements CatalogDiff {
 
 	@Override
 	public Collection<CatalogItem<?>> getItemsOnlyInLeft() {
-		return Collections.unmodifiableList(this.itemsOnlyInLeft);
+		return Collections.unmodifiableCollection(this.itemsOnlyInLeft);
 	}
 
 	@Override
 	public Collection<CatalogItem<?>> getItemsOnlyInRight() {
-		return Collections.unmodifiableList(this.itemsOnlyInRight);
+		return Collections.unmodifiableCollection(this.itemsOnlyInRight);
+	}
+
+	@Override
+	public Collection<CatalogItem<?>> getEquivalentItems() {
+		return Collections.unmodifiableCollection(this.equivalentItems);
 	}
 }

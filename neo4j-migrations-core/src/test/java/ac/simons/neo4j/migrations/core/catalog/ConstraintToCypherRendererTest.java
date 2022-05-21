@@ -50,7 +50,7 @@ class ConstraintToCypherRendererTest {
 	void multiplePropertiesAreOnlySupportedOn44AndHigher(String serverVersion, boolean shouldFail) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.COMMUNITY, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
 			Arrays.asList("a", "b"));
 
@@ -69,7 +69,7 @@ class ConstraintToCypherRendererTest {
 	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Type type) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", type, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", type, TargetEntityType.NODE, "Book",
 			Arrays.asList("a", "b"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -115,7 +115,7 @@ class ConstraintToCypherRendererTest {
 	void shouldRenderSimpleUniqueConstraint(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -127,7 +127,7 @@ class ConstraintToCypherRendererTest {
 	void shouldNotDoIdempotencyOnOldVersions(String version) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(version), Neo4jEdition.COMMUNITY, Operator.CREATE, true);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntity.NODE,
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
 			Collections.singleton("isbn"));
 
@@ -142,7 +142,7 @@ class ConstraintToCypherRendererTest {
 	void nodePropertyExistenceConstraintShouldRequireEE(Neo4jEdition edition) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V3_5, edition, Operator.CREATE, false);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntityType.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -155,7 +155,7 @@ class ConstraintToCypherRendererTest {
 	@CsvSource({ "CREATE, false", "DROP, true" })
 	void idempotencyShouldRequireName(Operator operator, boolean fails) {
 
-		Constraint constraint = new Constraint(Constraint.Type.UNIQUE, TargetEntity.NODE,
+		Constraint constraint = new Constraint(Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
 			Collections.singleton("isbn"));
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of("4.4.4"), Neo4jEdition.COMMUNITY, operator, true);
@@ -208,7 +208,7 @@ class ConstraintToCypherRendererTest {
 	void shouldRenderSimpleNodePropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
-		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.NODE, "Book",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntityType.NODE, "Book",
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -252,7 +252,7 @@ class ConstraintToCypherRendererTest {
 	void shouldRenderSimpleRelPropertyExistenceConstraint(String serverVersion, boolean named, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
-		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntity.RELATIONSHIP, "LIKED",
+		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntityType.RELATIONSHIP, "LIKED",
 				Collections.singleton("day"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -292,7 +292,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
 			idempotent);
-		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntity.NODE, "Person",
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);

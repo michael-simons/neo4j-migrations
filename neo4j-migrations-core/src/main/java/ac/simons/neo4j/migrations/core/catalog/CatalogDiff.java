@@ -15,10 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * This represents a diff results between two catalogs. It offers a handful of convience methods to quickly check if two
@@ -33,16 +34,32 @@ public interface CatalogDiff {
 	static CatalogDiff between(Catalog left, Catalog right) {
 
 		if (left.isEmpty() && right.isEmpty()) {
-			return new CatalogDiffImpl(true, true);
+			return new CatalogDiffImpl();
 		} else if (left.isEmpty() && !right.isEmpty()) {
-			List<CatalogItem<?>> itemsOnlyInRight = new ArrayList<>(right.getItems());
-			return new CatalogDiffImpl(false, false, Collections.emptyList(), itemsOnlyInRight,
-				Collections.emptyList());
+			Set<CatalogItem<?>> itemsOnlyInRight = new HashSet<>(right.getItems());
+			return new CatalogDiffImpl(Collections.emptySet(), itemsOnlyInRight, Collections.emptySet());
 		} else if (!left.isEmpty() && right.isEmpty()) {
-			List<CatalogItem<?>> itemsOnlyInLeft = new ArrayList<>(left.getItems());
-			return new CatalogDiffImpl(false, false, itemsOnlyInLeft, Collections.emptyList(), Collections.emptyList());
+			Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
+			return new CatalogDiffImpl(itemsOnlyInLeft, Collections.emptySet(), Collections.emptySet());
 		} else {
-			throw new IllegalStateException("not done yet");
+			Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
+			Set<CatalogItem<?>> itemsOnlyInRight = new HashSet<>(right.getItems());
+			itemsOnlyInLeft.removeAll(right.getItems());
+			itemsOnlyInRight.removeAll(left.getItems());
+
+			Set<CatalogItem<?>> equivalentItems = new LinkedHashSet<>();
+			for (CatalogItem<?> catalogItem : itemsOnlyInLeft) {
+				if (right.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
+					equivalentItems.add(catalogItem);
+				}
+			}
+			for (CatalogItem<?> catalogItem : itemsOnlyInRight) {
+				if (left.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
+					equivalentItems.add(catalogItem);
+				}
+			}
+
+			return new CatalogDiffImpl(itemsOnlyInLeft, itemsOnlyInRight, equivalentItems);
 		}
 	}
 
@@ -53,4 +70,6 @@ public interface CatalogDiff {
 	Collection<CatalogItem<?>> getItemsOnlyInLeft();
 
 	Collection<CatalogItem<?>> getItemsOnlyInRight();
+
+	Collection<CatalogItem<?>> getEquivalentItems();
 }

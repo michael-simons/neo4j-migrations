@@ -24,6 +24,7 @@ import java.util.Formattable;
 import java.util.Formatter;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	/**
 	 * The type of database entity targeted.
 	 */
-	private final TargetEntity targetEntity;
+	private final TargetEntityType targetEntityType;
 
 	/**
 	 * The identifier of that entity, either a label or a (relationship) type.
@@ -64,21 +65,20 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	 */
 	private final String options;
 
-	AbstractCatalogItem(String name, T type, TargetEntity targetEntity, String identifier,
-		Collection<String> properties, String options) {
+	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
 
 		if (properties.isEmpty()) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
 		}
 
 		this.type = type;
-		this.targetEntity = targetEntity;
+		this.targetEntityType = targetEntityType;
 		this.identifier = identifier;
 		this.properties = new LinkedHashSet<>(properties);
 		this.options = options;
 
 		if (Strings.isBlank(name)) {
-			this.name = GeneratedName.generate(this.getClass(), type, targetEntity, identifier, properties, options);
+			this.name = GeneratedName.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
 		} else {
 			this.name = Name.of(name);
 		}
@@ -101,8 +101,8 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	/**
 	 * @return The target entity of this item.
 	 */
-	public TargetEntity getTarget() {
-		return targetEntity;
+	public TargetEntityType getTargetEntityType() {
+		return targetEntityType;
 	}
 
 	/**
@@ -143,5 +143,22 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		AbstractCatalogItem<?> that = (AbstractCatalogItem<?>) o;
+		return getName().equals(that.getName()) && isEquivalentTo(that);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getName(), getType(), getTargetEntityType(), getIdentifier(), getProperties(), getOptionalOptions());
 	}
 }

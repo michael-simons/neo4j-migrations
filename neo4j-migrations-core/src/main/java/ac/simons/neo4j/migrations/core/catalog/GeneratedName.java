@@ -29,11 +29,10 @@ import java.util.Objects;
  */
 final class GeneratedName implements Name {
 
-	static Name generate(Class<?> classType, ItemType itemType,
-		TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+	static Name generate(Class<?> classType, ItemType itemType, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
 
 		String src = String.format("{type=%s, targetEntity=%s, identifier='%s', properties='%s'%s}", itemType,
-			targetEntity, identifier, String.join(",", properties),
+				targetEntityType, identifier, String.join(",", properties),
 			options == null ? "" : ", options='" + options + '\'');
 
 		String value = String.format("%s_%s",

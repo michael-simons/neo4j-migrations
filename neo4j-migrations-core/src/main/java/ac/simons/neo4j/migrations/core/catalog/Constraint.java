@@ -110,14 +110,14 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	private static class DefaultBuilder implements Builder, NamedBuilder {
-		private final TargetEntity targetEntity;
+		private final TargetEntityType targetEntityType;
 
 		private final String identifier;
 
 		private String name;
 
-		private DefaultBuilder(TargetEntity targetEntity, String identifier) {
-			this.targetEntity = targetEntity;
+		private DefaultBuilder(TargetEntityType targetEntityType, String identifier) {
+			this.targetEntityType = targetEntityType;
 			this.identifier = identifier;
 		}
 
@@ -130,17 +130,17 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		@Override
 		public Constraint unique(String property) {
-			return new Constraint(name, Type.UNIQUE, targetEntity, identifier, Collections.singleton(property));
+			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Collections.singleton(property));
 		}
 
 		@Override
 		public Constraint exists(String property) {
-			return new Constraint(name, Type.EXISTS, targetEntity, identifier, Collections.singleton(property));
+			return new Constraint(name, Type.EXISTS, targetEntityType, identifier, Collections.singleton(property));
 		}
 
 		@Override
 		public Constraint key(String... properties) {
-			return new Constraint(name, Type.KEY, targetEntity, identifier, Arrays.asList(properties));
+			return new Constraint(name, Type.KEY, targetEntityType, identifier, Arrays.asList(properties));
 		}
 	}
 
@@ -151,7 +151,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @return The ongoing builder
 	 */
 	public static Builder forNode(String label) {
-		return new DefaultBuilder(TargetEntity.NODE, label);
+		return new DefaultBuilder(TargetEntityType.NODE, label);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @return The ongoing builder
 	 */
 	public static Builder forRelationship(String type) {
-		return new DefaultBuilder(TargetEntity.RELATIONSHIP, type);
+		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);
 	}
 
 	/**
@@ -202,11 +202,11 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
 		}
 
-		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
+		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
 		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
 
-		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
+		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
 	}
 
 	/**
@@ -220,13 +220,13 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);
 		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
 		NodeList labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.LABEL);
-		TargetEntity targetEntity;
+		TargetEntityType targetEntityType;
 		String identifier;
 		if (labelOrType.getLength() == 0) {
 			labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.TYPE);
-			targetEntity = TargetEntity.RELATIONSHIP;
+			targetEntityType = TargetEntityType.RELATIONSHIP;
 		} else {
-			targetEntity = TargetEntity.NODE;
+			targetEntityType = TargetEntityType.NODE;
 		}
 		identifier = labelOrType.item(0).getTextContent();
 
@@ -245,44 +245,44 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
 		}
 
-		return new Constraint(name, type, targetEntity, identifier, properties, options);
+		return new Constraint(name, type, targetEntityType, identifier, properties, options);
 	}
 
 	private static class PatternHolder {
 
 		private final Pattern pattern;
 		private final Constraint.Type type;
-		private final TargetEntity targetEntity;
+		private final TargetEntityType targetEntityType;
 
-		PatternHolder(String pattern, Type type, TargetEntity targetEntity) {
+		PatternHolder(String pattern, Type type, TargetEntityType targetEntityType) {
 			this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
 			this.type = type;
-			this.targetEntity = targetEntity;
+			this.targetEntityType = targetEntityType;
 		}
 	}
 
 	private static final PatternHolder PATTERN_NODE_PROPERTY_IS_UNIQUE = new PatternHolder(
 		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\(?\\k<var>\\.(?<properties>.+?)\\)? IS UNIQUE",
 		Type.UNIQUE,
-		TargetEntity.NODE
+		TargetEntityType.NODE
 	);
 
 	private static final PatternHolder PATTERN_NODE_PROPERTY_EXISTS = new PatternHolder(
 		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT (?:exists)?\\((?<properties>\\k<var>\\..+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS,
-		TargetEntity.NODE
+		TargetEntityType.NODE
 	);
 
 	private static final PatternHolder PATTERN_NODE_KEY = new PatternHolder(
 		"CONSTRAINT ON \\(\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?\\) ASSERT \\((?<properties>\\k<var>\\..+?)\\) IS NODE KEY",
 		Type.KEY,
-		TargetEntity.NODE
+		TargetEntityType.NODE
 	);
 
 	private static final PatternHolder PATTERN_REL_PROPERTY_EXISTS = new PatternHolder(
 		"CONSTRAINT ON \\(\\)-\\[\\s?(?<var>\\w+):(?<identifier>\\w+)\\s?]-\\(\\) ASSERT (?:exists)?\\((?<properties>\\k<var>\\..+?)\\)(?: IS NOT NULL)?",
 		Type.EXISTS,
-		TargetEntity.RELATIONSHIP
+		TargetEntityType.RELATIONSHIP
 	);
 
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
@@ -321,7 +321,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
 				Stream.of(propertiesGroup.trim());
 			String[] properties = propertiesStream.map(s -> s.replaceFirst(var, "")).toArray(String[]::new);
-			return new Constraint(name, match.type, match.targetEntity, identifier,
+			return new Constraint(name, match.type, match.targetEntityType, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 
@@ -329,19 +329,18 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			String.format("The description '%s' does not match any known pattern.", description));
 	}
 
-	Constraint(Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
-		this(null, type, targetEntity, identifier, properties, null);
+	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties) {
+		this(null, type, targetEntityType, identifier, properties, null);
 	}
 
-	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties) {
-		this(name, type, targetEntity, identifier, properties, null);
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties) {
+		this(name, type, targetEntityType, identifier, properties, null);
 	}
 
-	Constraint(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties,
-		String options) {
-		super(name, type, targetEntity, identifier, properties, options);
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
+		super(name, type, targetEntityType, identifier, properties, options);
 
-		if (type == Type.KEY && getTarget() != TargetEntity.NODE) {
+		if (type == Type.KEY && getTargetEntityType() != TargetEntityType.NODE) {
 			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
 		}
 	}
@@ -353,7 +352,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		element.setAttribute(XMLSchemaConstants.TYPE, getType().name().toLowerCase(Locale.ROOT));
 
 		Element labelOrType;
-		if (getTarget() == TargetEntity.NODE) {
+		if (getTargetEntityType() == TargetEntityType.NODE) {
 			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
 		} else {
 			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
@@ -398,11 +397,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		Constraint other = (Constraint) that;
 
 		return this.getType().equals(other.getType()) &&
-			this.getTarget().equals(other.getTarget()) &&
+			this.getTargetEntityType().equals(other.getTargetEntityType()) &&
 			this.getIdentifier().equals(other.getIdentifier()) &&
 			this.getProperties().equals(other.getProperties()) &&
 			this.getOptionalOptions().equals(other.getOptionalOptions());
 	}
-
-
 }

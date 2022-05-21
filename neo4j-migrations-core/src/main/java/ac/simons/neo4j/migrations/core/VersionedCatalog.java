@@ -32,6 +32,15 @@ import java.util.Optional;
 public interface VersionedCatalog extends Catalog {
 
 	/**
+	 * Creates a view on this catalog prior to the definition of {@code version}.
+	 * @param version The version up to but not including to retrieve items for
+	 * @return A subset of this catalog
+	 */
+	default Catalog getCatalogPriorTo(MigrationVersion version) {
+		return Catalog.of(getItemsPriorTo(version));
+	}
+
+	/**
 	 * A list of all items prior to a given version.
 	 *
 	 * @param version The version up to but not including to retrieve items for

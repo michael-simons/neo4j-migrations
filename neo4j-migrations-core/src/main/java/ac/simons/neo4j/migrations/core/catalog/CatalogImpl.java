@@ -29,14 +29,14 @@ import java.util.List;
  */
 final class CatalogImpl implements Catalog {
 
-	private final List<CatalogItem<?>> constraints;
+	private final List<CatalogItem<?>> items;
 
-	CatalogImpl(List<Constraint> constraints) {
-		this.constraints = Collections.unmodifiableList(new ArrayList<>(constraints));
+	CatalogImpl(Collection<CatalogItem<?>> items) {
+		this.items = Collections.unmodifiableList(new ArrayList<>(items));
 	}
 
 	@Override
 	public Collection<CatalogItem<?>> getItems() {
-		return constraints;
+		return items;
 	}
 }

@@ -39,6 +39,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -335,10 +336,11 @@ final class CatalogBasedMigration implements Migration {
 
 		/**
 		 * Create a new {@link VerifyOperation}.
+		 *
 		 * @param useCurrent Use {@literal true} to verify / assert the current version, use {@literal false} to verify the previous.
 		 * @return The operation ready to apply.
 		 */
-		VerifyOperation verify(boolean useCurrent);
+		VerifyBuilder verify(boolean useCurrent);
 	}
 
 	/**
@@ -351,8 +353,16 @@ final class CatalogBasedMigration implements Migration {
 		T with(MigrationVersion version);
 	}
 
+	/**
+	 * Specifies the version at which verification should take place.
+	 */
+	interface VerifyBuilder {
+
+		VerifyOperation at(MigrationVersion version);
+	}
+
 	private static class DefaultOperationBuilder<T extends Operation>
-		implements BuilderWithCatalog<T>, BuilderWithTargetItem<T> {
+		implements BuilderWithCatalog<T>, BuilderWithTargetItem<T>, VerifyBuilder {
 
 		private final VersionedCatalog catalog;
 
@@ -362,11 +372,13 @@ final class CatalogBasedMigration implements Migration {
 
 		private boolean idempotent;
 
+		private boolean useCurrent;
+
 		DefaultOperationBuilder(VersionedCatalog catalog) {
 			this.catalog = catalog;
 		}
 
-		@SuppressWarnings({"HiddenField" })
+		@SuppressWarnings({ "HiddenField" })
 		@Override
 		public BuilderWithTargetItem<T> drop(Name reference, boolean ifExits) {
 
@@ -376,7 +388,7 @@ final class CatalogBasedMigration implements Migration {
 			return this;
 		}
 
-		@SuppressWarnings({"HiddenField" })
+		@SuppressWarnings({ "HiddenField" })
 		@Override
 		public BuilderWithTargetItem<T> create(Name reference, boolean ifNotExists) {
 
@@ -391,9 +403,12 @@ final class CatalogBasedMigration implements Migration {
 			return new DefaultApplyOperation(catalog);
 		}
 
+		@SuppressWarnings({ "HiddenField" })
 		@Override
-		public VerifyOperation verify(boolean useCurrent) {
-			return new DefaultVerifyOperation(catalog, useCurrent);
+		public VerifyBuilder verify(boolean useCurrent) {
+
+			this.useCurrent = useCurrent;
+			return this;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -407,6 +422,11 @@ final class CatalogBasedMigration implements Migration {
 					return (T) new DefaultCreateOperation(version, reference, idempotent, catalog);
 			}
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public VerifyOperation at(MigrationVersion version) {
+			return new DefaultVerifyOperation(catalog, useCurrent, version);
 		}
 	}
 
@@ -559,17 +579,35 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultVerifyOperation implements VerifyOperation {
 
-		private final Catalog currentCatalog;
+		private final VersionedCatalog currentCatalog;
 		private final boolean useCurrent;
+		private final MigrationVersion currentVersion;
 
-		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent) {
+		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent, MigrationVersion currentVersion) {
 			this.currentCatalog = currentCatalog;
 			this.useCurrent = useCurrent;
+			this.currentVersion = currentVersion;
 		}
 
 		@Override
 		public void apply(OperationContext context, QueryRunner queryRunner) {
 
+			// Get all the constraints
+			Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner);
+
+			if (currentCatalog.isEmpty() && !databaseCatalog.isEmpty()) {
+				// throw new MigrationsException("The currently defined catalog is empty but there are items in the ")
+			}
+
+			Collection<CatalogItem<?>> definedItems;
+			if (useCurrent) {
+				definedItems = currentCatalog.getItems();
+			} else {
+				definedItems = currentCatalog.getItemsPriorTo(currentVersion);
+			}
+			if (true) {
+				throw new UnsupportedOperationException("implement me for real");
+			}
 		}
 	}
 
@@ -592,18 +630,19 @@ final class CatalogBasedMigration implements Migration {
 
 			// Make them go away
 			RenderConfig dropConfig = RenderConfig.drop()
-					.forVersionAndEdition(context.version, context.edition);
+				.forVersionAndEdition(context.version, context.edition);
 			AtomicInteger droppedCnt = new AtomicInteger(0);
 			databaseCatalog.getItems().forEach(catalogItem -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, catalogItem);
-				SummaryCounters counters = queryRunner.run(renderer.render(catalogItem, dropConfig)).consume().counters();
+				SummaryCounters counters = queryRunner.run(renderer.render(catalogItem, dropConfig)).consume()
+					.counters();
 				droppedCnt.addAndGet(counters.constraintsRemoved());
 				droppedCnt.addAndGet(counters.indexesRemoved());
 			});
 
 			// Add the new ones
 			RenderConfig createConfig = RenderConfig.create()
-					.forVersionAndEdition(context.version, context.edition);
+				.forVersionAndEdition(context.version, context.edition);
 			AtomicInteger addedCnt = new AtomicInteger(0);
 			currentCatalog.getItems().forEach(item -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
@@ -612,7 +651,8 @@ final class CatalogBasedMigration implements Migration {
 				addedCnt.addAndGet(counters.indexesAdded());
 			});
 
-			LOGGER.log(Level.INFO, () -> String.format("Dropped %d items, added %d new items.", droppedCnt.get(), addedCnt.get()));
+			LOGGER.log(Level.INFO,
+				() -> String.format("Dropped %d items, added %d new items.", droppedCnt.get(), addedCnt.get()));
 		}
 	}
 }

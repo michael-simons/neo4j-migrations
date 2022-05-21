@@ -51,13 +51,23 @@ public interface Catalog {
 	 */
 	static Catalog of(Document document) {
 
-		List<Constraint> constraints = new ArrayList<>();
+		List<CatalogItem<?>> constraints = new ArrayList<>();
 		NodeList constraintNodeList = document.getElementsByTagName(XMLSchemaConstants.CONSTRAINT);
 		for (int i = 0; i < constraintNodeList.getLength(); ++i) {
 			Element item = (Element) constraintNodeList.item(i);
 			constraints.add(Constraint.parse(item));
 		}
 		return new CatalogImpl(constraints);
+	}
+
+	/**
+	 * Creates a catalog based on the given collection.
+	 *
+	 * @param items A collection of items
+	 * @return A new catalog
+	 */
+	static Catalog of(Collection<CatalogItem<?>> items) {
+		return new CatalogImpl(items);
 	}
 
 	/**
@@ -80,5 +90,12 @@ public interface Catalog {
 	 */
 	default boolean containsEquivalentItem(CatalogItem<?> other) {
 		return this.getItems().stream().anyMatch(item -> item.isEquivalentTo(other));
+	}
+
+	/**
+	 * @return {@literal true} if this catalog is empty.
+	 */
+	default boolean isEmpty() {
+		return this.getItems().isEmpty();
 	}
 }

@@ -462,6 +462,7 @@
 							<exclude>ac/simons/neo4j/migrations/core/DatabaseOperationResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/Migration.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/OperationResult.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/catalog/CatalogItem.class</exclude>
 						</excludes>
 					</configuration>
 					<executions>

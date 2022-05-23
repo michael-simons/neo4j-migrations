@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
 	<catalog>
-		<indexes/>
+		<indexes>
+			<index name="title_index">
+				<label>Book</label>
+				<properties>
+					<property>title</property>
+				</properties>
+			</index>
+			<index name="reads_index">
+				<type>READS</type>
+				<properties>
+					<property>date</property>
+					<property>percentage</property>
+				</properties>
+			</index>
+		</indexes>
 		<constraints>
 			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>

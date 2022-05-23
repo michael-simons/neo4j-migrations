@@ -71,6 +71,10 @@ public final class XMLSchemaConstants {
 	/**
 	 * Constant for the element {@literal indexes}.
 	 */
+	public static final String INDEX = "index";
+	/**
+	 * Constant for the element {@literal indexes}.
+	 */
 	public static final String INDEXES = "indexes";
 	/**
 	 * Constant for the element {@literal constraints}.

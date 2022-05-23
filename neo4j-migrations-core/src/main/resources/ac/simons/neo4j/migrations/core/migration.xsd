@@ -128,6 +128,22 @@
 	<xs:complexType name="index">
 		<xs:complexContent>
 			<xs:extension base="catalogItem">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="label" type="xs:string"/>
+						<xs:element name="type" type="xs:string"/>
+					</xs:choice>
+					<xs:element type="properties" name="properties"/>
+					<xs:element type="xs:string" name="options" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="type">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="property"/>
+							<xs:enumeration value="fulltext"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

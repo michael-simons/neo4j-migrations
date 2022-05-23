@@ -74,6 +74,8 @@ public interface Renderer<T> {
 		if (format == Format.CYPHER) {
 			if (Constraint.class.isAssignableFrom(type)) {
 				return (Renderer<T>) ConstraintToCypherRenderer.INSTANCE;
+			} else if (Index.class.isAssignableFrom(type)) {
+				return (Renderer<T>) IndexToCypherRenderer.INSTANCE;
 			} else if (Catalog.class.isAssignableFrom(type)) {
 				return (Renderer<T>) CatalogToCypherRenderer.INSTANCE;
 			}

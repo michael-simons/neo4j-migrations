@@ -56,7 +56,7 @@ public interface Catalog {
 			throw new IllegalArgumentException("More than one catalog item found.");
 		}
 
-		List<CatalogItem<?>> constraints = new ArrayList<>();
+		List<CatalogItem<?>> items = new ArrayList<>();
 		if (catalog.getLength() == 0) {
 			return Catalog.empty();
 		}
@@ -64,9 +64,16 @@ public interface Catalog {
 		NodeList constraintNodeList = ((Element) catalog.item(0)).getElementsByTagName(XMLSchemaConstants.CONSTRAINT);
 		for (int i = 0; i < constraintNodeList.getLength(); ++i) {
 			Element item = (Element) constraintNodeList.item(i);
-			constraints.add(Constraint.parse(item));
+			items.add(Constraint.parse(item));
 		}
-		return new CatalogImpl(constraints);
+
+		NodeList indexNodeList = ((Element) catalog.item(0)).getElementsByTagName(XMLSchemaConstants.INDEX);
+		for (int i = 0; i < indexNodeList.getLength(); ++i) {
+			Element item = (Element) indexNodeList.item(i);
+			items.add(Index.parse(item));
+		}
+
+		return new CatalogImpl(items);
 	}
 
 	/**

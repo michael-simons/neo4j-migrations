@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
@@ -356,9 +357,17 @@ final class CatalogBasedMigration implements Migration {
 	/**
 	 * Specifies the version at which verification should take place.
 	 */
-	interface VerifyBuilder {
-
+	interface TerminalVerifyBuilder {
 		VerifyOperation at(MigrationVersion version);
+
+	}
+
+	/**
+	 * Allows to configure whether equivalent but not identical catalogs are allowed
+	 */
+	interface VerifyBuilder extends TerminalVerifyBuilder {
+
+		TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent);
 	}
 
 	private static class DefaultOperationBuilder<T extends Operation>
@@ -373,6 +382,8 @@ final class CatalogBasedMigration implements Migration {
 		private boolean idempotent;
 
 		private boolean useCurrent;
+
+		private boolean allowEquivalent = true;
 
 		DefaultOperationBuilder(VersionedCatalog catalog) {
 			this.catalog = catalog;
@@ -411,6 +422,19 @@ final class CatalogBasedMigration implements Migration {
 			return this;
 		}
 
+		@SuppressWarnings({ "HiddenField" })
+		@Override
+		public TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent) {
+
+			this.allowEquivalent = allowEquivalent;
+			return this;
+		}
+
+		@Override
+		public VerifyOperation at(MigrationVersion version) {
+			return new DefaultVerifyOperation(catalog, useCurrent, allowEquivalent, version);
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public T with(MigrationVersion version) {
@@ -422,11 +446,6 @@ final class CatalogBasedMigration implements Migration {
 					return (T) new DefaultCreateOperation(version, reference, idempotent, catalog);
 			}
 			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public VerifyOperation at(MigrationVersion version) {
-			return new DefaultVerifyOperation(catalog, useCurrent, version);
 		}
 	}
 
@@ -581,12 +600,15 @@ final class CatalogBasedMigration implements Migration {
 
 		private final VersionedCatalog currentCatalog;
 		private final boolean useCurrent;
+		private final boolean allowEquivalent;
 		private final MigrationVersion currentVersion;
 
-		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent, MigrationVersion currentVersion) {
+		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent, boolean allowEquivalent,
+			MigrationVersion currentVersion) {
 			this.currentCatalog = currentCatalog;
 			this.useCurrent = useCurrent;
 			this.currentVersion = currentVersion;
+			this.allowEquivalent = allowEquivalent;
 		}
 
 		@Override
@@ -595,18 +617,39 @@ final class CatalogBasedMigration implements Migration {
 			// Get all the constraints
 			Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner);
 
-			if (currentCatalog.isEmpty() && !databaseCatalog.isEmpty()) {
-				// throw new MigrationsException("The currently defined catalog is empty but there are items in the ")
-			}
+			CatalogDiff diff = CatalogDiff.between(databaseCatalog,
+				useCurrent ?
+					currentCatalog.getCatalogAt(currentVersion) :
+					currentCatalog.getCatalogPriorTo(currentVersion));
 
-			Collection<CatalogItem<?>> definedItems;
-			if (useCurrent) {
-				definedItems = currentCatalog.getItems();
+			if (diff.identical()) {
+				LOGGER.log(Level.FINE, "Database schema and catalog are identical.");
+			} else if (diff.equivalent() && allowEquivalent) {
+				if (LOGGER.isLoggable(Level.WARNING)) {
+
+					StringBuilder message = new StringBuilder();
+					Collection<CatalogItem<?>> itemsOnlyInRight = diff.getItemsOnlyInRight();
+					message.append(
+						"Items in the database are not identical to items in the schema catalog. The following items have different names but an equivalent definition:");
+					diff.getItemsOnlyInLeft().forEach(item -> itemsOnlyInRight.stream()
+						.filter(item::isEquivalentTo)
+						.findFirst()
+						.ifPresent(equivalentItem ->
+							message
+								.append(System.lineSeparator())
+								.append("* Database item `")
+								.append(item.getName().getValue())
+								.append("` matches catalog item `")
+								.append(equivalentItem.getName().getValue())
+								.append("`")
+						));
+
+					LOGGER.log(Level.WARNING, message.toString());
+				}
 			} else {
-				definedItems = currentCatalog.getItemsPriorTo(currentVersion);
-			}
-			if (true) {
-				throw new UnsupportedOperationException("implement me for real");
+				throw new MigrationsException(diff.equivalent() ?
+					"Database schema and the catalog are equivalent but the verification requires them to be identical." :
+					"Catalogs are neither identical nor equivalent.");
 			}
 		}
 	}

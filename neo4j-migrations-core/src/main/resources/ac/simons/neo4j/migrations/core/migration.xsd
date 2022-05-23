@@ -53,6 +53,7 @@
 		<xs:complexContent>
 			<xs:extension base="operation" >
 				<xs:attribute name="useCurrent" type="xs:boolean" default="false"/>
+				<xs:attribute name="allowEquivalent" type="xs:boolean" default="true"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

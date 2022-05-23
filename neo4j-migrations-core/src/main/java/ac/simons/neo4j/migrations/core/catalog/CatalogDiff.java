@@ -31,6 +31,13 @@ import java.util.Set;
  */
 public interface CatalogDiff {
 
+	/**
+	 * Creates a diff between to catalogs
+	 *
+	 * @param left  left catalog
+	 * @param right right catalog
+	 * @return a diff on the given catalogs
+	 */
 	static CatalogDiff between(Catalog left, Catalog right) {
 
 		if (left.isEmpty() && right.isEmpty()) {
@@ -63,13 +70,36 @@ public interface CatalogDiff {
 		}
 	}
 
+	/**
+	 * @return {@literal true} if the catalogs are identical, {@literal false} otherwise
+	 */
 	boolean identical();
 
+	/**
+	 * Will always return {@literal true} when {@link #identical()} returns {@literal true}
+	 *
+	 * @return {@literal true} if the catalogs are equivalent, {@literal false} otherwise
+	 */
 	boolean equivalent();
 
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of items that are only in the left catalog
+	 */
 	Collection<CatalogItem<?>> getItemsOnlyInLeft();
 
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of items that are only in the right catalog
+	 */
 	Collection<CatalogItem<?>> getItemsOnlyInRight();
 
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of equivalent items
+	 */
 	Collection<CatalogItem<?>> getEquivalentItems();
 }

@@ -41,6 +41,15 @@ public interface VersionedCatalog extends Catalog {
 	}
 
 	/**
+	 * Creates a view on this catalog at the definition of {@code version}.
+	 * @param version The version up to and including to retrieve the items
+	 * @return A subset of this catalog
+	 */
+	default Catalog getCatalogAt(MigrationVersion version) {
+		return Catalog.of(getItems(version));
+	}
+
+	/**
 	 * A list of all items prior to a given version.
 	 *
 	 * @param version The version up to but not including to retrieve items for

@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -114,6 +115,119 @@ class CatalogBasedMigrationTest {
 		}
 	}
 
+
+	@Nested
+	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	class Verifies extends MockHolder {
+
+		@ParameterizedTest
+		@ValueSource(booleans = {true, false})
+		void shouldDealWithEmptyCatalogs(boolean useCurrent) {
+
+			Operation operation = Operation.use(new DefaultCatalog()).verify(useCurrent).allowEquivalent(true).at(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+
+			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void shouldUsePriorVersion() {
+
+			Operation operation = Operation.use(catalog)
+				.verify(false) // There is nothing prior to version 1, so this will be empty.
+				.allowEquivalent(true)
+				.at(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+
+			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void shouldThrowWhenNotIdentical() {
+
+			Operation operation = Operation.use(catalog)
+				.verify(true)
+				.allowEquivalent(true)
+				.at(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> operation.apply(context, runner))
+				.withMessage("Catalogs are neither identical nor equivalent.");
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void shouldFailWhenEquivalencyIsNotAllowed() {
+
+			Map<String, Value> constraints = new HashMap<>();
+			constraints.put("name", Values.value("foo"));
+			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
+			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
+
+			Operation operation = Operation.use(catalog)
+				.verify(true)
+				.allowEquivalent(false)
+				.at(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> operation.apply(context, runner))
+				.withMessage("Database schema and the catalog are equivalent but the verification requires them to be identical.");
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+
+		@Test
+		void shouldNotFailWhenEquivalencyIsAllowed() {
+
+			Map<String, Value> constraints = new HashMap<>();
+			constraints.put("name", Values.value("foo"));
+			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
+			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
+
+			Operation operation = Operation.use(catalog)
+				.verify(true)
+				.allowEquivalent(true)
+				.at(MigrationVersion.withValue("1"));
+
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+
+			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+
+			verify(runner, times(1)).run(argumentCaptor.capture());
+			String query = argumentCaptor.getValue();
+			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
+			verify(defaultResult).stream();
+			verifyNoMoreInteractions(runner, defaultResult);
+		}
+	}
+
 	@Nested
 	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 	class Applies extends MockHolder {
@@ -123,7 +237,7 @@ class CatalogBasedMigrationTest {
 			Operation operation = Operation.use(new DefaultCatalog()).apply();
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
-			operation.apply(context, runner);
+			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();

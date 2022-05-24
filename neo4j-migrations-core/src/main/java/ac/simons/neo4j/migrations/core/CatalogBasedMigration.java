@@ -67,9 +67,11 @@ import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * A migration based on a catalog. The migration itself can contain a (partial) catalog with items that will be added
@@ -192,6 +194,12 @@ final class CatalogBasedMigration implements Migration {
 		String fileName = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 		MigrationVersion version = MigrationVersion.parse(fileName);
 
+		Document document = parseDocument(url);
+		return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document),
+			parseOperations(document, version));
+	}
+
+	static Document parseDocument(URL url) {
 		try (InputStream source = url.openStream()) {
 			DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
 			documentBuilder.setErrorHandler(new ThrowingErrorHandler());
@@ -199,10 +207,116 @@ final class CatalogBasedMigration implements Migration {
 
 			document.normalizeDocument();
 
-			return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document));
+			return document;
+		} catch (SAXParseException e) {
+			throw new MigrationsException("Could not parse migration: " + e.getMessage());
 		} catch (SAXException | IOException | ParserConfigurationException e) {
-			throw new MigrationsException("Could not parse the given document.", e);
+			throw new MigrationsException("Could not parse the given document", e);
 		}
+	}
+
+	private enum OperationType {
+		verify,
+		create,
+		drop,
+		apply;
+
+		Operation build(Element operationElement, MigrationVersion targetVersion) {
+			switch (this) {
+				case verify:
+					return Operation
+						.verify(Boolean.parseBoolean(operationElement.getAttribute("useCurrent")))
+						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
+						.at(targetVersion);
+				case create:
+				case drop:
+					Optional<Name> optionalName = getOptionalReference(operationElement);
+					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute("ifNotExists"));
+					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute("ifExists"));
+					return optionalName.<Operation>map(name -> {
+						OperationBuilder<?> builder = this == create ?
+							Operation.create(optionalName.get(), ifNotExists) :
+							Operation.drop(optionalName.get(), ifExists);
+						return builder.with(targetVersion);
+					}).orElseGet(() -> this == create ?
+						Operation.create(getLocalItem(operationElement), ifNotExists) :
+						Operation.drop(getLocalItem(operationElement), ifExists)
+					);
+				case apply:
+					return Operation.apply();
+			}
+			throw new IllegalArgumentException("Unsupported operation type: " + this);
+		}
+
+		private Optional<Name> getOptionalReference(Element operationElement) {
+
+			if (operationElement.hasAttribute("ref") && operationElement.hasAttribute("item")) {
+				throw new MigrationsException(
+					"Cannot create an operation referring to an item with both ref and item attributes. Please pick one.");
+			}
+
+			// operationElement.hasAttributes() won't work, as it will always return true as the element has a couple of defaulted attributes
+			if ((operationElement.hasAttribute("ref") || operationElement.hasAttribute("item")) && hasLocalItem(
+				operationElement)) {
+				throw new MigrationsException(
+					"Cannot create an operation referring to an element and defining an item locally at the same time.");
+			}
+
+			if (operationElement.hasAttribute("ref")) {
+				return Optional.of(Name.of(operationElement.getAttribute("ref")));
+			} else if (operationElement.hasAttribute("item")) {
+				return Optional.of(Name.of(operationElement.getAttribute("item")));
+			} else {
+				return Optional.empty();
+			}
+		}
+
+		private CatalogItem<?> getLocalItem(Element operationElement) {
+
+			if (operationElement.getElementsByTagName("constraint").getLength() == 1) {
+				return Constraint.parse((Element) operationElement.getElementsByTagName("constraint").item(0));
+			}
+
+			throw new UnsupportedOperationException("Could not get a local catalog item.");
+		}
+
+		private boolean hasLocalItem(Element operationElement) {
+			if (!operationElement.hasChildNodes()) {
+				return false;
+			}
+			NodeList childNodes = operationElement.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				Node child = childNodes.item(i);
+				if (child instanceof Element) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	static List<Operation> parseOperations(Document document, MigrationVersion version) {
+
+		List<Operation> result = new ArrayList<>();
+
+		// We read the elements as they come, as there is no way to say "give me all elements of a given type"
+		NodeList migration = document.getElementsByTagName("migration");
+		if (migration.getLength() != 1) {
+			throw new MigrationsException("Invalid document: No <migration /> element.");
+		}
+		NodeList childNodes = migration.item(0).getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Node node = childNodes.item(i);
+			String nodeName = node.getNodeName();
+			if (!((node instanceof Element) && XMLSchemaConstants.OPERATIONS.contains(nodeName))) {
+				LOGGER.fine(() -> String.format("Skipping node: %s", nodeName));
+				continue;
+			}
+			OperationType type = OperationType.valueOf(nodeName);
+			result.add(type.build((Element) node, version));
+		}
+
+		return result;
 	}
 
 	private final String source;
@@ -213,11 +327,15 @@ final class CatalogBasedMigration implements Migration {
 
 	private final Catalog catalog;
 
-	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog) {
+	private final List<Operation> operations;
+
+	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog,
+		List<Operation> operations) {
 		this.source = source;
 		this.version = version;
 		this.checksum = checksum;
 		this.catalog = catalog;
+		this.operations = operations;
 	}
 
 	@Override
@@ -247,6 +365,9 @@ final class CatalogBasedMigration implements Migration {
 	@Override
 	public void apply(MigrationContext context) {
 
+		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());
+		new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) context.getCatalog(), context.getSession());
 		throw new UnsupportedOperationException("Not there yet");
 	}
 
@@ -256,9 +377,16 @@ final class CatalogBasedMigration implements Migration {
 
 		final Neo4jEdition edition;
 
-		OperationContext(Neo4jVersion version, Neo4jEdition edition) {
+		final VersionedCatalog catalog;
+
+		final QueryRunner queryRunner;
+
+		OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog,
+			QueryRunner queryRunner) {
 			this.version = version;
 			this.edition = edition;
+			this.catalog = catalog;
+			this.queryRunner = queryRunner;
 		}
 	}
 
@@ -267,23 +395,115 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	interface Operation {
 
-		static <T extends Operation> BuilderWithCatalog<T> use(VersionedCatalog catalog) {
-			return new DefaultOperationBuilder<>(catalog);
+		/**
+		 * Creates a new drop operation
+		 *
+		 * @param name    The name of the item to drop
+		 * @param ifExits should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static OperationBuilder<DropOperation> drop(Name name, boolean ifExits) {
+			return new DefaultOperationBuilder<DropOperation>(Operator.DROP).drop(name, ifExits);
 		}
 
-		void apply(OperationContext context, QueryRunner queryRunner);
+		/**
+		 * Creates a new create operation
+		 *
+		 * @param name        The name of the item to create
+		 * @param ifNotExists should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static OperationBuilder<CreateOperation> create(Name name, boolean ifNotExists) {
+			return new DefaultOperationBuilder<CreateOperation>(Operator.CREATE).create(name, ifNotExists);
+		}
+
+		/**
+		 * Creates a new drop operation
+		 *
+		 * @param item    The item to create
+		 * @param ifExits should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static DropOperation drop(CatalogItem<?> item, boolean ifExits) {
+			return new DefaultOperationBuilder<DropOperation>(Operator.DROP).drop(item, ifExits);
+		}
+
+		/**
+		 * Creates a new create operation
+		 *
+		 * @param item        The item to drop
+		 * @param ifNotExists should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static CreateOperation create(CatalogItem<?> item, boolean ifNotExists) {
+			return new DefaultOperationBuilder<CreateOperation>(Operator.CREATE).create(item, ifNotExists);
+		}
+
+		/**
+		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
+		 * item types from the database, drop them and eventually create the content of the catalog.
+		 *
+		 * @return The operation ready to apply.
+		 */
+		static ApplyOperation apply() {
+			return new DefaultApplyOperation();
+		}
+
+		/**
+		 * Create a new {@link VerifyOperation}.
+		 *
+		 * @param useCurrent Use {@literal true} to verify / assert the current version, use {@literal false} to verify the previous.
+		 * @return The operation ready to apply.
+		 */
+		static VerifyBuilder verify(boolean useCurrent) {
+			return new DefaultOperationBuilder<>(null).verify(useCurrent);
+		}
+
+		/**
+		 * Executes this operation in the given context.
+		 *
+		 * @param context the context in which to execute this operation
+		 */
+		void execute(OperationContext context);
+	}
+
+	/**
+	 * An operation that requires a version to be executed.
+	 */
+	interface VersionSpecificOperation extends Operation {
+
+		/**
+		 * @return the version at which this operation has been defined
+		 */
+		MigrationVersion getDefinedAt();
+	}
+
+	/**
+	 * An operation that requires an item to be executed.
+	 */
+	interface ItemSpecificOperation extends Operation {
+
+		/**
+		 * @return an optional reference to the item that is subject to this operation
+		 */
+		Optional<Name> getReference();
+
+		/**
+		 * @return an optional local item.
+		 */
+		Optional<CatalogItem<?>> getLocalItem();
 	}
 
 	/**
 	 * An operation that creates an item from the catalog inside the database.
 	 */
-	interface CreateOperation extends Operation {
+	interface CreateOperation extends VersionSpecificOperation, ItemSpecificOperation {
 	}
 
 	/**
 	 * An operation that drops an item from the catalog from the database.
 	 */
-	interface DropOperation extends Operation {
+	interface DropOperation extends VersionSpecificOperation, ItemSpecificOperation {
 	}
 
 	/**
@@ -299,49 +519,17 @@ final class CatalogBasedMigration implements Migration {
 	 * safely applied. Thus, you can even assert an empty catalog. This behaviour can be switched to using the current
 	 * version by using the appropriate argument to builder method.
 	 */
-	interface VerifyOperation extends Operation {
-	}
-
-	/**
-	 * Entry point for getting hold of operations.
-	 *
-	 * @param <T> The type of operation to build
-	 */
-	interface BuilderWithCatalog<T extends Operation> {
+	interface VerifyOperation extends VersionSpecificOperation {
 
 		/**
-		 * Creates a new drop operation
-		 *
-		 * @param name    The name of the item to drop
-		 * @param ifExits should it be an idempotent operation or not?
-		 * @return Ongoing definition
+		 * @return {@literal true} if the current version should be verified, defaults to {@literal false}
 		 */
-		BuilderWithTargetItem<T> drop(Name name, boolean ifExits);
+		boolean useCurrent();
 
 		/**
-		 * Creates a new create operation
-		 *
-		 * @param name        The name of the item to create
-		 * @param ifNotExists should it be an idempotent operation or not?
-		 * @return Ongoing definition
+		 * @return {@literal true} if the equivalent catalogs are allowed, defaults to {@literal true}
 		 */
-		BuilderWithTargetItem<T> create(Name name, boolean ifNotExists);
-
-		/**
-		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
-		 * item types from the database, drop them and eventually create the content of the catalog.
-		 *
-		 * @return The operation ready to apply.
-		 */
-		ApplyOperation apply();
-
-		/**
-		 * Create a new {@link VerifyOperation}.
-		 *
-		 * @param useCurrent Use {@literal true} to verify / assert the current version, use {@literal false} to verify the previous.
-		 * @return The operation ready to apply.
-		 */
-		VerifyBuilder verify(boolean useCurrent);
+		boolean allowEquivalent();
 	}
 
 	/**
@@ -349,7 +537,7 @@ final class CatalogBasedMigration implements Migration {
 	 *
 	 * @param <T> The type of operation to build
 	 */
-	interface BuilderWithTargetItem<T extends Operation> {
+	interface OperationBuilder<T extends Operation> {
 
 		T with(MigrationVersion version);
 	}
@@ -359,25 +547,23 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	interface TerminalVerifyBuilder {
 		VerifyOperation at(MigrationVersion version);
-
 	}
 
 	/**
-	 * Allows to configure whether equivalent but not identical catalogs are allowed
+	 * Allows configuring whether equivalent but not identical catalogs are allowed
 	 */
 	interface VerifyBuilder extends TerminalVerifyBuilder {
 
 		TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent);
 	}
 
-	private static class DefaultOperationBuilder<T extends Operation>
-		implements BuilderWithCatalog<T>, BuilderWithTargetItem<T>, VerifyBuilder {
+	private static class DefaultOperationBuilder<T extends Operation> implements OperationBuilder<T>, VerifyBuilder {
 
-		private final VersionedCatalog catalog;
-
-		private Operator operator;
+		private final Operator operator;
 
 		private Name reference;
+
+		private CatalogItem<?> item;
 
 		private boolean idempotent;
 
@@ -385,38 +571,44 @@ final class CatalogBasedMigration implements Migration {
 
 		private boolean allowEquivalent = true;
 
-		DefaultOperationBuilder(VersionedCatalog catalog) {
-			this.catalog = catalog;
+		DefaultOperationBuilder(final Operator operator) {
+			this.operator = operator;
 		}
 
 		@SuppressWarnings({ "HiddenField" })
-		@Override
-		public BuilderWithTargetItem<T> drop(Name reference, boolean ifExits) {
+		OperationBuilder<T> drop(Name reference, boolean ifExits) {
 
-			this.operator = Operator.DROP;
 			this.reference = reference;
 			this.idempotent = ifExits;
 			return this;
 		}
 
 		@SuppressWarnings({ "HiddenField" })
-		@Override
-		public BuilderWithTargetItem<T> create(Name reference, boolean ifNotExists) {
+		OperationBuilder<T> create(Name reference, boolean ifNotExists) {
 
-			this.operator = Operator.CREATE;
 			this.reference = reference;
 			this.idempotent = ifNotExists;
 			return this;
 		}
 
-		@Override
-		public ApplyOperation apply() {
-			return new DefaultApplyOperation(catalog);
+		@SuppressWarnings({ "HiddenField" })
+		DropOperation drop(CatalogItem<?> item, boolean ifExits) {
+
+			this.item = item;
+			this.idempotent = ifExits;
+			return new DefaultDropOperation(null, reference, item, idempotent);
 		}
 
 		@SuppressWarnings({ "HiddenField" })
-		@Override
-		public VerifyBuilder verify(boolean useCurrent) {
+		CreateOperation create(CatalogItem<?> item, boolean ifNotExists) {
+
+			this.item = item;
+			this.idempotent = ifNotExists;
+			return new DefaultCreateOperation(null, reference, item, idempotent);
+		}
+
+		@SuppressWarnings({ "HiddenField" })
+		VerifyBuilder verify(boolean useCurrent) {
 
 			this.useCurrent = useCurrent;
 			return this;
@@ -432,7 +624,7 @@ final class CatalogBasedMigration implements Migration {
 
 		@Override
 		public VerifyOperation at(MigrationVersion version) {
-			return new DefaultVerifyOperation(catalog, useCurrent, allowEquivalent, version);
+			return new DefaultVerifyOperation(useCurrent, allowEquivalent, version);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -441,9 +633,9 @@ final class CatalogBasedMigration implements Migration {
 
 			switch (this.operator) {
 				case DROP:
-					return (T) new DefaultDropOperation(version, reference, idempotent, catalog);
+					return (T) new DefaultDropOperation(version, reference, item, idempotent);
 				case CREATE:
-					return (T) new DefaultCreateOperation(version, reference, idempotent, catalog);
+					return (T) new DefaultCreateOperation(version, reference, item, idempotent);
 			}
 			throw new UnsupportedOperationException();
 		}
@@ -452,28 +644,58 @@ final class CatalogBasedMigration implements Migration {
 	/**
 	 * Some state for all operations working on a specific item defined by a named reference.
 	 */
-	private static abstract class AbstractItemBasedOperation implements Operation {
+	private static abstract class AbstractItemBasedOperation
+		implements VersionSpecificOperation, ItemSpecificOperation {
 
 		protected final MigrationVersion definedAt;
 
 		protected final Name reference;
 
+		protected final CatalogItem<?> localItem;
+
 		protected final boolean idempotent;
 
-		protected final VersionedCatalog catalog;
+		AbstractItemBasedOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> localItem,
+			boolean idempotent) {
 
-		AbstractItemBasedOperation(MigrationVersion definedAt, Name reference, boolean idempotent,
-			VersionedCatalog catalog) {
+			if (definedAt == null && localItem == null) {
+				throw new IllegalArgumentException("Without a version, a concrete, local item is required.");
+			}
+			if (reference != null && localItem != null) {
+				throw new IllegalArgumentException("Either reference or item is required, not both.");
+			}
+
 			this.definedAt = definedAt;
 			this.reference = reference;
+			this.localItem = localItem;
 			this.idempotent = idempotent;
-			this.catalog = catalog;
 		}
 
-		CatalogItem<?> getRequiredItem() {
+		CatalogItem<?> getRequiredItem(VersionedCatalog catalog) {
+
+			// I want Java9+ and better optionals, so that I can or them
+			if (this.localItem != null) {
+				return this.localItem;
+			}
+
 			return catalog.getItem(reference, definedAt).orElseThrow(() -> new MigrationsException(
 				String.format("An item named '%s' has not been defined as of version %s.", reference.getValue(),
 					definedAt.getValue())));
+		}
+
+		@Override
+		public MigrationVersion getDefinedAt() {
+			return definedAt;
+		}
+
+		@Override
+		public Optional<Name> getReference() {
+			return Optional.ofNullable(reference);
+		}
+
+		@Override
+		public Optional<CatalogItem<?>> getLocalItem() {
+			return Optional.ofNullable(localItem);
 		}
 	}
 
@@ -482,15 +704,15 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultCreateOperation extends AbstractItemBasedOperation implements CreateOperation {
 
-		DefaultCreateOperation(MigrationVersion definedAt, Name reference, boolean idempotent,
-			VersionedCatalog catalog) {
-			super(definedAt, reference, idempotent, catalog);
+		DefaultCreateOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> item, boolean idempotent) {
+			super(definedAt, reference, item, idempotent);
 		}
 
 		@Override
-		public void apply(OperationContext context, QueryRunner queryRunner) {
+		public void execute(OperationContext context) {
 
-			CatalogItem<?> item = getRequiredItem();
+			QueryRunner queryRunner = context.queryRunner;
+			CatalogItem<?> item = getRequiredItem(context.catalog);
 			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 			RenderConfig config = RenderConfig.create()
 				.idempotent(idempotent)
@@ -533,14 +755,15 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultDropOperation extends AbstractItemBasedOperation implements DropOperation {
 
-		DefaultDropOperation(MigrationVersion definedAt, Name reference, boolean idempotent, VersionedCatalog catalog) {
-			super(definedAt, reference, idempotent, catalog);
+		DefaultDropOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> item, boolean idempotent) {
+			super(definedAt, reference, item, idempotent);
 		}
 
 		@Override
-		public void apply(OperationContext context, QueryRunner queryRunner) {
+		public void execute(OperationContext context) {
 
-			CatalogItem<?> item = getRequiredItem();
+			QueryRunner queryRunner = context.queryRunner;
+			CatalogItem<?> item = getRequiredItem(context.catalog);
 			Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 			RenderConfig config = RenderConfig.drop()
 				.idempotent(idempotent)
@@ -579,13 +802,13 @@ final class CatalogBasedMigration implements Migration {
 					throw e;
 				}
 
-				if (!fallbackToPrior) {
+				if (!fallbackToPrior || getLocalItem().isPresent()) {
 					return;
 				}
 
 				// If it has been defined in an older version users might have redefined it in this version,
 				// such that couldn't have been dropped
-				catalog.getItemPriorTo(reference, definedAt)
+				context.catalog.getItemPriorTo(reference, definedAt)
 					.filter(
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
 					.ifPresent(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false));
@@ -598,29 +821,28 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultVerifyOperation implements VerifyOperation {
 
-		private final VersionedCatalog currentCatalog;
 		private final boolean useCurrent;
 		private final boolean allowEquivalent;
-		private final MigrationVersion currentVersion;
+		private final MigrationVersion definedAt;
 
-		DefaultVerifyOperation(VersionedCatalog currentCatalog, boolean useCurrent, boolean allowEquivalent,
-			MigrationVersion currentVersion) {
-			this.currentCatalog = currentCatalog;
+		DefaultVerifyOperation(boolean useCurrent, boolean allowEquivalent, MigrationVersion definedAt) {
 			this.useCurrent = useCurrent;
-			this.currentVersion = currentVersion;
+			this.definedAt = definedAt;
 			this.allowEquivalent = allowEquivalent;
 		}
 
 		@Override
-		public void apply(OperationContext context, QueryRunner queryRunner) {
+		public void execute(OperationContext context) {
 
+			QueryRunner queryRunner = context.queryRunner;
 			// Get all the constraints
 			Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner);
+			VersionedCatalog currentCatalog = context.catalog;
 
 			CatalogDiff diff = CatalogDiff.between(databaseCatalog,
 				useCurrent ?
-					currentCatalog.getCatalogAt(currentVersion) :
-					currentCatalog.getCatalogPriorTo(currentVersion));
+					currentCatalog.getCatalogAt(definedAt) :
+					currentCatalog.getCatalogPriorTo(definedAt));
 
 			if (diff.identical()) {
 				LOGGER.log(Level.FINE, "Database schema and catalog are identical.");
@@ -652,6 +874,21 @@ final class CatalogBasedMigration implements Migration {
 					"Catalogs are neither identical nor equivalent.");
 			}
 		}
+
+		@Override
+		public boolean useCurrent() {
+			return useCurrent;
+		}
+
+		@Override
+		public boolean allowEquivalent() {
+			return allowEquivalent;
+		}
+
+		@Override
+		public MigrationVersion getDefinedAt() {
+			return definedAt;
+		}
 	}
 
 	/**
@@ -659,15 +896,10 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultApplyOperation implements ApplyOperation {
 
-		private final Catalog currentCatalog;
-
-		DefaultApplyOperation(Catalog currentCatalog) {
-			this.currentCatalog = currentCatalog;
-		}
-
 		@Override
-		public void apply(OperationContext context, QueryRunner queryRunner) {
+		public void execute(OperationContext context) {
 
+			QueryRunner queryRunner = context.queryRunner;
 			// Get all the constraints
 			Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner);
 
@@ -687,7 +919,7 @@ final class CatalogBasedMigration implements Migration {
 			RenderConfig createConfig = RenderConfig.create()
 				.forVersionAndEdition(context.version, context.edition);
 			AtomicInteger addedCnt = new AtomicInteger(0);
-			currentCatalog.getItems().forEach(item -> {
+			context.catalog.getItems().forEach(item -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 				SummaryCounters counters = queryRunner.run(renderer.render(item, createConfig)).consume().counters();
 				addedCnt.addAndGet(counters.constraintsAdded());

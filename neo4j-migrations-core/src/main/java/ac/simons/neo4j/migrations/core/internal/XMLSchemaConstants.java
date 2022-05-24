@@ -15,6 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Constants used throughout parsing and reading / writing elements and attributes of xml and database constraints.
  *
@@ -63,6 +68,11 @@ public final class XMLSchemaConstants {
 	 * Constant for the element {@literal constraints}.
 	 */
 	public static final String CONSTRAINTS = "constraints";
+	/**
+	 * Constant for the element names of supported operations.
+	 */
+	public static final Set<String> OPERATIONS = Collections.unmodifiableSet(
+		new HashSet<>(Arrays.asList("verify", "create", "drop", "apply")));
 
 	private XMLSchemaConstants() {
 	}

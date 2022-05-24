@@ -215,7 +215,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param constraintElement as defined in {@code migration.xsd}.
 	 * @return The new constraint if the element as parseable
 	 */
-	static Constraint parse(Element constraintElement) {
+	public static Constraint parse(Element constraintElement) {
 
 		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);
 		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));

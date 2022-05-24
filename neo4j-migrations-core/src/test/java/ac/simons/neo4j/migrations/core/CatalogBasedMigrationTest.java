@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -25,8 +26,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.ApplyOperation;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.CreateOperation;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.DefaultDropOperation;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.ItemSpecificOperation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Operation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.OperationContext;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerifyOperation;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
@@ -43,6 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -62,6 +69,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
+import org.w3c.dom.Document;
 
 /**
  * @author Michael J. Simons
@@ -115,20 +123,159 @@ class CatalogBasedMigrationTest {
 		}
 	}
 
+	@Nested
+	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	class Operations {
+
+		@Test
+		void emptyDocumentShouldBeReadable() {
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/no-operations.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.withValue("1"))).isEmpty();
+		}
+
+		@Test
+		void applyShouldWork() {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/apply.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
+				MigrationVersion.withValue("1"));
+			assertThat(operations).hasSize(1)
+				.satisfiesExactly(op -> assertThat(op).isInstanceOf(ApplyOperation.class));
+		}
+
+		@Test
+		void defaultVerifyShouldWork() {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/verify-default.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
+				MigrationVersion.withValue("1"));
+			assertThat(operations).hasSize(1)
+				.satisfiesExactly(op -> {
+					assertThat(op).isInstanceOf(VerifyOperation.class);
+					VerifyOperation verifyOperation = (VerifyOperation) op;
+					assertThat(verifyOperation.useCurrent()).isFalse();
+					assertThat(verifyOperation.allowEquivalent()).isTrue();
+					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
+				});
+		}
+
+
+
+		@Test
+		void verifyModifiedShouldWork() {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/verify-modified.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
+				MigrationVersion.withValue("1"));
+			assertThat(operations).hasSize(1)
+				.satisfiesExactly(op -> {
+					assertThat(op).isInstanceOf(VerifyOperation.class);
+					VerifyOperation verifyOperation = (VerifyOperation) op;
+					assertThat(verifyOperation.useCurrent()).isTrue();
+					assertThat(verifyOperation.allowEquivalent()).isFalse();
+					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
+				});
+		}
+
+		@SuppressWarnings("unused")
+		Stream<Arguments> createsAndDrops() {
+			return Stream.of(
+				Arguments.of("creates.xml", CreateOperation.class),
+				Arguments.of("drops.xml", CatalogBasedMigration.DropOperation.class)
+			);
+		}
+
+		@ParameterizedTest
+		@MethodSource
+		void createsAndDrops(String file, Class<?> expectedType) {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/" + file);
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
+				MigrationVersion.withValue("1"));
+			assertThat(operations).hasSize(4)
+				.satisfies(op -> {
+					assertThat(op).isInstanceOf(expectedType);
+					ItemSpecificOperation operation = (ItemSpecificOperation) op;
+					assertThat(operation.getReference()).hasValue(Name.of("unique_isbn"));
+					assertThat(operation.getLocalItem()).isEmpty();
+				}, Index.atIndex(0))
+				.satisfies(op -> {
+					assertThat(op).isInstanceOf(expectedType);
+					ItemSpecificOperation operation = (ItemSpecificOperation) op;
+					assertThat(operation.getReference()).hasValue(Name.of("definedSomewhereElse"));
+					assertThat(operation.getLocalItem()).isEmpty();
+				}, Index.atIndex(1))
+				.satisfies(op -> {
+					assertThat(op).isInstanceOf(expectedType);
+					ItemSpecificOperation operation = (ItemSpecificOperation) op;
+					assertThat(operation.getReference()).hasValue(Name.of("somewhereElseButNoEmptyElement"));
+					assertThat(operation.getLocalItem()).isEmpty();
+				}, Index.atIndex(2))
+				.satisfies(op -> {
+					assertThat(op).isInstanceOf(expectedType);
+					ItemSpecificOperation operation = (ItemSpecificOperation) op;
+					assertThat(operation.getReference()).isEmpty();
+					assertThat(operation.getLocalItem()).hasValueSatisfying(item -> {
+						assertThat(item).isInstanceOf(Constraint.class);
+						assertThat(item.getName()).isEqualTo(Name.of("someConstraint"));
+					});
+				}, Index.atIndex(3));
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"create", "drop"})
+		void itemShouldRequireRefOrItem(String file) {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/" + file + "-both-ref-and-item.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			MigrationVersion version = MigrationVersion.withValue("1");
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
+				.withMessage(
+					"Cannot create an operation referring to an item with both ref and item attributes. Please pick one.");
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = {"create", "drop"})
+		void itemShouldRequireRefNameOrLocal(String file) {
+
+			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/" + file + "-both-item-and-local.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+			MigrationVersion version = MigrationVersion.withValue("1");
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
+				.withMessage(
+					"Cannot create an operation referring to an element and defining an item locally at the same time.");
+		}
+	}
 
 	@Nested
 	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 	class Verifies extends MockHolder {
 
 		@ParameterizedTest
-		@ValueSource(booleans = {true, false})
+		@ValueSource(booleans = { true, false })
 		void shouldDealWithEmptyCatalogs(boolean useCurrent) {
 
-			Operation operation = Operation.use(new DefaultCatalog()).verify(useCurrent).allowEquivalent(true).at(MigrationVersion.withValue("1"));
+			Operation operation = Operation.verify(useCurrent).allowEquivalent(true)
+				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
+				new DefaultCatalog(), runner);
 
-			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -140,14 +287,15 @@ class CatalogBasedMigrationTest {
 		@Test
 		void shouldUsePriorVersion() {
 
-			Operation operation = Operation.use(catalog)
+			Operation operation = Operation
 				.verify(false) // There is nothing prior to version 1, so this will be empty.
 				.allowEquivalent(true)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 
-			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -159,15 +307,16 @@ class CatalogBasedMigrationTest {
 		@Test
 		void shouldThrowWhenNotIdentical() {
 
-			Operation operation = Operation.use(catalog)
+			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(true)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> operation.apply(context, runner))
+				.isThrownBy(() -> operation.execute(context))
 				.withMessage("Catalogs are neither identical nor equivalent.");
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
@@ -185,16 +334,18 @@ class CatalogBasedMigrationTest {
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
 			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
 
-			Operation operation = Operation.use(catalog)
+			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(false)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> operation.apply(context, runner))
-				.withMessage("Database schema and the catalog are equivalent but the verification requires them to be identical.");
+				.isThrownBy(() -> operation.execute(context))
+				.withMessage(
+					"Database schema and the catalog are equivalent but the verification requires them to be identical.");
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -211,14 +362,15 @@ class CatalogBasedMigrationTest {
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
 			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
 
-			Operation operation = Operation.use(catalog)
+			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(true)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 
-			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -234,10 +386,11 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyCatalogs() {
-			Operation operation = Operation.use(new DefaultCatalog()).apply();
+			Operation operation = Operation.apply();
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
-			assertThatNoException().isThrownBy(() -> operation.apply(context, runner));
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
+				new DefaultCatalog(), runner);
+			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -248,7 +401,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyDatabaseCatalog() {
-			Operation operation = Operation.use(catalog).apply();
+			Operation operation = Operation.apply();
 
 			Result createResult = mock(Result.class);
 			ResultSummary summary = mock(ResultSummary.class);
@@ -261,12 +414,13 @@ class CatalogBasedMigrationTest {
 			String createQuery = "CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.isbn IS UNIQUE";
 			when(runner.run(createQuery)).thenReturn(createResult);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
-			operation.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			operation.execute(context);
 
 			verify(runner, times(2)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-					.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), createQuery);
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), createQuery);
 			verify(defaultResult).stream();
 			verify(createResult).consume();
 			verify(summary).counters();
@@ -277,7 +431,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyCatalog() {
-			Operation operation = Operation.use(new DefaultCatalog()).apply();
+			Operation operation = Operation.apply();
 
 			Result dropResult = mock(Result.class);
 			ResultSummary summary = mock(ResultSummary.class);
@@ -295,12 +449,13 @@ class CatalogBasedMigrationTest {
 			String dropQuery = "DROP CONSTRAINT book_id_unique";
 			when(runner.run(dropQuery)).thenReturn(dropResult);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
-			operation.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
+				new DefaultCatalog(), runner);
+			operation.execute(context);
 
 			verify(runner, times(2)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-					.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), dropQuery);
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), dropQuery);
 			verify(defaultResult).stream();
 			verify(dropResult).consume();
 			verify(summary).counters();
@@ -334,19 +489,19 @@ class CatalogBasedMigrationTest {
 
 			Operation operation;
 			if (operatorUnderTest == Operator.CREATE) {
-				operation = Operation.use(catalog)
+				operation = Operation
 					.create(Name.of("book_id_unique"), false)
 					.with(MigrationVersion.withValue("1"));
 			} else if (operatorUnderTest == Operator.DROP) {
-				operation = Operation.use(catalog)
+				operation = Operation
 					.drop(Name.of("book_id_unique"), false)
 					.with(MigrationVersion.withValue("1"));
 			} else {
 				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
 			}
 
-			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE);
-			operation.apply(context, runner);
+			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE, catalog, runner);
+			operation.execute(context);
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -371,19 +526,20 @@ class CatalogBasedMigrationTest {
 
 			final Operation operation;
 			if (operatorUnderTest == Operator.CREATE) {
-				operation = Operation.use(catalog)
+				operation = Operation
 					.create(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else if (operatorUnderTest == Operator.DROP) {
-				operation = Operation.use(catalog)
+				operation = Operation
 					.drop(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else {
 				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
 			}
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
-			operation.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			operation.execute(context);
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -398,20 +554,21 @@ class CatalogBasedMigrationTest {
 
 			final Operation op;
 			if (operatorUnderTest == Operator.CREATE) {
-				op = Operation.use(catalog)
+				op = Operation
 					.create(Name.of("trololo"), false)
 					.with(MigrationVersion.withValue("1"));
 			} else if (operatorUnderTest == Operator.DROP) {
-				op = Operation.use(catalog)
+				op = Operation
 					.drop(Name.of("trololo"), false)
 					.with(MigrationVersion.withValue("1"));
 			} else {
 				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
 			}
 
-			OperationContext context = new OperationContext(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> op.apply(context, runner))
+				.isThrownBy(() -> op.execute(context))
 				.withMessage("An item named 'trololo' has not been defined as of version 1.");
 		}
 
@@ -430,19 +587,20 @@ class CatalogBasedMigrationTest {
 
 			final Operation op;
 			if (operator == Operator.CREATE) {
-				op = Operation.use(catalog)
+				op = Operation
 					.create(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else if (operator == Operator.DROP) {
-				op = Operation.use(catalog)
+				op = Operation
 					.drop(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else {
 				throw new IllegalArgumentException("Unsupported operator under test " + operator);
 			}
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			op.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			op.execute(context);
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
@@ -465,11 +623,11 @@ class CatalogBasedMigrationTest {
 
 			final Operation op;
 			if (operator == Operator.CREATE) {
-				op = Operation.use(catalog)
+				op = Operation
 					.create(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else if (operator == Operator.DROP) {
-				op = Operation.use(catalog)
+				op = Operation
 					.drop(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else {
@@ -477,9 +635,10 @@ class CatalogBasedMigrationTest {
 			}
 
 			when(runner.run(expectedQuery)).thenThrow(new DatabaseException("Something else is broken", "Oh :("));
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 			assertThatExceptionOfType(DatabaseException.class)
-				.isThrownBy(() -> op.apply(context, runner))
+				.isThrownBy(() -> op.execute(context))
 				.withMessage("Oh :(");
 
 			verify(runner).run(expectedQuery);
@@ -507,7 +666,7 @@ class CatalogBasedMigrationTest {
 			final Operation op;
 			Result result = mock(Result.class);
 			if (operator == Operator.CREATE) {
-				op = Operation.use(catalog)
+				op = Operation
 					.create(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 				when(result.list(Mockito.<Function<Record, Constraint>>any()))
@@ -515,7 +674,7 @@ class CatalogBasedMigrationTest {
 							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
 						.collect(Collectors.toList()));
 			} else if (operator == Operator.DROP) {
-				op = Operation.use(catalog)
+				op = Operation
 					.drop(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 				when(result.list(Mockito.<Function<Record, Constraint>>any())).thenReturn(Collections.emptyList());
@@ -529,8 +688,9 @@ class CatalogBasedMigrationTest {
 			when(runner.run(expectedCall))
 				.thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			op.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			op.execute(context);
 
 			verify(runner).run(expectedQuery);
 			verify(runner).run(expectedCall);
@@ -546,7 +706,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldByHappyWithOtherConstraints() {
 
-			Operation op = Operation.use(catalog)
+			Operation op = Operation
 				.create(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -568,8 +728,9 @@ class CatalogBasedMigrationTest {
 			when(runner.run(expectedCall))
 				.thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			op.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			op.execute(context);
 
 			verify(runner).run(expectedDrop);
 			verify(runner).run(expectedCall);
@@ -581,7 +742,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldRethrowExceptionsWhenNotExistsInTheEnd() {
 
-			Operation op = Operation.use(catalog)
+			Operation op = Operation
 				.create(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -594,9 +755,10 @@ class CatalogBasedMigrationTest {
 			String expectedCall = "CALL db.constraints()";
 			when(runner.run(expectedCall)).thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 			assertThatExceptionOfType(DatabaseException.class)
-				.isThrownBy(() -> op.apply(context, runner))
+				.isThrownBy(() -> op.execute(context))
 				.withMessage("Oh :(");
 
 			verify(runner).run(expectedDrop);
@@ -613,7 +775,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldByHappyWithOtherConstraints() {
 
-			Operation drop = Operation.use(catalog)
+			Operation drop = Operation
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -631,8 +793,9 @@ class CatalogBasedMigrationTest {
 			when(runner.run(expectedCall))
 				.thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			drop.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			drop.execute(context);
 
 			verify(runner).run(expectedDrop);
 			verify(runner).run(expectedCall);
@@ -644,7 +807,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldRethrowExceptionsWhenStillExists() {
 
-			Operation drop = Operation.use(catalog)
+			Operation drop = Operation
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("1"));
 
@@ -660,9 +823,10 @@ class CatalogBasedMigrationTest {
 			String expectedCall = "CALL db.constraints()";
 			when(runner.run(expectedCall)).thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
 			assertThatExceptionOfType(DatabaseException.class)
-				.isThrownBy(() -> drop.apply(context, runner))
+				.isThrownBy(() -> drop.execute(context))
 				.withMessage("Oh :(");
 
 			verify(runner).run(expectedDrop);
@@ -675,7 +839,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void idempotencyOnUnsupportedTargetsShouldTryDroppingOlderVersions() {
 
-			Operation drop = Operation.use(catalog)
+			Operation drop = Operation
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("2"));
 
@@ -691,8 +855,9 @@ class CatalogBasedMigrationTest {
 			String expectedCall = "CALL db.constraints()";
 			when(runner.run(expectedCall)).thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			drop.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			drop.execute(context);
 
 			verify(runner, times(3)).run(argumentCaptor.capture());
 			List<String> queries = argumentCaptor.getAllValues();
@@ -708,9 +873,41 @@ class CatalogBasedMigrationTest {
 		}
 
 		@Test
+		void idempotencyOnUnsupportedTargetsShouldNotTryDroppingOlderVersionsWithLocalItem() {
+
+			Operation drop = Operation
+				.drop(Constraint
+					.forNode("Book")
+					.named("book_id_unique")
+					.unique("isbn"), true);
+
+			Result result = mock(Result.class);
+			when(result.list(Mockito.<Function<Record, Constraint>>any()))
+				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
+						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
+					.collect(Collectors.toList()));
+
+			String firstDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE";
+			when(runner.run(firstDrop))
+				.thenThrow(new DatabaseException(Neo4jCodes.CONSTRAINT_DROP_FAILED, "Oh :("));
+			String expectedCall = Neo4jVersion.V3_5.getShowConstraints();
+			when(runner.run(expectedCall)).thenReturn(result);
+
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			drop.execute(context);
+
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(firstDrop, expectedCall);
+			verify(result).list(Mockito.<Function<Record, Constraint>>any());
+			verifyNoMoreInteractions(runner, result, defaultResult);
+		}
+
+		@Test
 		void shouldNotEndlessLoopWhenTryingOlderVersions() {
 
-			Operation drop = Operation.use(catalog)
+			Operation drop = Operation
 				.drop(Name.of("book_id_unique"), true)
 				.with(MigrationVersion.withValue("2"));
 
@@ -738,8 +935,9 @@ class CatalogBasedMigrationTest {
 			String expectedCall = "CALL db.constraints()";
 			when(runner.run(expectedCall)).thenReturn(result);
 
-			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE);
-			drop.apply(context, runner);
+			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
+				runner);
+			drop.execute(context);
 
 			verify(runner, times(4)).run(argumentCaptor.capture());
 			List<String> queries = argumentCaptor.getAllValues();
@@ -750,6 +948,27 @@ class CatalogBasedMigrationTest {
 				);
 			verify(result, times(2)).list(Mockito.<Function<Record, Constraint>>any());
 			verifyNoMoreInteractions(runner, result, defaultResult);
+		}
+	}
+
+	@Nested
+	class IllegalArguments {
+
+		@Test
+		void nullVersionShouldRequireItem() {
+			assertThatIllegalArgumentException().isThrownBy(() ->
+					new DefaultDropOperation(null, null, null, true))
+				.withMessage("Without a version, a concrete, local item is required.");
+		}
+
+		@Test
+		void shouldBeAnExplicitConfiguration() {
+			assertThatIllegalArgumentException().isThrownBy(() ->
+					new DefaultDropOperation(MigrationVersion.withValue("1"), Name.of("whatever"), Constraint
+						.forNode("Book")
+						.named("book_id_unique")
+						.unique("isbn"), true))
+				.withMessage("Either reference or item is required, not both.");
 		}
 	}
 }

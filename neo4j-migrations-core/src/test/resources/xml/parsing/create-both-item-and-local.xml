@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+
+	<create item="whatever">
+		<constraint name="someConstraint" type="exists">
+			<label>Book</label>
+			<properties>
+				<property>author</property>
+			</properties>
+		</constraint>
+	</create>
+</migration>

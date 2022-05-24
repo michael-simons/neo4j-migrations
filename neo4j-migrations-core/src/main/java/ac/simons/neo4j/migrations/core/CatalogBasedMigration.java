@@ -63,6 +63,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.w3c.dom.CharacterData;
@@ -215,86 +216,6 @@ final class CatalogBasedMigration implements Migration {
 		}
 	}
 
-	private enum OperationType {
-		verify,
-		create,
-		drop,
-		apply;
-
-		Operation build(Element operationElement, MigrationVersion targetVersion) {
-			switch (this) {
-				case verify:
-					return Operation
-						.verify(Boolean.parseBoolean(operationElement.getAttribute("useCurrent")))
-						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
-						.at(targetVersion);
-				case create:
-				case drop:
-					Optional<Name> optionalName = getOptionalReference(operationElement);
-					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute("ifNotExists"));
-					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute("ifExists"));
-					return optionalName.<Operation>map(name -> {
-						OperationBuilder<?> builder = this == create ?
-							Operation.create(optionalName.get(), ifNotExists) :
-							Operation.drop(optionalName.get(), ifExists);
-						return builder.with(targetVersion);
-					}).orElseGet(() -> this == create ?
-						Operation.create(getLocalItem(operationElement), ifNotExists) :
-						Operation.drop(getLocalItem(operationElement), ifExists)
-					);
-				case apply:
-					return Operation.apply();
-			}
-			throw new IllegalArgumentException("Unsupported operation type: " + this);
-		}
-
-		private Optional<Name> getOptionalReference(Element operationElement) {
-
-			if (operationElement.hasAttribute("ref") && operationElement.hasAttribute("item")) {
-				throw new MigrationsException(
-					"Cannot create an operation referring to an item with both ref and item attributes. Please pick one.");
-			}
-
-			// operationElement.hasAttributes() won't work, as it will always return true as the element has a couple of defaulted attributes
-			if ((operationElement.hasAttribute("ref") || operationElement.hasAttribute("item")) && hasLocalItem(
-				operationElement)) {
-				throw new MigrationsException(
-					"Cannot create an operation referring to an element and defining an item locally at the same time.");
-			}
-
-			if (operationElement.hasAttribute("ref")) {
-				return Optional.of(Name.of(operationElement.getAttribute("ref")));
-			} else if (operationElement.hasAttribute("item")) {
-				return Optional.of(Name.of(operationElement.getAttribute("item")));
-			} else {
-				return Optional.empty();
-			}
-		}
-
-		private CatalogItem<?> getLocalItem(Element operationElement) {
-
-			if (operationElement.getElementsByTagName("constraint").getLength() == 1) {
-				return Constraint.parse((Element) operationElement.getElementsByTagName("constraint").item(0));
-			}
-
-			throw new UnsupportedOperationException("Could not get a local catalog item.");
-		}
-
-		private boolean hasLocalItem(Element operationElement) {
-			if (!operationElement.hasChildNodes()) {
-				return false;
-			}
-			NodeList childNodes = operationElement.getChildNodes();
-			for (int i = 0; i < childNodes.getLength(); ++i) {
-				Node child = childNodes.item(i);
-				if (child instanceof Element) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
 	static List<Operation> parseOperations(Document document, MigrationVersion version) {
 
 		List<Operation> result = new ArrayList<>();
@@ -367,8 +288,37 @@ final class CatalogBasedMigration implements Migration {
 
 		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
 		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());
-		new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) context.getCatalog(), context.getSession());
-		throw new UnsupportedOperationException("Not there yet");
+
+		Catalog globalCatalog = context.getCatalog();
+		if (!(globalCatalog instanceof VersionedCatalog)) {
+			throw new MigrationsException("Cannot use catalog based migrations without a versioned catalog.");
+		}
+
+		try (Session session = context.getSession()) {
+			Counters counters = this.operations
+				.stream().sequential()
+				.map(op -> neo4jVersion.hasIdempotentOperations() ?
+					session.writeTransaction(tx -> op.execute(
+						new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, tx))) :
+					op.execute(
+						new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, session))
+				)
+				.peek(ic -> {
+					if (LOGGER.isLoggable(Level.FINE)) {
+						LOGGER.log(Level.FINE,
+							"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes.",
+							ic.toArray());
+					}
+				})
+				.reduce(Counters.empty(), Counters::add);
+
+			LOGGER.log(Level.INFO,
+				"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes in total.",
+				counters.toArray());
+		} catch (VerificationFailedException e) {
+			throw new MigrationsException(
+				"Could not apply migration " + Migrations.toString(this) + " verification failed: " + e.getMessage());
+		}
 	}
 
 	static class OperationContext {
@@ -387,6 +337,231 @@ final class CatalogBasedMigration implements Migration {
 			this.edition = edition;
 			this.catalog = catalog;
 			this.queryRunner = queryRunner;
+		}
+	}
+
+	private enum OperationType {
+		verify,
+		create,
+		drop,
+		apply;
+
+		Operation build(Element operationElement, MigrationVersion targetVersion) {
+			switch (this) {
+				case verify:
+					return Operation
+						.verify(Boolean.parseBoolean(operationElement.getAttribute("useCurrent")))
+						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
+						.at(targetVersion);
+				case create:
+				case drop:
+					Optional<Name> optionalName = getOptionalReference(operationElement);
+					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute("ifNotExists"));
+					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute("ifExists"));
+					return optionalName.<Operation>map(name -> {
+						OperationBuilder<?> builder = this == create ?
+							Operation.create(optionalName.get(), ifNotExists) :
+							Operation.drop(optionalName.get(), ifExists);
+						return builder.with(targetVersion);
+					}).orElseGet(() -> this == create ?
+						Operation.create(getLocalItem(operationElement), ifNotExists) :
+						Operation.drop(getLocalItem(operationElement), ifExists)
+					);
+				case apply:
+					return Operation.apply();
+			}
+			throw new IllegalArgumentException("Unsupported operation type: " + this);
+		}
+
+		private Optional<Name> getOptionalReference(Element operationElement) {
+
+			if (operationElement.hasAttribute("ref") && operationElement.hasAttribute("item")) {
+				throw new IllegalArgumentException(
+					"Cannot create an operation referring to an item with both ref and item attributes. Please pick one.");
+			}
+
+			// operationElement.hasAttributes() won't work, as it will always return true as the element has a couple of defaulted attributes
+			if ((operationElement.hasAttribute("ref") || operationElement.hasAttribute("item")) && hasLocalItem(
+				operationElement)) {
+				throw new IllegalArgumentException(
+					"Cannot create an operation referring to an element and defining an item locally at the same time.");
+			}
+
+			if (operationElement.hasAttribute("ref")) {
+				return Optional.of(Name.of(operationElement.getAttribute("ref")));
+			} else if (operationElement.hasAttribute("item")) {
+				return Optional.of(Name.of(operationElement.getAttribute("item")));
+			} else {
+				return Optional.empty();
+			}
+		}
+
+		private CatalogItem<?> getLocalItem(Element operationElement) {
+
+			if (operationElement.getElementsByTagName("constraint").getLength() == 1) {
+				return Constraint.parse((Element) operationElement.getElementsByTagName("constraint").item(0));
+			}
+
+			throw new UnsupportedOperationException("Could not get a local catalog item.");
+		}
+
+		private boolean hasLocalItem(Element operationElement) {
+			if (!operationElement.hasChildNodes()) {
+				return false;
+			}
+			NodeList childNodes = operationElement.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				Node child = childNodes.item(i);
+				if (child instanceof Element) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	interface Counters {
+
+		static Counters empty() {
+			return EmptyCounters.INSTANCE;
+		}
+
+		static Counters of(SummaryCounters summaryCounters) {
+			return new DefaultCounters(summaryCounters);
+		}
+
+		static Counters of(int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved) {
+			if (indexesAdded == 0 && indexesRemoved == 0 && constraintsAdded == 0 && constraintsRemoved == 0) {
+				return Counters.empty();
+			}
+			return new DefaultCounters(indexesAdded, indexesRemoved, constraintsAdded, constraintsRemoved);
+		}
+
+		/**
+		 * @return number of indexes added to the schema.
+		 */
+		int indexesAdded();
+
+		/**
+		 * @return number of indexes removed from the schema.
+		 */
+		int indexesRemoved();
+
+		/**
+		 * @return number of constraints added to the schema.
+		 */
+		int constraintsAdded();
+
+		/**
+		 * @return number of constraints removed from the schema.
+		 */
+		int constraintsRemoved();
+
+		/**
+		 * Add {@code rhs} to this summary, creating a new one
+		 *
+		 * @param rhs The summary to add to this summary
+		 * @return a new summary
+		 */
+		Counters add(Counters rhs);
+
+		/**
+		 * @return an array of the objects value, useful for loggers; values in the same order as {@link #of(int, int, int, int)}
+		 */
+		default Object[] toArray() {
+			return new Object[] { this.indexesAdded(), this.indexesRemoved(), this.constraintsAdded(),
+				this.constraintsRemoved() };
+		}
+	}
+
+	private enum EmptyCounters implements Counters {
+
+		INSTANCE;
+
+		@Override
+		public int indexesAdded() {
+			return 0;
+		}
+
+		@Override
+		public int indexesRemoved() {
+			return 0;
+		}
+
+		@Override
+		public int constraintsAdded() {
+			return 0;
+		}
+
+		@Override
+		public int constraintsRemoved() {
+			return 0;
+		}
+
+		@Override
+		public Counters add(Counters rhs) {
+			if (rhs == EmptyCounters.INSTANCE) {
+				return this;
+			}
+			return new DefaultCounters(rhs.indexesAdded(), rhs.indexesRemoved(), rhs.constraintsAdded(),
+				rhs.constraintsRemoved());
+		}
+	}
+
+	private static class DefaultCounters implements Counters {
+
+		private final int indexesAdded;
+
+		private final int indexesRemoved;
+
+		private final int constraintsAdded;
+
+		private final int constraintsRemoved;
+
+		DefaultCounters(SummaryCounters counters) {
+			this(counters.indexesAdded(), counters.indexesRemoved(), counters.constraintsAdded(),
+				counters.constraintsRemoved());
+		}
+
+		DefaultCounters(int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved) {
+			this.indexesAdded = indexesAdded;
+			this.indexesRemoved = indexesRemoved;
+			this.constraintsAdded = constraintsAdded;
+			this.constraintsRemoved = constraintsRemoved;
+		}
+
+		@Override
+		public int indexesAdded() {
+			return indexesAdded;
+		}
+
+		@Override
+		public int indexesRemoved() {
+			return indexesRemoved;
+		}
+
+		@Override
+		public int constraintsAdded() {
+			return constraintsAdded;
+		}
+
+		@Override
+		public int constraintsRemoved() {
+			return constraintsRemoved;
+		}
+
+		@Override
+		public Counters add(Counters rhs) {
+
+			if (rhs == EmptyCounters.INSTANCE) {
+				return this;
+			}
+			return new DefaultCounters(
+				this.indexesAdded + rhs.indexesAdded(),
+				this.indexesRemoved + rhs.indexesRemoved(),
+				this.constraintsAdded + rhs.constraintsAdded(),
+				this.constraintsRemoved + rhs.constraintsRemoved()
+			);
 		}
 	}
 
@@ -464,7 +639,7 @@ final class CatalogBasedMigration implements Migration {
 		 *
 		 * @param context the context in which to execute this operation
 		 */
-		void execute(OperationContext context);
+		Counters execute(OperationContext context);
 	}
 
 	/**
@@ -709,7 +884,7 @@ final class CatalogBasedMigration implements Migration {
 		}
 
 		@Override
-		public void execute(OperationContext context) {
+		public Counters execute(OperationContext context) {
 
 			QueryRunner queryRunner = context.queryRunner;
 			CatalogItem<?> item = getRequiredItem(context.catalog);
@@ -720,17 +895,17 @@ final class CatalogBasedMigration implements Migration {
 
 			if (idempotent && !context.version.hasIdempotentOperations()) {
 				config = config.ignoreName();
-				createIfNotExists(context, item, queryRunner, renderer, config);
+				return createIfNotExists(context, item, queryRunner, renderer, config);
 			} else {
-				queryRunner.run(renderer.render(item, config)).consume();
+				return Counters.of(queryRunner.run(renderer.render(item, config)).consume().counters());
 			}
 		}
 
-		private void createIfNotExists(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
+		private Counters createIfNotExists(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
 			Renderer<CatalogItem<?>> renderer, RenderConfig config) {
 
 			try {
-				queryRunner.run(renderer.render(item, config)).consume();
+				return Counters.of(queryRunner.run(renderer.render(item, config)).consume().counters());
 			} catch (Neo4jException e) {
 				// Directly throw anything that can't match
 				if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
@@ -747,6 +922,7 @@ final class CatalogBasedMigration implements Migration {
 					throw e;
 				}
 			}
+			return Counters.empty();
 		}
 	}
 
@@ -760,7 +936,7 @@ final class CatalogBasedMigration implements Migration {
 		}
 
 		@Override
-		public void execute(OperationContext context) {
+		public Counters execute(OperationContext context) {
 
 			QueryRunner queryRunner = context.queryRunner;
 			CatalogItem<?> item = getRequiredItem(context.catalog);
@@ -771,18 +947,18 @@ final class CatalogBasedMigration implements Migration {
 
 			if (idempotent && !context.version.hasIdempotentOperations()) {
 				config = config.ignoreName();
-				drop(context, item, queryRunner, renderer, config, true);
+				return drop(context, item, queryRunner, renderer, config, true);
 			} else {
-				queryRunner.run(renderer.render(item, config)).consume();
+				return Counters.of(queryRunner.run(renderer.render(item, config)).consume().counters());
 			}
 		}
 
-		private void drop(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
+		private Counters drop(OperationContext context, CatalogItem<?> item, QueryRunner queryRunner,
 			Renderer<CatalogItem<?>> renderer,
 			RenderConfig config, boolean fallbackToPrior) {
 
 			try {
-				queryRunner.run(renderer.render(item, config)).consume();
+				return Counters.of(queryRunner.run(renderer.render(item, config)).consume().counters());
 			} catch (Neo4jException e) {
 				// Directly throw anything that can't match
 				if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {
@@ -794,7 +970,7 @@ final class CatalogBasedMigration implements Migration {
 
 				// Let's skip all the hard work directly
 				if (constraints.isEmpty()) {
-					return;
+					return Counters.empty();
 				}
 
 				// Directly throw if it is still there
@@ -803,15 +979,16 @@ final class CatalogBasedMigration implements Migration {
 				}
 
 				if (!fallbackToPrior || getLocalItem().isPresent()) {
-					return;
+					return Counters.empty();
 				}
 
 				// If it has been defined in an older version users might have redefined it in this version,
 				// such that couldn't have been dropped
-				context.catalog.getItemPriorTo(reference, definedAt)
+				return context.catalog.getItemPriorTo(reference, definedAt)
 					.filter(
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
-					.ifPresent(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false));
+					.map(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false))
+					.orElseGet(Counters::empty);
 			}
 		}
 	}
@@ -832,7 +1009,7 @@ final class CatalogBasedMigration implements Migration {
 		}
 
 		@Override
-		public void execute(OperationContext context) {
+		public Counters execute(OperationContext context) {
 
 			QueryRunner queryRunner = context.queryRunner;
 			// Get all the constraints
@@ -869,10 +1046,12 @@ final class CatalogBasedMigration implements Migration {
 					LOGGER.log(Level.WARNING, message.toString());
 				}
 			} else {
-				throw new MigrationsException(diff.equivalent() ?
+				throw new VerificationFailedException(diff.equivalent() ?
 					"Database schema and the catalog are equivalent but the verification requires them to be identical." :
 					"Catalogs are neither identical nor equivalent.");
 			}
+
+			return Counters.empty();
 		}
 
 		@Override
@@ -891,13 +1070,22 @@ final class CatalogBasedMigration implements Migration {
 		}
 	}
 
+	static final class VerificationFailedException extends RuntimeException {
+
+		private static final long serialVersionUID = 6481650211840799118L;
+
+		VerificationFailedException(String message) {
+			super(message);
+		}
+	}
+
 	/**
 	 * Drops everything from the database catalog, adds everything from the migrations catalog.
 	 */
 	static final class DefaultApplyOperation implements ApplyOperation {
 
 		@Override
-		public void execute(OperationContext context) {
+		public Counters execute(OperationContext context) {
 
 			QueryRunner queryRunner = context.queryRunner;
 			// Get all the constraints
@@ -906,28 +1094,30 @@ final class CatalogBasedMigration implements Migration {
 			// Make them go away
 			RenderConfig dropConfig = RenderConfig.drop()
 				.forVersionAndEdition(context.version, context.edition);
-			AtomicInteger droppedCnt = new AtomicInteger(0);
+			AtomicInteger constraintsRemoved = new AtomicInteger(0);
+			AtomicInteger indexesRemoved = new AtomicInteger(0);
 			databaseCatalog.getItems().forEach(catalogItem -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, catalogItem);
 				SummaryCounters counters = queryRunner.run(renderer.render(catalogItem, dropConfig)).consume()
 					.counters();
-				droppedCnt.addAndGet(counters.constraintsRemoved());
-				droppedCnt.addAndGet(counters.indexesRemoved());
+				constraintsRemoved.addAndGet(counters.constraintsRemoved());
+				indexesRemoved.addAndGet(counters.indexesRemoved());
 			});
 
 			// Add the new ones
 			RenderConfig createConfig = RenderConfig.create()
 				.forVersionAndEdition(context.version, context.edition);
-			AtomicInteger addedCnt = new AtomicInteger(0);
+			AtomicInteger constraintsAdded = new AtomicInteger(0);
+			AtomicInteger indexesAdded = new AtomicInteger(0);
 			context.catalog.getItems().forEach(item -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 				SummaryCounters counters = queryRunner.run(renderer.render(item, createConfig)).consume().counters();
-				addedCnt.addAndGet(counters.constraintsAdded());
-				addedCnt.addAndGet(counters.indexesAdded());
+				constraintsAdded.addAndGet(counters.constraintsAdded());
+				indexesAdded.addAndGet(counters.indexesAdded());
 			});
 
-			LOGGER.log(Level.INFO,
-				() -> String.format("Dropped %d items, added %d new items.", droppedCnt.get(), addedCnt.get()));
+			return Counters.of(indexesAdded.get(), indexesRemoved.get(), constraintsAdded.get(),
+				constraintsRemoved.get());
 		}
 	}
 }

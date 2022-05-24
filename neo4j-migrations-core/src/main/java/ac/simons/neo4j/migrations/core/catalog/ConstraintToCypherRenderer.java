@@ -188,6 +188,10 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderUniqueConstraint(Constraint constraint, RenderConfig context) {
 
+		if (constraint.getProperties().size() > 1 && context.getVersion().isPriorTo44()) {
+			throw new IllegalArgumentException("Composite unique constraints are not supported prior to Neo4j/4.4.");
+		}
+
 		Formattable item = formattableItem(constraint, context);
 		String identifier = constraint.getIdentifier();
 		String properties = renderProperties("n", constraint);

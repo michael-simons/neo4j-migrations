@@ -17,6 +17,9 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +51,12 @@ public final class Migrations {
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
-	private static final String UNIQUE_VERSION = "unique_version___Neo4jMigration";
+
+	static final Constraint UNIQUE_VERSION =
+		Constraint.forNode("__Neo4jMigration")
+			.named("unique_version___Neo4jMigration")
+			.unique("version", "migrationTarget");
+
 
 	private final MigrationsConfig config;
 	private final Driver driver;
@@ -382,9 +390,13 @@ public final class Migrations {
 			return;
 		}
 
+		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			final String stmt = "CREATE CONSTRAINT $name IF NOT EXISTS FOR (m:__Neo4jMigration) REQUIRE (m.version, m.migrationTarget) IS UNIQUE";
-			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, UNIQUE_VERSION, () -> "Could not create unique constraint for targeted migrations.");
+			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+
+			final String stmt = renderer.render(UNIQUE_VERSION, createConfig);
+			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, null, () -> "Could not create unique constraint for targeted migrations.");
 		}
 	}
 
@@ -412,6 +424,8 @@ public final class Migrations {
 				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
 				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
+			} catch (MigrationsException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new MigrationsException("Could not apply migration: " + toString(migration) + ".", e);
 			} finally {

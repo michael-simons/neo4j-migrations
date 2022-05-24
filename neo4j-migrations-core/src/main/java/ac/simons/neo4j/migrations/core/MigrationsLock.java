@@ -45,11 +45,7 @@ final class MigrationsLock {
 	private static final Supplier<String> LOCK_FAILED_MESSAGE_SUPPLIER = () -> Messages.INSTANCE.get("lock_failed");
 	private static final Renderer<Constraint> CONSTRAINT_RENDERER = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 
-	private final MigrationContext context;
-	private final String id = UUID.randomUUID().toString();
-	private final String nameOfLock;
-
-	private final Constraint[] REQUIRED_CONSTRAINTS = new Constraint[] {
+	static final Constraint[] REQUIRED_CONSTRAINTS = new Constraint[] {
 		Constraint.forNode("__Neo4jMigrationsLock")
 			.named("__Neo4jMigrationsLock__has_unique_id")
 			.unique("id"),
@@ -58,6 +54,10 @@ final class MigrationsLock {
 			.named("__Neo4jMigrationsLock__has_unique_name")
 			.unique("name")
 	};
+
+	private final MigrationContext context;
+	private final String id = UUID.randomUUID().toString();
+	private final String nameOfLock;
 
 	private final Thread cleanUpTask = new Thread(this::unlock0);
 

@@ -52,11 +52,16 @@ public interface Catalog {
 	 */
 	static Catalog of(Document document) {
 
-		List<CatalogItem<?>> constraints = new ArrayList<>();
 		NodeList catalog = document.getElementsByTagName(XMLSchemaConstants.CATALOG);
 		if (catalog.getLength() > 1) {
 			throw new MigrationsException("More than one catalog item found.");
 		}
+
+		List<CatalogItem<?>> constraints = new ArrayList<>();
+		if (catalog.getLength() == 0) {
+			return Catalog.empty();
+		}
+
 		NodeList constraintNodeList = ((Element) catalog.item(0)).getElementsByTagName(XMLSchemaConstants.CONSTRAINT);
 		for (int i = 0; i < constraintNodeList.getLength(); ++i) {
 			Element item = (Element) constraintNodeList.item(i);

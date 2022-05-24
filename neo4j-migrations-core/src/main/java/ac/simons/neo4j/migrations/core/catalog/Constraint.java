@@ -87,10 +87,10 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		/**
 		 * Creates a unique constraint for the given property
 		 *
-		 * @param property the property that should be unique
+		 * @param properties the property that should be unique
 		 * @return the new constraint
 		 */
-		Constraint unique(String property);
+		Constraint unique(String... properties);
 
 		/**
 		 * Creates an existential constraint for the given property
@@ -129,8 +129,8 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 
 		@Override
-		public Constraint unique(String property) {
-			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Collections.singleton(property));
+		public Constraint unique(String... properties) {
+			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Arrays.asList(properties));
 		}
 
 		@Override

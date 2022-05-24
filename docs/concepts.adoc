@@ -156,6 +156,8 @@ The API has an additional method `dump` that is exposed in various forms, for ex
 all items in the actual, physical schema as a catalog definition.
 
 NOTE: TODO Explain XML Schema
+      +
+      TODO Explain retries (not doing on 3.5 and 4.0)
 
 [[concepts_migrations]]
 == Migrations

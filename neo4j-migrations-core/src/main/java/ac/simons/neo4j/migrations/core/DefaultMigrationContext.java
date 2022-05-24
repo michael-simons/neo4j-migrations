@@ -65,6 +65,8 @@ final class DefaultMigrationContext implements MigrationContext {
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile ConnectionDetails connectionDetails;
 
+	private final VersionedCatalog catalog = new DefaultCatalog();
+
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
 		if (config.getOptionalImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
@@ -154,7 +156,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	@Override
 	public Catalog getCatalog() {
-		return Catalog.empty();
+		return catalog;
 	}
 
 	private ConnectionDetails getConnectionDetails0() {

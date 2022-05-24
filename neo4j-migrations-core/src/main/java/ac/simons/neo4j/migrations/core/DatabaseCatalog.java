@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -40,7 +41,10 @@ final class DatabaseCatalog implements Catalog {
 		Set<CatalogItem<?>> items = new HashSet<>();
 
 		queryRunner.run(version.getShowConstraints())
-			.stream().map(Constraint::parse)
+			.stream()
+			.map(Constraint::parse)
+			.filter(constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS).noneMatch(constraint::isEquivalentTo))
+			.filter(constraint -> !Migrations.UNIQUE_VERSION.isEquivalentTo(constraint))
 			.forEach(items::add);
 
 		// TODO indexes, don't refactor above into collectInto() yet

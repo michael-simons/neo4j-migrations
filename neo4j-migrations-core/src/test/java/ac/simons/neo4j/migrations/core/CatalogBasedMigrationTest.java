@@ -27,11 +27,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.ApplyOperation;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Counters;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.CreateOperation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.DefaultDropOperation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.ItemSpecificOperation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Operation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.OperationContext;
+import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerificationFailedException;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerifyOperation;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
@@ -165,8 +167,6 @@ class CatalogBasedMigrationTest {
 				});
 		}
 
-
-
 		@Test
 		void verifyModifiedShouldWork() {
 
@@ -233,28 +233,28 @@ class CatalogBasedMigrationTest {
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"create", "drop"})
+		@ValueSource(strings = { "create", "drop" })
 		void itemShouldRequireRefOrItem(String file) {
 
 			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/" + file + "-both-ref-and-item.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			MigrationVersion version = MigrationVersion.withValue("1");
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatIllegalArgumentException()
 				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
 				.withMessage(
 					"Cannot create an operation referring to an item with both ref and item attributes. Please pick one.");
 		}
 
 		@ParameterizedTest
-		@ValueSource(strings = {"create", "drop"})
+		@ValueSource(strings = { "create", "drop" })
 		void itemShouldRequireRefNameOrLocal(String file) {
 
 			URL url = CatalogBasedMigration.class.getResource("/xml/parsing/" + file + "-both-item-and-local.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			MigrationVersion version = MigrationVersion.withValue("1");
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatIllegalArgumentException()
 				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
 				.withMessage(
 					"Cannot create an operation referring to an element and defining an item locally at the same time.");
@@ -315,7 +315,7 @@ class CatalogBasedMigrationTest {
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
 
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatExceptionOfType(VerificationFailedException.class)
 				.isThrownBy(() -> operation.execute(context))
 				.withMessage("Catalogs are neither identical nor equivalent.");
 
@@ -342,7 +342,7 @@ class CatalogBasedMigrationTest {
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
 
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatExceptionOfType(VerificationFailedException.class)
 				.isThrownBy(() -> operation.execute(context))
 				.withMessage(
 					"Database schema and the catalog are equivalent but the verification requires them to be identical.");
@@ -485,29 +485,43 @@ class CatalogBasedMigrationTest {
 
 		@ParameterizedTest
 		@MethodSource
-		void simpleOpsShouldWork(Operator operatorUnderTest, Neo4jVersion version, String expected) {
+		void simpleOpsShouldWork(Operator operator, Neo4jVersion version, String expectedQuery) {
 
 			Operation operation;
-			if (operatorUnderTest == Operator.CREATE) {
+			if (operator == Operator.CREATE) {
 				operation = Operation
 					.create(Name.of("book_id_unique"), false)
 					.with(MigrationVersion.withValue("1"));
-			} else if (operatorUnderTest == Operator.DROP) {
+			} else if (operator == Operator.DROP) {
 				operation = Operation
 					.drop(Name.of("book_id_unique"), false)
 					.with(MigrationVersion.withValue("1"));
 			} else {
-				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
+				throw new IllegalArgumentException("Unsupported operator under test " + operator);
 			}
 
+			Result opResult = mock(Result.class);
+			ResultSummary resultSummary = mock(ResultSummary.class);
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.constraintsAdded()).thenReturn(1);
+			when(summaryCounters.constraintsRemoved()).thenReturn(2);
+			when(resultSummary.counters()).thenReturn(summaryCounters);
+			when(opResult.consume()).thenReturn(resultSummary);
+			when(runner.run(expectedQuery)).thenReturn(opResult);
+
 			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE, catalog, runner);
-			operation.execute(context);
+			Counters counters = operation.execute(context);
+			if (operator == Operator.CREATE) {
+				assertThat(counters.constraintsAdded()).isEqualTo(1);
+			} else {
+				assertThat(counters.constraintsRemoved()).isEqualTo(2);
+			}
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(expected);
-			verify(defaultResult).consume();
-			verifyNoMoreInteractions(runner, defaultResult);
+			assertThat(query).isEqualTo(expectedQuery);
+			verify(opResult).consume();
+			verifyNoMoreInteractions(runner, defaultResult, opResult);
 		}
 
 		@SuppressWarnings("unused")
@@ -522,30 +536,44 @@ class CatalogBasedMigrationTest {
 
 		@ParameterizedTest
 		@MethodSource
-		void idempotencyOnSupportedTargetsShouldWork(Operator operatorUnderTest, String expectedQuery) {
+		void idempotencyOnSupportedTargetsShouldWork(Operator operator, String expectedQuery) {
 
 			final Operation operation;
-			if (operatorUnderTest == Operator.CREATE) {
+			if (operator == Operator.CREATE) {
 				operation = Operation
 					.create(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
-			} else if (operatorUnderTest == Operator.DROP) {
+			} else if (operator == Operator.DROP) {
 				operation = Operation
 					.drop(Name.of("book_id_unique"), true)
 					.with(MigrationVersion.withValue("1"));
 			} else {
-				throw new IllegalArgumentException("Unsupported operator under test " + operatorUnderTest);
+				throw new IllegalArgumentException("Unsupported operator under test " + operator);
 			}
+
+			Result opResult = mock(Result.class);
+			ResultSummary resultSummary = mock(ResultSummary.class);
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.constraintsAdded()).thenReturn(1);
+			when(summaryCounters.constraintsRemoved()).thenReturn(2);
+			when(resultSummary.counters()).thenReturn(summaryCounters);
+			when(opResult.consume()).thenReturn(resultSummary);
+			when(runner.run(expectedQuery)).thenReturn(opResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
-			operation.execute(context);
+			Counters counters = operation.execute(context);
+			if (operator == Operator.CREATE) {
+				assertThat(counters.constraintsAdded()).isEqualTo(1);
+			} else {
+				assertThat(counters.constraintsRemoved()).isEqualTo(2);
+			}
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
 			assertThat(query).isEqualTo(expectedQuery);
-			verify(defaultResult).consume();
-			verifyNoMoreInteractions(runner, defaultResult);
+			verify(opResult).consume();
+			verifyNoMoreInteractions(runner, defaultResult, opResult);
 		}
 
 		@ParameterizedTest
@@ -598,15 +626,29 @@ class CatalogBasedMigrationTest {
 				throw new IllegalArgumentException("Unsupported operator under test " + operator);
 			}
 
+			Result opResult = mock(Result.class);
+			ResultSummary resultSummary = mock(ResultSummary.class);
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.constraintsAdded()).thenReturn(1);
+			when(summaryCounters.constraintsRemoved()).thenReturn(2);
+			when(resultSummary.counters()).thenReturn(summaryCounters);
+			when(opResult.consume()).thenReturn(resultSummary);
+			when(runner.run(expectedQuery)).thenReturn(opResult);
+
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
-			op.execute(context);
+			Counters counters = op.execute(context);
+			if (operator == Operator.CREATE) {
+				assertThat(counters.constraintsAdded()).isEqualTo(1);
+			} else {
+				assertThat(counters.constraintsRemoved()).isEqualTo(2);
+			}
 
 			verify(runner, times(1)).run(argumentCaptor.capture());
 			String query = argumentCaptor.getValue();
 			assertThat(query).isEqualTo(expectedQuery);
-			verify(defaultResult).consume();
-			verifyNoMoreInteractions(runner, defaultResult);
+			verify(opResult).consume();
+			verifyNoMoreInteractions(runner, defaultResult, opResult);
 		}
 
 		@SuppressWarnings("unused")
@@ -855,9 +897,18 @@ class CatalogBasedMigrationTest {
 			String expectedCall = "CALL db.constraints()";
 			when(runner.run(expectedCall)).thenReturn(result);
 
+			Result dropResult = mock(Result.class);
+			ResultSummary resultSummary = mock(ResultSummary.class);
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.constraintsRemoved()).thenReturn(1);
+			when(resultSummary.counters()).thenReturn(summaryCounters);
+			when(dropResult.consume()).thenReturn(resultSummary);
+			when(runner.run("DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE")).thenReturn(dropResult);
+
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
-			drop.execute(context);
+			Counters counters = drop.execute(context);
+			assertThat(counters.constraintsRemoved()).isEqualTo(1);
 
 			verify(runner, times(3)).run(argumentCaptor.capture());
 			List<String> queries = argumentCaptor.getAllValues();
@@ -868,8 +919,8 @@ class CatalogBasedMigrationTest {
 					"DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE"
 				);
 			verify(result).list(Mockito.<Function<Record, Constraint>>any());
-			verify(defaultResult).consume();
-			verifyNoMoreInteractions(runner, result, defaultResult);
+			verify(dropResult).consume();
+			verifyNoMoreInteractions(runner, result, defaultResult, dropResult);
 		}
 
 		@Test
@@ -969,6 +1020,81 @@ class CatalogBasedMigrationTest {
 						.named("book_id_unique")
 						.unique("isbn"), true))
 				.withMessage("Either reference or item is required, not both.");
+		}
+	}
+
+	@Nested
+	class SummaryCountersDecoupling {
+
+		@Test
+		void shouldConvertSummaryCounters() {
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.indexesAdded()).thenReturn(1);
+			when(summaryCounters.indexesRemoved()).thenReturn(2);
+			when(summaryCounters.constraintsAdded()).thenReturn(3);
+			when(summaryCounters.constraintsRemoved()).thenReturn(4);
+
+			Counters counters = Counters.of(summaryCounters);
+			assertThat(counters.indexesAdded()).isEqualTo(1);
+			assertThat(counters.indexesRemoved()).isEqualTo(2);
+			assertThat(counters.constraintsAdded()).isEqualTo(3);
+			assertThat(counters.constraintsRemoved()).isEqualTo(4);
+		}
+
+		@Test
+		void shouldAdd() {
+
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.indexesAdded()).thenReturn(1);
+			when(summaryCounters.indexesRemoved()).thenReturn(2);
+			when(summaryCounters.constraintsAdded()).thenReturn(3);
+			when(summaryCounters.constraintsRemoved()).thenReturn(4);
+
+			Counters counters = Counters.of(summaryCounters).add(Counters.of(summaryCounters));
+			assertThat(counters.indexesAdded()).isEqualTo(2);
+			assertThat(counters.indexesRemoved()).isEqualTo(4);
+			assertThat(counters.constraintsAdded()).isEqualTo(6);
+			assertThat(counters.constraintsRemoved()).isEqualTo(8);
+		}
+
+		@Test
+		void shouldNoopEmpty() {
+
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.indexesAdded()).thenReturn(1);
+			when(summaryCounters.indexesRemoved()).thenReturn(2);
+			when(summaryCounters.constraintsAdded()).thenReturn(3);
+			when(summaryCounters.constraintsRemoved()).thenReturn(4);
+
+			Counters original = Counters.of(summaryCounters);
+			Counters counters = original.add(Counters.empty());
+			assertThat(counters).isSameAs(original);
+		}
+
+		@Test
+		void shouldAddThingsToEmpty() {
+
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.indexesAdded()).thenReturn(1);
+			when(summaryCounters.indexesRemoved()).thenReturn(2);
+			when(summaryCounters.constraintsAdded()).thenReturn(3);
+			when(summaryCounters.constraintsRemoved()).thenReturn(4);
+
+			Counters counters = Counters.empty().add(Counters.of(summaryCounters));
+			assertThat(counters.indexesAdded()).isEqualTo(1);
+			assertThat(counters.indexesRemoved()).isEqualTo(2);
+			assertThat(counters.constraintsAdded()).isEqualTo(3);
+			assertThat(counters.constraintsRemoved()).isEqualTo(4);
+		}
+
+		@Test
+		void shouldUseCorrectArgs() {
+
+			Counters counters = Counters.of(1, 2, 3, 4);
+			assertThat(counters.indexesAdded()).isEqualTo(1);
+			assertThat(counters.indexesRemoved()).isEqualTo(2);
+			assertThat(counters.constraintsAdded()).isEqualTo(3);
+			assertThat(counters.constraintsRemoved()).isEqualTo(4);
 		}
 	}
 }

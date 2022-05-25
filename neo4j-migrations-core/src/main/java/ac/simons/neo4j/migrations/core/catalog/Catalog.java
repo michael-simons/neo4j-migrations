@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ public interface Catalog {
 
 		NodeList catalog = document.getElementsByTagName(XMLSchemaConstants.CATALOG);
 		if (catalog.getLength() > 1) {
-			throw new MigrationsException("More than one catalog item found.");
+			throw new IllegalArgumentException("More than one catalog item found.");
 		}
 
 		List<CatalogItem<?>> constraints = new ArrayList<>();

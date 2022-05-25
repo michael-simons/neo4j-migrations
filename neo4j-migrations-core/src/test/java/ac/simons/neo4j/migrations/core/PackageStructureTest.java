@@ -45,7 +45,7 @@ class PackageStructureTest {
 	}
 
 	@Test
-	public void catalogShouldBeIndecentFromCore() {
+	public void catalogShouldBeIndependentFromCore() {
 
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..catalog..")
@@ -60,14 +60,14 @@ class PackageStructureTest {
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..internal..")
 			.should().dependOnClassesThat(
-				resideOutsideOfPackages("..internal", "java..")
+				resideOutsideOfPackages("..internal", "java..", "javax..", "org.xml..", "org.w3c..")
 					.and(areNotPrimitives())
 			);
 		rule.check(coreClasses);
 	}
 
 	DescribedPredicate<JavaClass> areNotPrimitives() {
-		return DescribedPredicate.not(new DescribedPredicate<JavaClass>("Should be a primitive") {
+		return DescribedPredicate.not(new DescribedPredicate<>("Should be a primitive") {
 			@Override
 			public boolean apply(JavaClass input) {
 				return input.isPrimitive() || (input.isArray() && input.getBaseComponentType().isPrimitive());

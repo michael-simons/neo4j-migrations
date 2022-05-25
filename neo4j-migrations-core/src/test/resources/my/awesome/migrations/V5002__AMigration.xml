@@ -23,7 +23,7 @@
 		</constraints>
 	</catalog>
 
-	<drop item="AnItemNotDefinedHere" idempotent="false"/>
+	<drop item="AnItemNotDefinedHere" ifExists="false"/>
 	<drop ref="constraint_with_options"/>
 	<create item="unique_isbn"/>
 </migration>

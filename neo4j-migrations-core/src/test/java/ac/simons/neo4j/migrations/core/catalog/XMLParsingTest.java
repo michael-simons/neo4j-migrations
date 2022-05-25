@@ -57,6 +57,6 @@ class XMLParsingTest {
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
 			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
-			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"), Name.of("old_keys"));
+			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"));
 	}
 }

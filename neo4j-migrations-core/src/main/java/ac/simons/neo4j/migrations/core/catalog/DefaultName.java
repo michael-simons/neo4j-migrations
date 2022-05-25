@@ -21,7 +21,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @author Michael J. Simons
  * @since TBA
  */
-final class DefaultName extends AbstractName implements Name {
+final class DefaultName extends AbstractName {
 
 	static final DefaultName EMPTY = new DefaultName(null);
 

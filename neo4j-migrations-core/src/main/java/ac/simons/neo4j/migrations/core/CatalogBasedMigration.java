@@ -143,19 +143,16 @@ final class CatalogBasedMigration implements Migration {
 			NodeList childNodes = currentItem.getChildNodes();
 			for (int j = 0; j < childNodes.getLength(); ++j) {
 				Node childItem = childNodes.item(j);
-				if (!(childItem instanceof CharacterData)) {
+				if (!(childItem instanceof CharacterData) || childItem.getTextContent().trim().isEmpty()) {
 					continue;
 				}
 
 				CharacterData textNode = (CharacterData) childItem;
-				if (!textNode.getTextContent().trim().isEmpty()) {
-
-					String content = Arrays
-						.stream(textNode.getTextContent().split("\r?\n"))
-						.map(String::trim).collect(Collectors.joining("\n"));
-					textNode.setData(content);
-					elements.add(textNode);
-				}
+				String content = Arrays
+					.stream(textNode.getTextContent().split("\r?\n"))
+					.map(String::trim).collect(Collectors.joining("\n"));
+				textNode.setData(content);
+				elements.add(textNode);
 			}
 		}
 
@@ -169,6 +166,10 @@ final class CatalogBasedMigration implements Migration {
 			}
 		}
 		elements.add(newCatalog);
+		return canonicalizeAndChecksumElements(document, elements);
+	}
+
+	private static String canonicalizeAndChecksumElements(Document document, List<Node> elements) {
 		try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 			XMLCryptoContext cryptoContext = new NoopDOMCryptoContext();
 			TransformService transformService = TransformService.getInstance(CanonicalizationMethod.INCLUSIVE, "DOM");

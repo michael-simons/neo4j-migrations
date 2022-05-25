@@ -138,53 +138,37 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderRelationshipPropertyExists(Constraint constraint, RenderConfig context) {
 
-		Formattable item = formattableItem(constraint, context);
-		String identifier = constraint.getIdentifier();
-		String properties = renderProperties("r", constraint);
-		Operator operator = context.getOperator();
-		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
-
-		Neo4jVersion version = context.getVersion();
-		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
-			return String.format("%s %#s ON ()-[r:%s]-() ASSERT exists(%s)", operator, item, identifier, properties);
-		} else if (RANGE_41_TO_42.contains(version)) {
-			return String.format("%s %#s %sON ()-[r:%s]-() ASSERT exists(%s)", operator, item,
-				ifNotExistsOrEmpty(context), identifier, properties);
-		} else if (version == Neo4jVersion.V4_3) {
-			return String.format("%s %#s %sON ()-[r:%s]-() ASSERT %s", operator, item,
-				ifNotExistsOrEmpty(context), identifier, object);
-		} else {
-			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
-			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
-			// We just assume the newest
-			return String.format("%s %#s %s%s ()-[r:%s]-() %s %s", operator, item,
-				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
-		}
+		return renderPropertyExists(constraint, context, "r", "()-[%s:%s]-()");
 	}
 
 	private String renderNodePropertyExists(Constraint constraint, RenderConfig context) {
 
+		return renderPropertyExists(constraint, context, "n", "(%s:%s)");
+	}
+
+	private String renderPropertyExists(Constraint constraint, RenderConfig context, String variable, String templateFragment) {
+
 		Formattable item = formattableItem(constraint, context);
 		String identifier = constraint.getIdentifier();
-		String properties = renderProperties("n", constraint);
+		String properties = renderProperties(variable, constraint);
 		Operator operator = context.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
-			return String.format("%s %#s ON (n:%s) ASSERT exists(%s)", operator, item, identifier, properties);
+			return String.format("%s %#s ON " + templateFragment + " ASSERT exists(%s)", operator, item, variable, identifier, properties);
 		} else if (RANGE_41_TO_42.contains(version)) {
-			return String.format("%s %#s %sON (n:%s) ASSERT exists(%s)", operator, item,
-				ifNotExistsOrEmpty(context), identifier, properties);
+			return String.format("%s %#s %sON " + templateFragment + " ASSERT exists(%s)", operator, item,
+				ifNotExistsOrEmpty(context), variable, identifier, properties);
 		} else if (version == Neo4jVersion.V4_3) {
-			return String.format("%s %#s %sON (n:%s) ASSERT %s", operator, item,
-				ifNotExistsOrEmpty(context), identifier, object);
+			return String.format("%s %#s %sON " + templateFragment + " ASSERT %s", operator, item,
+				ifNotExistsOrEmpty(context), variable, identifier, object);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
 			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
-			return String.format("%s %#s %s%s (n:%s) %s %s", operator, item,
-				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
+			return String.format("%s %#s %s%s " + templateFragment + " %s %s", operator, item,
+				ifNotExistsOrEmpty(context), adjective, variable, identifier, verb, object);
 		}
 	}
 

@@ -85,6 +85,7 @@
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<archunit.version>0.23.1</archunit.version>
+		<archunit.version>0.23.1</archunit.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
 		<asciidoctor-maven-plugin.version>2.2.2</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.2.3</asciidoctorj-diagram.version>
@@ -150,7 +151,6 @@
 		<spring-boot.version>2.7.0</spring-boot.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.17.2</testcontainers.version>
-		<archunit.version>0.23.1</archunit.version>
 	</properties>
 
 	<dependencyManagement>

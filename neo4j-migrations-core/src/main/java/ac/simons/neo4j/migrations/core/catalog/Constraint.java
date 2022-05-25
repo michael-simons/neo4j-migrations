@@ -309,12 +309,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			}
 
 			String identifier = matcher.group("identifier").trim();
-			String var = Pattern.quote(matcher.group("var") + ".");
+			String variable = Pattern.quote(matcher.group("var") + ".");
 			String propertiesGroup = matcher.group(XMLSchemaConstants.PROPERTIES);
 			Stream<String> propertiesStream = patternHolder.type == Type.KEY ?
 				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
 				Stream.of(propertiesGroup.trim());
-			String[] properties = propertiesStream.map(s -> s.replaceFirst(var, "")).toArray(String[]::new);
+			String[] properties = propertiesStream.map(s -> s.replaceFirst(variable, "")).toArray(String[]::new);
 			return new Constraint(name, patternHolder.type, patternHolder.targetEntityType, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}

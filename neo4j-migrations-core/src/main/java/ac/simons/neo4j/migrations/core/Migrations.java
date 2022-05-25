@@ -50,13 +50,14 @@ public final class Migrations {
 
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
+	private static final String PROPERTY_MIGRATION_VERSION = "version";
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+	private static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
 
 	static final Constraint UNIQUE_VERSION =
 		Constraint.forNode("__Neo4jMigration")
 			.named("unique_version___Neo4jMigration")
-			.unique("version", "migrationTarget");
-
+			.unique(PROPERTY_MIGRATION_VERSION, PROPERTY_MIGRATION_TARGET);
 
 	private final MigrationsConfig config;
 	private final Driver driver;
@@ -381,8 +382,8 @@ public final class Migrations {
 						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
-			String version = lastMigration.get("version").asString();
-			String description = lastMigration.get("description").asString();
+			String version = lastMigration.get(PROPERTY_MIGRATION_VERSION).asString();
+			String description = lastMigration.get(PROPERTY_MIGRATION_DESCRIPTION).asString();
 
 			return Optional.of(MigrationVersion.withValueAndDescription(version, description));
 		} catch (NoSuchRecordException e) {
@@ -487,8 +488,8 @@ public final class Migrations {
 
 		Map<String, Object> properties = new HashMap<>();
 
-		properties.put("version", migration.getVersion().getValue());
-		properties.put("description", migration.getDescription());
+		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());
+		properties.put(PROPERTY_MIGRATION_DESCRIPTION, migration.getDescription());
 		properties.put("type", getMigrationType(migration).name());
 		properties.put("source", migration.getSource());
 		migration.getChecksum().ifPresent(checksum -> properties.put("checksum", checksum));

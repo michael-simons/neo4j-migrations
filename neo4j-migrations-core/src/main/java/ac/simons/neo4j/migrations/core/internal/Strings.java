@@ -46,7 +46,9 @@ public final class Strings {
 	 */
 	public static final UnaryOperator<byte[]> MD5 = bytes -> {
 		try {
-			return MessageDigest.getInstance("MD5").digest(bytes);
+			@SuppressWarnings("squid:S4790") // Definitely not at risk here.
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			return md5.digest(bytes);
 		} catch (NoSuchAlgorithmException e) {
 			throw new UncheckedNoSuchAlgorithmException(e);
 		}

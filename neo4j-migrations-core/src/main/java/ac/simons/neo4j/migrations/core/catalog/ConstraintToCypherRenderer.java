@@ -188,13 +188,13 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	}
 
 	private static String ifNotExistsOrEmpty(RenderConfig context) {
-		switch (context.getOperator()) {
-			case CREATE:
-				return context.isIdempotent() ? "IF NOT EXISTS " : "";
-			case DROP:
-				return context.isIdempotent() ? " IF EXISTS" : "";
+		if (context.getOperator() == Operator.CREATE) {
+			return context.isIdempotent() ? "IF NOT EXISTS " : "";
+		} else if (context.getOperator() == Operator.DROP) {
+			return context.isIdempotent() ? " IF EXISTS" : "";
+		} else {
+			throw new IllegalStateException();
 		}
-		throw new IllegalStateException();
 	}
 
 	private String renderUniqueConstraint(Constraint constraint, RenderConfig context) {

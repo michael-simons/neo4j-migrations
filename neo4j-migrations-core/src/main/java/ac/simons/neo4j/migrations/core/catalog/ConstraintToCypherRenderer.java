@@ -146,7 +146,6 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		return renderPropertyExists(constraint, context, "n", "(%s:%s)");
 	}
 
-	@SuppressWarnings()
 	private String renderPropertyExists(Constraint constraint, RenderConfig context, String variable, String templateFragment) {
 
 		Formattable item = formattableItem(constraint, context);

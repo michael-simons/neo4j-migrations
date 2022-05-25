@@ -43,11 +43,26 @@ public enum Neo4jEdition {
 	 * @return The enum constant for the given edition or {@link Neo4jEdition#UNDEFINED} if lenient parsing is not possible.
 	 */
 	public static Neo4jEdition of(String edition) {
+		return of(edition, true);
+	}
+
+	/**
+	 * @param edition A string value describing the edition, may be {@literal null}
+	 * @param lenient Whether lenient parsing should be attempted or not
+	 * @return The enum constant for the given edition or {@link Neo4jEdition#UNDEFINED} if lenient parsing is not possible.
+	 */
+	public static Neo4jEdition of(String edition, boolean lenient) {
 
 		if (edition == null) {
+			if (!lenient) {
+				throw new IllegalArgumentException("Cannot derive an edition from literal null");
+			}
 			return Neo4jEdition.UNDEFINED;
 		} else {
 			String value = edition.trim().toUpperCase(Locale.ROOT);
+			if (!lenient) {
+				return Neo4jEdition.valueOf(value);
+			}
 			switch (value) {
 				case "ENTERPRISE":
 					return Neo4jEdition.ENTERPRISE;

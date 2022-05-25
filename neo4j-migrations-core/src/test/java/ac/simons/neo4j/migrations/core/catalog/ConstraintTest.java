@@ -48,7 +48,7 @@ class ConstraintTest {
 			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
 			Arguments.of("4.0", "stupid_stuff",
 				"CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
-			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Bookund  ) ASSERT (book.isbn) IS UNIQUE")
+			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
 		);
 	}
 

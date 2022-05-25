@@ -45,7 +45,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.empty();
 		} else {
 			try {
-				Neo4jEdition edition = Neo4jEdition.of(matcher.group("edition"));
+				Neo4jEdition edition = Neo4jEdition.of(matcher.group("edition"), false);
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(

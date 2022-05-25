@@ -82,7 +82,7 @@ class DiscovererTest {
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
 			Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
-			assertThat(migrations).hasSize(10)
+			assertThat(migrations).hasSize(11)
 				.extracting(Migration::getDescription)
 				.contains("delete old data", "create new data",
 					"BondTheNameIsBond",
@@ -92,7 +92,7 @@ class DiscovererTest {
 					"Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu",
 					"MirFallenKeineNamenEin",
-					"WithCommentAtEnd"
+					"WithCommentAtEnd", "AMigration"
 				);
 		}
 

@@ -236,11 +236,11 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNKNOWN", "special, UNKNOWN" })
-	void editionShouldBeDetectable(String value, Neo4jEdition edition) {
+	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNDEFINED", "special, UNDEFINED" })
+	void editionShouldBeDetectable(String value, String edition) {
 		assertThat(
 			EditionPrecondition.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
-			.isEqualTo(edition);
+			.isEqualTo(Neo4jEdition.valueOf(edition));
 	}
 
 	@Nested

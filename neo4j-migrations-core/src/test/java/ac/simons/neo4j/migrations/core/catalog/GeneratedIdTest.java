@@ -31,6 +31,6 @@ class GeneratedIdTest {
 		Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
 			Arrays.asList("firstname", "surname"));
 		Id id = constraint.getId();
-		Assertions.assertThat(id).isInstanceOf(GeneratedId.class).extracting(Id::getValue).isEqualTo("Constraint_C5F72780B88EBCBB7E443DCD67C70804");
+		Assertions.assertThat(id).isInstanceOf(GeneratedId.class).extracting(Id::getValue).isEqualTo("Constraint_224D74417CCBC05AFD3631324D705CD3");
 	}
 }

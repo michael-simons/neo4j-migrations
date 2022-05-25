@@ -107,7 +107,7 @@ class CatalogBasedMigrationIT {
 				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
 			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
 				.withMessage(
-					"Could not apply migration 01 (\"Assert empty database\") verification failed: Catalogs are neither identical nor equivalent.");
+					"Could not apply migration 10 (\"Assert empty database\") verification failed: Catalogs are neither identical nor equivalent.");
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
 				neo4j.stop();

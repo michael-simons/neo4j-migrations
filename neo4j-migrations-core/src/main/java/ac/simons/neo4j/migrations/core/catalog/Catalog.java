@@ -89,6 +89,7 @@ public interface Catalog {
 	/**
 	 * @return the list of all items in this catalog
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItems();
 
 	/**

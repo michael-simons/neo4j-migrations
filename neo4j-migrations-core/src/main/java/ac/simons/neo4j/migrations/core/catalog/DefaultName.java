@@ -15,51 +15,17 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.Objects;
-
 /**
  * Default implementation of a {@link Name}.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class DefaultName implements Name {
+final class DefaultName extends AbstractName implements Name {
 
 	static final DefaultName EMPTY = new DefaultName(null);
 
-	/**
-	 * Value of this name, might be {@literal null} or blank.
-	 */
-	private final String value;
-
 	DefaultName(String value) {
-		this.value = value;
-	}
-
-	@Override
-	public String getValue() {
-		return value;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		DefaultName that = (DefaultName) o;
-		return Objects.equals(value, that.value);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(value);
-	}
-
-	@Override
-	public String toString() {
-		return value;
+		super(value);
 	}
 }

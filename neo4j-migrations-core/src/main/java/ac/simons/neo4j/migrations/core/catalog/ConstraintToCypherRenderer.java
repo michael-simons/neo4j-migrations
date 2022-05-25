@@ -48,7 +48,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	 * A range of versions from 4.1 to 4.2.
 	 */
 	private static final Set<Neo4jVersion> RANGE_41_TO_42 = EnumSet.of(Neo4jVersion.V4_1, Neo4jVersion.V4_2);
-
+	private static final String KEYWORD_REQUIRE = "REQUIRE";
+	private static final String KEYWORD_ASSERT = "ASSERT";
 
 	@Override
 	public void render(Constraint constraint, RenderConfig context, OutputStream target) throws IOException {
@@ -115,7 +116,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
-			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
+			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s IS NODE KEY", operator, item,
 				ifNotExistsOrEmpty(context), adjective, identifier, verb, properties);
@@ -154,7 +155,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
-			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
+			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s ()-[r:%s]-() %s %s", operator, item,
 				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
@@ -180,7 +181,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
-			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
+			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s", operator, item,
 				ifNotExistsOrEmpty(context), adjective, identifier, verb, object);
@@ -217,7 +218,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				identifier, properties, type);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
-			String verb = operator == Operator.CREATE ? "REQUIRE" : "ASSERT";
+			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s IS %s", operator, item,
 				ifNotExistsOrEmpty(context), adjective, identifier, verb, properties, type);

@@ -55,6 +55,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version up to but not including to retrieve items for
 	 * @return a list of all items prior to the introduction of {@literal version}.
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItemsPriorTo(MigrationVersion version);
 
 	/**
@@ -64,6 +65,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version up to but not including to retrieve the constraint for
 	 * @return an optional item as defined prior to the introduction of {@literal version}
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version);
 
 	/**
@@ -72,6 +74,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version up to retrieve constraints for
 	 * @return a list of all items up to the introduction of {@literal version}.
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItems(MigrationVersion version);
 
 	/**
@@ -81,5 +84,6 @@ public interface VersionedCatalog extends Catalog {
 	 * @param version The version in which to retrieve the constraint for
 	 * @return an optional item as defined with to the introduction of {@literal version}
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version);
 }

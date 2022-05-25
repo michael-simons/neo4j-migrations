@@ -48,26 +48,26 @@ public interface CatalogDiff {
 		} else if (!left.isEmpty() && right.isEmpty()) {
 			Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
 			return new CatalogDiffImpl(itemsOnlyInLeft, Collections.emptySet(), Collections.emptySet());
-		} else {
-			Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
-			Set<CatalogItem<?>> itemsOnlyInRight = new HashSet<>(right.getItems());
-			itemsOnlyInLeft.removeAll(right.getItems());
-			itemsOnlyInRight.removeAll(left.getItems());
-
-			Set<CatalogItem<?>> equivalentItems = new LinkedHashSet<>();
-			for (CatalogItem<?> catalogItem : itemsOnlyInLeft) {
-				if (right.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
-					equivalentItems.add(catalogItem);
-				}
-			}
-			for (CatalogItem<?> catalogItem : itemsOnlyInRight) {
-				if (left.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
-					equivalentItems.add(catalogItem);
-				}
-			}
-
-			return new CatalogDiffImpl(itemsOnlyInLeft, itemsOnlyInRight, equivalentItems);
 		}
+
+		Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
+		Set<CatalogItem<?>> itemsOnlyInRight = new HashSet<>(right.getItems());
+		itemsOnlyInLeft.removeAll(right.getItems());
+		itemsOnlyInRight.removeAll(left.getItems());
+
+		Set<CatalogItem<?>> equivalentItems = new LinkedHashSet<>();
+		for (CatalogItem<?> catalogItem : itemsOnlyInLeft) {
+			if (right.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
+				equivalentItems.add(catalogItem);
+			}
+		}
+		for (CatalogItem<?> catalogItem : itemsOnlyInRight) {
+			if (left.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {
+				equivalentItems.add(catalogItem);
+			}
+		}
+
+		return new CatalogDiffImpl(itemsOnlyInLeft, itemsOnlyInRight, equivalentItems);
 	}
 
 	/**
@@ -87,6 +87,7 @@ public interface CatalogDiff {
 	 *
 	 * @return a collection of items that are only in the left catalog
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItemsOnlyInLeft();
 
 	/**
@@ -94,6 +95,7 @@ public interface CatalogDiff {
 	 *
 	 * @return a collection of items that are only in the right catalog
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItemsOnlyInRight();
 
 	/**
@@ -101,5 +103,6 @@ public interface CatalogDiff {
 	 *
 	 * @return a collection of equivalent items
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getEquivalentItems();
 }

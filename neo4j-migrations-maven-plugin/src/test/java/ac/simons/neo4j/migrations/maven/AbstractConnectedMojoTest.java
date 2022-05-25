@@ -119,8 +119,9 @@ public class AbstractConnectedMojoTest {
 	public void shouldConfigureSchemaDatabase() throws Exception {
 
 		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull();
-		assertThat(pom).exists();
+		assertThat(pom)
+			.isNotNull()
+			.exists();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertThat(infoMojo).isNotNull();

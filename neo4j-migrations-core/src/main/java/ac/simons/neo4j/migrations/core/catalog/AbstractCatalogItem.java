@@ -78,7 +78,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		this.options = options;
 
 		if (Strings.isBlank(name)) {
-			this.name = GeneratedName.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
+			this.name = Name.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
 		} else {
 			this.name = Name.of(name);
 		}

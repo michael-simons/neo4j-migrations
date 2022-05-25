@@ -298,7 +298,8 @@ final class CatalogBasedMigration implements Migration {
 		}
 
 		try (Session session = context.getSession()) {
-			OperationContext operationContext = new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, session);
+			OperationContext operationContext = new OperationContext(neo4jVersion, neo4jEdition,
+				(VersionedCatalog) globalCatalog, session);
 			Counters counters = this.operations
 				.stream().sequential()
 				.map(op -> op.execute(operationContext))
@@ -658,6 +659,7 @@ final class CatalogBasedMigration implements Migration {
 		/**
 		 * @return an optional local item.
 		 */
+		@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 		Optional<CatalogItem<?>> getLocalItem();
 	}
 
@@ -838,6 +840,7 @@ final class CatalogBasedMigration implements Migration {
 			this.idempotent = idempotent;
 		}
 
+		@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 		CatalogItem<?> getRequiredItem(VersionedCatalog catalog) {
 
 			// I want Java9+ and better optionals, so that I can or them

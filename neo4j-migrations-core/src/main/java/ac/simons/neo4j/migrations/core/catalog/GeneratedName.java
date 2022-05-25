@@ -15,59 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Objects;
-
 /**
  * Generates an {@link Name} for a {@link CatalogItem}.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class GeneratedName implements Name {
-
-	static Name generate(Class<?> classType, ItemType itemType, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
-
-		String src = String.format("{type=%s, targetEntity=%s, identifier='%s', properties='%s'%s}", itemType,
-				targetEntityType, identifier, String.join(",", properties),
-			options == null ? "" : ", options='" + options + '\'');
-
-		String value = String.format("%s_%s",
-			classType.getSimpleName(),
-			Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(src.getBytes(StandardCharsets.UTF_8))
-		);
-
-		return new GeneratedName(value);
-	}
-
-	private final String value;
+final class GeneratedName extends AbstractName {
 
 	GeneratedName(String value) {
-		this.value = value;
-	}
-
-	@Override
-	public String getValue() {
-		return value;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		GeneratedName that = (GeneratedName) o;
-		return value.equals(that.value);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(value);
+		super(value);
 	}
 }

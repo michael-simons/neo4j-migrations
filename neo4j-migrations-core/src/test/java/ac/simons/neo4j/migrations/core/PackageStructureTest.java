@@ -67,7 +67,7 @@ class PackageStructureTest {
 	}
 
 	DescribedPredicate<JavaClass> areNotPrimitives() {
-		return DescribedPredicate.not(new DescribedPredicate<>("Should be a primitive") {
+		return DescribedPredicate.not(new DescribedPredicate<JavaClass>("Should be a primitive") {
 			@Override
 			public boolean apply(JavaClass input) {
 				return input.isPrimitive() || (input.isArray() && input.getBaseComponentType().isPrimitive());

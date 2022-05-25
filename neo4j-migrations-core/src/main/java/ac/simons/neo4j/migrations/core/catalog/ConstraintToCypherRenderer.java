@@ -26,6 +26,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.Formattable;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +39,16 @@ import java.util.stream.Collectors;
 enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	INSTANCE;
+
+	/**
+	 * A range of versions from 4.1 to 4.3.
+	 */
+	private static final Set<Neo4jVersion> RANGE_41_TO_43 = EnumSet.of(Neo4jVersion.V4_1, Neo4jVersion.V4_2, Neo4jVersion.V4_3);
+	/**
+	 * A range of versions from 4.1 to 4.2.
+	 */
+	private static final Set<Neo4jVersion> RANGE_41_TO_42 = EnumSet.of(Neo4jVersion.V4_1, Neo4jVersion.V4_2);
+
 
 	@Override
 	public void render(Constraint constraint, RenderConfig context, OutputStream target) throws IOException {
@@ -99,7 +110,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS NODE KEY", operator, item, identifier, properties);
-		} else if (Neo4jVersion.RANGE_41_TO_43.contains(version)) {
+		} else if (RANGE_41_TO_43.contains(version)) {
 			return String.format("%s %#s %sON (n:%s) ASSERT %s IS NODE KEY", operator, item,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
@@ -135,7 +146,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON ()-[r:%s]-() ASSERT exists(%s)", operator, item, identifier, properties);
-		} else if (Neo4jVersion.RANGE_41_TO_42.contains(version)) {
+		} else if (RANGE_41_TO_42.contains(version)) {
 			return String.format("%s %#s %sON ()-[r:%s]-() ASSERT exists(%s)", operator, item,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else if (version == Neo4jVersion.V4_3) {
@@ -161,7 +172,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT exists(%s)", operator, item, identifier, properties);
-		} else if (Neo4jVersion.RANGE_41_TO_42.contains(version)) {
+		} else if (RANGE_41_TO_42.contains(version)) {
 			return String.format("%s %#s %sON (n:%s) ASSERT exists(%s)", operator, item,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else if (version == Neo4jVersion.V4_3) {
@@ -201,7 +212,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS %s", operator, item, identifier, properties, type);
-		} else if (Neo4jVersion.RANGE_41_TO_43.contains(version)) {
+		} else if (RANGE_41_TO_43.contains(version)) {
 			return String.format("%s %#s %sON (n:%s) ASSERT %s IS %s", operator, item, ifNotExistsOrEmpty(context),
 				identifier, properties, type);
 		} else {

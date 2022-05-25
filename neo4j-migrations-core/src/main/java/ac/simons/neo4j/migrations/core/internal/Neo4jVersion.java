@@ -59,21 +59,13 @@ public enum Neo4jVersion {
 	 */
 	UNDEFINED;
 
-	private final static String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
-	private final static String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
+	private static final String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
+	private static final String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
 
 	/**
 	 * A set of versions that have a concept of idempotent constraint / index statements.
 	 */
 	private static final Set<Neo4jVersion> WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));
-	/**
-	 * A range of versions from 4.1 to 4.3.
-	 */
-	public static final Set<Neo4jVersion> RANGE_41_TO_43 = EnumSet.of(V4_1, V4_2, V4_3);
-	/**
-	 * A range of versions from 4.1 to 4.2.
-	 */
-	public static final Set<Neo4jVersion> RANGE_41_TO_42 = EnumSet.of(V4_1, V4_2);
 
 	/**
 	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.

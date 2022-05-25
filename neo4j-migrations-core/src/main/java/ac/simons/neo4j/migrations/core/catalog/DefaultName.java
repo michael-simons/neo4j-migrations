@@ -27,10 +27,6 @@ final class DefaultName implements Name {
 
 	static final DefaultName EMPTY = new DefaultName(null);
 
-	static DefaultName empty() {
-		return EMPTY;
-	}
-
 	/**
 	 * Value of this name, might be {@literal null} or blank.
 	 */

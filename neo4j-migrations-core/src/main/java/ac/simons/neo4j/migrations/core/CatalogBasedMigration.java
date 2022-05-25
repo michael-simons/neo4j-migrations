@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -235,7 +236,7 @@ final class CatalogBasedMigration implements Migration {
 				LOGGER.fine(() -> String.format("Skipping node: %s", nodeName));
 				continue;
 			}
-			OperationType type = OperationType.valueOf(nodeName);
+			OperationType type = OperationType.valueOf(nodeName.toUpperCase(Locale.ROOT));
 			result.add(type.build((Element) node, version));
 		}
 
@@ -301,13 +302,6 @@ final class CatalogBasedMigration implements Migration {
 			Counters counters = this.operations
 				.stream().sequential()
 				.map(op -> op.execute(operationContext))
-				.peek(ic -> {
-					if (LOGGER.isLoggable(Level.FINE)) {
-						LOGGER.log(Level.FINE,
-							"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes.",
-							ic.toArray());
-					}
-				})
 				.reduce(Counters.empty(), Counters::add);
 
 			LOGGER.log(Level.INFO,
@@ -339,33 +333,33 @@ final class CatalogBasedMigration implements Migration {
 	}
 
 	private enum OperationType {
-		verify,
-		create,
-		drop,
-		apply;
+		VERIFY,
+		CREATE,
+		DROP,
+		APPLY;
 
 		Operation build(Element operationElement, MigrationVersion targetVersion) {
 			switch (this) {
-				case verify:
+				case VERIFY:
 					return Operation
 						.verify(Boolean.parseBoolean(operationElement.getAttribute("useCurrent")))
 						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
 						.at(targetVersion);
-				case create:
-				case drop:
+				case CREATE:
+				case DROP:
 					Optional<Name> optionalName = getOptionalReference(operationElement);
 					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute("ifNotExists"));
 					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute("ifExists"));
 					return optionalName.<Operation>map(name -> {
-						OperationBuilder<?> builder = this == create ?
+						OperationBuilder<?> builder = this == CREATE ?
 							Operation.create(optionalName.get(), ifNotExists) :
 							Operation.drop(optionalName.get(), ifExists);
 						return builder.with(targetVersion);
-					}).orElseGet(() -> this == create ?
+					}).orElseGet(() -> this == CREATE ?
 						Operation.create(getLocalItem(operationElement), ifNotExists) :
 						Operation.drop(getLocalItem(operationElement), ifExists)
 					);
-				case apply:
+				case APPLY:
 					return Operation.apply(targetVersion);
 			}
 			throw new IllegalArgumentException("Unsupported operation type: " + this);
@@ -804,20 +798,20 @@ final class CatalogBasedMigration implements Migration {
 		@Override
 		public T with(MigrationVersion version) {
 
-			switch (this.operator) {
-				case DROP:
-					return (T) new DefaultDropOperation(version, reference, item, idempotent);
-				case CREATE:
-					return (T) new DefaultCreateOperation(version, reference, item, idempotent);
+			if (this.operator == Operator.DROP) {
+				return (T) new DefaultDropOperation(version, reference, item, idempotent);
+			} else if (this.operator == Operator.CREATE) {
+				return (T) new DefaultCreateOperation(version, reference, item, idempotent);
+			} else {
+				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
 		}
 	}
 
 	/**
 	 * Some state for all operations working on a specific item defined by a named reference.
 	 */
-	private static abstract class AbstractItemBasedOperation
+	private abstract static class AbstractItemBasedOperation
 		implements VersionSpecificOperation, ItemSpecificOperation {
 
 		protected final MigrationVersion definedAt;

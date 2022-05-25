@@ -45,7 +45,7 @@ class PackageStructureTest {
 	}
 
 	@Test
-	public void catalogShouldBeIndependentFromCore() {
+	void catalogShouldBeIndependentFromCore() {
 
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..catalog..")
@@ -55,7 +55,7 @@ class PackageStructureTest {
 	}
 
 	@Test
-	public void internalShouldNotHaveDependencies() {
+	void internalShouldNotHaveDependencies() {
 
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..internal..")

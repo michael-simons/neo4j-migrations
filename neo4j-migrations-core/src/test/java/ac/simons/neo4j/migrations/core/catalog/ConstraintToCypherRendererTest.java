@@ -38,6 +38,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class ConstraintToCypherRendererTest {
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> multiplePropertiesAreOnlySupportedOn44AndHigher() {
 
 		return Stream.concat(
@@ -77,6 +78,7 @@ class ConstraintToCypherRendererTest {
 			.isThrownBy(() -> renderer.render(constraint, renderConfig));
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleUniqueConstraint() {
 
 		return Stream.of(
@@ -170,6 +172,7 @@ class ConstraintToCypherRendererTest {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleNodePropertyExistenceConstraint() {
 
 		return Stream.of(
@@ -215,6 +218,7 @@ class ConstraintToCypherRendererTest {
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleRelPropertyExistenceConstraint() {
 		return Stream.of(
 			Arguments.of("3.5", true, Operator.CREATE, false, "CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day)"),
@@ -259,6 +263,7 @@ class ConstraintToCypherRendererTest {
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRendereNodeKeyConstraint() {
 
 		return Stream.of(
@@ -299,6 +304,7 @@ class ConstraintToCypherRendererTest {
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> ignoreNameShouldWork() {
 
 		return Stream.of(

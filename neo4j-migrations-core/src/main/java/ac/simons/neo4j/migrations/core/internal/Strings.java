@@ -44,11 +44,11 @@ public final class Strings {
 	/**
 	 * Function for creating an MD5 representation of a byte array.
 	 */
-	public static final Function<byte[], byte[]> MD5 = bytes -> {
+	public static final UnaryOperator<byte[]> MD5 = bytes -> {
 		try {
 			return MessageDigest.getInstance("MD5").digest(bytes);
 		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
+			throw new UncheckedNoSuchAlgorithmException(e);
 		}
 	};
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();

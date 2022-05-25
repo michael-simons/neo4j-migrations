@@ -40,7 +40,7 @@ public final class RenderConfig {
 		 * @return a context that renders its statements in an idempotent fashion if possible
 		 */
 		default Builder ifNotExists() {
-			return idempotent(true);
+			return this.idempotent(true);
 		}
 	}
 
@@ -53,7 +53,7 @@ public final class RenderConfig {
 		 * @return a context that renders its statements in an idempotent fashion if possible
 		 */
 		default Builder ifExists() {
-			return idempotent(true);
+			return this.idempotent(true);
 		}
 	}
 

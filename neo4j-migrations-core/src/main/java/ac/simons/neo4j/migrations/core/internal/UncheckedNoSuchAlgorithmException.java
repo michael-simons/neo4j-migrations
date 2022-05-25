@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.catalog;
-
-import java.io.OutputStream;
+package ac.simons.neo4j.migrations.core.internal;
 
 /**
- * Renders indexes (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}).
+ * Unchecked analogue to {@link java.io.UncheckedIOException}.
  *
  * @author Michael J. Simons
+ * @soundtrack Iron Maiden - Powerslave
  * @since TBA
  */
-final class IndexRenderer implements Renderer<Index> {
+public final class UncheckedNoSuchAlgorithmException extends RuntimeException {
 
-	@Override
-	public void render(Index item, RenderConfig context, OutputStream target) {
-		throw new UnsupportedOperationException("Gerrit is working on that.");
+	private static final long serialVersionUID = 6879942930900663370L;
+
+	UncheckedNoSuchAlgorithmException(Throwable cause) {
+		super(cause);
 	}
 }

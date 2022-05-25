@@ -61,7 +61,7 @@ public class AbstractConnectedMojoTest {
 
 		File pom = new File("target/test-classes/project-to-test/");
 		assertThat(pom).isNotNull();
-		assertThat(pom.exists()).isTrue();
+		assertThat(pom).exists();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertThat(infoMojo).isNotNull();
@@ -94,9 +94,9 @@ public class AbstractConnectedMojoTest {
 
 		MigrationsConfig config = infoMojo.getConfig();
 		assertThat(config).isNotNull();
-		assertThat(config.getOptionalDatabase().isPresent()).isFalse();
+		assertThat(config.getOptionalDatabase()).isEmpty();
 		assertThat(config.getOptionalInstalledBy()).isEqualTo(Optional.of("testor"));
-		assertThat(config.getLocationsToScan().length).isEqualTo(1);
+		assertThat(config.getLocationsToScan()).hasSize(1);
 		assertThat(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches()).isTrue();
 		assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_MIGRATION);
 	}
@@ -106,7 +106,7 @@ public class AbstractConnectedMojoTest {
 
 		File pom = new File("target/test-classes/with-imp-and-schema/");
 		assertThat(pom).isNotNull();
-		assertThat(pom.exists()).isTrue();
+		assertThat(pom).exists();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertThat(infoMojo).isNotNull();
@@ -118,7 +118,7 @@ public class AbstractConnectedMojoTest {
 
 		File pom = new File("target/test-classes/with-imp-and-schema/");
 		assertThat(pom).isNotNull();
-		assertThat(pom.exists()).isTrue();
+		assertThat(pom).exists();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertThat(infoMojo).isNotNull();

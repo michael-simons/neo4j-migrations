@@ -48,6 +48,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -73,7 +74,6 @@ class CatalogBasedMigrationIT {
 
 		// Unclosed on purpose, otherwise reuse is without use.
 		Neo4jContainer<?> neo4j = getNeo4j(version, true);
-
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
@@ -86,6 +86,10 @@ class CatalogBasedMigrationIT {
 			}
 			assertThat(catalog.getItems()).isNotEmpty();
 			assertThat(catalog.getItems()).allMatch(expectedCatalog::containsEquivalentItem);
+		} finally {
+			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
+				neo4j.stop();
+			}
 		}
 	}
 
@@ -93,16 +97,21 @@ class CatalogBasedMigrationIT {
 	@EnumSource(value = Neo4jVersion.class, names = { "LATEST", "UNDEFINED" }, mode = EnumSource.Mode.EXCLUDE)
 	void verificationShouldFailHard(Neo4jVersion version) throws IOException {
 
-		// Unclosed on purpose, otherwise reuse is without use.
-		Neo4jContainer<?> neo4j = getNeo4j(version, true);
-
+		Neo4jContainer<?> neo4j = getNeo4j(version, false);
 		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
 			Migrations migrations;
-			migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
+			migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
 			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
-				.withMessage("Could not apply migration 01 (\"Assert empty database\") verification failed: Catalogs are neither identical nor equivalent.");
+				.withMessage(
+					"Could not apply migration 01 (\"Assert empty database\") verification failed: Catalogs are neither identical nor equivalent.");
+		} finally {
+			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
+				neo4j.stop();
+			}
 		}
 	}
 
@@ -110,20 +119,24 @@ class CatalogBasedMigrationIT {
 	@EnumSource(value = Neo4jVersion.class, names = { "LATEST", "UNDEFINED" }, mode = EnumSource.Mode.EXCLUDE)
 	void catalogBasedMigrationShouldWork(Neo4jVersion version) throws IOException {
 
-		// Unclosed on purpose, otherwise reuse is without use.
 		Neo4jContainer<?> neo4j = getNeo4j(version, false);
-
 		Config config = Config.builder().withLogging(Logging.none()).build();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
 			Migrations migrations;
-			migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
+			migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
 			Optional<MigrationVersion> optionalMigrationVersion = migrations.apply();
 			assertThat(optionalMigrationVersion)
 				.hasValue(MigrationVersion.withValue("30"));
+		} finally {
+			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
+				neo4j.stop();
+			}
 		}
 
-	//	Assertions.fail("please validate the constraints");
+		//	Assertions.fail("please validate the constraints");
 	}
 
 	@Test
@@ -135,7 +148,8 @@ class CatalogBasedMigrationIT {
 	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, boolean createDefaultConstraints) throws IOException {
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s-enterprise", version.toString()))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-			.withReuse(version.hasIdempotentOperations())
+			.withReuse(version.hasIdempotentOperations() && TestcontainersConfiguration.getInstance()
+				.environmentSupportsReuse())
 			.withLabel("ac.simons.neo4j.migrations.core", this.getClass().getSimpleName() + "-" + version.name());
 		neo4j.start();
 

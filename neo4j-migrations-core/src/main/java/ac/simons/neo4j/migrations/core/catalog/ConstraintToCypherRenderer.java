@@ -146,6 +146,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		return renderPropertyExists(constraint, context, "n", "(%s:%s)");
 	}
 
+	@SuppressWarnings()
 	private String renderPropertyExists(Constraint constraint, RenderConfig context, String variable, String templateFragment) {
 
 		Formattable item = formattableItem(constraint, context);
@@ -156,19 +157,20 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		Neo4jVersion version = context.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
-			return String.format("%s %#s ON " + templateFragment + " ASSERT exists(%s)", operator, item, variable, identifier, properties);
+			String format = "%s %#s ON " + templateFragment + " ASSERT exists(%s)";
+			return String.format(format, operator, item, variable, identifier, properties);
 		} else if (RANGE_41_TO_42.contains(version)) {
-			return String.format("%s %#s %sON " + templateFragment + " ASSERT exists(%s)", operator, item,
-				ifNotExistsOrEmpty(context), variable, identifier, properties);
+			String format = "%s %#s %sON " + templateFragment + " ASSERT exists(%s)";
+			return String.format(format, operator, item, ifNotExistsOrEmpty(context), variable, identifier, properties);
 		} else if (version == Neo4jVersion.V4_3) {
-			return String.format("%s %#s %sON " + templateFragment + " ASSERT %s", operator, item,
-				ifNotExistsOrEmpty(context), variable, identifier, object);
+			String format = "%s %#s %sON " + templateFragment + " ASSERT %s";
+			return String.format(format, operator, item, ifNotExistsOrEmpty(context), variable, identifier, object);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
 			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
-			return String.format("%s %#s %s%s " + templateFragment + " %s %s", operator, item,
-				ifNotExistsOrEmpty(context), adjective, variable, identifier, verb, object);
+			String format = "%s %#s %s%s " + templateFragment + " %s %s";
+			return String.format(format, operator, item, ifNotExistsOrEmpty(context), adjective, variable, identifier, verb, object);
 		}
 	}
 

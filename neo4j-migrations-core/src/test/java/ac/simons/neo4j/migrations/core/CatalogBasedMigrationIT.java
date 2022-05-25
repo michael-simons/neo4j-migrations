@@ -97,7 +97,7 @@ class CatalogBasedMigrationIT {
 	@EnumSource(value = Neo4jVersion.class, names = { "LATEST", "UNDEFINED" }, mode = EnumSource.Mode.EXCLUDE)
 	void verificationShouldFailHard(Neo4jVersion version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version, false);
+		Neo4jContainer<?> neo4j = getNeo4j(version, true);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {

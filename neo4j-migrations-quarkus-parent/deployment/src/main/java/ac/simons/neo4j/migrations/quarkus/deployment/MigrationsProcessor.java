@@ -36,6 +36,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
 import io.quarkus.runtime.util.ClassPathUtils;
 
@@ -170,11 +171,15 @@ public class MigrationsProcessor {
 
 	@BuildStep
 	@SuppressWarnings("unused")
-	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties, BuildProducer<ReflectiveClassBuildItem> providerClasses) throws IOException {
+	ServiceProviderBuildItem resourceBasedMigrationProviderServices() {
+		return ServiceProviderBuildItem.allProvidersFromClassPath(ResourceBasedMigrationProvider.class.getName());
+	}
+
+	@BuildStep
+	@SuppressWarnings("unused")
+	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
 
 		var providers = ResourceBasedMigrationProvider.unique();
-		providerClasses.produce(new ReflectiveClassBuildItem(true, true, true, providers.stream().map(ResourceBasedMigrationProvider::getClass).toArray(Class[]::new)));
-
 		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan);
 		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));
 	}

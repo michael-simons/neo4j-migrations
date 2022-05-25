@@ -258,9 +258,16 @@ public final class Migrations {
 					result.consume().counters()
 				);
 			});
-			if (all && HBD.is44OrHigher(context.getConnectionDetails())) {
+			ConnectionDetails cd = context.getConnectionDetails();
+			if (all && HBD.is44OrHigher(cd)) {
+
+				Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+				RenderConfig dropConfig = RenderConfig.drop()
+					.ifExists()
+					.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+
 				return new DeletedChainsWithCounters(deletedChainsWithCounters,
-					session.run("DROP CONSTRAINT " + UNIQUE_VERSION + " IF EXISTS").consume().counters().constraintsRemoved());
+					session.run(renderer.render(UNIQUE_VERSION, dropConfig)).consume().counters().constraintsRemoved());
 			}
 
 			return deletedChainsWithCounters;

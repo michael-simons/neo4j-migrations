@@ -10,7 +10,7 @@
 		<xs:sequence>
 			<xs:element name="catalog" minOccurs="0" type="catalog"/>
 			<xs:element name="verify" minOccurs="0" type="verifyOperation" />
-			<xs:choice maxOccurs="1">
+			<xs:choice>
 				<xs:choice maxOccurs="unbounded">
 					<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="createOperation"/>
 					<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="dropOperation"/>

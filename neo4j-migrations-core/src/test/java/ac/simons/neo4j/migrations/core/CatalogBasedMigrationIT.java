@@ -33,9 +33,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -127,22 +124,21 @@ class CatalogBasedMigrationIT {
 			Migrations migrations;
 			migrations = new Migrations(
 				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
-			Optional<MigrationVersion> optionalMigrationVersion = migrations.apply();
-			assertThat(optionalMigrationVersion)
-				.hasValue(MigrationVersion.withValue("30"));
+			if (version == Neo4jVersion.V3_5) {
+				// We don't have constraint names, so the last verification will fail as it doesn't allow equivalency
+				assertThatExceptionOfType(MigrationsException.class)
+					.isThrownBy(migrations::apply)
+					.withMessage("Could not apply migration 60 (\"Assert current catalog\") verification failed: Database schema and the catalog are equivalent but the verification requires them to be identical.");
+			} else {
+				Optional<MigrationVersion> optionalMigrationVersion = migrations.apply();
+				assertThat(optionalMigrationVersion)
+					.hasValue(MigrationVersion.withValue("60"));
+			}
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
 				neo4j.stop();
 			}
 		}
-
-		//	Assertions.fail("please validate the constraints");
-	}
-
-	@Test
-	@Disabled
-	void shouldNotSelectBackendIndexesForConstraints() {
-		Assertions.fail("see method name");
 	}
 
 	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, boolean createDefaultConstraints) throws IOException {

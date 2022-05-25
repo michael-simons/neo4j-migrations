@@ -295,14 +295,10 @@ final class CatalogBasedMigration implements Migration {
 		}
 
 		try (Session session = context.getSession()) {
+			OperationContext operationContext = new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, session);
 			Counters counters = this.operations
 				.stream().sequential()
-				.map(op -> neo4jVersion.hasIdempotentOperations() ?
-					session.writeTransaction(tx -> op.execute(
-						new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, tx))) :
-					op.execute(
-						new OperationContext(neo4jVersion, neo4jEdition, (VersionedCatalog) globalCatalog, session))
-				)
+				.map(op -> op.execute(operationContext))
 				.peek(ic -> {
 					if (LOGGER.isLoggable(Level.FINE)) {
 						LOGGER.log(Level.FINE,
@@ -368,7 +364,7 @@ final class CatalogBasedMigration implements Migration {
 						Operation.drop(getLocalItem(operationElement), ifExists)
 					);
 				case apply:
-					return Operation.apply();
+					return Operation.apply(targetVersion);
 			}
 			throw new IllegalArgumentException("Unsupported operation type: " + this);
 		}
@@ -620,8 +616,8 @@ final class CatalogBasedMigration implements Migration {
 		 *
 		 * @return The operation ready to apply.
 		 */
-		static ApplyOperation apply() {
-			return new DefaultApplyOperation();
+		static ApplyOperation apply(MigrationVersion definedAt) {
+			return new DefaultApplyOperation(definedAt);
 		}
 
 		/**
@@ -684,7 +680,7 @@ final class CatalogBasedMigration implements Migration {
 	/**
 	 * This operation loads all supported item types from the database, drops them and then creates all items of the local catalog.
 	 */
-	interface ApplyOperation extends Operation {
+	interface ApplyOperation extends VersionSpecificOperation {
 	}
 
 	/**
@@ -1084,6 +1080,12 @@ final class CatalogBasedMigration implements Migration {
 	 */
 	static final class DefaultApplyOperation implements ApplyOperation {
 
+		private final MigrationVersion definedAt;
+
+		DefaultApplyOperation(MigrationVersion definedAt) {
+			this.definedAt = definedAt;
+		}
+
 		@Override
 		public Counters execute(OperationContext context) {
 
@@ -1109,7 +1111,7 @@ final class CatalogBasedMigration implements Migration {
 				.forVersionAndEdition(context.version, context.edition);
 			AtomicInteger constraintsAdded = new AtomicInteger(0);
 			AtomicInteger indexesAdded = new AtomicInteger(0);
-			context.catalog.getItems().forEach(item -> {
+			context.catalog.getCatalogAt(definedAt).getItems().forEach(item -> {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 				SummaryCounters counters = queryRunner.run(renderer.render(item, createConfig)).consume().counters();
 				constraintsAdded.addAndGet(counters.constraintsAdded());
@@ -1118,6 +1120,11 @@ final class CatalogBasedMigration implements Migration {
 
 			return Counters.of(indexesAdded.get(), indexesRemoved.get(), constraintsAdded.get(),
 				constraintsRemoved.get());
+		}
+
+		@Override
+		public MigrationVersion getDefinedAt() {
+			return definedAt;
 		}
 	}
 }

@@ -386,7 +386,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyCatalogs() {
-			Operation operation = Operation.apply();
+			Operation operation = Operation.apply(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
 				new DefaultCatalog(), runner);
@@ -401,7 +401,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyDatabaseCatalog() {
-			Operation operation = Operation.apply();
+			Operation operation = Operation.apply(MigrationVersion.withValue("2"));
 
 			Result createResult = mock(Result.class);
 			ResultSummary summary = mock(ResultSummary.class);
@@ -431,7 +431,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void shouldDealWithEmptyCatalog() {
-			Operation operation = Operation.apply();
+			Operation operation = Operation.apply(MigrationVersion.withValue("1"));
 
 			Result dropResult = mock(Result.class);
 			ResultSummary summary = mock(ResultSummary.class);

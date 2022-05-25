@@ -297,31 +297,25 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 */
 	private static Constraint parse(String description, String name) {
 
-		Matcher matcher = null;
-		PatternHolder match = null;
 		for (PatternHolder patternHolder : new PatternHolder[] {
 			PATTERN_NODE_PROPERTY_IS_UNIQUE,
 			PATTERN_NODE_PROPERTY_EXISTS,
 			PATTERN_NODE_KEY,
 			PATTERN_REL_PROPERTY_EXISTS
-		}
-		) {
-			matcher = patternHolder.pattern.matcher(description);
-			if (matcher.matches()) {
-				match = patternHolder;
-				break;
+		}) {
+			Matcher matcher = patternHolder.pattern.matcher(description);
+			if (!matcher.matches()) {
+				continue;
 			}
-		}
 
-		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
 			String var = Pattern.quote(matcher.group("var") + ".");
 			String propertiesGroup = matcher.group(XMLSchemaConstants.PROPERTIES);
-			Stream<String> propertiesStream = match.type == Type.KEY ?
+			Stream<String> propertiesStream = patternHolder.type == Type.KEY ?
 				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
 				Stream.of(propertiesGroup.trim());
 			String[] properties = propertiesStream.map(s -> s.replaceFirst(var, "")).toArray(String[]::new);
-			return new Constraint(name, match.type, match.targetEntityType, identifier,
+			return new Constraint(name, patternHolder.type, patternHolder.targetEntityType, identifier,
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 

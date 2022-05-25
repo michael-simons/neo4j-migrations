@@ -45,6 +45,7 @@ import org.neo4j.driver.types.MapAccessor;
  */
 class ConstraintTest {
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldParseUniqueNode() {
 		return Stream.of(
 			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),

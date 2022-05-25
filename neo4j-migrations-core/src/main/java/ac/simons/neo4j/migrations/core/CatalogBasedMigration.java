@@ -93,7 +93,9 @@ final class CatalogBasedMigration implements Migration {
 	private static final Schema MIGRATION_SCHEMA;
 	/**
 	 * Neither document builder factories nor document builders are thread safe, so here we are…
+	 * This is supposed to stay there, otherwise I can spare myself the effort of a thread local.
 	 */
+	@SuppressWarnings("squid:S5164")
 	private static final ThreadLocal<DocumentBuilderFactory> DOCUMENT_BUILDER_FACTORY;
 
 	static {

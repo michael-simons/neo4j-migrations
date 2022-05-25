@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.util.function.UnaryOperator;
 

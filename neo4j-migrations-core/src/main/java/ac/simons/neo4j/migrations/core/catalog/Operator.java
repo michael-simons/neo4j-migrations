@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * The unique id of an {@link SchemaItem item}.
+ * The operator to an operation.
  *
  * @author Michael J. Simons
+ * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface Id {
-
-	// TODO add a sealed version of this type.
+public enum Operator {
 
 	/**
-	 * @return the {@link String string representation} of this instance
+	 * The operands should be created.
 	 */
-	String getValue();
+	CREATE,
+	/**
+	 * The operands should be dropped;
+	 */
+	DROP
 }

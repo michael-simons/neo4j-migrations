@@ -13,23 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.nio.charset.StandardCharsets;
 
 /**
- * The operator to an operation.
+ * Generates an {@link Id} for a {@link CatalogItem}.
  *
  * @author Michael J. Simons
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-enum Operator {
+final class GeneratedId implements Id {
 
-	/**
-	 * The operands should be created.
-	 */
-	CREATE,
-	/**
-	 * The operands should be dropped;
-	 */
-	DROP
+	private final String value;
+
+	static Id of(CatalogItem<?> item) {
+		return new GeneratedId(item);
+	}
+
+	private GeneratedId(CatalogItem<?> forItem) {
+
+		this.value = String.format("%s_%s",
+			forItem.getClass().getSimpleName(),
+			Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(forItem.toString().getBytes(StandardCharsets.UTF_8))
+		);
+	}
+
+	@Override
+	public String getValue() {
+		return value;
+	}
 }

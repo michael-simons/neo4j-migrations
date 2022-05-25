@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
-
-import java.util.Collection;
+package ac.simons.neo4j.migrations.core.internal;
 
 /**
- * A somewhat Neo4j version independent representation of an index.
+ * Represents a Neo4j edition.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class Index extends AbstractCatalogItem<Index.Type> {
+public enum Neo4jEdition {
 
 	/**
-	 * Enumerates the different kinds of indexes.
+	 * Constant for the enterprise edition.
 	 */
-	enum Type implements ItemType {
-		BTREE,
-		FULLTEXT,
-		LOOKUP,
-		POINT,
-		RANGE,
-		TEXT
-	}
-
-	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
-		super(name, type, targetEntity, identifier, properties, options);
-	}
+	ENTERPRISE,
+	/**
+	 * Constant for the community edition.
+	 */
+	COMMUNITY,
+	/**
+	 * Constant for an unknown edition.
+	 */
+	UNDEFINED
 }

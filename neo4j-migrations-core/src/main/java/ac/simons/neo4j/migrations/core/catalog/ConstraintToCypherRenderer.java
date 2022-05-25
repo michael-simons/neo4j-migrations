@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -39,29 +39,29 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	@Override
 	public void render(Constraint item, RenderContext context, OutputStream target) throws IOException {
 
-		Version version = context.getVersion();
-		if (context.isIdempotent() && Version.NO_IDEM_POTENCY.contains(version)) {
-			throw new MigrationsException(
+		Neo4jVersion version = context.getVersion();
+		if (context.isIdempotent() && Neo4jVersion.NO_IDEM_POTENCY.contains(version)) {
+			throw new IllegalStateException(
 				String.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
 		}
 
 		if (item.getProperties().size() > 1) {
 			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(item.getType())) {
-				throw new MigrationsException("Only unique and node key constraints support multiple properties.");
+				throw new IllegalStateException("Only unique and node key constraints support multiple properties.");
 			}
 
 			if (context.isVersionPriorTo44() && item.getType() != Constraint.Type.KEY) {
-				throw new MigrationsException("Constraints require exactly one property prior to Neo4j 4.4.");
+				throw new IllegalStateException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
 
 		if (!item.hasName() && context.isIdempotent() && context.getOperator() == Operator.DROP) {
-			throw new MigrationsException("The constraint can only be rendered in the given context when having a name.");
+			throw new IllegalStateException("The constraint can only be rendered in the given context when having a name.");
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
-		if (context.getOperator() == Operator.DROP && context.getVersion() != Version.V3_5 && item.hasName()) {
+		if (context.getOperator() == Operator.DROP && context.getVersion() != Neo4jVersion.V3_5 && item.hasName()) {
 			w.write(String.format("DROP CONSTRAINT%s%s", item.getName(), ifNotExistsOrEmpty(context)));
 		} else {
 			switch (item.getType()) {
@@ -84,24 +84,24 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderNodeKey(Constraint item, RenderContext context) {
 
 		if (context.getEdition() != Neo4jEdition.ENTERPRISE) {
-			throw new MigrationsException(
+			throw new IllegalStateException(
 				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
 		}
 
 		if (item.getTarget() != TargetEntity.NODE) {
-			throw new MigrationsException("Key constraints are only supported for nodes, not for relationships.");
+			throw new IllegalStateException("Key constraints are only supported for nodes, not for relationships.");
 		}
 
 		Name name = item.getName();
-		Version version = context.getVersion();
+		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 
-		if (version == Version.V3_5) {
+		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS NODE KEY", context.getOperator(), identifier, properties);
-		} else if (version == Version.V4_0) {
+		} else if (version == Neo4jVersion.V4_0) {
 			return String.format("CREATE CONSTRAINT%s ON (n:%s) ASSERT %s IS NODE KEY", name, identifier, properties);
-		} else if (Version.RANGE_41_TO_43.contains(version)) {
+		} else if (Neo4jVersion.RANGE_41_TO_43.contains(version)) {
 			return String.format("CREATE CONSTRAINT%s %sON (n:%s) ASSERT %s IS NODE KEY", name,
 				ifNotExistsOrEmpty(context), identifier, properties);
 		} else {
@@ -114,7 +114,7 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderPropertyExists(Constraint item, RenderContext context) {
 
 		if (context.getEdition() != Neo4jEdition.ENTERPRISE) {
-			throw new MigrationsException(
+			throw new IllegalStateException(
 				String.format("This constraint cannot be be used with %s edition.", context.getEdition()));
 		}
 
@@ -127,21 +127,21 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderRelationshipPropertyExists(Constraint item, RenderContext context) {
 
 		Name name = item.getName();
-		Version version = context.getVersion();
+		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("r", item);
 		Operator operator = context.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
-		if (version == Version.V3_5) {
+		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s CONSTRAINT ON ()-[r:%s]-() ASSERT exists(%s)", operator, identifier, properties);
-		} else if (version == Version.V4_0) {
+		} else if (version == Neo4jVersion.V4_0) {
 			return String.format("%s CONSTRAINT%s ON ()-[r:%s]-() ASSERT exists(%s)", operator, name, identifier,
 				properties);
-		} else if (Version.RANGE_41_TO_42.contains(version)) {
+		} else if (Neo4jVersion.RANGE_41_TO_42.contains(version)) {
 			return String.format("%s CONSTRAINT%s %sON ()-[r:%s]-() ASSERT exists(%s)", operator, name,
 				ifNotExistsOrEmpty(context), identifier, properties);
-		} else if (version == Version.V4_3) {
+		} else if (version == Neo4jVersion.V4_3) {
 			return String.format("%s CONSTRAINT%s %sON ()-[r:%s]-() ASSERT %s", operator, name,
 				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
@@ -156,20 +156,20 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderNodePropertyExists(Constraint item, RenderContext context) {
 
 		Name name = item.getName();
-		Version version = context.getVersion();
+		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 		Operator operator = context.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
-		if (version == Version.V3_5) {
+		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s CONSTRAINT ON (n:%s) ASSERT exists(%s)", operator, identifier, properties);
-		} else if (version == Version.V4_0) {
+		} else if (version == Neo4jVersion.V4_0) {
 			return String.format("%s CONSTRAINT%s ON (n:%s) ASSERT exists(%s)", operator, name, identifier, properties);
-		} else if (Version.RANGE_41_TO_42.contains(version)) {
+		} else if (Neo4jVersion.RANGE_41_TO_42.contains(version)) {
 			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT exists(%s)", operator, name,
 				ifNotExistsOrEmpty(context), identifier, properties);
-		} else if (version == Version.V4_3) {
+		} else if (version == Neo4jVersion.V4_3) {
 			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT %s", operator, name,
 				ifNotExistsOrEmpty(context), identifier, object);
 		} else {
@@ -194,18 +194,18 @@ final class ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderUniqueConstraint(Constraint item, RenderContext context) {
 
 		Name name = item.getName();
-		Version version = context.getVersion();
+		Neo4jVersion version = context.getVersion();
 		String identifier = item.getIdentifier();
 		String properties = renderProperties("n", item);
 		Constraint.Type type = item.getType();
 		Operator operator = context.getOperator();
 
-		if (version == Version.V3_5) {
+		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s CONSTRAINT ON (n:%s) ASSERT %s IS %s", operator, identifier,
 				properties, type);
-		} else if (version == Version.V4_0) {
+		} else if (version == Neo4jVersion.V4_0) {
 			return String.format("%s CONSTRAINT%s ON (n:%s) ASSERT %s IS %s", operator, name, identifier, properties, type);
-		} else if (Version.RANGE_41_TO_43.contains(version)) {
+		} else if (Neo4jVersion.RANGE_41_TO_43.contains(version)) {
 			return String.format("%s CONSTRAINT%s %sON (n:%s) ASSERT %s IS %s", operator, name, ifNotExistsOrEmpty(context),
 				identifier, properties, type);
 		} else {

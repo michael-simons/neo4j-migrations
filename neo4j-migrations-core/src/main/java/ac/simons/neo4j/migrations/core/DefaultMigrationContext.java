@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

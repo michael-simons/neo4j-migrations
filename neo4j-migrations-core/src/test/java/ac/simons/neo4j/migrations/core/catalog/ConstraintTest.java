@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
@@ -55,12 +53,9 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseUniqueNode(String version, String name, String description) {
 
-		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.UNDEFINED);
 		Constraint constraint = Constraint.parse(
 			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))),
-			constraintDescription
-		);
+				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -91,12 +86,9 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseSimpleNodePropertyExistenceConstraint(String version, String name, String description) {
 
-		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
 		Constraint constraint = Constraint.parse(
 			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))),
-			constraintDescription
-		);
+				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -130,12 +122,9 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseNodeKeyConstraint(String version, String name, String description) {
 
-		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
 		Constraint constraint = Constraint.parse(
 			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))),
-			constraintDescription
-		);
+				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Person");
@@ -165,12 +154,9 @@ class ConstraintTest {
 	@MethodSource
 	void shouldParseSimpleRelPropertyExistenceConstraint(String version, String name, String description) {
 
-		ParseContext constraintDescription = new ParseContext(version, Neo4jEdition.ENTERPRISE);
 		Constraint constraint = Constraint.parse(
 			new MapAccessorImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))),
-			constraintDescription
-		);
+				new SimpleEntry<>("description", Values.value(description)))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
 		assertThat(constraint.getTarget()).isEqualTo(TargetEntity.RELATIONSHIP);
@@ -410,7 +396,7 @@ class ConstraintTest {
 		Map<String, Value> content) {
 
 		MapAccessor row = new MapAccessorImpl(content);
-		Constraint constraint = Constraint.parse(row, new ParseContext(version, Neo4jEdition.UNDEFINED));
+		Constraint constraint = Constraint.parse(row);
 
 		assertThat(constraint.getType()).isEqualTo(expectedType);
 		assertThat(constraint.getIdentifier()).isEqualTo(expectedIdentifier);

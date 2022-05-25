@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;

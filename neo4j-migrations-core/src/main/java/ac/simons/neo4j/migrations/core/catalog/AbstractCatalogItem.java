@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Michael J. Simons
  * @since TBA
  */
-abstract class AbstractCatalogItem<T extends ItemType> implements SchemaItem<T> {
+abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T> {
 
 	/**
 	 * The name of this item, equivalent to the id of the element in the xml scheme.

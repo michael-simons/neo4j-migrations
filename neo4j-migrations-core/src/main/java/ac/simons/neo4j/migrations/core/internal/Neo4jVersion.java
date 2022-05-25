@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.internal;
 
 import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Simplified Neo4j version.
+ * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
  *
  * @author Michael J. Simons
  * @since TBA
  */
-enum Version {
+public enum Neo4jVersion {
 
 	V3_5(true),
 	V4_0(true),
@@ -35,11 +35,11 @@ enum Version {
 	LATEST,
 	UNDEFINED;
 
-	static final Set<Version> NO_IDEM_POTENCY = EnumSet.of(V3_5, V4_0);
-	static final Set<Version> RANGE_41_TO_43 = EnumSet.of(V4_1, V4_2, V4_3);
-	static final Set<Version> RANGE_41_TO_42 = EnumSet.of(V4_1, V4_2);
+	public static final Set<Neo4jVersion> NO_IDEM_POTENCY = EnumSet.of(V3_5, V4_0);
+	public static final Set<Neo4jVersion> RANGE_41_TO_43 = EnumSet.of(V4_1, V4_2, V4_3);
+	public static final Set<Neo4jVersion> RANGE_41_TO_42 = EnumSet.of(V4_1, V4_2);
 
-	static Version of(String version) {
+	public static Neo4jVersion of(String version) {
 
 		if (version == null) {
 			return UNDEFINED;
@@ -62,11 +62,11 @@ enum Version {
 
 	private final boolean priorTo44;
 
-	Version() {
+	Neo4jVersion() {
 		this(false);
 	}
 
-	Version(boolean priorTo44) {
+	Neo4jVersion(boolean priorTo44) {
 		this.priorTo44 = priorTo44;
 	}
 

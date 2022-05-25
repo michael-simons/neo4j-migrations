@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * An item in the schema (of either a single migration or the whole context with the merged schema).
+ * The unique id of an {@link CatalogItem item}.
  *
  * @author Michael J. Simons
- * @param <T> The concrete type of this item, either a constraint or an index.
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface SchemaItem<T extends ItemType> {
+public interface Id {
 
 	// TODO add a sealed version of this type.
 
 	/**
-	 * @return A unique identifier for a schema item.
+	 * @return the {@link String string representation} of this instance
 	 */
-	Id getId();
-
-	/**
-	 * @return Type information for the given item, specialized to the item type itself.
-	 */
-	T getType();
+	String getValue();
 }

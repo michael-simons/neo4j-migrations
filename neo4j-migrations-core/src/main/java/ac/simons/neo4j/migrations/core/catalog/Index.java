@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import java.util.Collection;
 
 /**
- * Contextual information passed to parsers. It is an enriched version of a structured description coming from a given
- * database method.
+ * A somewhat Neo4j version independent representation of an index.
  *
- * @author michael J. Simons
+ * @author Michael J. Simons
  * @since TBA
  */
-final class ParseContext extends AbstractContext {
+public final class Index extends AbstractCatalogItem<Index.Type> {
 
-	ParseContext(String version, Neo4jEdition edition) {
-		super(version, edition);
+	/**
+	 * Enumerates the different kinds of indexes.
+	 */
+	enum Type implements ItemType {
+		BTREE,
+		FULLTEXT,
+		LOOKUP,
+		POINT,
+		RANGE,
+		TEXT
+	}
+
+	Index(String name, Type type, TargetEntity targetEntity, String identifier, Collection<String> properties, String options) {
+		super(name, type, targetEntity, identifier, properties, options);
 	}
 }

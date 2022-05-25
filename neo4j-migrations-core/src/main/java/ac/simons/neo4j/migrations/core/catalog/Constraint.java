@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.util.Arrays;
@@ -93,7 +92,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	// 4.1 call db.constraints(), need to fill in name
 	// 4.2 SHOW CONSTRAINTS
 
-	static Constraint parse(MapAccessor row, ParseContext context) {
+	static Constraint parse(MapAccessor row) {
 
 		Value descriptionValue = row.get("description");
 		Value nameValue = row.get("name");
@@ -167,7 +166,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				new LinkedHashSet<>(Arrays.asList(properties)));
 		}
 
-		throw new MigrationsException(String.format("Could not parse %s", description));
+		throw new IllegalArgumentException(String.format("The description '%s' does not match any known pattern.", description));
 	}
 
 	/**

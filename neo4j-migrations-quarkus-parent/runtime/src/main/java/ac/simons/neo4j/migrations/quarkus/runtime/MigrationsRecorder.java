@@ -18,7 +18,7 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 import ac.simons.neo4j.migrations.core.ClasspathResourceScanner;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-import ac.simons.neo4j.migrations.core.internal.Location;
+import ac.simons.neo4j.migrations.core.Location;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 

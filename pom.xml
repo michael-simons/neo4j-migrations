@@ -149,11 +149,16 @@
 		<spring-boot.version>2.7.0</spring-boot.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.17.2</testcontainers.version>
+		<archunit.version>0.23.1</archunit.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
-
+			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit</artifactId>
+				<version>${archunit.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>

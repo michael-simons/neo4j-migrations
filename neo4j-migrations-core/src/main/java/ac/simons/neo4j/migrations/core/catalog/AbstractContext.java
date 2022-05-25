@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 /**
  * Containing some immutable state for parsing and rendering contexts.
@@ -28,7 +29,7 @@ abstract class AbstractContext {
 	/**
 	 * Neo4j version used to get any of the contained information.
 	 */
-	private final Version version;
+	private final Neo4jVersion version;
 
 	/**
 	 * Neo4j edition used to get any of the contained information.
@@ -36,11 +37,11 @@ abstract class AbstractContext {
 	private final Neo4jEdition edition;
 
 	protected AbstractContext(String version, Neo4jEdition edition) {
-		this.version = Version.of(version);
+		this.version = Neo4jVersion.of(version);
 		this.edition = edition;
 	}
 
-	public Version getVersion() {
+	public Neo4jVersion getVersion() {
 		return version;
 	}
 

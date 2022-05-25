@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
+
+import java.util.Arrays;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
- * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
- *
  * @author Michael J. Simons
- * @since TBA
  */
-public interface ItemType {
+class GeneratedIdTest {
 
-	// TODO add a sealed version of this type.
+	@Test
+	void idGenerationShouldWork() {
 
-	String name();
+		Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntity.NODE, "Person",
+			Arrays.asList("firstname", "surname"));
+		Id id = constraint.getId();
+		Assertions.assertThat(id).isInstanceOf(GeneratedId.class).extracting(Id::getValue).isEqualTo("Constraint_C5F72780B88EBCBB7E443DCD67C70804");
+	}
 }

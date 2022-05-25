@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,9 +37,9 @@ final class Operation {
 	/**
 	 * Zero or more items to operate on. If the list is empty, the operator will be applied to the whole schema.
 	 */
-	private final List<SchemaItem<?>> operands;
+	private final List<CatalogItem<?>> operands;
 
-	Operation(Operator operator, Collection<SchemaItem<?>> operands) {
+	Operation(Operator operator, Collection<CatalogItem<?>> operands) {
 		this.operator = operator;
 		this.operands = new ArrayList<>(operands);
 	}
@@ -48,7 +48,7 @@ final class Operation {
 		return operator;
 	}
 
-	List<SchemaItem<?>> getOperands() {
+	List<CatalogItem<?>> getOperands() {
 		return Collections.unmodifiableList(operands);
 	}
 }

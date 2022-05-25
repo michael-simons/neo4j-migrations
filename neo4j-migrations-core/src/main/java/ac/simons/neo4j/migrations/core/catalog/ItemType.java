@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * Represents a Neo4j edition.
+ * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
  *
  * @author Michael J. Simons
  * @since TBA
  */
-public enum Neo4jEdition {
+public interface ItemType {
 
-	/**
-	 * Constant for the enterprise edition.
-	 */
-	ENTERPRISE,
-	/**
-	 * Constant for the community edition.
-	 */
-	COMMUNITY,
-	/**
-	 * Constant for an unknown edition.
-	 */
-	UNDEFINED
+	// TODO add a sealed version of this type.
+
+	String name();
 }

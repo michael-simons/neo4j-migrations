@@ -18,7 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import ac.simons.neo4j.migrations.core.schema.Catalog;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.util.Arrays;
 import java.util.Optional;

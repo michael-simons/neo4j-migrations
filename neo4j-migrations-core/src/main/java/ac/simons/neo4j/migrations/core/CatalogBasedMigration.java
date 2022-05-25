@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-import ac.simons.neo4j.migrations.core.schema.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

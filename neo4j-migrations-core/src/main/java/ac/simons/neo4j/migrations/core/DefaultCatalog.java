@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.schema.Constraint;
-import ac.simons.neo4j.migrations.core.schema.ItemType;
-import ac.simons.neo4j.migrations.core.schema.TargetEntity;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.ItemType;
+import ac.simons.neo4j.migrations.core.catalog.TargetEntity;
 
 import java.util.List;
 import java.util.Objects;

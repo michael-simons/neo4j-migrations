@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
@@ -27,7 +27,7 @@ import java.util.Objects;
  * @author Michael J. Simons
  * @since TBA
  */
-final class Name implements Formattable, Id {
+public final class Name implements Formattable, Id {
 
 	/**
 	 * Value of this name, might be {@literal null} or blank.

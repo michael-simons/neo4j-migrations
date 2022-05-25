@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
-
-import java.io.OutputStream;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * Renders indexes (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}).
+ * Enumerates possible target entities of constraints and indexes.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class IndexRenderer implements Renderer<Index> {
+public enum TargetEntity {
 
-	@Override
-	public void render(Index item, RenderContext context, OutputStream target) {
-
-	}
+	/**
+	 * The target entity is a node, the identifier is used as a label.
+	 */
+	NODE,
+	/**
+	 * The target entity is a relationship, the identifier is used as a type.
+	 */
+	RELATIONSHIP
 }

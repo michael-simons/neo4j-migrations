@@ -18,8 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import ac.simons.neo4j.migrations.core.internal.Location;
-import ac.simons.neo4j.migrations.core.internal.Location.LocationType;
+import ac.simons.neo4j.migrations.core.Location.LocationType;
 
 import org.junit.jupiter.api.Test;
 

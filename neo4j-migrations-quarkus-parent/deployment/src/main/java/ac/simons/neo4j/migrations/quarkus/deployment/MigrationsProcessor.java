@@ -19,8 +19,7 @@ import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.internal.Location;
-import ac.simons.neo4j.migrations.core.internal.Services;
+import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -121,7 +120,7 @@ public class MigrationsProcessor {
 		}
 
 		var resourcesFound = new HashSet<ResourceWrapper>();
-		var allSupportedExtensions = Services.loadUniqueResourceBasedMigrationProviders().stream()
+		var allSupportedExtensions = ResourceBasedMigrationProvider.unique().stream()
 			.map(ResourceBasedMigrationProvider::getExtension)
 			.map(ext -> "." + ext)
 			.collect(Collectors.toSet());

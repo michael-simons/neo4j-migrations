@@ -15,14 +15,39 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
+
 /**
  * An interface defining a provider with a set of supported extension and a mapper from resource to {@link Migration}.
  * The interface is ordered so that we can pick the accordingly when one provider maps to the same extension.
  *
  * @author Michael J. Simons
+ * @soundtrack Fatoni - Andorra
  * @since TBA
  */
 public interface ResourceBasedMigrationProvider extends Ordered {
+
+	/**
+	 * @return a collection containing unique providers (only one for each extension)
+	 */
+	static Collection<ResourceBasedMigrationProvider> unique() {
+
+		Map<String, ResourceBasedMigrationProvider> providers = new HashMap<>();
+		ServiceLoader<ResourceBasedMigrationProvider> loader = ServiceLoader.load(ResourceBasedMigrationProvider.class);
+		for (ResourceBasedMigrationProvider provider : loader) {
+			String extension = provider.getExtension();
+			if (providers.containsKey(extension) && providers.get(extension).getOrder() < provider.getOrder()) {
+				continue;
+			}
+			providers.put(extension, provider);
+		}
+
+		return Collections.unmodifiableCollection(providers.values());
+	}
 
 	/**
 	 * @return the file extension this resource based migration provider deals with

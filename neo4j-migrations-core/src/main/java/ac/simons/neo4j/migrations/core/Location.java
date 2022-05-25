@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.internal;
-
-import ac.simons.neo4j.migrations.core.MigrationsException;
+package ac.simons.neo4j.migrations.core;
 
 import java.util.Locale;
 

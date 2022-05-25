@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * The empty catalog.
+ * A catalog that is local to a migration.
  *
  * @author Michael J. Simons
  * @soundtrack Carcass - Surgical Steel
  * @since TBA
  */
-enum EmptyCatalog implements Catalog {
-	INSTANCE;
+final class MigrationCatalog implements Catalog {
+
+	private final List<Constraint> constraints;
+
+	MigrationCatalog(List<Constraint> constraints) {
+		this.constraints = Collections.unmodifiableList(new ArrayList<>(constraints));
+	}
 
 	@Override
 	public List<Constraint> getConstraints() {
-		return Collections.emptyList();
+		return this.constraints;
 	}
 }

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Collections;
 import java.util.Set;
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-final class RenderContext extends AbstractContext {
+final class RenderContext {
 
 	private static final Set<String> PRIOR_TO_44 = Stream.concat(Stream.of("3.5"),
 		IntStream.range(0, 4).mapToObj(i -> "4." + i)).collect(
@@ -40,14 +41,34 @@ final class RenderContext extends AbstractContext {
 		return new RenderContext(null, Neo4jEdition.UNDEFINED, null, true);
 	}
 
+	/**
+	 * Neo4j version used to get any of the contained information.
+	 */
+	private final Neo4jVersion version;
+
+	/**
+	 * Neo4j edition used to get any of the contained information.
+	 */
+	private final Neo4jEdition edition;
+
 	private final Operator operator;
 
 	private final boolean idempotent;
 
 	RenderContext(String version, Neo4jEdition edition, Operator operator, boolean idempotent) {
-		super(version, edition);
+		this.version = Neo4jVersion.of(version);
+		this.edition = edition;
 		this.operator = operator;
 		this.idempotent = idempotent;
+	}
+
+
+	public Neo4jVersion getVersion() {
+		return version;
+	}
+
+	public Neo4jEdition getEdition() {
+		return edition;
 	}
 
 	public Operator getOperator() {

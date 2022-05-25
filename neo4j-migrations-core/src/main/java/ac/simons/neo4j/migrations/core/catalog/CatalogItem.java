@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * Enumerates possible target entities of constraints and indexes.
+ * An item in the catalog (of either a single migration or the whole context with the merged catalog).
  *
  * @author Michael J. Simons
+ * @param <T> The concrete type of this item, either a constraint or an index.
+ * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public enum TargetEntity {
+public interface CatalogItem<T extends ItemType> {
+
+	// TODO add a sealed version of this type.
 
 	/**
-	 * The target entity is a node, the identifier is used as a label.
+	 * @return A unique identifier for a schema item.
 	 */
-	NODE,
+	Id getId();
+
 	/**
-	 * The target entity is a relationship, the identifier is used as a type.
+	 * @return Type information for the given item, specialized to the item type itself.
 	 */
-	RELATIONSHIP
+	T getType();
 }

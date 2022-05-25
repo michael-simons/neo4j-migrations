@@ -15,9 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Location;
-import ac.simons.neo4j.migrations.core.internal.Services;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
@@ -53,7 +50,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 	static Discoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
 
 		List<Discoverer<Migration>> allDiscoveres = new ArrayList<>();
-		for (ResourceBasedMigrationProvider provider : Services.loadUniqueResourceBasedMigrationProviders()) {
+		for (ResourceBasedMigrationProvider provider : ResourceBasedMigrationProvider.unique()) {
 			Predicate<String> filter = pathOrUrl -> {
 				try {
 					String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING.name());

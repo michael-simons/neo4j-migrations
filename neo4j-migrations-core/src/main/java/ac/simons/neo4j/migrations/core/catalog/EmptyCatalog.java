@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
-import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Generates an {@link Id} for a {@link SchemaItem}.
+ * The empty catalog.
  *
  * @author Michael J. Simons
+ * @soundtrack Carcass - Surgical Steel
  * @since TBA
  */
-final class GeneratedId implements Id {
-
-	private final String value;
-
-	static Id of(SchemaItem<?> item) {
-		return new GeneratedId(item);
-	}
-
-	private GeneratedId(SchemaItem<?> forItem) {
-
-		this.value = String.format("%s_%s",
-			forItem.getClass().getSimpleName(),
-			Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(forItem.toString().getBytes(StandardCharsets.UTF_8))
-		);
-	}
+enum EmptyCatalog implements Catalog {
+	INSTANCE;
 
 	@Override
-	public String getValue() {
-		return value;
+	public List<Constraint> getConstraints() {
+		return Collections.emptyList();
 	}
 }

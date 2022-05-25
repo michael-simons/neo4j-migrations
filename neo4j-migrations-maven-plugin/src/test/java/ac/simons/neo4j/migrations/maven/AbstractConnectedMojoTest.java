@@ -16,12 +16,6 @@
 package ac.simons.neo4j.migrations.maven;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
@@ -66,69 +60,69 @@ public class AbstractConnectedMojoTest {
 	public void defaultValuesShouldBeCorrect() throws Exception {
 
 		File pom = new File("target/test-classes/project-to-test/");
-		assertNotNull(pom);
-		assertTrue(pom.exists());
+		assertThat(pom).isNotNull();
+		assertThat(pom.exists()).isTrue();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
-		assertNotNull(infoMojo);
+		assertThat(infoMojo).isNotNull();
 
 		URI address = (URI) rule.getVariableValueFromObject(infoMojo, "address");
-		assertEquals(URI.create("bolt://localhost:7687"), address);
+		assertThat(address).isEqualTo(URI.create("bolt://localhost:7687"));
 
 		String user = (String) rule.getVariableValueFromObject(infoMojo, "user");
-		assertEquals("neo4j", user);
+		assertThat(user).isEqualTo("neo4j");
 
 		String password = (String) rule.getVariableValueFromObject(infoMojo, "password");
-		assertNull(password);
+		assertThat(password).isNull();
 
 		String[] packagesToScan = (String[]) rule.getVariableValueFromObject(infoMojo, "packagesToScan");
-		assertArrayEquals(new String[0], packagesToScan);
+		assertThat(packagesToScan).isEqualTo(new String[0]);
 
 		String[] locationsToScan = (String[]) rule.getVariableValueFromObject(infoMojo, "locationsToScan");
 		Pattern expectedLocationsToScan = Pattern.compile("file://.*/neo4j/migrations");
-		assertTrue(expectedLocationsToScan.matcher(locationsToScan[0]).matches());
+		assertThat(expectedLocationsToScan.matcher(locationsToScan[0]).matches()).isTrue();
 
 		TransactionMode transactionMode = (TransactionMode) rule
 			.getVariableValueFromObject(infoMojo, "transactionMode");
-		assertEquals(TransactionMode.PER_MIGRATION, transactionMode);
+		assertThat(transactionMode).isEqualTo(TransactionMode.PER_MIGRATION);
 
 		String database = (String) rule.getVariableValueFromObject(infoMojo, "database");
-		assertNull(database);
+		assertThat(database).isNull();
 
 		boolean verbose = (boolean) rule.getVariableValueFromObject(infoMojo, "verbose");
-		assertFalse(verbose);
+		assertThat(verbose).isFalse();
 
 		MigrationsConfig config = infoMojo.getConfig();
-		assertNotNull(config);
-		assertFalse(config.getOptionalDatabase().isPresent());
-		assertEquals(Optional.of("testor"), config.getOptionalInstalledBy());
-		assertEquals(1, config.getLocationsToScan().length);
-		assertTrue(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches());
-		assertEquals(TransactionMode.PER_MIGRATION, config.getTransactionMode());
+		assertThat(config).isNotNull();
+		assertThat(config.getOptionalDatabase().isPresent()).isFalse();
+		assertThat(config.getOptionalInstalledBy()).isEqualTo(Optional.of("testor"));
+		assertThat(config.getLocationsToScan().length).isEqualTo(1);
+		assertThat(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches()).isTrue();
+		assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_MIGRATION);
 	}
 
 	@Test
 	public void shouldConfigureImpersonatedUser() throws Exception {
 
 		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertNotNull(pom);
-		assertTrue(pom.exists());
+		assertThat(pom).isNotNull();
+		assertThat(pom.exists()).isTrue();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
-		assertNotNull(infoMojo);
-		assertEquals(Optional.of("someoneElse"), infoMojo.getConfig().getOptionalImpersonatedUser());
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getOptionalImpersonatedUser()).isEqualTo(Optional.of("someoneElse"));
 	}
 
 	@Test
 	public void shouldConfigureSchemaDatabase() throws Exception {
 
 		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertNotNull(pom);
-		assertTrue(pom.exists());
+		assertThat(pom).isNotNull();
+		assertThat(pom.exists()).isTrue();
 
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
-		assertNotNull(infoMojo);
-		assertEquals(Optional.of("anotherDatabase"), infoMojo.getConfig().getOptionalSchemaDatabase());
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getOptionalSchemaDatabase()).isEqualTo(Optional.of("anotherDatabase"));
 	}
 
 	@Test

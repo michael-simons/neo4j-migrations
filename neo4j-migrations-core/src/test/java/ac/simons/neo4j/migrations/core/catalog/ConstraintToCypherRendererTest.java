@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +55,7 @@ class ConstraintToCypherRendererTest {
 
 		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		if (shouldFail) {
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext));
 		} else {
 			assertThat(renderer.render(constraint, renderContext)).isEqualTo(
@@ -73,7 +72,7 @@ class ConstraintToCypherRendererTest {
 			Arrays.asList("a", "b"));
 
 		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
-		assertThatExceptionOfType(MigrationsException.class)
+		assertThatExceptionOfType(IllegalStateException.class)
 			.isThrownBy(() -> renderer.render(constraint, renderContext));
 	}
 
@@ -132,7 +131,7 @@ class ConstraintToCypherRendererTest {
 			Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
-		assertThatExceptionOfType(MigrationsException.class)
+		assertThatExceptionOfType(IllegalStateException.class)
 			.isThrownBy(() -> renderer.render(constraint, renderContext))
 			.withMessage("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version);
 	}
@@ -146,7 +145,7 @@ class ConstraintToCypherRendererTest {
 				Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
-		assertThatExceptionOfType(MigrationsException.class)
+		assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext))
 				.withMessage("This constraint cannot be be used with %s edition.", edition);
 	}
@@ -162,7 +161,7 @@ class ConstraintToCypherRendererTest {
 
 		Renderer<Constraint> renderer = new ConstraintToCypherRenderer();
 		if (fails) {
-			assertThatExceptionOfType(MigrationsException.class)
+			assertThatExceptionOfType(IllegalStateException.class)
 				.isThrownBy(() -> renderer.render(constraint, renderContext))
 				.withMessage("The constraint can only be rendered in the given context when having a name.");
 		} else {

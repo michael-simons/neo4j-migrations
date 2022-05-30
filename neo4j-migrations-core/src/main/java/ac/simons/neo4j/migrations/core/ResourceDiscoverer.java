@@ -66,7 +66,13 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 	}
 
 	static ResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
-		return new ResourceDiscoverer<>(resourceScanner, LifecyclePhase::canParse,
+		Predicate<String> filter = LifecyclePhase::canParse;
+		filter = filter.and(fullPath -> {
+				final int lastSlashIdx = fullPath.lastIndexOf('/');
+				final int lastDotIdx = fullPath.lastIndexOf('.');
+				return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
+		});
+		return new ResourceDiscoverer<>(resourceScanner, filter,
 			ctx -> new CypherBasedCallback(ctx.getUrl(), ctx.getConfig().isAutocrlf()));
 	}
 

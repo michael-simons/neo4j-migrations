@@ -123,10 +123,12 @@ Commands:
   clean           Removes Neo4j-Migration specific data from the selected
                     schema database
   help            Displays help information about the specified command
-  info            Retrieves all applied and pending informations, prints them
+  info            Retrieves all applied and pending information, prints them
                     and exits.
   init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
+  show-catalog    Gets the local or remote catalog and prints it to standard
+                    out in the given format.
   validate        Resolves all local migrations and validates the state of the
                     configured database with them.
 ----

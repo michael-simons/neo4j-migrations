@@ -17,19 +17,30 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Collections;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Michael J. Simons
  */
 class CatalogRendererTest {
 
-	private static final Catalog CATALOG = Catalog.of(Collections.singletonList(Constraint
-		.forNode("Book")
-		.named("book_id_unique")
-		.unique("id")
+	private static final Catalog CATALOG = Catalog.of(Arrays.asList(
+		Constraint
+			.forNode("Book")
+			.named("book_id_unique")
+			.unique("id"),
+		Constraint.forNode("Book")
+			.named("book_isbn_exists")
+			.exists("isbn")
 	));
 
 	@Test
@@ -49,9 +60,34 @@ class CatalogRendererTest {
 			+ "                    <property>id</property>\n"
 			+ "                </properties>\n"
 			+ "            </constraint>\n"
+			+ "            <constraint name=\"book_isbn_exists\" type=\"exists\">\n"
+			+ "                <label>Book</label>\n"
+			+ "                <properties>\n"
+			+ "                    <property>isbn</property>\n"
+			+ "                </properties>\n"
+			+ "            </constraint>\n"
 			+ "        </constraints>\n"
 			+ "    </catalog>\n"
 			+ "</migration>\n"
 			+ "");
+	}
+
+	@SuppressWarnings("unused")
+	static Stream<Arguments> shouldRenderCatalogAsCypher() {
+
+		return Stream.of(
+			Arguments.of(Neo4jVersion.V3_5, String.format(
+				"CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%nCREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn);%n")),
+			Arguments.of(Neo4jVersion.V4_4, String.format(
+				"CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE;%nCREATE CONSTRAINT book_isbn_exists FOR (n:Book) REQUIRE n.isbn IS NOT NULL;%n")
+			));
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldRenderCatalogAsCypher(Neo4jVersion version, String expected) {
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.CYPHER, Catalog.class);
+		assertThat(renderer.render(CATALOG,
+			RenderConfig.create().forVersionAndEdition(version, Neo4jEdition.ENTERPRISE))).isEqualTo(expected);
 	}
 }

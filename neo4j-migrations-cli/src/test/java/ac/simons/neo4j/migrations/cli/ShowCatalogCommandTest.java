@@ -1,0 +1,164 @@
+/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+
+import java.util.Collections;
+
+import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
+
+/**
+ * @author Michael J. Simons
+ */
+class ShowCatalogCommandTest {
+
+	public static final Catalog CATALOG = Catalog.of(Collections.singletonList(
+		Constraint
+			.forNode("Book")
+			.named("book_id_unique")
+			.unique("id")
+	));
+
+	@Test
+	void shouldUseRemoteCatalog() throws Exception {
+
+		Migrations migrations = mock(Migrations.class);
+		when(migrations.getDatabaseCatalog()).thenReturn(CATALOG);
+
+		ShowCatalogCommand cmd = new ShowCatalogCommand();
+		setMode(cmd, ShowCatalogCommand.Mode.REMOTE);
+
+		String result = tapSystemOut(() -> {
+			cmd.withMigrations(migrations);
+			System.out.flush();
+		});
+
+		assertThat(result).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"http://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <catalog>\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints>\n"
+			+ "            <constraint name=\"book_id_unique\" type=\"unique\">\n"
+			+ "                <label>Book</label>\n"
+			+ "                <properties>\n"
+			+ "                    <property>id</property>\n"
+			+ "                </properties>\n"
+			+ "            </constraint>\n"
+			+ "        </constraints>\n"
+			+ "    </catalog>\n"
+			+ "</migration>\n"
+			+ "");
+
+		verify(migrations).getDatabaseCatalog();
+		verifyNoMoreInteractions(migrations);
+	}
+
+	@Test
+	void shouldUseLocalCatalog() throws Exception {
+
+		Migrations migrations = mock(Migrations.class);
+		when(migrations.getLocalCatalog()).thenReturn(CATALOG);
+
+		ShowCatalogCommand cmd = new ShowCatalogCommand();
+		setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
+		setFormatToCypher(cmd);
+
+		String result = tapSystemOut(() -> {
+			cmd.withMigrations(migrations);
+			System.out.flush();
+		});
+
+		assertThat(result).isEqualTo(
+			String.format("CREATE CONSTRAINT book_id_unique IF NOT EXISTS FOR (n:Book) REQUIRE n.id IS UNIQUE;%n"));
+		verify(migrations).getLocalCatalog();
+		verifyNoMoreInteractions(migrations);
+	}
+
+	@Test
+	void shouldObeyVersion() throws Exception {
+
+		Migrations migrations = mock(Migrations.class);
+		when(migrations.getLocalCatalog()).thenReturn(CATALOG);
+
+		ShowCatalogCommand cmd = new ShowCatalogCommand();
+		setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
+		setVersion(cmd, "3.5.23");
+		setFormatToCypher(cmd);
+
+		String result = tapSystemOut(() -> {
+			cmd.withMigrations(migrations);
+			System.out.flush();
+		});
+
+		assertThat(result).isEqualTo(String.format("CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%n"));
+		verify(migrations).getLocalCatalog();
+		verifyNoMoreInteractions(migrations);
+	}
+
+	private static void setMode(ShowCatalogCommand cmd, ShowCatalogCommand.Mode mode) {
+		ReflectionSupport
+			.findFields(ShowCatalogCommand.class, f -> f.getName().equals("mode"), HierarchyTraversalMode.TOP_DOWN)
+			.forEach(f -> {
+				f.setAccessible(true);
+				try {
+					f.set(cmd, mode);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			});
+	}
+
+	private static void setFormatToCypher(ShowCatalogCommand cmd) {
+		ReflectionSupport
+			.findFields(ShowCatalogCommand.class, f -> f.getName().equals("format"), HierarchyTraversalMode.TOP_DOWN)
+			.forEach(f -> {
+				f.setAccessible(true);
+				try {
+					f.set(cmd, Renderer.Format.CYPHER);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			});
+	}
+
+	private static void setVersion(ShowCatalogCommand cmd, String version) {
+		ReflectionSupport
+			.findFields(ShowCatalogCommand.class, f -> f.getName().equals("version"), HierarchyTraversalMode.TOP_DOWN)
+			.forEach(f -> {
+				f.setAccessible(true);
+				try {
+					f.set(cmd, version);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			});
+	}
+}

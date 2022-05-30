@@ -42,7 +42,6 @@ public class test_native_cli {
 		var expectedOutput = List.of(
 			"Applied migration 0001 (\"delete old data\").",
 			"Applied migration 0002 (\"create new data\").",
-			"Removed 0 constraints and 0 indexes, added 1 constraints and 0 indexes in total.",
 			"Applied migration 0003 (\"Create constraints\").",
 			"Database migrated to version 0003."
 		);

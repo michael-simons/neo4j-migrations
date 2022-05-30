@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.catalog.Renderer.Format;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import picocli.CommandLine.Command;
@@ -50,10 +51,10 @@ final class ShowCatalogCommand extends ConnectedCommand {
 	private Mode mode = Mode.REMOTE;
 
 	@Option(names = "format", defaultValue = "XML", description = "The format in which to print the catalog.")
-	private Renderer.Format format = Renderer.Format.XML;
+	private Format format = Format.XML;
 
-	@Option(names = "version", defaultValue = "LATEST", description = "The Neo4j version specific syntax to use when printing the catalog as Cypher.")
-	private Neo4jVersion version = Neo4jVersion.LATEST;
+	@Option(names = "version", description = "Which Neo4j version should be assumed for rendering constraints and indexes as Cypher.")
+	private String version;
 
 	@Override
 	public MigrationsCli getParent() {
@@ -66,14 +67,17 @@ final class ShowCatalogCommand extends ConnectedCommand {
 		Renderer<Catalog> renderer = Renderer.get(format, Catalog.class);
 		Catalog catalog;
 		if (mode == Mode.LOCAL) {
-			catalog = migrations.getLocalCatalog().getValue();
+			catalog = migrations.getLocalCatalog();
 		} else {
-			catalog = migrations.getDatabaseCatalog().getValue();
+			catalog = migrations.getDatabaseCatalog();
 		}
 
 		try {
-			renderer.render(catalog, RenderConfig.create().idempotent(version.hasIdempotentOperations())
-				.forVersionAndEdition(version, Neo4jEdition.ENTERPRISE), System.out);
+			Neo4jVersion neo4jVersion = version == null ? Neo4jVersion.LATEST : Neo4jVersion.of(version);
+			RenderConfig config = RenderConfig.create()
+				.idempotent(neo4jVersion.hasIdempotentOperations())
+				.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);
+			renderer.render(catalog, config, System.out);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

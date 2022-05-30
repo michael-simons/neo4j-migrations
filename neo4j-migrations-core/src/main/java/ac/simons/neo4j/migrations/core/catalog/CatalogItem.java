@@ -23,7 +23,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface CatalogItem<T extends ItemType> extends Renderable {
+public interface CatalogItem<T extends ItemType> {
 
 	/**
 	 * @return A unique name for a catalog item.

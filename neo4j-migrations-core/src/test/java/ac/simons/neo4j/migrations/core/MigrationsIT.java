@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
@@ -342,17 +344,21 @@ class MigrationsIT extends TestBase {
 		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 
-		assertThat(migrations.getLocalCatalog().getValue().getItems()).hasSize(2);
-		assertThat(migrations.getDatabaseCatalog().getValue().getItems()).isEmpty();
-		assertThat(migrations.getDatabaseCatalog().getLocalOnlyItems()).containsAll(migrations.getLocalCatalog().getValue().getItems());
+		Catalog localCatalog = migrations.getLocalCatalog();
+		assertThat(localCatalog.getItems()).hasSize(2);
+		Catalog databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).isEmpty();
+		CatalogDiff diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).containsAll(localCatalog.getItems());
 
 		migrations.apply();
 
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(12);
 
-		assertThat(migrations.getLocalCatalog().getValue().getItems()).hasSize(2);
-		assertThat(migrations.getDatabaseCatalog().getValue().getItems()).hasSize(1);
-		assertThat(migrations.getDatabaseCatalog().getLocalOnlyItems()).map(CatalogItem::getName).containsExactly(Name.of("constraint_with_options"));
+		databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).hasSize(1);
+		diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).map(CatalogItem::getName).containsExactly(Name.of("constraint_with_options"));
 
 		try (Session session = driver.session()) {
 			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();

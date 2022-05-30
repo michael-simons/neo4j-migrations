@@ -322,13 +322,13 @@ public final class Migrations {
 	 * @return the local catalog
 	 * @since TBA
 	 */
-	public CatalogResult getLocalCatalog() {
+	public Catalog getLocalCatalog() {
 
 		// Retrieving the migrations will initialize the local catalog
 		if (getMigrations().isEmpty()) {
-			return new LocalCatalogResult(Catalog.empty());
+			return Catalog.empty();
 		}
-		return new LocalCatalogResult(this.context.getCatalog());
+		return this.context.getCatalog();
 	}
 
 	/**
@@ -336,16 +336,12 @@ public final class Migrations {
 	 * @return the database catalog
 	 * @since TBA
 	 */
-	public RemoteCatalogResult getDatabaseCatalog() {
+	public Catalog getDatabaseCatalog() {
 
-		return executeWithinLock(() -> {
-			Optional<String> targetDatabase = config.getOptionalDatabase();
-			try (Session session = context.getSession()) {
-				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
-				Catalog databaseCatalog = DatabaseCatalog.of(neo4jVersion, session);
-				return new RemoteCatalogResult(targetDatabase, databaseCatalog, this.context.getCatalog());
-			}
-		}, null, null);
+		try (Session session = context.getSession()) {
+			Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+			return DatabaseCatalog.of(neo4jVersion, session);
+		}
 	}
 
 	/**
@@ -381,14 +377,7 @@ public final class Migrations {
 		}
 	}
 
-	/**
-	 * @param phase can be {@literal null}, no callback will be involved then
-	 */
 	private void invokeCallbacks(LifecyclePhase phase) {
-
-		if (phase == null) {
-			return;
-		}
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())

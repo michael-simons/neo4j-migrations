@@ -40,7 +40,7 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 	INSTANCE;
 
 	@Override
-	public void render(Catalog catalog, RenderConfig context, OutputStream target) throws IOException {
+	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
 		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();

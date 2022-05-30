@@ -17,6 +17,9 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Michael J. Simons
@@ -26,7 +29,18 @@ enum CatalogToCypherRenderer implements Renderer<Catalog> {
 
 	INSTANCE;
 
-	@Override public void render(Catalog item, RenderConfig context, OutputStream target) throws IOException {
-		throw new UnsupportedOperationException();
+	@Override
+	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
+
+		byte[] separator = (";" + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
+		Map<Class<CatalogItem<?>>, Renderer<CatalogItem<?>>> cachedRenderer = new ConcurrentHashMap<>(2);
+		for (CatalogItem<?> item : catalog.getItems()) {
+			@SuppressWarnings("unchecked")
+			Renderer<CatalogItem<?>> renderer = cachedRenderer.computeIfAbsent((Class<CatalogItem<?>>) item.getClass(),
+				type -> Renderer.get(Format.CYPHER, type));
+			renderer.render(item, config, target);
+			target.write(separator);
+		}
+		target.flush();
 	}
 }

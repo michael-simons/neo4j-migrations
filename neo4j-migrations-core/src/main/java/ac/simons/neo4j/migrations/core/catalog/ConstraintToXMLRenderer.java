@@ -40,7 +40,7 @@ enum ConstraintToXMLRenderer implements Renderer<Constraint> {
 	INSTANCE;
 
 	@Override
-	public void render(Constraint item, RenderConfig context, OutputStream target) throws IOException {
+	public void render(Constraint item, RenderConfig config, OutputStream target) throws IOException {
 		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();

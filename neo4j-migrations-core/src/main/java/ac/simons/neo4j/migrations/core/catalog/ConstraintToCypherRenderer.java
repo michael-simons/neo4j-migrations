@@ -52,10 +52,10 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private static final String KEYWORD_ASSERT = "ASSERT";
 
 	@Override
-	public void render(Constraint constraint, RenderConfig context, OutputStream target) throws IOException {
+	public void render(Constraint constraint, RenderConfig config, OutputStream target) throws IOException {
 
-		Neo4jVersion version = context.getVersion();
-		if (context.isIdempotent() && !version.hasIdempotentOperations() && !context.isIgnoreName()) {
+		Neo4jVersion version = config.getVersion();
+		if (config.isIdempotent() && !version.hasIdempotentOperations() && !config.isIgnoreName()) {
 			throw new IllegalStateException(
 				String.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
@@ -66,28 +66,28 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				throw new IllegalStateException("Only unique and node key constraints support multiple properties.");
 			}
 
-			if (context.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
+			if (config.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
 				throw new IllegalStateException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
 
-		if (!constraint.hasName() && context.isIdempotent() && context.getOperator() == Operator.DROP) {
+		if (!constraint.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
 			throw new IllegalStateException("The constraint can only be rendered in the given context when having a name.");
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
-		if (context.getOperator() == Operator.DROP && context.getVersion() != Neo4jVersion.V3_5 && constraint.hasName() && !context.isIgnoreName()) {
-			w.write(String.format("DROP %#s%s", constraint, ifNotExistsOrEmpty(context)));
+		if (config.getOperator() == Operator.DROP && config.getVersion() != Neo4jVersion.V3_5 && constraint.hasName() && !config.isIgnoreName()) {
+			w.write(String.format("DROP %#s%s", constraint, ifNotExistsOrEmpty(config)));
 		} else {
 			switch (constraint.getType()) {
 				case UNIQUE:
-					w.write(renderUniqueConstraint(constraint, context));
+					w.write(renderUniqueConstraint(constraint, config));
 					break;
 				case EXISTS:
-					w.write(renderPropertyExists(constraint, context));
+					w.write(renderPropertyExists(constraint, config));
 					break;
 				case KEY:
-					w.write(renderNodeKey(constraint, context));
+					w.write(renderNodeKey(constraint, config));
 					break;
 				default:
 					throw new IllegalArgumentException("Unsupported type of constraint: " + constraint.getType());

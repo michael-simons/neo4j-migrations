@@ -24,7 +24,7 @@ import java.util.Collections;
  * @author Michael J. Simons
  * @since 1.1.0
  */
-public sealed interface OperationResult permits CatalogResult, DatabaseOperationResult {
+public sealed interface OperationResult permits DatabaseOperationResult {
 
 	/**
 	 * {@return all warnings, if any}

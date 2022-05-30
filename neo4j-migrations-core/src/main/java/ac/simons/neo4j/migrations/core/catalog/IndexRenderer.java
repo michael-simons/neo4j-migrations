@@ -26,7 +26,7 @@ import java.io.OutputStream;
 final class IndexRenderer implements Renderer<Index> {
 
 	@Override
-	public void render(Index item, RenderConfig context, OutputStream target) {
+	public void render(Index item, RenderConfig config, OutputStream target) {
 		throw new UnsupportedOperationException("Gerrit is working on that.");
 	}
 }

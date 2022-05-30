@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface Renderer<T extends Renderable> {
+public interface Renderer<T> {
 
 	/**
 	 * Target formats
@@ -55,7 +55,7 @@ public interface Renderer<T extends Renderable> {
 	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends Renderable> Renderer<T> get(Format format, T type) {
+	static <T> Renderer<T> get(Format format, T type) {
 		return Renderer.get(format, (Class<T>) type.getClass());
 	}
 
@@ -69,7 +69,7 @@ public interface Renderer<T extends Renderable> {
 	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends Renderable> Renderer<T> get(Format format, Class<T> type) {
+	static <T> Renderer<T> get(Format format, Class<T> type) {
 
 		if (Catalog.class.isAssignableFrom(type)) {
 			switch (format) {
@@ -103,13 +103,13 @@ public interface Renderer<T extends Renderable> {
 	/**
 	 * Renders a schema item.
 	 *
-	 * @param item    The item to be rendered
-	 * @param context The context in which the constraint is to be rendered.
-	 * @param target  The target to write to. Will not be closed.
+	 * @param item   The item to be rendered
+	 * @param config The context in which the constraint is to be rendered.
+	 * @param target The target to write to. Will not be closed.
 	 * @throws IllegalStateException in case a given item cannot be rendered with the features requested in the given context.
 	 * @throws IOException           If rendering fails due to issues with the {@literal target}
 	 */
-	void render(T item, RenderConfig context, OutputStream target) throws IOException;
+	void render(T item, RenderConfig config, OutputStream target) throws IOException;
 
 	/**
 	 * Renders a schema item.

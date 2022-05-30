@@ -158,12 +158,12 @@ final class CatalogBasedMigration implements Migration {
 
 		if (oldCatalog != null) {
 			oldCatalog.getParentNode().replaceChild(newCatalog, oldCatalog);
-			if (constraints != null) {
-				newCatalog.appendChild(constraints);
-			}
-			if (indexes != null) {
-				newCatalog.appendChild(indexes);
-			}
+		}
+		if (constraints != null) {
+			newCatalog.appendChild(constraints);
+		}
+		if (indexes != null) {
+			newCatalog.appendChild(indexes);
 		}
 		elements.add(newCatalog);
 		return canonicalizeAndChecksumElements(document, elements);
@@ -306,7 +306,7 @@ final class CatalogBasedMigration implements Migration {
 				.map(op -> op.execute(operationContext))
 				.reduce(Counters.empty(), Counters::add);
 
-			LOGGER.log(Level.INFO,
+			LOGGER.log(Level.FINE,
 				"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes in total.",
 				counters.toArray());
 		} catch (VerificationFailedException e) {

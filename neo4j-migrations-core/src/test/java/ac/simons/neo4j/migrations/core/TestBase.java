@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,8 +91,7 @@ abstract class TestBase {
 			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD 'DROP CONSTRAINT ' + name as cmd").list(r -> r.get("cmd").asString());
 		}
 
-		constraintsToBeDropped.forEach(cmd ->
-			dropConstraint(driver, database, cmd));
+		constraintsToBeDropped.forEach(cmd -> dropConstraint(driver, database, cmd));
 	}
 
 	static int lengthOfMigrations(Driver driver, String database) {
@@ -124,7 +125,7 @@ abstract class TestBase {
 		SessionConfig sessionConfig = getSessionConfig(database);
 
 		try (Session session = driver.session(sessionConfig)) {
-			session.writeTransaction(t -> t.run(constraint).consume());
+			assertThat(session.writeTransaction(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
 		} catch (Neo4jException e) {
 		}
 	}

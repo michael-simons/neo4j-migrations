@@ -368,7 +368,7 @@ class MigrationsIT extends TestBase {
 				+ "  // in it!\n";
 			assertThat(prop).isEqualTo(value);
 
-			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
+			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
 				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "3878177065", "200310393",

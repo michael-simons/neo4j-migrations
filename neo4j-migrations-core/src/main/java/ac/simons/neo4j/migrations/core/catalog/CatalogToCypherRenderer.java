@@ -15,36 +15,18 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
- *
  * @author Michael J. Simons
- * @param <T> The concrete type of this item, either a constraint or an index.
- * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface CatalogItem<T extends ItemType> extends Renderable {
+enum CatalogToCypherRenderer implements Renderer<Catalog> {
 
-	/**
-	 * @return A unique name for a catalog item.
-	 */
-	Name getName();
+	INSTANCE;
 
-	/**
-	 * @return Type information for the given item, specialized to the item type itself.
-	 */
-	T getType();
-
-	/**
-	 * @param that The other item to check
-	 * @return {@literal true} if this item is equivalent to {@code that} item
-	 */
-	default boolean isEquivalentTo(CatalogItem<?> that) {
+	@Override public void render(Catalog item, RenderConfig context, OutputStream target) throws IOException {
 		throw new UnsupportedOperationException();
 	}
-
-	/**
-	 * @return {@literal true} if this item has a generated name.
-	 */
-	boolean hasGeneratedName();
 }

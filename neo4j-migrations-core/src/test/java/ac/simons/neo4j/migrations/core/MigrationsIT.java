@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.io.File;
 import java.io.IOException;
@@ -334,14 +336,23 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Test
-	void shouldApplyCypherBasedMigrations() {
+	void shouldApplyResourceBasedMigrations() {
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
+
+		assertThat(migrations.getLocalCatalog().getValue().getItems()).hasSize(2);
+		assertThat(migrations.getDatabaseCatalog().getValue().getItems()).isEmpty();
+		assertThat(migrations.getDatabaseCatalog().getLocalOnlyItems()).containsAll(migrations.getLocalCatalog().getValue().getItems());
+
 		migrations.apply();
 
-		assertThat(lengthOfMigrations(driver, null)).isEqualTo(11);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(12);
+
+		assertThat(migrations.getLocalCatalog().getValue().getItems()).hasSize(2);
+		assertThat(migrations.getDatabaseCatalog().getValue().getItems()).hasSize(1);
+		assertThat(migrations.getDatabaseCatalog().getLocalOnlyItems()).map(CatalogItem::getName).containsExactly(Name.of("constraint_with_options"));
 
 		try (Session session = driver.session()) {
 			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();
@@ -354,7 +365,7 @@ class MigrationsIT extends TestBase {
 			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
-				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "200310393",
+				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "3878177065", "200310393",
 						"949907516", "949907516", "2884945437", "1491717096", "323208405");
 		}
 	}

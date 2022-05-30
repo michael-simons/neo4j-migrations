@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  * @soundtrack Anthrax - Spreading The Disease
  * @since TBA
  */
-public interface Renderer<T extends CatalogItem<?>> {
+public interface Renderer<T extends Renderable> {
 
 	/**
 	 * Target formats
@@ -55,7 +55,7 @@ public interface Renderer<T extends CatalogItem<?>> {
 	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends CatalogItem<?>> Renderer<T> get(Format format, T type) {
+	static <T extends Renderable> Renderer<T> get(Format format, T type) {
 		return Renderer.get(format, (Class<T>) type.getClass());
 	}
 
@@ -69,16 +69,32 @@ public interface Renderer<T extends CatalogItem<?>> {
 	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends CatalogItem<?>> Renderer<T> get(Format format, Class<T> type) {
+	static <T extends Renderable> Renderer<T> get(Format format, Class<T> type) {
+
+		if (Catalog.class.isAssignableFrom(type)) {
+			switch (format) {
+				case CYPHER:
+					return (Renderer<T>) CatalogToCypherRenderer.INSTANCE;
+				case XML:
+					return (Renderer<T>) CatalogToXMLRenderer.INSTANCE;
+			}
+		}
 
 		switch (format) {
 			case CYPHER:
-				if (type.isAssignableFrom(Constraint.class)) {
+				if (Constraint.class.isAssignableFrom(type)) {
 					return (Renderer<T>) ConstraintToCypherRenderer.INSTANCE;
+				} else {
+					throw new UnsupportedOperationException(
+						"Don't know how to render items of type " + type.getName() + " as Cypher.");
 				}
-				throw new UnsupportedOperationException(
-					"Don't know how to items of type " + type.getName() + " as Cypher.");
 			case XML:
+				if (Constraint.class.isAssignableFrom(type)) {
+					return (Renderer<T>) ConstraintToXMLRenderer.INSTANCE;
+				} else {
+					throw new UnsupportedOperationException(
+						"Don't know how to render items of type " + type.getName() + " as XML.");
+				}
 			default:
 				throw new UnsupportedOperationException("Unsupported format: " + format);
 		}
@@ -101,7 +117,7 @@ public interface Renderer<T extends CatalogItem<?>> {
 	 * @param item   The item to be rendered
 	 * @param config The configuration to render
 	 * @return The textual representation of the item in the given context, ready to be executed.
-	 * @throws UncheckedIOException any {@link IOException} from {@link #render(CatalogItem, RenderConfig, OutputStream)} is rethrown here
+	 * @throws UncheckedIOException any {@link IOException} from {@link #render(T, RenderConfig, OutputStream)} is rethrown here
 	 */
 	default String render(T item, RenderConfig config) {
 		try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {

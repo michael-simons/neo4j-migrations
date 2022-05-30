@@ -41,7 +41,7 @@ import org.w3c.dom.NodeList;
  * @since TBA
  */
 @FunctionalInterface
-public interface Catalog {
+public interface Catalog extends Renderable {
 
 	/**
 	 * Creates a catalog based on a document following the schema of {@literal /ac/simons/neo4j/migrations/core/migration.xsd}.

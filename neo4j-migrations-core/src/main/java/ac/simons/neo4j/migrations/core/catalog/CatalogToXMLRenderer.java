@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import ac.simons.neo4j.migrations.core.internal.XMLUtils;
 
 import java.io.IOException;
@@ -28,25 +29,41 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
- * Renders constraints as XML.
- *
  * @author Michael J. Simons
  * @since TBA
  */
-enum ConstraintToXMLRenderer implements Renderer<Constraint> {
+enum CatalogToXMLRenderer implements Renderer<Catalog> {
 
 	INSTANCE;
 
 	@Override
-	public void render(Constraint item, RenderConfig context, OutputStream target) throws IOException {
+	public void render(Catalog catalog, RenderConfig context, OutputStream target) throws IOException {
 		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
 			Document document = documentBuilder.newDocument();
 
-			document.appendChild(item.toXML(document));
+			Element migrationElement = document.createElementNS(XMLSchemaConstants.MIGRATION_NS,
+				XMLSchemaConstants.MIGRATION);
+			document.appendChild(migrationElement);
+
+			Element catalogElement = document.createElement(XMLSchemaConstants.CATALOG);
+			migrationElement.appendChild(catalogElement);
+
+			Element indexesElement = document.createElement(XMLSchemaConstants.INDEXES);
+			catalogElement.appendChild(indexesElement);
+
+			Element constraintsElement = document.createElement(XMLSchemaConstants.CONSTRAINTS);
+			catalogElement.appendChild(constraintsElement);
+
+			for (CatalogItem<?> item : catalog.getItems()) {
+				if (item instanceof Constraint) {
+					constraintsElement.appendChild(((Constraint) item).toXML(document));
+				}
+			}
 
 			XMLUtils.getIndentingTransformer().transform(new DOMSource(document), new StreamResult(target));
 		} catch (ParserConfigurationException | TransformerException e) {

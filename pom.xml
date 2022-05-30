@@ -457,6 +457,7 @@
 							<exclude>ac/simons/neo4j/migrations/core/catalog/CatalogItem.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/catalog/ItemType.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/catalog/Name.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/CatalogResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/ConnectionDetails.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/DatabaseOperationResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/Migration.class</exclude>

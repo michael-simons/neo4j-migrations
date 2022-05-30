@@ -29,6 +29,14 @@ import java.util.Set;
 public final class XMLSchemaConstants {
 
 	/**
+	 * The namespace constant.
+	 */
+	public static final String MIGRATION_NS = "http://michael-simons.github.io/neo4j-migrations";
+	/**
+	 * Constant for {@literal migration}
+	 */
+	public static final String MIGRATION = "migration";
+	/**
 	 * Constant for {@literal type} (both used as attribute and element).
 	 */
 	public static final String TYPE = "type";

@@ -15,26 +15,19 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Collection;
-import java.util.Collections;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 /**
- * Represents the result of some operations.
+ * The result of retrieving a catalog.
  *
  * @author Michael J. Simons
- * @since 1.1.0
+ * @soundtrack Motörhead - Snake Bite Love
+ * @since TBA
  */
-public sealed interface OperationResult permits CatalogResult, DatabaseOperationResult {
+public sealed interface CatalogResult extends OperationResult permits LocalCatalogResult, RemoteCatalogResult {
 
 	/**
-	 * {@return all warnings, if any}
+	 * {@return the catalog retrieved}
 	 */
-	default Collection<String> getWarnings() {
-		return Collections.emptyList();
-	}
-
-	/**
-	 * {@return a sensible string applicable in a log or info message}
-	 */
-	String prettyPrint();
+	Catalog getCatalog();
 }

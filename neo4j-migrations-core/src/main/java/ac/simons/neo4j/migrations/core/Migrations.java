@@ -17,9 +17,11 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -315,6 +317,38 @@ public final class Migrations {
 	}
 
 	/**
+	 * Retrieves the local catalog, containing constraints and indexes.
+	 *
+	 * @return the local catalog
+	 * @since TBA
+	 */
+	public CatalogResult getLocalCatalog() {
+
+		// Retrieving the migrations will initialize the local catalog
+		if (getMigrations().isEmpty()) {
+			return new LocalCatalogResult(Catalog.empty());
+		}
+		return new LocalCatalogResult(this.context.getCatalog());
+	}
+
+	/**
+	 * Retrieves the database catalog
+	 * @return the database catalog
+	 * @since TBA
+	 */
+	public RemoteCatalogResult getDatabaseCatalog() {
+
+		return executeWithinLock(() -> {
+			Optional<String> targetDatabase = config.getOptionalDatabase();
+			try (Session session = context.getSession()) {
+				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+				Catalog databaseCatalog = DatabaseCatalog.of(neo4jVersion, session);
+				return new RemoteCatalogResult(targetDatabase, databaseCatalog, this.context.getCatalog());
+			}
+		}, null, null);
+	}
+
+	/**
 	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
 	 * @since 1.2.1
 	 */
@@ -347,7 +381,14 @@ public final class Migrations {
 		}
 	}
 
+	/**
+	 * @param phase can be {@literal null}, no callback will be involved then
+	 */
 	private void invokeCallbacks(LifecyclePhase phase) {
+
+		if (phase == null) {
+			return;
+		}
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())

@@ -13,28 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
-
-import java.util.Collection;
-import java.util.Collections;
+package ac.simons.neo4j.migrations.core.catalog;
 
 /**
- * Represents the result of some operations.
- *
- * @author Michael J. Simons
- * @since 1.1.0
+ * A marker interface for renderable things.
  */
-public sealed interface OperationResult permits CatalogResult, DatabaseOperationResult {
-
-	/**
-	 * {@return all warnings, if any}
-	 */
-	default Collection<String> getWarnings() {
-		return Collections.emptyList();
-	}
-
-	/**
-	 * {@return a sensible string applicable in a log or info message}
-	 */
-	String prettyPrint();
+public interface Renderable {
 }

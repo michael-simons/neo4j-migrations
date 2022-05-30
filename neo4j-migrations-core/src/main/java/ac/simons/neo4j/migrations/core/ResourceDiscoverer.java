@@ -138,12 +138,6 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 
 		List<T> resources = new ArrayList<>();
 
-		Predicate<String> hasExtension = fullPath -> {
-			final int lastSlashIdx = fullPath.lastIndexOf('/');
-			final int lastDotIdx = fullPath.lastIndexOf('.');
-			return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
-		};
-
 		for (String location : filesystemLocations) {
 			Path path = Paths.get(location);
 			if (!Files.isDirectory(path)) {
@@ -154,7 +148,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						String fullPath = file.toString();
-						if (attrs.isRegularFile() && hasExtension.test(fullPath) && resourceFilter.test(fullPath)) {
+						if (attrs.isRegularFile() && resourceFilter.test(fullPath)) {
 							ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
 							resources.add(mapper.apply(context));
 							return FileVisitResult.CONTINUE;

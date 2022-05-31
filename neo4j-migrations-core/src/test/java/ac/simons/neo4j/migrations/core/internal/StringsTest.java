@@ -67,6 +67,14 @@ final class StringsTest {
 		assertThat(Strings.isBlank("NULL".equals(value) ? null : value)).isTrue();
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "", " ", "\t\t", "NULL", "a"})
+	void escapeIfNecessaryShouldBailOutEarly(String value) {
+
+		String valueUsed = "NULL".equals(value) ? null : value;
+		assertThat(Strings.escapeIfNecessary(valueUsed)).isSameAs(valueUsed);
+	}
+
 	@Nested
 	class Capitalization {
 

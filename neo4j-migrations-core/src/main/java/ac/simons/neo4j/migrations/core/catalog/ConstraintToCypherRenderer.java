@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -104,7 +105,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 
 		Formattable item = formattableItem(constraint, context);
-		String identifier = constraint.getIdentifier();
+		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties("n", constraint);
 		Operator operator = context.getOperator();
 
@@ -149,7 +150,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderPropertyExists(Constraint constraint, RenderConfig context, String variable, String templateFragment) {
 
 		Formattable item = formattableItem(constraint, context);
-		String identifier = constraint.getIdentifier();
+		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties(variable, constraint);
 		Operator operator = context.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
@@ -190,7 +191,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 
 		Formattable item = formattableItem(constraint, context);
-		String identifier = constraint.getIdentifier();
+		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties("n", constraint);
 		Constraint.Type type = constraint.getType();
 		Operator operator = context.getOperator();
@@ -210,13 +211,19 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 	}
 
+	private static String getAndEscapeIdentifier(Constraint constraint) {
+		return Strings.escapeIfNecessary(constraint.getIdentifier());
+	}
+
 	private static String renderProperties(String prefix, Constraint item) {
 
 		if (item.getProperties().size() == 1) {
-			return prefix + "." + item.getProperties().iterator().next();
+			return prefix + "." + Strings.escapeIfNecessary(item.getProperties().iterator().next());
 		}
 
-		return item.getProperties().stream().map(v -> prefix + "." + v).collect(Collectors.joining(", ", "(", ")"));
+		return item.getProperties().stream()
+			.map(Strings::escapeIfNecessary)
+			.map(v -> prefix + "." + v).collect(Collectors.joining(", ", "(", ")"));
 	}
 
 	Formattable formattableItem(Constraint item, RenderConfig config) {

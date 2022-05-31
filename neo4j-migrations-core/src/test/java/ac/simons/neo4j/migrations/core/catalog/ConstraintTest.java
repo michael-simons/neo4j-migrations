@@ -459,12 +459,17 @@ class ConstraintTest {
 		@Test
 		void sameEntityIsRequired() {
 
-			assertThat(uniqueBookIdV1.isEquivalentTo(
-				Constraint
-					.forRelationship("LIKES")
-					.named("book_id_unique")
-					.unique("id")
-			)).isFalse();
+			Constraint c1 = Constraint
+				.forNode("Book")
+				.named("name_exists")
+				.exists("name");
+
+			Constraint c2 = Constraint
+				.forRelationship("Book")
+				.named("name_exists")
+				.exists("name");
+
+			assertThat(c1.isEquivalentTo(c2)).isFalse();
 		}
 
 		@Test

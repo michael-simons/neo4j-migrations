@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -346,5 +347,24 @@ class ConstraintToCypherRendererTest {
 			.ignoreName();
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, dropConfig)).isEqualTo("DROP CONSTRAINT ON (n:__Neo4jMigrationsLock) ASSERT n.id IS UNIQUE");
+	}
+
+	@Test
+	void shouldEscapeNonValidThings() {
+		RenderConfig config = RenderConfig.create().forVersionAndEdition(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE);
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+
+		Constraint constraint = Constraint
+			.forNode("Das ist ein Buch")
+			.named("book_id_unique")
+			.unique("person.a,person.b 😱");
+		//assertThat(renderer.render(constraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR (n:`Das ist ein Buch`) REQUIRE n.`person.a,person.b 😱` IS UNIQUE");
+
+
+		Constraint c2onstraint = Constraint
+			.forRelationship("DAS IST KEIN BUCH")
+			.named("book_id_unique")
+			.exists("person.a,person.b 😱");
+		assertThat(renderer.render(c2onstraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR (n:`Das ist ein Buch`) REQUIRE n.`person.a,person.b 😱` IS UNIQUE");
 	}
 }

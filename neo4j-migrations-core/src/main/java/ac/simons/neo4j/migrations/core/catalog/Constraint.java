@@ -66,9 +66,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	/**
-	 * Programmatic way of defining constraints.
+	 * Programmatic way of defining constraints for nodes.
 	 */
-	public interface Builder {
+	public interface NodeConstraintBuilder {
 
 		/**
 		 * Adds a name to the constraint
@@ -76,13 +76,41 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		 * @param name The new name
 		 * @return The next step when building a constraint
 		 */
-		NamedBuilder named(String name);
+		ConstraintsForNodes named(String name);
+	}
+
+	/**
+	 * Programmatic way of defining constraints for relationships.
+	 */
+	public interface RelationshipConstraintBuilder {
+
+		/**
+		 * Adds a name to the constraint
+		 *
+		 * @param name The new name
+		 * @return The next step when building a constraint
+		 */
+		CommonConstraints named(String name);
+	}
+
+	/**
+	 * Constraints available for both nodes and relationships.
+	 */
+	public interface CommonConstraints {
+
+		/**
+		 * Creates an existential constraint for the given property
+		 *
+		 * @param property the property that is required to exist
+		 * @return the new constraint
+		 */
+		Constraint exists(String property);
 	}
 
 	/**
 	 * Allows to specify the type of the constraint.
 	 */
-	public interface NamedBuilder {
+	public interface ConstraintsForNodes extends CommonConstraints {
 
 		/**
 		 * Creates a unique constraint for the given property
@@ -93,14 +121,6 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		Constraint unique(String... properties);
 
 		/**
-		 * Creates an existential constraint for the given property
-		 *
-		 * @param property the property that is required to exist
-		 * @return the new constraint
-		 */
-		Constraint exists(String property);
-
-		/**
 		 * Creates a key constraint for the given property
 		 *
 		 * @param properties the property that should be part of the key
@@ -109,7 +129,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		Constraint key(String... properties);
 	}
 
-	private static class DefaultBuilder implements Builder, NamedBuilder {
+	private static class DefaultBuilder implements NodeConstraintBuilder, RelationshipConstraintBuilder, ConstraintsForNodes {
 		private final TargetEntityType targetEntityType;
 
 		private final String identifier;
@@ -122,7 +142,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 
 		@Override
-		public NamedBuilder named(String newName) {
+		public ConstraintsForNodes named(String newName) {
 
 			this.name = newName;
 			return this;
@@ -150,7 +170,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param label The label on which the constraint should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forNode(String label) {
+	public static NodeConstraintBuilder forNode(String label) {
 		return new DefaultBuilder(TargetEntityType.NODE, label);
 	}
 
@@ -160,7 +180,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param type The type on which the constraint should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forRelationship(String type) {
+	public static RelationshipConstraintBuilder forRelationship(String type) {
 		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);
 	}
 

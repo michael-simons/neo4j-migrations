@@ -59,6 +59,7 @@ final class ShowCatalogCommand extends ConnectedCommand {
 	}
 
 	@Override
+	@SuppressWarnings("squid:S2629") // We definitely want to have the rendered outcome logged and INFO will be enabled.
 	Integer withMigrations(Migrations migrations) {
 
 		Renderer<Catalog> renderer = Renderer.get(format, Catalog.class);
@@ -73,6 +74,7 @@ final class ShowCatalogCommand extends ConnectedCommand {
 		RenderConfig config = RenderConfig.create()
 			.idempotent(neo4jVersion.hasIdempotentOperations())
 			.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);
+
 		MigrationsCli.LOGGER.info(renderer.render(catalog, config).trim());
 		return 0;
 	}

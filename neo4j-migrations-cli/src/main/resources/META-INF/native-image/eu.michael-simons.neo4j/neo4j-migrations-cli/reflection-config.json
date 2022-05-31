@@ -7,5 +7,14 @@
         "parameterTypes": []
       }
     ]
+  },
+  {
+    "name": "ac.simons.neo4j.migrations.cli.internal.MigrationsCliConsoleFormatter",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
   }
 ]

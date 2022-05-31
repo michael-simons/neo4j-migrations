@@ -46,81 +46,58 @@ class ShowCatalogCommandTest {
 	));
 
 	@Test
-	void shouldUseRemoteCatalog() throws Exception {
+	void shouldUseCorrectCatalogs() throws Exception {
 
-		Migrations migrations = mock(Migrations.class);
-		when(migrations.getDatabaseCatalog()).thenReturn(CATALOG);
 
-		ShowCatalogCommand cmd = new ShowCatalogCommand();
-		setMode(cmd, ShowCatalogCommand.Mode.REMOTE);
 
 		String result = tapSystemOut(() -> {
-			cmd.withMigrations(migrations);
+			ShowCatalogCommand cmd = new ShowCatalogCommand();
+
+			Migrations remoteAsXml = mock(Migrations.class);
+			when(remoteAsXml.getDatabaseCatalog()).thenReturn(CATALOG);
+			setMode(cmd, ShowCatalogCommand.Mode.REMOTE);
+			cmd.withMigrations(remoteAsXml);
+
+			Migrations localAsCypher = mock(Migrations.class);
+			when(localAsCypher.getLocalCatalog()).thenReturn(CATALOG);
+			setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
+			setFormatToCypher(cmd);
+			cmd.withMigrations(localAsCypher);
+
+			Migrations localAsCypherWithVersion = mock(Migrations.class);
+			when(localAsCypherWithVersion.getLocalCatalog()).thenReturn(CATALOG);
+			setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
+			setVersion(cmd, "3.5.23");
+			setFormatToCypher(cmd);
+			cmd.withMigrations(localAsCypherWithVersion);
+
+			verify(remoteAsXml).getDatabaseCatalog();
+			verify(localAsCypher).getLocalCatalog();
+			verify(localAsCypherWithVersion).getLocalCatalog();
+			verifyNoMoreInteractions(remoteAsXml, localAsCypher, localAsCypherWithVersion);
 			System.out.flush();
 		});
 
+		String nl = System.lineSeparator();
 		assertThat(result).isEqualTo(
 			""
-			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-			+ "<migration xmlns=\"http://michael-simons.github.io/neo4j-migrations\">\n"
-			+ "    <catalog>\n"
-			+ "        <indexes/>\n"
-			+ "        <constraints>\n"
-			+ "            <constraint name=\"book_id_unique\" type=\"unique\">\n"
-			+ "                <label>Book</label>\n"
-			+ "                <properties>\n"
-			+ "                    <property>id</property>\n"
-			+ "                </properties>\n"
-			+ "            </constraint>\n"
-			+ "        </constraints>\n"
-			+ "    </catalog>\n"
-			+ "</migration>\n"
-			+ "");
-
-		verify(migrations).getDatabaseCatalog();
-		verifyNoMoreInteractions(migrations);
-	}
-
-	@Test
-	void shouldUseLocalCatalog() throws Exception {
-
-		Migrations migrations = mock(Migrations.class);
-		when(migrations.getLocalCatalog()).thenReturn(CATALOG);
-
-		ShowCatalogCommand cmd = new ShowCatalogCommand();
-		setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
-		setFormatToCypher(cmd);
-
-		String result = tapSystemOut(() -> {
-			cmd.withMigrations(migrations);
-			System.out.flush();
-		});
-
-		assertThat(result).isEqualTo(
-			String.format("CREATE CONSTRAINT book_id_unique IF NOT EXISTS FOR (n:Book) REQUIRE n.id IS UNIQUE;%n"));
-		verify(migrations).getLocalCatalog();
-		verifyNoMoreInteractions(migrations);
-	}
-
-	@Test
-	void shouldObeyVersion() throws Exception {
-
-		Migrations migrations = mock(Migrations.class);
-		when(migrations.getLocalCatalog()).thenReturn(CATALOG);
-
-		ShowCatalogCommand cmd = new ShowCatalogCommand();
-		setMode(cmd, ShowCatalogCommand.Mode.LOCAL);
-		setVersion(cmd, "3.5.23");
-		setFormatToCypher(cmd);
-
-		String result = tapSystemOut(() -> {
-			cmd.withMigrations(migrations);
-			System.out.flush();
-		});
-
-		assertThat(result).isEqualTo(String.format("CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%n"));
-		verify(migrations).getLocalCatalog();
-		verifyNoMoreInteractions(migrations);
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + nl
+			+ "<migration xmlns=\"http://michael-simons.github.io/neo4j-migrations\">" + nl
+			+ "    <catalog>" + nl
+			+ "        <indexes/>" + nl
+			+ "        <constraints>" + nl
+			+ "            <constraint name=\"book_id_unique\" type=\"unique\">" + nl
+			+ "                <label>Book</label>" + nl
+			+ "                <properties>" + nl
+			+ "                    <property>id</property>" + nl
+			+ "                </properties>" + nl
+			+ "            </constraint>" + nl
+			+ "        </constraints>" + nl
+			+ "    </catalog>" + nl
+			+ "</migration>" + nl
+			+ "CREATE CONSTRAINT book_id_unique IF NOT EXISTS FOR (n:Book) REQUIRE n.id IS UNIQUE;" + nl
+			+ "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;" + nl
+			);
 	}
 
 	private static void setMode(ShowCatalogCommand cmd, ShowCatalogCommand.Mode mode) {

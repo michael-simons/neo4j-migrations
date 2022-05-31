@@ -338,10 +338,12 @@ public final class Migrations {
 	 */
 	public Catalog getDatabaseCatalog() {
 
-		try (Session session = context.getSession()) {
-			Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
-			return DatabaseCatalog.of(neo4jVersion, session);
-		}
+		return executeWithinLock(() -> {
+			try (Session session = context.getSession()) {
+				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+				return DatabaseCatalog.of(neo4jVersion, session);
+			}
+		}, null, null);
 	}
 
 	/**
@@ -377,7 +379,14 @@ public final class Migrations {
 		}
 	}
 
+	/**
+	 * @param phase can be {@literal null}, no callback will be involved then
+	 */
 	private void invokeCallbacks(LifecyclePhase phase) {
+
+		if (phase == null) {
+			return;
+		}
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())

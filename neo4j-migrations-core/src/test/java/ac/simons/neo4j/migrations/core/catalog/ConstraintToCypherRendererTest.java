@@ -351,6 +351,7 @@ class ConstraintToCypherRendererTest {
 
 	@Test
 	void shouldEscapeNonValidThings() {
+
 		RenderConfig config = RenderConfig.create().forVersionAndEdition(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE);
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 
@@ -358,13 +359,12 @@ class ConstraintToCypherRendererTest {
 			.forNode("Das ist ein Buch")
 			.named("book_id_unique")
 			.unique("person.a,person.b 😱");
-		//assertThat(renderer.render(constraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR (n:`Das ist ein Buch`) REQUIRE n.`person.a,person.b 😱` IS UNIQUE");
-
+		assertThat(renderer.render(constraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR (n:`Das ist ein Buch`) REQUIRE n.`person.a,person.b 😱` IS UNIQUE");
 
 		Constraint c2onstraint = Constraint
 			.forRelationship("DAS IST KEIN BUCH")
 			.named("book_id_unique")
 			.exists("person.a,person.b 😱");
-		assertThat(renderer.render(c2onstraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR (n:`Das ist ein Buch`) REQUIRE n.`person.a,person.b 😱` IS UNIQUE");
+		assertThat(renderer.render(c2onstraint, config)).isEqualTo("CREATE CONSTRAINT book_id_unique FOR ()-[r:`DAS IST KEIN BUCH`]-() REQUIRE r.`person.a,person.b 😱` IS NOT NULL");
 	}
 }

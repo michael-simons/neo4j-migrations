@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 
 import java.util.Optional;
@@ -33,18 +34,29 @@ import org.junit.jupiter.api.Test;
 class MigrateCommandTest {
 
 	@Test
-	void shouldIndicateNoMigrations() throws Exception {
+	void shouldGiveInformationAboutMigrations() throws Exception {
 
+		// Done in one test, because otherwise tapping sysout goes upside down. No mood to bother too long with this as of writing.
 		String result = tapSystemOut(() -> {
+
+			Migrations noMigrations = mock(Migrations.class);
+			when(noMigrations.apply()).thenReturn(Optional.empty());
+
 			Migrations migrations = mock(Migrations.class);
-			when(migrations.apply()).thenReturn(Optional.empty());
+			MigrationVersion version = mock(MigrationVersion.class);
+			when(version.getValue()).thenReturn("4711");
+			when(migrations.apply()).thenReturn(Optional.of(version));
 
 			MigrateCommand cmd = new MigrateCommand();
-
+			cmd.withMigrations(noMigrations);
 			cmd.withMigrations(migrations);
 			System.out.flush();
+
+			verify(noMigrations).apply();
 			verify(migrations).apply();
 		});
-		assertThat(result).isEqualTo("No migrations have been applied." + System.lineSeparator());
+		assertThat(result).isEqualTo(
+			"No migrations have been applied." + System.lineSeparator() + "Database migrated to version 4711."
+			+ System.lineSeparator());
 	}
 }

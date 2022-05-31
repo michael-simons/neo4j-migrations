@@ -157,6 +157,11 @@ TIP: `neo4j-migrations` looks in the current working directory for a properties 
      Use `neo4j-migrations init` to create a file with the default values. Any options passed to `neo4j-migrations` before
      the init command will also be store.
 
+=== Output
+
+Direct information coming from the CLI itself will always go to standard out. Information coming from core migrations
+will be locked with a timestamp on standard error. This allows for controlled redirection of different information.
+
 === Safe passwords in CI/CD usage
 
 There are 4 ways to specify the password:
@@ -222,7 +227,7 @@ Database: neo4j
 | 023.1   | NichtsIstWieEsScheintNeu    | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset2.V023_1__NichtsIstWieEsScheintNeu      |
 | 023.1.1 | NichtsIstWieEsScheintNeuNeu | JAVA   |              |    |                | PENDING | a.s.n.m.c.t.changeset2.V023_1_1__NichtsIstWieEsScheintNeuNeu |
 | 030     | Something based on a script | CYPHER |              |    |                | PENDING | V030__Something_based_on_a_script.cypher                     |
-| 042     | The truth                   | CYPHER |              |    |                | PENDING | V042__The truth.cypher                                       |
+| 042     | The truth                   | CYPHER |              |    |                | PENDING | V042__The_truth.cypher                                       |
 +---------+-----------------------------+--------+--------------+----+----------------+---------+--------------------------------------------------------------+
 ----
 
@@ -236,13 +241,13 @@ Use `migrate` to apply migrations:
   --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
   --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
   migrate
-Applied migration 001 ("FirstMigration")
-Applied migration 002 ("AnotherMigration")
-Applied migration 023 ("NichtsIstWieEsScheint")
-Applied migration 023.1 ("NichtsIstWieEsScheintNeu")
-Applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu")
-Applied migration 030 ("Something based on a script")
-Applied migration 042 ("The truth")
+[2022-05-31T11:25:29.894372000] Applied migration 001 ("FirstMigration").
+[2022-05-31T11:25:29.985192000] Applied migration 002 ("AnotherMigration").
+[2022-05-31T11:25:30.001006000] Applied migration 023 ("NichtsIstWieEsScheint").
+[2022-05-31T11:25:30.016117000] Applied migration 023.1 ("NichtsIstWieEsScheintNeu").
+[2022-05-31T11:25:30.032421000] Applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu").
+[2022-05-31T11:25:30.056182000] Applied migration 030 ("Something based on a script").
+[2022-05-31T11:25:30.077719000] Applied migration 042 ("The truth").
 Database migrated to version 042.
 ----
 
@@ -280,13 +285,13 @@ Another `migrate` - this time with all packages - gives us the following output 
   --package ac.simons.neo4j.migrations.core.test_migrations.changeset1 \
   --package ac.simons.neo4j.migrations.core.test_migrations.changeset2 \
   migrate
-Skipping already applied migration 001 ("FirstMigration")
-Skipping already applied migration 002 ("AnotherMigration")
-Skipping already applied migration 023 ("NichtsIstWieEsScheint")
-Skipping already applied migration 023.1 ("NichtsIstWieEsScheintNeu")
-Skipping already applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu")
-Skipping already applied migration 030 ("Something based on a script")
-Skipping already applied migration 042 ("The truth")
+[2022-05-31T11:26:23.054169000] Skipping already applied migration 001 ("FirstMigration")
+[2022-05-31T11:26:23.058779000] Skipping already applied migration 002 ("AnotherMigration")
+[2022-05-31T11:26:23.059185000] Skipping already applied migration 023 ("NichtsIstWieEsScheint")
+[2022-05-31T11:26:23.059504000] Skipping already applied migration 023.1 ("NichtsIstWieEsScheintNeu")
+[2022-05-31T11:26:23.059793000] Skipping already applied migration 023.1.1 ("NichtsIstWieEsScheintNeuNeu")
+[2022-05-31T11:26:23.060068000] Skipping already applied migration 030 ("Something based on a script")
+[2022-05-31T11:26:23.060329000] Skipping already applied migration 042 ("The truth")
 Database migrated to version 042.
 ----
 

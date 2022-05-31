@@ -45,8 +45,11 @@ final class MigrateCommand extends ConnectedCommand {
 	Integer withMigrations(Migrations migrations) {
 
 		Optional<MigrationVersion> lastAppliedMigration = migrations.apply();
-		lastAppliedMigration.map(MigrationVersion::getValue)
-			.ifPresent(version -> MigrationsCli.LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
+		if (lastAppliedMigration.isPresent()) {
+			MigrationsCli.LOGGER.log(Level.INFO, "Database migrated to version {0}.", lastAppliedMigration.get().getValue());
+		} else {
+			MigrationsCli.LOGGER.log(Level.INFO, "No migrations have been applied.");
+		}
 		return 0;
 	}
 }

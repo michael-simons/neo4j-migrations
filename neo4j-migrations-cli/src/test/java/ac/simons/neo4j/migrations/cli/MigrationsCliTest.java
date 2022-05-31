@@ -294,7 +294,7 @@ class MigrationsCliTest {
 		}
 
 		@Test
-		void shouldUseEnvFirst() throws Exception {
+		void shouldUseEnvFirst() {
 
 			MigrationsCli cli = new MigrationsCli();
 			setUserName(cli);

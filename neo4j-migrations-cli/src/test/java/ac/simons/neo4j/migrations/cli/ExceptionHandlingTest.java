@@ -38,38 +38,40 @@ class ExceptionHandlingTest {
 	@Test // GH-421
 	void shouldCatchAndLogMigrationsException() throws Exception {
 
-		MigrationsCli cli = mock(MigrationsCli.class);
-		when(cli.getAuthToken()).thenReturn(mock(AuthToken.class));
-		when(cli.getConfig()).thenReturn(MigrationsConfig.builder().build());
-		when(cli.openConnection(Mockito.any(AuthToken.class))).thenReturn(mock(Driver.class));
-
-		ConnectedCommand cmd = new ConnectedCommand() {
-			@Override
-			MigrationsCli getParent() {
-				return cli;
-			}
-
-			@Override Integer withMigrations(Migrations migrations) {
-				throw new MigrationsException("Oh wie schade.");
-			}
-		};
-
-		ConnectedCommand cmd2 = new ConnectedCommand() {
-			@Override
-			MigrationsCli getParent() {
-				return cli;
-			}
-
-			@Override Integer withMigrations(Migrations migrations) {
-				throw new MigrationsException("Could not apply migration: 0020 (\"Create unique movie title\").", new ClientException("Neo4j.YouMessedUp", "This was not valid."));
-			}
-		};
-
 		String result = tapSystemOut(() -> {
+			MigrationsCli cli = mock(MigrationsCli.class);
+			when(cli.getAuthToken()).thenReturn(mock(AuthToken.class));
+			when(cli.getConfig()).thenReturn(MigrationsConfig.builder().build());
+			when(cli.openConnection(Mockito.any(AuthToken.class))).thenReturn(mock(Driver.class));
+
+			ConnectedCommand cmd = new ConnectedCommand() {
+				@Override
+				MigrationsCli getParent() {
+					return cli;
+				}
+
+				@Override Integer withMigrations(Migrations migrations) {
+					throw new MigrationsException("Oh wie schade.");
+				}
+			};
+
+			ConnectedCommand cmd2 = new ConnectedCommand() {
+				@Override
+				MigrationsCli getParent() {
+					return cli;
+				}
+
+				@Override Integer withMigrations(Migrations migrations) {
+					throw new MigrationsException("Could not apply migration: 0020 (\"Create unique movie title\").",
+						new ClientException("Neo4j.YouMessedUp", "This was not valid."));
+				}
+			};
+
 			cmd.call();
 			cmd2.call();
 			System.out.flush();
 		});
+
 		assertThat(result).isEqualTo("Oh wie schade." + System.lineSeparator()
 			+ "Could not apply migration: 0020 (\"Create unique movie title\")."
 			+ System.lineSeparator() + "\tNeo4j.YouMessedUp: This was not valid."

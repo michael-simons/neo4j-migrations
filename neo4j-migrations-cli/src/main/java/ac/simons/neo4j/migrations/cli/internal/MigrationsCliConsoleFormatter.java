@@ -15,33 +15,18 @@
  */
 package ac.simons.neo4j.migrations.cli.internal;
 
+import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
-import java.util.logging.StreamHandler;
 
 /**
- * Always log to stdout. Not for external use outside this program.
+ * This formatter just returns the formatted message and doesn't react to any formatting.
  *
- * @author Michael J. Simons
- * @since 0.0.5
+ * @author Micahel J. Simons
+ * @since TBA
  */
-public final class MigrationsCliConsoleHandler extends StreamHandler {
-
-	/**
-	 * Creates a new handler with a fixed pointer to {@link System#out}.
-	 */
-	@SuppressWarnings("squid:S106") // Using System.out is the point of this exercise.
-	public MigrationsCliConsoleHandler() {
-		setOutputStream(System.out);
-	}
-
+public final class MigrationsCliConsoleFormatter extends Formatter {
 	@Override
-	public synchronized void publish(LogRecord logRecord) {
-		super.publish(logRecord);
-		flush();
-	}
-
-	@Override
-	public synchronized void close() {
-		flush();
+	public String format(LogRecord logRecord) {
+		return formatMessage(logRecord) + System.lineSeparator();
 	}
 }

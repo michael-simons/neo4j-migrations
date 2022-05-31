@@ -47,14 +47,6 @@ final class HBD {
 		return versionComparator.compare(connectionDetails.getServerVersion(), "4.4") >= 0;
 	}
 
-	static Integer valueOf(String value) {
-		try {
-			return Integer.valueOf(value);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
-
 	static Integer silentCreateConstraint(ConnectionDetails connectionDetails, Session session, String statement,
 		String name, Supplier<String> failureMessage) {
 

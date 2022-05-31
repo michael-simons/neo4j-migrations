@@ -51,6 +51,11 @@ The validation result provides an additional operation `needsRepair()`.
 In case the result is invalid you might check if it needs repair.
 If not, you can just call the <<usage_common_migrate, apply operation>> to turn the database into a valid state.
 
+[[usage_defining_asserting_applying_catalogs]]
+== Defining, asserting and applying catalogs
+
+TODO
+
 == CLI
 
 Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <<download_cli>>.

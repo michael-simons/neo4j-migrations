@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<constraints>
+			<constraint name="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+	<create item="unique_isbn"/>
+</migration>

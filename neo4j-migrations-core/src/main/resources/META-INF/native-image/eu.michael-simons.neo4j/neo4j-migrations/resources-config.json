@@ -2,6 +2,9 @@
   "bundles": [
     {
       "name": "ac.simons.neo4j.migrations.core.messages"
+    },
+    {
+      "name": "com.sun.org.apache.xerces.internal.impl.xpath.regex.message"
     }
   ],
   "resources": [

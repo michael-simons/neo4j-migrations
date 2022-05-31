@@ -26,9 +26,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 /**
  * @author Michael J. Simons
  * @since TBA
@@ -72,15 +69,11 @@ final class ShowCatalogCommand extends ConnectedCommand {
 			catalog = migrations.getDatabaseCatalog();
 		}
 
-		try {
-			Neo4jVersion neo4jVersion = version == null ? Neo4jVersion.LATEST : Neo4jVersion.of(version);
-			RenderConfig config = RenderConfig.create()
-				.idempotent(neo4jVersion.hasIdempotentOperations())
-				.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);
-			renderer.render(catalog, config, System.out);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+		Neo4jVersion neo4jVersion = version == null ? Neo4jVersion.LATEST : Neo4jVersion.of(version);
+		RenderConfig config = RenderConfig.create()
+			.idempotent(neo4jVersion.hasIdempotentOperations())
+			.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);
+		MigrationsCli.LOGGER.info(renderer.render(catalog, config).trim());
 		return 0;
 	}
 }

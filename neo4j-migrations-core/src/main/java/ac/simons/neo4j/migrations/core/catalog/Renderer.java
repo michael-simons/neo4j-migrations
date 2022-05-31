@@ -71,33 +71,22 @@ public interface Renderer<T> {
 	@SuppressWarnings("unchecked")
 	static <T> Renderer<T> get(Format format, Class<T> type) {
 
-		if (Catalog.class.isAssignableFrom(type)) {
-			switch (format) {
-				case CYPHER:
-					return (Renderer<T>) CatalogToCypherRenderer.INSTANCE;
-				case XML:
-					return (Renderer<T>) CatalogToXMLRenderer.INSTANCE;
+		if (format == Format.CYPHER) {
+			if (Constraint.class.isAssignableFrom(type)) {
+				return (Renderer<T>) ConstraintToCypherRenderer.INSTANCE;
+			} else if (Catalog.class.isAssignableFrom(type)) {
+				return (Renderer<T>) CatalogToCypherRenderer.INSTANCE;
+			}
+		} else if (format == Format.XML) {
+			if (Constraint.class.isAssignableFrom(type)) {
+				return (Renderer<T>) ConstraintToXMLRenderer.INSTANCE;
+			} else if (Catalog.class.isAssignableFrom(type)) {
+				return (Renderer<T>) CatalogToXMLRenderer.INSTANCE;
 			}
 		}
 
-		switch (format) {
-			case CYPHER:
-				if (Constraint.class.isAssignableFrom(type)) {
-					return (Renderer<T>) ConstraintToCypherRenderer.INSTANCE;
-				} else {
-					throw new UnsupportedOperationException(
-						"Don't know how to render items of type " + type.getName() + " as Cypher.");
-				}
-			case XML:
-				if (Constraint.class.isAssignableFrom(type)) {
-					return (Renderer<T>) ConstraintToXMLRenderer.INSTANCE;
-				} else {
-					throw new UnsupportedOperationException(
-						"Don't know how to render items of type " + type.getName() + " as XML.");
-				}
-			default:
-				throw new UnsupportedOperationException("Unsupported format: " + format);
-		}
+		throw new UnsupportedOperationException(
+			"Unsupported combination of format (" + format + ") and type (" + type + ").");
 	}
 
 	/**

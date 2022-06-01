@@ -77,4 +77,9 @@ class DefaultCatalog implements WriteableCatalog {
 		ItemType type = newConstraints.get(0).getType();
 		TargetEntity target = newConstraints.get(0).getTarget();
 	}
+
+	@Override
+	public List<Constraint> getConstraints() {
+		throw new UnsupportedOperationException("Not there yet");
+	}
 }

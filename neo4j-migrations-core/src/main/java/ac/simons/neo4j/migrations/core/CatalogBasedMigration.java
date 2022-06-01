@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.Migration;
-import ac.simons.neo4j.migrations.core.MigrationContext;
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import ac.simons.neo4j.migrations.core.schema.Catalog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,6 @@ import javax.xml.validation.SchemaFactory;
 
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
@@ -67,7 +66,7 @@ import org.xml.sax.SAXParseException;
  * @soundtrack Tom Holkenborg - Terminator: Dark Fate
  * @since TBA
  */
-public final class CatalogBasedMigration implements Migration {
+final class CatalogBasedMigration implements Migration {
 
 	// TODO add to migration seal
 
@@ -112,9 +111,11 @@ public final class CatalogBasedMigration implements Migration {
 		public void fatalError(SAXParseException exception) throws SAXException {
 			throw exception;
 		}
+
 	}
 
 	static class NoopDOMCryptoContext extends DOMCryptoContext {
+
 	}
 
 	static class NodeSetDataImpl implements NodeSetData {
@@ -133,13 +134,14 @@ public final class CatalogBasedMigration implements Migration {
 		public Iterator<Node> iterator() {
 			return this.elements.iterator();
 		}
+
 	}
 
 	private static String computeChecksum(Document document) {
 
 		final NodeList allElements = document.getElementsByTagName("*");
 
-		Node newCatalog = document.createElement(Constants.CATALOG);
+		Node newCatalog = document.createElement(XMLSchemaConstants.CATALOG);
 		Node oldCatalog = null;
 		Node constraints = null;
 		Node indexes = null;
@@ -148,13 +150,13 @@ public final class CatalogBasedMigration implements Migration {
 		for (int i = 0; i < allElements.getLength(); i++) {
 			Node currentItem = allElements.item(i);
 
-			if (currentItem.getLocalName().equals(Constants.CATALOG)) {
+			if (currentItem.getLocalName().equals(XMLSchemaConstants.CATALOG)) {
 				oldCatalog = currentItem;
 				continue;
 			}
-			if (currentItem.getLocalName().equals(Constants.INDEXES)) {
+			if (currentItem.getLocalName().equals(XMLSchemaConstants.INDEXES)) {
 				indexes = currentItem;
-			} else if (currentItem.getLocalName().equals(Constants.CONSTRAINTS)) {
+			} else if (currentItem.getLocalName().equals(XMLSchemaConstants.CONSTRAINTS)) {
 				constraints = currentItem;
 			}
 			elements.add(currentItem);
@@ -203,35 +205,44 @@ public final class CatalogBasedMigration implements Migration {
 		}
 	}
 
-	static Migration of(InputStream source) {
+	static Migration from(URL url) {
 
+		String path = url.getPath();
 		try {
+			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
+		} catch (UnsupportedEncodingException e) {
+			throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
+		}
+		int lastIndexOf = path.lastIndexOf("/");
+		String fileName = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
+		MigrationVersion version = MigrationVersion.parse(fileName);
+
+		try (InputStream source = url.openStream()) {
 			DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
 			documentBuilder.setErrorHandler(new ThrowingErrorHandler());
 			Document document = documentBuilder.parse(source);
 
 			document.normalizeDocument();
 
-			List<Constraint> constraints = new ArrayList<>();
-			NodeList constraintNodeList = document.getElementsByTagName(Constants.CONSTRAINT);
-			for (int i = 0; i < constraintNodeList.getLength(); ++i) {
-				Element item = (Element) constraintNodeList.item(i);
-				constraints.add(Constraint.parse(item));
-			}
-
-			return new CatalogBasedMigration(computeChecksum(document), constraints);
+			return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document));
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			throw new MigrationsException("Could not parse the given document.", e);
 		}
 	}
 
+	private final String source;
+
+	private final MigrationVersion version;
+
 	private final String checksum;
 
-	private final List<Constraint> constraints;
+	private final Catalog catalog;
 
-	private CatalogBasedMigration(String checksum, List<Constraint> constraints) {
+	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog) {
+		this.source = source;
+		this.version = version;
 		this.checksum = checksum;
-		this.constraints = constraints;
+		this.catalog = catalog;
 	}
 
 	@Override
@@ -241,17 +252,17 @@ public final class CatalogBasedMigration implements Migration {
 
 	@Override
 	public MigrationVersion getVersion() {
-		return null;
+		return version;
 	}
 
 	@Override
 	public String getDescription() {
-		return null;
+		return version.getDescription();
 	}
 
 	@Override
 	public String getSource() {
-		return null;
+		return source;
 	}
 
 	@Override
@@ -259,7 +270,7 @@ public final class CatalogBasedMigration implements Migration {
 
 	}
 
-	public List<Constraint> getConstraints() {
-		return Collections.unmodifiableList(constraints);
+	Catalog getCatalog() {
+		return catalog;
 	}
 }

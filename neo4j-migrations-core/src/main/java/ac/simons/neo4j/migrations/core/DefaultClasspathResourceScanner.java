@@ -21,6 +21,7 @@ import io.github.classgraph.ScanResult;
 
 import java.net.URL;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -31,13 +32,20 @@ import java.util.stream.Collectors;
  */
 final class DefaultClasspathResourceScanner implements ClasspathResourceScanner {
 
+	private final Pattern pattern;
+
+	DefaultClasspathResourceScanner() {
+		this.pattern = Pattern.compile(".*(?:" + MigrationVersion.VERSION_PATTERN.pattern() + "|" + LifecyclePhase.LIFECYCLE_PATTERN.pattern() + ")");
+	}
+
 	@Override
 	public List<URL> scan(List<String> locations) {
 
 		String[] paths = locations.toArray(new String[0]);
 		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
 
-			return scanResult.getResourcesWithExtension(Defaults.CYPHER_SCRIPT_EXTENSION)
+			return scanResult.getResourcesMatchingPattern(pattern)
+				.nonClassFilesOnly()
 				.stream()
 				.map(Resource::getURL)
 				.collect(Collectors.toList());

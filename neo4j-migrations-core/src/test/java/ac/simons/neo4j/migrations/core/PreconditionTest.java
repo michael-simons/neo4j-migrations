@@ -194,8 +194,7 @@ class PreconditionTest {
 
 			@Override
 			public Catalog getCatalog() {
-				return new Catalog() {
-				};
+				return Catalog.empty();
 			}
 		};
 

@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core;
 
 /**
- * Constants used throughout parsing and reading / writing elements and attributes.
+ * Default handler for cypher resources.
  *
  * @author Michael J. Simons
  * @since TBA
  */
-final class Constants {
+public final class CypherResourceBasedMigrationProvider implements ResourceBasedMigrationProvider {
 
-	static final String TYPE = "type";
-	static final String PROPERTIES = "properties";
+	@Override
+	public String getExtension() {
+		return Defaults.CYPHER_SCRIPT_EXTENSION;
+	}
 
-	static final String ID = "id";
+	@Override
+	public Migration handle(ResourceContext ctx) {
+		return new CypherBasedMigration(ctx.getUrl(), ctx.getConfig().isAutocrlf());
+	}
 
-	static final String CONSTRAINT = "constraint";
-	static final String LABEL = "label";
-	static final String PROPERTY = "property";
-	static final String OPTIONS = "options";
-	static final String CATALOG = "catalog";
-	static final String INDEXES = "indexes";
-	static final String CONSTRAINTS = "constraints";
-
-	private Constants() {
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE;
 	}
 }

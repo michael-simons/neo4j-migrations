@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.CatalogBasedMigration;
-
 import java.util.Optional;
 
 /**

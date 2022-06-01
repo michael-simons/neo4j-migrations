@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.schema;
+package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ac.simons.neo4j.migrations.core.Migration;
-
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,9 +31,9 @@ class CatalogBasedMigrationTest {
 	@ParameterizedTest
 	@ValueSource(strings = { "01.xml", "02.xml", "03.xml" })
 	void checksumShouldBeCorrect(String in) throws IOException {
-		try (InputStream source = CatalogBasedMigration.class.getResourceAsStream("/xml/identical-migrations/" + in)) {
-			Migration schemaBasedMigration = CatalogBasedMigration.of(source);
-			assertThat(schemaBasedMigration.getChecksum()).hasValue("562754918");
-		}
+		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/" + in);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		assertThat(schemaBasedMigration.getChecksum()).hasValue("562754918");
+		assertThat(schemaBasedMigration.getCatalog().getConstraints()).hasSize(2);
 	}
 }

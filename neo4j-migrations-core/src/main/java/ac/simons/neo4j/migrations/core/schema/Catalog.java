@@ -15,6 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core.schema;
 
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 /**
  * Represents a schema of
  * <ul>
@@ -31,7 +40,37 @@ package ac.simons.neo4j.migrations.core.schema;
  * @since TBA
  */
 public interface Catalog {
-/*
+
+	/**
+	 * Creates a catalog based on a document following the schema of {@literal /ac/simons/neo4j/migrations/core/migration.xsd}.
+	 *
+	 * @param document The document containg one catalog item.
+	 * @return A new catalog
+	 */
+	static Catalog of(Document document) {
+
+		List<Constraint> constraints = new ArrayList<>();
+		NodeList constraintNodeList = document.getElementsByTagName(XMLSchemaConstants.CONSTRAINT);
+		for (int i = 0; i < constraintNodeList.getLength(); ++i) {
+			Element item = (Element) constraintNodeList.item(i);
+			constraints.add(Constraint.parse(item));
+		}
+		return new MigrationCatalog(constraints);
+	}
+
+	/**
+	 * @return an empty catalog
+	 */
+	static Catalog empty() {
+		return EmptyCatalog.INSTANCE;
+	}
+
+	/**
+	 * @return the list of constraint in this catalog
+	 */
+	List<Constraint> getConstraints();
+
+	/*
 	private final Map<schemaId, Constraint> constraints = new HashMap<>();
 
 	public synchronized void addAll(MigrationVersion version, List<Constraint> newConstraints) {
@@ -41,5 +80,5 @@ public interface Catalog {
 			constraints.put(id, constraint);
 		});
 	}
- */
+ 	*/
 }

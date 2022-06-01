@@ -13,7 +13,7 @@
 				<label>Label</label>
 				<properties>
 					<property>prop1</property>
-				<!--	<property>prop2</property>-->
+					<!--	<property>prop2</property>-->
 				</properties>
 				<options>
 					indexProvider: 'lucene+native-3.0',

@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.schema.Catalog;
-import ac.simons.neo4j.migrations.core.schema.CatalogBasedMigration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,8 +46,8 @@ final class DiscoveryService {
 
 	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {
 
-		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, CypherResourceDiscoverer.forMigrations(resourceScanner)));
-		this.callbackDiscoverers = Collections.singletonList(CypherResourceDiscoverer.forCallbacks(resourceScanner));
+		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner)));
+		this.callbackDiscoverers = Collections.singletonList(ResourceDiscoverer.forCallbacks(resourceScanner));
 	}
 
 	/**

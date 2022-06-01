@@ -16,10 +16,12 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Location;
+import ac.simons.neo4j.migrations.core.internal.Services;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -36,39 +38,42 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
- * Abstract base class for implementing discoverer discovering Cypher resources.
+ * Abstract base class for implementing discoverer discovering resources.
  *
  * @author Michael J. Simons
  * @param <T> The concrete type to be instantiated with a discovered resource
  * @since 1.2.2
  */
-final class CypherResourceDiscoverer<T> implements Discoverer<T> {
+final class ResourceDiscoverer<T> implements Discoverer<T> {
 
-	static CypherResourceDiscoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
-		return new CypherResourceDiscoverer<>(
-			resourceScanner, MigrationVersion::canParse, ctx -> new CypherBasedMigration(ctx.url, ctx.config.isAutocrlf()));
-	}
+	static Discoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
 
-	static CypherResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
-		return new CypherResourceDiscoverer<>(resourceScanner, LifecyclePhase::canParse,
-			ctx -> new CypherBasedCallback(ctx.url, ctx.config.isAutocrlf()));
-	}
-
-	static final class ResourceContext {
-		final URL url;
-
-		final MigrationsConfig config;
-
-		ResourceContext(URL url, MigrationsConfig config) {
-			this.url = url;
-			this.config = config;
+		List<Discoverer<Migration>> allDiscoveres = new ArrayList<>();
+		for (ResourceBasedMigrationProvider provider : Services.loadUniqueResourceBasedMigrationProviders()) {
+			Predicate<String> filter = pathOrUrl -> {
+				try {
+					String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING.name());
+					Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
+					return matcher.find() && provider.getExtension().equals(matcher.group("ext"));
+				} catch (UnsupportedEncodingException e) {
+					throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
+				}
+			};
+			allDiscoveres.add(new ResourceDiscoverer<>(resourceScanner, filter, provider::handle));
 		}
+		return new AggregatingMigrationDiscoverer(allDiscoveres);
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(CypherResourceDiscoverer.class.getName());
+	static ResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
+		return new ResourceDiscoverer<>(resourceScanner, LifecyclePhase::canParse,
+			ctx -> new CypherBasedCallback(ctx.getUrl(), ctx.getConfig().isAutocrlf()));
+	}
+
+	private static final Logger LOGGER = Logger.getLogger(ResourceDiscoverer.class.getName());
 
 	private final ClasspathResourceScanner scanner;
 
@@ -76,7 +81,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 
 	private final Function<ResourceContext, T> mapper;
 
-	private CypherResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
 		this.scanner = scanner;
 		this.resourceFilter = resourceFilter;
 		this.mapper = mapper;

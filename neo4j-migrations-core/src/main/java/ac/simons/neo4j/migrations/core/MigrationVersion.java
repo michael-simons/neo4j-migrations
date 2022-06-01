@@ -30,8 +30,7 @@ public final class MigrationVersion {
 
 	private static final String BASELINE_VALUE = "BASELINE";
 	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null);
-	private static final Pattern VERSION_PATTERN = Pattern
-			.compile("V(\\d+(?:_\\d+)*|\\d+(?:\\.\\d+)*)__([\\w ]+)(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
+	static final Pattern VERSION_PATTERN = Pattern.compile("V(\\d+(?:_\\d+)*|\\d+(?:\\.\\d+)*)__([\\w ]+)(?:\\.(?<ext>\\w+))?");
 
 	private final String value;
 	private final String description;

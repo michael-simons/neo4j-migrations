@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core.schema;
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,7 +85,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	);
 
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
-		Constants.TYPE, "entityType", "labelsOrTypes", Constants.PROPERTIES)));
+		XMLSchemaConstants.TYPE, "entityType", "labelsOrTypes", XMLSchemaConstants.PROPERTIES)));
 
 	// TODO invoking
 	// 3.5 call db.constraints()
@@ -107,7 +108,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		String name = nameValue.asString();
 		Constraint.Type type;
-		switch (row.get(Constants.TYPE).asString()) {
+		switch (row.get(XMLSchemaConstants.TYPE).asString()) {
 			case "NODE_KEY":
 				type = Type.KEY;
 				break;
@@ -124,7 +125,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		TargetEntity targetEntity = TargetEntity.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
-		List<String> properties = row.get(Constants.PROPERTIES).asList(Value::asString);
+		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
 
 		return new Constraint(name, type, targetEntity, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
 	}
@@ -157,7 +158,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		if (matcher.matches()) {
 			String identifier = matcher.group("identifier").trim();
 			String var = Pattern.quote(matcher.group("var") + ".");
-			String propertiesGroup = matcher.group(Constants.PROPERTIES);
+			String propertiesGroup = matcher.group(XMLSchemaConstants.PROPERTIES);
 			Stream<String> propertiesStream = match.type == Type.KEY ?
 				Arrays.stream(propertiesGroup.split(", ")).map(String::trim) :
 				Stream.of(propertiesGroup.trim());
@@ -177,13 +178,13 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 */
 	static Constraint parse(Element constraintElement) {
 
-		String name = constraintElement.getAttribute(Constants.ID);
-		Type type = Type.valueOf(constraintElement.getAttribute(Constants.TYPE).toUpperCase(Locale.ROOT));
-		NodeList labelOrType = constraintElement.getElementsByTagName(Constants.LABEL);
+		String name = constraintElement.getAttribute(XMLSchemaConstants.ID);
+		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
+		NodeList labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.LABEL);
 		TargetEntity targetEntity;
 		String identifier;
 		if (labelOrType.getLength() == 0) {
-			labelOrType = constraintElement.getElementsByTagName(Constants.TYPE);
+			labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.TYPE);
 			targetEntity = TargetEntity.RELATIONSHIP;
 		} else {
 			targetEntity = TargetEntity.NODE;
@@ -191,13 +192,13 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		identifier = labelOrType.item(0).getTextContent();
 
 		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName(Constants.PROPERTIES).item(0)).getElementsByTagName(Constants.PROPERTY);
+			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(XMLSchemaConstants.PROPERTY);
 		Set<String> properties = new LinkedHashSet<>();
 		for (int i = 0; i < propertyNodes.getLength(); ++i) {
 			properties.add(propertyNodes.item(i).getTextContent());
 		}
 
-		NodeList optionsElement = constraintElement.getElementsByTagName(Constants.OPTIONS);
+		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
 		String options = null;
 		if (optionsElement.getLength() == 1) {
 			options = Arrays.stream(optionsElement.item(0).getTextContent()
@@ -208,30 +209,30 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	Element toXML(Document document) {
-		Element element = document.createElement(Constants.CONSTRAINT);
-		element.setAttribute(Constants.ID, getId().getValue());
-		element.setIdAttribute(Constants.ID, true);
-		element.setAttribute(Constants.TYPE, getType().name().toLowerCase(Locale.ROOT));
+		Element element = document.createElement(XMLSchemaConstants.CONSTRAINT);
+		element.setAttribute(XMLSchemaConstants.ID, getId().getValue());
+		element.setIdAttribute(XMLSchemaConstants.ID, true);
+		element.setAttribute(XMLSchemaConstants.TYPE, getType().name().toLowerCase(Locale.ROOT));
 
 		Element labelOrType;
 		if (getTarget() == TargetEntity.NODE) {
-			labelOrType = document.createElement(Constants.LABEL);
+			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
 		} else {
-			labelOrType = document.createElement(Constants.TYPE);
+			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
 		}
 		labelOrType.setTextContent(getIdentifier());
 		element.appendChild(labelOrType);
 
-		Element properties = document.createElement(Constants.PROPERTIES);
+		Element properties = document.createElement(XMLSchemaConstants.PROPERTIES);
 		for (String propertyValue : getProperties()) {
-			Element property = document.createElement(Constants.PROPERTY);
+			Element property = document.createElement(XMLSchemaConstants.PROPERTY);
 			property.setTextContent(propertyValue);
 			properties.appendChild(property);
 		}
 		element.appendChild(properties);
 
 		getOptionalOptions().ifPresent(optionsValue -> {
-			Element options = document.createElement(Constants.OPTIONS);
+			Element options = document.createElement(XMLSchemaConstants.OPTIONS);
 			options.setTextContent(optionsValue);
 			element.appendChild(options);
 		});

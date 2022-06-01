@@ -154,7 +154,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	@Override
 	public Catalog getCatalog() {
-		throw new UnsupportedOperationException("boom");
+		return Catalog.empty();
 	}
 
 	private ConnectionDetails getConnectionDetails0() {

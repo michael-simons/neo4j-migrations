@@ -15,11 +15,12 @@
  */
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
-import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.internal.Location;
+import ac.simons.neo4j.migrations.core.internal.Services;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -120,10 +121,18 @@ public class MigrationsProcessor {
 		}
 
 		var resourcesFound = new HashSet<ResourceWrapper>();
-		var expectedCypherSuffix = "." + Defaults.CYPHER_SCRIPT_EXTENSION;
-		Predicate<Path> isCypherFile = path -> Files.isRegularFile(path) && path.getFileName().toString()
-			.toLowerCase(Locale.ROOT)
-			.endsWith(expectedCypherSuffix);
+		var allSupportedExtensions = Services.loadUniqueResourceBasedMigrationProviders().stream()
+			.map(ResourceBasedMigrationProvider::getExtension)
+			.map(ext -> "." + ext)
+			.collect(Collectors.toSet());
+
+		Predicate<Path> isCypherFile = path -> {
+			if (!Files.isRegularFile(path)) {
+				return false;
+			}
+			var fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+			return allSupportedExtensions.stream().anyMatch(fileName::endsWith);
+		};
 
 		// This piece is deliberately not using the streams due to the heckmeck with catching IOExceptions
 		// and to avoid allocations of several sets.

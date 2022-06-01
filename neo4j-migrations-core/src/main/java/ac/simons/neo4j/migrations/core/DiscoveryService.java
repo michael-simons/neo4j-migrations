@@ -64,8 +64,8 @@ final class DiscoveryService {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
-		List<CypherBasedMigration> cypherBasedMigrations = migrations.stream().filter(CypherBasedMigration.class::isInstance)
-			.map(CypherBasedMigration.class::cast)
+		List<MigrationWithPreconditions> cypherBasedMigrations = migrations.stream().filter(MigrationWithPreconditions.class::isInstance)
+			.map(MigrationWithPreconditions.class::cast)
 			.collect(Collectors.toList());
 		Map<Migration, List<Precondition>> migrationsAndPreconditions = new HashMap<>();
 		computeAlternativeChecksums(cypherBasedMigrations, migrationsAndPreconditions);
@@ -82,7 +82,7 @@ final class DiscoveryService {
 		return Collections.unmodifiableList(migrations);
 	}
 
-	private void computeAlternativeChecksums(List<CypherBasedMigration> migrations,
+	private void computeAlternativeChecksums(List<MigrationWithPreconditions> migrations,
 		Map<Migration, List<Precondition>> migrationsAndPreconditions) {
 		migrations.forEach(m -> {
 			List<Precondition> preconditions = m.getPreconditions();
@@ -105,7 +105,7 @@ final class DiscoveryService {
 
 	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration, MigrationContext context) {
 
-		if (!(migration instanceof CypherBasedMigration)) {
+		if (!(migration instanceof MigrationWithPreconditions)) {
 			return false;
 		}
 

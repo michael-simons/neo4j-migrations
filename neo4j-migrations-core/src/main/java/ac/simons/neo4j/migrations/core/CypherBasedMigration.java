@@ -29,7 +29,7 @@ import java.util.function.UnaryOperator;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-final class CypherBasedMigration implements Migration {
+final class CypherBasedMigration implements MigrationWithPreconditions {
 
 	private final CypherResource cypherResource;
 	private final String description;
@@ -74,7 +74,8 @@ final class CypherBasedMigration implements Migration {
 		return Collections.unmodifiableList(alternativeChecksums);
 	}
 
-	void setAlternativeChecksums(List<String> alternativeChecksums) {
+	@Override
+	public void setAlternativeChecksums(List<String> alternativeChecksums) {
 
 		Objects.requireNonNull(alternativeChecksums);
 		this.alternativeChecksums = new ArrayList<>(alternativeChecksums);
@@ -89,7 +90,8 @@ final class CypherBasedMigration implements Migration {
 		return this.cypherResource.getStatements();
 	}
 
-	List<Precondition> getPreconditions() {
+	@Override
+	public List<Precondition> getPreconditions() {
 		return cypherResource.getPreconditions();
 	}
 }

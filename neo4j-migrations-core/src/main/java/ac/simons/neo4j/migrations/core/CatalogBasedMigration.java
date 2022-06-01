@@ -41,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -84,7 +85,7 @@ import org.xml.sax.SAXParseException;
  * @soundtrack Tom Holkenborg - Terminator: Dark Fate
  * @since TBA
  */
-final class CatalogBasedMigration implements Migration {
+final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	private static final Logger LOGGER = Logger.getLogger(CatalogBasedMigration.class.getName());
 
@@ -201,7 +202,7 @@ final class CatalogBasedMigration implements Migration {
 
 		Document document = parseDocument(url);
 		return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document),
-			parseOperations(document, version));
+			parseOperations(document, version), getPreconditions(document));
 	}
 
 	static Document parseDocument(URL url) {
@@ -218,6 +219,21 @@ final class CatalogBasedMigration implements Migration {
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			throw new MigrationsException("Could not parse the given document", e);
 		}
+	}
+
+	static List<Precondition> getPreconditions(Node parentNode) {
+		List<Precondition> result = new ArrayList<>();
+		NodeList childNodes = parentNode.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Node node = childNodes.item(i);
+			if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+				Precondition.parse(String.format("// %s %s", node.getNodeName(), node.getTextContent().trim()))
+					.ifPresent(result::add);
+			} else if (node.getNodeType() == Node.ELEMENT_NODE) {
+				result.addAll(getPreconditions(node));
+			}
+		}
+		return result;
 	}
 
 	static List<Operation> parseOperations(Document document, MigrationVersion version) {
@@ -254,13 +270,16 @@ final class CatalogBasedMigration implements Migration {
 
 	private final List<Operation> operations;
 
+	private final List<Precondition> preconditions;
+
 	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog,
-		List<Operation> operations) {
+		List<Operation> operations, List<Precondition> preconditions) {
 		this.source = source;
 		this.version = version;
 		this.checksum = checksum;
 		this.catalog = catalog;
 		this.operations = operations;
+		this.preconditions = preconditions;
 	}
 
 	@Override
@@ -313,6 +332,11 @@ final class CatalogBasedMigration implements Migration {
 			throw new MigrationsException(
 				"Could not apply migration " + Migrations.toString(this) + " verification failed: " + e.getMessage());
 		}
+	}
+
+	@Override
+	public List<Precondition> getPreconditions() {
+		return Collections.unmodifiableList(preconditions);
 	}
 
 	static class OperationContext {

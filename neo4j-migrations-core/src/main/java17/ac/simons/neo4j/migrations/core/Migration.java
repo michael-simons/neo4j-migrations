@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 0.0.1
  */
-public sealed interface Migration permits CatalogBasedMigration, CypherBasedMigration, JavaBasedMigration {
+public sealed interface Migration permits MigrationWithPreconditions, JavaBasedMigration {
 
 	/**
 	 * {@return the version}

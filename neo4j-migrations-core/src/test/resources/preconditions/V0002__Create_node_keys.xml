@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<create>
+		<!-- Just don't apply it -->
+		<?assume q'RETURN false ?>
+		<constraint name="constraint_name" type="key">
+			<label>Person</label>
+			<properties>
+				<property>firstname</property>
+				<property>surname</property>
+			</properties>
+		</constraint>
+	</create>
+</migration>

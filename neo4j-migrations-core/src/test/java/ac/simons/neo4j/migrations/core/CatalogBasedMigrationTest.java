@@ -88,6 +88,33 @@ class CatalogBasedMigrationTest {
 		assertThat(schemaBasedMigration.getCatalog().getItems()).hasSize(2);
 	}
 
+	@Test
+	void shouldParsePreconditions1() {
+		URL url = CatalogBasedMigration.class.getResource("/xml/identical-migrations/V01__01.xml");
+		Objects.requireNonNull(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		assertThat(schemaBasedMigration.getPreconditions()).hasSize(2);
+		assertThat(schemaBasedMigration.getPreconditions()).map(Precondition::getType)
+			.containsExactlyInAnyOrder(Precondition.Type.ASSERTION, Precondition.Type.ASSUMPTION);
+		assertThat(schemaBasedMigration.getPreconditions())
+			.allMatch(p -> p instanceof EditionPrecondition || p instanceof QueryPrecondition);
+	}
+
+	@Test
+	void shouldParsePreconditions2() {
+		URL url = CatalogBasedMigration.class.getResource("/preconditions/V0002__Create_node_keys.xml");
+		Objects.requireNonNull(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		assertThat(schemaBasedMigration.getPreconditions()).hasSize(1);
+		assertThat(schemaBasedMigration.getPreconditions()).singleElement()
+			.extracting(Precondition::getType)
+			.isEqualTo(Precondition.Type.ASSUMPTION);
+		assertThat(schemaBasedMigration.getPreconditions()).singleElement()
+			.extracting(QueryPrecondition.class::cast)
+			.extracting(QueryPrecondition::getQuery)
+			.isEqualTo("RETURN false");
+	}
+
 	abstract static class MockHolder {
 
 		final Constraint uniqueBookIdV1 = Constraint

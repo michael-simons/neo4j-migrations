@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<?assert that edition is enterprise ?>
 	<catalog>
 		<indexes />
 		<constraints >
+			<?assume q' RETURN true?>
 			<constraint name="unique_isbn" type="unique">
 				<label>Book</label>
 				<properties>

@@ -350,7 +350,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				.map(op -> op.execute(operationContext))
 				.reduce(Counters.empty(), Counters::add);
 
-			LOGGER.log(Level.INFO,
+			LOGGER.log(Level.FINE,
 				"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes in total.",
 				counters.toArray());
 		} catch (VerificationFailedException e) {

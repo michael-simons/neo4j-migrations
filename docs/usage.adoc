@@ -673,7 +673,7 @@ By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations
 You can change that via `locationsToScan` inside the `configuration` element like this:
 
 .Changing the locations to scan for the Maven-Plugin
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 <locationsToScan>
     <locationToScan>file://${project.build.outputDirectory}/custom/path</locationToScan>
@@ -732,7 +732,7 @@ One sensible step before doing anything with the schema is to assert our local c
 In this example we assert toe remote catalog to be empty and we define our first migration like this:
 
 .V010__Assert_empty_schema.xml
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 include::catalog_example/V010__Assert_empty_schema.xml[]
 ----
@@ -752,6 +752,7 @@ verification does not happen again, as the 010 has been applied. Therefore, a ve
 each catalog based migration:
 
 .V020__Create_person_name_unique.xml
+[source,xml,indent=0,tabsize=2]
 ----
 include::catalog_example/V020__Create_person_name_unique.xml[]
 ----
@@ -772,22 +773,24 @@ fix that. Assuming for sake of sanity that every person has a name, we replace t
 Existential constraints are a Neo4j enterprise feature, so we must cater for that as well and we define two different files
 for the next version:
 
-[[V030__Fix_person_name_constraint_CE]]
+[[V030Fix_person_name_constraint_CE]]
 .V030__Fix_person_name_constraint_CE.xml
+[source,xml,indent=0,tabsize=2]
 ----
 include::catalog_example/V030__Fix_person_name_constraint_CE.xml[]
 ----
 
 and for the enterprise edition, we can redefine the constraint like this:
 
-[[V030__Fix_person_name_constraint_EE]]
+[[V030Fix_person_name_constraint_EE]]
 .V030__Fix_person_name_constraint_EE.xml
+[source,xml,indent=0,tabsize=2]
 ----
 include::catalog_example/V030__Fix_person_name_constraint_EE.xml[]
 ----
 
-Note how we *can* `refer` to the constraint by ref in <<V030__Fix_person_name_constraint_EE>> and how we *must* use
-`item` in <<V030__Fix_person_name_constraint_CE>>. The reason for that is that we refer to an older item only in the
+Note how we *can* `refer` to the constraint by ref in <<V030Fix_person_name_constraint_EE>> and how we *must* use
+`item` in <<V030Fix_person_name_constraint_CE>>. The reason for that is that we refer to an older item only in the
 migration for community edition. We redefined the item in the script for the enterprise edition, so we might as well
 refer to it.
 In older Neo4j versions not supporting names for constraints Neo4j-Migrations will use the old definition to drop the item
@@ -804,4 +807,146 @@ Applying the current state now yields
 [2022-06-01T16:04:46.659585000] Applied migration 030 ("Fix person name constraint EE").
 Database migrated to version 030.
 ----
+
+Assuming you some other enterprise stuff related items in the following listing:
+
+[[V040Additional_stuff]]
+.V040__Additional_stuff.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalog_example/V040__Additional_stuff.xml[]
+----
+
+To get some information about your database, you can inspect the remote catalog:
+
+.Inspecting the remote catalog
+[source,bash]
+----
+neo4j-migrations show-catalog
+----
+
+and it will print the catalog in XML:
+
+[source,xml,indent=0,tabsize=2]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+    <catalog>
+        <indexes/>
+        <constraints>
+            <constraint name="liked_day" type="unique">
+                <label>LIKED</label>
+                <properties>
+                    <property>day</property>
+                </properties>
+            </constraint>
+            <constraint name="person_keys" type="key">
+                <label>Person</label>
+                <properties>
+                    <property>firstname</property>
+                    <property>surname</property>
+                </properties>
+            </constraint>
+            <constraint name="person_name_unique" type="exists">
+                <label>Person</label>
+                <properties>
+                    <property>name</property>
+                </properties>
+            </constraint>
+        </constraints>
+    </catalog>
+</migration>
+----
+
+You can also get the catalog as Cypher with
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER version=4.4
+----
+
+yielding
+
+[source,cypher]
+----
+CREATE CONSTRAINT person_keys IF NOT EXISTS FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY;
+CREATE CONSTRAINT liked_day IF NOT EXISTS FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL;
+CREATE CONSTRAINT person_name_unique IF NOT EXISTS FOR (n:Person) REQUIRE n.name IS NOT NULL;
+----
+
+Changing the version number to an older version will give the correct syntax, too:
+
+[source,console]
+----
+> neo4j-migrations show-catalog format=CYPHER version=3.5
+CREATE CONSTRAINT ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY;
+CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day);
+CREATE CONSTRAINT ON (n:Person) ASSERT exists(n.name);
+----
+
+After all, you decide it's best not to stick with any constraint on the persons name and also drop your experiments.
+You could use `<apply />` to make your database look exactly like your catalog. But that would include all previously
+defined items, too.
+
+Therefore, you need to reset the catalog as shown in the following listing:
+
+[[V050A_new_start]]
+.V050__A_new_start.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalog_example/V050__A_new_start.xml[]
+----
+
+followed by a final verification:
+
+[[V060Assert_final_state]]
+.V060__Assert_final_state.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalog_example/V060__Assert_final_state.xml[]
+----
+
+Run the following commands to see the outcome:
+
+[source,bash]
+----
+neo4j-migrations apply
+----
+
+applies everything:
+
+[source,console]
+----
+[2022-06-01T19:16:20.058218000] Skipping 030 ("Fix person name constraint CE") due to unmet preconditions:
+// assume that edition is COMMUNITY
+[2022-06-01T19:16:20.223937000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T19:16:20.225464000] Skipping already applied migration 020 ("Create person name unique")
+[2022-06-01T19:16:20.225748000] Skipping already applied migration 030 ("Fix person name constraint EE")
+[2022-06-01T19:16:20.226022000] Skipping already applied migration 040 ("Additional stuff")
+[2022-06-01T19:16:20.501686000] Applied migration 050 ("A new start").
+[2022-06-01T19:16:20.551983000] Applied migration 060 ("Assert final state").
+Database migrated to version 060.
+----
+
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER
+----
+
+presents the remote catalog as
+
+[source,cypher]
+----
+CREATE CONSTRAINT unique_person_id IF NOT EXISTS FOR (n:Person) REQUIRE n.id IS UNIQUE;
+----
+
+and so does the local catalog
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER mode=LOCAL 2&>/dev/null
+----
+
+The redirect is included here so that log messages on stderr are skipped (the message about one migration skipped due to unmet preconditions).
 

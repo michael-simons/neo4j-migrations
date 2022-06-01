@@ -343,6 +343,10 @@ like `verify`: The verification of the remote catalog against the local catalog 
 the local catalog in version `n` (the default) to assert to ground for all following operations, or for the current version
 to make sure everything exists in a given point in time without executing further operations.
 
+Last but not least: Sometimes it is required to start fresh in a given migration. For this purpose the catalog element supports
+an additional attribute `reset`. Setting this to true in any given migration will cause the catalog to be reset in this version.
+Resetting means either being replaced with an empty catalog (`<catalog reset="true" />`) or replaced with the actual content.
+
 === Operations working with a catalog
 
 Operations available to catalog based migrations are

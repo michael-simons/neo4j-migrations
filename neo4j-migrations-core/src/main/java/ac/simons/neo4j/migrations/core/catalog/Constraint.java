@@ -265,6 +265,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
 		}
 
+		if (targetEntityType == TargetEntityType.RELATIONSHIP && type != Type.EXISTS) {
+			throw new IllegalArgumentException("Only existential constraints are supported for relationships");
+		}
 		return new Constraint(name, type, targetEntityType, identifier, properties, options);
 	}
 

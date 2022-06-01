@@ -20,7 +20,8 @@ Before we jump into the pure joy of an https://en.wikipedia.org/wiki/XML_Schema_
 what our schema can do:
 
 * A `<migration />` can have zero or exactly one `<catalog />` element.
-* A `<catalog />` consists of zero or one `<constraints />` and zero or one `<indexes />` elements.
+* A `<catalog />` consists of zero or one `<constraints />` and zero or one `<indexes />` elements. In addition, it can indicate
+  a `reset` attribute, replacing the current known content with the catalog currently being in definition.
 * Both of them can contain zero or more of their individual elements, according to their definition.
 * A `<migration />` can have zero or one `<verify />` operations and the `<verify />` operation must be the first operation.
 * A `<migration />` can than have zero or more `<create />` and `<drop />` operations *or* exactly one `<apply />` operation.

@@ -16,12 +16,14 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Objects;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,5 +60,13 @@ class XMLParsingTest {
 			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
 			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"));
+	}
+
+	@Test
+	void shouldNotCreateInvalidConstaints() {
+
+		URL resource = XMLParsingTest.class.getResource("/xml/parsing/invalid_constraint.xml");
+		Objects.requireNonNull(resource);
+		assertThatIllegalArgumentException().isThrownBy(() -> load(resource));
 	}
 }

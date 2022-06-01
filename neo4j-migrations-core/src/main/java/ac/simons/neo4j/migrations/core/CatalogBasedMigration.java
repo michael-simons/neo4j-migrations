@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
@@ -978,10 +979,18 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
 					.list(Constraint::parse);
 
+				List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
+						.list(Index::parse);
+
 				// If there are no constraints there at all, something fishy is going on for sure
 				// otherwise, there must now an equivalent version of it
 				if (constraints.isEmpty() || constraints.stream()
 					.noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+					throw e;
+				}
+				// ...the same for index
+				if (indexes.isEmpty() || indexes.stream()
+					.noneMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
 					throw e;
 				}
 			}
@@ -1031,13 +1040,20 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
 					.list(Constraint::parse);
 
+				List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
+					.list(Index::parse);
+
 				// Let's skip all the hard work directly
-				if (constraints.isEmpty()) {
+				if (constraints.isEmpty() && indexes.isEmpty()) {
 					return Counters.empty();
 				}
 
 				// Directly throw if it is still there
 				if (constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+					throw e;
+				}
+
+				if (indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
 					throw e;
 				}
 
@@ -1050,6 +1066,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				return context.catalog.getItemPriorTo(reference, definedAt)
 					.filter(
 						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
+					.filter(
+						v -> indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(v)))
 					.map(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false))
 					.orElseGet(Counters::empty);
 			}

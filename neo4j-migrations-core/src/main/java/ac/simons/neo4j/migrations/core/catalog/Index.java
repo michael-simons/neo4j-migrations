@@ -45,9 +45,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	/**
 	 * Enumerates the different kinds of indexes.
 	 */
-	enum Type implements ItemType {
+	public enum Type implements ItemType {
 		PROPERTY,
-
 		LOOKUP,
 		FULLTEXT
 	}
@@ -136,7 +135,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 * @return The ongoing builder
 	 */
 	public static Builder forRelationship(String type) {
-		return new DefaultBuilder(TargetEntityType.NODE, type);
+		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);
 	}
 
 	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
@@ -260,4 +259,30 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes), new LinkedHashSet<>(properties));
 	}
 
+	/**
+	 * {@literal true}, if {@literal item} is an index of the same type for the same entity containing the same properties.
+	 * Also index name and options will be compared.
+	 *
+	 * @param that the other item to compare to
+	 * @return {@literal true} if this and the other {@literal item} are equivalent
+	 */
+	@Override
+	public boolean isEquivalentTo(CatalogItem<?> that) {
+
+		if (this == that) {
+			return true;
+		}
+
+		if (!(that instanceof Index)) {
+			return false;
+		}
+
+		Index other = (Index) that;
+
+		return this.getType().equals(other.getType()) &&
+				this.getTargetEntityType().equals(other.getTargetEntityType()) &&
+				this.getIdentifier().equals(other.getIdentifier()) &&
+				this.getProperties().equals(other.getProperties()) &&
+				this.getOptionalOptions().equals(other.getOptionalOptions());
+	}
 }

@@ -29,23 +29,23 @@ public enum Neo4jVersion {
 	/**
 	 * Constant for everything Neo4j 3.5 and earlier.
 	 */
-	V3_5(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
+	V3_5(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),
 	/**
 	 * Constant for everything Neo4j 4.0.
 	 */
-	V4_0(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
+	V4_0(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),
 	/**
 	 * Constant for everything Neo4j 4.1.
 	 */
-	V4_1(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS),
+	V4_1(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),
 	/**
 	 * Constant for everything Neo4j 4.2.
 	 */
-	V4_2(true, "SHOW CONSTRAINTS"),
+	V4_2(true, "SHOW CONSTRAINTS", Neo4jVersion.OLD_SHOW_INDEXES),
 	/**
 	 * Constant for everything Neo4j 4.3.
 	 */
-	V4_3(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS),
+	V4_3(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS, Neo4jVersion.NEW_SHOW_INDEXES),
 	/**
 	 * Constant for everything Neo4j 4.4.
 	 */
@@ -61,6 +61,9 @@ public enum Neo4jVersion {
 
 	private static final String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
 	private static final String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
+
+	private static final String OLD_SHOW_INDEXES = "CALL db.indexes()";
+	private static final String NEW_SHOW_INDEXES = "SHOW INDEXES YIELD *";
 
 	/**
 	 * A set of versions that have a concept of idempotent constraint / index statements.
@@ -110,14 +113,16 @@ public enum Neo4jVersion {
 	private final boolean priorTo44;
 
 	private final String showConstraints;
+	private final String showIndexes;
 
 	Neo4jVersion() {
-		this(false, NEW_SHOW_CONSTRAINTS);
+		this(false, NEW_SHOW_CONSTRAINTS, NEW_SHOW_INDEXES);
 	}
 
-	Neo4jVersion(boolean priorTo44, String showConstraints) {
+	Neo4jVersion(boolean priorTo44, String showConstraints, String showIndexes) {
 		this.priorTo44 = priorTo44;
 		this.showConstraints = showConstraints;
+		this.showIndexes = showIndexes;
 	}
 
 	@Override
@@ -145,5 +150,11 @@ public enum Neo4jVersion {
 	 */
 	public String getShowConstraints() {
 		return showConstraints;
+	}
+	/**
+	 * @return The command recommended for this specific version to get a list of all known indexes
+	 */
+	public String getShowIndexes() {
+		return showIndexes;
 	}
 }

@@ -161,8 +161,10 @@ class CatalogBasedMigrationIT {
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), ConstraintsIT.NO_DRIVER_LOGGING_CONFIG);
 				Session session = driver.session()) {
 
-				List<String> names = session.run(version.getShowConstraints()).list(r -> r.get("name").asString());
-				names.forEach(name -> session.run("DROP CONSTRAINT " + name).consume());
+				List<String> constraintNames = session.run(version.getShowConstraints()).list(r -> r.get("name").asString());
+				constraintNames.forEach(name -> session.run("DROP CONSTRAINT " + name).consume());
+				List<String> indexNames = session.run(version.getShowIndexes()).list(r -> r.get("name").isNull() ? r.get("indexName").asString() : r.get("name").asString());
+				indexNames.forEach(name -> session.run("DROP INDEX " + name).consume()); // this will also drop the lookup indexes ;(
 				session.run("MATCH (n) DETACH DELETE n");
 			}
 		}

@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
@@ -47,7 +48,11 @@ final class DatabaseCatalog implements Catalog {
 			.filter(constraint -> !Migrations.UNIQUE_VERSION.isEquivalentTo(constraint))
 			.forEach(items::add);
 
-		// TODO indexes, don't refactor above into collectInto() yet
+		queryRunner.run(version.getShowIndexes())
+			.stream()
+			.map(Index::parse)
+			.filter(index -> index.getType() != Index.Type.LOOKUP)
+			.forEach(items::add);
 
 		return new DatabaseCatalog(items);
 	}

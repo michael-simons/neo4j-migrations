@@ -398,7 +398,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * {@literal true}, if {@literal item} is a constraint of the same type for the same entity containing the same properties.
 	 *
 	 * @param that the other item to compare to
-	 * @return {@literal true} if this and the other {@literal item} are aquivalent
+	 * @return {@literal true} if this and the other {@literal item} are equivalent
 	 */
 	@Override
 	public boolean isEquivalentTo(CatalogItem<?> that) {

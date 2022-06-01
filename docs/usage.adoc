@@ -51,11 +51,6 @@ The validation result provides an additional operation `needsRepair()`.
 In case the result is invalid you might check if it needs repair.
 If not, you can just call the <<usage_common_migrate, apply operation>> to turn the database into a valid state.
 
-[[usage_defining_asserting_applying_catalogs]]
-== Defining, asserting and applying catalogs
-
-TODO
-
 == CLI
 
 Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <<download_cli>>.
@@ -698,3 +693,115 @@ All goals as described in <<usage_common>> are supported.
 * link:{siteBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
 
 The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.
+
+[[usage_defining_asserting_applying_catalogs]]
+== Defining, asserting and applying catalogs
+
+This chapter is more about conceptional usage or scenarios one can implement by using <<concepts_migrations_catalog-based, Catalog-based migrations>>.
+All scenarios can be executed with any of the previously explained APIS, being it the CLI, the Core API or within  Spring Boot,
+Quarkus or Maven, except easily dumping a local or a remote catalog as XML or Cypher file.
+
+Catalogs are a powerful mechanism to shape your database's schema exactly the way you want it and this is only a small subset of
+possible scenarios that can be implemented.
+
+For the rest of these steps we assume that you are using the CLI and used the `init` command to create a local directory structure
+holding connection data such as URL and credentials as well as your migrations:
+
+.Create migrations directory with credentials etc.
+[source,bash]
+----
+neo4j-migrations -a bolt://localhost:7687 -u neo4j -p secret init
+tree -a
+----
+
+which will result in
+
+[source,console]
+----
+.
+├── .migrations.properties
+└── neo4j
+    └── migrations
+
+2 directories, 1 file
+----
+
+All migrations we are going to work with will be stored in `neo4j/migrations`.
+
+One sensible step before doing anything with the schema is to assert our local catalog meets the remote catalog as expected.
+In this example we assert toe remote catalog to be empty and we define our first migration like this:
+
+.V010__Assert_empty_schema.xml
+[source,xml]
+----
+include::catalog_example/V010__Assert_empty_schema.xml[]
+----
+<.> `useCurrent` has been set to `true` to refer to the local catalog as defined in version 10, which is been empty,
+    exactly what we expect
+
+Applying this now via `neo4j-migrations apply` yields the following result:
+
+[source,console]
+----
+[2022-06-01T15:13:39.997000000] Applied migration 010 ("Assert empty schema").
+Database migrated to version 010.
+----
+
+Of course this step is only executed once, when this migration is applied. If we add another one too it, that
+verification does not happen again, as the 010 has been applied. Therefore, a verification step can be added to
+each catalog based migration:
+
+.V020__Create_person_name_unique.xml
+----
+include::catalog_example/V020__Create_person_name_unique.xml[]
+----
+
+Note that we didn't specify `useCurrent` here. This means verification should happen based on the local catalog prior to
+version 020. Applying this migration yields:
+
+[source,console]
+----
+[2022-06-01T15:17:27.508000000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T15:17:27.771000000] Applied migration 020 ("Create person name unique").
+Database migrated to version 020.
+----
+
+A day later you figure out that a unique constraint on a persons names isn't the best of all ideas, and you decide to
+fix that. Assuming for sake of sanity that every person has a name, we replace that uniqueness with an existential constraint.
+
+Existential constraints are a Neo4j enterprise feature, so we must cater for that as well and we define two different files
+for the next version:
+
+[[V030__Fix_person_name_constraint_CE]]
+.V030__Fix_person_name_constraint_CE.xml
+----
+include::catalog_example/V030__Fix_person_name_constraint_CE.xml[]
+----
+
+and for the enterprise edition, we can redefine the constraint like this:
+
+[[V030__Fix_person_name_constraint_EE]]
+.V030__Fix_person_name_constraint_EE.xml
+----
+include::catalog_example/V030__Fix_person_name_constraint_EE.xml[]
+----
+
+Note how we *can* `refer` to the constraint by ref in <<V030__Fix_person_name_constraint_EE>> and how we *must* use
+`item` in <<V030__Fix_person_name_constraint_CE>>. The reason for that is that we refer to an older item only in the
+migration for community edition. We redefined the item in the script for the enterprise edition, so we might as well
+refer to it.
+In older Neo4j versions not supporting names for constraints Neo4j-Migrations will use the old definition to drop the item
+in question.
+
+Applying the current state now yields
+
+[source,console]
+----
+[2022-06-01T16:04:46.446188000] Skipping 030 ("Fix person name constraint CE") due to unmet preconditions:
+// assume that edition is COMMUNITY
+[2022-06-01T16:04:46.493400000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T16:04:46.496401000] Skipping already applied migration 020 ("Create person name unique")
+[2022-06-01T16:04:46.659585000] Applied migration 030 ("Fix person name constraint EE").
+Database migrated to version 030.
+----
+

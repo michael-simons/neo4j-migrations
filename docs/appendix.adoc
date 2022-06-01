@@ -35,7 +35,12 @@ A catalog item will either have a child-element `<label />` in which case it wil
 exclusive child-element `<type />` in which it always refers to relationships. The `type` attribute is unrelated
 to the target entity. This attribute defines the type of the element (such as unique- or existential constraints).
 
-The XMl schema for <<concepts_migrations_catalog-based, catalog-based migrations>> looks like this:
+We do support the following processing instructions:
+
+* `<?assert followed by a valid precondition ?>`
+* `<?assume followed by a valid precondition ?>`
+
+Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema for <<concepts_migrations_catalog-based, catalog-based migrations>> looks like this:
 
 .migration.xsd
 [source,xml,indent=0,tabsize=2]

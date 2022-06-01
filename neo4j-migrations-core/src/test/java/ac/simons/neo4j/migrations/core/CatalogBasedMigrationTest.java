@@ -105,6 +105,7 @@ class CatalogBasedMigrationTest {
 		URL url = CatalogBasedMigration.class.getResource("/preconditions/V0002__Create_node_keys.xml");
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		assertThat(schemaBasedMigration.isResetCatalog()).isFalse();
 		assertThat(schemaBasedMigration.getPreconditions()).hasSize(1);
 		assertThat(schemaBasedMigration.getPreconditions()).singleElement()
 			.extracting(Precondition::getType)
@@ -113,6 +114,14 @@ class CatalogBasedMigrationTest {
 			.extracting(QueryPrecondition.class::cast)
 			.extracting(QueryPrecondition::getQuery)
 			.isEqualTo("RETURN false");
+	}
+
+	@Test
+	void shouldParseReset() {
+		URL url = CatalogBasedMigration.class.getResource("/xml/parsing/V01__with_reset.xml");
+		Objects.requireNonNull(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		assertThat(schemaBasedMigration.isResetCatalog()).isTrue();
 	}
 
 	abstract static class MockHolder {
@@ -137,9 +146,9 @@ class CatalogBasedMigrationTest {
 
 		MockHolder() {
 			((WriteableCatalog) catalog).addAll(MigrationVersion.withValue("1"),
-				() -> Collections.singletonList(uniqueBookIdV1));
+				() -> Collections.singletonList(uniqueBookIdV1), false);
 			((WriteableCatalog) catalog).addAll(MigrationVersion.withValue("2"),
-				() -> Collections.singletonList(uniqueBookIdV2));
+				() -> Collections.singletonList(uniqueBookIdV2), false);
 		}
 
 		@BeforeEach

@@ -71,6 +71,7 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -158,7 +159,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 
 		if (oldCatalog != null) {
-			oldCatalog.getParentNode().replaceChild(newCatalog, oldCatalog);
+			updateCatalog(oldCatalog, newCatalog);
 		}
 		if (constraints != null) {
 			newCatalog.appendChild(constraints);
@@ -168,6 +169,16 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 		elements.add(newCatalog);
 		return canonicalizeAndChecksumElements(document, elements);
+	}
+
+	private static void updateCatalog(Node oldCatalog, Node newCatalog) {
+		oldCatalog.getParentNode().replaceChild(newCatalog, oldCatalog);
+		NamedNodeMap attributes = oldCatalog.getAttributes();
+		for (int i = 0; i < attributes.getLength(); ++i) {
+			Node attribute = attributes.item(i);
+			attributes.removeNamedItem(attribute.getNodeName());
+			newCatalog.getAttributes().setNamedItem(attribute);
+		}
 	}
 
 	private static String canonicalizeAndChecksumElements(Document document, List<Node> elements) {
@@ -202,10 +213,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		Document document = parseDocument(url);
 		return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document),
-			parseOperations(document, version), getPreconditions(document));
+			parseOperations(document, version), getPreconditions(document), isResetCatalog(document));
 	}
 
 	static Document parseDocument(URL url) {
+
 		try (InputStream source = url.openStream()) {
 			DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
 			documentBuilder.setErrorHandler(new ThrowingErrorHandler());
@@ -219,6 +231,12 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			throw new MigrationsException("Could not parse the given document", e);
 		}
+	}
+
+	static boolean isResetCatalog(Document document) {
+
+		NodeList catalog = document.getElementsByTagName(XMLSchemaConstants.CATALOG);
+		return catalog.getLength() == 1 && Boolean.parseBoolean(((Element) catalog.item(0)).getAttribute("reset"));
 	}
 
 	static List<Precondition> getPreconditions(Node parentNode) {
@@ -272,14 +290,17 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	private final List<Precondition> preconditions;
 
+	private final boolean resetCatalog;
+
 	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog,
-		List<Operation> operations, List<Precondition> preconditions) {
+		List<Operation> operations, List<Precondition> preconditions, boolean resetCatalog) {
 		this.source = source;
 		this.version = version;
 		this.checksum = checksum;
 		this.catalog = catalog;
 		this.operations = operations;
 		this.preconditions = preconditions;
+		this.resetCatalog = resetCatalog;
 	}
 
 	@Override
@@ -306,6 +327,10 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		return catalog;
 	}
 
+	boolean isResetCatalog() {
+		return resetCatalog;
+	}
+
 	@Override
 	public void apply(MigrationContext context) {
 
@@ -325,7 +350,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				.map(op -> op.execute(operationContext))
 				.reduce(Counters.empty(), Counters::add);
 
-			LOGGER.log(Level.FINE,
+			LOGGER.log(Level.INFO,
 				"Removed {3} constraints and {1} indexes, added {2} constraints and {0} indexes in total.",
 				counters.toArray());
 		} catch (VerificationFailedException e) {

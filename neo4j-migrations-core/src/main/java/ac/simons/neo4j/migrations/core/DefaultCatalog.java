@@ -38,15 +38,39 @@ import java.util.stream.Collectors;
  */
 class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 
-	private final Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items = new HashMap<>();
+	private final Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items;
 	private final ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
 
+	private final NavigableMap<MigrationVersion, VersionedCatalog> oldVersions = new TreeMap<>(
+		new MigrationVersion.VersionComparator());
+
+	DefaultCatalog() {
+		this(new HashMap<>());
+	}
+
+	private DefaultCatalog(Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items) {
+		this.items = items;
+	}
+
 	@Override
-	public void addAll(MigrationVersion version, Catalog other) {
+	public void addAll(MigrationVersion version, Catalog other, boolean reset) {
 
 		WriteLock lock = locks.writeLock();
 		try {
 			lock.lock();
+
+			if (reset) {
+				if (oldVersions.containsKey(version)) {
+					throw new IllegalArgumentException(
+						"Catalog has been already reset at version " + version.getValue());
+				} else if (containsVersion(version)) {
+					throw new IllegalArgumentException(
+						"Version " + version.getValue() + " has already been used in this catalog.");
+				}
+				oldVersions.put(version, new DefaultCatalog(new HashMap<>(items)));
+				items.clear();
+			}
+
 			for (CatalogItem<?> item : other.getItems()) {
 				NavigableMap<MigrationVersion, CatalogItem<?>> versionedItems = items.computeIfAbsent(
 					item.getName(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
@@ -62,7 +86,11 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 		}
 	}
 
-	<T> T withReadLockGet(Supplier<T> s) {
+	private boolean containsVersion(MigrationVersion version) {
+		return items.entrySet().stream().flatMap(v -> v.getValue().keySet().stream()).anyMatch(version::equals);
+	}
+
+	private <T> T withReadLockGet(Supplier<T> s) {
 
 		ReadLock lock = locks.readLock();
 		try {
@@ -84,37 +112,60 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	@Override
 	public Collection<CatalogItem<?>> getItemsPriorTo(MigrationVersion version) {
 
-		return withReadLockGet(() -> items.values().stream()
-			.map(m -> Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.collect(Collectors.toList()));
+		return withReadLockGet(() -> {
+			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = oldVersions.ceilingEntry(version);
+			if (oldEntry != null) {
+				return oldEntry.getValue().getItemsPriorTo(version);
+			}
+			return items.values().stream()
+				.map(m -> Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toList());
+		});
 	}
 
 	@Override
 	public Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version) {
 
-		return withReadLockGet(() -> Optional.ofNullable(items.get(name))
-			.map(m -> m.lowerEntry(version))
-			.map(Map.Entry::getValue));
+		return withReadLockGet(() -> {
+			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = oldVersions.ceilingEntry(version);
+			if (oldEntry != null) {
+				return oldEntry.getValue().getItemPriorTo(name, version);
+			}
+			return Optional.ofNullable(items.get(name))
+				.map(m -> m.lowerEntry(version))
+				.map(Map.Entry::getValue);
+		});
 	}
 
 	@Override
 	public Collection<CatalogItem<?>> getItems(MigrationVersion version) {
 
-		return withReadLockGet(() -> items.values().stream()
-			.map(m -> Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))
-			.filter(Optional::isPresent)
-			.map(Optional::get)
-			.collect(Collectors.toList()));
+		return withReadLockGet(() -> {
+			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = oldVersions.higherEntry(version);
+			if (oldEntry != null) {
+				return oldEntry.getValue().getItems(version);
+			}
+			return items.values().stream()
+				.map(m -> Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toList());
+		});
 	}
 
 	@Override
 	public Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version) {
 
-		return Optional.ofNullable(items.get(name))
-			.map(m -> m.floorEntry(version))
-			.map(Map.Entry::getValue);
+		return withReadLockGet(() -> {
+			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = oldVersions.higherEntry(version);
+			if (oldEntry != null) {
+				return oldEntry.getValue().getItem(name, version);
+			}
+			return Optional.ofNullable(items.get(name))
+				.map(m -> m.floorEntry(version))
+				.map(Map.Entry::getValue);
+		});
 	}
-
 }

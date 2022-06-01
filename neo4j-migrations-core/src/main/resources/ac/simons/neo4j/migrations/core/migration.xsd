@@ -39,6 +39,7 @@
 				</xs:complexType>
 			</xs:element>
 		</xs:all>
+		<xs:attribute name="reset" type="xs:boolean" default="false"/>
 	</xs:complexType>
 
 	<xs:complexType name="operation" />

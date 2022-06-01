@@ -67,7 +67,7 @@ class CatalogBasedMigrationIT {
 			Constraint.forRelationship("LIKED").named("c5").exists("x,liked.y"),
 			Constraint.forNode("Person").named("c6")
 				.key("firstname", "surname", "person.whatever", "person.a,person.b 😱")
-		));
+		), false);
 
 		// Unclosed on purpose, otherwise reuse is without use.
 		Neo4jContainer<?> neo4j = getNeo4j(version, true);
@@ -132,7 +132,12 @@ class CatalogBasedMigrationIT {
 			} else {
 				Optional<MigrationVersion> optionalMigrationVersion = migrations.apply();
 				assertThat(optionalMigrationVersion)
-					.hasValue(MigrationVersion.withValue("60"));
+					.hasValue(MigrationVersion.withValue("70"));
+				try (Session session = driver.session()) { // The last migration should clean everything not from Neo4j-Migrations itself
+					assertThat(session.run(version.getShowConstraints()).list())
+						.map(r -> r.get("name").asString())
+						.allMatch(s -> s.contains("__Neo4jMigration"));
+				}
 			}
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {

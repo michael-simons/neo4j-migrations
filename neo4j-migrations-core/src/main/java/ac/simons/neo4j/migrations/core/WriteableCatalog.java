@@ -32,6 +32,7 @@ interface WriteableCatalog extends Catalog {
 	 *
 	 * @param version The version in which the {@literal catalog} was received
 	 * @param other   The catalog to add
+	 * @param reset   use {@literal true} to reset the catalog in this version
 	 */
-	void addAll(MigrationVersion version, Catalog other);
+	void addAll(MigrationVersion version, Catalog other, boolean reset);
 }

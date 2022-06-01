@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,10 +74,91 @@ class DefaultCatalogTest {
 	void getAllItemsShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
-		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
-		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
 		assertThat(catalog.getItems())
+			.map(CatalogItem::getName)
+			.map(Name::getValue)
+			.containsExactly("cv1", "cv2");
+	}
+
+	@Test
+	void resetShouldPreventedAtUsedVersion() {
+
+		DefaultCatalog catalog = new DefaultCatalog();
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		MigrationVersion v2 = MigrationVersion.withValue("2");
+		catalog.addAll(v2, catalog2, false);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> catalog.addAll(v2, Collections::emptyList, true))
+			.withMessage("Version 2 has already been used in this catalog.");
+	}
+
+	@Test
+	void resetShouldPreventDoubleReset() {
+
+		DefaultCatalog catalog = new DefaultCatalog();
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
+		MigrationVersion v3 = MigrationVersion.withValue("3");
+		catalog.addAll(v3, Collections::emptyList, true);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> catalog.addAll(v3, Collections::emptyList, true))
+			.withMessage("Catalog has been already reset at version 3");
+	}
+
+	@Test
+	void resetShouldWork() {
+
+		MigrationVersion v1 = MigrationVersion.withValue("1");
+		MigrationVersion v2 = MigrationVersion.withValue("2");
+		MigrationVersion v3 = MigrationVersion.withValue("3");
+		MigrationVersion v4 = MigrationVersion.withValue("4");
+
+		DefaultCatalog catalog = new DefaultCatalog();
+		catalog.addAll(v1, catalog1, false);
+		catalog.addAll(v2, catalog2, false);
+
+		catalog.addAll(v3, Collections::emptyList, true);
+		Constraint c = Constraint.forNode("C").named("c").exists("c");
+		catalog.addAll(v4, () -> Collections.singletonList(c), false);
+		Constraint d = Constraint.forNode("C").named("c").exists("c");
+		catalog.addAll(MigrationVersion.withValue("5"), () -> Collections.singletonList(d), true);
+
+		assertThat(catalog.getItems())
+			.containsExactly(d);
+
+		assertThat(catalog.getItems(v1))
+			.map(CatalogItem::getName)
+			.map(Name::getValue)
+			.containsExactly("cv1");
+
+		assertThat(catalog.getItems(v2))
+			.map(CatalogItem::getName)
+			.map(Name::getValue)
+			.containsExactly("cv1", "cv2");
+
+		assertThat(catalog.getItems(v3))
+			.isEmpty();
+
+		assertThat(catalog.getItemsPriorTo(v3))
+			.map(CatalogItem::getName)
+			.map(Name::getValue)
+			.containsExactly("cv1", "cv2");
+
+		assertThat(catalog.getItemPriorTo(Name.of("cv1"), v3))
+			.map(CatalogItem::getName)
+			.map(Name::getValue)
+			.hasValue("cv1");
+
+		assertThat(catalog.getItems(v4))
+			.containsExactly(c);
+
+		assertThat(catalog.getItem(Name.of("c"), v4))
+			.hasValue(c);
+
+		assertThat(catalog.getCatalogAt(v2).getItems())
 			.map(CatalogItem::getName)
 			.map(Name::getValue)
 			.containsExactly("cv1", "cv2");
@@ -86,8 +168,8 @@ class DefaultCatalogTest {
 	void getAllItemsPriorToShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
-		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
-		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
 		assertThat(catalog.getItemsPriorTo(MigrationVersion.withValue("1"))).isEmpty();
 
@@ -101,8 +183,8 @@ class DefaultCatalogTest {
 	void getItemPriorToShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
-		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
-		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
 		assertThat(catalog.getItemPriorTo(Name.of("cv1"), MigrationVersion.withValue("1")))
 			.isEmpty();
@@ -121,8 +203,8 @@ class DefaultCatalogTest {
 	void getItemsShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
-		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
-		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
 		assertThat(catalog.getItems(MigrationVersion.withValue("1")))
 			.map(CatalogItem::getName)
@@ -139,8 +221,8 @@ class DefaultCatalogTest {
 	void getItemShouldWork() {
 
 		DefaultCatalog catalog = new DefaultCatalog();
-		catalog.addAll(MigrationVersion.withValue("1"), catalog1);
-		catalog.addAll(MigrationVersion.withValue("2"), catalog2);
+		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
+		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
 		assertThat(catalog.getItem(Name.of("cv1"), MigrationVersion.withValue("1")))
 			.map(CatalogItem::getName).map(Name::getValue).hasValue("cv1");
@@ -158,9 +240,9 @@ class DefaultCatalogTest {
 		WriteableCatalog catalog = new DefaultCatalog();
 
 		MigrationVersion v1 = MigrationVersion.withValue("1");
-		catalog.addAll(v1, catalog1);
+		catalog.addAll(v1, catalog1, false);
 		assertThatExceptionOfType(MigrationsException.class)
-			.isThrownBy(() -> catalog.addAll(v1, catalog2))
+			.isThrownBy(() -> catalog.addAll(v1, catalog2, false))
 			.withMessage("A constraint with the name '%s' has already been added to this catalog under the version %s.",
 				c1v1.getName().getValue(), v1.getValue());
 	}

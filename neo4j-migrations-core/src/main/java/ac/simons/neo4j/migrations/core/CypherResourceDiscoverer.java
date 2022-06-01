@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.internal.Location;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -146,7 +148,7 @@ final class CypherResourceDiscoverer<T> implements Discoverer<T> {
 				continue;
 			}
 			try {
-				Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						String fullPath = file.toString();

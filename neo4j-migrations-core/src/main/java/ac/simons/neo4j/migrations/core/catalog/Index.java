@@ -48,7 +48,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	public enum Type implements ItemType {
 		PROPERTY,
 		LOOKUP,
-		FULLTEXT
+		FULLTEXT,
+		CONSTRAINT_INDEX
 	}
 
 	static String[] labelsOrTypesKeys = {"tokenNames", "labelsOrTypes"};
@@ -56,6 +57,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	static String propertiesKey = "properties";
 	static String entityTypeKey = "entityType";
 	static String indexTypeKey = "type";
+	static String uniquenessKey = "uniqueness";
 
 	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(nameKeys[0],
 			indexTypeKey, labelsOrTypesKeys[0], propertiesKey)));
@@ -252,9 +254,17 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			case "node_fulltext":
 				type = Type.FULLTEXT;
 				break;
+			case "node_unique_property":
+				type = Type.CONSTRAINT_INDEX;
+				break;
 			default:
-				throw new IllegalArgumentException("Unsupported constraint type " + name);
+				throw new IllegalArgumentException("Unsupported index type " + name);
 		}
+
+		// Neo4j 4.x defines the index via uniqueness property
+		type = row.get(uniquenessKey).isNull() || !row.get(uniquenessKey).asString().equals("UNIQUE")
+				? type
+				: Type.CONSTRAINT_INDEX;
 
 		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes), new LinkedHashSet<>(properties));
 	}

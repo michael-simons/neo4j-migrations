@@ -119,6 +119,27 @@ class IndexTest {
 	}
 
 	@Test
+	void shouldParseConstraintIndex35() {
+		Value indexName = Values.value("index_name");
+		Value type = Values.value("node_unique_property");
+		Value tokenNames = Values.value(Arrays.asList("label1", "label2"));
+		Value properties = Values.value(Arrays.asList("property1", "property2"));
+
+		Index index = Index.parse(
+				new MapAccessorAndRecordImpl(makeMap(
+						new AbstractMap.SimpleEntry<>("indexName", indexName),
+						new AbstractMap.SimpleEntry<>("type", type),
+						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
+						new AbstractMap.SimpleEntry<>("properties", properties))));
+
+		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_INDEX);
+		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
+		assertThat(index.getName().getValue()).isEqualTo("index_name");
+		assertThat(index.getIdentifier()).isEqualTo("label1|label2");
+		assertThat(index.getProperties()).containsExactlyInAnyOrder("property1", "property2");
+	}
+
+	@Test
 	void shouldParseSinglePropertyIndex() {
 		Value indexName = Values.value("index_name");
 		Value type = Values.value("BTREE");
@@ -222,6 +243,30 @@ class IndexTest {
 						new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.FULLTEXT);
+		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
+		assertThat(index.getName().getValue()).isEqualTo("index_name");
+		assertThat(index.getIdentifier()).isEqualTo("label1|label2");
+		assertThat(index.getProperties()).containsExactlyInAnyOrder("property1", "property2");
+	}
+
+	@Test
+	void shouldParseConstraintIndex() {
+		Value indexName = Values.value("index_name");
+		Value type = Values.value("BTREE");
+		Value uniqueness = Values.value("UNIQUE");
+		Value tokenNames = Values.value(Arrays.asList("label1", "label2"));
+		Value properties = Values.value(Arrays.asList("property1", "property2"));
+
+		Index index = Index.parse(
+				new MapAccessorAndRecordImpl(makeMap(
+						new AbstractMap.SimpleEntry<>("name", indexName),
+						new AbstractMap.SimpleEntry<>("type", type),
+						new AbstractMap.SimpleEntry<>("uniqueness", uniqueness),
+						new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+						new AbstractMap.SimpleEntry<>("properties", properties))));
+
+		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_INDEX);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(index.getName().getValue()).isEqualTo("index_name");
 		assertThat(index.getIdentifier()).isEqualTo("label1|label2");

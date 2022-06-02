@@ -35,7 +35,9 @@ import java.io.OutputStream;
  *
  * @author Gerrit Meier
  */
-final class IndexToXMLRenderer implements Renderer<Index> {
+enum IndexToXMLRenderer implements Renderer<Index> {
+
+	INSTANCE;
 
 	@Override
 	public void render(Index item, RenderConfig context, OutputStream target) throws IOException {

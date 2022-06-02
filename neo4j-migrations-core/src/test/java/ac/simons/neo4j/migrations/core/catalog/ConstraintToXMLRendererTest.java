@@ -85,6 +85,7 @@ class ConstraintToXMLRendererTest {
 	@MethodSource
 	void shouldRenderConstraintsToXML(Constraint constraint, String expected) {
 
-		assertThat(Renderer.get(Renderer.Format.XML, Constraint.class).render(constraint, RenderConfig.defaultConfig()).trim()).isEqualTo(expected);
+		assertThat(Renderer.get(Renderer.Format.XML, Constraint.class)
+			.render(constraint, RenderConfig.defaultConfig()).trim()).isEqualTo(expected);
 	}
 }

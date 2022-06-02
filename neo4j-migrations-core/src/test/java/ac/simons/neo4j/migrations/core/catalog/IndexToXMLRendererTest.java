@@ -93,7 +93,7 @@ class IndexToXMLRendererTest {
 	@MethodSource
 	void shouldRenderIndexToXML(Index index, String expected) {
 
-		assertThat(new IndexToXMLRenderer().render(index, RenderConfig.defaultConfig()).trim()).isEqualTo(
-			expected);
+		assertThat(Renderer.get(Renderer.Format.XML, Index.class)
+			.render(index, RenderConfig.defaultConfig()).trim()).isEqualTo(expected);
 	}
 }

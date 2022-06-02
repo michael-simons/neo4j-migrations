@@ -82,6 +82,8 @@ public interface Renderer<T> {
 		} else if (format == Format.XML) {
 			if (Constraint.class.isAssignableFrom(type)) {
 				return (Renderer<T>) ConstraintToXMLRenderer.INSTANCE;
+			} else if (Index.class.isAssignableFrom(type)) {
+				return (Renderer<T>) IndexToXMLRenderer.INSTANCE;
 			} else if (Catalog.class.isAssignableFrom(type)) {
 				return (Renderer<T>) CatalogToXMLRenderer.INSTANCE;
 			}

@@ -70,7 +70,8 @@ final class CypherBasedMigration implements MigrationWithPreconditions {
 		return Optional.of(cypherResource.getChecksum());
 	}
 
-	List<String> getAlternativeChecksums() {
+	@Override
+	public List<String> getAlternativeChecksums() {
 		return Collections.unmodifiableList(alternativeChecksums);
 	}
 

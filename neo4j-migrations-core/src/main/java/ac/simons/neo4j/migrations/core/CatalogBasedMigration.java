@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -292,6 +293,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	private final boolean resetCatalog;
 
+	/**
+	 * @see CypherBasedMigration#getAlternativeChecksums() and field
+	 */
+	private List<String> alternativeChecksums = Collections.emptyList();
+
 	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog,
 		List<Operation> operations, List<Precondition> preconditions, boolean resetCatalog) {
 		this.source = source;
@@ -306,6 +312,18 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	@Override
 	public Optional<String> getChecksum() {
 		return Optional.of(checksum);
+	}
+
+	@Override
+	public List<String> getAlternativeChecksums() {
+		return Collections.unmodifiableList(alternativeChecksums);
+	}
+
+	@Override
+	public void setAlternativeChecksums(List<String> alternativeChecksums) {
+
+		Objects.requireNonNull(alternativeChecksums);
+		this.alternativeChecksums = new ArrayList<>(alternativeChecksums);
 	}
 
 	@Override

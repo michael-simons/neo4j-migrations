@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,6 +32,14 @@ interface MigrationWithPreconditions extends Migration {
 	 * @return a list of preconditions
 	 */
 	List<Precondition> getPreconditions();
+
+	/**
+	 * @return potentially alternative checksums caused by the content being different due to the way the specifc resource
+	 * handles preconditions
+	 */
+	default List<String> getAlternativeChecksums() {
+		return Collections.emptyList();
+	}
 
 	/**
 	 * Defaults to a no-op

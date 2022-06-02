@@ -135,11 +135,11 @@ final class ChainBuilder {
 			return true;
 		}
 
-		if (!(newMigration instanceof CypherBasedMigration) || !expectedChecksum.isPresent()) {
+		if (!(newMigration instanceof MigrationWithPreconditions) || !expectedChecksum.isPresent()) {
 			return false;
 		}
 
-		return ((CypherBasedMigration) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
+		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
 	}
 
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {

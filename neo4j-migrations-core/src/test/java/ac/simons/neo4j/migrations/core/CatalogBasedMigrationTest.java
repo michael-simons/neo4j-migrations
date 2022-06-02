@@ -945,11 +945,11 @@ class CatalogBasedMigrationTest {
 						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
 					.collect(Collectors.toList()));
 
-			String expectedDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
-			when(runner.run(expectedDrop))
+			String expectedContraintDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
+			when(runner.run(expectedContraintDrop))
 				.thenThrow(new DatabaseException(Neo4jCodes.CONSTRAINT_DROP_FAILED, "Oh :("));
-			String expectedCall = "CALL db.constraints()";
-			when(runner.run(expectedCall)).thenReturn(result);
+			String expectedConstraintCall = "CALL db.constraints()";
+			when(runner.run(expectedConstraintCall)).thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
@@ -957,10 +957,13 @@ class CatalogBasedMigrationTest {
 				.isThrownBy(() -> drop.execute(context))
 				.withMessage("Oh :(");
 
-			verify(runner).run(expectedDrop);
-			verify(runner).run(expectedCall);
+			String expectedIndexCall = "CALL db.indexes()";
+
+			verify(runner).run(expectedContraintDrop);
+			verify(runner).run(expectedConstraintCall);
+			verify(runner).run(expectedIndexCall);
 			verify(result).list(Mockito.<Function<Record, Constraint>>any());
-			verifyNoInteractions(defaultResult);
+			verify(defaultResult).list(Mockito.<Function<Record, Index>>any()); // index call
 			verifyNoMoreInteractions(runner, result, defaultResult);
 		}
 

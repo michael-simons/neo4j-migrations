@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -313,10 +314,10 @@ class CatalogBasedMigrationTest {
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 
@@ -333,10 +334,10 @@ class CatalogBasedMigrationTest {
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 
@@ -355,10 +356,10 @@ class CatalogBasedMigrationTest {
 				.isThrownBy(() -> operation.execute(context))
 				.withMessage("Catalogs are neither identical nor equivalent.");
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 
@@ -368,8 +369,11 @@ class CatalogBasedMigrationTest {
 			Map<String, Value> constraints = new HashMap<>();
 			constraints.put("name", Values.value("foo"));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
-			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
 
+			when(defaultResult.stream())
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
+				.thenReturn((Stream.empty()));
+			fail("Please add content to the above empty stream.");
 			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(false)
@@ -383,10 +387,10 @@ class CatalogBasedMigrationTest {
 				.withMessage(
 					"Database schema and the catalog are equivalent but the verification requires them to be identical.");
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 
@@ -396,8 +400,11 @@ class CatalogBasedMigrationTest {
 			Map<String, Value> constraints = new HashMap<>();
 			constraints.put("name", Values.value("foo"));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
-			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
 
+			when(defaultResult.stream())
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
+				.thenReturn(Stream.empty());
+			fail("Please add content to the above empty stream.");
 			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(true)
@@ -408,10 +415,10 @@ class CatalogBasedMigrationTest {
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 	}
@@ -428,10 +435,10 @@ class CatalogBasedMigrationTest {
 				new DefaultCatalog(), runner);
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
-			verify(runner, times(1)).run(argumentCaptor.capture());
-			String query = argumentCaptor.getValue();
-			assertThat(query).isEqualTo(Neo4jVersion.V4_4.getShowConstraints());
-			verify(defaultResult).stream();
+			verify(runner, times(2)).run(argumentCaptor.capture());
+			List<String> queries = argumentCaptor.getAllValues();
+			assertThat(queries).containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes());
+			verify(defaultResult, times(2)).stream();
 			verifyNoMoreInteractions(runner, defaultResult);
 		}
 
@@ -454,10 +461,10 @@ class CatalogBasedMigrationTest {
 				runner);
 			operation.execute(context);
 
-			verify(runner, times(2)).run(argumentCaptor.capture());
+			verify(runner, times(3)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), createQuery);
-			verify(defaultResult).stream();
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(), createQuery);
+			verify(defaultResult, times(2)).stream();
 			verify(createResult).consume();
 			verify(summary).counters();
 			verify(counters).constraintsAdded();
@@ -480,7 +487,10 @@ class CatalogBasedMigrationTest {
 			Map<String, Value> constraints = new HashMap<>();
 			constraints.put("name", Values.value(uniqueBookIdV1.getName().getValue()));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
-			when(defaultResult.stream()).thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)));
+			when(defaultResult.stream())
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
+				.thenReturn(Stream.empty());
+			fail("Please add content to the above empty stream.");
 
 			String dropQuery = "DROP CONSTRAINT book_id_unique";
 			when(runner.run(dropQuery)).thenReturn(dropResult);
@@ -489,10 +499,10 @@ class CatalogBasedMigrationTest {
 				new DefaultCatalog(), runner);
 			operation.execute(context);
 
-			verify(runner, times(2)).run(argumentCaptor.capture());
+			verify(runner, times(3)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), dropQuery);
-			verify(defaultResult).stream();
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(), dropQuery);
+			verify(defaultResult, times(2)).stream();
 			verify(dropResult).consume();
 			verify(summary).counters();
 			verify(counters).constraintsRemoved();

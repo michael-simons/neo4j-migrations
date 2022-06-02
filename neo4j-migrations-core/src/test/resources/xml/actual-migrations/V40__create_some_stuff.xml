@@ -10,6 +10,16 @@
 				</properties>
 			</constraint>
 		</constraints>
+
+		<indexes>
+			<index name="a_new_book_index" type="property">
+				<label>Book</label>
+				<properties>
+					<property>property1</property>
+					<property>property2</property>
+				</properties>
+			</index>
+		</indexes>
 	</catalog>
 
 	<create ref="person_liked_book_day" ifNotExists="false"/>
@@ -21,4 +31,6 @@
 			</properties>
 		</constraint>
 	</create>
+
+	<create ref="a_new_book_index" ifNotExists="false" />
 </migration>

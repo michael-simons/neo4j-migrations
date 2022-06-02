@@ -137,6 +137,10 @@ class CatalogBasedMigrationIT {
 					assertThat(session.run(version.getShowConstraints()).list())
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
+
+					assertThat(session.run(version.getShowIndexes()).list())
+						.map(r -> r.get("name").asString())
+						.allMatch(s -> s.contains("__Neo4jMigration"));
 				}
 			}
 		} finally {

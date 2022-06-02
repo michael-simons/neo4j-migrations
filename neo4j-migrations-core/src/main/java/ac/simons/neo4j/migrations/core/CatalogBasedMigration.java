@@ -466,6 +466,10 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				return Constraint.parse((Element) operationElement.getElementsByTagName("constraint").item(0));
 			}
 
+			if (operationElement.getElementsByTagName("index").getLength() == 1) {
+				return Index.parse((Element) operationElement.getElementsByTagName("index").item(0));
+			}
+
 			throw new UnsupportedOperationException("Could not get a local catalog item.");
 		}
 

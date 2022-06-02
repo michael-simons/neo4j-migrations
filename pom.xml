@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2020-2022 the original author or authors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         https://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -82,11 +99,12 @@
 		<graalvm.version>21.3.2</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.7</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.5</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.8.2</junit.jupiter.version>
+		<license-maven-plugin.version>4.2.rc2</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
 		<maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
@@ -533,6 +551,93 @@
 		</pluginManagement>
 		<plugins>
 			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>${license-maven-plugin.version}</version>
+				<configuration>
+					<header>etc/license.tpl</header>
+					<strictCheck>true</strictCheck>
+					<properties>
+						<year>2022</year>
+					</properties>
+					<includes>
+						<include>**</include>
+					</includes>
+					<excludes>
+						<exclude>**/*.adoc</exclude>
+						<exclude>**/*.cypher</exclude>
+						<exclude>**/*.sh</exclude>
+						<exclude>**/*.tpl</exclude>
+						<exclude>**/*.txt</exclude>
+						<exclude>**/*.webm</exclude>
+						<exclude>**/*.yaml</exclude>
+						<exclude>**/org.mockito.plugins.MockMaker</exclude>
+						<exclude>bin/test_native_cli.java</exclude>
+						<exclude>**/package-info.java</exclude>
+						<exclude>**/assembly/README</exclude>
+					</excludes>
+					<dependencyEnforce>true</dependencyEnforce>
+					<dependencyExceptionMessage>A custom error message for how to handle approvals in your organization</dependencyExceptionMessage>
+					<dependencyPolicies>
+						<dependencyPolicy>
+							<type>LICENSE_URL</type>
+							<rule>APPROVE</rule>
+							<value>https://www.apache.org/licenses/LICENSE-2.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>Apache License, Version 2</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>Apache License, Version 2.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>The Apache Software License, Version 2.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>The Apache Software License, version 2.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>The MIT License (MIT)</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>MIT License</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>Universal Permissive License, Version 1.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>ARTIFACT_PATTERN</type>
+							<rule>APPROVE</rule>
+							<!-- This is under GNU, but we don't deliver any binary that depends on it. -->
+							<value>org.neo4j.test:neo4j-harness*</value>
+						</dependencyPolicy>
+					</dependencyPolicies>
+				</configuration>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<inherited>false</inherited>
@@ -589,7 +694,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -717,9 +822,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
@@ -870,6 +975,7 @@
 				<invoker.skip>true</invoker.skip>
 				<jacoco.skip>true</jacoco.skip>
 				<jqassistant.skip>true</jqassistant.skip>
+				<license.skip>true</license.skip>
 				<maven.javadoc.skip>true</maven.javadoc.skip>
 				<pmd.skip>true</pmd.skip>
 				<skipITs>true</skipITs>

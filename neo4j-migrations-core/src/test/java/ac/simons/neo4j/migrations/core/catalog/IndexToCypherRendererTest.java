@@ -426,7 +426,9 @@ class IndexToCypherRendererTest {
 	void shouldFailOnRenderRelationshipIndexDropPrior43(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP, "TYPE_NAME", Arrays.asList("propertyName_1", "propertyName_2"));
+		Index index = Index.forRelationship("TYPE_NAME")
+			.named(named ? "index_name" : null)
+			.onProperties("propertyName_1", "propertyName_2");
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
@@ -452,7 +454,9 @@ class IndexToCypherRendererTest {
 	void shouldRenderFulltextIndexCreate(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.FULLTEXT, TargetEntityType.NODE, "Movie|Book", Arrays.asList("title", "description"));
+		Index index = Index.forNode("Movie", "Book")
+			.named(named ? "index_name" : null)
+			.fulltext("title", "description");
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
@@ -547,7 +551,9 @@ class IndexToCypherRendererTest {
 	void shouldRenderFulltextRelationshipIndexCreate(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.FULLTEXT, TargetEntityType.RELATIONSHIP, "TAGGED_AS|SOMETHING_ELSE", Arrays.asList("taggedByUser", "taggedByUser2"));
+		Index index = Index.forRelationship("TAGGED_AS", "SOMETHING_ELSE")
+			.named(named ? "index_name" : null)
+			.fulltext("taggedByUser", "taggedByUser2");
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);

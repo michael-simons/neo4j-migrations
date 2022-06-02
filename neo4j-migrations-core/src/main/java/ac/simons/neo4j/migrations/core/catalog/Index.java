@@ -93,18 +93,23 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	}
 
 	/**
-	 * Allows to specify the type of the constraint.
+	 * Allows to specify the type of the constraint. Not all types are exposed, they should usually not be touch manually.
 	 */
 	public interface NamedBuilder {
 
 		/**
-		 * Creates an index for the given properties
-		 *
-		 * @param properties the properties that should get indexed
-		 * @return the new index
+		 * Creates a fulltext index
+		 * @param properties The properties to be included in the index
+		 * @return the next step
 		 */
-		Index properties(String... properties);
+		Index fulltext(String... properties);
 
+		/**
+		 * Creates a property index
+		 * @param properties The properties to be included in the index
+		 * @return the next step
+		 */
+		Index onProperties(String... properties);
 	}
 
 	private static class DefaultBuilder implements Builder, NamedBuilder {
@@ -127,29 +132,34 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 
 		@Override
-		public Index properties(String... properties) {
+		public Index onProperties(String... properties) {
 			return new Index(name, Type.PROPERTY, targetEntity, identifier, Arrays.asList(properties), "");
+		}
+
+		@Override
+		public Index fulltext(String... properties) {
+			return new Index(name, Type.FULLTEXT, targetEntity, identifier, Arrays.asList(properties), "");
 		}
 	}
 
 	/**
 	 * Starts defining a new instance of a node property index.
 	 *
-	 * @param label The label on which the index should be applied
+	 * @param labels The labels on which the index should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forNode(String label) {
-		return new DefaultBuilder(TargetEntityType.NODE, label);
+	public static Builder forNode(String... labels) {
+		return new DefaultBuilder(TargetEntityType.NODE, String.join("|", labels));
 	}
 
 	/**
 	 * Starts defining a new instance of a relationship property index.
 	 *
-	 * @param type The type on which the index should be applied
+	 * @param types The type on which the index should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forRelationship(String type) {
-		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);
+	public static Builder forRelationship(String... types) {
+		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, String.join("|", types));
 	}
 
 	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties,
@@ -198,10 +208,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 
 		List<String> labelsOrTypes = !row.get(labelsOrTypesKeys[0]).isNull()
-				? row.get(labelsOrTypesKeys[0]).asList(Value::asString)
-				: row.get(labelsOrTypesKeys[1]).isNull() // lookup index
-					? Collections.emptyList()
-					: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
+			? row.get(labelsOrTypesKeys[0]).asList(Value::asString)
+			: row.get(labelsOrTypesKeys[1]).isNull() // lookup index
+			? Collections.emptyList()
+			: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
 
 		String name = !row.get(nameKeys[0]).isNull()
 			? row.get(nameKeys[0]).asString()
@@ -210,8 +220,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		String indexType = row.get(indexTypeKey).asString();
 		String entityType = !row.get(entityTypeKey).isNull() ? row.get(entityTypeKey).asString() : "NODE";
 		List<String> properties = row.get(propertiesKey).isNull() // lookup index
-				? Collections.emptyList()
-				: row.get(propertiesKey).asList(Value::asString);
+			? Collections.emptyList()
+			: row.get(propertiesKey).asList(Value::asString);
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(entityType);
 
 		Index.Type type;
@@ -236,10 +246,11 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		// Neo4j 4.x defines the index via uniqueness property
 		type = row.get(uniquenessKey).isNull() || !row.get(uniquenessKey).asString().equals("UNIQUE")
-				? type
-				: Type.CONSTRAINT_INDEX;
+			? type
+			: Type.CONSTRAINT_INDEX;
 
-		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes), new LinkedHashSet<>(properties));
+		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes),
+			new LinkedHashSet<>(properties));
 	}
 
 	/**

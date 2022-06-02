@@ -35,6 +35,7 @@ class IndexToCypherRendererTest {
 
 	// CREATE
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleIndexCreation() {
 
 		return Stream.of(
@@ -55,6 +56,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleCompositeIndexCreation() {
 
 		return Stream.of(
@@ -76,6 +78,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderNamedIndexCreation() {
 
 		return Stream.of(
@@ -96,6 +99,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderIdempotentIndexCreation() {
 
 		return Stream.of(
@@ -116,6 +120,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnIdempotentIndexCreation() {
 
 		return Stream.of(
@@ -137,8 +142,8 @@ class IndexToCypherRendererTest {
 				.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion");
 	}
 
-	// DROP
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderUnnamedIndexDrop() {
 
 		return Stream.of(
@@ -159,6 +164,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderUnnamedCompositeIndexDrop() {
 
 		return Stream.of(
@@ -178,6 +184,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailUnnamedCompositeIndexDrop() {
 
 		return Stream.of(
@@ -202,6 +209,7 @@ class IndexToCypherRendererTest {
 				.withMessageStartingWith("Dropping an unnamed index is not supported on Neo4j");
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderNamedIndexDrop() {
 
 		return Stream.of(
@@ -222,6 +230,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderIdempotentNamedIndexDrop() {
 
 		return Stream.of(
@@ -241,6 +250,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnRenderIdempotentNamedIndexDrop() {
 
 		return Stream.of(
@@ -261,6 +271,7 @@ class IndexToCypherRendererTest {
 				.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion");
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipIndexCreate() {
 
 		return Stream.of(
@@ -279,6 +290,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipCompositeIndexCreate() {
 
 		return Stream.of(
@@ -297,6 +309,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipIdempotentIndexCreate() {
 
 		return Stream.of(
@@ -315,6 +328,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipIdempotentCompositeIndexCreate() {
 
 		return Stream.of(
@@ -333,6 +347,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipIndexDrop() {
 
 		return Stream.of(
@@ -352,6 +367,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderRelationshipIdempotentIndexDrop() {
 
 		return Stream.of(
@@ -371,6 +387,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnRenderRelationshipIndexCreatePrior43() {
 
 		return Stream.of(
@@ -393,6 +410,7 @@ class IndexToCypherRendererTest {
 				.withMessage("The given relationship index cannot be rendered on Neo4j " + serverVersion + ".");
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnRenderRelationshipIndexDropPrior43() {
 
 		return Stream.of(
@@ -415,6 +433,7 @@ class IndexToCypherRendererTest {
 				.withMessage("The given relationship index cannot be rendered on Neo4j " + serverVersion + ".");
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderFulltextIndexCreate() {
 
 		return Stream.of(
@@ -439,6 +458,33 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+
+	@SuppressWarnings("unused")
+	static Stream<Arguments> shouldRenderFulltextIndexDrop() {
+
+		return Stream.of(
+			// All versions to be safe
+			Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "CALL db.index.fulltext.drop(\"index_name\")"),
+			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "CALL db.index.fulltext.drop(\"index_name\")"),
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "CALL db.index.fulltext.drop(\"index_name\")"),
+			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "CALL db.index.fulltext.drop(\"index_name\")"),
+			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name")
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldRenderFulltextIndexDrop(String serverVersion, boolean named, Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
+		Index index = new Index(named ? "index_name" : null, Index.Type.FULLTEXT, TargetEntityType.NODE, "Movie|Book", Arrays.asList("title", "description"));
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
+	}
+
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderFulltextIndexIdempotentCreate() {
 
 		return Stream.of(
@@ -458,6 +504,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnRenderFulltextIndexIdempotentCreate() {
 
 		return Stream.of(
@@ -481,6 +528,7 @@ class IndexToCypherRendererTest {
 				.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion on");
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderFulltextRelationshipIndexCreate() {
 
 		return Stream.of(
@@ -505,6 +553,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderFulltextRelationshipIndexIdempotentCreate() {
 
 		return Stream.of(
@@ -524,6 +573,7 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldFailOnRenderFulltextRelationshipIndexIdempotentCreate() {
 
 		return Stream.of(

@@ -16,9 +16,11 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Formattable;
 import java.util.Formatter;
@@ -27,6 +29,11 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Michael J. Simons
@@ -65,7 +72,8 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	 */
 	private final String options;
 
-	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
+	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier,
+		Collection<String> properties, String options) {
 
 		if (properties.isEmpty() && type != Index.Type.LOOKUP) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
@@ -157,8 +165,120 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		return getName().equals(that.getName()) && isEquivalentTo(that);
 	}
 
+	static final class Target {
+
+		private final String identifier;
+
+		private final TargetEntityType targetEntityType;
+
+		Target(String identifier, TargetEntityType targetEntityType) {
+			this.identifier = identifier;
+			this.targetEntityType = targetEntityType;
+		}
+
+		String identifier() {
+			return identifier;
+		}
+
+		TargetEntityType targetEntityType() {
+			return targetEntityType;
+		}
+	}
+
+	/**
+	 * Extracts the target of the given item
+	 * @param element The element to extract the target from
+	 * @return A target
+	 */
+	static Target extractTarget(Element element) {
+
+		NodeList labelOrType = element.getElementsByTagName(XMLSchemaConstants.LABEL);
+		TargetEntityType targetEntityType;
+		if (labelOrType.getLength() == 0) {
+			labelOrType = element.getElementsByTagName(XMLSchemaConstants.TYPE);
+			targetEntityType = TargetEntityType.RELATIONSHIP;
+		} else {
+			targetEntityType = TargetEntityType.NODE;
+		}
+		return new Target(labelOrType.item(0).getTextContent(), targetEntityType);
+	}
+
+	/**
+	 * Extracts the properties from the element into a set, guaranteeing order.
+	 *
+	 * @param element The element to extract properties from
+	 * @return a sorted set
+	 */
+	static Set<String> extractProperties(Element element) {
+		NodeList propertyNodes = ((Element) element
+			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
+			XMLSchemaConstants.PROPERTY);
+		Set<String> properties = new LinkedHashSet<>();
+		for (int i = 0; i < propertyNodes.getLength(); ++i) {
+			properties.add(propertyNodes.item(i).getTextContent());
+		}
+		return properties;
+	}
+
+	/**
+	 * Extracts options child elements from the given element
+	 *
+	 * @param constraintElement The element to extract options from
+	 * @return optional options
+	 */
+	static String extractOptions(Element constraintElement) {
+		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
+		String options = null;
+		if (optionsElement.getLength() == 1) {
+			options = Arrays.stream(optionsElement.item(0).getTextContent()
+				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
+		}
+		return options;
+	}
+
+	final Element toXML(Document document) {
+		String elementName;
+		if (this instanceof Constraint) {
+			elementName = XMLSchemaConstants.CONSTRAINT;
+		} else if (this instanceof Index) {
+			elementName = XMLSchemaConstants.INDEX;
+		} else {
+			throw new IllegalStateException("Unsupported subclass " + this.getClass());
+		}
+		Element element = document.createElement(elementName);
+		element.setAttribute(XMLSchemaConstants.NAME, getName().getValue());
+		element.setIdAttribute(XMLSchemaConstants.NAME, true);
+		element.setAttribute(XMLSchemaConstants.TYPE, getType().getName());
+
+		Element labelOrType;
+		if (getTargetEntityType() == TargetEntityType.NODE) {
+			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
+		} else {
+			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
+		}
+		labelOrType.setTextContent(getIdentifier());
+		element.appendChild(labelOrType);
+
+		Element propertiesParentElement = document.createElement(XMLSchemaConstants.PROPERTIES);
+		for (String propertyValue : getProperties()) {
+			Element newElement = document.createElement(XMLSchemaConstants.PROPERTY);
+			newElement.setTextContent(propertyValue);
+			propertiesParentElement.appendChild(newElement);
+		}
+		element.appendChild(propertiesParentElement);
+
+		getOptionalOptions().ifPresent(optionsValue -> {
+			Element newElement = document.createElement(XMLSchemaConstants.OPTIONS);
+			newElement.setTextContent(optionsValue);
+			element.appendChild(newElement);
+		});
+
+		return element;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(getName(), getType(), getTargetEntityType(), getIdentifier(), getProperties(), getOptionalOptions());
+		return Objects.hash(getName(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),
+			getOptionalOptions());
 	}
 }

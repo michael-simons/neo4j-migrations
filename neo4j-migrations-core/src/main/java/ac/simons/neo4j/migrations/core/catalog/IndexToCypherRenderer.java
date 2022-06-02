@@ -134,7 +134,6 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 				? renderProperties("n", index, config)  // node
 				: renderProperties("r", index, config); // relationship
 
-		Index.Type type = index.getType();
 		Operator operator = config.getOperator();
 
 		Neo4jVersion version = config.getVersion();
@@ -158,7 +157,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			}
 		}
 
-		throw new IllegalStateException("unknown operation");
+		throw new UnsupportedOperationException("Operator " + operator + " is not supported.");
 	}
 
 	private String renderProperties(String prefix, Index item, RenderConfig config) {
@@ -181,5 +180,4 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 	Formattable formattablePropertyIndexItem(Index item, RenderConfig config) {
 		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ? new AnonymousCatalogItem(item) : item;
 	}
-
 }

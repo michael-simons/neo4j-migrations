@@ -27,15 +27,12 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * A somewhat Neo4j version independent representation of a constraint.
@@ -62,7 +59,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		/**
 		 * Key constraints.
 		 */
-		KEY
+		KEY;
+
+		@Override
+		public String getName() {
+			return name().toLowerCase(Locale.ROOT);
+		}
 	}
 
 	/**
@@ -239,36 +241,15 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);
 		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
-		NodeList labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.LABEL);
-		TargetEntityType targetEntityType;
-		String identifier;
-		if (labelOrType.getLength() == 0) {
-			labelOrType = constraintElement.getElementsByTagName(XMLSchemaConstants.TYPE);
-			targetEntityType = TargetEntityType.RELATIONSHIP;
-		} else {
-			targetEntityType = TargetEntityType.NODE;
-		}
-		identifier = labelOrType.item(0).getTextContent();
+		Target target = extractTarget(constraintElement);
 
-		NodeList propertyNodes = ((Element) constraintElement
-			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
-			XMLSchemaConstants.PROPERTY);
-		Set<String> properties = new LinkedHashSet<>();
-		for (int i = 0; i < propertyNodes.getLength(); ++i) {
-			properties.add(propertyNodes.item(i).getTextContent());
-		}
+		Set<String> properties = extractProperties(constraintElement);
+		String options = extractOptions(constraintElement);
 
-		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
-		String options = null;
-		if (optionsElement.getLength() == 1) {
-			options = Arrays.stream(optionsElement.item(0).getTextContent()
-				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
-		}
-
-		if (targetEntityType == TargetEntityType.RELATIONSHIP && type != Type.EXISTS) {
+		if (target.targetEntityType() == TargetEntityType.RELATIONSHIP && type != Type.EXISTS) {
 			throw new IllegalArgumentException("Only existential constraints are supported for relationships");
 		}
-		return new Constraint(name, type, targetEntityType, identifier, properties, options);
+		return new Constraint(name, type, target.targetEntityType(), target.identifier(), properties, options);
 	}
 
 	private static class PatternHolder {
@@ -360,38 +341,6 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		if (type == Type.KEY && getTargetEntityType() != TargetEntityType.NODE) {
 			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
 		}
-	}
-
-	Element toXML(Document document) {
-		Element element = document.createElement(XMLSchemaConstants.CONSTRAINT);
-		element.setAttribute(XMLSchemaConstants.NAME, getName().getValue());
-		element.setIdAttribute(XMLSchemaConstants.NAME, true);
-		element.setAttribute(XMLSchemaConstants.TYPE, getType().name().toLowerCase(Locale.ROOT));
-
-		Element labelOrType;
-		if (getTargetEntityType() == TargetEntityType.NODE) {
-			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
-		} else {
-			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
-		}
-		labelOrType.setTextContent(getIdentifier());
-		element.appendChild(labelOrType);
-
-		Element properties = document.createElement(XMLSchemaConstants.PROPERTIES);
-		for (String propertyValue : getProperties()) {
-			Element property = document.createElement(XMLSchemaConstants.PROPERTY);
-			property.setTextContent(propertyValue);
-			properties.appendChild(property);
-		}
-		element.appendChild(properties);
-
-		getOptionalOptions().ifPresent(optionsValue -> {
-			Element options = document.createElement(XMLSchemaConstants.OPTIONS);
-			options.setTextContent(optionsValue);
-			element.appendChild(options);
-		});
-
-		return element;
 	}
 
 	/**

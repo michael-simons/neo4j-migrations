@@ -22,4 +22,9 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @since TBA
  */
 public sealed interface ItemType permits Constraint.Type, Index.Type {
+
+	/**
+	 * @return a unique textual representation of this type.
+	 */
+	String getName();
 }

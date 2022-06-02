@@ -695,7 +695,7 @@ All goals as described in <<usage_common>> are supported.
 The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.
 
 [[usage_defining_asserting_applying_catalogs]]
-== Defining, asserting and applying catalogs
+== Defining and using catalogs
 
 This chapter is more about conceptional usage or scenarios one can implement by using <<concepts_migrations_catalog-based, Catalog-based migrations>>.
 All scenarios can be executed with any of the previously explained APIS, being it the CLI, the Core API or within  Spring Boot,

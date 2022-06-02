@@ -17,12 +17,6 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.types.MapAccessor;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,12 +26,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.MapAccessor;
+import org.w3c.dom.Element;
 
 /**
  * A somewhat Neo4j version independent representation of an index.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since TBA
  */
 public final class Index extends AbstractCatalogItem<Index.Type> {
@@ -47,22 +45,37 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 */
 	public enum Type implements ItemType {
 		PROPERTY,
+		/**
+		 * A lookup index. Those indexes are paramount for the database to perform proper. They
+		 * provide mapping from labels to nodes, or from relationships types to relationships, instead of between
+		 * properties and entities and should usually not be changed.
+		 */
 		LOOKUP,
+		/**
+		 * Fulltext indexes for long text properties.
+		 */
 		FULLTEXT,
-		CONSTRAINT_INDEX
+		CONSTRAINT_INDEX;
+
+		@Override
+		public String getName() {
+			return name().toLowerCase(Locale.ROOT);
+		}
 	}
 
-	static String[] labelsOrTypesKeys = {"tokenNames", "labelsOrTypes"};
-	static String[] nameKeys = {"indexName", "name"};
+	static String[] labelsOrTypesKeys = { "tokenNames", "labelsOrTypes" };
+	static String[] nameKeys = { "indexName", "name" };
 	static String propertiesKey = "properties";
 	static String entityTypeKey = "entityType";
 	static String indexTypeKey = "type";
 	static String uniquenessKey = "uniqueness";
 
-	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(nameKeys[0],
+	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(
+		new HashSet<>(Arrays.asList(nameKeys[0],
 			indexTypeKey, labelsOrTypesKeys[0], propertiesKey)));
 
-	private static final Set<String> REQUIRED_KEYS_40 = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(nameKeys[1],
+	private static final Set<String> REQUIRED_KEYS_40 = Collections.unmodifiableSet(
+		new HashSet<>(Arrays.asList(nameKeys[1],
 			indexTypeKey, entityTypeKey, labelsOrTypesKeys[1], propertiesKey)));
 
 	/**
@@ -117,7 +130,6 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		public Index properties(String... properties) {
 			return new Index(name, Type.PROPERTY, targetEntity, identifier, Arrays.asList(properties), "");
 		}
-
 	}
 
 	/**
@@ -140,7 +152,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);
 	}
 
-	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
+	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties,
+		String options) {
 		super(name, type, targetEntityType, identifier, properties, options);
 	}
 
@@ -148,70 +161,26 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		super(name, type, targetEntityType, identifier, properties, "");
 	}
 
-	public Node toXML(Document document) {
-		Element element = document.createElement(XMLSchemaConstants.INDEX);
-		element.setAttribute(XMLSchemaConstants.NAME, getName().getValue());
-		element.setIdAttribute(XMLSchemaConstants.NAME, true);
-		element.setAttribute(XMLSchemaConstants.TYPE, getType().name().toLowerCase(Locale.ROOT));
-
-		Element labelOrType;
-		if (getTargetEntityType() == TargetEntityType.NODE) {
-			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
-		} else {
-			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
-		}
-		labelOrType.setTextContent(getIdentifier());
-		element.appendChild(labelOrType);
-
-		Element properties = document.createElement(XMLSchemaConstants.PROPERTIES);
-		for (String propertyValue : getProperties()) {
-			Element property = document.createElement(XMLSchemaConstants.PROPERTY);
-			property.setTextContent(propertyValue);
-			properties.appendChild(property);
-		}
-		element.appendChild(properties);
-
-		getOptionalOptions().ifPresent(optionsValue -> {
-			Element options = document.createElement(XMLSchemaConstants.OPTIONS);
-			options.setTextContent(optionsValue);
-			element.appendChild(options);
-		});
-
-		return element;
-	}
-
-
+	/**
+	 * Creates an index from a xml definition.
+	 *
+	 * @param indexElement as defined in {@code migration.xsd}.
+	 * @return The new index if the element as parseable
+	 */
 	public static Index parse(Element indexElement) {
 
 		String name = indexElement.getAttribute(XMLSchemaConstants.NAME);
 		String typeValue = indexElement.getAttribute(XMLSchemaConstants.TYPE);
-		Index.Type type = Strings.isBlank(typeValue) ? Type.PROPERTY : Index.Type.valueOf(typeValue.toUpperCase(Locale.ROOT));
-		NodeList labelOrType = indexElement.getElementsByTagName(XMLSchemaConstants.LABEL);
-		TargetEntityType targetEntityType;
-		if (labelOrType.getLength() == 0) {
-			labelOrType = indexElement.getElementsByTagName(XMLSchemaConstants.TYPE);
-			targetEntityType = TargetEntityType.RELATIONSHIP;
-		} else {
-			targetEntityType = TargetEntityType.NODE;
-		}
-		String identifier = labelOrType.item(0).getTextContent();
+		Index.Type type = Strings.isBlank(typeValue) ?
+			Type.PROPERTY :
+			Index.Type.valueOf(typeValue.toUpperCase(Locale.ROOT));
+		Target target = extractTarget(indexElement);
 
-		NodeList propertyNodes = ((Element) indexElement
-				.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
-				XMLSchemaConstants.PROPERTY);
-		Set<String> properties = new LinkedHashSet<>();
-		for (int i = 0; i < propertyNodes.getLength(); ++i) {
-			properties.add(propertyNodes.item(i).getTextContent());
-		}
+		Set<String> properties = extractProperties(indexElement);
+		String options = extractOptions(indexElement);
 
-		NodeList optionsElement = indexElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
-		String options = null;
-		if (optionsElement.getLength() == 1) {
-			options = Arrays.stream(optionsElement.item(0).getTextContent()
-					.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
-		}
-
-		return new Index(name, type, targetEntityType, identifier, new LinkedHashSet<>(properties), options);
+		return new Index(name, type, target.targetEntityType(), target.identifier(), new LinkedHashSet<>(properties),
+			options);
 	}
 
 	/**
@@ -223,8 +192,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 */
 	public static Index parse(MapAccessor row) {
 
-
-		if (!REQUIRED_KEYS_35.stream().allMatch(row::containsKey) && !REQUIRED_KEYS_40.stream().allMatch(row::containsKey)) {
+		if (!REQUIRED_KEYS_35.stream().allMatch(row::containsKey) && !REQUIRED_KEYS_40.stream()
+			.allMatch(row::containsKey)) {
 			throw new IllegalArgumentException("Required keys are missing in the row describing the index");
 		}
 
@@ -235,8 +204,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 					: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
 
 		String name = !row.get(nameKeys[0]).isNull()
-				? row.get(nameKeys[0]).asString()
-				: row.get(nameKeys[1]).asString();
+			? row.get(nameKeys[0]).asString()
+			: row.get(nameKeys[1]).asString();
 
 		String indexType = row.get(indexTypeKey).asString();
 		String entityType = !row.get(entityTypeKey).isNull() ? row.get(entityTypeKey).asString() : "NODE";

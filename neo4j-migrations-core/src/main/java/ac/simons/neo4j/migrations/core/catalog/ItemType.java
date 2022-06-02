@@ -22,4 +22,9 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @since TBA
  */
 public interface ItemType {
+
+	/**
+	 * @return a unique textual representation of this type.
+	 */
+	String getName();
 }

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +44,8 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -137,6 +140,18 @@ class CatalogBasedMigrationTest {
 			.named("book_id_unique")
 			.unique("isbn");
 
+		final ac.simons.neo4j.migrations.core.catalog.Index bookPropertyIndexV1 =
+			ac.simons.neo4j.migrations.core.catalog.Index
+				.forNode("Book")
+				.named("index_name")
+				.onProperties("property1", "property2");
+
+		final ac.simons.neo4j.migrations.core.catalog.Index bookPropertyIndexV2 =
+			ac.simons.neo4j.migrations.core.catalog.Index
+				.forNode("Book")
+				.named("another_index_name")
+				.onProperties("property12", "property22");
+
 		final VersionedCatalog catalog = new DefaultCatalog();
 
 		ArgumentCaptor<String> argumentCaptor;
@@ -147,9 +162,9 @@ class CatalogBasedMigrationTest {
 
 		MockHolder() {
 			((WriteableCatalog) catalog).addAll(MigrationVersion.withValue("1"),
-				() -> Collections.singletonList(uniqueBookIdV1), false);
+				() -> Arrays.asList(uniqueBookIdV1, bookPropertyIndexV1), false);
 			((WriteableCatalog) catalog).addAll(MigrationVersion.withValue("2"),
-				() -> Collections.singletonList(uniqueBookIdV2), false);
+				() -> Arrays.asList(uniqueBookIdV2, bookPropertyIndexV2), false);
 		}
 
 		@BeforeEach
@@ -370,10 +385,17 @@ class CatalogBasedMigrationTest {
 			constraints.put("name", Values.value("foo"));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
 
+			Map<String, Value> indexes = new HashMap<>();
+			indexes.put("name", Values.value("index_name"));
+			indexes.put("type", Values.value("BTREE"));
+			indexes.put("entityType", Values.value("NODE"));
+			indexes.put("labelsOrTypes", Values.value(Collections.singletonList("Book")));
+			indexes.put("properties", Values.value(Arrays.asList("property1", "property2")));
+
 			when(defaultResult.stream())
 				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
-				.thenReturn((Stream.empty()));
-			fail("Please add content to the above empty stream.");
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(indexes)));
+
 			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(false)
@@ -401,10 +423,17 @@ class CatalogBasedMigrationTest {
 			constraints.put("name", Values.value("foo"));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
 
+			Map<String, Value> indexes = new HashMap<>();
+			indexes.put("name", Values.value("index_name"));
+			indexes.put("type", Values.value("BTREE"));
+			indexes.put("entityType", Values.value("NODE"));
+			indexes.put("labelsOrTypes", Values.value(Collections.singletonList("Book")));
+			indexes.put("properties", Values.value(Arrays.asList("property1", "property2")));
+
 			when(defaultResult.stream())
 				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
-				.thenReturn(Stream.empty());
-			fail("Please add content to the above empty stream.");
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(indexes)));
+
 			Operation operation = Operation
 				.verify(true)
 				.allowEquivalent(true)
@@ -487,26 +516,37 @@ class CatalogBasedMigrationTest {
 			Map<String, Value> constraints = new HashMap<>();
 			constraints.put("name", Values.value(uniqueBookIdV1.getName().getValue()));
 			constraints.put("description", Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE"));
+
+			Map<String, Value> indexes = new HashMap<>();
+			indexes.put("name", Values.value("index_name"));
+			indexes.put("type", Values.value("BTREE"));
+			indexes.put("entityType", Values.value("NODE"));
+			indexes.put("labelsOrTypes", Values.value(Collections.singletonList("Book")));
+			indexes.put("properties", Values.value(Arrays.asList("property1", "property2")));
+
 			when(defaultResult.stream())
 				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(constraints)))
-				.thenReturn(Stream.empty());
-			fail("Please add content to the above empty stream.");
+				.thenReturn(Stream.of(new MapAccessorAndRecordImpl(indexes)));
+
 
 			String dropQuery = "DROP CONSTRAINT book_id_unique";
+			String dropIndex = "DROP INDEX index_name";
 			when(runner.run(dropQuery)).thenReturn(dropResult);
+			when(runner.run(dropIndex)).thenReturn(dropResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
 				new DefaultCatalog(), runner);
 			operation.execute(context);
 
-			verify(runner, times(3)).run(argumentCaptor.capture());
+			verify(runner, times(4)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(), dropQuery);
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(),
+						dropQuery, dropIndex);
 			verify(defaultResult, times(2)).stream();
-			verify(dropResult).consume();
-			verify(summary).counters();
-			verify(counters).constraintsRemoved();
-			verify(counters).indexesRemoved();
+			verify(dropResult, times(2)).consume();
+			verify(summary, times(2)).counters();
+			verify(counters, times(2)).constraintsRemoved();
+			verify(counters, times(2)).indexesRemoved();
 			verifyNoMoreInteractions(runner, defaultResult, summary, counters);
 		}
 	}

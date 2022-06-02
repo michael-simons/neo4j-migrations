@@ -68,19 +68,16 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
-		if (context.getOperator() == Operator.DROP && context.getVersion() != Neo4jVersion.V3_5 && index.hasName() && !context.isIgnoreName()) {
-			w.write(String.format("DROP %#s%s", index, ifNotExistsOrEmpty(context)));
-		} else {
-			switch (index.getType()) {
-				case PROPERTY:
-					w.write(renderNodePropertiesIndex(index, context));
-					break;
-				case FULLTEXT:
-					w.write(renderFulltextIndex(index, context));
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
-			}
+
+		switch (index.getType()) {
+			case PROPERTY:
+				w.write(renderNodePropertiesIndex(index, context));
+				break;
+			case FULLTEXT:
+				w.write(renderFulltextIndex(index, context));
+				break;
+			default:
+				throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
 		}
 		w.flush();
 	}
@@ -109,9 +106,14 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 					return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName, ifNotExistsOrEmpty(config), identifier, properties);
 				}
 			}
-
+		} else if (operator == Operator.DROP) {
+			if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
+				return String.format("CALL db.index.fulltext.drop(\"%s\")", index.getName().getValue());
+			} else {
+				return String.format("DROP %#s%s", index, ifNotExistsOrEmpty(config));
+			}
 		}
-		return "not implemented";
+		throw new IllegalStateException(String.format("The operation %s is not implemented for Fulltext index", operator));
 	}
 
 	private static String ifNotExistsOrEmpty(RenderConfig context) {
@@ -137,23 +139,27 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Operator operator = config.getOperator();
 
 		Neo4jVersion version = config.getVersion();
-		if (operator == Operator.DROP) {
-			if (index.getProperties().size() == 1 || version == Neo4jVersion.V3_5) {
-				return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
+		if (version == Neo4jVersion.V3_5) {
+			return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
+		} else {
+			if (operator == Operator.DROP) {
+				if (!index.hasName() || config.isIgnoreName()) {
+					if (index.getProperties().size() == 1) {
+						return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
+					}
+					throw new IllegalStateException(
+							String.format("Dropping an unnamed index is not supported on Neo4j %s.", version));
+				}
+				return String.format("%s %#s%s", operator, item, ifNotExistsOrEmpty(config));
 			}
-			throw new IllegalStateException(
-					String.format("Dropping an unnamed index is not supported on Neo4j %s.", version));
-		} else if (operator == Operator.CREATE) {
-			if (version == Neo4jVersion.V3_5) {
-				return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
-			} else {
-				if (isNodeIndex) {
+			if (isNodeIndex) {
+				if (operator == Operator.CREATE) {
 					return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, ifNotExistsOrEmpty(config),
 							identifier, properties);
-				} else {
-					return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, ifNotExistsOrEmpty(config),
-							identifier, properties);
 				}
+			} else {
+				return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, ifNotExistsOrEmpty(config),
+						identifier, properties);
 			}
 		}
 

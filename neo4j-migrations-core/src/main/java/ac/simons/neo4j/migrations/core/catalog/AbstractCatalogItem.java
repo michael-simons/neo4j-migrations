@@ -67,7 +67,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 
 	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
 
-		if (properties.isEmpty()) {
+		if (properties.isEmpty() && type != Index.Type.LOOKUP) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
 		}
 

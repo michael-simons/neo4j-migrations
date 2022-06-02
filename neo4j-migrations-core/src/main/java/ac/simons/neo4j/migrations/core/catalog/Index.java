@@ -230,7 +230,9 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		List<String> labelsOrTypes = !row.get(labelsOrTypesKeys[0]).isNull()
 				? row.get(labelsOrTypesKeys[0]).asList(Value::asString)
-				: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
+				: row.get(labelsOrTypesKeys[1]).isNull() // lookup index
+					? Collections.emptyList()
+					: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
 
 		String name = !row.get(nameKeys[0]).isNull()
 				? row.get(nameKeys[0]).asString()
@@ -238,7 +240,9 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		String indexType = row.get(indexTypeKey).asString();
 		String entityType = !row.get(entityTypeKey).isNull() ? row.get(entityTypeKey).asString() : "NODE";
-		List<String> properties = row.get(propertiesKey).asList(Value::asString);
+		List<String> properties = row.get(propertiesKey).isNull() // lookup index
+				? Collections.emptyList()
+				: row.get(propertiesKey).asList(Value::asString);
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(entityType);
 
 		Index.Type type;

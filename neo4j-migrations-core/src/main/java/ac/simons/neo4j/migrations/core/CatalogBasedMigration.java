@@ -258,6 +258,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	static List<Operation> parseOperations(Document document, MigrationVersion version) {
 
+		// TODO make sure the result is ordered as defined in the schema (verify first, than item operatios OR apply (item operations and apply are mutal exclusive)
+		// TODO item operations should be sorted themselves by first working on constraints, than indexes
 		List<Operation> result = new ArrayList<>();
 
 		// We read the elements as they come, as there is no way to say "give me all elements of a given type"

@@ -51,7 +51,7 @@ final class DatabaseCatalog implements Catalog {
 		queryRunner.run(version.getShowIndexes())
 			.stream()
 			.map(Index::parse)
-			.filter(index -> index.getType() != Index.Type.LOOKUP)
+			.filter(index -> index.getType() != Index.Type.LOOKUP) // TODO exclude indexes backing constraints
 			.forEach(items::add);
 
 		return new DatabaseCatalog(items);

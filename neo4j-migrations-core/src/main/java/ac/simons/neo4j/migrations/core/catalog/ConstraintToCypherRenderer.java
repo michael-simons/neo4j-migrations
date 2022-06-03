@@ -78,7 +78,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 		if (config.getOperator() == Operator.DROP && config.getVersion() != Neo4jVersion.V3_5 && constraint.hasName() && !config.isIgnoreName()) {
-			w.write(String.format("DROP %#s%s", constraint, ifNotExistsOrEmpty(config)));
+			w.write(String.format("DROP %#s%s", constraint, config.ifNotExistsOrEmpty()));
 		} else {
 			switch (constraint.getType()) {
 				case UNIQUE:
@@ -97,117 +97,107 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		w.flush();
 	}
 
-	private String renderNodeKey(Constraint constraint, RenderConfig context) {
+	private String renderNodeKey(Constraint constraint, RenderConfig config) {
 
-		if (context.getOperator() == Operator.CREATE && context.getEdition() != Neo4jEdition.ENTERPRISE) {
+		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
 			throw new IllegalStateException(
-				String.format("This constraint cannot be created with %s edition.", context.getEdition()));
+				String.format("This constraint cannot be created with %s edition.", config.getEdition()));
 		}
 
-		Formattable item = formattableItem(constraint, context);
+		Formattable item = formattableItem(constraint, config);
 		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties("n", constraint);
-		Operator operator = context.getOperator();
+		Operator operator = config.getOperator();
 
-		Neo4jVersion version = context.getVersion();
+		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS NODE KEY", operator, item, identifier, properties);
 		} else if (RANGE_41_TO_43.contains(version)) {
 			return String.format("%s %#s %sON (n:%s) ASSERT %s IS NODE KEY", operator, item,
-				ifNotExistsOrEmpty(context), identifier, properties);
+				config.ifNotExistsOrEmpty(), identifier, properties);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
 			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s IS NODE KEY", operator, item,
-				ifNotExistsOrEmpty(context), adjective, identifier, verb, properties);
+				config.ifNotExistsOrEmpty(), adjective, identifier, verb, properties);
 		}
 	}
 
-	private String renderPropertyExists(Constraint item, RenderConfig context) {
+	private String renderPropertyExists(Constraint item, RenderConfig config) {
 
-		if (context.getOperator() == Operator.CREATE && context.getEdition() != Neo4jEdition.ENTERPRISE) {
+		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
 			throw new IllegalStateException(
-				String.format("This constraint cannot be created with %s edition.", context.getEdition()));
+				String.format("This constraint cannot be created with %s edition.", config.getEdition()));
 		}
 
 		if (item.getTargetEntityType() == TargetEntityType.NODE) {
-			return renderNodePropertyExists(item, context);
+			return renderNodePropertyExists(item, config);
 		}
-		return renderRelationshipPropertyExists(item, context);
+		return renderRelationshipPropertyExists(item, config);
 	}
 
-	private String renderRelationshipPropertyExists(Constraint constraint, RenderConfig context) {
+	private String renderRelationshipPropertyExists(Constraint constraint, RenderConfig config) {
 
-		return renderPropertyExists(constraint, context, "r", "()-[%s:%s]-()");
+		return renderPropertyExists(constraint, config, "r", "()-[%s:%s]-()");
 	}
 
-	private String renderNodePropertyExists(Constraint constraint, RenderConfig context) {
+	private String renderNodePropertyExists(Constraint constraint, RenderConfig config) {
 
-		return renderPropertyExists(constraint, context, "n", "(%s:%s)");
+		return renderPropertyExists(constraint, config, "n", "(%s:%s)");
 	}
 
-	private String renderPropertyExists(Constraint constraint, RenderConfig context, String variable, String templateFragment) {
+	private String renderPropertyExists(Constraint constraint, RenderConfig config, String variable, String templateFragment) {
 
-		Formattable item = formattableItem(constraint, context);
+		Formattable item = formattableItem(constraint, config);
 		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties(variable, constraint);
-		Operator operator = context.getOperator();
+		Operator operator = config.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
-		Neo4jVersion version = context.getVersion();
+		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			String format = "%s %#s ON " + templateFragment + " ASSERT exists(%s)";
 			return String.format(format, operator, item, variable, identifier, properties);
 		} else if (RANGE_41_TO_42.contains(version)) {
 			String format = "%s %#s %sON " + templateFragment + " ASSERT exists(%s)";
-			return String.format(format, operator, item, ifNotExistsOrEmpty(context), variable, identifier, properties);
+			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), variable, identifier, properties);
 		} else if (version == Neo4jVersion.V4_3) {
 			String format = "%s %#s %sON " + templateFragment + " ASSERT %s";
-			return String.format(format, operator, item, ifNotExistsOrEmpty(context), variable, identifier, object);
+			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), variable, identifier, object);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
 			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			String format = "%s %#s %s%s " + templateFragment + " %s %s";
-			return String.format(format, operator, item, ifNotExistsOrEmpty(context), adjective, variable, identifier, verb, object);
+			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), adjective, variable, identifier, verb, object);
 		}
 	}
 
-	private static String ifNotExistsOrEmpty(RenderConfig context) {
-		if (context.getOperator() == Operator.CREATE) {
-			return context.isIdempotent() ? "IF NOT EXISTS " : "";
-		} else if (context.getOperator() == Operator.DROP) {
-			return context.isIdempotent() ? " IF EXISTS" : "";
-		} else {
-			throw new IllegalStateException();
-		}
-	}
+	private String renderUniqueConstraint(Constraint constraint, RenderConfig config) {
 
-	private String renderUniqueConstraint(Constraint constraint, RenderConfig context) {
-
-		if (constraint.getProperties().size() > 1 && context.getVersion().isPriorTo44()) {
+		if (constraint.getProperties().size() > 1 && config.getVersion().isPriorTo44()) {
 			throw new IllegalArgumentException("Composite unique constraints are not supported prior to Neo4j/4.4.");
 		}
 
-		Formattable item = formattableItem(constraint, context);
+		Formattable item = formattableItem(constraint, config);
 		String identifier = getAndEscapeIdentifier(constraint);
 		String properties = renderProperties("n", constraint);
 		Constraint.Type type = constraint.getType();
-		Operator operator = context.getOperator();
+		Operator operator = config.getOperator();
 
-		Neo4jVersion version = context.getVersion();
+		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS %s", operator, item, identifier, properties, type);
 		} else if (RANGE_41_TO_43.contains(version)) {
-			return String.format("%s %#s %sON (n:%s) ASSERT %s IS %s", operator, item, ifNotExistsOrEmpty(context),
+			return String.format("%s %#s %sON (n:%s) ASSERT %s IS %s", operator, item, config.ifNotExistsOrEmpty(),
 				identifier, properties, type);
 		} else {
 			String adjective = operator == Operator.CREATE ? "FOR" : "ON";
 			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s IS %s", operator, item,
-				ifNotExistsOrEmpty(context), adjective, identifier, verb, properties, type);
+				config.ifNotExistsOrEmpty(), adjective, identifier, verb, properties, type);
 		}
 	}
 

@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -25,45 +26,40 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Formattable;
-import java.util.function.BiFunction;
-import java.util.stream.Collector;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
  * Renders indexes (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}) as Cypher.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since TBA
  */
 enum IndexToCypherRenderer implements Renderer<Index> {
 
 	INSTANCE;
 
-	private static final BiFunction<String, String, Collector<CharSequence, ?, String>> joiningCollectorFunction =
-			(separator, escapeCharacter) ->
-					Collectors.joining(escapeCharacter + separator + escapeCharacter, escapeCharacter, escapeCharacter);
-
-	private static final Collector<CharSequence, ?, String> pipeBacktickJoiningCollector = joiningCollectorFunction.apply("|", "`");
-	private static final Collector<CharSequence, ?, String> commaBacktickJoiningCollector = joiningCollectorFunction.apply(", ", "`");
-	private static final Collector<CharSequence, ?, String> commaQuoteJoiningCollector = joiningCollectorFunction.apply(", ", "'");
+	public static final UnaryOperator<String> TO_LITERAL = v -> "'" + v + "'";
 
 	@Override
-	public void render(Index index, RenderConfig context, OutputStream target) throws IOException {
+	public void render(Index index, RenderConfig config, OutputStream target) throws IOException {
 
-		Neo4jVersion version = context.getVersion();
+		Neo4jVersion version = config.getVersion();
 		boolean isRelationshipPropertyIndex = index.getType() == Index.Type.PROPERTY && index.getTargetEntityType() == TargetEntityType.RELATIONSHIP;
 		if (isRelationshipPropertyIndex && Neo4jVersion.RANGE_35_TO_42.contains(version)) {
 			throw new IllegalStateException(
 				String.format("The given relationship index cannot be rendered on Neo4j %s.",
 					version));
 		}
-		if (context.isIdempotent() &&
+		if (config.isIdempotent() &&
 				(!version.hasIdempotentOperations() || Neo4jVersion.RANGE_35_TO_42.contains(version) && index.getType() == Index.Type.FULLTEXT)) {
 			throw new IllegalStateException(
 				String.format("The given index cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
 		}
 
-		if (!index.hasName() && context.isIdempotent() && context.getOperator() == Operator.DROP) {
+		if (!index.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
 			throw new IllegalStateException("The constraint can only be rendered in the given context when having a name.");
 		}
 
@@ -71,10 +67,10 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 		switch (index.getType()) {
 			case PROPERTY:
-				w.write(renderNodePropertiesIndex(index, context));
+				w.write(renderNodePropertiesIndex(index, config));
 				break;
 			case FULLTEXT:
-				w.write(renderFulltextIndex(index, context));
+				w.write(renderFulltextIndex(index, config));
 				break;
 			default:
 				throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
@@ -86,50 +82,38 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Operator operator = config.getOperator();
 		Neo4jVersion version = config.getVersion();
 		String indexName = index.getName().getValue();
+		String identifier = getAndEscapeIdentifier(version, index);
 		if (operator == Operator.CREATE) {
 			if (index.getTargetEntityType() == TargetEntityType.NODE) {
 				String properties = renderFulltextProperties("n", index, config);
 				if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
-					String identifier = Arrays.stream(index.getIdentifier().split("\\|")).collect(commaQuoteJoiningCollector);
 					return String.format("CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s])", indexName, identifier, properties);
 				} else {
-					String identifier = Arrays.stream(index.getIdentifier().split("\\|")).collect(pipeBacktickJoiningCollector);
-					return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", indexName, ifNotExistsOrEmpty(config), identifier, properties);
+					return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", indexName, config.ifNotExistsOrEmpty(), identifier, properties);
 				}
 			} else {
 				String properties = renderFulltextProperties("r", index, config);
 				if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
-					String identifier = Arrays.stream(index.getIdentifier().split("\\|")).collect(commaQuoteJoiningCollector);
 					return String.format("CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s])", indexName, identifier, properties);
 				} else {
-					String identifier = Arrays.stream(index.getIdentifier().split("\\|")).collect(pipeBacktickJoiningCollector);
-					return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName, ifNotExistsOrEmpty(config), identifier, properties);
+					return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName, config.ifNotExistsOrEmpty(), identifier, properties);
 				}
 			}
 		} else if (operator == Operator.DROP) {
 			if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
 				return String.format("CALL db.index.fulltext.drop(\"%s\")", index.getName().getValue());
 			} else {
-				return String.format("DROP %#s%s", index, ifNotExistsOrEmpty(config));
+				return String.format("DROP %#s%s", index, config.ifNotExistsOrEmpty());
 			}
 		}
 		throw new IllegalStateException(String.format("The operation %s is not implemented for Fulltext index", operator));
 	}
 
-	private static String ifNotExistsOrEmpty(RenderConfig context) {
-		switch (context.getOperator()) {
-			case CREATE:
-				return context.isIdempotent() ? "IF NOT EXISTS " : "";
-			case DROP:
-				return context.isIdempotent() ? " IF EXISTS" : "";
-		}
-		throw new IllegalStateException();
-	}
 
 	private String renderNodePropertiesIndex(Index index, RenderConfig config) {
 
 		Formattable item = formattablePropertyIndexItem(index, config);
-		String identifier = "`" + index.getIdentifier() + "`";
+		String identifier = getAndEscapeIdentifier(config.getVersion(), index, true);
 		boolean isNodeIndex = index.getTargetEntityType() == TargetEntityType.NODE;
 
 		String properties = isNodeIndex
@@ -150,15 +134,15 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 					throw new IllegalStateException(
 							String.format("Dropping an unnamed index is not supported on Neo4j %s.", version));
 				}
-				return String.format("%s %#s%s", operator, item, ifNotExistsOrEmpty(config));
+				return String.format("%s %#s%s", operator, item, config.ifNotExistsOrEmpty());
 			}
 			if (isNodeIndex) {
 				if (operator == Operator.CREATE) {
-					return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, ifNotExistsOrEmpty(config),
+					return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
 							identifier, properties);
 				}
 			} else {
-				return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, ifNotExistsOrEmpty(config),
+				return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
 						identifier, properties);
 			}
 		}
@@ -166,18 +150,41 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		throw new UnsupportedOperationException("Operator " + operator + " is not supported.");
 	}
 
+	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index) {
+		return getAndEscapeIdentifier(version, index, false);
+	}
+
+	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index, boolean forceBackTicks) {
+
+		if (Neo4jVersion.RANGE_35_TO_42.contains(version) && !forceBackTicks) {
+			return Arrays.stream(index.getIdentifier().split("\\|"))
+				.map(TO_LITERAL)
+				.collect(Collectors.joining(", "));
+		} else {
+			return Arrays.stream(index.getIdentifier().split("\\|"))
+				.map(Strings::escapeIfNecessary)
+				.collect(Collectors.joining("|"));
+		}
+	}
+
 	private String renderProperties(String prefix, Index item, RenderConfig config) {
 
 		if (config.getVersion() == Neo4jVersion.V3_5 || config.getOperator() == Operator.DROP) {
-			return item.getProperties().stream().collect(commaBacktickJoiningCollector);
+			return item.getProperties().stream()
+				.map(Strings::escapeIfNecessary)
+				.collect(Collectors.joining(", "));
 		} else {
-			return item.getProperties().stream().map(v -> prefix + ".`" + v + "`").collect(Collectors.joining(", "));
+			return item.getProperties().stream()
+				.map(Strings::escapeIfNecessary)
+				.map(v -> prefix + "." + v).collect(Collectors.joining(", "));
 		}
 	}
 
 	private String renderFulltextProperties(String prefix, Index item, RenderConfig config) {
 		if (Neo4jVersion.RANGE_35_TO_42.contains(config.getVersion())) {
-			return item.getProperties().stream().collect(commaQuoteJoiningCollector);
+			return item.getProperties().stream()
+				.map(TO_LITERAL)
+				.collect(Collectors.joining(", "));
 		}
 
 		return item.getProperties().stream().map(v -> prefix + ".`" + v + "`").collect(Collectors.joining(", "));

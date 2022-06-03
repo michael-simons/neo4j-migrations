@@ -189,4 +189,17 @@ public final class RenderConfig {
 	public RenderConfig ignoreName() {
 		return new RenderConfig(version, edition, operator, idempotent, true);
 	}
+
+	/**
+	 * @return the snippet necessary to use an idempotent operation for the given operation in this config.
+	 */
+	String ifNotExistsOrEmpty() {
+		if (getOperator() == Operator.CREATE) {
+			return isIdempotent() ? "IF NOT EXISTS " : "";
+		} else if (getOperator() == Operator.DROP) {
+			return isIdempotent() ? " IF EXISTS" : "";
+		} else {
+			throw new IllegalStateException();
+		}
+	}
 }

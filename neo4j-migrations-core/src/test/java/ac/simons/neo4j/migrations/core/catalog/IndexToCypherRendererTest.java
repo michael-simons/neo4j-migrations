@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,9 +41,9 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderSimpleIndexCreation() {
 
 		return Stream.of(
-			Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX ON :`Person`(`firstname`)"),
-			Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:`Person`) ON (n.`firstname`)"),
-			Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:`Person`) ON (n.`firstname`)")
+			Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX ON :Person(firstname)"),
+			Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:Person) ON (n.firstname)"),
+			Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:Person) ON (n.firstname)")
 		);
 	}
 
@@ -60,9 +62,9 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderSimpleCompositeIndexCreation() {
 
 		return Stream.of(
-			Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX ON :`Person`(`age`, `country`)"),
-			Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:`Person`) ON (n.`age`, n.`country`)"),
-			Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:`Person`) ON (n.`age`, n.`country`)")
+			Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX ON :Person(age, country)"),
+			Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:Person) ON (n.age, n.country)"),
+			Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX FOR (n:Person) ON (n.age, n.country)")
 		);
 	}
 
@@ -82,8 +84,8 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderNamedIndexCreation() {
 
 		return Stream.of(
-			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR (n:`Person`) ON (n.`age`, n.`country`)"),
-			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR (n:`Person`) ON (n.`age`, n.`country`)")
+			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR (n:Person) ON (n.age, n.country)"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR (n:Person) ON (n.age, n.country)")
 		);
 	}
 
@@ -103,8 +105,8 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderIdempotentIndexCreation() {
 
 		return Stream.of(
-			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR (n:`Person`) ON (n.`age`, n.`country`)"),
-			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR (n:`Person`) ON (n.`age`, n.`country`)")
+			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR (n:Person) ON (n.age, n.country)"),
+			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR (n:Person) ON (n.age, n.country)")
 		);
 	}
 
@@ -147,9 +149,9 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderUnnamedIndexDrop() {
 
 		return Stream.of(
-				Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :`Person`(`firstname`)"),
-				Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :`Person`(`firstname`)"),
-				Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :`Person`(`firstname`)")
+				Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :Person(firstname)"),
+				Arguments.of("4.0", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :Person(firstname)"),
+				Arguments.of("4.4", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :Person(firstname)")
 		);
 	}
 
@@ -168,7 +170,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderUnnamedCompositeIndexDrop() {
 
 		return Stream.of(
-				Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :`Person`(`age`, `country`)")
+				Arguments.of("3.5", false, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :Person(age, country)")
 		);
 	}
 
@@ -213,7 +215,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderNamedIndexDrop() {
 
 		return Stream.of(
-				Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :`Person`(`firstname`)"),
+				Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX ON :Person(firstname)"),
 				Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name"),
 				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name")
 		);
@@ -275,7 +277,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderRelationshipIndexCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR ()-[r:`TYPE_NAME`]-() ON (r.`propertyName`)")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR ()-[r:TYPE_NAME]-() ON (r.propertyName)")
 		);
 	}
 
@@ -294,7 +296,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderRelationshipCompositeIndexCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR ()-[r:`TYPE_NAME`]-() ON (r.`propertyName_1`, r.`propertyName_2`)")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE INDEX index_name FOR ()-[r:TYPE_NAME]-() ON (r.propertyName_1, r.propertyName_2)")
 		);
 	}
 
@@ -313,7 +315,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderRelationshipIdempotentIndexCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR ()-[r:`TYPE_NAME`]-() ON (r.`propertyName`)")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR ()-[r:TYPE_NAME]-() ON (r.propertyName)")
 		);
 	}
 
@@ -332,7 +334,7 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderRelationshipIdempotentCompositeIndexCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR ()-[r:`TYPE_NAME`]-() ON (r.`propertyName_1`, r.`propertyName_2`)")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE INDEX index_name IF NOT EXISTS FOR ()-[r:TYPE_NAME]-() ON (r.propertyName_1, r.propertyName_2)")
 		);
 	}
 
@@ -444,8 +446,8 @@ class IndexToCypherRendererTest {
 				Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createNodeIndex('index_name',['Movie', 'Book'],['title', 'description'])"),
 				Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createNodeIndex('index_name',['Movie', 'Book'],['title', 'description'])"),
 				Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createNodeIndex('index_name',['Movie', 'Book'],['title', 'description'])"),
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR (n:`Movie`|`Book`) ON EACH [n.`title`, n.`description`]"),
-				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR (n:`Movie`|`Book`) ON EACH [n.`title`, n.`description`]")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR (n:Movie|Book) ON EACH [n.`title`, n.`description`]"),
+				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR (n:Movie|Book) ON EACH [n.`title`, n.`description`]")
 		);
 	}
 
@@ -492,8 +494,8 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderFulltextIndexIdempotentCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR (n:`Movie`|`Book`) ON EACH [n.`title`, n.`description`]"),
-				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR (n:`Movie`|`Book`) ON EACH [n.`title`, n.`description`]")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR (n:Movie|Book) ON EACH [n.`title`, n.`description`]"),
+				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR (n:Movie|Book) ON EACH [n.`title`, n.`description`]")
 		);
 	}
 
@@ -541,8 +543,8 @@ class IndexToCypherRendererTest {
 				Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createRelationshipIndex('index_name',['TAGGED_AS', 'SOMETHING_ELSE'],['taggedByUser', 'taggedByUser2'])"),
 				Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createRelationshipIndex('index_name',['TAGGED_AS', 'SOMETHING_ELSE'],['taggedByUser', 'taggedByUser2'])"),
 				Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CALL db.index.fulltext.createRelationshipIndex('index_name',['TAGGED_AS', 'SOMETHING_ELSE'],['taggedByUser', 'taggedByUser2'])"),
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR ()-[r:`TAGGED_AS`|`SOMETHING_ELSE`]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]"),
-				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR ()-[r:`TAGGED_AS`|`SOMETHING_ELSE`]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR ()-[r:TAGGED_AS|SOMETHING_ELSE]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]"),
+				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, false, "CREATE FULLTEXT INDEX index_name FOR ()-[r:TAGGED_AS|SOMETHING_ELSE]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]")
 		);
 	}
 
@@ -563,8 +565,8 @@ class IndexToCypherRendererTest {
 	static Stream<Arguments> shouldRenderFulltextRelationshipIndexIdempotentCreate() {
 
 		return Stream.of(
-				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR ()-[r:`TAGGED_AS`|`SOMETHING_ELSE`]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]"),
-				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR ()-[r:`TAGGED_AS`|`SOMETHING_ELSE`]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]")
+				Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR ()-[r:TAGGED_AS|SOMETHING_ELSE]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]"),
+				Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.CREATE, true, "CREATE FULLTEXT INDEX index_name IF NOT EXISTS FOR ()-[r:TAGGED_AS|SOMETHING_ELSE]-() ON EACH [r.`taggedByUser`, r.`taggedByUser2`]")
 		);
 	}
 
@@ -601,5 +603,24 @@ class IndexToCypherRendererTest {
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
 				.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion on");
+	}
+
+	@Test
+	void shouldEscapeNonValidThings() {
+
+		RenderConfig config = RenderConfig.create().forVersionAndEdition(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE);
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+
+		Index index = Index
+			.forNode("Das ist ein Buch")
+			.named("book_id_unique")
+			.onProperties("person.a,person.b 😱");
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE INDEX book_id_unique FOR (n:`Das ist ein Buch`) ON (n.`person.a,person.b 😱`)");
+
+		Index indexRel = Index
+			.forRelationship("DAS IST KEIN BUCH")
+			.named("book_id_unique")
+			.onProperties("person.a,person.b 😱");
+		assertThat(renderer.render(indexRel, config)).isEqualTo("CREATE INDEX book_id_unique FOR ()-[r:`DAS IST KEIN BUCH`]-() ON (r.`person.a,person.b 😱`)");
 	}
 }

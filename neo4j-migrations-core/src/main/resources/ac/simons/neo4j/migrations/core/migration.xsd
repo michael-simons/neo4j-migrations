@@ -156,7 +156,6 @@
 				<xs:attribute name="type">
 					<xs:simpleType>
 						<xs:restriction base="xs:string">
-							<xs:enumeration value="property"/>
 							<xs:enumeration value="fulltext"/>
 						</xs:restriction>
 					</xs:simpleType>

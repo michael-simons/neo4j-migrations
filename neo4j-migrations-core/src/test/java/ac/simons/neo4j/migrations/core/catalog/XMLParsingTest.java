@@ -54,7 +54,7 @@ class XMLParsingTest {
 	}
 
 	@Test
-	void shouldFindAllConstraints() {
+	void shouldFindAllConstraintsAndIndexes() {
 		Catalog catalog = load(XMLParsingTest.class.getResource("/catalogbased/parsing/full-example.xml"));
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
 			.map(Constraint.class::cast))
@@ -65,6 +65,11 @@ class XMLParsingTest {
 				.map(Index.class::cast))
 				.extracting(Index::getName)
 				.containsExactlyInAnyOrder(Name.of("reads_index"), Name.of("title_index"));
+
+		assertThat(catalog.getItems().stream().filter(Index.class::isInstance)
+			.map(Index.class::cast))
+			.extracting(Index::getType)
+			.containsExactlyInAnyOrder(Index.Type.FULLTEXT, Index.Type.PROPERTY);
 	}
 
 	@Test

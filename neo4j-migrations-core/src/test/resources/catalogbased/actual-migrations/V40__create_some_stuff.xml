@@ -12,7 +12,7 @@
 		</constraints>
 
 		<indexes>
-			<index name="a_new_book_index" type="property">
+			<index name="a_new_book_index">
 				<label>Book</label>
 				<properties>
 					<property>property1</property>

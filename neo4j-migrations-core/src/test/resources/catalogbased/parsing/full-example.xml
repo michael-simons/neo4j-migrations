@@ -2,7 +2,7 @@
 <migration xmlns="http://michael-simons.github.io/neo4j-migrations">
 	<catalog>
 		<indexes>
-			<index name="title_index">
+			<index name="title_index" type="fulltext">
 				<label>Book</label>
 				<properties>
 					<property>title</property>

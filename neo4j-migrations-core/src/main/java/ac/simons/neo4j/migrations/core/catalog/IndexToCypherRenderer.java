@@ -60,7 +60,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		}
 
 		if (!index.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
-			throw new IllegalStateException("The constraint can only be rendered in the given context when having a name.");
+			throw new IllegalStateException("The index can only be rendered in the given context when having a name.");
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));

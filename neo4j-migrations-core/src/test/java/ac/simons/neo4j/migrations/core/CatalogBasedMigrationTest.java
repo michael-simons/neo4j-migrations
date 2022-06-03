@@ -149,8 +149,8 @@ class CatalogBasedMigrationTest {
 				.named("another_index_name")
 				.onProperties("property12", "property22");
 
-		final String indexQueryV1 = "CREATE INDEX index_name FOR (n:`Book`) ON (n.`property1`, n.`property2`)";
-		final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:`Book`) ON (n.`property12`, n.`property22`)";
+		final String indexQueryV1 = "CREATE INDEX index_name FOR (n:Book) ON (n.property1, n.property2)";
+		final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:Book) ON (n.property12, n.property22)";
 
 		final VersionedCatalog catalog = new DefaultCatalog();
 

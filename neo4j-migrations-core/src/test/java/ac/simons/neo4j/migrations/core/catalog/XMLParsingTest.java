@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -30,6 +32,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 /**
@@ -62,9 +66,9 @@ class XMLParsingTest {
 			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"));
 
 		assertThat(catalog.getItems().stream().filter(Index.class::isInstance)
-				.map(Index.class::cast))
-				.extracting(Index::getName)
-				.containsExactlyInAnyOrder(Name.of("reads_index"), Name.of("title_index"));
+			.map(Index.class::cast))
+			.extracting(Index::getName)
+			.containsExactlyInAnyOrder(Name.of("reads_index"), Name.of("title_index"));
 
 		assertThat(catalog.getItems().stream().filter(Index.class::isInstance)
 			.map(Index.class::cast))
@@ -79,4 +83,42 @@ class XMLParsingTest {
 		Objects.requireNonNull(resource);
 		assertThatIllegalArgumentException().isThrownBy(() -> load(resource));
 	}
+
+	@Test
+	void indexShouldParseMultilabelFulltextIndexFromXml()
+		throws ParserConfigurationException, IOException, SAXException {
+
+		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
+		String xml =
+			"<index name=\"title_index\" type=\"fulltext\">\n"
+			+ "    <label>Book|Buch|Wurst\\|Salat</label>\n"
+			+ "    <properties>\n"
+			+ "        <property>title</property>\n"
+			+ "    </properties>\n"
+			+ "</index>";
+		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+		Element indexElement = document.getDocumentElement();
+		Index index = Index.parse(indexElement);
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("Book", "Buch", "Wurst|Salat");
+		assertThat(index.getIdentifier()).isEqualTo("[Book, Buch, Wurst|Salat]");
+	}
+
+	@Test
+	void indexShouldNotParseMultilabelPropertyIndexFromXml()
+		throws ParserConfigurationException, IOException, SAXException {
+
+		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
+		String xml =
+			"<index name=\"title_index\">\n"
+			+ "    <label>Book|Buch|Wurst\\|Salat</label>\n"
+			+ "    <properties>\n"
+			+ "        <property>title</property>\n"
+			+ "    </properties>\n"
+			+ "</index>";
+		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+		Element indexElement = document.getDocumentElement();
+		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(indexElement))
+			.withMessage("Multiple labels or types are only allowed to be specified with fulltext indexes.");
+	}
+
 }

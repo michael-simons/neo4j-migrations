@@ -24,8 +24,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Formattable;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -40,20 +41,25 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 	INSTANCE;
 
-	public static final UnaryOperator<String> TO_LITERAL = v -> "'" + v + "'";
+	/**
+	 * A range of versions from 3.5 to 4.2.
+	 */
+	private static final Set<Neo4jVersion> RANGE_35_TO_42 = EnumSet.of(Neo4jVersion.V3_5, Neo4jVersion.V4_0,
+		Neo4jVersion.V4_1, Neo4jVersion.V4_2);
+
+	private static final UnaryOperator<String> TO_LITERAL = v -> "'" + v + "'";
 
 	@Override
 	public void render(Index index, RenderConfig config, OutputStream target) throws IOException {
 
 		Neo4jVersion version = config.getVersion();
 		boolean isRelationshipPropertyIndex = index.getType() == Index.Type.PROPERTY && index.getTargetEntityType() == TargetEntityType.RELATIONSHIP;
-		if (isRelationshipPropertyIndex && Neo4jVersion.RANGE_35_TO_42.contains(version)) {
+		if (isRelationshipPropertyIndex && RANGE_35_TO_42.contains(version)) {
 			throw new IllegalStateException(
 				String.format("The given relationship index cannot be rendered on Neo4j %s.",
 					version));
 		}
-		if (config.isIdempotent() &&
-				(!version.hasIdempotentOperations() || Neo4jVersion.RANGE_35_TO_42.contains(version) && index.getType() == Index.Type.FULLTEXT)) {
+		if (config.isIdempotent() && (!version.hasIdempotentOperations() || RANGE_35_TO_42.contains(version) && index.getType() == Index.Type.FULLTEXT)) {
 			throw new IllegalStateException(
 				String.format("The given index cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
@@ -84,31 +90,42 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		String indexName = index.getName().getValue();
 		String identifier = getAndEscapeIdentifier(version, index);
 		if (operator == Operator.CREATE) {
-			if (index.getTargetEntityType() == TargetEntityType.NODE) {
-				String properties = renderFulltextProperties("n", index, config);
-				if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
-					return String.format("CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s])", indexName, identifier, properties);
-				} else {
-					return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", indexName, config.ifNotExistsOrEmpty(), identifier, properties);
-				}
-			} else {
-				String properties = renderFulltextProperties("r", index, config);
-				if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
-					return String.format("CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s])", indexName, identifier, properties);
-				} else {
-					return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName, config.ifNotExistsOrEmpty(), identifier, properties);
-				}
-			}
-		} else if (operator == Operator.DROP) {
-			if (Neo4jVersion.RANGE_35_TO_42.contains(version)) {
-				return String.format("CALL db.index.fulltext.drop(\"%s\")", index.getName().getValue());
-			} else {
-				return String.format("DROP %#s%s", index, config.ifNotExistsOrEmpty());
-			}
+			return renderCreateFulltext(index, config, version, indexName, identifier);
+		} else {
+			return renderDropFulltext(index, config, version);
 		}
-		throw new IllegalStateException(String.format("The operation %s is not implemented for Fulltext index", operator));
 	}
 
+	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version, String indexName,
+		String identifier) {
+		if (index.getTargetEntityType() == TargetEntityType.NODE) {
+			String properties = renderFulltextProperties("n", index, config);
+			if (RANGE_35_TO_42.contains(version)) {
+				return String.format("CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s])", indexName,
+					identifier, properties);
+			} else {
+				return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", indexName,
+					config.ifNotExistsOrEmpty(), identifier, properties);
+			}
+		} else {
+			String properties = renderFulltextProperties("r", index, config);
+			if (RANGE_35_TO_42.contains(version)) {
+				return String.format("CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s])", indexName,
+					identifier, properties);
+			} else {
+				return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName,
+					config.ifNotExistsOrEmpty(), identifier, properties);
+			}
+		}
+	}
+
+	private static String renderDropFulltext(Index index, RenderConfig config, Neo4jVersion version) {
+		if (RANGE_35_TO_42.contains(version)) {
+			return String.format("CALL db.index.fulltext.drop(\"%s\")", index.getName().getValue());
+		} else {
+			return String.format("DROP %#s%s", index, config.ifNotExistsOrEmpty());
+		}
+	}
 
 	private String renderNodePropertiesIndex(Index index, RenderConfig config) {
 
@@ -117,37 +134,30 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		boolean isNodeIndex = index.getTargetEntityType() == TargetEntityType.NODE;
 
 		String properties = isNodeIndex
-				? renderProperties("n", index, config)  // node
-				: renderProperties("r", index, config); // relationship
+			? renderProperties("n", index, config)  // node
+			: renderProperties("r", index, config); // relationship
 
 		Operator operator = config.getOperator();
 
 		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
+		} else if (operator == Operator.DROP) {
+			if (!index.hasName() || config.isIgnoreName()) {
+				if (index.getProperties().size() == 1) {
+					return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
+				}
+				throw new IllegalStateException(
+					String.format("Dropping an unnamed index is not supported on Neo4j %s.", version));
+			}
+			return String.format("%s %#s%s", operator, item, config.ifNotExistsOrEmpty());
+		} else if (isNodeIndex) {
+			return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
+				identifier, properties);
 		} else {
-			if (operator == Operator.DROP) {
-				if (!index.hasName() || config.isIgnoreName()) {
-					if (index.getProperties().size() == 1) {
-						return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
-					}
-					throw new IllegalStateException(
-							String.format("Dropping an unnamed index is not supported on Neo4j %s.", version));
-				}
-				return String.format("%s %#s%s", operator, item, config.ifNotExistsOrEmpty());
-			}
-			if (isNodeIndex) {
-				if (operator == Operator.CREATE) {
-					return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
-							identifier, properties);
-				}
-			} else {
-				return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
-						identifier, properties);
-			}
+			return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
+				identifier, properties);
 		}
-
-		throw new UnsupportedOperationException("Operator " + operator + " is not supported.");
 	}
 
 	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index) {
@@ -156,12 +166,14 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index, boolean forceBackTicks) {
 
-		if (Neo4jVersion.RANGE_35_TO_42.contains(version) && !forceBackTicks) {
-			return Arrays.stream(index.getIdentifier().split("\\|"))
+		if (RANGE_35_TO_42.contains(version) && !forceBackTicks) {
+			return index.getDeconstructedIdentifiers()
+				.stream()
 				.map(TO_LITERAL)
 				.collect(Collectors.joining(", "));
 		} else {
-			return Arrays.stream(index.getIdentifier().split("\\|"))
+			return index.getDeconstructedIdentifiers()
+				.stream()
 				.map(Strings::escapeIfNecessary)
 				.collect(Collectors.joining("|"));
 		}
@@ -181,7 +193,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 	}
 
 	private String renderFulltextProperties(String prefix, Index item, RenderConfig config) {
-		if (Neo4jVersion.RANGE_35_TO_42.contains(config.getVersion())) {
+		if (RANGE_35_TO_42.contains(config.getVersion())) {
 			return item.getProperties().stream()
 				.map(TO_LITERAL)
 				.collect(Collectors.joining(", "));
@@ -191,6 +203,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 	}
 
 	Formattable formattablePropertyIndexItem(Index item, RenderConfig config) {
-		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ? new AnonymousCatalogItem(item) : item;
+		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ?
+			new AnonymousCatalogItem(item) :
+			item;
 	}
 }

@@ -238,10 +238,14 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 
 	final Element toXML(Document document) {
 		String elementName;
+		String labelOrTypeContent;
 		if (this instanceof Constraint) {
 			elementName = XMLSchemaConstants.CONSTRAINT;
+			labelOrTypeContent = getIdentifier();
 		} else if (this instanceof Index) {
 			elementName = XMLSchemaConstants.INDEX;
+			labelOrTypeContent = ((Index) this).getDeconstructedIdentifiers()
+				.stream().map(s -> s.replace("|", "\\|")).collect(Collectors.joining("|"));
 		} else {
 			throw new IllegalStateException("Unsupported subclass " + this.getClass());
 		}
@@ -256,7 +260,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		} else {
 			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
 		}
-		labelOrType.setTextContent(getIdentifier());
+		labelOrType.setTextContent(labelOrTypeContent);
 		element.appendChild(labelOrType);
 
 		Element propertiesParentElement = document.createElement(XMLSchemaConstants.PROPERTIES);

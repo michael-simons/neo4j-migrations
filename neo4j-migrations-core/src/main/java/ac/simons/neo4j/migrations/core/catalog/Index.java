@@ -26,6 +26,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
@@ -69,20 +71,21 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 	}
 
-	static String[] labelsOrTypesKeys = { "tokenNames", "labelsOrTypes" };
-	static String[] nameKeys = { "indexName", "name" };
-	static String propertiesKey = "properties";
-	static String entityTypeKey = "entityType";
-	static String indexTypeKey = "type";
-	static String uniquenessKey = "uniqueness";
+	private static final String[] LABELS_OR_TYPES_KEYS = { "tokenNames", "labelsOrTypes" };
+	private static final String[] NAME_KEYS = { "indexName", "name" };
+	private static final String PROPERTIES_KEY = "properties";
+	private static final String ENTITY_TYPE_KEY = "entityType";
+	private static final String INDEX_TYPE_KEY = "type";
+	private static final String UNIQUENESS_KEY = "uniqueness";
+	private static final UnaryOperator<String> UNESCAPE_PIPE = s -> s.replace("\\|", "|");
 
 	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(
-		new HashSet<>(Arrays.asList(nameKeys[0],
-			indexTypeKey, labelsOrTypesKeys[0], propertiesKey)));
+		new HashSet<>(Arrays.asList(NAME_KEYS[0],
+			INDEX_TYPE_KEY, LABELS_OR_TYPES_KEYS[0], PROPERTIES_KEY)));
 
 	private static final Set<String> REQUIRED_KEYS_40 = Collections.unmodifiableSet(
-		new HashSet<>(Arrays.asList(nameKeys[1],
-			indexTypeKey, entityTypeKey, labelsOrTypesKeys[1], propertiesKey)));
+		new HashSet<>(Arrays.asList(NAME_KEYS[1],
+			INDEX_TYPE_KEY, ENTITY_TYPE_KEY, LABELS_OR_TYPES_KEYS[1], PROPERTIES_KEY)));
 
 	/**
 	 * Programmatic way of defining indexes.
@@ -105,6 +108,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		/**
 		 * Creates a fulltext index
+		 *
 		 * @param properties The properties to be included in the index
 		 * @return the next step
 		 */
@@ -112,6 +116,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		/**
 		 * Creates a property index
+		 *
 		 * @param properties The properties to be included in the index
 		 * @return the next step
 		 */
@@ -121,13 +126,13 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	private static class DefaultBuilder implements Builder, NamedBuilder {
 		private final TargetEntityType targetEntity;
 
-		private final String identifier;
+		private final String[] identifiers;
 
 		private String name;
 
-		private DefaultBuilder(TargetEntityType targetEntity, String identifier) {
+		private DefaultBuilder(TargetEntityType targetEntity, String[] identifiers) {
 			this.targetEntity = targetEntity;
-			this.identifier = identifier;
+			this.identifiers = identifiers;
 		}
 
 		@Override
@@ -139,12 +144,12 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		@Override
 		public Index onProperties(String... properties) {
-			return new Index(name, Type.PROPERTY, targetEntity, identifier, Arrays.asList(properties), "");
+			return new Index(name, Type.PROPERTY, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));
 		}
 
 		@Override
 		public Index fulltext(String... properties) {
-			return new Index(name, Type.FULLTEXT, targetEntity, identifier, Arrays.asList(properties), "");
+			return new Index(name, Type.FULLTEXT, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));
 		}
 	}
 
@@ -155,7 +160,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 * @return The ongoing builder
 	 */
 	public static Builder forNode(String... labels) {
-		return new DefaultBuilder(TargetEntityType.NODE, String.join("|", labels));
+		return new DefaultBuilder(TargetEntityType.NODE, labels);
 	}
 
 	/**
@@ -165,16 +170,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 * @return The ongoing builder
 	 */
 	public static Builder forRelationship(String... types) {
-		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, String.join("|", types));
-	}
-
-	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties,
-		String options) {
-		super(name, type, targetEntityType, identifier, properties, options);
-	}
-
-	Index(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties) {
-		super(name, type, targetEntityType, identifier, properties, "");
+		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, types);
 	}
 
 	/**
@@ -195,13 +191,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		Set<String> properties = extractProperties(indexElement);
 		String options = extractOptions(indexElement);
 
-		return new Index(name, type, target.targetEntityType(), target.identifier(), new LinkedHashSet<>(properties),
+		String at = "(?<!\\\\)\\|";
+		return new Index(name, type, target.targetEntityType(), Arrays.asList(target.identifier().split(at)),
+			new LinkedHashSet<>(properties),
 			options);
-	}
-
-	@Override
-	public String toString() {
-		return getName().getValue() + getType() + getIdentifier();
 	}
 
 	/**
@@ -218,21 +211,21 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			throw new IllegalArgumentException("Required keys are missing in the row describing the index");
 		}
 
-		List<String> labelsOrTypes = !row.get(labelsOrTypesKeys[0]).isNull()
-			? row.get(labelsOrTypesKeys[0]).asList(Value::asString)
-			: row.get(labelsOrTypesKeys[1]).isNull() // lookup index
+		List<String> labelsOrTypes = !row.get(LABELS_OR_TYPES_KEYS[0]).isNull()
+			? row.get(LABELS_OR_TYPES_KEYS[0]).asList(Value::asString)
+			: row.get(LABELS_OR_TYPES_KEYS[1]).isNull() // lookup index
 			? Collections.emptyList()
-			: row.get(labelsOrTypesKeys[1]).asList(Value::asString);
+			: row.get(LABELS_OR_TYPES_KEYS[1]).asList(Value::asString);
 
-		String name = !row.get(nameKeys[0]).isNull()
-			? row.get(nameKeys[0]).asString()
-			: row.get(nameKeys[1]).asString();
+		String name = !row.get(NAME_KEYS[0]).isNull()
+			? row.get(NAME_KEYS[0]).asString()
+			: row.get(NAME_KEYS[1]).asString();
 
-		String indexType = row.get(indexTypeKey).asString();
-		String entityType = !row.get(entityTypeKey).isNull() ? row.get(entityTypeKey).asString() : "NODE";
-		List<String> properties = row.get(propertiesKey).isNull() // lookup index
+		String indexType = row.get(INDEX_TYPE_KEY).asString();
+		String entityType = !row.get(ENTITY_TYPE_KEY).isNull() ? row.get(ENTITY_TYPE_KEY).asString() : "NODE";
+		List<String> properties = row.get(PROPERTIES_KEY).isNull() // lookup index
 			? Collections.emptyList()
-			: row.get(propertiesKey).asList(Value::asString);
+			: row.get(PROPERTIES_KEY).asList(Value::asString);
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(entityType);
 
 		Index.Type type;
@@ -256,12 +249,39 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 
 		// Neo4j 4.x defines the index via uniqueness property
-		type = row.get(uniquenessKey).isNull() || !row.get(uniquenessKey).asString().equals("UNIQUE")
+		type = row.get(UNIQUENESS_KEY).isNull() || !row.get(UNIQUENESS_KEY).asString().equals("UNIQUE")
 			? type
 			: Type.CONSTRAINT_BACKING_INDEX;
 
-		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes),
-			new LinkedHashSet<>(properties));
+		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties));
+	}
+
+	private final Set<String> deconstructedIdentifiers;
+
+	Index(String name, Type type, TargetEntityType targetEntityType, Collection<String> deconstructedIdentifiers,
+		Collection<String> properties) {
+		this(name, type, targetEntityType, deconstructedIdentifiers, properties, null);
+	}
+
+	Index(String name, Type type, TargetEntityType targetEntityType, Collection<String> deconstructedIdentifiers,
+		Collection<String> properties, String options) {
+		super(name, type, targetEntityType, join(deconstructedIdentifiers), properties, options);
+		if (deconstructedIdentifiers.size() > 1 && type != Type.FULLTEXT) {
+			throw new IllegalArgumentException(
+				"Multiple labels or types are only allowed to be specified with fulltext indexes.");
+		}
+		this.deconstructedIdentifiers = deconstructedIdentifiers.stream()
+			.map(UNESCAPE_PIPE)
+			.collect(Collectors.toCollection(LinkedHashSet::new));
+	}
+
+	private static String join(Collection<String> deconstructedIdentifiers) {
+		return deconstructedIdentifiers.stream().map(UNESCAPE_PIPE).collect(Collectors.joining(", ", "[", "]"));
+	}
+
+	@Override
+	public String toString() {
+		return getName().getValue() + getType() + getIdentifier();
 	}
 
 	/**
@@ -289,5 +309,9 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 				this.getIdentifier().equals(other.getIdentifier()) &&
 				this.getProperties().equals(other.getProperties()) &&
 				this.getOptionalOptions().equals(other.getOptionalOptions());
+	}
+
+	Collection<String> getDeconstructedIdentifiers() {
+		return Collections.unmodifiableSet(deconstructedIdentifiers);
 	}
 }

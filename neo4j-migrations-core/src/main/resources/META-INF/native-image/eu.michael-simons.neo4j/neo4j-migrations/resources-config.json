@@ -7,6 +7,9 @@
   "resources": [
     {
       "pattern": "META-INF/MANIFEST\\.MF"
+    },
+    {
+      "pattern": "ac/simons/neo4j/migrations/core/migration\\.xsd"
     }
   ]
 }

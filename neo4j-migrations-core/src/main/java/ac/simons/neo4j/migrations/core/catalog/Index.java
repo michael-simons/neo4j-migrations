@@ -193,6 +193,11 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			options);
 	}
 
+	@Override
+	public String toString() {
+		return getName().getValue() + getType() + getIdentifier();
+	}
+
 	/**
 	 * Parses an index from a {@link MapAccessor}
 	 *

@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,7 +42,6 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.net.URL;
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -153,7 +150,7 @@ class CatalogBasedMigrationTest {
 				.onProperties("property12", "property22");
 
 		final String indexQueryV1 = "CREATE INDEX index_name FOR (n:`Book`) ON (n.`property1`, n.`property2`)";
-    	final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:`Book`) ON (n.`property12`, n.`property22`)";
+		final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:`Book`) ON (n.`property12`, n.`property22`)";
 
 		final VersionedCatalog catalog = new DefaultCatalog();
 
@@ -964,13 +961,9 @@ class CatalogBasedMigrationTest {
 				.isThrownBy(() -> drop.execute(context))
 				.withMessage("Oh :(");
 
-			String expectedIndexCall = "CALL db.indexes()";
-
 			verify(runner).run(expectedContraintDrop);
 			verify(runner).run(expectedConstraintCall);
-			verify(runner).run(expectedIndexCall);
 			verify(result).list(Mockito.<Function<Record, Constraint>>any());
-			verify(defaultResult).list(Mockito.<Function<Record, Index>>any()); // index call
 			verifyNoMoreInteractions(runner, result, defaultResult);
 		}
 
@@ -1044,13 +1037,11 @@ class CatalogBasedMigrationTest {
 				runner);
 			drop.execute(context);
 
-			String indexListCall = "CALL db.indexes()";
-			when(runner.run(indexListCall)).thenReturn(result);
-			verify(runner, times(3)).run(argumentCaptor.capture());
+
+			verify(runner, times(2)).run(argumentCaptor.capture());
 			List<String> queries = argumentCaptor.getAllValues();
-			assertThat(queries).containsExactly(firstDrop, expectedCall, indexListCall);
+			assertThat(queries).containsExactly(firstDrop, expectedCall);
 			verify(result).list(Mockito.<Function<Record, Constraint>>any());
-			verify(result).list(Mockito.<Function<Record, Index>>any());
 			verifyNoMoreInteractions(runner, result, defaultResult);
 		}
 

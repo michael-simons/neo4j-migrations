@@ -23,11 +23,8 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.neo4j.driver.QueryRunner;
 
@@ -41,7 +38,7 @@ import org.neo4j.driver.QueryRunner;
 final class DatabaseCatalog implements Catalog {
 
 	static Catalog of(Neo4jVersion version, QueryRunner queryRunner) {
-		Set<CatalogItem<?>> items = new HashSet<>();
+		Set<CatalogItem<?>> items = new LinkedHashSet<>();
 
 		queryRunner.run(version.getShowConstraints())
 			.stream()
@@ -59,10 +56,10 @@ final class DatabaseCatalog implements Catalog {
 		return new DatabaseCatalog(items);
 	}
 
-	private final List<CatalogItem<?>> items;
+	private final Collection<CatalogItem<?>> items;
 
 	private DatabaseCatalog(Set<CatalogItem<?>> items) {
-		this.items = items.stream().sorted(Comparator.comparing(CatalogItem::getOrder)).collect(Collectors.toList());
+		this.items = items;
 	}
 
 	@Override

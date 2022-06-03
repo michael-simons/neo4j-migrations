@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -279,13 +280,22 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 
 		// Make sure the operations are ordered if there are constraints (first) and indexes (second)
+		Comparator<CatalogItem<?>> catalogItemComparator = (o1, o2) -> {
+			if (o1 instanceof Constraint && o2 instanceof Index) {
+				return -1;
+			} else if (o2 instanceof Constraint && o1 instanceof Index) {
+				return 1;
+			}
+			return 0;
+		};
+
 		return result.stream().sorted((operation1, operation2) -> {
-					if (operation1 instanceof AbstractItemBasedOperation && operation2 instanceof AbstractItemBasedOperation
-					 && ((AbstractItemBasedOperation) operation1).getLocalItem().isPresent()
-					 && ((AbstractItemBasedOperation) operation2).getLocalItem().isPresent()) {
-						CatalogItem<?> item1 = ((AbstractItemBasedOperation) operation1).getLocalItem().get();
-						CatalogItem<?> item2 = ((AbstractItemBasedOperation) operation2).getLocalItem().get();
-						return item1.getOrder().compareTo(item2.getOrder());
+					if (operation1 instanceof ItemSpecificOperation && operation2 instanceof ItemSpecificOperation
+					&& ((ItemSpecificOperation) operation1).getLocalItem().isPresent()
+					&& ((ItemSpecificOperation) operation2).getLocalItem().isPresent()) {
+						CatalogItem<?> item1 = ((ItemSpecificOperation) operation1).getLocalItem().get();
+						CatalogItem<?> item2 = ((ItemSpecificOperation) operation2).getLocalItem().get();
+						return catalogItemComparator.compare(item1, item2);
 					}
 					return 0;
 				})
@@ -992,23 +1002,28 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 					throw e;
 				}
 				// Make sure the thing actually is there.
-				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
-					.list(Constraint::parse);
+				if (item instanceof Constraint) {
+					List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
+							.list(Constraint::parse);
 
-				List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
-						.list(Index::parse);
+					// If there are no constraints there at all, something fishy is going on for sure
+					// otherwise, there must now an equivalent version of it
+					if (constraints.isEmpty() || constraints.stream()
+							.noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+						throw e;
+					}
+				}
+				if (item instanceof Index) {
+					List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
+							.list(Index::parse);
 
-				// If there are no constraints there at all, something fishy is going on for sure
-				// otherwise, there must now an equivalent version of it
-				if (constraints.isEmpty() || constraints.stream()
-					.noneMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
-					throw e;
+					// ...the same for index
+					if (indexes.isEmpty() || indexes.stream()
+							.noneMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
+						throw e;
+					}
 				}
-				// ...the same for index
-				if (indexes.isEmpty() || indexes.stream()
-					.noneMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
-					throw e;
-				}
+
 			}
 			return Counters.empty();
 		}
@@ -1052,40 +1067,60 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {
 					throw e;
 				}
-				// Make sure the thing actually not there.
-				List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
-					.list(Constraint::parse);
 
-				List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
-					.list(Index::parse);
+				if (item instanceof Constraint) {
+					// Make sure the thing actually not there.
+					List<Constraint> constraints = queryRunner.run(context.version.getShowConstraints())
+							.list(Constraint::parse);
 
-				// Let's skip all the hard work directly
-				if (constraints.isEmpty() && indexes.isEmpty()) {
-					return Counters.empty();
+					// Let's skip all the hard work directly
+					if (constraints.isEmpty()) {
+						return Counters.empty();
+					}
+					// Directly throw if it is still there
+					if (constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
+						throw e;
+					}
+
+					if (!fallbackToPrior || getLocalItem().isPresent()) {
+						return Counters.empty();
+					}
+
+					// If it has been defined in an older version users might have redefined it in this version,
+					// such that couldn't have been dropped
+					return context.catalog.getItemPriorTo(reference, definedAt)
+							.filter(
+									v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
+							.map(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false))
+							.orElseGet(Counters::empty);
 				}
 
-				// Directly throw if it is still there
-				if (constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(item))) {
-					throw e;
+				if (item instanceof Index) {
+					List<Index> indexes = queryRunner.run(context.version.getShowIndexes())
+							.list(Index::parse);
+
+					if (indexes.isEmpty()) {
+						return Counters.empty();
+					}
+
+					if (indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
+						throw e;
+					}
+
+					if (!fallbackToPrior || getLocalItem().isPresent()) {
+						return Counters.empty();
+					}
+
+					// If it has been defined in an older version users might have redefined it in this version,
+					// such that couldn't have been dropped
+					return context.catalog.getItemPriorTo(reference, definedAt)
+							.filter(
+									v -> indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(v)))
+							.map(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false))
+							.orElseGet(Counters::empty);
 				}
 
-				if (indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(item))) {
-					throw e;
-				}
-
-				if (!fallbackToPrior || getLocalItem().isPresent()) {
-					return Counters.empty();
-				}
-
-				// If it has been defined in an older version users might have redefined it in this version,
-				// such that couldn't have been dropped
-				return context.catalog.getItemPriorTo(reference, definedAt)
-					.filter(
-						v -> constraints.stream().anyMatch(existingConstraint -> existingConstraint.isEquivalentTo(v)))
-					.filter(
-						v -> indexes.stream().anyMatch(existingIndex -> existingIndex.isEquivalentTo(v)))
-					.map(olderItem -> drop(context, olderItem, queryRunner, renderer, config, false))
-					.orElseGet(Counters::empty);
+				throw new IllegalStateException("Ganz schlimm");
 			}
 		}
 	}

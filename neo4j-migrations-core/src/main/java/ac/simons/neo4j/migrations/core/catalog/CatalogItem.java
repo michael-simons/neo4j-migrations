@@ -48,12 +48,4 @@ public interface CatalogItem<T extends ItemType> {
 	 */
 	boolean hasGeneratedName();
 
-	default Integer getOrder() {
-		if (this instanceof Constraint) {
-			return 0;
-		} else if (this instanceof Index) {
-			return 1;
-		}
-		return 99;
-	}
 }

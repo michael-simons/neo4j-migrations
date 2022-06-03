@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1654271745461">
-    <module artifactId="neo4j-migrations-examples-sb-testharness" groupId="eu.michael-simons.neo4j" version="1.7.0-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1654293320308">
+    <module artifactId="neo4j-migrations-examples-sb-testharness" groupId="eu.michael-simons.neo4j" version="1.7.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/org/neo4j/migrations/examples/sb/Application.java" result="PRESENT"/>

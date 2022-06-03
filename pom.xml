@@ -586,6 +586,9 @@
 						<exclude>bin/test_native_cli.java</exclude>
 						<exclude>**/package-info.java</exclude>
 						<exclude>**/assembly/README</exclude>
+						<!-- XM based migrations -->
+						<exclude>**/catalogbased*/**/*.xml</exclude>
+						<exclude>**/V*.xml</exclude>
 					</excludes>
 					<dependencyEnforce>true</dependencyEnforce>
 					<dependencyExceptionMessage>A custom error message for how to handle approvals in your organization</dependencyExceptionMessage>

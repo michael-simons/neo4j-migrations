@@ -55,7 +55,7 @@ class XMLParsingTest {
 
 	@Test
 	void shouldFindAllConstraints() {
-		Catalog catalog = load(XMLParsingTest.class.getResource("/xml/parsing/full-example.xml"));
+		Catalog catalog = load(XMLParsingTest.class.getResource("/catalogbased/parsing/full-example.xml"));
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
 			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
@@ -70,7 +70,7 @@ class XMLParsingTest {
 	@Test
 	void shouldNotCreateInvalidConstaints() {
 
-		URL resource = XMLParsingTest.class.getResource("/xml/parsing/invalid_constraint.xml");
+		URL resource = XMLParsingTest.class.getResource("/catalogbased/parsing/invalid_constraint.xml");
 		Objects.requireNonNull(resource);
 		assertThatIllegalArgumentException().isThrownBy(() -> load(resource));
 	}

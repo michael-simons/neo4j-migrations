@@ -144,7 +144,7 @@ The simplest way of defining a catalog based migrations looks like this:
 .V01__Create_unique_isbn.xml
 [source,xml]
 ----
-include::../neo4j-migrations-core/src/test/resources/xml/manual/V01__Create_constraints_local.xml[]
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
 ----
 
 Here a unique constraint is defined for the property `isbn` of all nodes labelled `Book`. This constraint is known only locally
@@ -155,7 +155,7 @@ This can also be rewritten such as this:
 .V01__Create_unique_isbn.xml
 [source,xml]
 ----
-include::../neo4j-migrations-core/src/test/resources/xml/manual/V01__Create_constraints_global.xml[]
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
 ----
 
 The constraint can be reused later, too:
@@ -163,7 +163,7 @@ The constraint can be reused later, too:
 .V23__Drop_old_constraint.xml
 [source,xml]
 ----
-include::../neo4j-migrations-core/src/test/resources/xml/manual/V23__Drop_old_constraint.xml[]
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
 ----
 
 To learn more about the scheme, have a look at the <<appendix_xml_schemes_migration, XML schema explained>> and also make

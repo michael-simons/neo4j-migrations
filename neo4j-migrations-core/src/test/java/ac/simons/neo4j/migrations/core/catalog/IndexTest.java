@@ -132,7 +132,7 @@ class IndexTest {
 						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
 						new AbstractMap.SimpleEntry<>("properties", properties))));
 
-		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_INDEX);
+		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_BACKING_INDEX);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(index.getName().getValue()).isEqualTo("index_name");
 		assertThat(index.getIdentifier()).isEqualTo("label1|label2");
@@ -266,7 +266,7 @@ class IndexTest {
 						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
 						new AbstractMap.SimpleEntry<>("properties", properties))));
 
-		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_INDEX);
+		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_BACKING_INDEX);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(index.getName().getValue()).isEqualTo("index_name");
 		assertThat(index.getIdentifier()).isEqualTo("label1|label2");

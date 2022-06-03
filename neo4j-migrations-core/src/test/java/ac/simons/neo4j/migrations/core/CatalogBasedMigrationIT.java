@@ -101,7 +101,7 @@ class CatalogBasedMigrationIT {
 
 			Migrations migrations;
 			migrations = new Migrations(
-				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
+				MigrationsConfig.builder().withLocationsToScan("classpath:catalogbased/actual-migrations").build(), driver);
 			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
 				.withMessage(
 					"Could not apply migration 10 (\"Assert empty database\") verification failed: Catalogs are neither identical nor equivalent.");
@@ -123,7 +123,7 @@ class CatalogBasedMigrationIT {
 
 			Migrations migrations;
 			migrations = new Migrations(
-				MigrationsConfig.builder().withLocationsToScan("classpath:xml/actual-migrations").build(), driver);
+				MigrationsConfig.builder().withLocationsToScan("classpath:catalogbased/actual-migrations").build(), driver);
 			if (version == Neo4jVersion.V3_5) {
 				// We don't have constraint names, so the last verification will fail as it doesn't allow equivalency
 				assertThatExceptionOfType(MigrationsException.class)

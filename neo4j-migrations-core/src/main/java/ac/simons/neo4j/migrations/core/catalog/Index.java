@@ -44,6 +44,9 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 * Enumerates the different kinds of indexes.
 	 */
 	public enum Type implements ItemType {
+		/**
+		 * An index on properties. The actual type depends on the options.
+		 */
 		PROPERTY,
 		/**
 		 * A lookup index. Those indexes are paramount for the database to perform proper. They
@@ -55,7 +58,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 * Fulltext indexes for long text properties.
 		 */
 		FULLTEXT,
-		CONSTRAINT_INDEX;
+		/**
+		 * An index backing a constraint.
+		 */
+		CONSTRAINT_BACKING_INDEX;
 
 		@Override
 		public String getName() {
@@ -243,7 +249,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 				type = Type.FULLTEXT;
 				break;
 			case "node_unique_property":
-				type = Type.CONSTRAINT_INDEX;
+				type = Type.CONSTRAINT_BACKING_INDEX;
 				break;
 			default:
 				throw new IllegalArgumentException("Unsupported index type " + name);
@@ -252,7 +258,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		// Neo4j 4.x defines the index via uniqueness property
 		type = row.get(uniquenessKey).isNull() || !row.get(uniquenessKey).asString().equals("UNIQUE")
 			? type
-			: Type.CONSTRAINT_INDEX;
+			: Type.CONSTRAINT_BACKING_INDEX;
 
 		return new Index(name, type, targetEntityType, String.join("|", labelsOrTypes),
 			new LinkedHashSet<>(properties));

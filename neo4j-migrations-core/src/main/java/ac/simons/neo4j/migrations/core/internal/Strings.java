@@ -15,8 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Internally used String utilities. There are no guarantees on the stability of this API. It won't be available when
@@ -31,13 +38,42 @@ public final class Strings {
 	 * Single line comment indicator.
 	 */
 	public static final String CYPHER_SINGLE_LINE_COMMENT = "//";
+
 	/**
 	 * Pattern used for splitting lines.
 	 */
 	public static final String LINE_DELIMITER = "\r?\n|\r";
 
 	/**
-	 * Capitalizees a string
+	 * Function for creating an MD5 representation of a byte array.
+	 */
+	public static final UnaryOperator<byte[]> MD5 = bytes -> {
+		try {
+			@SuppressWarnings("squid:S4790") // Definitely not at risk here.
+			MessageDigest md5 = MessageDigest.getInstance("MD5");
+			return md5.digest(bytes);
+		} catch (NoSuchAlgorithmException e) {
+			throw new UncheckedNoSuchAlgorithmException(e);
+		}
+	};
+	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
+	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
+
+	/**
+	 * A Base64 encoder.
+	 */
+	public static final Function<byte[], String> BASE64_ENCODING = bytes -> {
+		final StringBuilder sb = new StringBuilder(2 * bytes.length);
+		for (byte b : bytes) {
+			sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
+		}
+		return sb.toString();
+	};
+
+	/**
+	 * Capitalizes a string
+	 *
 	 * @param value String to capitalize
 	 * @return Capitalized String or the original value if unchanged or if the value was {@literal null} or empty.
 	 */
@@ -113,6 +149,73 @@ public final class Strings {
 		}
 
 		return !(trimmed.contains("\n") || trimmed.contains("\r"));
+	}
+
+	private static boolean valueIsNotBlank(String value) {
+		return !value.trim().isEmpty();
+	}
+
+	/**
+	 * Creates an optional value from a given string value, filtering additionally on blankness.
+	 *
+	 * @param value The value to create an optional from
+	 * @return An optional
+	 */
+	public static Optional<String> optionalOf(String value) {
+		return Optional.ofNullable(value)
+			.filter(Strings::valueIsNotBlank)
+			.map(String::trim);
+	}
+
+	/**
+	 * @param value The value to check
+	 * @return {@literal true} if {@code value} is null or completely blank.
+	 */
+	public static boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
+	}
+
+	/**
+	 * This is a literal copy of {@code javax.lang.model.SourceVersion#isIdentifier(CharSequence)} included here to
+	 * be not dependent on the compiler module.
+	 *
+	 * @param name A possible Java identifier
+	 * @return True, if {@code name} represents an identifier.
+	 */
+	public static boolean isIdentifier(CharSequence name) {
+		String id = name.toString();
+
+		if (id.length() == 0) {
+			return false;
+		}
+		int cp = id.codePointAt(0);
+		if (!Character.isJavaIdentifierStart(cp)) {
+			return false;
+		}
+		for (int i = Character.charCount(cp); i < id.length(); i += Character.charCount(cp)) {
+			cp = id.codePointAt(i);
+			if (!Character.isJavaIdentifierPart(cp)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier.
+	 *
+	 * @param potentiallyNonIdentifier A value to escape
+	 * @return The escaped value or the same value if no escaping is necessary.
+	 */
+	public static String escapeIfNecessary(String potentiallyNonIdentifier) {
+
+		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.trim().isEmpty() || Strings.isIdentifier(
+			potentiallyNonIdentifier)) {
+			return potentiallyNonIdentifier;
+		}
+
+		Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(potentiallyNonIdentifier);
+		return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``"));
 	}
 
 	private Strings() {

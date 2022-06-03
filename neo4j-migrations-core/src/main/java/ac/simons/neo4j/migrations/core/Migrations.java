@@ -17,6 +17,11 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,8 +52,14 @@ public final class Migrations {
 
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 
+	private static final String PROPERTY_MIGRATION_VERSION = "version";
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
-	private static final String UNIQUE_VERSION = "unique_version___Neo4jMigration";
+	private static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
+
+	static final Constraint UNIQUE_VERSION =
+		Constraint.forNode("__Neo4jMigration")
+			.named("unique_version___Neo4jMigration")
+			.unique(PROPERTY_MIGRATION_VERSION, PROPERTY_MIGRATION_TARGET);
 
 	private final MigrationsConfig config;
 	private final Driver driver;
@@ -250,9 +261,16 @@ public final class Migrations {
 					result.consume().counters()
 				);
 			});
-			if (all && HBD.is44OrHigher(context.getConnectionDetails())) {
+			ConnectionDetails cd = context.getConnectionDetails();
+			if (all && HBD.is44OrHigher(cd)) {
+
+				Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+				RenderConfig dropConfig = RenderConfig.drop()
+					.ifExists()
+					.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+
 				return new DeletedChainsWithCounters(deletedChainsWithCounters,
-					session.run("DROP CONSTRAINT " + UNIQUE_VERSION + " IF EXISTS").consume().counters().constraintsRemoved());
+					session.run(renderer.render(UNIQUE_VERSION, dropConfig)).consume().counters().constraintsRemoved());
 			}
 
 			return deletedChainsWithCounters;
@@ -299,6 +317,36 @@ public final class Migrations {
 	}
 
 	/**
+	 * Retrieves the local catalog, containing constraints and indexes.
+	 *
+	 * @return the local catalog
+	 * @since TBA
+	 */
+	public Catalog getLocalCatalog() {
+
+		// Retrieving the migrations will initialize the local catalog
+		if (getMigrations().isEmpty()) {
+			return Catalog.empty();
+		}
+		return this.context.getCatalog();
+	}
+
+	/**
+	 * Retrieves the database catalog
+	 * @return the database catalog
+	 * @since TBA
+	 */
+	public Catalog getDatabaseCatalog() {
+
+		return executeWithinLock(() -> {
+			try (Session session = context.getSession()) {
+				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+				return DatabaseCatalog.of(neo4jVersion, session);
+			}
+		}, null, null);
+	}
+
+	/**
 	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
 	 * @since 1.2.1
 	 */
@@ -331,7 +379,14 @@ public final class Migrations {
 		}
 	}
 
+	/**
+	 * @param phase can be {@literal null}, no callback will be involved then
+	 */
 	private void invokeCallbacks(LifecyclePhase phase) {
+
+		if (phase == null) {
+			return;
+		}
 
 		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);
 		this.getCallbacks().getOrDefault(phase, Collections.emptyList())
@@ -366,8 +421,8 @@ public final class Migrations {
 						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))
 				.single().get(0).asNode());
 
-			String version = lastMigration.get("version").asString();
-			String description = lastMigration.get("description").asString();
+			String version = lastMigration.get(PROPERTY_MIGRATION_VERSION).asString();
+			String description = lastMigration.get(PROPERTY_MIGRATION_DESCRIPTION).asString();
 
 			return Optional.of(MigrationVersion.withValueAndDescription(version, description));
 		} catch (NoSuchRecordException e) {
@@ -382,9 +437,13 @@ public final class Migrations {
 			return;
 		}
 
+		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			final String stmt = "CREATE CONSTRAINT $name IF NOT EXISTS FOR (m:__Neo4jMigration) REQUIRE (m.version, m.migrationTarget) IS UNIQUE";
-			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, UNIQUE_VERSION, () -> "Could not create unique constraint for targeted migrations.");
+			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+
+			final String stmt = renderer.render(UNIQUE_VERSION, createConfig);
+			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, null, () -> "Could not create unique constraint for targeted migrations.");
 		}
 	}
 
@@ -412,6 +471,8 @@ public final class Migrations {
 				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
 				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
+			} catch (MigrationsException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new MigrationsException("Could not apply migration: " + toString(migration) + ".", e);
 			} finally {
@@ -466,8 +527,8 @@ public final class Migrations {
 
 		Map<String, Object> properties = new HashMap<>();
 
-		properties.put("version", migration.getVersion().getValue());
-		properties.put("description", migration.getDescription());
+		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());
+		properties.put(PROPERTY_MIGRATION_DESCRIPTION, migration.getDescription());
 		properties.put("type", getMigrationType(migration).name());
 		properties.put("source", migration.getSource());
 		migration.getChecksum().ifPresent(checksum -> properties.put("checksum", checksum));
@@ -489,6 +550,8 @@ public final class Migrations {
 			type = MigrationType.JAVA;
 		} else if (migration instanceof CypherBasedMigration) {
 			type = MigrationType.CYPHER;
+		} else if (migration instanceof CatalogBasedMigration) {
+			type = MigrationType.CATALOG;
 		} else {
 			throw new MigrationsException("Unknown migration type: " + migration.getClass());
 		}
@@ -499,5 +562,4 @@ public final class Migrations {
 
 		return String.format("%s (\"%s\")", migration.getVersion(), migration.getDescription());
 	}
-
 }

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+
 import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.Driver;
@@ -67,6 +69,9 @@ public interface MigrationContext {
 	}
 
 	/**
+	 * The schema database might or might not be identical with the database that is to be migrated. The schema database
+	 * contains the objects that neo4j-migrations requires to work.
+	 *
 	 * @return A session accessing the configured schema database if any or the default database.
 	 */
 	Session getSchemaSession();
@@ -79,4 +84,9 @@ public interface MigrationContext {
 	 * @since 1.4.0
 	 */
 	ConnectionDetails getConnectionDetails();
+
+	/**
+	 * @return the catalog known to this context.
+	 */
+	Catalog getCatalog();
 }

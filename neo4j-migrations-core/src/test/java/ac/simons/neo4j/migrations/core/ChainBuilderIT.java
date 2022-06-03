@@ -50,7 +50,7 @@ class ChainBuilderIT extends TestBase {
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
 		assertThat(migrationChain.getOptionalDatabaseName()).hasValue("neo4j");
 		assertThat(migrationChain.getDatabaseName()).isEqualTo("neo4j");
-		assertThat(migrationChain.getElements()).hasSize(8);
+		assertThat(migrationChain.getElements()).hasSize(9);
 		assertThat(migrationChain.getElements()).element(0).satisfies(element -> {
 
 			assertThat(element.getState()).isEqualTo(MigrationState.APPLIED);
@@ -102,6 +102,18 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getExecutionTime()).isEmpty();
 		});
 		assertThat(migrationChain.getElements()).element(5).satisfies(element -> {
+
+			assertThat(element.getState()).isEqualTo(MigrationState.PENDING);
+			assertThat(element.getType()).isEqualTo(MigrationType.CATALOG);
+			assertThat(element.getChecksum()).hasValue("3878177065");
+			assertThat(element.getVersion()).isEqualTo("008");
+			assertThat(element.getDescription()).isEqualTo("Create constraints");
+			assertThat(element.getSource()).isEqualTo("V008__Create_constraints.xml");
+			assertThat(element.getInstalledOn()).isEmpty();
+			assertThat(element.getInstalledBy()).isEmpty();
+			assertThat(element.getExecutionTime()).isEmpty();
+		});
+		assertThat(migrationChain.getElements()).element(6).satisfies(element -> {
 
 			assertThat(element.getState()).isEqualTo(MigrationState.PENDING);
 			assertThat(element.getType()).isEqualTo(MigrationType.JAVA);

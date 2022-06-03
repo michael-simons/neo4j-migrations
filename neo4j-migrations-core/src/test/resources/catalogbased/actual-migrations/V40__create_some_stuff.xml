@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+
+	<catalog>
+		<constraints>
+			<constraint name="person_liked_book_day" type="exists">
+				<type>LIKED</type>
+				<properties>
+					<property>created_at</property>
+				</properties>
+			</constraint>
+		</constraints>
+
+		<indexes>
+			<index name="a_new_book_index">
+				<label>Book</label>
+				<properties>
+					<property>property1</property>
+					<property>property2</property>
+				</properties>
+			</index>
+		</indexes>
+	</catalog>
+
+	<create ref="person_liked_book_day" ifNotExists="false"/>
+	<create>
+		<constraint name="a_local_duplicate_equivalent_to_the_catalog_one" type="unique">
+			<label>Book</label>
+			<properties>
+				<property>isbn</property>
+			</properties>
+		</constraint>
+	</create>
+
+	<create ref="a_new_book_index" ifNotExists="false" />
+</migration>

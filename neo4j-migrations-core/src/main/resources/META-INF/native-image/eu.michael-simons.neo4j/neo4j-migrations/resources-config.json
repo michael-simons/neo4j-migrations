@@ -2,11 +2,17 @@
   "bundles": [
     {
       "name": "ac.simons.neo4j.migrations.core.messages"
+    },
+    {
+      "name": "com.sun.org.apache.xerces.internal.impl.xpath.regex.message"
     }
   ],
   "resources": [
     {
       "pattern": "META-INF/MANIFEST\\.MF"
+    },
+    {
+      "pattern": "ac/simons/neo4j/migrations/core/migration\\.xsd"
     }
   ]
 }

@@ -27,7 +27,7 @@ import picocli.CommandLine.ParentCommand;
  * @author Michael J. Simons
  * @since 0.0.5
  */
-@Command(name = "info", description = "Retrieves all applied and pending informations, prints them and exits.")
+@Command(name = "info", description = "Retrieves all applied and pending information, prints them and exits.")
 final class InfoCommand extends ConnectedCommand {
 
 	@ParentCommand

@@ -123,10 +123,12 @@ Commands:
   clean           Removes Neo4j-Migration specific data from the selected
                     schema database
   help            Displays help information about the specified command
-  info            Retrieves all applied and pending informations, prints them
+  info            Retrieves all applied and pending information, prints them
                     and exits.
   init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
+  show-catalog    Gets the local or remote catalog and prints it to standard
+                    out in the given format.
   validate        Resolves all local migrations and validates the state of the
                     configured database with them.
 ----
@@ -671,7 +673,7 @@ By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations
 You can change that via `locationsToScan` inside the `configuration` element like this:
 
 .Changing the locations to scan for the Maven-Plugin
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 <locationsToScan>
     <locationToScan>file://${project.build.outputDirectory}/custom/path</locationToScan>
@@ -691,3 +693,260 @@ All goals as described in <<usage_common>> are supported.
 * link:{siteBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
 
 The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.
+
+[[usage_defining_asserting_applying_catalogs]]
+== Defining and using catalogs
+
+This chapter is more about conceptional usage or scenarios one can implement by using <<concepts_migrations_catalog-based, Catalog-based migrations>>.
+All scenarios can be executed with any of the previously explained APIS, being it the CLI, the Core API or within  Spring Boot,
+Quarkus or Maven, except easily dumping a local or a remote catalog as XML or Cypher file.
+
+Catalogs are a powerful mechanism to shape your database's schema exactly the way you want it and this is only a small subset of
+possible scenarios that can be implemented.
+
+For the rest of these steps we assume that you are using the CLI and used the `init` command to create a local directory structure
+holding connection data such as URL and credentials as well as your migrations:
+
+.Create migrations directory with credentials etc.
+[source,bash]
+----
+neo4j-migrations -a bolt://localhost:7687 -u neo4j -p secret init
+tree -a
+----
+
+which will result in
+
+[source,console]
+----
+.
+├── .migrations.properties
+└── neo4j
+    └── migrations
+
+2 directories, 1 file
+----
+
+All migrations we are going to work with will be stored in `neo4j/migrations`.
+
+One sensible step before doing anything with the schema is to assert our local catalog meets the remote catalog as expected.
+In this example we assert toe remote catalog to be empty and we define our first migration like this:
+
+.V010__Assert_empty_schema.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V010__Assert_empty_schema.xml[]
+----
+<.> `useCurrent` has been set to `true` to refer to the local catalog as defined in version 10, which is been empty,
+    exactly what we expect
+
+Applying this now via `neo4j-migrations apply` yields the following result:
+
+[source,console]
+----
+[2022-06-01T15:13:39.997000000] Applied migration 010 ("Assert empty schema").
+Database migrated to version 010.
+----
+
+Of course this step is only executed once, when this migration is applied. If we add another one too it, that
+verification does not happen again, as the 010 has been applied. Therefore, a verification step can be added to
+each catalog based migration:
+
+.V020__Create_person_name_unique.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V020__Create_person_name_unique.xml[]
+----
+
+Note that we didn't specify `useCurrent` here. This means verification should happen based on the local catalog prior to
+version 020. Applying this migration yields:
+
+[source,console]
+----
+[2022-06-01T15:17:27.508000000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T15:17:27.771000000] Applied migration 020 ("Create person name unique").
+Database migrated to version 020.
+----
+
+A day later you figure out that a unique constraint on a persons names isn't the best of all ideas, and you decide to
+fix that. Assuming for sake of sanity that every person has a name, we replace that uniqueness with an existential constraint.
+
+Existential constraints are a Neo4j enterprise feature, so we must cater for that as well and we define two different files
+for the next version:
+
+[[V030Fix_person_name_constraint_CE]]
+.V030__Fix_person_name_constraint_CE.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V030__Fix_person_name_constraint_CE.xml[]
+----
+
+and for the enterprise edition, we can redefine the constraint like this:
+
+[[V030Fix_person_name_constraint_EE]]
+.V030__Fix_person_name_constraint_EE.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V030__Fix_person_name_constraint_EE.xml[]
+----
+
+Note how we *can* `refer` to the constraint by ref in <<V030Fix_person_name_constraint_EE>> and how we *must* use
+`item` in <<V030Fix_person_name_constraint_CE>>. The reason for that is that we refer to an older item only in the
+migration for community edition. We redefined the item in the script for the enterprise edition, so we might as well
+refer to it.
+In older Neo4j versions not supporting names for constraints Neo4j-Migrations will use the old definition to drop the item
+in question.
+
+Applying the current state now yields
+
+[source,console]
+----
+[2022-06-01T16:04:46.446188000] Skipping 030 ("Fix person name constraint CE") due to unmet preconditions:
+// assume that edition is COMMUNITY
+[2022-06-01T16:04:46.493400000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T16:04:46.496401000] Skipping already applied migration 020 ("Create person name unique")
+[2022-06-01T16:04:46.659585000] Applied migration 030 ("Fix person name constraint EE").
+Database migrated to version 030.
+----
+
+Assuming you some other enterprise stuff related items in the following listing:
+
+[[V040Additional_stuff]]
+.V040__Additional_stuff.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V040__Additional_stuff.xml[]
+----
+
+To get some information about your database, you can inspect the remote catalog:
+
+.Inspecting the remote catalog
+[source,bash]
+----
+neo4j-migrations show-catalog
+----
+
+and it will print the catalog in XML:
+
+[source,xml,indent=0,tabsize=2]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+    <catalog>
+        <indexes/>
+        <constraints>
+            <constraint name="liked_day" type="unique">
+                <label>LIKED</label>
+                <properties>
+                    <property>day</property>
+                </properties>
+            </constraint>
+            <constraint name="person_keys" type="key">
+                <label>Person</label>
+                <properties>
+                    <property>firstname</property>
+                    <property>surname</property>
+                </properties>
+            </constraint>
+            <constraint name="person_name_unique" type="exists">
+                <label>Person</label>
+                <properties>
+                    <property>name</property>
+                </properties>
+            </constraint>
+        </constraints>
+    </catalog>
+</migration>
+----
+
+You can also get the catalog as Cypher with
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER version=4.4
+----
+
+yielding
+
+[source,cypher]
+----
+CREATE CONSTRAINT person_keys IF NOT EXISTS FOR (n:Person) REQUIRE (n.firstname, n.surname) IS NODE KEY;
+CREATE CONSTRAINT liked_day IF NOT EXISTS FOR ()-[r:LIKED]-() REQUIRE r.day IS NOT NULL;
+CREATE CONSTRAINT person_name_unique IF NOT EXISTS FOR (n:Person) REQUIRE n.name IS NOT NULL;
+----
+
+Changing the version number to an older version will give the correct syntax, too:
+
+[source,console]
+----
+> neo4j-migrations show-catalog format=CYPHER version=3.5
+CREATE CONSTRAINT ON (n:Person) ASSERT (n.firstname, n.surname) IS NODE KEY;
+CREATE CONSTRAINT ON ()-[r:LIKED]-() ASSERT exists(r.day);
+CREATE CONSTRAINT ON (n:Person) ASSERT exists(n.name);
+----
+
+After all, you decide it's best not to stick with any constraint on the persons name and also drop your experiments.
+You could use `<apply />` to make your database look exactly like your catalog. But that would include all previously
+defined items, too.
+
+Therefore, you need to reset the catalog as shown in the following listing:
+
+[[V050A_new_start]]
+.V050__A_new_start.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V050__A_new_start.xml[]
+----
+
+followed by a final verification:
+
+[[V060Assert_final_state]]
+.V060__Assert_final_state.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::catalogbased_changesets/V060__Assert_final_state.xml[]
+----
+
+Run the following commands to see the outcome:
+
+[source,bash]
+----
+neo4j-migrations apply
+----
+
+applies everything:
+
+[source,console]
+----
+[2022-06-01T19:16:20.058218000] Skipping 030 ("Fix person name constraint CE") due to unmet preconditions:
+// assume that edition is COMMUNITY
+[2022-06-01T19:16:20.223937000] Skipping already applied migration 010 ("Assert empty schema")
+[2022-06-01T19:16:20.225464000] Skipping already applied migration 020 ("Create person name unique")
+[2022-06-01T19:16:20.225748000] Skipping already applied migration 030 ("Fix person name constraint EE")
+[2022-06-01T19:16:20.226022000] Skipping already applied migration 040 ("Additional stuff")
+[2022-06-01T19:16:20.501686000] Applied migration 050 ("A new start").
+[2022-06-01T19:16:20.551983000] Applied migration 060 ("Assert final state").
+Database migrated to version 060.
+----
+
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER
+----
+
+presents the remote catalog as
+
+[source,cypher]
+----
+CREATE CONSTRAINT unique_person_id IF NOT EXISTS FOR (n:Person) REQUIRE n.id IS UNIQUE;
+----
+
+and so does the local catalog
+
+[source,bash]
+----
+neo4j-migrations show-catalog format=CYPHER mode=LOCAL 2&>/dev/null
+----
+
+The redirect is included here so that log messages on stderr are skipped (the message about one migration skipped due to unmet preconditions).
+

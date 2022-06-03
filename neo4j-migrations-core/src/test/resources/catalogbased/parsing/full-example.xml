@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes>
+			<index name="title_index" type="fulltext">
+				<label>Book</label>
+				<properties>
+					<property>title</property>
+				</properties>
+			</index>
+			<index name="reads_index">
+				<type>READS</type>
+				<properties>
+					<property>date</property>
+					<property>percentage</property>
+				</properties>
+			</index>
+		</indexes>
+		<constraints>
+			<constraint name="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+			<constraint name="exists_isbn" type="exists">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<create item="unique_isbn"/>
+	<drop>
+		<constraint name="old_keys" type="key">
+			<label>Book</label>
+			<properties>
+				<property>p1</property>
+				<property>p2</property>
+			</properties>
+		</constraint>
+	</drop>
+</migration>

@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Locale;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -31,24 +32,6 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^.*?edition is *(?<edition>\\w++)?$");
 
 	/**
-	 * Neo4j edition
-	 */
-	enum Edition {
-		/**
-		 * Constant for the enterprise edition.
-		 */
-		ENTERPRISE,
-		/**
-		 * Constant for the community edition.
-		 */
-		COMMUNITY,
-		/**
-		 * Constant for an unknown edition.
-		 */
-		UNKNOWN
-	}
-
-	/**
 	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
 	 * a corresponding precondition.
 	 *
@@ -62,7 +45,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 			return Optional.empty();
 		} else {
 			try {
-				Edition edition = Edition.valueOf(matcher.group("edition").toUpperCase(Locale.ROOT));
+				Neo4jEdition edition = Neo4jEdition.of(matcher.group("edition"), false);
 				return Optional.of(type -> new EditionPrecondition(type, edition));
 			} catch (Exception e) {
 				throw new IllegalArgumentException(
@@ -73,19 +56,14 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 		}
 	}
 
-	static Edition getEdition(ConnectionDetails connectionDetails) {
+	static Neo4jEdition getEdition(ConnectionDetails connectionDetails) {
 
-		try {
-			String serverEdition = connectionDetails.getServerEdition();
-			return serverEdition == null ? Edition.UNKNOWN : Edition.valueOf(serverEdition.toUpperCase(Locale.ROOT));
-		} catch (IllegalArgumentException e) {
-			return Edition.UNKNOWN;
-		}
+		return Neo4jEdition.of(connectionDetails.getServerEdition());
 	}
 
-	private final Edition edition;
+	private final Neo4jEdition edition;
 
-	private EditionPrecondition(Type type, Edition edition) {
+	private EditionPrecondition(Type type, Neo4jEdition edition) {
 		super(type);
 		this.edition = edition;
 	}
@@ -95,7 +73,7 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 		return getEdition(migrationContext.getConnectionDetails()).equals(edition);
 	}
 
-	Edition getEdition() {
+	Neo4jEdition getEdition() {
 		return edition;
 	}
 

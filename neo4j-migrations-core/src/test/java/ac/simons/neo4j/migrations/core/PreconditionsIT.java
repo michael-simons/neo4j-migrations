@@ -27,12 +27,13 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
  */
-//@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers(disabledWithoutDocker = true)
 class PreconditionsIT {
 
 	static {

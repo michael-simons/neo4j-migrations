@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -82,13 +85,16 @@ abstract class TestBase {
 
 		SessionConfig sessionConfig = getSessionConfig(database);
 
+		List<String> constraintsToBeDropped;
+		List<String> indexesToBeDropped;
 		try (Session session = driver.session(sessionConfig)) {
 			session.run("MATCH (n) DETACH DELETE n");
+			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD 'DROP CONSTRAINT ' + name as cmd").list(r -> r.get("cmd").asString());
+			indexesToBeDropped = session.run("SHOW INDEXES YIELD 'DROP INDEX ' + name as cmd").list(r -> r.get("cmd").asString());
 		}
 
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE");
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE");
-		dropConstraint(driver, database, "DROP CONSTRAINT ON (f:A) ASSERT f.id IS UNIQUE");
+		constraintsToBeDropped.forEach(cmd -> dropConstraint(driver, database, cmd));
+		indexesToBeDropped.forEach(cmd -> dropIndex(driver, database, cmd));
 	}
 
 	static int lengthOfMigrations(Driver driver, String database) {
@@ -122,7 +128,16 @@ abstract class TestBase {
 		SessionConfig sessionConfig = getSessionConfig(database);
 
 		try (Session session = driver.session(sessionConfig)) {
-			session.writeTransaction(t -> t.run(constraint).consume());
+			assertThat(session.writeTransaction(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
+		} catch (Neo4jException e) {
+		}
+	}
+
+	static void dropIndex(Driver driver, String database, String index) {
+		SessionConfig sessionConfig = getSessionConfig(database);
+
+		try (Session session = driver.session(sessionConfig)) {
+			assertThat(session.writeTransaction(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
 		} catch (Neo4jException e) {
 		}
 	}

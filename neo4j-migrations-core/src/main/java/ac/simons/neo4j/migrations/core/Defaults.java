@@ -62,12 +62,12 @@ public final class Defaults {
 	public static final String LOCATIONS_TO_SCAN_WITHOUT_PREFIX = "neo4j/migrations";
 
 	/**
-	 * Default locations to scan (with a {@link ac.simons.neo4j.migrations.core.internal.Location.LocationType} prefix).
+	 * Default locations to scan (with a {@link Location.LocationType} prefix).
 	 */
 	public static final String LOCATIONS_TO_SCAN_VALUE = "classpath:" + LOCATIONS_TO_SCAN_WITHOUT_PREFIX;
 
 	/**
-	 * Default locations to scan (with a {@link ac.simons.neo4j.migrations.core.internal.Location.LocationType} prefix).
+	 * Default locations to scan (with a {@link Location.LocationType} prefix).
 	 */
 	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList(LOCATIONS_TO_SCAN_VALUE);
 

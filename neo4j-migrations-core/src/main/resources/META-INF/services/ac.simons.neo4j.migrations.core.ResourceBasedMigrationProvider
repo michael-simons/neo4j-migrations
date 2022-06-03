@@ -1,0 +1,2 @@
+ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider
+ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider

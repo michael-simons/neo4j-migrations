@@ -15,11 +15,11 @@
  */
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
-import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-import ac.simons.neo4j.migrations.core.internal.Location;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -36,6 +36,7 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
 import io.quarkus.runtime.util.ClassPathUtils;
 
@@ -113,17 +114,25 @@ public class MigrationsProcessor {
 			discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class<?>[0]));
 	}
 
-	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<String> locationsToScan) throws IOException {
+	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<ResourceBasedMigrationProvider> providers, Collection<String> locationsToScan) throws IOException {
 
 		if (locationsToScan.isEmpty()) {
 			return Set.of();
 		}
 
 		var resourcesFound = new HashSet<ResourceWrapper>();
-		var expectedCypherSuffix = "." + Defaults.CYPHER_SCRIPT_EXTENSION;
-		Predicate<Path> isCypherFile = path -> Files.isRegularFile(path) && path.getFileName().toString()
-			.toLowerCase(Locale.ROOT)
-			.endsWith(expectedCypherSuffix);
+		var allSupportedExtensions = providers.stream()
+			.map(ResourceBasedMigrationProvider::getExtension)
+			.map(ext -> "." + ext)
+			.collect(Collectors.toSet());
+
+		Predicate<Path> isCypherFile = path -> {
+			if (!Files.isRegularFile(path)) {
+				return false;
+			}
+			var fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+			return allSupportedExtensions.stream().anyMatch(fileName::endsWith);
+		};
 
 		// This piece is deliberately not using the streams due to the heckmeck with catching IOExceptions
 		// and to avoid allocations of several sets.
@@ -162,9 +171,16 @@ public class MigrationsProcessor {
 
 	@BuildStep
 	@SuppressWarnings("unused")
+	ServiceProviderBuildItem resourceBasedMigrationProviderServices() {
+		return ServiceProviderBuildItem.allProvidersFromClassPath(ResourceBasedMigrationProvider.class.getName());
+	}
+
+	@BuildStep
+	@SuppressWarnings("unused")
 	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
 
-		var resourcesFoundDuringBuild = findResourceBasedMigrations(buildTimeProperties.locationsToScan);
+		var providers = ResourceBasedMigrationProvider.unique();
+		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan);
 		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));
 	}
 

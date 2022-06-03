@@ -20,8 +20,8 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.internal.Location;
-import ac.simons.neo4j.migrations.core.internal.Location.LocationType;
+import ac.simons.neo4j.migrations.core.Location;
+import ac.simons.neo4j.migrations.core.Location.LocationType;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -68,7 +68,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ValidateCommand.class },
+	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
 	versionProvider = ManifestVersionProvider.class
 )
 public final class MigrationsCli implements Runnable {

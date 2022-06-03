@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<verify useCurrent="true" allowEquivalent="false"/>
+</migration>

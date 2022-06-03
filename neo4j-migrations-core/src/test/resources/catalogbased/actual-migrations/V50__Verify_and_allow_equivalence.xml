@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+
+	<catalog>
+		<constraints>
+			<constraint name="something_irrelevant" type="exists">
+				<label>Person</label>
+				<properties>
+					<property>name</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<verify/>
+	<apply/>
+</migration>

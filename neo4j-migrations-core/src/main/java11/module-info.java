@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+
 @SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
 module ac.simons.neo4j.migrations.core {
 
@@ -23,5 +27,9 @@ module ac.simons.neo4j.migrations.core {
 	requires transitive org.neo4j.driver;
 
 	exports ac.simons.neo4j.migrations.core;
-	exports ac.simons.neo4j.migrations.core.internal to ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven, ac.simons.neo4j.migrations.quarkus.runtime;
+	exports ac.simons.neo4j.migrations.core.internal to
+		ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven,
+		ac.simons.neo4j.migrations.quarkus.deployment, ac.simons.neo4j.migrations.quarkus.runtime;
+
+	provides ResourceBasedMigrationProvider with CypherResourceBasedMigrationProvider, DefaultCatalogBasedMigrationProvider;
 }

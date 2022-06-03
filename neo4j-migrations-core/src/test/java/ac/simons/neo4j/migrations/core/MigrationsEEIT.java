@@ -176,8 +176,8 @@ class MigrationsEEIT {
 
 		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j"))
 			.hasSize(2)
-			.containsEntry("db1", 3)
-			.containsEntry("<default>", 3);
+			.containsEntry("db1", 4)
+			.containsEntry("<default>", 4);
 	}
 
 	@ParameterizedTest
@@ -228,7 +228,7 @@ class MigrationsEEIT {
 		migrations.apply();
 
 		// Assert that verification runs in the correct database
-		assertThat(TestBase.allLengthOfMigrations(driver, actualSchemaDatabase)).containsEntry(targetDatabaseInStats, 8);
+		assertThat(TestBase.allLengthOfMigrations(driver, actualSchemaDatabase)).containsEntry(targetDatabaseInStats, 9);
 
 		// Assert that the Cypher-based migration was correctly applied
 		try (Session session = targetDatabase == null ? driver.session() : driver.session(SessionConfig.forDatabase(targetDatabase))) {
@@ -381,7 +381,7 @@ class MigrationsEEIT {
 		assertThat(allLengths)
 			.containsEntry("neo4j", 2)
 			.containsEntry("migrationtest", 2)
-			.containsEntry("anothertarget", 8);
+			.containsEntry("anothertarget", 9);
 
 		Stream.of("migrationTest", "neo4j", "anotherTarget").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {

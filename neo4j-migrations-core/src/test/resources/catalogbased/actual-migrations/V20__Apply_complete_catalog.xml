@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes>
+			<index name="book_title">
+				<label>Book</label>
+				<properties>
+					<property>title</property>
+				</properties>
+			</index>
+		</indexes>
+		<constraints>
+			<constraint name="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+			<constraint name="exists_isbn" type="exists">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<apply />
+</migration>

@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,8 +46,8 @@ final class DiscoveryService {
 
 	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {
 
-		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, CypherResourceDiscoverer.forMigrations(resourceScanner)));
-		this.callbackDiscoverers = Collections.singletonList(CypherResourceDiscoverer.forCallbacks(resourceScanner));
+		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner)));
+		this.callbackDiscoverers = Collections.singletonList(ResourceDiscoverer.forCallbacks(resourceScanner));
 	}
 
 	/**
@@ -62,18 +64,25 @@ final class DiscoveryService {
 			throw new MigrationsException("Unexpected error while scanning for migrations", e);
 		}
 
-		List<CypherBasedMigration> cyperBasedMigrations = migrations.stream().filter(CypherBasedMigration.class::isInstance)
-			.map(CypherBasedMigration.class::cast)
+		List<MigrationWithPreconditions> cypherBasedMigrations = migrations.stream().filter(MigrationWithPreconditions.class::isInstance)
+			.map(MigrationWithPreconditions.class::cast)
 			.collect(Collectors.toList());
 		Map<Migration, List<Precondition>> migrationsAndPreconditions = new HashMap<>();
-		computeAlternativeChecksums(cyperBasedMigrations, migrationsAndPreconditions);
+		computeAlternativeChecksums(cypherBasedMigrations, migrationsAndPreconditions);
 
 		migrations.removeIf(migration -> hasUnmetPreconditions(migrationsAndPreconditions, migration, context));
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
+		Catalog catalog = context.getCatalog();
+		if (catalog instanceof WriteableCatalog) {
+			WriteableCatalog writeableSchema = (WriteableCatalog) catalog;
+			migrations.stream().filter(CatalogBasedMigration.class::isInstance)
+				.map(CatalogBasedMigration.class::cast)
+				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));
+		}
 		return Collections.unmodifiableList(migrations);
 	}
 
-	private void computeAlternativeChecksums(List<CypherBasedMigration> migrations,
+	private void computeAlternativeChecksums(List<MigrationWithPreconditions> migrations,
 		Map<Migration, List<Precondition>> migrationsAndPreconditions) {
 		migrations.forEach(m -> {
 			List<Precondition> preconditions = m.getPreconditions();
@@ -96,7 +105,7 @@ final class DiscoveryService {
 
 	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration, MigrationContext context) {
 
-		if (!(migration instanceof CypherBasedMigration)) {
+		if (!(migration instanceof MigrationWithPreconditions)) {
 			return false;
 		}
 

@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * Compares two Neo4j versions.
+ * Compares two Neo4j versions strings.
  *
  * @author Michael J. Simons
  * @since 1.5.0

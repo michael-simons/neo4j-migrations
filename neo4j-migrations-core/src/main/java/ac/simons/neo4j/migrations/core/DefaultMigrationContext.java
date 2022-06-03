@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -62,6 +64,8 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile ConnectionDetails connectionDetails;
+
+	private final VersionedCatalog catalog = new DefaultCatalog();
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
@@ -148,6 +152,11 @@ final class DefaultMigrationContext implements MigrationContext {
 			}
 		}
 		return availableConnectionDetails;
+	}
+
+	@Override
+	public Catalog getCatalog() {
+		return catalog;
 	}
 
 	private ConnectionDetails getConnectionDetails0() {

@@ -18,7 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import ac.simons.neo4j.migrations.core.EditionPrecondition.Edition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -98,7 +99,7 @@ class PreconditionTest {
 		"//assUMe that edition is community; ASSUMPTION; COMMUNITY",
 		"//ASSERT that edition is enterprise; ASSERTION; ENTERPRISE",
 	})
-	void shouldParseEditionPreconditions(String value, Precondition.Type expectedType, Edition expectedEdition) {
+	void shouldParseEditionPreconditions(String value, Precondition.Type expectedType, Neo4jEdition expectedEdition) {
 
 		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
 		assertThat(optionalPrecondition).hasValueSatisfying(precondition -> {
@@ -191,6 +192,11 @@ class PreconditionTest {
 			@Override public ConnectionDetails getConnectionDetails() {
 				return new DefaultConnectionDetails(null, "Neo4j/4.4", null, null, null, null);
 			}
+
+			@Override
+			public Catalog getCatalog() {
+				return Catalog.empty();
+			}
 		};
 
 		Optional<Precondition> optionalPrecondition = Precondition.parse(value);
@@ -230,11 +236,11 @@ class PreconditionTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNKNOWN", "special, UNKNOWN" })
-	void editionShouldBeDetectable(String value, Edition edition) {
+	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNDEFINED", "special, UNDEFINED" })
+	void editionShouldBeDetectable(String value, String edition) {
 		assertThat(
 			EditionPrecondition.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
-			.isEqualTo(edition);
+			.isEqualTo(Neo4jEdition.valueOf(edition));
 	}
 
 	@Nested

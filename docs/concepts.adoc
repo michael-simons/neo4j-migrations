@@ -130,6 +130,89 @@ configure Neo4j-Migrations to use `TransactionMode#PER_STATEMENT` (see <<concept
 This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
 before has already been committed.
 
+[[concepts_migrations_catalog-based]]
+=== Based on a catalog
+
+Migrations can be used to define a local catalog in an iterative fashion. Each migration discovered will contribute to a catalog
+known in the context of a `Migration` instance.
+
+Catalog based migrations are written in XML and can contain one `<catalog />` item per migration and many `<operation />` items
+per migration.
+
+The simplest way of defining a catalog based migrations looks like this:
+
+.V01__Create_unique_isbn.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
+----
+
+Here a unique constraint is defined for the property `isbn` of all nodes labelled `Book`. This constraint is known only locally
+and does not contribute to the contextual catalog.
+
+This can also be rewritten such as this:
+
+.V01__Create_unique_isbn.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
+----
+
+The constraint can be reused later, too:
+
+.V23__Drop_old_constraint.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
+----
+
+Indexes are supported, too:
+
+.V01__Create_an_index_local.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_an_index_local.xml[]
+----
+
+NOTE: The XML schema supports types for indexes as well: `FULLTEXT` and `TEXT`. The former being the well known
+      Lucene backed indexes, the latter the new `TEXT` index introduced in Neo4j.
+
+
+To learn more about the scheme, have a look at the <<appendix_xml_schemes_migration, XML schema explained>> and also make
+sure you follow the <<concepts_catalog, concepts about catalogs>> as well as the <<usage_defining_asserting_applying_catalogs, catalog examples>>.
+
+*What's the advantage of using XML instead of a Cypher-based migration for this purpose?*
+The syntax for defining constraints and indexes has been changed considerably over the last decade of Neo4j versions and
+many variants that used to be possible in Neo4j 3.5 have been deprecated for a while and will vanish in Neo4j 5.0.
+
+With a neutral representation of constraints and indexes, we can translate these items into the syntax that fits your target
+database. In addition, we also can do idempotent operations on older databases that don't actually have them.
+
+*What's the advantage of using Catalog-based migrations for the purpose of creating constraints and indexes for specific
+versions of Neo4j compared to Cypher-based migrations with <<concepts_preconditions,preconditions>>?* When using preconditions
+it us up to you to take care of newer versions of Neo4j as the come available as well as making sure you get the syntax right.
+Using a Catalog-based migration frees you from this duty. Preconditions have been available earlier than the
+<<concepts_catalog,concept of a catalog>> and can be used for many purposes (i.e. making sure actual data exists).
+In contrast to that, Catalog-based migrations have a very strong focus on actual schema items.
+
+However, Catalog-based migrations offer support for preconditions too. They can be added as XML processing instructions
+anywhere in the document and look like this:
+
+.Example for preconditions as processing instructions
+[source,xml,indent=0,tabsize=2]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+	<?assert that edition is enterprise ?>
+	<?assume q' RETURN true?>
+</migration>
+----
+
+They can appear anywhere in the document, but we recommend putting them into the root element.
+
+WARNING: While both elements - `constraint` and `index` - do support a child element named `options`, these are not
+         rendered or used yet.
+
 [[concepts_migrations_java-based]]
 === Java-based
 
@@ -231,6 +314,124 @@ afterValidate:: After validating a database, independent of outcome.
 beforeInfo:: Before getting information about the target database.
 afterInfo:: After getting information about the target database.
 
+[[concepts_catalog]]
+== Using a catalog of items
+
+Neo4j is a schema free or a database with little schema. There are labels for nodes, types for relationships and both can
+have properties. Hence, property graph. But there's no "hard" schema determining that all nodes have all the same properties
+with the same type.
+
+However, there are concepts to force the existence of properties on entities: Constraints.
+Constraints can also enforce uniqueness and keys; they go hand in hand with indexes. Constraints and indexes are what we refer
+to in Neo4j-Migrations as schema.
+
+NOTE: Why the heck XML? While XML has been badmouthed for a while now, it has a couple of advantages over JSON and YAML,
+      especially in terms of schema: There are many options to validate a given document, Document Type Definition (DTD)
+      and XML Schema being two of them. Neo4j-Migrations opted for the latter, it is documented in the <<appendix_xml_schemes_migration, appendix>>.
+      Most of your tooling should be able to load this and validate any migration for you and guide you to what is possible
+      and what not.
+      +
+      Our benefit lies in the fact that XML support comes directly with the JVM, and we don't need to introduce any additional
+      dependencies to parse and validate content.
+
+=== What is a catalog?
+
+Inside Neo4j-Migrations the concept of a catalog has been introduced. A catalog holds the same type of entities as a schema
+and migrations can pick up elements from the catalog to define the final schema.
+
+Items can reside multiple times inside the catalog, identified by their id and the version of the migration in which
+they have been defined. This is so that a drop operation for example can refer to the last version of an entity applied
+to the schema and not to the latest, in which properties or options might have change.
+
+==== How is a catalog defined?
+
+The catalog comes in two flavors, the remote and the local catalog. The remote catalog - or in other words the catalog defined by
+the databases' schema - is the easier one to understand: It is a read-only view on all items contained in the database schema
+that Neo4j-Migrations supports, such as constraints and indexes. It can be retrieved on demand any time.
+
+The local catalog is a bit more complex: It is build in an iterative way when discovering migrations. Catalog-based migrations
+are read in versioning order. Items in their `<catalog />` definition are required to have a unique id (name) per migration.
+All items are added in a versioned manner to the local catalog. If an item named `a` is defined in both version `n` and `n+x`,
+it will be accessible in the catalog in both variants. Thus, Neo4j-Migrations can for example support dropping of unnamed
+items and recreating them in a new fashion. The approach of a versioned, local catalog also allows executing advanced operations
+like `verify`: The verification of the remote catalog against the local catalog triggered in migration `n+1` can refer to
+the local catalog in version `n` (the default) to assert to ground for all following operations, or for the current version
+to make sure everything exists in a given point in time without executing further operations.
+
+Last but not least: Sometimes it is required to start fresh in a given migration. For this purpose the catalog element supports
+an additional attribute `reset`. Setting this to true in any given migration will cause the catalog to be reset in this version.
+Resetting means either being replaced with an empty catalog (`<catalog reset="true" />`) or replaced with the actual content.
+
+=== Operations working with a catalog
+
+Operations available to catalog based migrations are
+
+`create`:: Creates an item
+`drop`:: Drops an item
+`verify`:: Verify the locally defined catalog against the remote schema
+`apply`:: Drops all supported types from the remote schema and creates all elements of the local catalog.
+
+While `create` and `drop` work on single item,  `verify` and `apply` work on the whole, known catalog  in a defined version range.
+
+NOTE: A word on naming: Neo4j-Migrations requires unique names of catalog items across the catalog. In contrast to the
+Neo4j database itself, using the name `wurstsalat` for both a constraint and an index is prohibited. Recommended
+names in this case would be `wurstsalat_exists` and `wurstsalat_index`.
+
+Both `create` and `drop` operations are idempotent by default.
+This behaviour can be changed using `ifNotExists` and `ifExists` attributes with a value of `false`.
+
+Be aware that idempotent does not mean "force", especially in the `create` case. If you want to update / replace an existing
+constraint, and you are unsure if it does exist or not, use
+
+[source, xml]
+----
+<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+    <drop item="a" ifExists="true" />
+    <create item="a" />
+</migration>
+----
+
+The drop operation will ensure that the constraint goes away, and the `create` operation will safely build a new one.
+
+==== Verification (or assertions)
+
+`verify` asserts that all items in the catalog are present in an equivalent or identical form in the database. This is a useful
+step inside a migration to make sure things are "as you expect" before applying further migrations. Thus, it can only be
+used before running any `create`, `drop` or `apply` commands.
+
+The catalog items that are subject to the verification are by default made up from all prior versions to the migration
+in which the `verify` appears. As an example, inside migration `V2.1` a `verify` appears. All catalog items from versions
+1.0 upto 2.0 will take part of the assertion. Items defined in 2.1 with the same name won't be asserted, so that you can
+assert a given state and then redefine parts of it for example.
+This behavior can be changed by using the attribute `latest`, setting it to `true` on the element (`<verify latest="true" />`).
+This will take the catalog as defined in *this* version.
+
+==== Applying the whole catalog
+
+`apply` on the other hands drops all items in the current physical schema and creates all items in state of the catalog
+at the current version of migration. From the same example as above, everything from 1.0 upto and including 2.1 will be
+included, definitions will be identified by their name respectively id.
+
+WARNING: The `apply` operation loads all supported item types from the database, drops them and then creates all items of
+         the local catalog. This is a potentially destructive operation as it might drop items you have no replacement for.
+         +
+         Also be aware that neo4j-migrations will never drop the constraints needed for the locking node to function proper
+         (Basically, none of the constraints defined for the label `__Neo4jMigrationsLock`).
+
+`apply` can't be used together with `drop` or `create` in the same migration.
+
+=== Create a catalog from the actual database schema
+
+The API provides `getDatabaseCatalog` and `getLocalCatalog` methods.
+The former reads all supported items in the Neo4j schema and creates a catalog view on them, the latter provides access
+to the catalog defined by all migrations.
+
+Those methods are used by the CLI to provide the ability to dump the whole database schema as a catalog definition in our
+own XML format or as Cypher script targeting a specific Neo4j version.
+
+Last but not least, there's public API `ac.simons.neo4j.migrations.core.catalog.CatalogDiff.between` that can be used to
+diff two catalogs and evaluate whether they are identical, equivalent or different to each other.
+
 [[concepts_naming-conventions]]
 == Naming conventions
 
@@ -280,6 +481,11 @@ If you use more than one script in the same lifecycle phase without a descriptio
 NOTE: Callback scripts are not considered to be immutable and can change between execution.
 If you use DDL statements such as `CREATE USER` or `CREATE DATABASE` in them make sure you look for an `IF NOT EXITS`
 option in your desired clause so that these statements become idempotent.
+
+=== Catalog-based migrations
+
+Catalog-based migrations (See <<concepts_catalog>>) are XML files based on the `migration.xsd` scheme. As such they require
+the extension `.xml` and otherwise follow the same naming conventions as <<concepts_naming-conventions_migration_scripts, Cypher-based resources>>.
 
 === Java-based migrations
 
@@ -347,8 +553,9 @@ so that this feature doesn't break compatibility with schemas created before 1.1
 [[concepts_transactions]]
 == Transactions
 
-All operations executed directly by Neo4j-Migrations are executed inside transactional functions.
-This is essentially a scope around one or more statements which will be retried on certain conditions (for example, on losing connectivity inside a cluster setup).
+All operations that are managed by Neo4j-Migrations directly, except catalog-based migrations, are executed
+inside transactional functions. This is essentially a scope around one or more statements which will be retried on
+certain conditions (for example, on losing connectivity inside a cluster setup).
 
 You can configure if all statements of one <<concepts_migrations_cypher-based,Cypher-based>> migration go into one
 transactional function or if each statement goes into its own transactional scope:
@@ -371,6 +578,11 @@ Per Migration is the default, as we think it's safer:
 Either the whole migration is applied (or failed) or none.
 But there are certain scenarios that require a transaction per statement, for example most DDL operations such as creating
 databases might not be run together with DML operations in the same transaction.
+
+WARNING: <<concepts_catalog, Catalog-based migrations>> - that is creation of indexes and constraints through the dedicated
+         Neo4j-Migrations API - are always executed inside auto-commit transactions, as the underlying connectivity has some
+         deficiencies that don't allow retries or continuing using a transaction in some failure conditions that might happen
+         during the creation of schema items.
 
 [[concepts_preconditions]]
 == Preconditions

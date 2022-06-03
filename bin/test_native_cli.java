@@ -27,7 +27,8 @@ public class test_native_cli {
 	public static void main(String... a) throws Exception {
 
 		var executable = Paths.get("./neo4j-migrations-cli/target/neo4j-migrations").toAbsolutePath().normalize().toString();
-		var scripts = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize();
+		var location1 = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize();
+		var location2 = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/catalogbased_changesets").toAbsolutePath().normalize();
 
 		// Let Ryuk take care of it, so no try/catch with autoclose
 		var neo4j = new Neo4jContainer<>("neo4j:4.3").withReuse(true);
@@ -41,13 +42,15 @@ public class test_native_cli {
 		var expectedOutput = List.of(
 			"Applied migration 0001 (\"delete old data\").",
 			"Applied migration 0002 (\"create new data\").",
-			"Database migrated to version 0002."
+			"Applied migration 0003 (\"Create constraints\").",
+			"Database migrated to version 0003."
 		);
 
 		var p = new ProcessBuilder(executable,
 			"--address", neo4j.getBoltUrl(),
 			"--password", neo4j.getAdminPassword(),
-			"--location", scripts,
+			"--location", location1,
+			"--location", location2,
 			"apply"
 		).redirectErrorStream(true).start();
 

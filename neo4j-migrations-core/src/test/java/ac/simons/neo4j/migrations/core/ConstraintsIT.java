@@ -44,12 +44,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
+ * Those tests here are unrelated to anything catalog based. They existed before and ensure that the constraints needed by
+ * neo4j-migrations work as expected.
+ *
  * @author Michael J. Simons
  * @soundtrack Guns n' Roses - Appetite For Democracy 3D
  */
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConstraintsIT {
+
+	public static final Config NO_DRIVER_LOGGING_CONFIG = Config.builder().withLogging(Logging.none()).build();
 
 	@ParameterizedTest
 	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, true", "neo4J/4.0, true", "Neo4j/4, true", "Neo4j/4.4, true",
@@ -223,9 +228,8 @@ class ConstraintsIT {
 
 		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
 
-			Config config = Config.builder().withLogging(Logging.none()).build();
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), NO_DRIVER_LOGGING_CONFIG)) {
 
 				MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
 
@@ -267,10 +271,10 @@ class ConstraintsIT {
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
 			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-			.withLabel("ac.simons.neo4j.migrations.core", "HBDIT");
+			.withLabel("ac.simons.neo4j.migrations.core", this.getClass().getSimpleName());
 		neo4j.start();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()))) {
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), NO_DRIVER_LOGGING_CONFIG)) {
 			dropAllConstraints(driver);
 		}
 		return neo4j;

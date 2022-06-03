@@ -81,18 +81,19 @@ class DiscovererTest {
 				MigrationsConfig.builder().withLocationsToScan(
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
-			Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
-			assertThat(migrations).hasSize(10)
+			Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
+			assertThat(migrations).hasSize(12)
 				.extracting(Migration::getDescription)
 				.contains("delete old data", "create new data",
 					"BondTheNameIsBond",
 					"BondTheNameIsBondNew",
 					"BondTheNameIsBondNewNew",
+					"Create constraints",
 					"Die halbe Wahrheit",
 					"Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu",
 					"MirFallenKeineNamenEin",
-					"WithCommentAtEnd"
+					"WithCommentAtEnd", "AMigration"
 				);
 		}
 
@@ -121,7 +122,7 @@ class DiscovererTest {
 						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath()).build(),
 					Mockito.mock(Driver.class));
 
-				Collection<Migration> migrations = CypherResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
+				Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
 				assertThat(migrations).hasSize(3)
 					.extracting(Migration::getDescription)
 					.contains("One", "Two", "Three");

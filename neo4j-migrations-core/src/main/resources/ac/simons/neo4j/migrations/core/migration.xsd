@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    Copyright 2020-2022 the original author or authors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         https://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   targetNamespace="http://michael-simons.github.io/neo4j-migrations"
+		   xmlns="http://michael-simons.github.io/neo4j-migrations"
+		   elementFormDefault="qualified">
+
+	<xs:element name="migration" type="migration"/>
+
+	<xs:complexType name="migration">
+		<xs:sequence>
+			<xs:element name="catalog" minOccurs="0" type="catalog"/>
+			<xs:element name="verify" minOccurs="0" type="verifyOperation" />
+			<xs:choice>
+				<xs:choice maxOccurs="unbounded">
+					<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="createOperation"/>
+					<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="dropOperation"/>
+				</xs:choice>
+				<xs:element name="apply" minOccurs="0" type="applyOperation"/>
+			</xs:choice>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="catalog">
+		<xs:all>
+			<xs:element name="constraints" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element type="constraint" name="constraint"
+									maxOccurs="unbounded" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="indexes" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element type="index" name="index"
+									maxOccurs="unbounded" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="reset" type="xs:boolean" default="false"/>
+	</xs:complexType>
+
+	<xs:complexType name="operation" />
+
+	<xs:complexType name="applyOperation">
+		<xs:complexContent>
+			<xs:extension base="operation" />
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="verifyOperation">
+		<xs:complexContent>
+			<xs:extension base="operation" >
+				<xs:attribute name="useCurrent" type="xs:boolean" default="false"/>
+				<xs:attribute name="allowEquivalent" type="xs:boolean" default="true"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="itemOperation">
+		<xs:complexContent>
+			<xs:extension base="operation">
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="constraint" type="constraint"/>
+						<xs:element name="index" type="index"/>
+					</xs:choice>
+				</xs:sequence>
+				<xs:attribute name="item" type="xs:string"/>
+				<xs:attribute name="ref" type="xs:IDREF"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="createOperation">
+		<xs:complexContent>
+			<xs:extension base="itemOperation">
+				<xs:attribute name="ifNotExists" type="xs:boolean" default="true"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="dropOperation">
+		<xs:complexContent>
+			<xs:extension base="itemOperation">
+				<xs:attribute name="ifExists" type="xs:boolean" default="true"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="properties">
+		<xs:sequence>
+			<xs:element type="xs:string" name="property"
+						maxOccurs="unbounded" minOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="catalogItem">
+		<xs:attribute name="name" use="required" type="xs:ID"/>
+	</xs:complexType>
+
+	<xs:complexType name="constraint">
+		<xs:complexContent>
+			<xs:extension base="catalogItem">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="label" type="xs:string"/>
+						<xs:element name="type" type="xs:string"/>
+					</xs:choice>
+					<xs:element type="properties" name="properties"/>
+					<xs:element type="xs:string" name="options" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="type" use="required">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="unique"/>
+							<xs:enumeration value="exists"/>
+							<xs:enumeration value="key"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="index">
+		<xs:complexContent>
+			<xs:extension base="catalogItem">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="label" type="xs:string"/>
+						<xs:element name="type" type="xs:string"/>
+					</xs:choice>
+					<xs:element type="properties" name="properties"/>
+					<xs:element type="xs:string" name="options" minOccurs="0"/>
+				</xs:sequence>
+				<xs:attribute name="type">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="fulltext"/>
+							<xs:enumeration value="text"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

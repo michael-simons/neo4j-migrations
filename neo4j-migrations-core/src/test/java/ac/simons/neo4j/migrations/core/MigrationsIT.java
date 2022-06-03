@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.io.File;
 import java.io.IOException;
@@ -334,14 +338,27 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Test
-	void shouldApplyCypherBasedMigrations() {
+	void shouldApplyResourceBasedMigrations() {
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
+
+		Catalog localCatalog = migrations.getLocalCatalog();
+		assertThat(localCatalog.getItems()).hasSize(2);
+		Catalog databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).isEmpty();
+		CatalogDiff diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).containsAll(localCatalog.getItems());
+
 		migrations.apply();
 
-		assertThat(lengthOfMigrations(driver, null)).isEqualTo(10);
+		assertThat(lengthOfMigrations(driver, null)).isEqualTo(12);
+
+		databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).hasSize(1);
+		diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).map(CatalogItem::getName).containsExactly(Name.of("constraint_with_options"));
 
 		try (Session session = driver.session()) {
 			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();
@@ -351,11 +368,11 @@ class MigrationsIT extends TestBase {
 				+ "  // in it!\n";
 			assertThat(prop).isEqualTo(value);
 
-			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum")
+			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
-				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "200310393",
-						"949907516", "949907516", "2884945437", "1491717096");
+				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "3878177065", "200310393",
+						"949907516", "949907516", "2884945437", "1491717096", "2342770059");
 		}
 	}
 }

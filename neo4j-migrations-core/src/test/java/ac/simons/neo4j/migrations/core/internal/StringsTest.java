@@ -60,6 +60,21 @@ final class StringsTest {
 			.withMessage("Statement to check must not be null");
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = { "", " ", "\t\t", "NULL"})
+	void isBlankShouldWork(String value) {
+
+		assertThat(Strings.isBlank("NULL".equals(value) ? null : value)).isTrue();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "", " ", "\t\t", "NULL", "a"})
+	void escapeIfNecessaryShouldBailOutEarly(String value) {
+
+		String valueUsed = "NULL".equals(value) ? null : value;
+		assertThat(Strings.escapeIfNecessary(valueUsed)).isSameAs(valueUsed);
+	}
+
 	@Nested
 	class Capitalization {
 

@@ -41,12 +41,31 @@ class MigrationsLockIT extends TestBase {
 		try (Session session = context.getSession()) {
 
 			long cnt = session.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) RETURN count(l) AS cnt",
-				Collections.singletonMap("id", lockId)).single()
+					Collections.singletonMap("id", lockId)).single()
 				.get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
 		} finally {
 
 			lock.unlock();
+		}
+	}
+
+	@Test
+	void shouldNotFailIfTheConstraintExistsAsUnnamedConstraint() {
+
+		try (Session session = driver.session()) {
+			int cnt = session.writeTransaction(
+				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
+					.consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+		}
+
+		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
+		MigrationsLock lock1 = new MigrationsLock(context);
+		try {
+			assertThatNoException().isThrownBy(lock1::lock);
+		} finally {
+			lock1.unlock();
 		}
 	}
 
@@ -63,7 +82,7 @@ class MigrationsLockIT extends TestBase {
 			assertThatExceptionOfType(Neo4jException.class).isThrownBy(
 					() -> session.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
 						.consume())
-				.matches(e -> "Neo.ClientError.Schema.ConstraintAlreadyExists" .equals(e.code()));
+				.matches(e -> "Neo.ClientError.Schema.ConstraintAlreadyExists".equals(e.code()));
 		}
 
 		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
@@ -123,6 +142,62 @@ class MigrationsLockIT extends TestBase {
 			}
 			// Remove the shutdown hook to avoid error messages in test because junit already closed the driver
 			lock.unlock();
+		}
+	}
+
+	@Test
+	void shouldUseNamedLock() {
+		MigrationsConfig migrationsConfig = MigrationsConfig.defaultConfig();
+		DefaultMigrationContext context = new DefaultMigrationContext(migrationsConfig, driver);
+
+		MigrationsLock lock = new MigrationsLock(context);
+		try {
+			lock.lock();
+			try (Session session = context.getSession()) {
+				long cnt = session.run(
+						"SHOW CONSTRAINTS YIELD name WHERE name =~ '__Neo4jMigrationsLock__has_unique.*' RETURN count(*)")
+					.single().get(0).asLong();
+				assertThat(cnt).isEqualTo(2);
+			}
+		} finally {
+			// Remove the shutdown hook to avoid error messages in test because junit already closed the driver
+			lock.unlock();
+		}
+	}
+
+	@Test
+	void cleanCleansAlsoUnnamedConstraints() {
+
+		// Create old-school constraints
+		try (Session session = driver.session()) {
+			int cnt = session.writeTransaction(
+				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
+					.consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+			cnt = session.writeTransaction(
+				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE")
+					.consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+		}
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withSchemaDatabase("neo4j")
+			.build(), driver);
+
+		CleanResult cleanResult = migrations.clean(true);
+
+		assertThat(cleanResult.getChainsDeleted()).isEmpty();
+		assertThat(cleanResult.getConstraintsRemoved()).isEqualTo(2);
+		assertThat(cleanResult.getIndexesRemoved()).isZero();
+		assertThat(cleanResult.getNodesDeleted()).isZero();
+		assertThat(cleanResult.getRelationshipsDeleted()).isZero();
+		assertThat(TestBase.allLengthOfMigrations(driver, "neo4j")).isEmpty();
+
+		try (Session session = driver.session()) {
+			int numConstraints = session.run("SHOW CONSTRAINTS YIELD name RETURN count(*) AS numConstraints").single()
+				.get(0).asInt();
+			assertThat(numConstraints).isZero();
 		}
 	}
 }

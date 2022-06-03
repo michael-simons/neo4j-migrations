@@ -9,3 +9,43 @@ Pending migration:: See _Resolved migration_.
 Resolved migration:: A migration that has been resolved in the classpath or the filesystem which has not been yet applied.
 Schema database:: A database inside a Neo4j enterprise instance or cluster that stores the schema information from Neo4j-Migrations.
 Target database:: A database inside a Neo4j enterprise instance or cluster that is refactored by Neo4j-Migrations.
+
+[[appendix_xml_schemes]]
+== XML Schemes
+
+[[appendix_xml_schemes_migration]]
+=== `migration.xsd`
+
+Before we jump into the pure joy of an https://en.wikipedia.org/wiki/XML_Schema_(W3C)[XML Schema], lets read in plain english
+what our schema can do:
+
+* A `<migration />` can have zero or exactly one `<catalog />` element.
+* A `<catalog />` consists of zero or one `<constraints />` and zero or one `<indexes />` elements. In addition, it can indicate
+  a `reset` attribute, replacing the current known content with the catalog currently being in definition.
+* Both of them can contain zero or more of their individual elements, according to their definition.
+* A `<migration />` can have zero or one `<verify />` operations and the `<verify />` operation must be the first operation.
+* A `<migration />` can than have zero or more `<create />` and `<drop />` operations *or* exactly one `<apply />` operation.
+  The `<apply />` operation is mutual exclusive to all operations working on single items.
+* Operations that work on a single item (create and drop) are allowed to define a single item locally. This item
+  won't participate in the global catalog.
+* Operations that work on a single item can refer to this item by either using the attribute `item` (a free form string)
+  or `ref` (an `xs:IDREF`). While the latter is useful for referring to items defined in the same migration (it will usually
+  be validated by your tooling), the former is handy to refer to items defined in other migrations.
+
+A catalog item will either have a child-element `<label />` in which case it will always refer to nodes or a mutual
+exclusive child-element `<type />` in which it always refers to relationships. The `type` attribute is unrelated
+to the target entity. This attribute defines the type of the element (such as unique- or existential constraints).
+
+We do support the following processing instructions:
+
+* `<?assert followed by a valid precondition ?>`
+* `<?assume followed by a valid precondition ?>`
+
+Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema for <<concepts_migrations_catalog-based, catalog-based migrations>> looks like this:
+
+.migration.xsd
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/core/migration.xsd[]
+----
+

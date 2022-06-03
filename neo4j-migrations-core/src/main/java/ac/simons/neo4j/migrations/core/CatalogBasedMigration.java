@@ -259,7 +259,6 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	static List<Operation> parseOperations(Document document, MigrationVersion version) {
 
 		// TODO make sure the result is ordered as defined in the schema (verify first, than item operatios OR apply (item operations and apply are mutal exclusive)
-		// TODO item operations should be sorted themselves by first working on constraints, than indexes
 		List<Operation> result = new ArrayList<>();
 
 		// We read the elements as they come, as there is no way to say "give me all elements of a given type"
@@ -279,7 +278,18 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 			result.add(type.build((Element) node, version));
 		}
 
-		return result;
+		// Make sure the operations are ordered if there are constraints (first) and indexes (second)
+		return result.stream().sorted((operation1, operation2) -> {
+					if (operation1 instanceof AbstractItemBasedOperation && operation2 instanceof AbstractItemBasedOperation
+					 && ((AbstractItemBasedOperation) operation1).getLocalItem().isPresent()
+					 && ((AbstractItemBasedOperation) operation2).getLocalItem().isPresent()) {
+						CatalogItem<?> item1 = ((AbstractItemBasedOperation) operation1).getLocalItem().get();
+						CatalogItem<?> item2 = ((AbstractItemBasedOperation) operation2).getLocalItem().get();
+						return item1.getOrder().compareTo(item2.getOrder());
+					}
+					return 0;
+				})
+				.collect(Collectors.toList());
 	}
 
 	private final String source;

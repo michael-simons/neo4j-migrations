@@ -47,4 +47,13 @@ public interface CatalogItem<T extends ItemType> {
 	 * @return {@literal true} if this item has a generated name.
 	 */
 	boolean hasGeneratedName();
+
+	default Integer getOrder() {
+		if (this instanceof Constraint) {
+			return 0;
+		} else if (this instanceof Index) {
+			return 1;
+		}
+		return 99;
+	}
 }

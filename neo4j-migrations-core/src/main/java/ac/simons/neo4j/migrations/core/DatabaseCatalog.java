@@ -23,9 +23,11 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.QueryRunner;
 
@@ -57,10 +59,10 @@ final class DatabaseCatalog implements Catalog {
 		return new DatabaseCatalog(items);
 	}
 
-	private final Set<CatalogItem<?>> items;
+	private final List<CatalogItem<?>> items;
 
 	private DatabaseCatalog(Set<CatalogItem<?>> items) {
-		this.items = Collections.unmodifiableSet(items);
+		this.items = items.stream().sorted(Comparator.comparing(CatalogItem::getOrder)).collect(Collectors.toList());
 	}
 
 	@Override

@@ -152,6 +152,9 @@ class CatalogBasedMigrationTest {
 				.named("another_index_name")
 				.onProperties("property12", "property22");
 
+		final String indexQueryV1 = "CREATE INDEX index_name FOR (n:`Book`) ON (n.`property1`, n.`property2`)";
+    	final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:`Book`) ON (n.`property12`, n.`property22`)";
+
 		final VersionedCatalog catalog = new DefaultCatalog();
 
 		ArgumentCaptor<String> argumentCaptor;
@@ -484,20 +487,24 @@ class CatalogBasedMigrationTest {
 			when(createResult.consume()).thenReturn(summary);
 
 			String createQuery = "CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.isbn IS UNIQUE";
+			when(runner.run(Mockito.anyString())).thenReturn(defaultResult);
 			when(runner.run(createQuery)).thenReturn(createResult);
+			when(defaultResult.consume()).thenReturn(summary);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
 				runner);
 			operation.execute(context);
 
-			verify(runner, times(3)).run(argumentCaptor.capture());
+			verify(runner, times(5)).run(argumentCaptor.capture());
 			assertThat(argumentCaptor.getAllValues())
-				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(), createQuery);
+				.containsExactly(Neo4jVersion.V4_4.getShowConstraints(), Neo4jVersion.V4_4.getShowIndexes(),
+						indexQueryV1, indexQueryV2, createQuery);
 			verify(defaultResult, times(2)).stream();
+			verify(defaultResult, times(2)).consume();
 			verify(createResult).consume();
-			verify(summary).counters();
-			verify(counters).constraintsAdded();
-			verify(counters).indexesAdded();
+			verify(summary, times(3)).counters();
+			verify(counters, times(3)).constraintsAdded();
+			verify(counters, times(3)).indexesAdded();
 			verifyNoMoreInteractions(runner, defaultResult, summary, counters);
 		}
 
@@ -1037,10 +1044,13 @@ class CatalogBasedMigrationTest {
 				runner);
 			drop.execute(context);
 
-			verify(runner, times(2)).run(argumentCaptor.capture());
+			String indexListCall = "CALL db.indexes()";
+			when(runner.run(indexListCall)).thenReturn(result);
+			verify(runner, times(3)).run(argumentCaptor.capture());
 			List<String> queries = argumentCaptor.getAllValues();
-			assertThat(queries).containsExactly(firstDrop, expectedCall);
+			assertThat(queries).containsExactly(firstDrop, expectedCall, indexListCall);
 			verify(result).list(Mockito.<Function<Record, Constraint>>any());
+			verify(result).list(Mockito.<Function<Record, Index>>any());
 			verifyNoMoreInteractions(runner, result, defaultResult);
 		}
 

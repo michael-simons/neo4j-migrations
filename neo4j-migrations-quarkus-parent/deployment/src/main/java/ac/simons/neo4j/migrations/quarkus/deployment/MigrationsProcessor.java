@@ -113,14 +113,14 @@ public class MigrationsProcessor {
 			discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class<?>[0]));
 	}
 
-	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<String> locationsToScan) throws IOException {
+	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<ResourceBasedMigrationProvider> providers, Collection<String> locationsToScan) throws IOException {
 
 		if (locationsToScan.isEmpty()) {
 			return Set.of();
 		}
 
 		var resourcesFound = new HashSet<ResourceWrapper>();
-		var allSupportedExtensions = ResourceBasedMigrationProvider.unique().stream()
+		var allSupportedExtensions = providers.stream()
 			.map(ResourceBasedMigrationProvider::getExtension)
 			.map(ext -> "." + ext)
 			.collect(Collectors.toSet());
@@ -170,9 +170,12 @@ public class MigrationsProcessor {
 
 	@BuildStep
 	@SuppressWarnings("unused")
-	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
+	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties, BuildProducer<ReflectiveClassBuildItem> providerClasses) throws IOException {
 
-		var resourcesFoundDuringBuild = findResourceBasedMigrations(buildTimeProperties.locationsToScan);
+		var providers = ResourceBasedMigrationProvider.unique();
+		providerClasses.produce(new ReflectiveClassBuildItem(true, true, true, providers.stream().map(ResourceBasedMigrationProvider::getClass).toArray(Class[]::new)));
+
+		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan);
 		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));
 	}
 

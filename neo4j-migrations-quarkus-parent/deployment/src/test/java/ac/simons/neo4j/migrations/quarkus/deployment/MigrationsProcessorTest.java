@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
 
 import java.io.IOException;
@@ -99,7 +100,7 @@ class MigrationsProcessorTest {
 		@Test
 		void scannerShouldWork() throws IOException {
 
-			var resources = MigrationsProcessor.findResourceBasedMigrations(List.of("classpath:static"));
+			var resources = MigrationsProcessor.findResourceBasedMigrations(ResourceBasedMigrationProvider.unique(), List.of("classpath:static"));
 			assertThat(resources)
 				.hasSize(1)
 				.first()
@@ -112,7 +113,7 @@ class MigrationsProcessorTest {
 		@Test
 		void shouldFilterByLocation() throws IOException {
 
-			var resources = MigrationsProcessor.findResourceBasedMigrations(
+			var resources = MigrationsProcessor.findResourceBasedMigrations(ResourceBasedMigrationProvider.unique(),
 				List.of("classpath:static", "classpath:also"));
 			assertThat(resources).hasSize(2);
 
@@ -127,7 +128,7 @@ class MigrationsProcessorTest {
 		@Test
 		void shouldStripLeadingSlash() throws IOException {
 
-			var resources = MigrationsProcessor.findResourceBasedMigrations(
+			var resources = MigrationsProcessor.findResourceBasedMigrations(ResourceBasedMigrationProvider.unique(),
 				List.of("classpath:/static", "classpath:also"));
 			assertThat(resources).hasSize(2);
 

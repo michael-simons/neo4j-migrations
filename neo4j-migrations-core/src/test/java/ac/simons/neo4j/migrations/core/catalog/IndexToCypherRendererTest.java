@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
@@ -33,10 +34,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class IndexToCypherRendererTest {
-
-	// CREATE
 
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderSimpleIndexCreation() {
@@ -161,7 +161,7 @@ class IndexToCypherRendererTest {
 			Arrays.asList("age", "country"));
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion");
 	}
 
@@ -304,7 +304,7 @@ class IndexToCypherRendererTest {
 			Collections.singleton("Person"), Collections.singleton("firstname"));
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion");
 	}
 
@@ -461,7 +461,7 @@ class IndexToCypherRendererTest {
 			Collections.singleton("TYPE_NAME"), Arrays.asList("propertyName_1", "propertyName_2"));
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessage("The given relationship index cannot be rendered on Neo4j " + serverVersion + ".");
 	}
 
@@ -487,7 +487,7 @@ class IndexToCypherRendererTest {
 			.onProperties("propertyName_1", "propertyName_2");
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessage("The given relationship index cannot be rendered on Neo4j " + serverVersion + ".");
 	}
 
@@ -605,7 +605,7 @@ class IndexToCypherRendererTest {
 			Arrays.asList("title", "description"));
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion on");
 	}
 
@@ -689,7 +689,7 @@ class IndexToCypherRendererTest {
 			Arrays.asList("TAGGED_AS", "SOMETHING_ELSE"), Arrays.asList("taggedByUser", "taggedByUser2"));
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThatIllegalStateException().isThrownBy(() -> renderer.render(index, renderConfig))
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion on");
 	}
 
@@ -728,5 +728,31 @@ class IndexToCypherRendererTest {
 		RenderConfig config = RenderConfig.create().forVersionAndEdition(version, Neo4jEdition.ENTERPRISE);
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, config)).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldRenderTextIndex() {
+
+		Index index = Index.forNode("Person")
+			.named("node_index_name")
+			.text("nickname");
+
+		RenderConfig config = RenderConfig.create().forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo(
+			"CREATE TEXT INDEX node_index_name FOR (n:Person) ON (n.nickname)");
+	}
+
+	@Test
+	void shouldRenderTextIndexForRelationships() {
+
+		Index index = Index.forRelationship("KNOWS")
+			.named("rel_index_name")
+			.text("interest");
+
+		RenderConfig config = RenderConfig.create().forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo(
+			"CREATE TEXT INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.interest)");
 	}
 }

@@ -40,6 +40,9 @@ import org.w3c.dom.Element;
  * @author Gerrit Meier
  * @since TBA
  */
+// This is about the additional field deconstructedIdentifiers. It is immutable and directly derived
+// from the identifier in a one-to-one onto relationship and therefor ok.
+@SuppressWarnings("squid:S2160")
 public final class Index extends AbstractCatalogItem<Index.Type> {
 
 	/**
@@ -61,6 +64,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 */
 		FULLTEXT,
 		/**
+		 * Text indexes for 4.4 and later.
+		 */
+		TEXT,
+		/**
 		 * An index backing a constraint.
 		 */
 		CONSTRAINT_BACKING_INDEX;
@@ -71,7 +78,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 	}
 
-	private static final String[] LABELS_OR_TYPES_KEYS = { "tokenNames", "labelsOrTypes" };
+	private static final String TOKEN_NAMES = "tokenNames";
+	private static final String LABELS_OR_TYPES = "labelsOrTypes";
 	private static final String[] NAME_KEYS = { "indexName", "name" };
 	private static final String PROPERTIES_KEY = "properties";
 	private static final String ENTITY_TYPE_KEY = "entityType";
@@ -81,11 +89,11 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(
 		new HashSet<>(Arrays.asList(NAME_KEYS[0],
-			INDEX_TYPE_KEY, LABELS_OR_TYPES_KEYS[0], PROPERTIES_KEY)));
+			INDEX_TYPE_KEY, TOKEN_NAMES, PROPERTIES_KEY)));
 
 	private static final Set<String> REQUIRED_KEYS_40 = Collections.unmodifiableSet(
 		new HashSet<>(Arrays.asList(NAME_KEYS[1],
-			INDEX_TYPE_KEY, ENTITY_TYPE_KEY, LABELS_OR_TYPES_KEYS[1], PROPERTIES_KEY)));
+			INDEX_TYPE_KEY, ENTITY_TYPE_KEY, LABELS_OR_TYPES, PROPERTIES_KEY)));
 
 	/**
 	 * Programmatic way of defining indexes.
@@ -98,21 +106,33 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 * @param name The new name
 		 * @return The next step when building an index
 		 */
-		NamedBuilder named(String name);
+		NamedSingleIdentifierBuilder named(String name);
+	}
+
+	/**
+	 * A fulltext builder, the only index allowing multiple types when being created.
+	 */
+	public interface FulltextBuilder {
+
+		/**
+		 * Adds a name to the index
+		 *
+		 * @param name The new name
+		 * @return The next step when building an index
+		 */
+		NamedFulltextBuilder named(String name);
+	}
+
+	/**
+	 * Marker for the step after an index has been given a name.
+	 */
+	public interface NamedBuilder {
 	}
 
 	/**
 	 * Allows to specify the type of the constraint. Not all types are exposed, they should usually not be touch manually.
 	 */
-	public interface NamedBuilder {
-
-		/**
-		 * Creates a fulltext index
-		 *
-		 * @param properties The properties to be included in the index
-		 * @return the next step
-		 */
-		Index fulltext(String... properties);
+	public interface NamedSingleIdentifierBuilder extends NamedFulltextBuilder {
 
 		/**
 		 * Creates a property index
@@ -121,9 +141,31 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 * @return the next step
 		 */
 		Index onProperties(String... properties);
+
+		/**
+		 * Creates a native Neo4j text index
+		 *
+		 * @param property The property to be included in the index
+		 * @return the next step
+		 */
+		Index text(String property);
 	}
 
-	private static class DefaultBuilder implements Builder, NamedBuilder {
+	/**
+	 * Fulltext is the only index available for multiple labels and multiple types in on go.
+	 */
+	interface NamedFulltextBuilder extends NamedBuilder {
+
+		/**
+		 * Creates a fulltext index
+		 *
+		 * @param properties The properties to be included in the index
+		 * @return the next step
+		 */
+		Index fulltext(String... properties);
+	}
+
+	private static class DefaultBuilder implements Builder, FulltextBuilder, NamedSingleIdentifierBuilder, NamedFulltextBuilder {
 		private final TargetEntityType targetEntity;
 
 		private final String[] identifiers;
@@ -136,7 +178,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		}
 
 		@Override
-		public NamedBuilder named(String newName) {
+		public DefaultBuilder named(String newName) {
 
 			this.name = newName;
 			return this;
@@ -144,32 +186,61 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		@Override
 		public Index onProperties(String... properties) {
-			return new Index(name, Type.PROPERTY, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));
+			return makeIndex(properties, Type.PROPERTY);
+		}
+
+		@Override
+		public Index text(String property) {
+			return makeIndex(new String[] { property }, Type.TEXT);
 		}
 
 		@Override
 		public Index fulltext(String... properties) {
-			return new Index(name, Type.FULLTEXT, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));
+			return makeIndex(properties, Type.FULLTEXT);
+		}
+
+		private Index makeIndex(String[] properties, Type text) {
+			return new Index(name, text, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));
 		}
 	}
 
 	/**
-	 * Starts defining a new instance of a node property index.
+	 * Starts defining a new instance of a node index.
+	 *
+	 * @param label The label on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forNode(String label) {
+		return new DefaultBuilder(TargetEntityType.NODE, new String[] {label});
+	}
+
+	/**
+	 * Starts defining a new instance of a node index.
 	 *
 	 * @param labels The labels on which the index should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forNode(String... labels) {
+	public static FulltextBuilder forNode(String... labels) {
 		return new DefaultBuilder(TargetEntityType.NODE, labels);
 	}
 
 	/**
-	 * Starts defining a new instance of a relationship property index.
+	 * Starts defining a new instance of a node index.
+	 *
+	 * @param type The type on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forRelationship(String type) {
+		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, new String[] { type });
+	}
+
+	/**
+	 * Starts defining a new instance of a relationship index.
 	 *
 	 * @param types The type on which the index should be applied
 	 * @return The ongoing builder
 	 */
-	public static Builder forRelationship(String... types) {
+	public static FulltextBuilder forRelationship(String... types) {
 		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, types);
 	}
 
@@ -211,11 +282,14 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			throw new IllegalArgumentException("Required keys are missing in the row describing the index");
 		}
 
-		List<String> labelsOrTypes = !row.get(LABELS_OR_TYPES_KEYS[0]).isNull()
-			? row.get(LABELS_OR_TYPES_KEYS[0]).asList(Value::asString)
-			: row.get(LABELS_OR_TYPES_KEYS[1]).isNull() // lookup index
-			? Collections.emptyList()
-			: row.get(LABELS_OR_TYPES_KEYS[1]).asList(Value::asString);
+		List<String> labelsOrTypes;
+		if (row.get(TOKEN_NAMES).isNull()) {
+			// will be null in the case of lookup index
+			Value columnOfInterest = row.get(LABELS_OR_TYPES);
+			labelsOrTypes = columnOfInterest.isNull() ? Collections.emptyList() : columnOfInterest.asList(Value::asString);
+		} else {
+			labelsOrTypes = row.get(TOKEN_NAMES).asList(Value::asString);
+		}
 
 		String name = !row.get(NAME_KEYS[0]).isNull()
 			? row.get(NAME_KEYS[0]).asString()
@@ -269,6 +343,9 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		if (deconstructedIdentifiers.size() > 1 && type != Type.FULLTEXT) {
 			throw new IllegalArgumentException(
 				"Multiple labels or types are only allowed to be specified with fulltext indexes.");
+		}
+		if (properties.size() > 1 && type == Type.TEXT) {
+			throw new IllegalArgumentException("Text indexes only allow exactly one single property.");
 		}
 		this.deconstructedIdentifiers = deconstructedIdentifiers.stream()
 			.map(UNESCAPE_PIPE)

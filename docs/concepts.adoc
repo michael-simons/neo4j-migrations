@@ -142,7 +142,7 @@ per migration.
 The simplest way of defining a catalog based migrations looks like this:
 
 .V01__Create_unique_isbn.xml
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
 ----
@@ -153,7 +153,7 @@ and does not contribute to the contextual catalog.
 This can also be rewritten such as this:
 
 .V01__Create_unique_isbn.xml
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
 ----
@@ -161,10 +161,22 @@ include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Cr
 The constraint can be reused later, too:
 
 .V23__Drop_old_constraint.xml
-[source,xml]
+[source,xml,indent=0,tabsize=2]
 ----
 include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
 ----
+
+Indexes are supported, too:
+
+.V01__Create_an_index_local.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_an_index_local.xml[]
+----
+
+NOTE: The XML schema supports types for indexes as well: `FULLTEXT` and `TEXT`. The former being the well known
+      Lucene backed indexes, the latter the new `TEXT` index introduced in Neo4j.
+
 
 To learn more about the scheme, have a look at the <<appendix_xml_schemes_migration, XML schema explained>> and also make
 sure you follow the <<concepts_catalog, concepts about catalogs>> as well as the <<usage_defining_asserting_applying_catalogs, catalog examples>>.
@@ -197,6 +209,9 @@ anywhere in the document and look like this:
 ----
 
 They can appear anywhere in the document, but we recommend putting them into the root element.
+
+WARNING: While both elements - `constraint` and `index` - do support a child element named `options`, these are not
+         rendered or used yet.
 
 [[concepts_migrations_java-based]]
 === Java-based

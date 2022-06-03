@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
@@ -58,7 +59,7 @@ class ConstraintToCypherRendererTest {
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		if (shouldFail) {
-			assertThatExceptionOfType(IllegalStateException.class)
+			assertThatIllegalArgumentException()
 				.isThrownBy(() -> renderer.render(constraint, renderConfig));
 		} else {
 			assertThat(renderer.render(constraint, renderConfig)).isEqualTo(
@@ -75,7 +76,7 @@ class ConstraintToCypherRendererTest {
 			Arrays.asList("a", "b"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThatExceptionOfType(IllegalStateException.class)
+		assertThatIllegalArgumentException()
 			.isThrownBy(() -> renderer.render(constraint, renderConfig));
 	}
 
@@ -135,7 +136,7 @@ class ConstraintToCypherRendererTest {
 			Collections.singleton("isbn"));
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-		assertThatExceptionOfType(IllegalStateException.class)
+		assertThatIllegalArgumentException()
 			.isThrownBy(() -> renderer.render(constraint, renderConfig))
 			.withMessage("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version);
 	}
@@ -165,7 +166,7 @@ class ConstraintToCypherRendererTest {
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		if (fails) {
-			assertThatExceptionOfType(IllegalStateException.class)
+			assertThatIllegalArgumentException()
 				.isThrownBy(() -> renderer.render(constraint, renderConfig))
 				.withMessage("The constraint can only be rendered in the given context when having a name.");
 		} else {

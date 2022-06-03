@@ -70,6 +70,8 @@ public enum Neo4jVersion {
 	 */
 	private static final Set<Neo4jVersion> WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));
 
+	private static final Set<Neo4jVersion> WITH_TEXT_INDEXES = EnumSet.complementOf(EnumSet.of(V3_5, V4_0, V4_1, V4_2, V4_3, UNDEFINED));
+
 	/**
 	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.
 	 *
@@ -131,6 +133,14 @@ public enum Neo4jVersion {
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer readability
 	public boolean hasIdempotentOperations() {
 		return WITH_IDEM_POTENCY.contains(this);
+	}
+
+	/**
+	 * @return true if this version has text indexes
+	 */
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer readability
+	public boolean hasTextIndexes() {
+		return WITH_TEXT_INDEXES.contains(this);
 	}
 
 	/**

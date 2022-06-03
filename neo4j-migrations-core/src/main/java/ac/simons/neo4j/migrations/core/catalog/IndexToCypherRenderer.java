@@ -54,25 +54,32 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 		Neo4jVersion version = config.getVersion();
 		boolean isRelationshipPropertyIndex = index.getType() == Index.Type.PROPERTY && index.getTargetEntityType() == TargetEntityType.RELATIONSHIP;
+
+		if (!version.hasTextIndexes() && index.getType() == Index.Type.TEXT) {
+			throw new IllegalArgumentException(
+				String.format("The given index cannot be rendered on Neo4j %s", version));
+		}
+
 		if (isRelationshipPropertyIndex && RANGE_35_TO_42.contains(version)) {
-			throw new IllegalStateException(
+			throw new IllegalArgumentException(
 				String.format("The given relationship index cannot be rendered on Neo4j %s.",
 					version));
 		}
 		if (config.isIdempotent() && (!version.hasIdempotentOperations() || RANGE_35_TO_42.contains(version) && index.getType() == Index.Type.FULLTEXT)) {
-			throw new IllegalStateException(
+			throw new IllegalArgumentException(
 				String.format("The given index cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
 		}
 
 		if (!index.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
-			throw new IllegalStateException("The index can only be rendered in the given context when having a name.");
+			throw new IllegalArgumentException("The index can only be rendered in the given context when having a name.");
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 
 		switch (index.getType()) {
 			case PROPERTY:
+			case TEXT:
 				w.write(renderNodePropertiesIndex(index, config));
 				break;
 			case FULLTEXT:
@@ -139,6 +146,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 		Operator operator = config.getOperator();
 
+		String type = index.getType() == Index.Type.PROPERTY ? " " : " " + index.getType().name() + " ";
+
 		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5) {
 			return String.format("%s %#s ON :%s(%s)", operator, item, identifier, properties);
@@ -152,10 +161,10 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			}
 			return String.format("%s %#s%s", operator, item, config.ifNotExistsOrEmpty());
 		} else if (isNodeIndex) {
-			return String.format("%s %#s %sFOR (n:%s) ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
+			return String.format("%s%s%#s %sFOR (n:%s) ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
 				identifier, properties);
 		} else {
-			return String.format("%s %#s %sFOR ()-[r:%s]-() ON (%s)", operator, item, config.ifNotExistsOrEmpty(),
+			return String.format("%s%s%#s %sFOR ()-[r:%s]-() ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
 				identifier, properties);
 		}
 	}

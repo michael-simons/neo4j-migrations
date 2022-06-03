@@ -57,23 +57,23 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		Neo4jVersion version = config.getVersion();
 		if (config.isIdempotent() && !version.hasIdempotentOperations() && !config.isIgnoreName()) {
-			throw new IllegalStateException(
+			throw new IllegalArgumentException(
 				String.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.",
 					version));
 		}
 
 		if (constraint.getProperties().size() > 1) {
 			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(constraint.getType())) {
-				throw new IllegalStateException("Only unique and node key constraints support multiple properties.");
+				throw new IllegalArgumentException("Only unique and node key constraints support multiple properties.");
 			}
 
 			if (config.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
-				throw new IllegalStateException("Constraints require exactly one property prior to Neo4j 4.4.");
+				throw new IllegalArgumentException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
 
 		if (!constraint.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
-			throw new IllegalStateException("The constraint can only be rendered in the given context when having a name.");
+			throw new IllegalArgumentException("The constraint can only be rendered in the given context when having a name.");
 		}
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));

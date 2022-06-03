@@ -15,10 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
 import ac.simons.neo4j.migrations.core.MapAccessorAndRecordImpl;
-import org.junit.jupiter.api.Test;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -26,8 +26,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 
 /**
  * @author Gerrit Meier
@@ -42,11 +43,11 @@ class IndexTest {
 		Value properties = Values.value(Collections.singletonList("properties"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("indexName", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("indexName", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -64,11 +65,11 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("indexName", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("indexName", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -86,11 +87,11 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("indexName", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("indexName", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.FULLTEXT);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -108,11 +109,11 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("indexName", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("indexName", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("tokenNames", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_BACKING_INDEX);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -130,12 +131,12 @@ class IndexTest {
 		Value properties = Values.value(Collections.singletonList("properties"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -153,12 +154,12 @@ class IndexTest {
 		Value properties = Values.value(Collections.singletonList("properties"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
@@ -176,12 +177,12 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -213,22 +214,22 @@ class IndexTest {
 	void shouldParseMultilabelFulltextIndex() {
 		Value indexName = Values.value("index_name");
 		Value type = Values.value("FULLTEXT");
-		Value tokenNames = Values.value(Arrays.asList("label1", "label2"));
+		Value tokenNames = Values.value(Arrays.asList("label1", "label2", "Foo|Bar"));
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.FULLTEXT);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(index.getName().getValue()).isEqualTo("index_name");
-		assertThat(index.getIdentifier()).isEqualTo("[label1, label2]");
-		assertThat(index.getDeconstructedIdentifiers()).containsExactly("label1", "label2");
+		assertThat(index.getIdentifier()).isEqualTo("[label1, label2, Foo|Bar]");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("label1", "label2", "Foo|Bar");
 		assertThat(index.getProperties()).containsExactlyInAnyOrder("property1", "property2");
 	}
 
@@ -241,13 +242,13 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		Index index = Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("uniqueness", uniqueness),
-						new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))));
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("uniqueness", uniqueness),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
 
 		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_BACKING_INDEX);
 		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
@@ -265,13 +266,29 @@ class IndexTest {
 		Value properties = Values.value(Arrays.asList("property1", "property2"));
 
 		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(
-				new MapAccessorAndRecordImpl(makeMap(
-						new AbstractMap.SimpleEntry<>("name", indexName),
-						new AbstractMap.SimpleEntry<>("type", type),
-						new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
-						new AbstractMap.SimpleEntry<>("properties", properties))))
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))))
 		).withMessage("Required keys are missing in the row describing the index");
 
+	}
+
+	@Test
+	void shouldBuildIndexes() {
+
+		Index index = Index.forNode("A").named("a").onProperties("a1");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("A");
+		assertThat(index.getType()).isEqualTo(Index.Type.PROPERTY);
+
+		index = Index.forNode("A", "B").named("a").fulltext("a1");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("A", "B");
+		assertThat(index.getType()).isEqualTo(Index.Type.FULLTEXT);
+
+		index = Index.forNode("A").named("a").text("a1");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("A");
+		assertThat(index.getType()).isEqualTo(Index.Type.TEXT);
 	}
 
 	@SafeVarargs

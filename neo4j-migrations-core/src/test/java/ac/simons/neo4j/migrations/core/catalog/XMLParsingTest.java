@@ -85,7 +85,7 @@ class XMLParsingTest {
 	}
 
 	@Test
-	void indexShouldParseMultilabelFulltextIndexFromXml()
+	void indexShouldParseMultilabelFulltextIndex()
 		throws ParserConfigurationException, IOException, SAXException {
 
 		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
@@ -104,7 +104,7 @@ class XMLParsingTest {
 	}
 
 	@Test
-	void indexShouldNotParseMultilabelPropertyIndexFromXml()
+	void indexShouldNotParseMultilabelPropertyIndex()
 		throws ParserConfigurationException, IOException, SAXException {
 
 		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
@@ -119,6 +119,25 @@ class XMLParsingTest {
 		Element indexElement = document.getDocumentElement();
 		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(indexElement))
 			.withMessage("Multiple labels or types are only allowed to be specified with fulltext indexes.");
+	}
+
+	@Test
+	void indexShouldNotParseMultiplePropertiesForTextIndexes()
+		throws ParserConfigurationException, IOException, SAXException {
+
+		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
+		String xml =
+			"<index name=\"title_index\" type=\"text\">\n"
+			+ "    <label>Person</label>\n"
+			+ "    <properties>\n"
+			+ "        <property>firstname</property>\n"
+			+ "        <property>lastname</property>\n"
+			+ "    </properties>\n"
+			+ "</index>";
+		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+		Element indexElement = document.getDocumentElement();
+		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(indexElement))
+			.withMessage("Text indexes only allow exactly one single property.");
 	}
 
 }

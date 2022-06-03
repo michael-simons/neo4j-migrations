@@ -29,6 +29,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.w3c.dom.Document;
@@ -89,6 +91,12 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 			this.name = Name.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
 		} else {
 			this.name = Name.of(name);
+		}
+
+		if (options != null && !options.trim().isEmpty()) {
+			Logger.getLogger(AbstractCatalogItem.class.getPackage().getName()).log(Level.WARNING,
+				"Using non default options for the catalog item named `{1}` of type {0}. These are not yet used while rendering the item.",
+				new Object[] { this.getClass().getSimpleName(), this.getName().getValue() });
 		}
 	}
 

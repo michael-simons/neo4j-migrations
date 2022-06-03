@@ -85,7 +85,7 @@ class CatalogBasedMigrationTest {
 		URL url = CatalogBasedMigration.class.getResource("/catalogbased/identical-migrations/V01__" + in);
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
-		assertThat(schemaBasedMigration.getChecksum()).hasValue("3386027304");
+		assertThat(schemaBasedMigration.getChecksum()).hasValue("2210671299");
 		assertThat(schemaBasedMigration.getCatalog().getItems()).hasSize(2);
 	}
 

@@ -202,7 +202,7 @@ anywhere in the document and look like this:
 [source,xml,indent=0,tabsize=2]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
-<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
 	<?assert that edition is enterprise ?>
 	<?assume q' RETURN true?>
 </migration>
@@ -385,7 +385,7 @@ constraint, and you are unsure if it does exist or not, use
 
 [source, xml]
 ----
-<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
     <drop item="a" ifExists="true" />
     <create item="a" />
 </migration>

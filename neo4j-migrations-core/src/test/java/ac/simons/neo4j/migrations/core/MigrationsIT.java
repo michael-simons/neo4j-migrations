@@ -371,8 +371,8 @@ class MigrationsIT extends TestBase {
 			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
-				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "3878177065", "200310393",
-						"949907516", "949907516", "2884945437", "1491717096", "2342770059");
+				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "2581374719", "200310393",
+						"949907516", "949907516", "2884945437", "1491717096", "4135100959");
 		}
 	}
 }

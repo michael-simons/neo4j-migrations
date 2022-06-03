@@ -105,7 +105,7 @@ class ChainBuilderIT extends TestBase {
 
 			assertThat(element.getState()).isEqualTo(MigrationState.PENDING);
 			assertThat(element.getType()).isEqualTo(MigrationType.CATALOG);
-			assertThat(element.getChecksum()).hasValue("3878177065");
+			assertThat(element.getChecksum()).hasValue("2581374719");
 			assertThat(element.getVersion()).isEqualTo("008");
 			assertThat(element.getDescription()).isEqualTo("Create constraints");
 			assertThat(element.getSource()).isEqualTo("V008__Create_constraints.xml");

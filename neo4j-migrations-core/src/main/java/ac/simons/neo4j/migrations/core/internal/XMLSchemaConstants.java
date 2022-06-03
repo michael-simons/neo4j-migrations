@@ -31,7 +31,7 @@ public final class XMLSchemaConstants {
 	/**
 	 * The namespace constant.
 	 */
-	public static final String MIGRATION_NS = "http://michael-simons.github.io/neo4j-migrations";
+	public static final String MIGRATION_NS = "https://michael-simons.github.io/neo4j-migrations";
 	/**
 	 * Constant for {@literal migration}
 	 */

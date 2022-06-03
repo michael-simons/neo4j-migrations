@@ -82,7 +82,7 @@ class ShowCatalogCommandTest {
 		assertThat(result).isEqualTo(
 			""
 			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" + nl
-			+ "<migration xmlns=\"http://michael-simons.github.io/neo4j-migrations\">" + nl
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">" + nl
 			+ "    <catalog>" + nl
 			+ "        <indexes/>" + nl
 			+ "        <constraints>" + nl

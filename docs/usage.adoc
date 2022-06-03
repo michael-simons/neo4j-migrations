@@ -830,7 +830,7 @@ and it will print the catalog in XML:
 [source,xml,indent=0,tabsize=2]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<migration xmlns="http://michael-simons.github.io/neo4j-migrations">
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
     <catalog>
         <indexes/>
         <constraints>

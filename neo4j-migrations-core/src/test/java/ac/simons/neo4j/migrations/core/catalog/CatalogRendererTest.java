@@ -50,7 +50,7 @@ class CatalogRendererTest {
 		assertThat(renderer.render(CATALOG, RenderConfig.defaultConfig())).isEqualTo(
 			""
 			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-			+ "<migration xmlns=\"http://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
 			+ "    <catalog>\n"
 			+ "        <indexes/>\n"
 			+ "        <constraints>\n"

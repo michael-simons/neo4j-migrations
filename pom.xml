@@ -132,7 +132,7 @@
 		<maven.version>3.8.5</maven.version>
 		<mockito.version>4.6.1</mockito.version>
 		<native.maven.plugin.version>0.9.11</native.maven.plugin.version>
-		<neo4j-java-driver.version>4.4.5</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.4.6</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>1.7.0</neo4j-migrations.previous.version>
 		<neo4j.image>neo4j:4.4</neo4j.image>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>

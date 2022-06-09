@@ -1,3 +1,107 @@
+# 1.7.0
+
+It's my pleasure to introduce an exciting new feature with this release: The possibility to manage your constraints and indexes for Neo4j in a version agnostic way!
+
+While we took much our inspiration from [Flyway](https://flywaydb.org) in terms of "just use the databases query language", we needed to opt for something different in this case and opted for XML. Much like [Liquibase](https://www.liquibase.org) did in their beginning:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+    <catalog>
+        <constraints>
+            <constraint name="unique_isbn" type="unique">
+                <label>Book</label>
+                <properties>
+                    <property>isbn</property>
+                </properties>
+            </constraint>
+        </constraints>
+    </catalog>
+    
+    <verify />
+    <create item="unique_isbn"/>
+    <create>
+            <index name="node_index_name">
+                <label>Person</label>
+                <properties>
+                    <property>surname</property>
+                </properties>
+            </index>
+        </create>
+</migration>
+```
+
+The structure allows for creating global catalogs that can be build in an iterative way per each migration but also for just doing local creates and drops. All create and drop operations comes per default in an idempotent fashion ("create if not exists" / "drop if exists") regardless of Neo4j version. We make sure to translate the structure above into the Cypher matching your version of Neo4j.
+
+Read more about this in the manual, especially the [concepts](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog) and have look at this [scenario](https://michael-simons.github.io/neo4j-migrations/current/#usage_defining_asserting_applying_catalogs). There's also a short paragraph why XML is still a good idea in 2022.
+
+This work lays the groundwork of an updated auto-index-manager in [Neo4j-OGM](https://github.com/neo4j/neo4j-ogm) and - for the first time - a similar solution in [SDN6](https://github.com/spring-projects/spring-data-neo4j): We will provide annotation processors for both projects later this year creating catalog based migrations.
+With that, SDN5+OGM and SDN6 and later users can have both: Constraints and indexes defined by their class model but executed by their process and not by a random start of a random application.
+
+This work would not have been possible without the help of @meistermeier. Thank you.
+
+While we aim for obeying Semver, we just bumped the minor version, even for such a big feature. We want to spare the 2.0 release for the JDK 17 update, also coming later this year. We are able to do so because this change here does not affect you if you don't use it, neither through any of the integrations nor through the API.
+
+Other notable changes in this release are better logging in the CLI (general warnings are now going through stderr for better filtering / pipelining) and also we do now follow symlinks when traversing file based locations.
+
+## 🚀 Features
+- 0dd23a4 Allow definition and maintaining of constraints and indexes. (#502)
+
+## 🔄️ Refactorings
+- 23f3449 Use https for xml namespace.
+- 711af06 Follow symlinks while scanning for migrations. (#513)
+- 547cffa Separate migrations and CLI logging into syserr and sysout. (#512)
+
+## 🧹 Housekeeping
+- 111cab4 Bump checkstyle from 10.2 to 10.3 (#510)
+- 859d415 Bump docker-maven-plugin from 0.39.1 to 0.40.0 (#509)
+- 783f35e Bump sortpom-maven-plugin from 3.1.0 to 3.1.3 (#508)
+- fbdfd6c Bump asciidoctorj-diagram from 2.2.1 to 2.2.3 (#507)
+- 6e3ce70 Bump mockito.version from 4.5.1 to 4.6.0 (#506)
+- 5468022 Bump classgraph from 4.8.146 to 4.8.147 (#505)
+- 24bd937 Bump maven-invoker-plugin from 3.2.2 to 3.3.0 (#504)
+- 04912c9 Bump quarkus.version from 2.9.1.Final to 2.9.2.Final (#503)
+- 72dc4f9 Bump testcontainers.version from 1.17.1 to 1.17.2 (#496)
+- a764a77 Bump sortpom-maven-plugin from 3.0.1 to 3.1.0 (#498)
+- 0f5f4b3 Bump plexus-utils from 3.4.1 to 3.4.2 (#501)
+- 24de271 Bump neo4j-harness from 4.4.6 to 4.4.7 (#500)
+- 9ee1123 Bump spring-boot.version from 2.6.7 to 2.7.0 (#497)
+
+## 🛠 Build
+- 4ee8e03 Use license-maven-plugin to enforce licenses instead of checkstyle. (#514)
+- e5360a7 Upgrade to GraalVM 21.3.2. (#511)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @meistermeier
+
+
+# 1.6.0
+
+*No breaking changes*, the minor version has been bumped to reflect the Quarkus version bump from 2.8.2 to 2.9.1.
+
+## 🧹 Housekeeping
+- f0ebfe4 Bump quarkus.version from 2.8.2.Final to 2.9.1.Final (#489)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.5.6
+
+## 🐛 Bug Fixes
+- a04da71 Downgrade GraalVM to 21.3.1. (#492)
+
+## 📝 Documentation
+- a3752ec Update local changelog.
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
 # 1.5.5
 
 ## 🐛 Bug Fixes

@@ -49,6 +49,28 @@ jobs:
           name: assembly
           path: neo4j-migrations-cli/target/assembly
 
+  ensure_windows_files:
+    if:  ${{ github.event.sender.login != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    name: Ensure file locations working on windows
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Download assembly
+        uses: actions/download-artifact@v1
+        with:
+          name: assembly
+          path: assembly
+      - name: Print info
+        env:
+          EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
+          EXTERNAL_TEST_DB_PWD: ${{ secrets.EXTERNAL_TEST_DB_PWD }}
+        run: assembly/bin/neo4j-migrations.bat -a %EXTERNAL_TEST_DB_URL% --password:env EXTERNAL_TEST_DB_PWD --location file:///$pwd/neo4j-migrations-test-resources/src/main/resources/some/changeset info mode=LOCAL
+
   ensure_jdk_compat:
     name: Ensure compatibilty with minimum required Java version
     runs-on: ubuntu-latest

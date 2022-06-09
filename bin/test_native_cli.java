@@ -27,8 +27,8 @@ public class test_native_cli {
 	public static void main(String... a) throws Exception {
 
 		var executable = Paths.get("./neo4j-migrations-cli/target/neo4j-migrations").toAbsolutePath().normalize().toString();
-		var location1 = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize();
-		var location2 = "file://" + Paths.get("./neo4j-migrations-test-resources/src/main/resources/catalogbased_changesets").toAbsolutePath().normalize();
+		var location1 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize().toUri().toString();
+		var location2 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/catalogbased_changesets").toAbsolutePath().normalize().toUri().toString();
 
 		// Let Ryuk take care of it, so no try/catch with autoclose
 		var neo4j = new Neo4jContainer<>("neo4j:4.3").withReuse(true);

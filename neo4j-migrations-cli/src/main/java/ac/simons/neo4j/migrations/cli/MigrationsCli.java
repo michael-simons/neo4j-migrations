@@ -268,7 +268,7 @@ public final class MigrationsCli implements Runnable {
 		if (!Files.isDirectory(defaultPath)) {
 			return new String[0];
 		}
-		String defaultLocationToScan = LocationType.FILESYSTEM.getPrefix() + "://" + defaultPath.toString().replace('\\', '/');
+		String defaultLocationToScan = defaultPath.toUri().toString();
 		LOGGER.log(Level.FINE, "Neither locations nor packages to scan configured, using {0}.", defaultLocationToScan);
 		return new String[] { defaultLocationToScan };
 	}

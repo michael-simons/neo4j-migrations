@@ -309,6 +309,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 				break;
 			case "node_label_property":
 			case "BTREE":
+			case "RANGE": // One of the Neo4j 5+ future indexes.
 				type = Type.PROPERTY;
 				break;
 			case "FULLTEXT":

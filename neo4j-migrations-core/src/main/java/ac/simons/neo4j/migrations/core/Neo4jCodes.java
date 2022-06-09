@@ -43,6 +43,16 @@ final class Neo4jCodes {
 	 */
 	static final String CONSTRAINT_ALREADY_EXISTS = "Neo.ClientError.Schema.ConstraintAlreadyExists";
 
+	/**
+	 * Used in notifications to warn about deprecated features.
+	 */
+	static final String FEATURE_DEPRECATION_WARNING = "Neo.ClientNotification.Statement.FeatureDeprecationWarning";
+
+	/**
+	 * Used when a procedure was not found.
+	 */
+	static final String PROCEDURE_NOT_FOUND = "Neo.ClientError.Procedure.ProcedureNotFound";
+
 	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet<>(
 		Arrays.asList(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS, CONSTRAINT_ALREADY_EXISTS)));
 

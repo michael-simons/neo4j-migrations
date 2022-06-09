@@ -89,8 +89,8 @@ abstract class TestBase {
 		List<String> indexesToBeDropped;
 		try (Session session = driver.session(sessionConfig)) {
 			session.run("MATCH (n) DETACH DELETE n");
-			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD 'DROP CONSTRAINT ' + name as cmd").list(r -> r.get("cmd").asString());
-			indexesToBeDropped = session.run("SHOW INDEXES YIELD 'DROP INDEX ' + name as cmd").list(r -> r.get("cmd").asString());
+			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD name RETURN 'DROP CONSTRAINT ' + name as cmd").list(r -> r.get("cmd").asString());
+			indexesToBeDropped = session.run("SHOW INDEXES YIELD name RETURN 'DROP INDEX ' + name as cmd").list(r -> r.get("cmd").asString());
 		}
 
 		constraintsToBeDropped.forEach(cmd -> dropConstraint(driver, database, cmd));

@@ -18,9 +18,14 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import ac.simons.neo4j.migrations.core.DefaultMigrationContext.ExtendedResultSummary;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -30,7 +35,13 @@ import org.mockito.Answers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.internal.util.ServerVersion;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.ServerInfo;
 import org.powermock.reflect.Whitebox;
 
 /**
@@ -38,6 +49,33 @@ import org.powermock.reflect.Whitebox;
  * @soundtrack Ten Masked Men - The Phanten Masked Menace
  */
 class DefaultMigrationContextTest {
+
+	@Test
+	void shouldCatchNonExistingShowProcedures() {
+
+		MigrationsConfig config = MigrationsConfig.defaultConfig();
+
+		ResultSummary resultSummary = mock(ResultSummary.class);
+		ServerInfo serverInfo = mock(ServerInfo.class);
+		when(serverInfo.address()).thenReturn("whatever");
+		when(resultSummary.server()).thenReturn(serverInfo);
+
+		ExtendedResultSummary extendedResultSummary = new ExtendedResultSummary(false, ServerVersion.vInDev, "Enterprise", resultSummary);
+
+		Session session = mock(Session.class);
+		when(session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)"))
+			.thenThrow(new ClientException(Neo4jCodes.PROCEDURE_NOT_FOUND, "n/a"));
+		when(session.readTransaction(any())).thenReturn(extendedResultSummary);
+
+		Driver driver = mock(Driver.class);
+		when(driver.session()).thenReturn(session);
+		when(driver.session(any(SessionConfig.class))).thenReturn(session);
+
+		DefaultMigrationContext ctx = new DefaultMigrationContext(config, driver);
+		assertThatNoException().isThrownBy(ctx::getConnectionDetails);
+
+		verify(session).run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)");
+	}
 
 	@Test
 	void shouldRequireSupportedDriverForImpersonationAndFailOtherwise() {

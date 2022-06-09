@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -100,7 +101,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 		List<T> listOfMigrations = new ArrayList<>();
 
 		List<String> classpathLocations = new ArrayList<>();
-		List<String> filesystemLocations = new ArrayList<>();
+		List<URI> filesystemLocations = new ArrayList<>();
 
 		for (String prefixAndLocation : config.getLocationsToScan()) {
 
@@ -108,7 +109,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 			if (location.getType() == Location.LocationType.CLASSPATH) {
 				classpathLocations.add(location.getName());
 			} else if (location.getType() == Location.LocationType.FILESYSTEM) {
-				filesystemLocations.add(location.getName());
+				filesystemLocations.add(location.toUri());
 			}
 		}
 
@@ -134,7 +135,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 			.collect(Collectors.toList());
 	}
 
-	private List<T> scanFilesystemLocations(List<String> filesystemLocations, MigrationsConfig config) {
+	private List<T> scanFilesystemLocations(List<URI> filesystemLocations, MigrationsConfig config) {
 
 		if (filesystemLocations.isEmpty()) {
 			return Collections.emptyList();
@@ -144,7 +145,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 
 		List<T> resources = new ArrayList<>();
 
-		for (String location : filesystemLocations) {
+		for (URI location : filesystemLocations) {
 			Path path = Paths.get(location);
 			if (!Files.isDirectory(path)) {
 				continue;

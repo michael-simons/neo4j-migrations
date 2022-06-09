@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.net.URI;
 import java.util.Locale;
 
 /**
@@ -53,21 +54,21 @@ public final class Location {
 
 	/**
 	 * Creates a new {@link Location} object from a given location that has an optional prefix (protocol) and a name
-	 * @param prefixAndName A name with an optional prefix
+	 * @param uri A name with an optional scheme / name
 	 * @return A location object
 	 */
-	public static Location of(String prefixAndName) {
+	public static Location of(String uri) {
 		// Yep, Regex would work, too. I know how to do this with regex, but it's slower and not necessary.
-		int indexOfFirstColon = prefixAndName.indexOf(":");
+		int indexOfFirstColon = uri.indexOf(":");
 		if (indexOfFirstColon < 0) {
-			return new Location(LocationType.CLASSPATH, prefixAndName);
+			return new Location(LocationType.CLASSPATH, uri);
 		}
-		if (prefixAndName.length() < 3) {
-			throw new MigrationsException("Invalid resource name: '" + prefixAndName + "'");
+		if (uri.length() < 3) {
+			throw new MigrationsException("Invalid resource name: '" + uri + "'");
 		}
 
-		String prefix = prefixAndName.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();
-		String name = prefixAndName.substring(indexOfFirstColon + 1).trim();
+		String prefix = uri.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();
+		String name = uri.substring(indexOfFirstColon + 1).trim();
 
 		if (name.length() == 0) {
 			throw new MigrationsException("Invalid name.");
@@ -79,7 +80,7 @@ public final class Location {
 		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {
 			type = LocationType.FILESYSTEM;
 		} else {
-			throw new MigrationsException(("Invalid resource prefix: '" + prefix + "'"));
+			throw new MigrationsException("Invalid resource prefix: '" + prefix + "'");
 		}
 
 		return new Location(type, name);
@@ -105,5 +106,9 @@ public final class Location {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	URI toUri() {
+		return URI.create(type.getPrefix() + ":" + name.replace('\\', '/'));
 	}
 }

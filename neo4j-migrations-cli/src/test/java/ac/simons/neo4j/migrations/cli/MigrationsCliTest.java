@@ -251,8 +251,7 @@ class MigrationsCliTest {
 			Path newDir = Files.createDirectories(defaultPath);
 			try {
 				MigrationsConfig config = cli.getConfig();
-				assertThat(config.getLocationsToScan()).containsExactly(
-					"file://" + Paths.get("neo4j/migrations").toAbsolutePath());
+				assertThat(config.getLocationsToScan()).containsExactly(defaultPath.toUri().toString());
 			} finally {
 				if (!defaultPath.equals(newDir)) {
 					deltree(newDir);

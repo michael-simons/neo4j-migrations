@@ -31,8 +31,11 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.summary.DatabaseInfo;
+import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
 
@@ -159,30 +162,46 @@ final class DefaultMigrationContext implements MigrationContext {
 		return catalog;
 	}
 
-	private ConnectionDetails getConnectionDetails0() {
-
-		class ExtendedResultSummary {
-			final boolean showCurrentUserExists;
-			final ServerVersion version;
-			final ServerInfo server;
-			final DatabaseInfo database;
-			final String edition;
-
-			ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, String edition,
-							ResultSummary actualSummary) {
-
-				this.showCurrentUserExists = showCurrentUserExists;
-				this.version = version;
-				this.edition = edition;
-				this.server = actualSummary.server();
-				this.database = actualSummary.database();
-			}
-		}
+	private boolean hasDbmsProcedures() {
 
 		try (Session session = this.getSchemaSession()) {
+			ResultSummary consume = session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)").consume();
+			if (consume.notifications().stream().map(Notification::code)
+				.anyMatch(Neo4jCodes.FEATURE_DEPRECATION_WARNING::equals)) {
+				return false;
+			}
+			return true;
+		} catch (ClientException e) {
+			if (Neo4jCodes.PROCEDURE_NOT_FOUND.equals(e.code())) {
+				return false;
+			}
+			throw e;
+		}
+	}
 
-			// Auth maybe disabled. In such cases, we cannot get the current user.
-			ExtendedResultSummary databaseInformation = session.readTransaction(tx -> {
+	static class ExtendedResultSummary {
+		final boolean showCurrentUserExists;
+		final ServerVersion version;
+		final ServerInfo server;
+		final DatabaseInfo database;
+		final String edition;
+
+		ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, String edition,
+			ResultSummary actualSummary) {
+
+			this.showCurrentUserExists = showCurrentUserExists;
+			this.version = version;
+			this.edition = edition;
+			this.server = actualSummary.server();
+			this.database = actualSummary.database();
+		}
+	}
+
+	private ConnectionDetails getConnectionDetails0() {
+
+		TransactionWork<ExtendedResultSummary> extendedResultSummaryTransactionWork;
+		if (hasDbmsProcedures()) {
+			extendedResultSummaryTransactionWork = tx -> {
 				Result result = tx.run(""
 					+ "CALL dbms.procedures() YIELD name "
 					+ "WHERE name = 'dbms.showCurrentUser' "
@@ -196,16 +215,33 @@ final class DefaultMigrationContext implements MigrationContext {
 				String edition = singleResultRecord.get("edition").asString();
 				ResultSummary summary = result.consume();
 				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
-			});
+			};
+		} else {
+			extendedResultSummaryTransactionWork = tx -> {
+				boolean showCurrentUserExists = tx.run("SHOW PROCEDURES YIELD name WHERE name = 'dbms.showCurrentUser' RETURN count(*)").single().get(0).asInt() == 1;
+				Result result = tx.run(""
+					+ "CALL dbms.components() YIELD versions, edition "
+					+ "RETURN 'Neo4j/' + versions[0] AS version, edition"
+				);
+				Record singleResultRecord = result.single();
+				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
+				String edition = singleResultRecord.get("edition").asString();
+				ResultSummary summary = result.consume();
+				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
+			};
+		}
 
+		try (Session session = this.getSchemaSession()) {
+
+			ExtendedResultSummary databaseInformation = session.readTransaction(extendedResultSummaryTransactionWork);
+
+			// Auth maybe disabled. In such cases, we cannot get the current user. This is usually the case if the method
+			// used here does not exist.
 			String username = "anonymous";
 			if (databaseInformation.showCurrentUserExists) {
-
-				username = session.readTransaction(tx -> tx.run(""
-					+ "CALL dbms.procedures() YIELD name "
-					+ "WHERE name = 'dbms.showCurrentUser' "
-					+ "CALL dbms.showCurrentUser() YIELD username RETURN username"
-				).single().get("username").asString());
+				username = session.readTransaction(tx ->
+					tx.run("CALL dbms.showCurrentUser() YIELD username RETURN username").single().get("username").asString()
+				);
 			}
 
 			ServerInfo serverInfo = databaseInformation.server;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1654763038541">
+<licensePluginReport goal="CHECK" timestamp="1654775887444">
     <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.7.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -123,6 +123,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/CypherResourceTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultCatalogTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultConnectionDetailsTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultMigrationContextIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultMigrationContextTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DiscovererTest.java" result="PRESENT"/>

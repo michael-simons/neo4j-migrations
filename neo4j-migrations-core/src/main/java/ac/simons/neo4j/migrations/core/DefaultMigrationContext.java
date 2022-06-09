@@ -166,11 +166,8 @@ final class DefaultMigrationContext implements MigrationContext {
 
 		try (Session session = this.getSchemaSession()) {
 			ResultSummary consume = session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)").consume();
-			if (consume.notifications().stream().map(Notification::code)
-				.anyMatch(Neo4jCodes.FEATURE_DEPRECATION_WARNING::equals)) {
-				return false;
-			}
-			return true;
+			return consume.notifications().stream().map(Notification::code)
+				.noneMatch(Neo4jCodes.FEATURE_DEPRECATION_WARNING::equals);
 		} catch (ClientException e) {
 			if (Neo4jCodes.PROCEDURE_NOT_FOUND.equals(e.code())) {
 				return false;

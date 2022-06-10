@@ -60,16 +60,34 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
+      - name: Set up JBang
+        run: choco install jbang
+      - name: Start Neo4j in Background
+        env:
+          EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
+        if: "${{ env.EXTERNAL_TEST_DB_URL == 'bolt://localhost:7687' }}"
+        run: cmd /c "START /b jbang bin/start_neo4j.java"
       - name: Download assembly
         uses: actions/download-artifact@v1
         with:
           name: assembly
           path: assembly
-      - name: Print info
+      - name: Check availability
+        id: check-availability
         env:
           EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
           EXTERNAL_TEST_DB_PWD: ${{ secrets.EXTERNAL_TEST_DB_PWD }}
-        run: assembly/bin/neo4j-migrations.bat -a %EXTERNAL_TEST_DB_URL% --password:env EXTERNAL_TEST_DB_PWD --location file:///$pwd/neo4j-migrations-test-resources/src/main/resources/some/changeset info mode=LOCAL
+        run: jbang bin/check_availability.java EXTERNAL_TEST_DB_URL EXTERNAL_TEST_DB_PWD 20
+        continue-on-error: true
+      - name: External DB not available
+        if: steps.check-availability.outcome == 'failure'
+        run: echo "External DB not available, skipping Windows tests."
+      - name: Run migrations
+        if: steps.check-availability.outcome == 'success'
+        env:
+          EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
+          EXTERNAL_TEST_DB_PWD: ${{ secrets.EXTERNAL_TEST_DB_PWD }}
+        run: assembly/bin/neo4j-migrations.bat -a %EXTERNAL_TEST_DB_URL% --password:env EXTERNAL_TEST_DB_PWD --location file:///$pwd/neo4j-migrations-test-resources/src/main/resources/some/changeset info
 
   ensure_jdk_compat:
     name: Ensure compatibilty with minimum required Java version

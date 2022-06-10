@@ -583,6 +583,8 @@
 						<exclude>**/*.webm</exclude>
 						<exclude>**/*.yaml</exclude>
 						<exclude>**/org.mockito.plugins.MockMaker</exclude>
+						<exclude>bin/check_availability.java</exclude>
+						<exclude>bin/start_neo4j.java</exclude>
 						<exclude>bin/test_native_cli.java</exclude>
 						<exclude>**/package-info.java</exclude>
 						<exclude>**/assembly/README</exclude>

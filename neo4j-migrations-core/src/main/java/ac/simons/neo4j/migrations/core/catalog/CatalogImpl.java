@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author Michael J. Simons
  * @soundtrack Carcass - Surgical Steel
- * @since TBA
+ * @since 1.7.0
  */
 final class CatalogImpl implements Catalog {
 

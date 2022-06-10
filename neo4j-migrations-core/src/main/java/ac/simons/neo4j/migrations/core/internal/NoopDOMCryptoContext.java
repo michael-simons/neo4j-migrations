@@ -23,7 +23,7 @@ import javax.xml.crypto.dom.DOMCryptoContext;
  *
  * @author Michael J. Simons
  * @soundtrack Pet Shop Boys - Please
- * @since TBA
+ * @since 1.7.0
  */
 public final class NoopDOMCryptoContext extends DOMCryptoContext {
 }

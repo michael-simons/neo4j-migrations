@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author Michael J. Simons
  * @soundtrack Motörhead - Iron Fist
- * @since TBA
+ * @since 1.7.0
  */
 interface MigrationWithPreconditions extends Migration {
 

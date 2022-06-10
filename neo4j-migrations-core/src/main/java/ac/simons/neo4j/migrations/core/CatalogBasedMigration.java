@@ -87,7 +87,7 @@ import org.xml.sax.SAXParseException;
  *
  * @author Michael J. Simons
  * @soundtrack Tom Holkenborg - Terminator: Dark Fate
- * @since TBA
+ * @since 1.7.0
  */
 final class CatalogBasedMigration implements MigrationWithPreconditions {
 

@@ -33,7 +33,7 @@ import org.w3c.dom.Document;
  * Renders constraints as XML.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 enum ConstraintToXMLRenderer implements Renderer<Constraint> {
 

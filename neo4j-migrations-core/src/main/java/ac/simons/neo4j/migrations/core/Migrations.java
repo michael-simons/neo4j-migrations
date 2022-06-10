@@ -320,7 +320,7 @@ public final class Migrations {
 	 * Retrieves the local catalog, containing constraints and indexes.
 	 *
 	 * @return the local catalog
-	 * @since TBA
+	 * @since 1.7.0
 	 */
 	public Catalog getLocalCatalog() {
 
@@ -334,7 +334,7 @@ public final class Migrations {
 	/**
 	 * Retrieves the database catalog
 	 * @return the database catalog
-	 * @since TBA
+	 * @since 1.7.0
 	 */
 	public Catalog getDatabaseCatalog() {
 

@@ -21,7 +21,7 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
  * A marker interface that can be added to a {@link Catalog} making it writable.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 interface WriteableCatalog extends Catalog {
 

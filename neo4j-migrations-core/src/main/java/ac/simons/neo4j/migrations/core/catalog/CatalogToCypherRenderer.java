@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 enum CatalogToCypherRenderer implements Renderer<Catalog> {
 

@@ -21,7 +21,7 @@ import java.net.URL;
  * A context in which a resource with a given URL was discovered.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public final class ResourceContext {
 

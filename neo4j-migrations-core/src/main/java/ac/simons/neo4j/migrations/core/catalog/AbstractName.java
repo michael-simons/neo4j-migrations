@@ -22,7 +22,7 @@ import java.util.Objects;
  * be the same one, with the generator on the interface.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 abstract class AbstractName implements Name {
 

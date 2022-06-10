@@ -20,7 +20,7 @@ package ac.simons.neo4j.migrations.core.internal;
  *
  * @author Michael J. Simons
  * @soundtrack Iron Maiden - Powerslave
- * @since TBA
+ * @since 1.7.0
  */
 public final class UncheckedNoSuchAlgorithmException extends RuntimeException {
 

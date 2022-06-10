@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * Marker interface for detailed item type specifications (such as a unique constraint or a BTREE index).
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public interface ItemType {
 

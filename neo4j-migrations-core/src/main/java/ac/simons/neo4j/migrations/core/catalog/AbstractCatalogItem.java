@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
 

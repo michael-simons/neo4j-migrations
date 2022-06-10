@@ -24,7 +24,7 @@ import java.util.Collection;
  * The unique id of an {@link CatalogItem item}.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public interface Name {
 

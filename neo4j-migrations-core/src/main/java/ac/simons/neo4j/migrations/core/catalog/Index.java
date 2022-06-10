@@ -38,7 +38,7 @@ import org.w3c.dom.Element;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @since TBA
+ * @since 1.7.0
  */
 // This is about the additional field deconstructedIdentifiers. It is immutable and directly derived
 // from the identifier in a one-to-one onto relationship and therefor ok.

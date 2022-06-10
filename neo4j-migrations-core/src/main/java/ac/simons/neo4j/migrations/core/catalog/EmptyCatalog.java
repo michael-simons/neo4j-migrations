@@ -23,7 +23,7 @@ import java.util.Collections;
  *
  * @author Michael J. Simons
  * @soundtrack Carcass - Surgical Steel
- * @since TBA
+ * @since 1.7.0
  */
 enum EmptyCatalog implements Catalog {
 	INSTANCE;

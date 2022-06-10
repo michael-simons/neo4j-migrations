@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 enum IndexToCypherRenderer implements Renderer<Index> {
 

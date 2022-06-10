@@ -22,7 +22,7 @@ import java.util.Set;
  * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public enum Neo4jVersion {
 

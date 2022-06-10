@@ -21,7 +21,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @author Michael J. Simons
  * @param <T> The concrete type of this item, either a constraint or an index.
  * @soundtrack Anthrax - Spreading The Disease
- * @since TBA
+ * @since 1.7.0
  */
 public interface CatalogItem<T extends ItemType> {
 

@@ -20,7 +20,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
- * @since TBA
+ * @since 1.7.0
  */
 public enum Operator {
 

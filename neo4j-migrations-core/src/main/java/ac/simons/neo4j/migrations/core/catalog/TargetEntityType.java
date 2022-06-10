@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * Enumerates possible target entities of constraints and indexes.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public enum TargetEntityType {
 

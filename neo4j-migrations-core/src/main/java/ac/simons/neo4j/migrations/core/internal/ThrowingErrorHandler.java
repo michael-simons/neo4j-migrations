@@ -26,7 +26,7 @@ import org.xml.sax.SAXParseException;
  *
  * @author Michael J. Simons
  * @soundtrack Pet Shop Boys - Please
- * @since TBA
+ * @since 1.7.0
  */
 public final class ThrowingErrorHandler implements ErrorHandler {
 

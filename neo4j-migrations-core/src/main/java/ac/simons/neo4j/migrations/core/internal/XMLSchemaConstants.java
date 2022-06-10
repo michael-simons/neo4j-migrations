@@ -24,7 +24,7 @@ import java.util.Set;
  * Constants used throughout parsing and reading / writing elements and attributes of xml and database constraints.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public final class XMLSchemaConstants {
 

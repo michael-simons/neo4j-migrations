@@ -22,7 +22,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
  * Containing some immutable state for parsing and rendering contexts.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 abstract class AbstractContext {
 

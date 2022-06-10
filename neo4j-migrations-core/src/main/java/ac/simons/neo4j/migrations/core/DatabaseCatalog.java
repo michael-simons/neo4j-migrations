@@ -33,7 +33,7 @@ import org.neo4j.driver.QueryRunner;
  *
  * @author Michael J. Simons
  * @soundtrack The Prodigy - Music For The Jilted Generation
- * @since TBA
+ * @since 1.7.0
  */
 final class DatabaseCatalog implements Catalog {
 

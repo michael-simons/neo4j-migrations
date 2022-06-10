@@ -21,7 +21,7 @@ import java.util.Locale;
  * Represents a Neo4j edition.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public enum Neo4jEdition {
 

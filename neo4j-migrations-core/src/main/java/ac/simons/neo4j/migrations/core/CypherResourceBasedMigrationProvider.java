@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core;
  * Default handler for cypher resources.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public final class CypherResourceBasedMigrationProvider implements ResourceBasedMigrationProvider {
 

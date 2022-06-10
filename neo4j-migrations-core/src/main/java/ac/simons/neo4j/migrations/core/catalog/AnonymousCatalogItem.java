@@ -25,7 +25,7 @@ import java.util.Locale;
  * Anonymize a catalog item.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 final class AnonymousCatalogItem implements Formattable {
 

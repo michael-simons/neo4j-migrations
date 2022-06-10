@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * @author Michael J. Simons
  * @soundtrack Pet Shop Boys - Fundamental
- * @since TBA
+ * @since 1.7.0
  */
 final class CatalogDiffImpl implements CatalogDiff {
 

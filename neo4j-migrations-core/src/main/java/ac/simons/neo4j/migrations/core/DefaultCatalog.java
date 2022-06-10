@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * @author Michael J. Simons
  * @soundtrack Metallica - Ride The Lightning
- * @since TBA
+ * @since 1.7.0
  */
 class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 

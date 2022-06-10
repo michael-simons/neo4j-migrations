@@ -27,7 +27,7 @@ import java.util.ServiceLoader;
  *
  * @author Michael J. Simons
  * @soundtrack Fatoni - Andorra
- * @since TBA
+ * @since 1.7.0
  */
 public interface ResourceBasedMigrationProvider extends Ordered {
 

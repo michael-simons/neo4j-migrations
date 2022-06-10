@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 enum CatalogToXMLRenderer implements Renderer<Catalog> {
 

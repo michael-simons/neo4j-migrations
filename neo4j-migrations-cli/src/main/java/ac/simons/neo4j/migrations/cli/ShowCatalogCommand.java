@@ -28,7 +28,7 @@ import picocli.CommandLine.ParentCommand;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 @Command(name = "show-catalog", description = "Gets the local or remote catalog and prints it to standard out in the given format.")
 final class ShowCatalogCommand extends ConnectedCommand {

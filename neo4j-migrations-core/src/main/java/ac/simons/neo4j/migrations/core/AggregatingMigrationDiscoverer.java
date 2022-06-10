@@ -23,7 +23,7 @@ import java.util.List;
  * Aggregating the results of a collection of discoverer into one big result.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 final class AggregatingMigrationDiscoverer implements Discoverer<Migration> {
 

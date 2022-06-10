@@ -22,7 +22,7 @@ import java.util.logging.LogRecord;
  * This formatter just returns the formatted message and doesn't react to any formatting.
  *
  * @author Micahel J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 public final class MigrationsCliConsoleFormatter extends Formatter {
 	@Override

@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
  * @author Michael J. Simons
  * @param <T> The type of things this renderer supports
  * @soundtrack Anthrax - Spreading The Disease
- * @since TBA
+ * @since 1.7.0
  */
 public interface Renderer<T> {
 

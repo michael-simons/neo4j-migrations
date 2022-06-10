@@ -30,7 +30,7 @@ import org.w3c.dom.Node;
  *
  * @author Michael J. Simons
  * @soundtrack Pet Shop Boys - Please
- * @since TBA
+ * @since 1.7.0
  */
 @SuppressWarnings("rawtypes") // See JavaDoc comment above…
 public final class NodeSetDataImpl implements NodeSetData {

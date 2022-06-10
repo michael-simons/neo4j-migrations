@@ -23,7 +23,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
  *
  * @author Michael J. Simons
  * @soundtrack Anthrax - Spreading The Disease
- * @since TBA
+ * @since 1.7.0
  */
 public final class RenderConfig {
 

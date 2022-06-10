@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * Default implementation of a {@link Name}.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.7.0
  */
 final class DefaultName extends AbstractName {
 

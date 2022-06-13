@@ -7,7 +7,7 @@
 [[usage_common_clean]]
 === Clean
 
-`clean` applies by default to the schema database.
+`clean` applies by default to the <<concepts_separate-databases, schema database>>.
 It will remove Neo4j-Migrations related nodes and relationships.
 If there is no schema database selected, it works on the optional target database.
 If this isn't configured either, the users home database will be used.

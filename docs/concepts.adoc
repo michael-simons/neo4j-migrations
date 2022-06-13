@@ -122,7 +122,7 @@ MigrationsConfig configLookingAtDifferentPlaces = MigrationsConfig.builder()
 ==== Switching database inside Cypher scripts
 
 It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE]) inside your scripts.
-There a couple of thinks to remember, though:
+There are a couple of things to remember, though:
 
 * It can get tricky if you combine it in creative ways with the options for schema- and target-databases Neo4j-Migrations offer itself
 * If you have more than one statement per script (which is completely not a problem) and one of them should use `USE` you must
@@ -549,6 +549,10 @@ Valid scenarios are:
 Neo4j-Migrations will create subgraphs in the schema database identifiable by a `migrationTarget`-property in the `__Neo4jMigration`-nodes.
 Neo4j-Migrations will *not* record a `migrationTarget` for the default database (usually `neo4j`),
 so that this feature doesn't break compatibility with schemas created before 1.1.0.
+
+TIP: It is usually a good idea to separate management data (like in this case the chain of applied migrations) from you own data,
+     whether the latter is created or changed by refactorings itself or by an application). So we recommend to use separated databases when
+     you're on enterprise edition.
 
 [[concepts_transactions]]
 == Transactions

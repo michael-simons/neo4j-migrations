@@ -21,7 +21,7 @@ include::{manualIncludeDir}/README.adoc[tags=compatibility]
 [[introduction-versions]]
 == Versions
 
-Neo4j-Migrations 1.0.0 has been considered stable and has been released in November 2021. Since then, we ensure https://semver.org[semantic versioning].
+Neo4j-Migrations 1.0.0 has been considered stable and was first released in November 2021. Since then, we ensure https://semver.org[semantic versioning].
 This means in cases where you use the Java API directly, you can be sure that patch releases won't break your application, and you can always upgrade.
 
 [[introduction-modules]]

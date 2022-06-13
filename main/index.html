@@ -648,7 +648,7 @@ In addition, the Core API is provided as a Multi-Release-Jar, providing a <code>
 <div class="sect2">
 <h3 id="introduction-versions"><a class="anchor" href="#introduction-versions"></a>1.3. Versions</h3>
 <div class="paragraph">
-<p>Neo4j-Migrations 1.0.0 has been considered stable and has been released in November 2021. Since then, we ensure <a href="https://semver.org">semantic versioning</a>.
+<p>Neo4j-Migrations 1.0.0 has been considered stable and was first released in November 2021. Since then, we ensure <a href="https://semver.org">semantic versioning</a>.
 This means in cases where you use the Java API directly, you can be sure that patch releases won&#8217;t break your application, and you can always upgrade.</p>
 </div>
 </div>
@@ -1108,7 +1108,7 @@ Spring-Boot-Starter or the Maven-Plugin like this:</p>
 <h5 id="switchingdatabaseinsidecypherscripts"><a class="anchor" href="#switchingdatabaseinsidecypherscripts"></a>Switching database inside Cypher scripts</h5>
 <div class="paragraph">
 <p>It is of course possible to use the Cypher keyword <code>USE &lt;graph&gt;</code> (See <a href="https://neo4j.com/docs/cypher-manual/current/clauses/use/">USE</a>) inside your scripts.
-There a couple of thinks to remember, though:</p>
+There are a couple of things to remember, though:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1818,6 +1818,20 @@ The database must exist and the user must have write access to it.</p>
 Neo4j-Migrations will <strong>not</strong> record a <code>migrationTarget</code> for the default database (usually <code>neo4j</code>),
 so that this feature doesn&#8217;t break compatibility with schemas created before 1.1.0.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+It is usually a good idea to separate management data (like in this case the chain of applied migrations) from you own data,
+     whether the latter is created or changed by refactorings itself or by an application). So we recommend to use separated databases when
+     you&#8217;re on enterprise edition.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.8. Transactions</h3>
@@ -2026,7 +2040,7 @@ not to do anything in a given context. The migration will be dutifully recorded 
 <div class="sect3">
 <h4 id="usage_common_clean"><a class="anchor" href="#usage_common_clean"></a>4.1.1. Clean</h4>
 <div class="paragraph">
-<p><code>clean</code> applies by default to the schema database.
+<p><code>clean</code> applies by default to the <a href="#concepts_separate-databases">schema database</a>.
 It will remove Neo4j-Migrations related nodes and relationships.
 If there is no schema database selected, it works on the optional target database.
 If this isn&#8217;t configured either, the users home database will be used.</p>
@@ -3605,7 +3619,7 @@ to the target entity. This attribute defines the type of the element (such as un
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-06-10 13:14:29 UTC
+Last updated 2022-06-13 09:02:51 UTC
 </div>
 </div>
 </body>

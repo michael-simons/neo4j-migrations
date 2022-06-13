@@ -129,7 +129,7 @@
 		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<maven.version>3.8.5</maven.version>
+		<maven.version>3.8.6</maven.version>
 		<mockito.version>4.6.1</mockito.version>
 		<native.maven.plugin.version>0.9.11</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.4.6</neo4j-java-driver.version>

@@ -15,29 +15,27 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Collection;
-import java.util.Collections;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.net.URL;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mockito;
 
 /**
- * Default handler for xml resources.
- *
  * @author Michael J. Simons
- * @since 1.7.0
  */
-public final class DefaultCatalogBasedMigrationProvider implements ResourceBasedMigrationProvider {
+class ResourceContextTest {
 
-	@Override
-	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
-	}
+	@ParameterizedTest
+	@CsvSource(value = { "a.cypher, a.cypher", "foo/bar/a.cypher, a.cypher" })
+	void getIdentifierShouldWork(String path, String expected) {
 
-	@Override public String getExtension() {
-		return "xml";
-	}
-
-	@Override
-	public Collection<Migration> handle(ResourceContext ctx) {
-
-		return Collections.singletonList(CatalogBasedMigration.from(ctx.getUrl()));
+		URL url = Mockito.mock(URL.class);
+		when(url.getPath()).thenReturn(path);
+		ResourceContext ctx = ResourceContext.of(url, MigrationsConfig.defaultConfig());
+		assertThat(ctx.getIdentifier()).isEqualTo(expected);
 	}
 }

@@ -457,12 +457,12 @@
 							<exclude>ac/simons/neo4j/migrations/core/catalog/CatalogItem.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/catalog/ItemType.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/catalog/Name.class</exclude>
-							<exclude>ac/simons/neo4j/migrations/core/CatalogResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/ConnectionDetails.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/CypherResource$WithContent.class</exclude>
+							<exclude>ac/simons/neo4j/migrations/core/CypherResource.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/DatabaseOperationResult.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/Migration.class</exclude>
 							<exclude>ac/simons/neo4j/migrations/core/OperationResult.class</exclude>
-							<exclude>ac/simons/neo4j/migrations/core/catalog/CatalogItem.class</exclude>
 						</excludes>
 					</configuration>
 					<executions>
@@ -568,6 +568,9 @@
 				<configuration>
 					<header>etc/license.tpl</header>
 					<strictCheck>true</strictCheck>
+					<mapping>
+						<factories>SCRIPT_STYLE</factories>
+					</mapping>
 					<properties>
 						<year>2022</year>
 					</properties>

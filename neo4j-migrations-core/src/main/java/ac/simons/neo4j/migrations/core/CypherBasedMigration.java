@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.UnaryOperator;
 
 /**
  * A cypher script based migration.
@@ -29,11 +27,8 @@ import java.util.function.UnaryOperator;
  * @author Michael J. Simons
  * @since 0.0.2
  */
-final class CypherBasedMigration implements MigrationWithPreconditions {
+final class CypherBasedMigration extends AbstractCypherBasedMigration implements MigrationWithPreconditions {
 
-	private final CypherResource cypherResource;
-	private final String description;
-	private final MigrationVersion version;
 	/**
 	 * In case a migration with the {@link #getSource() source} with different preconditions is available, we treat those as alternatives
 	 */
@@ -44,30 +39,7 @@ final class CypherBasedMigration implements MigrationWithPreconditions {
 	}
 
 	CypherBasedMigration(URL url, boolean autocrlf) {
-
-		this.cypherResource = new CypherResource(url, autocrlf);
-		this.version = MigrationVersion.parse(this.cypherResource.getScript());
-		this.description = this.version.getDescription();
-	}
-
-	@Override
-	public MigrationVersion getVersion() {
-		return version;
-	}
-
-	@Override
-	public String getDescription() {
-		return description;
-	}
-
-	@Override
-	public String getSource() {
-		return this.cypherResource.getScript();
-	}
-
-	@Override
-	public Optional<String> getChecksum() {
-		return Optional.of(cypherResource.getChecksum());
+		super(CypherResource.of(url, autocrlf));
 	}
 
 	@Override
@@ -83,16 +55,7 @@ final class CypherBasedMigration implements MigrationWithPreconditions {
 	}
 
 	@Override
-	public void apply(MigrationContext context) throws MigrationsException {
-		cypherResource.executeIn(context, UnaryOperator.identity());
-	}
-
-	List<String> getStatements() {
-		return this.cypherResource.getStatements();
-	}
-
-	@Override
 	public List<Precondition> getPreconditions() {
-		return cypherResource.getPreconditions();
+		return Precondition.in(cypherResource);
 	}
 }

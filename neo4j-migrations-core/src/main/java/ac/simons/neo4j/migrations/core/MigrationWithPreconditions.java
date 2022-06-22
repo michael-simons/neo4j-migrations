@@ -34,7 +34,7 @@ interface MigrationWithPreconditions extends Migration {
 	List<Precondition> getPreconditions();
 
 	/**
-	 * @return potentially alternative checksums caused by the content being different due to the way the specifc resource
+	 * @return potentially alternative checksums caused by the content being different due to the way the specific resource
 	 * handles preconditions
 	 */
 	default List<String> getAlternativeChecksums() {

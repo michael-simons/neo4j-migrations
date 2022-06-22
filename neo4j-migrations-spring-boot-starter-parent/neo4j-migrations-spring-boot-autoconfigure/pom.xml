@@ -22,12 +22,12 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
-		<version>1.7.2-SNAPSHOT</version>
+		<version>1.8.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-spring-boot-autoconfigure</artifactId>
 
-	<name>Neo4j Migrations (Spring Boot Starter Autoconfiguration)</name>
+	<name>Neo4j Migrations (Spring Boot Autoconfiguration)</name>
 	<description>Autoconfiguration for Spring Boot.</description>
 
 	<properties>

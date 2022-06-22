@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>1.7.2-SNAPSHOT</version>
+		<version>1.8.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations</artifactId>
@@ -143,6 +143,14 @@
 							 | Internal classes, restricted via JMS on JDK11+ anyway.
 							 -->
 							<exclude>ac.simons.neo4j.migrations.core.internal</exclude>
+
+							<!-- 1.8.0: One time exclusion to refine an API that is most likely only used by us in the given release -->
+							<exclude>ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider#supportsArbitraryResourceNames()</exclude>
+							<exclude>ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider#handle(ac.simons.neo4j.migrations.core.ResourceContext)</exclude>
+							<exclude>ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider#handle(ac.simons.neo4j.migrations.core.ResourceContext)</exclude>
+							<exclude>ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider#handle(ac.simons.neo4j.migrations.core.ResourceContext)</exclude>
+							<!-- 1.8.0: Was not public before -->
+							<exclude>ac.simons.neo4j.migrations.core.CypherResource</exclude>
 						</excludes>
 					</parameter>
 				</configuration>

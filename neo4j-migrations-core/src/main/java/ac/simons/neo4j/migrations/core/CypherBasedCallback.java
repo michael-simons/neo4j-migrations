@@ -43,9 +43,9 @@ final class CypherBasedCallback implements Callback {
 
 	CypherBasedCallback(URL url, boolean autocrlf) {
 
-		this.cypherResource = new CypherResource(url, autocrlf);
+		this.cypherResource = CypherResource.of(url, autocrlf);
 
-		String script = this.cypherResource.getScript();
+		String script = this.cypherResource.getIdentifier();
 		Matcher matcher = LifecyclePhase.LIFECYCLE_PATTERN.matcher(script);
 		if (!matcher.matches()) {
 			throw new MigrationsException("Invalid name for a callback script: " + script);
@@ -68,17 +68,17 @@ final class CypherBasedCallback implements Callback {
 
 	@Override
 	public String getSource() {
-		return this.cypherResource.getScript();
+		return this.cypherResource.getIdentifier();
 	}
 
 	@Override
 	public void on(LifecycleEvent event) {
 
 		LOGGER.log(Level.FINE, "Invoking \"{0}\" on {1}",
-			new Object[] { this.cypherResource.getUrl(), event.getPhase() });
+			new Object[] { this.cypherResource.getIdentifier(), event.getPhase() });
 
 		UnaryOperator<SessionConfig.Builder> sessionCustomizer = event.getPhase() == LifecyclePhase.BEFORE_FIRST_USE ?
 			builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE) : UnaryOperator.identity();
-		this.cypherResource.executeIn(event.getContext(), sessionCustomizer);
+		DefaultCypherResource.executeIn(cypherResource, event.getContext(), sessionCustomizer);
 	}
 }

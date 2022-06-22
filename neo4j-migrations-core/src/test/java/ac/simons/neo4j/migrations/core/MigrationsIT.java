@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
@@ -337,11 +339,14 @@ class MigrationsIT extends TestBase {
 		return files;
 	}
 
-	@Test
-	void shouldApplyResourceBasedMigrations() {
+	@ParameterizedTest
+	@EnumSource(MigrationsConfig.TransactionMode.class)
+	void shouldApplyResourceBasedMigrations(MigrationsConfig.TransactionMode transactionMode) {
 
 		Migrations migrations;
-		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan(
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withTransactionMode(transactionMode)
+			.withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 
 		Catalog localCatalog = migrations.getLocalCatalog();

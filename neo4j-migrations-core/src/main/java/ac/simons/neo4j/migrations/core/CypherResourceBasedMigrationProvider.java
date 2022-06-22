@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Default handler for cypher resources.
  *
@@ -29,8 +32,8 @@ public final class CypherResourceBasedMigrationProvider implements ResourceBased
 	}
 
 	@Override
-	public Migration handle(ResourceContext ctx) {
-		return new CypherBasedMigration(ctx.getUrl(), ctx.getConfig().isAutocrlf());
+	public Collection<Migration> handle(ResourceContext ctx) {
+		return Collections.singletonList(new CypherBasedMigration(ctx.getUrl(), ctx.getConfig().isAutocrlf()));
 	}
 
 	@Override

@@ -126,7 +126,7 @@ public class MigrationsProcessor {
 			.map(ext -> "." + ext)
 			.collect(Collectors.toSet());
 
-		Predicate<Path> isCypherFile = path -> {
+		Predicate<Path> isSupportedFile = path -> {
 			if (!Files.isRegularFile(path)) {
 				return false;
 			}
@@ -149,7 +149,7 @@ public class MigrationsProcessor {
 			ClassPathUtils.consumeAsPaths(name, rootResource -> {
 				try (var paths = Files.walk(rootResource)) {
 					paths
-						.filter(isCypherFile)
+						.filter(isSupportedFile)
 						// Resolving the string and not the path object is done on purpose, as otherwise
 						// a provider mismatch can occur.
 						.map(it -> rootPath.resolve(rootResource.relativize(it).normalize().toString()))

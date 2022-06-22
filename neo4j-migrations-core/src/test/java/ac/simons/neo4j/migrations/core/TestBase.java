@@ -51,6 +51,7 @@ abstract class TestBase {
 	}
 
 	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3")
+		.withLabel("ac.simons.neo4j.migrations.core", TestBase.class.getSimpleName())
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	Driver driver;
@@ -78,7 +79,6 @@ abstract class TestBase {
 	void closeDriver() {
 
 		driver.close();
-		neo4j.stop();
 	}
 
 	static void clearDatabase(Driver driver, String database) {

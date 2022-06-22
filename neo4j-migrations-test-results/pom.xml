@@ -46,6 +46,11 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-formats-adoc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-maven-plugin</artifactId>
 			<version>${project.version}</version>
 		</dependency>

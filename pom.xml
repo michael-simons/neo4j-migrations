@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.7.2-SNAPSHOT</version>
+	<version>1.8.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -63,6 +63,7 @@
 		<module>neo4j-migrations-quarkus-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
+		<module>extensions/neo4j-migrations-formats-adoc</module>
 	</modules>
 
 	<scm>
@@ -91,6 +92,7 @@
 		<asciidoctorj-diagram.version>2.2.3</asciidoctorj-diagram.version>
 		<asciidoctorj.version>2.5.4</asciidoctorj.version>
 		<assertj.version>3.23.1</assertj.version>
+		<build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.12.10</byte-buddy.version>
 		<checkstyle.version>10.3</checkstyle.version>
 		<classgraph.version>4.8.147</classgraph.version>
@@ -101,7 +103,7 @@
 		<graalvm.version>21.3.2</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.7</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.5</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -123,6 +125,7 @@
 		<maven-project-info-reports-plugin.version>3.3.0</maven-project-info-reports-plugin.version>
 		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
 		<maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
+		<maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
 		<maven-site-plugin.version>3.12.0</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
@@ -713,7 +716,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -841,9 +844,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

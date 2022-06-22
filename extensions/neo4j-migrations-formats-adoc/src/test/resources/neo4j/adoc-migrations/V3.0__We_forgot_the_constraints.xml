@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<create>
+		<constraint name="unique_band_name" type="unique">
+			<label>Band</label>
+			<properties>
+				<property>name</property>
+			</properties>
+		</constraint>
+	</create>
+</migration>

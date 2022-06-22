@@ -49,3 +49,9 @@ Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema
 include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/core/migration.xsd[]
 ----
 
+[[appendix_extesions]]
+== Extensions
+
+=== AsciiDoctor Support (Experimental)
+
+include::../extensions/neo4j-migrations-formats-adoc/README.adoc[leveloffset=+2,tag=content]

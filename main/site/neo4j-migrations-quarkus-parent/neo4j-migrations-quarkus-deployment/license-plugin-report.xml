@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1655296451574">
+<licensePluginReport goal="CHECK" timestamp="1655914118932">
     <module artifactId="neo4j-migrations-quarkus-deployment" groupId="eu.michael-simons.neo4j" version="1.7.2-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>

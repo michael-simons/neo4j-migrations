@@ -28,7 +28,7 @@ import java.util.List;
  * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
-public interface CypherResource {
+public sealed interface CypherResource permits DefaultCypherResource {
 
 	/**
 	 * Creates a new resource for the given URL, using the default settings for autocrlf.

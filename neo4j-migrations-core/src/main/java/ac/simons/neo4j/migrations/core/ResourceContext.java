@@ -15,7 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 
 /**
  * A context in which a resource with a given URL was discovered.
@@ -25,11 +27,22 @@ import java.net.URL;
  */
 public final class ResourceContext {
 
+	/**
+	 * Static factory method, might be helpful during tests of additional providers
+	 *
+	 * @param url    The url of the given resource
+	 * @param config The config used during discovery
+	 * @return A new resource context
+	 */
+	public static ResourceContext of(URL url, MigrationsConfig config) {
+		return new ResourceContext(url, config);
+	}
+
 	private final URL url;
 
 	private final MigrationsConfig config;
 
-	ResourceContext(URL url, MigrationsConfig config) {
+	private ResourceContext(URL url, MigrationsConfig config) {
 		this.url = url;
 		this.config = config;
 	}
@@ -39,6 +52,31 @@ public final class ResourceContext {
 	 */
 	public URL getUrl() {
 		return url;
+	}
+
+	/**
+	 * @return The identifier of the underlying resource
+	 * @since 1.8.0
+	 */
+	public String getIdentifier() {
+		return generateIdentifierOf(url);
+	}
+
+	/**
+	 * Helper method to extract an optional last element from a URL path. If no such element exists, returns the full path.
+	 *
+	 * @param url The url containing a path
+	 * @return The last path element or if such an element does not exists, the full path
+	 */
+	static String generateIdentifierOf(URL url) {
+		String path = url.getPath();
+		try {
+			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
+		} catch (UnsupportedEncodingException e) {
+			throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
+		}
+		int lastIndexOf = path.lastIndexOf("/");
+		return lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 	}
 
 	/**

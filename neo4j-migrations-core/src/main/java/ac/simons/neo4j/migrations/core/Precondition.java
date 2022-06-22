@@ -15,9 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A precondition can be needs to be met after discovering migrations and prior to building changes. If it isn't met, the
@@ -98,6 +100,17 @@ interface Precondition {
 			throw new IllegalArgumentException(
 				"Wrong precondition " + formattedHint(in) + ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 		});
+	}
+
+	/**
+	 * @param cypherResource The resource to extract preconditions from
+	 * @return A list of preconditions
+	 */
+	static List<Precondition> in(CypherResource cypherResource) {
+		return cypherResource.getSingleLineComments().stream().map(Precondition::parse)
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.collect(Collectors.toList());
 	}
 
 	/**

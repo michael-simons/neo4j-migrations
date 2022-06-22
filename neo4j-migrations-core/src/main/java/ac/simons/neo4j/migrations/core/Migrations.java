@@ -548,7 +548,7 @@ public final class Migrations {
 		MigrationType type;
 		if (migration instanceof JavaBasedMigration) {
 			type = MigrationType.JAVA;
-		} else if (migration instanceof CypherBasedMigration) {
+		} else if (migration instanceof AbstractCypherBasedMigration) {
 			type = MigrationType.CYPHER;
 		} else if (migration instanceof CatalogBasedMigration) {
 			type = MigrationType.CATALOG;

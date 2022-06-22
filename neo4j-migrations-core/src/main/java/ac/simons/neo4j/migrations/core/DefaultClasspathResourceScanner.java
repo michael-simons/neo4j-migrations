@@ -17,11 +17,11 @@ package ac.simons.neo4j.migrations.core;
 
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.Resource;
+import io.github.classgraph.ResourceList;
 import io.github.classgraph.ScanResult;
 
 import java.net.URL;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -32,20 +32,14 @@ import java.util.stream.Collectors;
  */
 final class DefaultClasspathResourceScanner implements ClasspathResourceScanner {
 
-	private final Pattern pattern;
-
-	DefaultClasspathResourceScanner() {
-		this.pattern = Pattern.compile(".*(?:" + MigrationVersion.VERSION_PATTERN.pattern() + "|" + LifecyclePhase.LIFECYCLE_PATTERN.pattern() + ")");
-	}
-
 	@Override
 	public List<URL> scan(List<String> locations) {
 
 		String[] paths = locations.toArray(new String[0]);
-		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan()) {
-
-			return scanResult.getResourcesMatchingPattern(pattern)
-				.nonClassFilesOnly()
+		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan();
+			ResourceList allResources = scanResult.getAllResources().nonClassFilesOnly()
+		) {
+			return allResources
 				.stream()
 				.map(Resource::getURL)
 				.collect(Collectors.toList());

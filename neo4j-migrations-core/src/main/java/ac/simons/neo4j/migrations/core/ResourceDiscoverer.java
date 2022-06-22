@@ -55,6 +55,9 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 			Predicate<String> filter = pathOrUrl -> {
 				try {
 					String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING.name());
+					if (provider.supportsArbitraryResourceNames()) {
+						return path.endsWith(provider.getExtension());
+					}
 					Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
 					return matcher.find() && provider.getExtension().equals(matcher.group("ext"));
 				} catch (UnsupportedEncodingException e) {
@@ -74,7 +77,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 				return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
 		});
 		return new ResourceDiscoverer<>(resourceScanner, filter,
-			ctx -> new CypherBasedCallback(ctx.getUrl(), ctx.getConfig().isAutocrlf()));
+			ctx -> Collections.singletonList(new CypherBasedCallback(ctx.getUrl(), ctx.getConfig().isAutocrlf())));
 	}
 
 	private static final Logger LOGGER = Logger.getLogger(ResourceDiscoverer.class.getName());
@@ -83,9 +86,9 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 
 	private final Predicate<String> resourceFilter;
 
-	private final Function<ResourceContext, T> mapper;
+	private final Function<ResourceContext, Collection<T>> mapper;
 
-	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, T> mapper) {
+	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, Collection<T>> mapper) {
 		this.scanner = scanner;
 		this.resourceFilter = resourceFilter;
 		this.mapper = mapper;
@@ -130,8 +133,9 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 		return this.scanner.scan(classpathLocations)
 			.stream()
 			.filter(r -> resourceFilter.test(r.getPath()))
-			.map(resource -> new ResourceContext(resource, config))
+			.map(resource -> ResourceContext.of(resource, config))
 			.map(mapper)
+			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 	}
 
@@ -156,8 +160,8 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						String fullPath = file.toString();
 						if (attrs.isRegularFile() && resourceFilter.test(fullPath)) {
-							ResourceContext context = new ResourceContext(file.toFile().toURI().toURL(), config);
-							resources.add(mapper.apply(context));
+							ResourceContext context = ResourceContext.of(file.toFile().toURI().toURL(), config);
+							resources.addAll(mapper.apply(context));
 							return FileVisitResult.CONTINUE;
 						}
 						return super.visitFile(file, attrs);

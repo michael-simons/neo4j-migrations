@@ -55,10 +55,21 @@ public interface ResourceBasedMigrationProvider extends Ordered {
 	String getExtension();
 
 	/**
-	 * Handles the resource of the given context and produces a new migration.
+	 * Handles the resource of the given context and produces one or more new migrations.
 	 *
 	 * @param ctx The context containing the resource and other information
-	 * @return The migration based on the resource.
+	 * @return The migrations contained in the resource
 	 */
-	Migration handle(ResourceContext ctx);
+	Collection<Migration> handle(ResourceContext ctx);
+
+	/**
+	 * Return {@literal true} if the provider has different ways how to map from file / resource names to a valid
+	 * {@link MigrationVersion version}.
+	 *
+	 * @return {@literal true} if this provider can deal with non versioned file names
+	 * @since 1.8.0
+	 */
+	default boolean supportsArbitraryResourceNames() {
+		return false;
+	}
 }

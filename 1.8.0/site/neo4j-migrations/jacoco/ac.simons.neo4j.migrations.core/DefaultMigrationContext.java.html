@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultMigrationContext.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultMigrationContext.java</span></div><h1>DefaultMigrationContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Collection;
+import java.util.function.UnaryOperator;
+
+import org.neo4j.driver.AccessMode;
+import org.neo4j.driver.Bookmark;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.internal.util.ServerVersion;
+import org.neo4j.driver.summary.DatabaseInfo;
+import org.neo4j.driver.summary.Notification;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.ServerInfo;
+
+/**
+ * Default implementation of the {@link MigrationContext}, including the logic of wrapping driver and blocking sessions
+ * into proxy objects taking care of bookmarks.
+ *
+ * @author Michael J. Simons
+ * @since 1.3.0
+ */
+final class DefaultMigrationContext implements MigrationContext {
+
+<span class="fc" id="L51">	private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();</span>
+	private final UnaryOperator&lt;SessionConfig.Builder&gt; applySchemaDatabase;
+
+	private static Method findWithImpersonatedUser() {
+		try {
+<span class="fc" id="L56">			return SessionConfig.Builder.class.getMethod(&quot;withImpersonatedUser&quot;, String.class);</span>
+<span class="nc" id="L57">		} catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L58">			return null; // This is fine</span>
+		}
+	}
+
+	private final MigrationsConfig config;
+
+	private final BookmarkManager bookmarkManager;
+
+	private final Driver driver;
+
+	@SuppressWarnings(&quot;squid:S3077&quot;) // This will always be an immutable instance.s
+	private volatile ConnectionDetails connectionDetails;
+
+<span class="fc" id="L71">	private final VersionedCatalog catalog = new DefaultCatalog();</span>
+
+<span class="fc" id="L73">	DefaultMigrationContext(MigrationsConfig config, Driver driver) {</span>
+
+<span class="fc bfc" id="L75" title="All 4 branches covered.">		if (config.getOptionalImpersonatedUser().isPresent() &amp;&amp; WITH_IMPERSONATED_USER == null) {</span>
+<span class="fc" id="L76">			throw new IllegalArgumentException(</span>
+				&quot;User impersonation requires a driver that supports `withImpersonatedUser`.&quot;);
+		}
+
+<span class="fc" id="L80">		this.config = config;</span>
+<span class="fc" id="L81">		this.bookmarkManager = new BookmarkManager();</span>
+<span class="fc" id="L82">		this.driver = (Driver) Proxy.newProxyInstance(this.getClass().getClassLoader(),</span>
+			new Class&lt;?&gt;[] { Driver.class }, new DriverProxy(bookmarkManager, driver));
+<span class="fc" id="L84">		this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase -&gt;</span>
+<span class="fc" id="L85">			(UnaryOperator&lt;SessionConfig.Builder&gt;) builder -&gt; builder.withDatabase(schemaDatabase)</span>
+<span class="fc" id="L86">		).orElseGet(UnaryOperator::identity);</span>
+<span class="fc" id="L87">	}</span>
+
+	@Override
+	public MigrationsConfig getConfig() {
+<span class="fc" id="L91">		return config;</span>
+	}
+
+	@Override
+	public Driver getDriver() {
+<span class="fc" id="L96">		return driver;</span>
+	}
+
+	@Override
+	public SessionConfig getSessionConfig() {
+<span class="fc" id="L101">		return getSessionConfig(UnaryOperator.identity());</span>
+	}
+
+	@Override
+	public SessionConfig getSessionConfig(UnaryOperator&lt;SessionConfig.Builder&gt; configCustomizer) {
+
+<span class="fc" id="L107">		SessionConfig.Builder builder = SessionConfig.builder()</span>
+<span class="fc" id="L108">			.withDefaultAccessMode(AccessMode.WRITE)</span>
+<span class="fc" id="L109">			.withBookmarks(bookmarkManager.getBookmarks());</span>
+<span class="fc" id="L110">		this.config.getOptionalDatabase().ifPresent(builder::withDatabase);</span>
+<span class="fc" id="L111">		this.config.getOptionalImpersonatedUser().ifPresent(user -&gt; setWithImpersonatedUser(builder, user));</span>
+
+<span class="fc" id="L113">		return configCustomizer.apply(builder).build();</span>
+	}
+
+	static void setWithImpersonatedUser(SessionConfig.Builder builder, String user) {
+		try {
+			// This is fine, when an impersonated user is present, the availability of
+			// this method has been checked.
+			// noinspection ConstantConditions
+<span class="fc" id="L121">			WITH_IMPERSONATED_USER.invoke(builder, user);</span>
+<span class="fc" id="L122">		} catch (IllegalAccessException | InvocationTargetException e) {</span>
+<span class="fc" id="L123">			throw new MigrationsException(&quot;Could not impersonate a user on the driver level&quot;, e);</span>
+<span class="fc" id="L124">		}</span>
+<span class="fc" id="L125">	}</span>
+
+	static SessionConfig.Builder copyIntoBuilder(SessionConfig sessionConfig) {
+
+<span class="fc" id="L129">		SessionConfig.Builder builder = SessionConfig.builder();</span>
+<span class="fc" id="L130">		builder.withBookmarks(sessionConfig.bookmarks());</span>
+<span class="fc" id="L131">		sessionConfig.database().ifPresent(builder::withDatabase);</span>
+<span class="fc" id="L132">		builder.withDefaultAccessMode(sessionConfig.defaultAccessMode());</span>
+<span class="fc" id="L133">		sessionConfig.fetchSize().ifPresent(builder::withFetchSize);</span>
+<span class="fc" id="L134">		sessionConfig.impersonatedUser().ifPresent(user -&gt; setWithImpersonatedUser(builder, user));</span>
+
+<span class="fc" id="L136">		return builder;</span>
+	}
+
+	@Override
+	public Session getSchemaSession() {
+<span class="fc" id="L141">		return getDriver().session(getSessionConfig(applySchemaDatabase));</span>
+	}
+
+	@Override
+	public ConnectionDetails getConnectionDetails() {
+
+<span class="fc" id="L147">		ConnectionDetails availableConnectionDetails = this.connectionDetails;</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">		if (availableConnectionDetails == null) {</span>
+<span class="fc" id="L149">			synchronized (this) {</span>
+<span class="fc" id="L150">				availableConnectionDetails = this.connectionDetails;</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">				if (availableConnectionDetails == null) {</span>
+<span class="fc" id="L152">					this.connectionDetails = getConnectionDetails0();</span>
+<span class="fc" id="L153">					availableConnectionDetails = this.connectionDetails;</span>
+				}
+<span class="fc" id="L155">			}</span>
+		}
+<span class="fc" id="L157">		return availableConnectionDetails;</span>
+	}
+
+	@Override
+	public Catalog getCatalog() {
+<span class="fc" id="L162">		return catalog;</span>
+	}
+
+	private boolean hasDbmsProcedures() {
+
+<span class="fc" id="L167">		try (Session session = this.getSchemaSession()) {</span>
+<span class="fc" id="L168">			ResultSummary consume = session.run(&quot;EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)&quot;).consume();</span>
+<span class="fc" id="L169">			return consume.notifications().stream().map(Notification::code)</span>
+<span class="fc" id="L170">				.noneMatch(Neo4jCodes.FEATURE_DEPRECATION_WARNING::equals);</span>
+<span class="fc" id="L171">		} catch (ClientException e) {</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">			if (Neo4jCodes.PROCEDURE_NOT_FOUND.equals(e.code())) {</span>
+<span class="fc" id="L173">				return false;</span>
+			}
+<span class="fc" id="L175">			throw e;</span>
+		}
+	}
+
+	static class ExtendedResultSummary {
+		final boolean showCurrentUserExists;
+		final ServerVersion version;
+		final ServerInfo server;
+		final DatabaseInfo database;
+		final String edition;
+
+		ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, String edition,
+<span class="fc" id="L187">			ResultSummary actualSummary) {</span>
+
+<span class="fc" id="L189">			this.showCurrentUserExists = showCurrentUserExists;</span>
+<span class="fc" id="L190">			this.version = version;</span>
+<span class="fc" id="L191">			this.edition = edition;</span>
+<span class="fc" id="L192">			this.server = actualSummary.server();</span>
+<span class="fc" id="L193">			this.database = actualSummary.database();</span>
+<span class="fc" id="L194">		}</span>
+	}
+
+	private ConnectionDetails getConnectionDetails0() {
+
+		TransactionWork&lt;ExtendedResultSummary&gt; extendedResultSummaryTransactionWork;
+<span class="fc bfc" id="L200" title="All 2 branches covered.">		if (hasDbmsProcedures()) {</span>
+<span class="fc" id="L201">			extendedResultSummaryTransactionWork = tx -&gt; {</span>
+<span class="fc" id="L202">				Result result = tx.run(&quot;&quot;</span>
+					+ &quot;CALL dbms.procedures() YIELD name &quot;
+					+ &quot;WHERE name = 'dbms.showCurrentUser' &quot;
+					+ &quot;WITH count(*) &gt; 0 AS showCurrentUserExists &quot;
+					+ &quot;CALL dbms.components() YIELD versions, edition &quot;
+					+ &quot;RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition&quot;
+				);
+<span class="fc" id="L209">				Record singleResultRecord = result.single();</span>
+<span class="fc" id="L210">				boolean showCurrentUserExists = singleResultRecord.get(&quot;showCurrentUserExists&quot;).asBoolean();</span>
+<span class="fc" id="L211">				ServerVersion version = ServerVersion.version(singleResultRecord.get(&quot;version&quot;).asString());</span>
+<span class="fc" id="L212">				String edition = singleResultRecord.get(&quot;edition&quot;).asString();</span>
+<span class="fc" id="L213">				ResultSummary summary = result.consume();</span>
+<span class="fc" id="L214">				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);</span>
+			};
+		} else {
+<span class="fc" id="L217">			extendedResultSummaryTransactionWork = tx -&gt; {</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">				boolean showCurrentUserExists = tx.run(&quot;SHOW PROCEDURES YIELD name WHERE name = 'dbms.showCurrentUser' RETURN count(*)&quot;).single().get(0).asInt() == 1;</span>
+<span class="fc" id="L219">				Result result = tx.run(&quot;&quot;</span>
+					+ &quot;CALL dbms.components() YIELD versions, edition &quot;
+					+ &quot;RETURN 'Neo4j/' + versions[0] AS version, edition&quot;
+				);
+<span class="fc" id="L223">				Record singleResultRecord = result.single();</span>
+<span class="fc" id="L224">				ServerVersion version = ServerVersion.version(singleResultRecord.get(&quot;version&quot;).asString());</span>
+<span class="fc" id="L225">				String edition = singleResultRecord.get(&quot;edition&quot;).asString();</span>
+<span class="fc" id="L226">				ResultSummary summary = result.consume();</span>
+<span class="fc" id="L227">				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);</span>
+			};
+		}
+
+<span class="fc" id="L231">		try (Session session = this.getSchemaSession()) {</span>
+
+<span class="fc" id="L233">			ExtendedResultSummary databaseInformation = session.readTransaction(extendedResultSummaryTransactionWork);</span>
+
+			// Auth maybe disabled. In such cases, we cannot get the current user. This is usually the case if the method
+			// used here does not exist.
+<span class="fc" id="L237">			String username = &quot;anonymous&quot;;</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">			if (databaseInformation.showCurrentUserExists) {</span>
+<span class="fc" id="L239">				username = session.readTransaction(tx -&gt;</span>
+<span class="fc" id="L240">					tx.run(&quot;CALL dbms.showCurrentUser() YIELD username RETURN username&quot;).single().get(&quot;username&quot;).asString()</span>
+				);
+			}
+
+<span class="fc" id="L244">			ServerInfo serverInfo = databaseInformation.server;</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();</span>
+<span class="fc" id="L246">			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);</span>
+<span class="fc" id="L247">			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(),</span>
+					databaseInformation.edition, username, targetDatabase,
+					schemaDatabase);
+		}
+	}
+
+	/**
+	 * This proxy catches all calls to {@link Driver#session()} and {@link Driver#session(SessionConfig)} and
+	 * makes sure that a session config with the current set of bookmarks is used correctly.
+	 */
+	static class DriverProxy implements InvocationHandler {
+
+		private final BookmarkManager bookmarkManager;
+		private final Driver target;
+
+<span class="fc" id="L262">		DriverProxy(BookmarkManager bookmarkManager, Driver target) {</span>
+<span class="fc" id="L263">			this.bookmarkManager = bookmarkManager;</span>
+<span class="fc" id="L264">			this.target = target;</span>
+<span class="fc" id="L265">		}</span>
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+			try {
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">				if (&quot;session&quot;.equals(method.getName())) {</span>
+					SessionConfig sessionConfig;
+<span class="fc" id="L273">					Collection&lt;Bookmark&gt; existingBookmarks = bookmarkManager.getBookmarks();</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">					if (args.length == 0) {</span>
+						// There is no session config
+<span class="nc" id="L276">						sessionConfig = SessionConfig.builder().withBookmarks(existingBookmarks).build();</span>
+					} else {
+<span class="fc" id="L278">						SessionConfig existingConfig = (SessionConfig) args[0];</span>
+						// {@literal null} is the default, so if there's something non-null in,
+						// probably someone had thought about already
+<span class="fc bfc" id="L281" title="All 2 branches covered.">						if (existingConfig.bookmarks() != null) {</span>
+<span class="fc" id="L282">							sessionConfig = existingConfig;</span>
+						} else {
+<span class="fc" id="L284">							sessionConfig = copyIntoBuilder(existingConfig)</span>
+<span class="fc" id="L285">								.withBookmarks(existingBookmarks)</span>
+<span class="fc" id="L286">								.build();</span>
+						}
+					}
+<span class="fc" id="L289">					Session session = target.session(sessionConfig);</span>
+<span class="fc" id="L290">					return Proxy.newProxyInstance(this.getClass().getClassLoader(),</span>
+						new Class&lt;?&gt;[] { Session.class },
+						new SessionProxy(bookmarkManager, existingBookmarks, session));
+				} else {
+<span class="nc" id="L294">					return method.invoke(target, args);</span>
+				}
+<span class="nc" id="L296">			} catch (InvocationTargetException ite) {</span>
+<span class="nc" id="L297">				throw ite.getCause();</span>
+			}
+		}
+	}
+
+	/**
+	 * This proxy catches the {@link Session#close()} call on the blocking session, retrieving the latest bookmark
+	 * and stores it with the bookmark manager.
+	 */
+	static class SessionProxy implements InvocationHandler {
+
+		private final BookmarkManager bookmarkManager;
+		/**
+		 * The bookmarks used when the {@link #target target session} has been initialized. They need to
+		 * be kept around separately, as the session doesn't allow to retrieve the config back after creation.
+		 */
+		private final Collection&lt;Bookmark&gt; usedBookmarks;
+		private final Session target;
+
+<span class="fc" id="L316">		SessionProxy(BookmarkManager bookmarkManager, Collection&lt;Bookmark&gt; usedBookmarks, Session target) {</span>
+<span class="fc" id="L317">			this.bookmarkManager = bookmarkManager;</span>
+<span class="fc" id="L318">			this.usedBookmarks = usedBookmarks;</span>
+<span class="fc" id="L319">			this.target = target;</span>
+<span class="fc" id="L320">		}</span>
+
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+			try {
+<span class="fc bfc" id="L326" title="All 2 branches covered.">				if (&quot;close&quot;.equals(method.getName())) {</span>
+<span class="fc" id="L327">					bookmarkManager.updateBookmarks(usedBookmarks, target.lastBookmark());</span>
+<span class="fc" id="L328">					target.close();</span>
+<span class="fc" id="L329">					return null;</span>
+				}
+<span class="fc" id="L331">				return method.invoke(target, args);</span>
+<span class="fc" id="L332">			} catch (InvocationTargetException ite) {</span>
+<span class="fc" id="L333">				throw ite.getCause();</span>
+			}
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

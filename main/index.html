@@ -584,6 +584,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <ul class="sectlevel2">
 <li><a href="#glossary">Glossary</a></li>
 <li><a href="#appendix_xml_schemes">XML Schemes</a></li>
+<li><a href="#appendix_extesions">Extensions</a></li>
 </ul>
 </li>
 </ul>
@@ -598,7 +599,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 1.7.2-SNAPSHOT.</p>
+<p>This is the Neo4j-Migrations manual version 1.8.1-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -762,7 +763,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.7.2-SNAPSHOT/neo4j-migrations-1.7.2-SNAPSHOT-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -773,7 +774,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.7.2-SNAPSHOT/neo4j-migrations-1.7.2-SNAPSHOT-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -786,7 +787,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.7.2-SNAPSHOT/neo4j-migrations-1.7.2-SNAPSHOT.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -819,7 +820,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -830,7 +831,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.7.2-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.8.1-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -849,7 +850,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -861,7 +862,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.7.2-SNAPSHOT'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.8.1-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -881,7 +882,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -898,7 +899,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -2114,9 +2115,9 @@ For that version to work, you need to have JDK 8 or higher installed:</p>
 <div class="title">Listing 18. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.7.2-SNAPSHOT/neo4j-migrations-1.7.2-SNAPSHOT.zip
-unzip neo4j-migrations-1.7.2-SNAPSHOT.zip
-cd neo4j-migrations-1.7.2-SNAPSHOT
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT.zip
+unzip neo4j-migrations-1.8.1-SNAPSHOT.zip
+cd neo4j-migrations-1.8.1-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -2434,9 +2435,9 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.7.2-SNAPSHOT/neo4j-migrations-1.7.2-SNAPSHOT.zip
-unzip neo4j-migrations-1.7.2-SNAPSHOT.zip
-cd neo4j-migrations-1.7.2-SNAPSHOT
+<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT.zip
+unzip neo4j-migrations-1.8.1-SNAPSHOT.zip
+cd neo4j-migrations-1.8.1-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -2479,7 +2480,7 @@ We do add this here for completeness, but we do think that Java-based migrations
 <div class="sect2">
 <h3 id="coreapi"><a class="anchor" href="#coreapi"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.7.2-SNAPSHOT API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.8.1-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">Section 2.2</a>.</p>
 </div>
 <div class="paragraph">
@@ -2562,7 +2563,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2835,7 +2836,7 @@ Declare the following dependency in your Quarkus application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2929,7 +2930,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.7.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -3614,12 +3615,236 @@ to the target entity. This attribute defines the type of the element (such as un
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="appendix_extesions"><a class="anchor" href="#appendix_extesions"></a>Extensions</h3>
+<div class="sect3">
+<h4 id="asciidoctorsupportexperimental"><a class="anchor" href="#asciidoctorsupportexperimental"></a>AsciiDoctor Support (Experimental)</h4>
+<div class="sect4">
+<h5 id="whatdoesitdo"><a class="anchor" href="#whatdoesitdo"></a>What does it do?</h5>
+<div class="paragraph">
+<p>When added to one of the supported use-case scenarios as an external library, it allows  Neo4j-Migrations to discover
+AsciiDoctor files and use them as sources of Cypher statements for defining refactorings.</p>
+</div>
+<div class="paragraph">
+<p>An AsciiDoctor based migration can have zero to many code blocks of type <code>cypher</code> with an id matching our versioning scheme
+and valid inline Cypher content. The block definition looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="asciidoc">[source,cypher,id=V1.0__Create_initial_data]
+----
+// Your Cypher based migration
+----</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In fact, this <code>README.adoc</code> is a source of migrations on its own. It contains the following refactorings:</p>
+</div>
+<div id="V1.0__Create_initial_data" class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">CREATE (a:Author {
+  id: randomUUID(),
+  name: 'Stephen King'
+})
+CREATE (b:Book {
+  id: randomUUID(),
+  name: 'The Dark Tower'
+})
+CREATE (a)-[:WROTE]-&gt;(b)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can have as many migrations as we want.</p>
+</div>
+<div id="V1.1__Add_more_data" class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">MATCH (a:Author {
+  name: 'Stephen King'
+})
+CREATE (b:Book  {
+  id: randomUUID(),
+  name: 'Atlantis'
+})
+CREATE (a)-[:WROTE]-&gt;(b);
+
+
+CREATE (a:Author {
+  id: randomUUID(),
+  name: 'Grace Blakeley'
+})
+CREATE (b:Book {
+  id: randomUUID(),
+  name: 'Stolen: How to Save the World From Financialisation'
+})
+CREATE (a)-[:WROTE]-&gt;(b);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And to make queries on peoples name perform fast, we should add some indexes and constraints.
+This we do with a separate document, <code>V1.2__Create_id_constraints.xml</code> to be included here:</p>
+</div>
+<div id="V1.2__Create_id_constraints" class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;catalog&gt;</span>
+    <span class="tag">&lt;indexes&gt;</span>
+      <span class="tag">&lt;index</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">idx_author_name</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Author<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;properties&gt;</span>
+          <span class="tag">&lt;property&gt;</span>name<span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/properties&gt;</span>
+      <span class="tag">&lt;/index&gt;</span>
+      <span class="tag">&lt;index</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">idx_book_name</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Book<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;properties&gt;</span>
+          <span class="tag">&lt;property&gt;</span>name<span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/properties&gt;</span>
+      <span class="tag">&lt;/index&gt;</span>
+    <span class="tag">&lt;/indexes&gt;</span>
+    <span class="tag">&lt;constraints&gt;</span>
+      <span class="tag">&lt;constraint</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unique_id_author</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unique</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Author<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;properties&gt;</span>
+          <span class="tag">&lt;property&gt;</span>id<span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/properties&gt;</span>
+      <span class="tag">&lt;/constraint&gt;</span>
+      <span class="tag">&lt;constraint</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unique_id_book</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unique</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;label&gt;</span>Book<span class="tag">&lt;/label&gt;</span>
+        <span class="tag">&lt;properties&gt;</span>
+          <span class="tag">&lt;property&gt;</span>id<span class="tag">&lt;/property&gt;</span>
+        <span class="tag">&lt;/properties&gt;</span>
+      <span class="tag">&lt;/constraint&gt;</span>
+    <span class="tag">&lt;/constraints&gt;</span>
+  <span class="tag">&lt;/catalog&gt;</span>
+
+  <span class="tag">&lt;apply</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/migration&gt;</span></code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Includes are <strong>not</strong> processed. To make the system process the above xml content respectively any included Cypher
+         file, these files must live in a configured location, as described in the manual.
+        <br>
+         We opted against resolving includes for two reasons: It&#8217;s easier to reason about the sources of migrations when just
+         inline code is processed and also, inclusion of arbitrary URLs may expose a security risk.
+        <br>
+         Please have a look at the source of <strong>this</strong> file itself to understand what works and what not.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following block is an example of an included Cypher file, that will be used from its own location when this changeset is applied,
+but can still be referenced in this documentation:</p>
+</div>
+<div id="V2.0__Add_likes" class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cypher">CREATE (m:User {
+  name: 'Michael'
+})
+WITH m
+MATCH (a:Author {
+  name: 'Stephen King'
+})-[:WROTE]-&gt;(b)
+WITH m, a, collect(b) AS books
+CREATE (m)-[:LIKES]-&gt;(a)
+WITH m, books
+UNWIND books AS b
+CREATE (m)-[:LIKES]-&gt;(b);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The checksum of AsciiDoctor based migrations is computed individually per Cypher block, not for the whole file. So one
+AsciiDoctor file basically behaves as a container for many migrations.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="howtouseit"><a class="anchor" href="#howtouseit"></a>How to use it?</h5>
+<div class="paragraph">
+<p>The extension is loaded via service loader. In a standard Spring Boot or Quarkus application you just need to add one additional
+dependency:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 37. AsciiDoctor extension as Maven dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatAdoc}<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.8.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in case you fancy Gradle:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 38. AsciiDoctor extension as Gradle dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:1.8.1-SNAPSHOT</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And that&#8217;s all.</p>
+</div>
+<div class="paragraph">
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.8.1-SNAPSHOT/neo4j-migrations-formats-adoc-1.8.1-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-1.8.1-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT.zip">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>A full example looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.8.1-SNAPSHOT/neo4j-migrations-1.8.1-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.8.1-SNAPSHOT/neo4j-migrations-formats-adoc-1.8.1-SNAPSHOT-all.jar
+unzip neo4j-migrations-1.8.1-SNAPSHOT.zip
+cd neo4j-migrations-1.8.1-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-1.8.1-SNAPSHOT-all.jar \
+  bin/neo4j-migrations --password secret \
+  --location file:///path/to/neo4j/adoc-migrations \
+  info</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which will result in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j@localhost:7687 (Neo4j/4.4.4)
+Database: neo4j
+
++---------+---------------------------+---------+---------+----------------------------------------------+
+| Version | Description               | Type    | State   | Source                                       |
++---------+---------------------------+---------+---------+----------------------------------------------+
+| 1.0     | initial data              | CYPHER  | PENDING | initial_schema_draft.adoc#V1.0__initial_data |
+| 1.2     | more data                 | CYPHER  | PENDING | initial_schema_draft.adoc#V1.2__more_data    |
+| 2.0     | lets rock                 | CYPHER  | PENDING | more_content.adoc#V2.0__lets_rock            |
+| 3.0     | We forgot the constraints | CATALOG | PENDING | V3.0__We_forgot_the_constraints.xml          |
+| 4.0     | Plain cypher              | CYPHER  | PENDING | V4.0__Plain_cypher.cypher                    |
++---------+---------------------------+---------+---------+----------------------------------------------+</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>(Note: empty columns have been omitted for brevity.)</p>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-06-23 15:32:20 UTC
+Last updated 2022-06-04 00:30:44 +0200
 </div>
 </div>
 </body>

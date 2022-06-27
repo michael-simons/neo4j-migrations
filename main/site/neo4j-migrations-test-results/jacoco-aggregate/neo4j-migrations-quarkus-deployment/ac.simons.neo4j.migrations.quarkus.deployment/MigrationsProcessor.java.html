@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsProcessor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations-quarkus-deployment</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.quarkus.deployment</a> &gt; <span class="el_source">MigrationsProcessor.java</span></div><h1>MigrationsProcessor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.quarkus.deployment;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.Location;
+import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
+import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
+import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
+import ac.simons.neo4j.migrations.quarkus.runtime.ResourceWrapper;
+import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
+import ac.simons.neo4j.migrations.quarkus.runtime.StaticJavaBasedMigrationDiscoverer;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.ExecutionTime;
+import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.ServiceStartBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
+import io.quarkus.neo4j.deployment.Neo4jDriverBuildItem;
+import io.quarkus.runtime.util.ClassPathUtils;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
+
+/**
+ * This processor produces two additional items:
+ * A synthetic bean of type {@link Migrations} and an additional bean of type {@link ServiceStartBuildItem}, the latter
+ * indicating that all migrations have been applied (in case they are actually enabled).
+ *
+ * @author Michael J. Simons
+ * @since 1.2.2
+ */
+<span class="fc" id="L66">public class MigrationsProcessor {</span>
+
+	static final String FEATURE_NAME = &quot;neo4j-migrations&quot;;
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	FeatureBuildItem createFeature() {
+
+<span class="fc" id="L74">		return new FeatureBuildItem(FEATURE_NAME);</span>
+	}
+
+	static Set&lt;Class&lt;? extends JavaBasedMigration&gt;&gt; findClassBasedMigrations(Collection&lt;String&gt; packagesToScan, IndexView indexView) {
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		if (packagesToScan.isEmpty()) {</span>
+<span class="fc" id="L80">			return Set.of();</span>
+		}
+
+<span class="fc" id="L83">		var classesFoundAndLoaded = new HashSet&lt;Class&lt;? extends JavaBasedMigration&gt;&gt;();</span>
+<span class="fc" id="L84">		indexView</span>
+<span class="fc" id="L85">			.getAllKnownImplementors(DotName.createSimple(JavaBasedMigration.class.getName()))</span>
+<span class="fc" id="L86">			.forEach(cf -&gt; {</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">				if (!packagesToScan.contains(cf.name().packagePrefix())) {</span>
+<span class="fc" id="L88">					return;</span>
+				}
+				try {
+<span class="fc" id="L91">					classesFoundAndLoaded.add(Thread.currentThread().getContextClassLoader()</span>
+<span class="fc" id="L92">						.loadClass(cf.name().toString()).asSubclass(JavaBasedMigration.class));</span>
+<span class="fc" id="L93">				} catch (ClassNotFoundException e) {</span>
+					// We silently ignore this (same behaviour as the Core-API does)
+<span class="fc" id="L95">				}</span>
+<span class="fc" id="L96">			});</span>
+<span class="fc" id="L97">		return classesFoundAndLoaded;</span>
+	}
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	DiscovererBuildItem createDiscoverer(CombinedIndexBuildItem combinedIndexBuildItem, MigrationsBuildTimeProperties buildTimeProperties) {
+
+<span class="fc" id="L104">		var packagesToScan = buildTimeProperties.packagesToScan.orElseGet(List::of);</span>
+<span class="fc" id="L105">		var classesFoundDuringBuild = findClassBasedMigrations(packagesToScan, combinedIndexBuildItem.getIndex());</span>
+<span class="fc" id="L106">		return new DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer.of(classesFoundDuringBuild));</span>
+	}
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	ReflectiveClassBuildItem registerMigrationsForReflections(DiscovererBuildItem discovererBuildItem) {
+
+<span class="fc" id="L113">		return new ReflectiveClassBuildItem(true, true, true,</span>
+<span class="fc" id="L114">			discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class&lt;?&gt;[0]));</span>
+	}
+
+	static Set&lt;ResourceWrapper&gt; findResourceBasedMigrations(Collection&lt;ResourceBasedMigrationProvider&gt; providers, Collection&lt;String&gt; locationsToScan) throws IOException {
+
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">		if (locationsToScan.isEmpty()) {</span>
+<span class="nc" id="L120">			return Set.of();</span>
+		}
+
+<span class="fc" id="L123">		var resourcesFound = new HashSet&lt;ResourceWrapper&gt;();</span>
+<span class="fc" id="L124">		var allSupportedExtensions = providers.stream()</span>
+<span class="fc" id="L125">			.map(ResourceBasedMigrationProvider::getExtension)</span>
+<span class="fc" id="L126">			.map(ext -&gt; &quot;.&quot; + ext)</span>
+<span class="fc" id="L127">			.collect(Collectors.toSet());</span>
+
+<span class="fc" id="L129">		Predicate&lt;Path&gt; isSupportedFile = path -&gt; {</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">			if (!Files.isRegularFile(path)) {</span>
+<span class="fc" id="L131">				return false;</span>
+			}
+<span class="fc" id="L133">			var fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);</span>
+<span class="fc" id="L134">			return allSupportedExtensions.stream().anyMatch(fileName::endsWith);</span>
+		};
+
+		// This piece is deliberately not using the streams due to the heckmeck with catching IOExceptions
+		// and to avoid allocations of several sets.
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		for (var value : locationsToScan) {</span>
+<span class="fc" id="L140">			var location = Location.of(value);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">			if (location.getType() != Location.LocationType.CLASSPATH) {</span>
+<span class="nc" id="L142">				continue;</span>
+			}
+<span class="fc" id="L144">			var name = location.getName();</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">			if (name.startsWith(&quot;/&quot;)) {</span>
+<span class="fc" id="L146">				name = name.substring(1);</span>
+			}
+<span class="fc" id="L148">			var rootPath = Path.of(name);</span>
+<span class="fc" id="L149">			ClassPathUtils.consumeAsPaths(name, rootResource -&gt; {</span>
+<span class="fc" id="L150">				try (var paths = Files.walk(rootResource)) {</span>
+<span class="fc" id="L151">					paths</span>
+<span class="fc" id="L152">						.filter(isSupportedFile)</span>
+						// Resolving the string and not the path object is done on purpose, as otherwise
+						// a provider mismatch can occur.
+<span class="fc" id="L155">						.map(it -&gt; rootPath.resolve(rootResource.relativize(it).normalize().toString()))</span>
+<span class="fc" id="L156">						.map(r -&gt; {</span>
+<span class="fc" id="L157">							var resource = new ResourceWrapper();</span>
+<span class="fc" id="L158">							resource.setUrl(r.toUri().toString());</span>
+<span class="fc" id="L159">							resource.setPath(r.toString().replace('\\', '/'));</span>
+<span class="fc" id="L160">							return resource;</span>
+						})
+<span class="fc" id="L162">						.forEach(resourcesFound::add);</span>
+<span class="nc" id="L163">				} catch (IOException e) {</span>
+<span class="nc" id="L164">					throw new UncheckedIOException(e);</span>
+<span class="fc" id="L165">				}</span>
+<span class="fc" id="L166">			});</span>
+<span class="fc" id="L167">		}</span>
+
+<span class="fc" id="L169">		return resourcesFound;</span>
+	}
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	ServiceProviderBuildItem resourceBasedMigrationProviderServices() {
+<span class="nc" id="L175">		return ServiceProviderBuildItem.allProvidersFromClassPath(ResourceBasedMigrationProvider.class.getName());</span>
+	}
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
+
+<span class="fc" id="L182">		var providers = ResourceBasedMigrationProvider.unique();</span>
+<span class="fc" id="L183">		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan);</span>
+<span class="fc" id="L184">		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));</span>
+	}
+
+	@BuildStep
+	@SuppressWarnings(&quot;unused&quot;)
+	NativeImageResourceBuildItem addCypherResources(
+
+		ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem) {
+<span class="fc" id="L192">		return new NativeImageResourceBuildItem(</span>
+<span class="fc" id="L193">			classpathResourceScannerBuildItem.getScanner().getResources().stream().map(</span>
+<span class="fc" id="L194">				ResourceWrapper::getPath).collect(</span>
+<span class="fc" id="L195">				Collectors.toList()));</span>
+	}
+
+	@BuildStep
+	@Record(ExecutionTime.RUNTIME_INIT)
+	@SuppressWarnings(&quot;unused&quot;)
+	MigrationsBuildItem createMigrations(
+		MigrationsBuildTimeProperties buildTimeProperties,
+		MigrationsProperties runtimeProperties,
+		DiscovererBuildItem discovererBuildItem,
+		ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem,
+		MigrationsRecorder migrationsRecorder,
+		Neo4jDriverBuildItem driverBuildItem,
+		BuildProducer&lt;SyntheticBeanBuildItem&gt; syntheticBeans
+	) {
+
+<span class="fc" id="L211">		var configRv = migrationsRecorder.recordConfig(buildTimeProperties, runtimeProperties,</span>
+<span class="fc" id="L212">			discovererBuildItem.getDiscoverer(),</span>
+<span class="fc" id="L213">			classpathResourceScannerBuildItem.getScanner());</span>
+<span class="fc" id="L214">		syntheticBeans.produce(</span>
+<span class="fc" id="L215">			SyntheticBeanBuildItem.configure(MigrationsConfig.class).runtimeValue(configRv).setRuntimeInit().done());</span>
+
+<span class="fc" id="L217">		var migrationsRv = migrationsRecorder.recordMigrations(configRv, driverBuildItem.getValue());</span>
+<span class="fc" id="L218">		syntheticBeans.produce(</span>
+<span class="fc" id="L219">			SyntheticBeanBuildItem.configure(Migrations.class).runtimeValue(migrationsRv).setRuntimeInit().done());</span>
+
+<span class="fc" id="L221">		return new MigrationsBuildItem(migrationsRv);</span>
+	}
+
+	@BuildStep
+	@Record(ExecutionTime.RUNTIME_INIT)
+	@SuppressWarnings(&quot;unused&quot;)
+	ServiceStartBuildItem applyMigrations(MigrationsProperties migrationsProperties,
+		MigrationsRecorder migrationsRecorder, MigrationsBuildItem migrationsBuildItem) {
+<span class="fc" id="L229">		migrationsRecorder.applyMigrations(migrationsBuildItem.getValue(),</span>
+<span class="fc" id="L230">			migrationsRecorder.isEnabled(migrationsProperties));</span>
+<span class="fc" id="L231">		return new ServiceStartBuildItem(FEATURE_NAME);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

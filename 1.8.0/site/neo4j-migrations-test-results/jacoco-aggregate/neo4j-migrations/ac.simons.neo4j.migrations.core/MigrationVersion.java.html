@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MigrationVersion.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationVersion.java</span></div><h1>MigrationVersion.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * A migrations version.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+public final class MigrationVersion {
+
+	private static final String BASELINE_VALUE = &quot;BASELINE&quot;;
+<span class="fc" id="L32">	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null);</span>
+<span class="fc" id="L33">	static final Pattern VERSION_PATTERN = Pattern.compile(&quot;V(\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)__([\\w ]+)(?:\\.(?&lt;ext&gt;\\w+))?&quot;);</span>
+
+	private final String value;
+	private final String description;
+
+	/**
+	 * @param pathOrUrl A string representing either a path or an URL.
+	 * @return {@literal true} when the given path or URL can be parsed into a valid {@link MigrationVersion}
+	 */
+	public static boolean canParse(String pathOrUrl) {
+<span class="fc" id="L43">		return VERSION_PATTERN.matcher(pathOrUrl).find();</span>
+	}
+
+	static MigrationVersion of(Class&lt;?&gt; clazz) {
+<span class="fc" id="L47">		return parse(clazz.getSimpleName());</span>
+	}
+
+	static MigrationVersion parse(String simpleName) {
+
+<span class="fc" id="L52">		Matcher matcher = VERSION_PATTERN.matcher(simpleName);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">		if (!matcher.matches()) {</span>
+<span class="fc" id="L54">			throw new MigrationsException(&quot;Invalid class name for a migration: &quot; + simpleName);</span>
+		}
+
+<span class="fc" id="L57">		return new MigrationVersion(matcher.group(1).replace(&quot;_&quot;, &quot;.&quot;), matcher.group(2).replace(&quot;_&quot;, &quot; &quot;));</span>
+	}
+
+	static MigrationVersion withValue(String value) {
+
+<span class="fc" id="L62">		return withValueAndDescription(value, null);</span>
+	}
+
+	static MigrationVersion withValueAndDescription(String value, String description) {
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">		if (BASELINE_VALUE.equals(value)) {</span>
+<span class="nc" id="L68">			return MigrationVersion.baseline();</span>
+		}
+<span class="fc" id="L70">		return new MigrationVersion(value, description);</span>
+	}
+
+	static MigrationVersion baseline() {
+
+<span class="fc" id="L75">		return BASELINE;</span>
+	}
+
+<span class="fc" id="L78">	private MigrationVersion(String value, String description) {</span>
+<span class="fc" id="L79">		this.value = value;</span>
+<span class="fc" id="L80">		this.description = description;</span>
+<span class="fc" id="L81">	}</span>
+
+	/**
+	 * @return the {@link String} value representing this version
+	 */
+	public String getValue() {
+<span class="fc" id="L87">		return value;</span>
+	}
+
+	/**
+	 * @return The extracted description. Maybe null.
+	 */
+	String getDescription() {
+<span class="fc" id="L94">		return description;</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L99">		return getValue();</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="fc bfc" id="L104" title="All 2 branches covered.">		if (this == o) {</span>
+<span class="fc" id="L105">			return true;</span>
+		}
+<span class="pc bpc" id="L107" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L108">			return false;</span>
+		}
+<span class="fc" id="L110">		MigrationVersion that = (MigrationVersion) o;</span>
+<span class="fc" id="L111">		return value.equals(that.value);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="fc" id="L116">		return Objects.hash(value);</span>
+	}
+
+<span class="fc" id="L119">	static class VersionComparator implements Comparator&lt;MigrationVersion&gt; {</span>
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">			if (o1 == MigrationVersion.baseline()) {</span>
+<span class="nc" id="L124">				return -1;</span>
+			}
+
+<span class="fc" id="L127">			return o1.getValue().compareTo(o2.getValue());</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

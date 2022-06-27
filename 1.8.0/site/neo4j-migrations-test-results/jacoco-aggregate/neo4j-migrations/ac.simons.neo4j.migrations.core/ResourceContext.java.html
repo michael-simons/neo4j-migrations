@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ResourceContext.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ResourceContext.java</span></div><h1>ResourceContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLDecoder;
+
+/**
+ * A context in which a resource with a given URL was discovered.
+ *
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+public final class ResourceContext {
+
+	/**
+	 * Static factory method, might be helpful during tests of additional providers
+	 *
+	 * @param url    The url of the given resource
+	 * @param config The config used during discovery
+	 * @return A new resource context
+	 */
+	public static ResourceContext of(URL url, MigrationsConfig config) {
+<span class="fc" id="L38">		return new ResourceContext(url, config);</span>
+	}
+
+	private final URL url;
+
+	private final MigrationsConfig config;
+
+<span class="fc" id="L45">	private ResourceContext(URL url, MigrationsConfig config) {</span>
+<span class="fc" id="L46">		this.url = url;</span>
+<span class="fc" id="L47">		this.config = config;</span>
+<span class="fc" id="L48">	}</span>
+
+	/**
+	 * @return the resources {@link URL}
+	 */
+	public URL getUrl() {
+<span class="fc" id="L54">		return url;</span>
+	}
+
+	/**
+	 * @return The identifier of the underlying resource
+	 * @since 1.8.0
+	 */
+	public String getIdentifier() {
+<span class="fc" id="L62">		return generateIdentifierOf(url);</span>
+	}
+
+	/**
+	 * Helper method to extract an optional last element from a URL path. If no such element exists, returns the full path.
+	 *
+	 * @param url The url containing a path
+	 * @return The last path element or if such an element does not exists, the full path
+	 */
+	static String generateIdentifierOf(URL url) {
+<span class="fc" id="L72">		String path = url.getPath();</span>
+		try {
+<span class="fc" id="L74">			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());</span>
+<span class="nc" id="L75">		} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L76">			throw new MigrationsException(&quot;Somethings broken: UTF-8 encoding not supported.&quot;);</span>
+<span class="fc" id="L77">		}</span>
+<span class="fc" id="L78">		int lastIndexOf = path.lastIndexOf(&quot;/&quot;);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		return lastIndexOf &lt; 0 ? path : path.substring(lastIndexOf + 1);</span>
+	}
+
+	/**
+	 * @return the configuration with which the resource has been discovered
+	 */
+	public MigrationsConfig getConfig() {
+<span class="fc" id="L86">		return config;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

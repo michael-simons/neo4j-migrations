@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsCli.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations-cli</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">MigrationsCli.java</span></div><h1>MigrationsCli.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.Location;
+import ac.simons.neo4j.migrations.core.Location.LocationType;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Spec;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import org.graalvm.nativeimage.ImageInfo;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Logging;
+
+/**
+ * Commandline interface to Neo4j migrations.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.5
+ */
+@Command(
+	name = &quot;neo4j-migrations&quot;,
+	mixinStandardHelpOptions = true,
+	description = &quot;Migrates Neo4j databases.&quot;,
+	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
+	versionProvider = ManifestVersionProvider.class
+)
+<span class="fc" id="L74">public final class MigrationsCli implements Runnable {</span>
+
+	static final Logger LOGGER;
+	static final String MIGRATIONS_PROPERTIES_FILENAME = &quot;.migrations.properties&quot;;
+	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = &quot;--max-connection-pool-size&quot;;
+
+	static {
+<span class="fc" id="L81">		configureLogging();</span>
+<span class="fc" id="L82">		LOGGER = Logger.getLogger(MigrationsCli.class.getName());</span>
+<span class="fc" id="L83">	}</span>
+
+	@SuppressWarnings(&quot;squid:S4792&quot;)
+	private static void configureLogging() {
+		try {
+<span class="fc" id="L88">			LogManager.getLogManager()</span>
+<span class="fc" id="L89">				.readConfiguration(MigrationsCli.class.getResourceAsStream(&quot;/logging.properties&quot;));</span>
+<span class="nc" id="L90">		} catch (IOException e) {</span>
+<span class="nc" id="L91">			throw new MigrationsException(&quot;logging.properties are missing. Is your distribution of neo4j-migrations broken?&quot;);</span>
+<span class="fc" id="L92">		}</span>
+<span class="fc" id="L93">	}</span>
+
+	/**
+	 * Entry point to the CLI.
+	 * @param args The command line arguments
+	 */
+	public static void main(String... args) {
+
+<span class="nc" id="L101">		CommandLine commandLine = new CommandLine(new MigrationsCli());</span>
+<span class="nc" id="L102">		commandLine.setCaseInsensitiveEnumValuesAllowed(true);</span>
+<span class="nc" id="L103">		CommandLine generateCompletionCmd = commandLine.getSubcommands().get(&quot;generate-completion&quot;);</span>
+<span class="nc" id="L104">		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);</span>
+
+<span class="nc" id="L106">		loadProperties(MIGRATIONS_PROPERTIES_FILENAME)</span>
+<span class="nc" id="L107">			.map(CommandLine.PropertiesDefaultProvider::new)</span>
+<span class="nc" id="L108">			.ifPresent(commandLine.getCommandSpec()::defaultValueProvider);</span>
+
+<span class="nc" id="L110">		int exitCode = commandLine.execute(args);</span>
+<span class="nc" id="L111">		System.exit(exitCode);</span>
+<span class="nc" id="L112">	}</span>
+
+	@Option(
+		names = { &quot;-a&quot;, &quot;--address&quot; },
+		description = &quot;The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.&quot;,
+		required = true,
+		defaultValue = &quot;bolt://localhost:7687&quot;
+	)
+	private URI address;
+
+	@Option(
+		names = { &quot;-u&quot;, &quot;--username&quot; },
+		description = &quot;The login of the user connecting to the database.&quot;,
+		required = true,
+		defaultValue = Defaults.DEFAULT_USER
+	)
+	private String user;
+
+	@Option(names = &quot;--password:file&quot;)
+	File passwordFile;
+
+	@Option(names = &quot;--password:env&quot;)
+	String passwordEnv;
+
+	@Option(
+		names = { &quot;-p&quot;, &quot;--password&quot; },
+		description = &quot;The password of the user connecting to the database.&quot;,
+		arity = &quot;0..1&quot;, interactive = true
+	)
+	private char[] password;
+
+<span class="fc" id="L143">	@Option(</span>
+		names = { &quot;--package&quot; },
+		description = &quot;Package to scan. Repeat for multiple packages.&quot;,
+		split = &quot;,&quot;
+	)
+	private String[] packagesToScan = new String[0];
+
+<span class="fc" id="L150">	@Option(</span>
+		names = { &quot;--location&quot; },
+		description = &quot;Location to scan. Repeat for multiple locations.&quot;,
+		split = &quot;,&quot;
+	)
+	private String[] locationsToScan = new String[0];
+
+	@Option(
+		names = { &quot;--transaction-mode&quot; },
+		description = &quot;The transaction mode to use.&quot;,
+		defaultValue = Defaults.TRANSACTION_MODE_VALUE
+	)
+	private TransactionMode transactionMode;
+
+	@Option(
+		names = { &quot;-d&quot;, &quot;--database&quot; },
+		description = &quot;The database that should be migrated (Neo4j EE 4.0+).&quot;
+	)
+	private String database;
+
+	@Option(
+		names = { &quot;--schema-database&quot; },
+		description = &quot;The database that should be used for storing information about migrations (Neo4j EE 4.0+).&quot;
+	)
+	private String schemaDatabase;
+
+	@Option(
+		names = { &quot;--impersonate&quot; },
+		description = &quot;The name of a user to impersonate during migration (Neo4j EE 4.4+).&quot;
+	)
+	private String impersonatedUser;
+
+	@Option(
+		names = { &quot;-v&quot;, &quot;--verbose&quot; },
+		description = &quot;Log the configuration and a couple of other things.&quot;
+	)
+	private boolean verbose;
+
+	@Option(
+		names = { &quot;--validate-on-migrate&quot; },
+		description = &quot;Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.&quot;,
+		defaultValue = Defaults.VALIDATE_ON_MIGRATE_VALUE
+	)
+	private boolean validateOnMigrate;
+
+	@Option(
+		names = { &quot;--autocrlf&quot; },
+		description = &quot;Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.&quot;,
+		defaultValue = Defaults.AUTOCRLF_VALUE
+	)
+	private boolean autocrlf;
+
+	@Option(
+		names = { OPTION_NAME_MAX_CONNECTION_POOL_SIZE },
+		description = &quot;Configure the connection pool size, hardly ever needed to change.&quot;,
+		defaultValue = &quot;2&quot;,
+		hidden = true
+	)
+	private int maxConnectionPoolSize;
+
+	@Spec
+	private CommandSpec commandSpec;
+
+	public void run() {
+<span class="nc" id="L214">		throw new CommandLine.ParameterException(commandSpec.commandLine(), &quot;Missing required subcommand&quot;);</span>
+	}
+
+	/**
+	 * @return The migrations config based on the required options.
+	 */
+	MigrationsConfig getConfig() {
+
+<span class="fc" id="L222">		boolean runsInNativeImage = ImageInfo.inImageRuntimeCode();</span>
+
+<span class="fc bfc" id="L224" title="All 4 branches covered.">		if (runsInNativeImage &amp;&amp; packagesToScan.length != 0) {</span>
+<span class="fc" id="L225">			throw new IllegalArgumentException(</span>
+					&quot;Java-based migrations are not supported in native binaries. Please use the Java-based distribution.&quot;);
+		}
+
+<span class="fc" id="L229">		List&lt;String&gt; classpathLocations = Arrays.stream(locationsToScan)</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">				.filter(location -&gt; Location.of(location).getType() == LocationType.CLASSPATH)</span>
+<span class="fc" id="L231">				.collect(Collectors.toList());</span>
+
+<span class="pc bpc" id="L233" title="1 of 4 branches missed.">		if (runsInNativeImage &amp;&amp; !classpathLocations.isEmpty()) {</span>
+<span class="fc" id="L234">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L235">					&quot;Classpath based resource locations are not support in native image: &quot; + String.join(&quot;, &quot;, classpathLocations));</span>
+		}
+
+<span class="pc bpc" id="L238" title="1 of 6 branches missed.">		if ((schemaDatabase != null &amp;&amp; !schemaDatabase.trim().isEmpty()) &amp;&amp; maxConnectionPoolSize &lt; 2) {</span>
+<span class="fc" id="L239">			throw new IllegalArgumentException(</span>
+					&quot;You must at least allow 2 connections in the pool to use a separate database.&quot;);
+		}
+
+<span class="fc" id="L243">		MigrationsConfig config = MigrationsConfig.builder()</span>
+<span class="fc" id="L244">			.withLocationsToScan(getOrComputeLocationsToScan())</span>
+<span class="fc" id="L245">			.withPackagesToScan(packagesToScan)</span>
+<span class="fc" id="L246">			.withTransactionMode(transactionMode)</span>
+<span class="fc" id="L247">			.withDatabase(database)</span>
+<span class="fc" id="L248">			.withSchemaDatabase(schemaDatabase)</span>
+<span class="fc" id="L249">			.withImpersonatedUser(impersonatedUser)</span>
+<span class="fc" id="L250">			.withValidateOnMigrate(validateOnMigrate)</span>
+<span class="fc" id="L251">			.withAutocrlf(autocrlf)</span>
+<span class="fc" id="L252">			.build();</span>
+
+<span class="fc" id="L254">		config.logTo(LOGGER, verbose);</span>
+<span class="fc" id="L255">		return config;</span>
+	}
+
+	boolean hasLocationsToScan() {
+<span class="fc bfc" id="L259" title="All 4 branches covered.">		return locationsToScan.length != 0 || packagesToScan.length != 0;</span>
+	}
+
+	String[] getOrComputeLocationsToScan() {
+<span class="fc bfc" id="L263" title="All 2 branches covered.">		if (hasLocationsToScan()) {</span>
+<span class="fc" id="L264">			return locationsToScan;</span>
+		}
+
+<span class="fc" id="L267">		Path defaultPath = Paths.get(Defaults.LOCATIONS_TO_SCAN_WITHOUT_PREFIX).toAbsolutePath();</span>
+<span class="fc bfc" id="L268" title="All 2 branches covered.">		if (!Files.isDirectory(defaultPath)) {</span>
+<span class="fc" id="L269">			return new String[0];</span>
+		}
+<span class="fc" id="L271">		String defaultLocationToScan = defaultPath.toUri().toString();</span>
+<span class="fc" id="L272">		LOGGER.log(Level.FINE, &quot;Neither locations nor packages to scan configured, using {0}.&quot;, defaultLocationToScan);</span>
+<span class="fc" id="L273">		return new String[] { defaultLocationToScan };</span>
+	}
+
+	AuthToken getAuthToken() {
+<span class="fc" id="L277">		Optional&lt;String&gt; resolvedPassword = Optional.empty();</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">		if (password != null) {</span>
+<span class="fc" id="L279">			resolvedPassword = Optional.of(new String(password));</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">		} else if (passwordEnv != null) {</span>
+<span class="fc" id="L281">			resolvedPassword = Optional.ofNullable(System.getenv(passwordEnv));</span>
+<span class="pc bpc" id="L282" title="1 of 4 branches missed.">		} else if (passwordFile != null &amp;&amp; passwordFile.isFile()) {</span>
+			try {
+<span class="fc" id="L284">				resolvedPassword = Optional.of(new String(Files.readAllBytes(passwordFile.toPath())));</span>
+<span class="nc" id="L285">			} catch (IOException e) {</span>
+<span class="nc" id="L286">				throw new UncheckedIOException(&quot;Could not read password file &quot; + passwordFile.getAbsolutePath(), e);</span>
+<span class="fc" id="L287">			}</span>
+		}
+
+<span class="fc" id="L290">		return resolvedPassword</span>
+<span class="fc" id="L291">			.map(String::trim)</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">			.filter(s -&gt; !s.isEmpty())</span>
+<span class="fc" id="L293">			.map(s -&gt; AuthTokens.basic(user, s))</span>
+<span class="fc" id="L294">			.orElseThrow(</span>
+<span class="fc" id="L295">				() -&gt; new CommandLine.ParameterException(commandSpec.commandLine(),</span>
+					&quot;Missing required option: '--password', '--password:env' or '--password:file'&quot;)
+			);
+	}
+
+	Driver openConnection(AuthToken authToken) {
+
+<span class="nc" id="L302">		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());</span>
+<span class="nc" id="L303">		boolean verified = false;</span>
+		try {
+<span class="nc" id="L305">			driver.verifyConnectivity();</span>
+<span class="nc" id="L306">			verified = true;</span>
+		} finally {
+			// Don't want to rethrow and adding another frame.
+<span class="nc bnc" id="L309" title="All 2 branches missed.">			if (!verified) {</span>
+<span class="nc" id="L310">				driver.close();</span>
+			}
+		}
+<span class="nc" id="L313">		return driver;</span>
+	}
+
+	Config createDriverConfig() {
+
+<span class="fc" id="L318">		return Config.builder()</span>
+<span class="fc" id="L319">			.withMaxConnectionPoolSize(maxConnectionPoolSize)</span>
+<span class="fc" id="L320">			.withUserAgent(Migrations.getUserAgent())</span>
+<span class="fc" id="L321">			.withLogging(Logging.console(Level.SEVERE)).build();</span>
+	}
+
+	Properties toProperties() {
+
+<span class="fc" id="L326">		Properties properties = new Properties();</span>
+<span class="fc bfc" id="L327" title="All 2 branches covered.">		for (CommandLine.Model.OptionSpec o : commandSpec.options()) {</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">			if (OPTION_NAME_MAX_CONNECTION_POOL_SIZE.equals(o.longestName())) {</span>
+<span class="fc" id="L329">				continue;</span>
+			}
+<span class="fc" id="L331">			List&lt;String&gt; values = o.stringValues();</span>
+<span class="fc bfc" id="L332" title="All 2 branches covered.">			String value = values.isEmpty() ? o.defaultValue() : String.join(&quot;,&quot;, values);</span>
+<span class="fc bfc" id="L333" title="All 2 branches covered.">			if (value != null) {</span>
+<span class="fc" id="L334">				String key = o.longestName().replaceAll(&quot;^-+&quot;, &quot;&quot;);</span>
+<span class="fc" id="L335">				properties.put(key, value);</span>
+			}
+<span class="fc" id="L337">		}</span>
+<span class="fc" id="L338">		return properties;</span>
+	}
+
+	static Optional&lt;Properties&gt; loadProperties(String filename) {
+
+<span class="fc" id="L343">		Path path = Paths.get(filename);</span>
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">		if (Files.isRegularFile(path)) {</span>
+<span class="fc" id="L345">			try (InputStream in = new BufferedInputStream(Files.newInputStream(path))) {</span>
+<span class="fc" id="L346">				Properties properties = new Properties();</span>
+<span class="fc" id="L347">				properties.load(in);</span>
+<span class="fc" id="L348">				return Optional.of(properties);</span>
+<span class="nc" id="L349">			} catch (IOException e) {</span>
+<span class="nc" id="L350">				LOGGER.log(Level.SEVERE, &quot;{0} is not readable.&quot;, path.toAbsolutePath());</span>
+			}
+		}
+<span class="nc" id="L353">		return Optional.empty();</span>
+	}
+
+	void storeProperties(String filename) {
+
+<span class="fc" id="L358">		Path path = Paths.get(filename);</span>
+<span class="fc" id="L359">		try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {</span>
+<span class="fc" id="L360">			toProperties().store(out, null);</span>
+<span class="nc" id="L361">		} catch (IOException e) {</span>
+<span class="nc" id="L362">			LOGGER.log(Level.SEVERE, &quot;{0} is not writable.&quot;, path.toAbsolutePath());</span>
+<span class="fc" id="L363">		}</span>
+<span class="fc" id="L364">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

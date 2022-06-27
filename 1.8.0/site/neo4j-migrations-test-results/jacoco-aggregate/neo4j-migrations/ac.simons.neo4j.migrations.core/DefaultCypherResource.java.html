@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DefaultCypherResource.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultCypherResource.java</span></div><h1>DefaultCypherResource.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.CRC32;
+
+import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
+
+/**
+ * An executable Cypher-based resources as a basis for migrations and callbacks
+ *
+ * @author Michael J. Simons
+ * @since 1.2.2
+ */
+final class DefaultCypherResource implements CypherResource {
+
+<span class="fc" id="L49">	private static final Logger LOGGER = Logger.getLogger(DefaultCypherResource.class.getName());</span>
+<span class="fc" id="L50">	private static final Predicate&lt;String&gt; NOT_A_SINGLE_COMMENT =</span>
+		s -&gt; {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">			if (!Strings.isSingleLineComment(s)) {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">				if (s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT)) {</span>
+<span class="fc" id="L54">					return Arrays.stream(s.split(Strings.LINE_DELIMITER))</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">						.anyMatch(sub -&gt; !Strings.isSingleLineComment(sub));</span>
+				}
+<span class="fc" id="L57">				return true;</span>
+			}
+<span class="fc" id="L59">			return false;</span>
+		};
+
+	/**
+	 * The identifier of this resource.
+	 */
+	private final String identifier;
+	/**
+	 * Flag if line feeds should be converted to the system default.
+	 */
+	private final boolean autocrlf;
+	/**
+	 * Actual content provider
+	 */
+	private final Supplier&lt;InputStream&gt; inputStreamSupplier;
+
+	/**
+	 * A lazily initialized list of statements, will be initialized with Double-checked locking into an unmodifiable
+	 * list, see {@link #readStatements()}.
+	 */
+	@SuppressWarnings(&quot;squid:S3077&quot;)
+	private volatile List&lt;String&gt; statements;
+	private volatile String checksum;
+
+<span class="fc" id="L83">	DefaultCypherResource(String identifier, boolean autocrlf, Supplier&lt;InputStream&gt; inputStreamSupplier) {</span>
+
+<span class="fc" id="L85">		this.identifier = identifier;</span>
+<span class="fc" id="L86">		this.autocrlf = autocrlf;</span>
+<span class="fc" id="L87">		this.inputStreamSupplier = inputStreamSupplier;</span>
+<span class="fc" id="L88">	}</span>
+
+	public String getIdentifier() {
+<span class="fc" id="L91">		return identifier;</span>
+	}
+
+	public String getChecksum() {
+
+<span class="fc" id="L96">		String availableChecksum = this.checksum;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		if (availableChecksum == null) {</span>
+<span class="fc" id="L98">			synchronized (this) {</span>
+<span class="fc" id="L99">				availableChecksum = this.checksum;</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">				if (availableChecksum == null) {</span>
+<span class="fc" id="L101">					this.checksum = computeChecksum();</span>
+<span class="fc" id="L102">					availableChecksum = this.checksum;</span>
+				}
+<span class="fc" id="L104">			}</span>
+		}
+<span class="fc" id="L106">		return availableChecksum;</span>
+	}
+
+	private String computeChecksum() {
+<span class="fc" id="L110">		final CRC32 crc32 = new CRC32();</span>
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		for (String statement : this.getStatements()) {</span>
+<span class="fc" id="L113">			byte[] bytes = statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING);</span>
+<span class="fc" id="L114">			crc32.update(bytes, 0, bytes.length);</span>
+<span class="fc" id="L115">		}</span>
+<span class="fc" id="L116">		return Long.toString(crc32.getValue());</span>
+	}
+
+	/**
+	 * @return The list of statements to apply.
+	 */
+	List&lt;String&gt; getStatements() {
+<span class="fc" id="L123">		return getStatements(null);</span>
+	}
+
+	/**
+	 * @return A filtered list of statements
+	 */
+	List&lt;String&gt; getStatements(Predicate&lt;String&gt; filter) {
+
+<span class="fc" id="L131">		List&lt;String&gt; availableStatements = this.statements;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">		if (availableStatements == null) {</span>
+<span class="fc" id="L133">			synchronized (this) {</span>
+<span class="fc" id="L134">				availableStatements = this.statements;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">				if (availableStatements == null) {</span>
+<span class="fc" id="L136">					this.statements = readStatements();</span>
+<span class="fc" id="L137">					availableStatements = this.statements;</span>
+				}
+<span class="fc" id="L139">			}</span>
+		}
+<span class="fc bfc" id="L141" title="All 2 branches covered.">		return filter == null ? availableStatements : availableStatements.stream().filter(filter).collect(Collectors.toList());</span>
+	}
+
+	/**
+	 * Scans the resource for statements. Statements must be separated by a `;` followed by a newline.
+	 *
+	 * @return An unmodifiable list of statements contained inside the resource.
+	 * @throws MigrationsException in case the script file could not be read
+	 */
+	private List&lt;String&gt; readStatements() {
+
+<span class="fc" id="L152">		List&lt;String&gt; newStatements = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L153">		try (Scanner scanner = new Scanner(inputStreamSupplier.get(), Defaults.CYPHER_SCRIPT_ENCODING.name())</span>
+<span class="fc" id="L154">			.useDelimiter(Defaults.CYPHER_STATEMENT_DELIMITER)) {</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">			while (scanner.hasNext()) {</span>
+<span class="fc" id="L156">				String statement = scanner.next().trim().replaceAll(&quot;;$&quot;, &quot;&quot;).trim();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">				if (this.autocrlf) {</span>
+<span class="fc" id="L158">					statement = statement.replace(&quot;\r\n&quot;, &quot;\n&quot;);</span>
+				}
+<span class="fc bfc" id="L160" title="All 2 branches covered.">				if (statement.isEmpty()) {</span>
+<span class="fc" id="L161">					continue;</span>
+				}
+<span class="fc" id="L163">				newStatements.add(statement);</span>
+<span class="fc" id="L164">			}</span>
+		}
+
+<span class="fc" id="L167">		return Collections.unmodifiableList(newStatements);</span>
+	}
+
+	/**
+	 * @return A list of executable statements (they might have or might not have comments in them, we don't care)
+	 */
+	@Override
+	public List&lt;String&gt; getExecutableStatements() {
+<span class="fc" id="L175">		return getStatements(NOT_A_SINGLE_COMMENT);</span>
+	}
+
+	/**
+	 * @return A list of surely identifiable single line comments, either &quot;standalone&quot; or before a valid cypher statement
+	 */
+	@Override
+	public List&lt;String&gt; getSingleLineComments() {
+<span class="fc" id="L183">		return getStatements()</span>
+<span class="fc" id="L184">			.stream()</span>
+<span class="fc" id="L185">			.filter(s -&gt; s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT))</span>
+<span class="fc" id="L186">			.flatMap(s -&gt; {</span>
+				boolean notAComment;
+<span class="fc" id="L188">				Stream.Builder&lt;String&gt; builder = Stream.builder();</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">				for (String line : s.split(Strings.LINE_DELIMITER)) {</span>
+<span class="fc" id="L190">					line = line.trim();</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">					notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">					if (notAComment) {</span>
+<span class="fc" id="L193">						break;</span>
+					}
+<span class="fc" id="L195">					builder.add(line);</span>
+				}
+<span class="fc" id="L197">				return builder.build();</span>
+			})
+<span class="fc" id="L199">			.collect(Collectors.toList());</span>
+	}
+
+	static void executeIn(CypherResource cypherResource, MigrationContext context, UnaryOperator&lt;SessionConfig.Builder&gt; sessionCustomizer) {
+
+<span class="fc" id="L204">		try (Session session = context.getDriver().session(context.getSessionConfig(sessionCustomizer))) {</span>
+
+<span class="fc" id="L206">			List&lt;String&gt; executableStatements = cypherResource.getExecutableStatements();</span>
+
+<span class="fc" id="L208">			int numberOfStatements = 0;</span>
+<span class="fc" id="L209">			MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">			if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {</span>
+
+<span class="fc" id="L212">				LOGGER.log(Level.FINE, &quot;Executing statements in script \&quot;{0}\&quot; in one transaction&quot;,</span>
+<span class="fc" id="L213">					cypherResource.getIdentifier());</span>
+<span class="fc" id="L214">				numberOfStatements = session.writeTransaction(t -&gt; {</span>
+<span class="fc" id="L215">					int cnt = 0;</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">					for (String statement : executableStatements) {</span>
+<span class="fc" id="L217">						run(t, statement);</span>
+<span class="fc" id="L218">						++cnt;</span>
+<span class="fc" id="L219">					}</span>
+<span class="fc" id="L220">					return cnt;</span>
+				});
+
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">			} else if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT) {</span>
+
+<span class="fc" id="L225">				LOGGER.log(Level.FINE, &quot;Executing statements contained in script \&quot;{0}\&quot; in separate transactions&quot;,</span>
+<span class="fc" id="L226">					cypherResource.getIdentifier());</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">				for (String statement : executableStatements) {</span>
+<span class="fc" id="L228">					numberOfStatements += session.writeTransaction(t -&gt; {</span>
+<span class="fc" id="L229">						run(t, statement);</span>
+<span class="fc" id="L230">						return 1;</span>
+					});
+<span class="fc" id="L232">				}</span>
+			} else {
+<span class="nc" id="L234">				throw new MigrationsException(&quot;Unknown transaction mode &quot; + transactionMode);</span>
+			}
+
+<span class="fc" id="L237">			LOGGER.log(Level.FINE, &quot;Executed {0} statements&quot;, numberOfStatements);</span>
+		}
+<span class="fc" id="L239">	}</span>
+
+	static void run(QueryRunner runner, String statement) {
+
+<span class="fc" id="L243">		LOGGER.log(Level.FINE, &quot;Running {0}&quot;, statement);</span>
+<span class="fc" id="L244">		ResultSummary resultSummary = runner.run(statement).consume();</span>
+<span class="fc" id="L245">		SummaryCounters c = resultSummary.counters();</span>
+
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">		if (LOGGER.isLoggable(Level.FINEST)) {</span>
+<span class="nc" id="L248">			LOGGER.log(Level.FINEST,</span>
+				&quot;nodesCreated: {0}, nodesDeleted: {1}, relationshipsCreated: {2}, relationshipsDeleted: {3}, propertiesSet: {4}, labelsAdded: {5}, labelsRemoved: {6}, indexesAdded: {7}, indexesRemoved: {8}, constraintsAdded: {9}, constraintsRemoved: {10}&quot;,
+<span class="nc" id="L250">				new Object[] { c.nodesCreated(), c.nodesDeleted(), c.relationshipsCreated(), c.relationshipsDeleted(),</span>
+<span class="nc" id="L251">					c.propertiesSet(),</span>
+<span class="nc" id="L252">					c.labelsAdded(), c.labelsRemoved(), c.indexesAdded(), c.indexesRemoved(), c.constraintsAdded(),</span>
+<span class="nc" id="L253">					c.constraintsRemoved() });</span>
+		}
+<span class="fc" id="L255">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

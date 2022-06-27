@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationsConfig.java</span></div><h1>MigrationsConfig.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.util.Locale;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.neo4j.driver.Session;
+import org.neo4j.driver.summary.DatabaseInfo;
+
+/**
+ * Configuration for Migrations.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+public final class MigrationsConfig {
+
+	/**
+	 * Used for configuring the transaction mode in Cypher-based transactions.
+	 */
+<span class="fc" id="L39">	public enum TransactionMode {</span>
+
+		/**
+		 * Run all statements in one transaction. May need more memory, but it's generally safer. Either the
+		 * migration runs as a whole or not at all.
+		 */
+<span class="fc" id="L45">		PER_MIGRATION,</span>
+		/**
+		 * Runs each statement in a separate transaction. May leave your database in an inconsistent state when
+		 * one statement fails.
+		 */
+<span class="fc" id="L50">		PER_STATEMENT</span>
+	}
+
+	/**
+	 * Start building a new configuration.
+	 *
+	 * @return The entry point for creating a new configuration.
+	 * @since 0.0.1
+	 */
+	@SuppressWarnings(&quot;squid:S1874&quot;) // Remove it as soon as the constructor is made private and no longer marked as deprecated.
+	public static Builder builder() {
+
+<span class="fc" id="L62">		return new Builder();</span>
+	}
+
+	/**
+	 * @return The default config
+	 * @since 0.0.6
+	 */
+	public static MigrationsConfig defaultConfig() {
+
+<span class="fc" id="L71">		return builder().build();</span>
+	}
+
+	private final String[] packagesToScan;
+
+	private final String[] locationsToScan;
+
+	private final TransactionMode transactionMode;
+
+	/**
+	 * The database to migrate.
+	 */
+	private final String database;
+
+	/**
+	 * The database to store the schema in.
+	 */
+	private final String schemaDatabase;
+
+	private final String impersonatedUser;
+
+	private final String installedBy;
+
+	private final boolean validateOnMigrate;
+
+	private final boolean autocrlf;
+
+	private final Discoverer&lt;JavaBasedMigration&gt; migrationClassesDiscoverer;
+
+	private final ClasspathResourceScanner resourceScanner;
+
+<span class="fc" id="L102">	private MigrationsConfig(Builder builder) {</span>
+
+<span class="fc" id="L104">		this.packagesToScan =</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">			builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;</span>
+<span class="fc" id="L106">		this.locationsToScan =</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">			builder.locationsToScan == null ?</span>
+<span class="fc" id="L108">				Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) :</span>
+<span class="fc" id="L109">				builder.locationsToScan;</span>
+<span class="fc" id="L110">		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);</span>
+<span class="fc" id="L111">		this.database = builder.database;</span>
+<span class="fc" id="L112">		this.impersonatedUser = builder.impersonatedUser;</span>
+<span class="fc" id="L113">		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty(&quot;user.name&quot;));</span>
+<span class="fc" id="L114">		this.validateOnMigrate = builder.validateOnMigrate;</span>
+<span class="fc" id="L115">		this.autocrlf = builder.autocrlf;</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">		this.migrationClassesDiscoverer = builder.migrationClassesDiscoverer == null ? new JavaBasedMigrationDiscoverer() : builder.migrationClassesDiscoverer;</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">		this.resourceScanner = builder.resourceScanner == null ? new DefaultClasspathResourceScanner() : builder.resourceScanner;</span>
+<span class="fc" id="L118">		this.schemaDatabase = builder.schemaDatabase;</span>
+<span class="fc" id="L119">	}</span>
+
+	/**
+	 * @return the list of packages to scan
+	 */
+	public String[] getPackagesToScan() {
+<span class="fc" id="L125">		return packagesToScan;</span>
+	}
+
+	/**
+	 * @return the list of locations to scan
+	 */
+	public String[] getLocationsToScan() {
+<span class="fc" id="L132">		return locationsToScan;</span>
+	}
+
+	/**
+	 * @return the transaction mode (whether to use one transaction for per migration or per statement)
+	 */
+	public TransactionMode getTransactionMode() {
+<span class="fc" id="L139">		return transactionMode;</span>
+	}
+
+	/**
+	 * @return An optional target database, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabase()}
+	 */
+	@Deprecated
+	public String getDatabase() {
+<span class="nc" id="L148">		return database;</span>
+	}
+
+	/**
+	 * @return An optional target database
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalDatabase() {
+<span class="fc" id="L156">		return Strings.optionalOf(database);</span>
+	}
+
+	/**
+	 * @return An optional schema database
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalSchemaDatabase() {
+<span class="fc" id="L164">		return Strings.optionalOf(schemaDatabase);</span>
+	}
+
+	/**
+	 * @return An optional user to impersonate, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalImpersonatedUser()}
+	 */
+	@Deprecated
+	public String getImpersonatedUser() {
+<span class="nc" id="L173">		return impersonatedUser;</span>
+	}
+
+	/**
+	 * @return An optional user to impersonate
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalImpersonatedUser() {
+<span class="fc" id="L181">		return Strings.optionalOf(impersonatedUser);</span>
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration, maybe {@literal null}
+	 * @deprecated since 1.1.0, please use {@link #getOptionalInstalledBy()}
+	 */
+	@Deprecated
+	public String getInstalledBy() {
+<span class="nc" id="L190">		return installedBy;</span>
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalInstalledBy() {
+<span class="fc" id="L198">		return Strings.optionalOf(installedBy);</span>
+	}
+
+	/**
+	 * @return {@literal true} if resolved migrations and database state should be validated before a migration attempt is applied
+	 */
+	public boolean isValidateOnMigrate() {
+<span class="fc" id="L205">		return validateOnMigrate;</span>
+	}
+
+	/**
+	 * @return whether {@literal CRLF} line endings should be automatically converted into {@literal LF}
+	 */
+	public boolean isAutocrlf() {
+<span class="fc" id="L212">		return autocrlf;</span>
+	}
+
+	/**
+	 * @return The discoverer for class based migrations,  never {@literal null}
+	 * @since 1.3.0
+	 */
+	public Discoverer&lt;JavaBasedMigration&gt; getMigrationClassesDiscoverer() {
+<span class="fc" id="L220">		return migrationClassesDiscoverer;</span>
+	}
+
+	/**
+	 * @return The resource scanner, never {@literal null}
+	 * @since 1.3.0
+	 */
+	public ClasspathResourceScanner getResourceScanner() {
+<span class="fc" id="L228">		return resourceScanner;</span>
+	}
+
+	/**
+	 * Helper method to pretty print this configuration into a logger (on level {@literal INFO} respectively {@literal WARNING}.
+	 *
+	 * @param logger  the logger to print to
+	 * @param verbose set to {@literal true} if you want to print all details
+	 */
+	public void logTo(Logger logger, boolean verbose) {
+<span class="fc bfc" id="L238" title="All 2 branches covered.">		if (!this.hasPlacesToLookForMigrations()) {</span>
+<span class="fc" id="L239">			logger.log(Level.WARNING, &quot;Cannot find migrations as neither locations nor packages to scan are configured!&quot;);</span>
+		}
+
+<span class="fc bfc" id="L242" title="All 4 branches covered.">		if (verbose &amp;&amp; logger.isLoggable(Level.INFO)) {</span>
+<span class="fc" id="L243">			this.getOptionalDatabase().ifPresent(v -&gt; logger.log(Level.INFO, &quot;Migrations will be applied to database \&quot;{0}\&quot;&quot;, v));</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">			if (this.getLocationsToScan().length &gt; 0) {</span>
+<span class="fc" id="L245">				logger.log(Level.INFO, &quot;Will search for Cypher scripts in \&quot;{0}\&quot;&quot;,</span>
+<span class="fc" id="L246">					String.join(&quot;&quot;, this.getLocationsToScan()));</span>
+<span class="fc" id="L247">				logger.log(Level.INFO, &quot;Statements will be applied {0}&quot;,</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?</span>
+<span class="fc" id="L249">						&quot;in one transaction per migration&quot; :</span>
+<span class="fc" id="L250">						&quot;in separate transactions&quot;);</span>
+			}
+<span class="fc bfc" id="L252" title="All 2 branches covered.">			if (this.getPackagesToScan().length &gt; 0) {</span>
+<span class="fc" id="L253">				logger.log(Level.INFO, &quot;Will scan for Java-based migrations in \&quot;{0}\&quot;&quot;, String.join(&quot;&quot;, this.getPackagesToScan()));</span>
+			}
+		}
+<span class="fc" id="L256">	}</span>
+
+	/**
+	 * This is internal API and will be made package private in 2.0.0
+	 * @return True if there are packages to scan
+	 * @deprecated Since 1.1.0, will be removed from public without replace.
+	 */
+	@SuppressWarnings(&quot;DeprecatedIsStillUsed&quot;)
+	@Deprecated
+	public boolean hasPlacesToLookForMigrations() {
+<span class="fc bfc" id="L266" title="All 4 branches covered.">		return this.getPackagesToScan().length &gt; 0 || this.getLocationsToScan().length &gt; 0;</span>
+	}
+
+	/**
+	 * The migration target will be empty if no target database is given or the schema database is the same as the target.
+	 *
+	 * @param context The context in which the target should be retrieved
+	 * @return A target database to use for all chains stored.
+	 */
+	Optional&lt;String&gt; getMigrationTargetIn(MigrationContext context) {
+<span class="fc" id="L276">		Optional&lt;String&gt; optionalDatabase = getOptionalDatabase();</span>
+<span class="fc" id="L277">		Optional&lt;String&gt; optionalSchemaDatabase = getOptionalSchemaDatabase();</span>
+
+<span class="fc bfc" id="L279" title="All 2 branches covered.">		if (!optionalSchemaDatabase.isPresent()) {</span>
+<span class="fc" id="L280">			return Optional.empty();</span>
+		}
+
+<span class="fc bfc" id="L283" title="All 2 branches covered.">		if (!optionalDatabase.isPresent()) {</span>
+			// We need to connect to get this information
+<span class="fc" id="L285">			try (Session session = context.getSession()) {</span>
+<span class="fc" id="L286">				optionalDatabase =</span>
+<span class="fc" id="L287">					Optional.ofNullable(session.readTransaction(tx -&gt; tx.run(&quot;MATCH (n) RETURN count(n)&quot;).consume()).database())</span>
+<span class="fc" id="L288">						.map(DatabaseInfo::name);</span>
+			}
+		}
+
+<span class="fc bfc" id="L292" title="All 2 branches covered.">		if (!optionalDatabase.equals(optionalSchemaDatabase)) {</span>
+<span class="fc" id="L293">			return optionalDatabase.map(s -&gt; s.toLowerCase(Locale.ROOT));</span>
+		}
+<span class="fc" id="L295">		return Optional.empty();</span>
+	}
+
+	/**
+	 * A builder to create new instances of {@link MigrationsConfig configurations}.
+	 */
+	public static class Builder {
+
+		private String[] packagesToScan;
+
+		private String[] locationsToScan;
+
+		private TransactionMode transactionMode;
+
+		private String database;
+
+		private String impersonatedUser;
+
+		private String installedBy;
+
+<span class="fc" id="L315">		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;</span>
+
+<span class="fc" id="L317">		private boolean autocrlf = Defaults.AUTOCRLF;</span>
+
+		private String schemaDatabase;
+
+		private Discoverer&lt;JavaBasedMigration&gt; migrationClassesDiscoverer;
+
+		private ClasspathResourceScanner resourceScanner;
+
+		/**
+		 * @deprecated since 1.1.0, will be made private in 2.0.0, please use {@link MigrationsConfig#builder()}.
+		 */
+		@SuppressWarnings({ &quot;DeprecatedIsStillUsed&quot;, &quot;squid:S1133&quot; }) // The deprecation warning on any client code calling this is actually the point.
+		@Deprecated
+<span class="fc" id="L330">		public Builder() {</span>
+			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
+			// is used on the module path. JMS will complain about Builder being exported with
+			// a public visible, implicit constructor.
+<span class="fc" id="L334">		}</span>
+
+		/**
+		 * Configures the list of packages to scan. Default is an empty list.
+		 *
+		 * @param packages one or more packages to scan.
+		 * @return The builder for further customization
+		 */
+		public Builder withPackagesToScan(String... packages) {
+
+<span class="fc" id="L344">			this.packagesToScan = packages;</span>
+<span class="fc" id="L345">			return this;</span>
+		}
+
+		/**
+		 * Configures the list of locations to scan. Defaults to a single entry of `classpath:neo4j/migrations`.
+		 *
+		 * @param locations one or more locations to scan. Can start either with `classpath:` or `file:`. Locations
+		 *                  without prefix are treated as classpath resources.
+		 * @return The builder for further customization
+		 */
+		public Builder withLocationsToScan(String... locations) {
+
+<span class="fc" id="L357">			this.locationsToScan = locations;</span>
+<span class="fc" id="L358">			return this;</span>
+		}
+
+		/**
+		 * Configures the transaction mode. Please have a look at {@link TransactionMode} regarding advantages and
+		 * disadvantages of each mode.
+		 *
+		 * @param newTransactionMode The new transaction mode.
+		 * @return The builder for further customization
+		 */
+		public Builder withTransactionMode(TransactionMode newTransactionMode) {
+
+<span class="fc" id="L370">			this.transactionMode = newTransactionMode;</span>
+<span class="fc" id="L371">			return this;</span>
+		}
+
+		/**
+		 * Configures the database to apply Cypher-based migrations too. Leave null for the default database.
+		 *
+		 * @param newDatabase The database to use
+		 * @return The builder for further customization
+		 */
+		public Builder withDatabase(String newDatabase) {
+
+<span class="fc" id="L382">			this.database = newDatabase;</span>
+<span class="fc" id="L383">			return this;</span>
+		}
+
+		/**
+		 * Configures the user / principal name of the that is recorded in the MIGRATED_TO relationship as {@code by}.
+		 * Defaults to the OS user.
+		 *
+		 * @param newInstalledBy An arbitrary string to represent the service having installed the migrations
+		 * @return The builder for further customization
+		 * @since 0.0.6
+		 */
+		public Builder withInstalledBy(String newInstalledBy) {
+
+<span class="nc" id="L396">			this.installedBy = newInstalledBy;</span>
+<span class="nc" id="L397">			return this;</span>
+		}
+
+		/**
+		 * Validating helps you verify that the migrations applied to the database match the ones available locally and
+		 * is on by default. It can be turned off by using a configuration with {@link MigrationsConfig#isValidateOnMigrate()}
+		 * to {@literal false}.
+		 *
+		 * @param newValidateOnMigrate The new value for {@code validateOnMigrate}.
+		 * @return The builder for further customization
+		 * @since 0.2.1
+		 */
+		public Builder withValidateOnMigrate(boolean newValidateOnMigrate) {
+
+<span class="fc" id="L411">			this.validateOnMigrate = newValidateOnMigrate;</span>
+<span class="fc" id="L412">			return this;</span>
+		}
+
+		/**
+		 * If you’re programming on Windows and working with people who are not (or vice-versa), you’ll probably run into
+		 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+		 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+		 * Cypher-based migration or applying it.
+		 *
+		 * @param newAutocrlf The new value for {@code autocrlf}.
+		 * @return The builder for further customization
+		 * @since 0.3.1
+		 */
+		public Builder withAutocrlf(boolean newAutocrlf) {
+
+<span class="fc" id="L430">			this.autocrlf = newAutocrlf;</span>
+<span class="fc" id="L431">			return this;</span>
+		}
+
+		/**
+		 * Configures the impersonated user to use. This works only with Neo4j 4.4+ Enterprise and a Neo4j 4.4+ driver.
+		 * The feature comes in handy for escalating privileges during the time of migrations and dropping them again
+		 * for further use of a connection.
+		 *
+		 * @param newImpersonatedUser A user to impersonate
+		 * @return The builder for further customization
+		 * @since 1.0.0
+		 */
+		public Builder withImpersonatedUser(String newImpersonatedUser) {
+
+<span class="fc" id="L445">			this.impersonatedUser = newImpersonatedUser;</span>
+<span class="fc" id="L446">			return this;</span>
+		}
+
+		/**
+		 * Configures the schema database to use. This is different from {@link #withDatabase(String)}. The latter configures
+		 * the database that should be migrated, the schema database configures the database that holds the migration chain
+		 * &lt;p&gt;
+		 * To use this, Neo4j 4+ enterprise edition is required.
+		 *
+		 * @param newSchemaDatabase The new schema database to use.
+		 * @return The builder for further customization
+		 * @since 1.1.0
+		 */
+		public Builder withSchemaDatabase(String newSchemaDatabase) {
+
+<span class="fc" id="L461">			this.schemaDatabase = newSchemaDatabase;</span>
+<span class="fc" id="L462">			return this;</span>
+		}
+
+		/**
+		 * @param newMigrationClassesDiscoverer The discoverer for (Java) class based migrations. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withMigrationClassesDiscoverer(Discoverer&lt;JavaBasedMigration&gt; newMigrationClassesDiscoverer) {
+
+<span class="nc" id="L472">			this.migrationClassesDiscoverer = newMigrationClassesDiscoverer;</span>
+<span class="nc" id="L473">			return this;</span>
+		}
+
+		/**
+		 * @param newResourceScanner The Cypher resource scanner to be used. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withResourceScanner(ClasspathResourceScanner newResourceScanner) {
+
+<span class="nc" id="L483">			this.resourceScanner = newResourceScanner;</span>
+<span class="nc" id="L484">			return this;</span>
+		}
+
+		/**
+		 * @return The immutable configuration
+		 */
+		public MigrationsConfig build() {
+
+<span class="fc" id="L492">			return new MigrationsConfig(this);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1655998468960">
-    <module artifactId="neo4j-migrations-spring-boot-starter-parent" groupId="eu.michael-simons.neo4j" version="1.7.2-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1656354686280">
+    <module artifactId="neo4j-migrations-spring-boot-starter-parent" groupId="eu.michael-simons.neo4j" version="1.8.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
     </files>

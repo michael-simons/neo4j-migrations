@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1655998443731">
-    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.7.2-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1656354669740">
+    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.8.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractPrecondition.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AggregatingMigrationDiscoverer.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/BookmarkManager.java" result="PRESENT"/>
@@ -22,6 +23,7 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultCatalogBasedMigrationProvider.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultClasspathResourceScanner.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultConnectionDetails.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultCypherResource.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultLifecycleEvent.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/DefaultMigrationContext.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Defaults.java" result="PRESENT"/>
@@ -100,6 +102,7 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/XMLUtils.java" result="PRESENT"/>
         <file path="src/main/java11/module-info.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/ConnectionDetails.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/CypherResource.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/DatabaseOperationResult.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/Migration.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/OperationResult.java" result="PRESENT"/>
@@ -119,10 +122,10 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ClusterTestIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ConstraintsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/CypherBasedCallbackTest.java" result="PRESENT"/>
-        <file path="src/test/java/ac/simons/neo4j/migrations/core/CypherBasedMigrationTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/CypherResourceTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultCatalogTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultConnectionDetailsTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultCypherResourceTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultMigrationContextIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultMigrationContextTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/DefaultsTest.java" result="PRESENT"/>
@@ -143,6 +146,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ProductVersionTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/ResourceContextTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/TestBase.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/UnsupportedTargetsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ValidateIT.java" result="PRESENT"/>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1656355329335">
+    <module artifactId="neo4j-migrations-formats-adoc" groupId="eu.michael-simons.neo4j" version="1.8.0"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/formats/adoc/AsciiDoctorBasedMigration.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/formats/adoc/AsciiDoctorBasedMigrationProvider.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/adoc/AsciiDoctorBasedMigrationProviderIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/adoc/AsciiDoctorBasedMigrationProviderTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/adoc/AsciiDoctorBasedMigrationTest.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

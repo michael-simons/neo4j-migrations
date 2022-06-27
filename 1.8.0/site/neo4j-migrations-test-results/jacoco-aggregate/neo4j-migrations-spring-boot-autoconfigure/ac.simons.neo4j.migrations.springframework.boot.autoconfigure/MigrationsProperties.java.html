@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsProperties.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations-spring-boot-autoconfigure</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.springframework.boot.autoconfigure</a> &gt; <span class="el_source">MigrationsProperties.java</span></div><h1>MigrationsProperties.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
+
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+
+import java.nio.charset.Charset;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Configuration properties for a migration instance.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.6
+ */
+@ConfigurationProperties(prefix = &quot;org.neo4j.migrations&quot;)
+<span class="fc" id="L32">public class MigrationsProperties {</span>
+
+	/**
+	 * Whether to enable Neo4j migrations or not.
+	 */
+<span class="fc" id="L37">	private boolean enabled = true;</span>
+
+	/**
+	 * Whether to check that migration scripts location exists.
+	 */
+<span class="fc" id="L42">	private boolean checkLocation = true;</span>
+
+	/**
+	 * List of packages to scan for Java migrations.
+	 */
+<span class="fc" id="L47">	private String[] packagesToScan = new String[0];</span>
+
+	/**
+	 * Locations of migrations scripts.
+	 */
+<span class="fc" id="L52">	private String[] locationsToScan = new String[] { Defaults.LOCATIONS_TO_SCAN_VALUE };</span>
+
+	/**
+	 * The transaction mode in use (Defaults to &quot;per migration&quot;, meaning one script is run in one transaction).
+	 */
+<span class="fc" id="L57">	private TransactionMode transactionMode = Defaults.TRANSACTION_MODE;</span>
+
+	/**
+	 * Encoding of Cypher migrations.
+	 */
+<span class="fc" id="L62">	private Charset encoding = Defaults.CYPHER_SCRIPT_ENCODING;</span>
+
+	/**
+	 * The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+	 */
+	private String database;
+
+	/**
+	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+	 */
+	private String schemaDatabase;
+
+	/**
+	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
+	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+	 */
+	private String impersonatedUser;
+
+	/**
+	 * Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+	 */
+	private String installedBy;
+
+	/**
+	 * Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+	 */
+<span class="fc" id="L88">	private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;</span>
+
+	/**
+	 * If you’re programming on Windows and working with people who are not (or vice-versa), you’ll probably run into
+	 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+	 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+	 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+	 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+	 *
+	 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+	 * Cypher-based migration or applying it.
+	 */
+<span class="fc" id="L100">	private boolean autocrlf = Defaults.AUTOCRLF;</span>
+
+	/**
+	 * @return see {@link #enabled}
+	 */
+	public boolean isEnabled() {
+<span class="nc" id="L106">		return enabled;</span>
+	}
+
+	/**
+	 * @param enabled A new value for {@link #enabled}
+	 */
+	public void setEnabled(boolean enabled) {
+<span class="fc" id="L113">		this.enabled = enabled;</span>
+<span class="fc" id="L114">	}</span>
+
+	/**
+	 * @return see {@link #checkLocation}
+	 */
+	public boolean isCheckLocation() {
+<span class="fc" id="L120">		return checkLocation;</span>
+	}
+
+	/**
+	 * @param checkLocation A new value for {@link #checkLocation}
+	 */
+	public void setCheckLocation(boolean checkLocation) {
+<span class="fc" id="L127">		this.checkLocation = checkLocation;</span>
+<span class="fc" id="L128">	}</span>
+
+	/**
+	 * @return see {@link #packagesToScan}
+	 */
+	public String[] getPackagesToScan() {
+<span class="fc" id="L134">		return packagesToScan;</span>
+	}
+
+	/**
+	 * @param packagesToScan A new value for {@link #packagesToScan}
+	 */
+	public void setPackagesToScan(String[] packagesToScan) {
+<span class="fc" id="L141">		this.packagesToScan = packagesToScan;</span>
+<span class="fc" id="L142">	}</span>
+
+	/**
+	 * @return see {@link #locationsToScan}
+	 */
+	public String[] getLocationsToScan() {
+<span class="fc" id="L148">		return locationsToScan;</span>
+	}
+
+	/**
+	 * @param locationsToScan A new value for {@link #locationsToScan}
+	 */
+	public void setLocationsToScan(String[] locationsToScan) {
+<span class="fc" id="L155">		this.locationsToScan = locationsToScan;</span>
+<span class="fc" id="L156">	}</span>
+
+	/**
+	 * @return see {@link #installedBy}
+	 */
+	public String getInstalledBy() {
+<span class="fc" id="L162">		return installedBy;</span>
+	}
+
+	/**
+	 * @param installedBy A new value for {@link #installedBy}
+	 */
+	public void setInstalledBy(String installedBy) {
+<span class="fc" id="L169">		this.installedBy = installedBy;</span>
+<span class="fc" id="L170">	}</span>
+
+	/**
+	 * @return see {@link #transactionMode}
+	 */
+	public TransactionMode getTransactionMode() {
+<span class="fc" id="L176">		return transactionMode;</span>
+	}
+
+	/**
+	 * @param transactionMode A new value for {@link #transactionMode}
+	 */
+	public void setTransactionMode(TransactionMode transactionMode) {
+<span class="fc" id="L183">		this.transactionMode = transactionMode;</span>
+<span class="fc" id="L184">	}</span>
+
+	/**
+	 * @return see {@link #encoding}
+	 */
+	public Charset getEncoding() {
+<span class="nc" id="L190">		return encoding;</span>
+	}
+
+	/**
+	 * @param encoding A new value for {@link #encoding}
+	 */
+	public void setEncoding(Charset encoding) {
+<span class="nc" id="L197">		this.encoding = encoding;</span>
+<span class="nc" id="L198">	}</span>
+
+	/**
+	 * @return see {@link #database}
+	 */
+	public String getDatabase() {
+<span class="fc" id="L204">		return database;</span>
+	}
+
+	/**
+	 * @param database A new value for {@link #database}
+	 */
+	public void setDatabase(String database) {
+<span class="fc" id="L211">		this.database = database;</span>
+<span class="fc" id="L212">	}</span>
+
+	/**
+	 * @return see {@link #schemaDatabase}
+	 */
+	public String getSchemaDatabase() {
+<span class="fc" id="L218">		return schemaDatabase;</span>
+	}
+
+	/**
+	 * @param schemaDatabase A new value for {@link #schemaDatabase}
+	 */
+	public void setSchemaDatabase(String schemaDatabase) {
+<span class="fc" id="L225">		this.schemaDatabase = schemaDatabase;</span>
+<span class="fc" id="L226">	}</span>
+
+	/**
+	 * @return see {@link #impersonatedUser}
+	 */
+	public String getImpersonatedUser() {
+<span class="fc" id="L232">		return impersonatedUser;</span>
+	}
+
+	/**
+	 * @param impersonatedUser A new value for {@link #impersonatedUser}
+	 */
+	public void setImpersonatedUser(String impersonatedUser) {
+<span class="fc" id="L239">		this.impersonatedUser = impersonatedUser;</span>
+<span class="fc" id="L240">	}</span>
+
+	/**
+	 * @return see {@link #validateOnMigrate}
+	 */
+	public boolean isValidateOnMigrate() {
+<span class="fc" id="L246">		return validateOnMigrate;</span>
+	}
+
+	/**
+	 * @param validateOnMigrate A new value for {@link #validateOnMigrate}
+	 */
+	public void setValidateOnMigrate(boolean validateOnMigrate) {
+<span class="fc" id="L253">		this.validateOnMigrate = validateOnMigrate;</span>
+<span class="fc" id="L254">	}</span>
+
+	/**
+	 * @return see {@link #autocrlf}
+	 */
+	public boolean isAutocrlf() {
+<span class="fc" id="L260">		return autocrlf;</span>
+	}
+
+	/**
+	 * @param autocrlf A new value for {@link #autocrlf}
+	 */
+	public void setAutocrlf(boolean autocrlf) {
+<span class="fc" id="L267">		this.autocrlf = autocrlf;</span>
+<span class="fc" id="L268">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

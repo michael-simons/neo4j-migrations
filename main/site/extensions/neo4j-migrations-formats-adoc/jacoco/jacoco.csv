@@ -1,0 +1,5 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Neo4j Migrations (AsciiDoctor),ac.simons.neo4j.migrations.formats.adoc,AsciiDoctorBasedMigrationProvider.new IncludeProcessor() {...},0,16,0,0,0,4,0,3,0,3
+Neo4j Migrations (AsciiDoctor),ac.simons.neo4j.migrations.formats.adoc,AsciiDoctorBasedMigration,0,34,0,0,0,5,0,3,0,3
+Neo4j Migrations (AsciiDoctor),ac.simons.neo4j.migrations.formats.adoc,AsciiDoctorBasedMigrationProvider.MigrationsExtractor,0,86,0,2,0,18,0,7,0,6
+Neo4j Migrations (AsciiDoctor),ac.simons.neo4j.migrations.formats.adoc,AsciiDoctorBasedMigrationProvider,8,80,0,2,3,18,1,5,1,4

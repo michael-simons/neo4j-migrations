@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RenderConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">RenderConfig.java</span></div><h1>RenderConfig.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+
+/**
+ * Contextual information passed to renderers.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since 1.7.0
+ */
+public final class RenderConfig {
+
+	static RenderConfig defaultConfig() {
+<span class="fc" id="L31">		return new RenderConfig(Neo4jVersion.UNDEFINED, Neo4jEdition.UNDEFINED, null, true);</span>
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfNotExistsConfigBuilder extends Builder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		default Builder ifNotExists() {
+<span class="fc" id="L43">			return this.idempotent(true);</span>
+		}
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfExistsConfigBuilder extends Builder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		default Builder ifExists() {
+<span class="fc" id="L56">			return this.idempotent(true);</span>
+		}
+	}
+
+	/**
+	 * Defines the version and the edition of the current context. They will be parsed in a lenient way.
+	 */
+	public interface Builder {
+
+		/**
+		 * @param version will be parsed lenient into a {@link Neo4jVersion} abd defazkt to {@link Neo4jVersion#LATEST}
+		 * @param edition will be parsed lenient into a {@link Neo4jEdition} and default to {@link Neo4jEdition#UNDEFINED}
+		 * @return a config accommodating the given version and edition
+		 */
+		default RenderConfig forVersionAndEdition(String version, String edition) {
+<span class="fc" id="L71">			return forVersionAndEdition(Neo4jVersion.of(version), Neo4jEdition.of(edition));</span>
+		}
+
+		/**
+		 * @param version the target version of this config
+		 * @param edition the target edition of this config
+		 * @return a config accommodating the given version and edition
+		 */
+		RenderConfig forVersionAndEdition(Neo4jVersion version, Neo4jEdition edition);
+
+		/**
+		 * Turn the outcome into a potentially idempotent fashion
+		 *
+		 * @param idempotent set to {@literal true} to produce an idempotent config
+		 * @return this builder
+		 */
+		Builder idempotent(boolean idempotent);
+	}
+
+	private static class DefaultBuilder implements IfNotExistsConfigBuilder, IfExistsConfigBuilder {
+
+		private final Operator operator;
+
+		private boolean idempotent;
+
+<span class="fc" id="L96">		private DefaultBuilder(Operator operator) {</span>
+<span class="fc" id="L97">			this.operator = operator;</span>
+<span class="fc" id="L98">		}</span>
+
+		@Override
+		public RenderConfig forVersionAndEdition(Neo4jVersion version, Neo4jEdition edition) {
+<span class="fc" id="L102">			return new RenderConfig(version, edition, operator, idempotent);</span>
+		}
+
+		@Override
+		@SuppressWarnings(&quot;HiddenField&quot;)
+		public Builder idempotent(boolean idempotent) {
+<span class="fc" id="L108">			this.idempotent = idempotent;</span>
+<span class="fc" id="L109">			return this;</span>
+		}
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal CREATE ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfNotExistsConfigBuilder create() {
+<span class="fc" id="L118">		return new DefaultBuilder(Operator.CREATE);</span>
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal DROP ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfExistsConfigBuilder drop() {
+<span class="fc" id="L126">		return new DefaultBuilder(Operator.DROP);</span>
+	}
+
+	/**
+	 * Neo4j version used to get any of the contained information.
+	 */
+	private final Neo4jVersion version;
+
+	/**
+	 * Neo4j edition used to get any of the contained information.
+	 */
+	private final Neo4jEdition edition;
+
+	private final Operator operator;
+
+	private final boolean idempotent;
+
+	/**
+	 * Flag if the name should be ignored.
+	 */
+	private final boolean ignoreName;
+
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
+<span class="fc" id="L149">		this(version, edition, operator, idempotent, false);</span>
+<span class="fc" id="L150">	}</span>
+
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent,
+<span class="fc" id="L153">		boolean ignoreName) {</span>
+<span class="fc" id="L154">		this.version = version;</span>
+<span class="fc" id="L155">		this.edition = edition;</span>
+<span class="fc" id="L156">		this.operator = operator;</span>
+<span class="fc" id="L157">		this.idempotent = idempotent;</span>
+<span class="fc" id="L158">		this.ignoreName = ignoreName;</span>
+<span class="fc" id="L159">	}</span>
+
+	Neo4jVersion getVersion() {
+<span class="fc" id="L162">		return version;</span>
+	}
+
+	Neo4jEdition getEdition() {
+<span class="fc" id="L166">		return edition;</span>
+	}
+
+	Operator getOperator() {
+<span class="fc" id="L170">		return operator;</span>
+	}
+
+	boolean isIdempotent() {
+<span class="fc" id="L174">		return idempotent;</span>
+	}
+
+	boolean isVersionPriorTo44() {
+<span class="fc" id="L178">		return getVersion().isPriorTo44();</span>
+	}
+
+	boolean isIgnoreName() {
+<span class="fc" id="L182">		return ignoreName;</span>
+	}
+
+	/**
+	 * This is useful to get a render context that ignores the name of an object to force dropping things created without a name.
+	 * @return a new context ignoring the name
+	 */
+	public RenderConfig ignoreName() {
+<span class="fc" id="L190">		return new RenderConfig(version, edition, operator, idempotent, true);</span>
+	}
+
+	/**
+	 * @return the snippet necessary to use an idempotent operation for the given operation in this config.
+	 */
+	String ifNotExistsOrEmpty() {
+<span class="fc bfc" id="L197" title="All 2 branches covered.">		if (getOperator() == Operator.CREATE) {</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">			return isIdempotent() ? &quot;IF NOT EXISTS &quot; : &quot;&quot;;</span>
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">		} else if (getOperator() == Operator.DROP) {</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">			return isIdempotent() ? &quot; IF EXISTS&quot; : &quot;&quot;;</span>
+		} else {
+<span class="nc" id="L202">			throw new IllegalStateException();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

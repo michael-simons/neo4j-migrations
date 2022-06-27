@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Index.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Neo4j Migrations (Test Results)</a> &gt; <a href="../index.html" class="el_bundle">neo4j-migrations</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">Index.java</span></div><h1>Index.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.MapAccessor;
+import org.w3c.dom.Element;
+
+/**
+ * A somewhat Neo4j version independent representation of an index.
+ *
+ * @author Michael J. Simons
+ * @author Gerrit Meier
+ * @since 1.7.0
+ */
+// This is about the additional field deconstructedIdentifiers. It is immutable and directly derived
+// from the identifier in a one-to-one onto relationship and therefor ok.
+@SuppressWarnings(&quot;squid:S2160&quot;)
+public final class Index extends AbstractCatalogItem&lt;Index.Type&gt; {
+
+	/**
+	 * Enumerates the different kinds of indexes.
+	 */
+<span class="fc" id="L51">	public enum Type implements ItemType {</span>
+		/**
+		 * An index on properties. The actual type depends on the options.
+		 */
+<span class="fc" id="L55">		PROPERTY,</span>
+		/**
+		 * A lookup index. Those indexes are paramount for the database to perform proper. They
+		 * provide mapping from labels to nodes, or from relationships types to relationships, instead of between
+		 * properties and entities and should usually not be changed.
+		 */
+<span class="fc" id="L61">		LOOKUP,</span>
+		/**
+		 * Fulltext indexes for long text properties.
+		 */
+<span class="fc" id="L65">		FULLTEXT,</span>
+		/**
+		 * Text indexes for 4.4 and later.
+		 */
+<span class="fc" id="L69">		TEXT,</span>
+		/**
+		 * An index backing a constraint.
+		 */
+<span class="fc" id="L73">		CONSTRAINT_BACKING_INDEX;</span>
+
+		@Override
+		public String getName() {
+<span class="fc" id="L77">			return name().toLowerCase(Locale.ROOT);</span>
+		}
+	}
+
+	private static final String TOKEN_NAMES = &quot;tokenNames&quot;;
+	private static final String LABELS_OR_TYPES = &quot;labelsOrTypes&quot;;
+<span class="fc" id="L83">	private static final String[] NAME_KEYS = { &quot;indexName&quot;, &quot;name&quot; };</span>
+	private static final String PROPERTIES_KEY = &quot;properties&quot;;
+	private static final String ENTITY_TYPE_KEY = &quot;entityType&quot;;
+	private static final String INDEX_TYPE_KEY = &quot;type&quot;;
+	private static final String UNIQUENESS_KEY = &quot;uniqueness&quot;;
+<span class="fc" id="L88">	private static final UnaryOperator&lt;String&gt; UNESCAPE_PIPE = s -&gt; s.replace(&quot;\\|&quot;, &quot;|&quot;);</span>
+
+<span class="fc" id="L90">	private static final Set&lt;String&gt; REQUIRED_KEYS_35 = Collections.unmodifiableSet(</span>
+<span class="fc" id="L91">		new HashSet&lt;&gt;(Arrays.asList(NAME_KEYS[0],</span>
+			INDEX_TYPE_KEY, TOKEN_NAMES, PROPERTIES_KEY)));
+
+<span class="fc" id="L94">	private static final Set&lt;String&gt; REQUIRED_KEYS_40 = Collections.unmodifiableSet(</span>
+<span class="fc" id="L95">		new HashSet&lt;&gt;(Arrays.asList(NAME_KEYS[1],</span>
+			INDEX_TYPE_KEY, ENTITY_TYPE_KEY, LABELS_OR_TYPES, PROPERTIES_KEY)));
+
+	/**
+	 * Programmatic way of defining indexes.
+	 */
+	public interface Builder {
+
+		/**
+		 * Adds a name to the index
+		 *
+		 * @param name The new name
+		 * @return The next step when building an index
+		 */
+		NamedSingleIdentifierBuilder named(String name);
+	}
+
+	/**
+	 * A fulltext builder, the only index allowing multiple types when being created.
+	 */
+	public interface FulltextBuilder {
+
+		/**
+		 * Adds a name to the index
+		 *
+		 * @param name The new name
+		 * @return The next step when building an index
+		 */
+		NamedFulltextBuilder named(String name);
+	}
+
+	/**
+	 * Marker for the step after an index has been given a name.
+	 */
+	public interface NamedBuilder {
+	}
+
+	/**
+	 * Allows to specify the type of the constraint. Not all types are exposed, they should usually not be touch manually.
+	 */
+	public interface NamedSingleIdentifierBuilder extends NamedFulltextBuilder {
+
+		/**
+		 * Creates a property index
+		 *
+		 * @param properties The properties to be included in the index
+		 * @return the next step
+		 */
+		Index onProperties(String... properties);
+
+		/**
+		 * Creates a native Neo4j text index
+		 *
+		 * @param property The property to be included in the index
+		 * @return the next step
+		 */
+		Index text(String property);
+	}
+
+	/**
+	 * Fulltext is the only index available for multiple labels and multiple types in on go.
+	 */
+	interface NamedFulltextBuilder extends NamedBuilder {
+
+		/**
+		 * Creates a fulltext index
+		 *
+		 * @param properties The properties to be included in the index
+		 * @return the next step
+		 */
+		Index fulltext(String... properties);
+	}
+
+	private static class DefaultBuilder implements Builder, FulltextBuilder, NamedSingleIdentifierBuilder, NamedFulltextBuilder {
+		private final TargetEntityType targetEntity;
+
+		private final String[] identifiers;
+
+		private String name;
+
+<span class="fc" id="L175">		private DefaultBuilder(TargetEntityType targetEntity, String[] identifiers) {</span>
+<span class="fc" id="L176">			this.targetEntity = targetEntity;</span>
+<span class="fc" id="L177">			this.identifiers = identifiers;</span>
+<span class="fc" id="L178">		}</span>
+
+		@Override
+		public DefaultBuilder named(String newName) {
+
+<span class="fc" id="L183">			this.name = newName;</span>
+<span class="fc" id="L184">			return this;</span>
+		}
+
+		@Override
+		public Index onProperties(String... properties) {
+<span class="fc" id="L189">			return makeIndex(properties, Type.PROPERTY);</span>
+		}
+
+		@Override
+		public Index text(String property) {
+<span class="fc" id="L194">			return makeIndex(new String[] { property }, Type.TEXT);</span>
+		}
+
+		@Override
+		public Index fulltext(String... properties) {
+<span class="fc" id="L199">			return makeIndex(properties, Type.FULLTEXT);</span>
+		}
+
+		private Index makeIndex(String[] properties, Type text) {
+<span class="fc" id="L203">			return new Index(name, text, targetEntity, Arrays.asList(identifiers), Arrays.asList(properties));</span>
+		}
+	}
+
+	/**
+	 * Starts defining a new instance of a node index.
+	 *
+	 * @param label The label on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forNode(String label) {
+<span class="fc" id="L214">		return new DefaultBuilder(TargetEntityType.NODE, new String[] {label});</span>
+	}
+
+	/**
+	 * Starts defining a new instance of a node index.
+	 *
+	 * @param labels The labels on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static FulltextBuilder forNode(String... labels) {
+<span class="fc" id="L224">		return new DefaultBuilder(TargetEntityType.NODE, labels);</span>
+	}
+
+	/**
+	 * Starts defining a new instance of a node index.
+	 *
+	 * @param type The type on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static Builder forRelationship(String type) {
+<span class="fc" id="L234">		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, new String[] { type });</span>
+	}
+
+	/**
+	 * Starts defining a new instance of a relationship index.
+	 *
+	 * @param types The type on which the index should be applied
+	 * @return The ongoing builder
+	 */
+	public static FulltextBuilder forRelationship(String... types) {
+<span class="fc" id="L244">		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, types);</span>
+	}
+
+	/**
+	 * Creates an index from a xml definition.
+	 *
+	 * @param indexElement as defined in {@code migration.xsd}.
+	 * @return The new index if the element as parseable
+	 */
+	public static Index parse(Element indexElement) {
+
+<span class="fc" id="L255">		String name = indexElement.getAttribute(XMLSchemaConstants.NAME);</span>
+<span class="fc" id="L256">		String typeValue = indexElement.getAttribute(XMLSchemaConstants.TYPE);</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">		Index.Type type = Strings.isBlank(typeValue) ?</span>
+<span class="fc" id="L258">			Type.PROPERTY :</span>
+<span class="fc" id="L259">			Index.Type.valueOf(typeValue.toUpperCase(Locale.ROOT));</span>
+<span class="fc" id="L260">		Target target = extractTarget(indexElement);</span>
+
+<span class="fc" id="L262">		Set&lt;String&gt; properties = extractProperties(indexElement);</span>
+<span class="fc" id="L263">		String options = extractOptions(indexElement);</span>
+
+<span class="fc" id="L265">		String at = &quot;(?&lt;!\\\\)\\|&quot;;</span>
+<span class="fc" id="L266">		return new Index(name, type, target.targetEntityType(), Arrays.asList(target.identifier().split(at)),</span>
+			new LinkedHashSet&lt;&gt;(properties),
+			options);
+	}
+
+	/**
+	 * Parses an index from a {@link MapAccessor}
+	 *
+	 * @param row the result row
+	 * @return An index
+	 * @throws IllegalArgumentException if the row cannot be processed
+	 */
+	public static Index parse(MapAccessor row) {
+
+<span class="fc bfc" id="L280" title="All 2 branches covered.">		if (!REQUIRED_KEYS_35.stream().allMatch(row::containsKey) &amp;&amp; !REQUIRED_KEYS_40.stream()</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">			.allMatch(row::containsKey)) {</span>
+<span class="fc" id="L282">			throw new IllegalArgumentException(&quot;Required keys are missing in the row describing the index&quot;);</span>
+		}
+
+		List&lt;String&gt; labelsOrTypes;
+<span class="fc bfc" id="L286" title="All 2 branches covered.">		if (row.get(TOKEN_NAMES).isNull()) {</span>
+			// will be null in the case of lookup index
+<span class="fc" id="L288">			Value columnOfInterest = row.get(LABELS_OR_TYPES);</span>
+<span class="pc bpc" id="L289" title="1 of 2 branches missed.">			labelsOrTypes = columnOfInterest.isNull() ? Collections.emptyList() : columnOfInterest.asList(Value::asString);</span>
+<span class="fc" id="L290">		} else {</span>
+<span class="fc" id="L291">			labelsOrTypes = row.get(TOKEN_NAMES).asList(Value::asString);</span>
+		}
+
+<span class="fc bfc" id="L294" title="All 2 branches covered.">		String name = !row.get(NAME_KEYS[0]).isNull()</span>
+<span class="fc" id="L295">			? row.get(NAME_KEYS[0]).asString()</span>
+<span class="fc" id="L296">			: row.get(NAME_KEYS[1]).asString();</span>
+
+<span class="fc" id="L298">		String indexType = row.get(INDEX_TYPE_KEY).asString();</span>
+<span class="fc bfc" id="L299" title="All 2 branches covered.">		String entityType = !row.get(ENTITY_TYPE_KEY).isNull() ? row.get(ENTITY_TYPE_KEY).asString() : &quot;NODE&quot;;</span>
+<span class="pc bpc" id="L300" title="1 of 2 branches missed.">		List&lt;String&gt; properties = row.get(PROPERTIES_KEY).isNull() // lookup index</span>
+<span class="nc" id="L301">			? Collections.emptyList()</span>
+<span class="fc" id="L302">			: row.get(PROPERTIES_KEY).asList(Value::asString);</span>
+<span class="fc" id="L303">		TargetEntityType targetEntityType = TargetEntityType.valueOf(entityType);</span>
+
+		Index.Type type;
+<span class="pc bpc" id="L306" title="2 of 5 branches missed.">		switch (indexType) {</span>
+			case &quot;LOOKUP&quot;:
+<span class="nc" id="L308">				type = Type.LOOKUP;</span>
+<span class="nc" id="L309">				break;</span>
+			case &quot;node_label_property&quot;:
+			case &quot;BTREE&quot;:
+			case &quot;RANGE&quot;: // One of the Neo4j 5+ future indexes.
+<span class="fc" id="L313">				type = Type.PROPERTY;</span>
+<span class="fc" id="L314">				break;</span>
+			case &quot;FULLTEXT&quot;:
+			case &quot;node_fulltext&quot;:
+<span class="fc" id="L317">				type = Type.FULLTEXT;</span>
+<span class="fc" id="L318">				break;</span>
+			case &quot;node_unique_property&quot;:
+<span class="fc" id="L320">				type = Type.CONSTRAINT_BACKING_INDEX;</span>
+<span class="fc" id="L321">				break;</span>
+			default:
+<span class="nc" id="L323">				throw new IllegalArgumentException(&quot;Unsupported index type &quot; + name);</span>
+		}
+
+		// Neo4j 4.x defines the index via uniqueness property
+<span class="fc bfc" id="L327" title="All 4 branches covered.">		type = row.get(UNIQUENESS_KEY).isNull() || !row.get(UNIQUENESS_KEY).asString().equals(&quot;UNIQUE&quot;)</span>
+<span class="fc" id="L328">			? type</span>
+<span class="fc" id="L329">			: Type.CONSTRAINT_BACKING_INDEX;</span>
+
+<span class="fc" id="L331">		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet&lt;&gt;(properties));</span>
+	}
+
+	private final Set&lt;String&gt; deconstructedIdentifiers;
+
+	Index(String name, Type type, TargetEntityType targetEntityType, Collection&lt;String&gt; deconstructedIdentifiers,
+		Collection&lt;String&gt; properties) {
+<span class="fc" id="L338">		this(name, type, targetEntityType, deconstructedIdentifiers, properties, null);</span>
+<span class="fc" id="L339">	}</span>
+
+	Index(String name, Type type, TargetEntityType targetEntityType, Collection&lt;String&gt; deconstructedIdentifiers,
+		Collection&lt;String&gt; properties, String options) {
+<span class="fc" id="L343">		super(name, type, targetEntityType, join(deconstructedIdentifiers), properties, options);</span>
+<span class="fc bfc" id="L344" title="All 4 branches covered.">		if (deconstructedIdentifiers.size() &gt; 1 &amp;&amp; type != Type.FULLTEXT) {</span>
+<span class="fc" id="L345">			throw new IllegalArgumentException(</span>
+				&quot;Multiple labels or types are only allowed to be specified with fulltext indexes.&quot;);
+		}
+<span class="fc bfc" id="L348" title="All 4 branches covered.">		if (properties.size() &gt; 1 &amp;&amp; type == Type.TEXT) {</span>
+<span class="fc" id="L349">			throw new IllegalArgumentException(&quot;Text indexes only allow exactly one single property.&quot;);</span>
+		}
+<span class="fc" id="L351">		this.deconstructedIdentifiers = deconstructedIdentifiers.stream()</span>
+<span class="fc" id="L352">			.map(UNESCAPE_PIPE)</span>
+<span class="fc" id="L353">			.collect(Collectors.toCollection(LinkedHashSet::new));</span>
+<span class="fc" id="L354">	}</span>
+
+	private static String join(Collection&lt;String&gt; deconstructedIdentifiers) {
+<span class="fc" id="L357">		return deconstructedIdentifiers.stream().map(UNESCAPE_PIPE).collect(Collectors.joining(&quot;, &quot;, &quot;[&quot;, &quot;]&quot;));</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="nc" id="L362">		return getName().getValue() + getType() + getIdentifier();</span>
+	}
+
+	/**
+	 * {@literal true}, if {@literal item} is an index of the same type for the same entity containing the same properties.
+	 * Also index name and options will be compared.
+	 *
+	 * @param that the other item to compare to
+	 * @return {@literal true} if this and the other {@literal item} are equivalent
+	 */
+	@Override
+	public boolean isEquivalentTo(CatalogItem&lt;?&gt; that) {
+
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">		if (this == that) {</span>
+<span class="nc" id="L376">			return true;</span>
+		}
+
+<span class="fc bfc" id="L379" title="All 2 branches covered.">		if (!(that instanceof Index)) {</span>
+<span class="fc" id="L380">			return false;</span>
+		}
+
+<span class="fc" id="L383">		Index other = (Index) that;</span>
+
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">		return this.getType().equals(other.getType()) &amp;&amp;</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">				this.getTargetEntityType().equals(other.getTargetEntityType()) &amp;&amp;</span>
+<span class="pc bpc" id="L387" title="1 of 2 branches missed.">				this.getIdentifier().equals(other.getIdentifier()) &amp;&amp;</span>
+<span class="fc bfc" id="L388" title="All 2 branches covered.">				this.getProperties().equals(other.getProperties()) &amp;&amp;</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">				this.getOptionalOptions().equals(other.getOptionalOptions());</span>
+	}
+
+	Collection&lt;String&gt; getDeconstructedIdentifiers() {
+<span class="fc" id="L393">		return Collections.unmodifiableSet(deconstructedIdentifiers);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

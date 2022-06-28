@@ -29,7 +29,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
  */
 public class Neo4jTestResource implements QuarkusTestResourceLifecycleManager {
 
-	private final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3")
+	private final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4")
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	@Override

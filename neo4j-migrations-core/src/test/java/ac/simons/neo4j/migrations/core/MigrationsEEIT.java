@@ -66,7 +66,7 @@ class MigrationsEEIT {
 	}
 
 	@Container
-	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3-enterprise")
+	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4-enterprise")
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
 

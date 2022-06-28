@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -42,6 +43,7 @@ class PreconditionsIT {
 	}
 
 	@Test
+	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.3-enterprise")
 	void assumptionsShouldWork() {
 
 		try (
@@ -93,6 +95,7 @@ class PreconditionsIT {
 	}
 
 	@Test
+	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.0")
 	void thingsShouldNotFailWhenAssumptionsChangeDueToVersionUpgrade() {
 		try (
 			Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
 
@@ -29,8 +30,8 @@ public class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 		if (!dockerImageName.getRepository().startsWith("neo4j") || (dockerImageName.getRepository().startsWith("neo4j") && dockerImageName.getVersionPart().contains("4.4"))) {
 			return dockerImageName;
 		}
-		String property = System.getProperty("os.arch", "");
-		if (property.equals("aarch64")) {
+		String dockerArchitecture = DockerClientFactory.instance().getInfo().getArchitecture();
+		if ("aarch64".equals(dockerArchitecture)) {
 			return DockerImageName.parse("neo4j/neo4j-arm64-experimental:" + dockerImageName.getVersionPart() + "-arm64");
 		}
 		return dockerImageName;

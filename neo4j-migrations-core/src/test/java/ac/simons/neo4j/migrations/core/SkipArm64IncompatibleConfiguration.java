@@ -67,6 +67,8 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 	public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
 		if (runsOnLocalAarch64Machine()) {
 			skipUnsupportedTests(invocation, invocationContext);
+		} else {
+			invocation.proceed();
 		}
 	}
 
@@ -74,6 +76,8 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 	public void interceptTestTemplateMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
 		if (runsOnLocalAarch64Machine()) {
 			skipUnsupportedTests(invocation, invocationContext);
+		} else {
+			invocation.proceed();
 		}
 	}
 

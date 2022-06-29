@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.testcontainers.DockerClientFactory;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -30,8 +31,6 @@ import java.util.stream.Stream;
 /**
  * Skips the tests if it is running on an aarch64 (Apple silicon / M1) architecture and no suitable image is available.
  * It does *not* skip the tests on general arm64 architectures.
- * If you are using an external Testcontainers runner (Testcontainers Cloud), you could skip the verification by setting
- * the environment variable {@code USE_TCC=true}.
  */
 public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor {
 
@@ -82,9 +81,8 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 	}
 
 	private boolean runsOnLocalAarch64Machine() {
-		boolean isRunningLocal = !"true".equals(System.getenv("USE_TCC"));
-		boolean arch64Architecture = "aarch64".equals(System.getProperty("os.arch"));
-		return isRunningLocal && arch64Architecture;
+		String dockerArchitecture = DockerClientFactory.instance().getInfo().getArchitecture();
+		return "aarch64".equals(dockerArchitecture);
 	}
 
 	private void skipUnsupportedTests(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext) throws Throwable {

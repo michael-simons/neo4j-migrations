@@ -39,7 +39,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.exceptions.ClientException;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
 import org.powermock.reflect.Whitebox;
@@ -60,7 +59,7 @@ class DefaultMigrationContextTest {
 		when(serverInfo.address()).thenReturn("whatever");
 		when(resultSummary.server()).thenReturn(serverInfo);
 
-		ExtendedResultSummary extendedResultSummary = new ExtendedResultSummary(false, ServerVersion.vInDev, "Enterprise", resultSummary);
+		ExtendedResultSummary extendedResultSummary = new ExtendedResultSummary(false, "Neo4j/dev", "Enterprise", resultSummary);
 
 		Session session = mock(Session.class);
 		when(session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)"))

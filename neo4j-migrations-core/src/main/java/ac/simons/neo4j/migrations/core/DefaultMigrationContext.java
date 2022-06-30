@@ -33,7 +33,6 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.exceptions.ClientException;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.summary.DatabaseInfo;
 import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.ResultSummary;
@@ -178,12 +177,12 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	static class ExtendedResultSummary {
 		final boolean showCurrentUserExists;
-		final ServerVersion version;
+		final String version;
 		final ServerInfo server;
 		final DatabaseInfo database;
 		final String edition;
 
-		ExtendedResultSummary(boolean showCurrentUserExists, ServerVersion version, String edition,
+		ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition,
 			ResultSummary actualSummary) {
 
 			this.showCurrentUserExists = showCurrentUserExists;
@@ -208,7 +207,7 @@ final class DefaultMigrationContext implements MigrationContext {
 				);
 				Record singleResultRecord = result.single();
 				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
-				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
+				String version = singleResultRecord.get("version").asString();
 				String edition = singleResultRecord.get("edition").asString();
 				ResultSummary summary = result.consume();
 				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
@@ -221,7 +220,7 @@ final class DefaultMigrationContext implements MigrationContext {
 					+ "RETURN 'Neo4j/' + versions[0] AS version, edition"
 				);
 				Record singleResultRecord = result.single();
-				ServerVersion version = ServerVersion.version(singleResultRecord.get("version").asString());
+				String version = singleResultRecord.get("version").asString();
 				String edition = singleResultRecord.get("edition").asString();
 				ResultSummary summary = result.consume();
 				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
@@ -244,7 +243,7 @@ final class DefaultMigrationContext implements MigrationContext {
 			ServerInfo serverInfo = databaseInformation.server;
 			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
 			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
-			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(),
+			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version,
 					databaseInformation.edition, username, targetDatabase,
 					schemaDatabase);
 		}

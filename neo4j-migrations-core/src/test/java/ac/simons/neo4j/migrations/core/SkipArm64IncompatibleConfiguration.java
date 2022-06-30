@@ -25,14 +25,17 @@ import org.testcontainers.DockerClientFactory;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * Skips the tests if it is running on an aarch64 (Apple silicon / M1) architecture and no suitable image is available.
  * It does *not* skip the tests on general arm64 architectures.
+ *
+ * @author Gerrit Meier
  */
-public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor {
+final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor {
 
 	/**
 	 * Version provider to iterate over all versions provided in {@link Neo4jVersion}.
@@ -51,16 +54,16 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 	 * Wrapper class for {@link Neo4jVersion} and a flag to determine if enterprise edition was requested.
 	 */
 	public static class VersionUnderTest {
-		final Neo4jVersion version;
+		final Neo4jVersion value;
 		final boolean enterprise;
 
-		VersionUnderTest(Neo4jVersion version, boolean enterprise) {
-			this.version = version;
+		VersionUnderTest(Neo4jVersion value, boolean enterprise) {
+			this.value = value;
 			this.enterprise = enterprise;
 		}
 	}
-	private final List<String> SUPPORTED_VERSIONS_COMMUNITY = Arrays.asList("3.5", "4.1", "4.2", "4.3", "4.4");
-	private final List<String> SUPPORTED_VERSIONS_ENTERPRISE = Arrays.asList("4.4");
+	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.1", "4.2", "4.3", "4.4"));
+	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = Collections.singletonList("4.4");
 
 	@Override
 	public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
@@ -89,10 +92,10 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 		boolean skip = false;
 		for (Object argument : invocationContext.getArguments()) {
 			if (argument instanceof VersionUnderTest) {
-				skip = checkForVersionArguments((VersionUnderTest) argument);
+				skip = skipUnsupported((VersionUnderTest) argument);
 			}
 			if (argument instanceof String) {
-				skip = checkForStringArguments((String) argument);
+				skip = skipUnsupported((String) argument);
 			}
 		}
 		if (skip) {
@@ -102,35 +105,25 @@ public class SkipArm64IncompatibleConfiguration implements InvocationInterceptor
 		}
 	}
 
-	private boolean checkForStringArguments(String argument) {
+	private static boolean skipUnsupported(String argument) {
 		if (argument.contains("enterprise")) {
 			return !SUPPORTED_VERSIONS_ENTERPRISE.contains(argument.replace("-enterprise", ""));
 		}
-		for (String supportedVersion : SUPPORTED_VERSIONS_COMMUNITY) {
-			if (argument.contains(supportedVersion)) {
-				return false;
-			}
-		}
-		return true;
+		return SUPPORTED_VERSIONS_COMMUNITY.stream().noneMatch(argument::contains);
 	}
 
-	private boolean checkForVersionArguments(VersionUnderTest argument) {
+	private static boolean skipUnsupported(VersionUnderTest argument) {
+
+		List<String> versionsToCheck;
 		if (argument.enterprise) {
-			for (String supportedVersion : SUPPORTED_VERSIONS_ENTERPRISE) {
-				Neo4jVersion neo4jVersion = Neo4jVersion.of(supportedVersion);
-				if (argument.version.equals(neo4jVersion)) {
-					return false;
-				}
-			}
-			return true;
+			versionsToCheck = SUPPORTED_VERSIONS_ENTERPRISE;
+		} else {
+			versionsToCheck = SUPPORTED_VERSIONS_COMMUNITY;
 		}
 
-		for (String supportedVersion : SUPPORTED_VERSIONS_COMMUNITY) {
-			Neo4jVersion neo4jVersion = Neo4jVersion.of(supportedVersion);
-			if (argument.version.equals(neo4jVersion)) {
-				return false;
-			}
-		}
-		return true;
+		return versionsToCheck
+				.stream()
+				.map(Neo4jVersion::of)
+				.noneMatch(argument.value::equals);
 	}
 }

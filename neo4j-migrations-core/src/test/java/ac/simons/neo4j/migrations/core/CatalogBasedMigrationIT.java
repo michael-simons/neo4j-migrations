@@ -72,16 +72,16 @@ class CatalogBasedMigrationIT {
 		), false);
 
 		// Unclosed on purpose, otherwise reuse is without use.
-		Neo4jContainer<?> neo4j = getNeo4j(version.version, version.enterprise, true);
+		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 			Session session = driver.session()) {
 			Catalog catalog;
-			if (version.version == Neo4jVersion.V4_2) {
-				catalog = session.writeTransaction(tx -> DatabaseCatalog.of(version.version, tx));
+			if (version.value == Neo4jVersion.V4_2) {
+				catalog = session.writeTransaction(tx -> DatabaseCatalog.of(version.value, tx));
 			} else {
-				catalog = session.readTransaction(tx -> DatabaseCatalog.of(version.version, tx));
+				catalog = session.readTransaction(tx -> DatabaseCatalog.of(version.value, tx));
 			}
 			assertThat(catalog.getItems()).isNotEmpty();
 			assertThat(catalog.getItems()).allMatch(expectedCatalog::containsEquivalentItem);
@@ -96,7 +96,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void verificationShouldFailHard(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.version, version.enterprise, true);
+		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -118,7 +118,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void catalogBasedMigrationShouldWork(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.version, version.enterprise, false);
+		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -126,7 +126,7 @@ class CatalogBasedMigrationIT {
 			Migrations migrations;
 			migrations = new Migrations(
 				MigrationsConfig.builder().withLocationsToScan("classpath:catalogbased/actual-migrations").build(), driver);
-			if (version.version == Neo4jVersion.V3_5) {
+			if (version.value == Neo4jVersion.V3_5) {
 				// We don't have constraint names, so the last verification will fail as it doesn't allow equivalency
 				assertThatExceptionOfType(MigrationsException.class)
 					.isThrownBy(migrations::apply)
@@ -136,11 +136,11 @@ class CatalogBasedMigrationIT {
 				assertThat(optionalMigrationVersion)
 					.hasValue(MigrationVersion.withValue("70"));
 				try (Session session = driver.session()) { // The last migration should clean everything not from Neo4j-Migrations itself
-					assertThat(session.run(version.version.getShowConstraints()).list())
+					assertThat(session.run(version.value.getShowConstraints()).list())
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 
-					assertThat(session.run(version.version.getShowIndexes()).list())
+					assertThat(session.run(version.value.getShowIndexes()).list())
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 				}

@@ -21,8 +21,10 @@ import org.testcontainers.utility.ImageNameSubstitutor;
 
 /**
  * Changes the source repository to aarch64 compatible images for neo4j < 4.4
+ *
+ * @author Gerrit Meier
  */
-public class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
+public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 
 	@Override
 	public DockerImageName apply(DockerImageName dockerImageName) {

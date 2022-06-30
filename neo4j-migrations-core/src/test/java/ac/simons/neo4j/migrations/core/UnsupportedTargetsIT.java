@@ -20,7 +20,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Optional;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -33,43 +35,43 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 /**
  * @author Michael J. Simons
  */
+@ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class UnsupportedTargetsIT {
 
-	@Test
-	void migrationTargetDeterminationMustNotFailWithOlderEnterprise() {
+	@ParameterizedTest
+	@CsvSource({"neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0"})
+	void migrationTargetDeterminationMustNotFailWithOlderEnterprise(String databaseVersion) {
+		try (Neo4jContainer<?> neo4jWithoutMultiDB = new Neo4jContainer<>(databaseVersion)
+			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
 
-		for (String tag : new String[] { "neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0" }) {
-			try (Neo4jContainer<?> neo4jWithoutMultiDB = new Neo4jContainer<>(tag)
-				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-				.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
+			neo4jWithoutMultiDB.start();
 
-				neo4jWithoutMultiDB.start();
+			Config config = Config.builder().withLogging(Logging.none()).build();
+			try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
 
-				Config config = Config.builder().withLogging(Logging.none()).build();
-				try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
-					AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
+				MigrationsConfig migrationsConfig = MigrationsConfig.builder()
+					.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+					.withSchemaDatabase("irrelevant")
+					.build();
 
-					MigrationsConfig migrationsConfig = MigrationsConfig.builder()
-						.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
-						.withSchemaDatabase("irrelevant")
-						.build();
+				MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, localDriver);
+				Optional<String> migrationTarget = migrationsConfig.getMigrationTargetIn(ctx);
 
-					MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, localDriver);
-					Optional<String> migrationTarget = migrationsConfig.getMigrationTargetIn(ctx);
-
-					if (tag.contains("3.5")) {
-						assertThat(migrationTarget).isEmpty();
-					} else {
-						assertThat(migrationTarget).hasValue("neo4j");
-					}
+				if (databaseVersion.contains("3.5")) {
+					assertThat(migrationTarget).isEmpty();
+				} else {
+					assertThat(migrationTarget).hasValue("neo4j");
 				}
 			}
 		}
 	}
 
-	@Test
-	void impersonationOnOldDBShouldFail() {
-		try (Neo4jContainer<?> neo4j43 = new Neo4jContainer<>("neo4j:4.3-enterprise")
+	@ParameterizedTest
+	@CsvSource("neo4j:4.3-enterprise")
+	void impersonationOnOldDBShouldFail(String databaseVersion) {
+		try (Neo4jContainer<?> neo4j43 = new Neo4jContainer<>(databaseVersion)
 			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
 

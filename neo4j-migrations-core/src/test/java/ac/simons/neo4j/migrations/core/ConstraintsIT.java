@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -52,6 +53,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
  */
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class ConstraintsIT {
 
 	public static final Config NO_DRIVER_LOGGING_CONFIG = Config.builder().withLogging(Logging.none()).build();

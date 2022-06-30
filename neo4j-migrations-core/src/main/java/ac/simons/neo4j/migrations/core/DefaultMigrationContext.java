@@ -243,7 +243,7 @@ final class DefaultMigrationContext implements MigrationContext {
 			ServerInfo serverInfo = databaseInformation.server;
 			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
 			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
-			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version.toString(),
+			return new DefaultConnectionDetails(serverInfo.address(), databaseInformation.version,
 					databaseInformation.edition, username, targetDatabase,
 					schemaDatabase);
 		}

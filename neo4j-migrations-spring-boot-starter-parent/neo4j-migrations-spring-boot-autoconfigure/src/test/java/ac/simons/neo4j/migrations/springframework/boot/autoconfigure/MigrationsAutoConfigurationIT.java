@@ -49,7 +49,7 @@ class MigrationsAutoConfigurationIT {
 	}
 
 	@Container
-	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4")
+	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"))
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	private final Driver driver;

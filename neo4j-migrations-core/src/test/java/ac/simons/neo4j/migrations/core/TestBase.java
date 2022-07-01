@@ -47,12 +47,14 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 @ExtendWith(SkipArm64IncompatibleConfiguration.class)
 abstract class TestBase {
 
+	static final String DEFAULT_NEO4J_IMAGE = System.getProperty("migrations.default-neo4j-image");
+
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
 	}
 
-	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3")
+	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(DEFAULT_NEO4J_IMAGE)
 		.withLabel("ac.simons.neo4j.migrations.core", TestBase.class.getSimpleName())
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 

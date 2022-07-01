@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.AuthTokens;
@@ -26,12 +29,21 @@ public class test_native_cli {
 
 	public static void main(String... a) throws Exception {
 
+		var imagePattern = Pattern.compile("\\s+<neo4j\\.image>(.+)</neo4j\\.image>");
+		var imageName = Files.readAllLines(Paths.get("./pom.xml"))
+			.stream()
+			.map(imagePattern::matcher)
+			.filter(Matcher::matches)
+			.map(m -> m.group(1))
+			.findFirst()
+			.orElse("neo4j:4:4");
+
 		var executable = Paths.get("./neo4j-migrations-cli/target/neo4j-migrations").toAbsolutePath().normalize().toString();
 		var location1 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize().toUri().toString();
 		var location2 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/catalogbased_changesets").toAbsolutePath().normalize().toUri().toString();
 
 		// Let Ryuk take care of it, so no try/catch with autoclose
-		var neo4j = new Neo4jContainer<>("neo4j:4.3").withReuse(true);
+		var neo4j = new Neo4jContainer<>(imageName).withReuse(true);
 		neo4j.start();
 
 		try (var driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()));

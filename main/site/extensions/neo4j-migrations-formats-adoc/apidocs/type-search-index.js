@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"ac.simons.neo4j.migrations.formats.adoc","l":"AsciiDoctorBasedMigrationProvider"}];updateSearchResults();

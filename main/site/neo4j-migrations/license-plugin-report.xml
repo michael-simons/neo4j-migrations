@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1656354669740">
+<licensePluginReport goal="CHECK" timestamp="1656655739681">
     <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.8.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -142,11 +142,13 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsLockIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/Neo4jImageNameSubstitutor.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PackageStructureTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ProductVersionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ResourceContextTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/SkipArm64IncompatibleConfiguration.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/TestBase.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/UnsupportedTargetsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ValidateIT.java" result="PRESENT"/>
@@ -172,5 +174,6 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset2/V023__NichtsIstWieEsScheint.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset3/SomeMigrations.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset4/V001__SlowMigration.java" result="PRESENT"/>
+        <file path="src/test/resources/testcontainers.properties" result="PRESENT"/>
     </files>
 </licensePluginReport>

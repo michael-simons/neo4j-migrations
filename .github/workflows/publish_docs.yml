@@ -25,6 +25,10 @@ jobs:
         with:
           ref: gh-pages
           path: target/gh-pages
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:

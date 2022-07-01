@@ -308,7 +308,7 @@ class MigrationsIT extends TestBase {
 	@Test
 	void shouldNotFailOnDisabledAuth() {
 
-		try (Neo4jContainer<?> containerWithoutAuth = new Neo4jContainer<>("neo4j:4.3").withoutAuthentication()
+		try (Neo4jContainer<?> containerWithoutAuth = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE).withoutAuthentication()
 			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())) {
 			containerWithoutAuth.start();
 

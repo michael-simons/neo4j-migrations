@@ -48,7 +48,7 @@ class ApplicationIT {
 	Logger logger = LoggerFactory.getLogger(ApplicationIT.class);
 
 	@Container
-	private static Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4")
+	private static Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"))
 		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
 
 	/**

@@ -751,6 +751,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>@{argLine} -Xverify:all</argLine>
+					<systemPropertyVariables>
+						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -759,6 +762,9 @@
 				<version>${maven-failsafe-plugin.version}</version>
 				<configuration>
 					<argLine>@{argLine} -Xverify:all</argLine>
+					<systemPropertyVariables>
+						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>

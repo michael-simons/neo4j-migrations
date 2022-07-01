@@ -76,7 +76,7 @@ class PreconditionsIT {
 	void assertionsShouldWork() {
 
 		try (
-			Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4")
+			Neo4jContainer<?> neo4j = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE)
 				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
 		) {
 			neo4j.start();

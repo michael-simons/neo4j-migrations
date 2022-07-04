@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.8.1-SNAPSHOT</version>
+	<version>1.8.1</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -69,7 +69,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>1.8.1</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 

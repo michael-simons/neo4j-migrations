@@ -41,7 +41,7 @@ public final class Neo4jVersionComparator implements Comparator<String> {
 		}
 
 		String[] a = sanitize(o1);
-		String[] b = sanitize(o2);;
+		String[] b = sanitize(o2);
 		if (a.length < b.length) {
 			a = Arrays.copyOf(a, b.length);
 		} else if (a.length > b.length) {

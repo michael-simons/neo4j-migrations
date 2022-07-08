@@ -26,6 +26,13 @@ import java.util.Comparator;
  */
 public final class Neo4jVersionComparator implements Comparator<String> {
 
+	static String[] sanitize(String in) {
+		return in
+			.replaceFirst("(?i)^Neo4j/", "")
+			.replaceFirst("-\\w+$", "")
+			.split("\\.");
+	}
+
 	@Override
 	public int compare(String o1, String o2) {
 		int c = o1.compareTo(o2);
@@ -33,8 +40,8 @@ public final class Neo4jVersionComparator implements Comparator<String> {
 			return c;
 		}
 
-		String[] a = o1.replaceFirst("(?i)^Neo4j/", "").split("\\.");
-		String[] b = o2.replaceFirst("(?i)^Neo4j/", "").split("\\.");
+		String[] a = sanitize(o1);
+		String[] b = sanitize(o2);
 		if (a.length < b.length) {
 			a = Arrays.copyOf(a, b.length);
 		} else if (a.length > b.length) {

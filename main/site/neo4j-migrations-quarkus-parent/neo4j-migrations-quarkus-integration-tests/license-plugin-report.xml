@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1657519136507">
-    <module artifactId="neo4j-migrations-quarkus-integration-tests" groupId="eu.michael-simons.neo4j" version="1.8.2-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1657536008691">
+    <module artifactId="neo4j-migrations-quarkus-integration-tests" groupId="eu.michael-simons.neo4j" version="1.8.3-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/it/MigrationsResource.java" result="PRESENT"/>

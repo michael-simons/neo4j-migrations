@@ -21,6 +21,8 @@ import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.util.Arrays;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Driver;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -50,6 +52,8 @@ import org.springframework.core.io.ResourceLoader;
 @AutoConfigureBefore({ Neo4jDataAutoConfiguration.class })
 @EnableConfigurationProperties({ MigrationsProperties.class })
 public class MigrationsAutoConfiguration {
+
+	private static final Log LOG = LogFactory.getLog(MigrationsAutoConfiguration.class);
 
 	@Bean
 	@ConditionalOnMissingBean({ MigrationsConfig.class, Migrations.class, MigrationsInitializer.class })
@@ -96,8 +100,7 @@ public class MigrationsAutoConfiguration {
 		if (properties.getPackagesToScan().length == 0 &&
 			!hasAtLeastOneLocation(resourceLoader, properties.getLocationsToScan())) {
 
-			throw new MigrationsException(
-				"No package to scan is configured and none of the configured locations exists.");
+			LOG.warn("No package to scan is configured and none of the configured locations exists.");
 		}
 	}
 

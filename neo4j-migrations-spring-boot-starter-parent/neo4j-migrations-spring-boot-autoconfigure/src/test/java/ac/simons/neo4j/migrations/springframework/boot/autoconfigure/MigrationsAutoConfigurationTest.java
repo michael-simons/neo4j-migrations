@@ -24,6 +24,10 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +36,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
@@ -41,6 +46,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Michael J. Simons
@@ -121,7 +131,12 @@ class MigrationsAutoConfigurationTest {
 		}
 
 		@Test
-		void shouldCheckLocationsIfPackagesAreEmpty() {
+		void shouldWarnIfCheckLocationsCannotBeFoundAndPackagesAreEmpty() {
+
+			LoggingAppender logAppender = new LoggingAppender();
+			Logger logger = (Logger) LoggerFactory.getLogger(MigrationsAutoConfiguration.class);
+			logger.addAppender(logAppender);
+			logAppender.start();
 
 			MigrationsProperties properties = new MigrationsProperties();
 			properties.setPackagesToScan(new String[0]);
@@ -133,9 +148,13 @@ class MigrationsAutoConfigurationTest {
 			Mockito.when(resource.exists()).thenReturn(false);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties))
-				.withMessage("No package to scan is configured and none of the configured locations exists.");
+			ac.neo4jMigrationsConfig(resourceLoader, properties);
+
+			logAppender.stop();
+			assertThat(logAppender.containsMessage(MigrationsAutoConfiguration.class.getName(),
+					"No package to scan is configured and none of the configured locations exists."))
+					.isTrue();
+
 		}
 
 		@Test
@@ -229,6 +248,31 @@ class MigrationsAutoConfigurationTest {
 
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
 			assertThat(config.getOptionalSchemaDatabase()).hasValue("anotherDatabase");
+		}
+	}
+
+	private static class LoggingAppender extends ListAppender<ILoggingEvent> {
+
+		Map<String, List<String>> logMessages = new HashMap<>();
+
+		LoggingAppender() {
+			setContext((Context) LoggerFactory.getILoggerFactory());
+		}
+
+		@Override
+		protected void append(ILoggingEvent logEvent) {
+			String loggerName = logEvent.getLoggerName();
+			String message = logEvent.getMessage();
+
+			logMessages.putIfAbsent(loggerName,	new ArrayList<>());
+			logMessages.get(loggerName).add(message);
+		}
+
+		public boolean containsMessage(String loggerName, String message) {
+			if (logMessages.get(loggerName) == null) {
+				return false;
+			}
+			return logMessages.get(loggerName).contains(message);
 		}
 	}
 

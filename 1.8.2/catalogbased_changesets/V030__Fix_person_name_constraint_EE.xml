@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<?assume that edition is enterprise ?>
+	<catalog>
+		<constraints>
+			<constraint name="person_name_unique" type="exists">
+				<label>Person</label>
+				<properties>
+					<property>name</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<drop ref="person_name_unique"/>
+	<create ref="person_name_unique"/>
+</migration>

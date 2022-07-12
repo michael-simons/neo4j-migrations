@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1657536060904">
+<licensePluginReport goal="CHECK" timestamp="1657605388457">
     <module artifactId="neo4j-migrations-examples-sb-testharness" groupId="eu.michael-simons.neo4j" version="1.8.3-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>

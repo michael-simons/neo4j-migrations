@@ -153,7 +153,12 @@ class CatalogBasedMigrationIT {
 	}
 
 	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, boolean enterprise, boolean createDefaultConstraints) throws IOException {
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), version.toString()))
+		return getNeo4j(version, null, enterprise, createDefaultConstraints);
+	}
+
+	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, String versionValue, boolean enterprise, boolean createDefaultConstraints) throws IOException {
+		String theVersion = versionValue == null ? version.toString() : versionValue;
+		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), theVersion))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(version.hasIdempotentOperations() && TestcontainersConfiguration.getInstance()
 				.environmentSupportsReuse())

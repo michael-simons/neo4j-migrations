@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1657734084160">
-    <module artifactId="neo4j-migrations-parent" groupId="eu.michael-simons.neo4j" version="1.8.3-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1657735966600">
+    <module artifactId="neo4j-migrations-parent" groupId="eu.michael-simons.neo4j" version="1.8.4-SNAPSHOT"/>
     <files>
         <file path="etc/checkstyle/config.xml" result="PRESENT"/>
         <file path="etc/checkstyle/suppressions.xml" result="PRESENT"/>

@@ -39,6 +39,7 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 	 */
 	private List<String> alternativeChecksums = Collections.emptyList();
 
+	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile Optional<String> checksumOfNonePreconditions;
 
 	CypherBasedMigration(URL url) {
@@ -49,6 +50,10 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 		super(CypherResource.of(url, autocrlf));
 	}
 
+	// The whole point of the optional is in fact to deal with non-null
+	// String is not enough, as null is a valid value in this case and comparing
+	// to it would defeat the purpose of caching it.
+	@SuppressWarnings({ "OptionalAssignedToNull", "squid:S2789" })
 	Optional<String> getChecksumWithoutPreconditions() {
 
 		Optional<String> availableChecksum = this.checksumOfNonePreconditions;

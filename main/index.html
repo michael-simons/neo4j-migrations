@@ -2030,6 +2030,48 @@ it would be duplicate work if we take the decision away from you. You are comple
 not to do anything in a given context. The migration will be dutifully recorded nevertheless.</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="upgradingolderdatabase"><a class="anchor" href="#upgradingolderdatabase"></a>3.9.5. Upgrading older database</h4>
+<div class="paragraph">
+<p>Given that your application needs to support multiple versions of Neo4j, including versions that didn&#8217;t exist when you created
+your application originally and you might have invalid Cypher now in potentially already applied migrations you can do the following</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create subfolders in your migration locations or configure additional locations</p>
+</li>
+<li>
+<p>Duplicate the migrations that contain Cypher that is problematic in newer Neo4j versions</p>
+</li>
+<li>
+<p>Keep the names of the migrations identical and distribute them accordingly in these folders</p>
+</li>
+<li>
+<p>Add a precondition matching only older versions of Neo4j to one and keep the rest unaltered</p>
+</li>
+<li>
+<p>Adapt the other one containing only "good" syntax and add a precondition for the newer Neo4j version</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Thus you support the following scenarios:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>On older database versions against which your application already ran, nothing will change; the migration with the fixed syntax will be skipped</p>
+</li>
+<li>
+<p>Same for a clean slate on older database versions</p>
+</li>
+<li>
+<p>On the newer database version, only the fixed syntax migration will be applied.</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -3844,7 +3886,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-13 16:32:01 UTC
+Last updated 2022-07-13 17:40:28 UTC
 </div>
 </div>
 </body>

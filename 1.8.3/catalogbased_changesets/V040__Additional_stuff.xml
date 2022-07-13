@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<?assume that edition is enterprise ?>
+	<catalog>
+		<indexes/>
+		<constraints>
+			<constraint name="liked_day" type="exists">
+				<type>LIKED</type>
+				<properties>
+					<property>day</property>
+				</properties>
+			</constraint>
+			<constraint name="person_keys" type="key">
+				<label>Person</label>
+				<properties>
+					<property>firstname</property>
+					<property>surname</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<create ref="liked_day"/>
+	<create ref="person_keys"/>
+</migration>

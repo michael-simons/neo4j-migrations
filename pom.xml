@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.8.3-SNAPSHOT</version>
+	<version>1.8.3</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -69,7 +69,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>1.8.3</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -103,7 +103,7 @@
 		<graalvm.version>21.3.2</graalvm.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.15.7</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>8</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.0.6</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -724,7 +724,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -858,9 +858,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

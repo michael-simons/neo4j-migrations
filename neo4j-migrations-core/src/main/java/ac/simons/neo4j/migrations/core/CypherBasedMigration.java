@@ -72,7 +72,7 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 		}
 		List<String> statements = ((DefaultCypherResource) cypherResource).getStatements().stream()
 			.map(statement -> {
-				var quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)
+				String quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)
 					.filter(c -> Precondition.parse(c).isPresent())
 					.map(String::trim)
 					.map(Pattern::quote)

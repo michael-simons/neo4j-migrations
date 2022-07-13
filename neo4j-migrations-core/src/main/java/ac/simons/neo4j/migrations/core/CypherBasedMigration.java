@@ -15,11 +15,16 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A cypher script based migration.
@@ -34,6 +39,8 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 	 */
 	private List<String> alternativeChecksums = Collections.emptyList();
 
+	private volatile Optional<String> checksumOfNonePreconditions;
+
 	CypherBasedMigration(URL url) {
 		this(url, Defaults.AUTOCRLF);
 	}
@@ -42,9 +49,53 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 		super(CypherResource.of(url, autocrlf));
 	}
 
+	Optional<String> getChecksumWithoutPreconditions() {
+
+		Optional<String> availableChecksum = this.checksumOfNonePreconditions;
+		if (availableChecksum == null) {
+			synchronized (this) {
+				availableChecksum = this.checksumOfNonePreconditions;
+				if (availableChecksum == null) {
+					this.checksumOfNonePreconditions = computeChecksumWithoutPreconditions();
+					availableChecksum = this.checksumOfNonePreconditions;
+				}
+			}
+		}
+		return availableChecksum;
+	}
+
+	private Optional<String> computeChecksumWithoutPreconditions() {
+
+		// On JDK17 there can be only one, but alas, we aren't there yet.
+		if (!(cypherResource instanceof DefaultCypherResource)) {
+			return Optional.empty();
+		}
+		List<String> statements = ((DefaultCypherResource) cypherResource).getStatements().stream()
+			.map(statement -> {
+				var quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)
+					.filter(c -> Precondition.parse(c).isPresent())
+					.map(String::trim)
+					.map(Pattern::quote)
+					.collect(Collectors.joining("|"));
+
+				return quotedPatterns.isEmpty() ?
+					statement :
+					statement.replaceAll("(" + quotedPatterns + ")" + Strings.LINE_DELIMITER, "");
+			}).collect(Collectors.toList());
+		return Optional.of(DefaultCypherResource.computeChecksum(statements));
+	}
+
 	@Override
 	public List<String> getAlternativeChecksums() {
-		return Collections.unmodifiableList(alternativeChecksums);
+
+		Optional<String> additionalAlternativeChecksum = getChecksumWithoutPreconditions();
+		if (getChecksum().equals(additionalAlternativeChecksum)) {
+			return Collections.unmodifiableList(alternativeChecksums);
+		}
+
+		List<String> alternateChecksums = new ArrayList<>(alternativeChecksums);
+		additionalAlternativeChecksum.ifPresent(alternateChecksums::add);
+		return alternateChecksums;
 	}
 
 	@Override

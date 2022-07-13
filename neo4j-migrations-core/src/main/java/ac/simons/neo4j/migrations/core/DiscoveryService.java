@@ -24,9 +24,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Orchestrates {@link Discoverer discoverers}.
@@ -95,9 +95,10 @@ final class DiscoveryService {
 			}
 			List<String> alternativeChecksums = migrations.stream()
 				.filter(o -> o != m && o.getSource().equals(m.getSource()) && !migrationsAndPreconditions.get(o).isEmpty())
-				.map(Migration::getChecksum)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+				.flatMap(o -> {
+					Stream<String> checksum = o.getChecksum().map(Stream::of).orElseGet(Stream::empty);
+					return Stream.concat(checksum, o.getAlternativeChecksums().stream()).distinct();
+				})
 				.collect(Collectors.toList());
 			m.setAlternativeChecksums(alternativeChecksums);
 		});

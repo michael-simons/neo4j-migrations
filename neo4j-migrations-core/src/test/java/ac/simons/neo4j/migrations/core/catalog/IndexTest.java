@@ -234,7 +234,7 @@ class IndexTest {
 	}
 
 	@Test
-	void shouldParseConstraintIndex() {
+	void shouldParseConstraintBackingIndexes() {
 		Value indexName = Values.value("index_name");
 		Value type = Values.value("BTREE");
 		Value uniqueness = Values.value("UNIQUE");
@@ -246,6 +246,30 @@ class IndexTest {
 				new AbstractMap.SimpleEntry<>("name", indexName),
 				new AbstractMap.SimpleEntry<>("type", type),
 				new AbstractMap.SimpleEntry<>("uniqueness", uniqueness),
+				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
+				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
+				new AbstractMap.SimpleEntry<>("properties", properties))));
+
+		assertThat(index.getType()).isEqualTo(Index.Type.CONSTRAINT_BACKING_INDEX);
+		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
+		assertThat(index.getName().getValue()).isEqualTo("index_name");
+		assertThat(index.getIdentifier()).isEqualTo("[label1]");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("label1");
+		assertThat(index.getProperties()).containsExactlyInAnyOrder("property1", "property2");
+	}
+
+	@Test
+	void shouldParseConstraintBackingIndexesNeo5j() {
+		Value indexName = Values.value("index_name");
+		Value type = Values.value("BTREE");
+		Value tokenNames = Values.value(Collections.singletonList("label1"));
+		Value properties = Values.value(Arrays.asList("property1", "property2"));
+
+		Index index = Index.parse(
+			new MapAccessorAndRecordImpl(makeMap(
+				new AbstractMap.SimpleEntry<>("name", indexName),
+				new AbstractMap.SimpleEntry<>("type", type),
+				new AbstractMap.SimpleEntry<>("owningConstraint", Values.value("constraint_name")),
 				new AbstractMap.SimpleEntry<>("entityType", Values.value("NODE")),
 				new AbstractMap.SimpleEntry<>("labelsOrTypes", tokenNames),
 				new AbstractMap.SimpleEntry<>("properties", properties))));

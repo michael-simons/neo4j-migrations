@@ -85,6 +85,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	private static final String ENTITY_TYPE_KEY = "entityType";
 	private static final String INDEX_TYPE_KEY = "type";
 	private static final String UNIQUENESS_KEY = "uniqueness";
+	private static final String OWNING_CONSTRAINT_KEY = "owningConstraint";
 	private static final UnaryOperator<String> UNESCAPE_PIPE = s -> s.replace("\\|", "|");
 
 	private static final Set<String> REQUIRED_KEYS_35 = Collections.unmodifiableSet(
@@ -323,12 +324,17 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 				throw new IllegalArgumentException("Unsupported index type " + name);
 		}
 
-		// Neo4j 4.x defines the index via uniqueness property
-		type = row.get(UNIQUENESS_KEY).isNull() || !row.get(UNIQUENESS_KEY).asString().equals("UNIQUE")
-			? type
-			: Type.CONSTRAINT_BACKING_INDEX;
+		// The definition of indexes backing unique constraints various a bit for different Neo4j versions
+		if (isConstraintBackingIndex(row)) {
+			type = Type.CONSTRAINT_BACKING_INDEX;
+		}
 
 		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties));
+	}
+
+	static boolean isConstraintBackingIndex(MapAccessor row) {
+		return (!row.get(UNIQUENESS_KEY).isNull() && row.get(UNIQUENESS_KEY).asString().equals("UNIQUE")) || !row.get(
+			OWNING_CONSTRAINT_KEY).isNull();
 	}
 
 	private final Set<String> deconstructedIdentifiers;

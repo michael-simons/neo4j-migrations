@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.internal.Strings;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
@@ -107,9 +108,13 @@ final class DefaultCypherResource implements CypherResource {
 	}
 
 	private String computeChecksum() {
+		return computeChecksum(getStatements());
+	}
+
+	static String computeChecksum(Collection<String> statements) {
 		final CRC32 crc32 = new CRC32();
 
-		for (String statement : this.getStatements()) {
+		for (String statement : statements) {
 			byte[] bytes = statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING);
 			crc32.update(bytes, 0, bytes.length);
 		}
@@ -182,21 +187,25 @@ final class DefaultCypherResource implements CypherResource {
 	public List<String> getSingleLineComments() {
 		return getStatements()
 			.stream()
-			.filter(s -> s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT))
-			.flatMap(s -> {
-				boolean notAComment;
-				Stream.Builder<String> builder = Stream.builder();
-				for (String line : s.split(Strings.LINE_DELIMITER)) {
-					line = line.trim();
-					notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);
-					if (notAComment) {
-						break;
-					}
-					builder.add(line);
-				}
-				return builder.build();
-			})
+			.flatMap(DefaultCypherResource::getSingleLineComments)
 			.collect(Collectors.toList());
+	}
+
+	static Stream<String> getSingleLineComments(String statement) {
+		if (!statement.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT)) {
+			return Stream.empty();
+		}
+		boolean notAComment;
+		Stream.Builder<String> builder = Stream.builder();
+		for (String line : statement.split(Strings.LINE_DELIMITER)) {
+			line = line.trim();
+			notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);
+			if (notAComment) {
+				break;
+			}
+			builder.add(line);
+		}
+		return builder.build();
 	}
 
 	static void executeIn(CypherResource cypherResource, MigrationContext context, UnaryOperator<SessionConfig.Builder> sessionCustomizer) {

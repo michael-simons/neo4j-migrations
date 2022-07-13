@@ -176,4 +176,39 @@ class DefaultCypherResourceTest {
 
 		assertThat(migration.getChecksum()).hasValue("1100083332");
 	}
+
+	@Test
+	void alternateChecksumsShouldContainChecksumWithoutPrecondition() {
+
+		URL script1 = DefaultCypherResourceTest.class.getResource("/parsing/V01__without_assumption.cypher");
+
+		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(script1, false);
+		assertThat(cypherResource1.getChecksum()).isEqualTo("1995107586");
+
+		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(script1);
+		assertThat(migrationWithoutAssumptions.getChecksum()).hasValue("1995107586");
+		assertThat(migrationWithoutAssumptions.getAlternativeChecksums()).isEmpty();
+
+		URL script2 = DefaultCypherResourceTest.class.getResource("/parsing/V01__with_assumption.cypher");
+
+		DefaultCypherResource cypherResource2 = (DefaultCypherResource) CypherResource.of(script2, false);
+		assertThat(cypherResource2.getChecksum()).isEqualTo("2044432884");
+
+		CypherBasedMigration migrationWithAssumptions = new CypherBasedMigration(script2);
+		assertThat(migrationWithAssumptions.getChecksum()).hasValue("2044432884");
+		assertThat(migrationWithAssumptions.getAlternativeChecksums()).contains("1995107586");
+	}
+
+	@Test
+	void randomCommentsMustChangeChecksums() {
+
+		URL script1 = DefaultCypherResourceTest.class.getResource("/parsing/V01__with_random_comments.cypher");
+
+		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(script1, false);
+		assertThat(cypherResource1.getChecksum()).isNotEqualTo("2104077345");
+
+		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(script1);
+		assertThat(migrationWithoutAssumptions.getChecksum()).hasValueSatisfying(v -> assertThat(v).isNotEqualTo("2104077345"));
+		assertThat(migrationWithoutAssumptions.getAlternativeChecksums()).isEmpty();
+	}
 }

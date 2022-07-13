@@ -29,7 +29,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -141,6 +143,7 @@ class CatalogBasedMigrationIT {
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 
 					assertThat(session.run(version.value.getShowIndexes()).list())
+						.filteredOn(r -> !"LOOKUP".equals(r.get("type", "UNKNOWN")))
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 				}
@@ -169,8 +172,21 @@ class CatalogBasedMigrationIT {
 
 				List<String> constraintNames = session.run(version.getShowConstraints()).list(r -> r.get("name").asString());
 				constraintNames.forEach(name -> session.run("DROP CONSTRAINT " + name).consume());
-				List<String> indexNames = session.run(version.getShowIndexes()).list(r -> r.get("name").isNull() ? r.get("indexName").asString() : r.get("name").asString());
-				indexNames.forEach(name -> session.run("DROP INDEX " + name).consume()); // this will also drop the lookup indexes ;(
+				Map<String, String> indexNames = new HashMap<>();
+				session.run(version.getShowIndexes())
+					.forEachRemaining(r -> {
+						indexNames.put(
+							r.get("name").isNull() ? r.get("indexName").asString() : r.get("name").asString(),
+							r.get("type", "UNKNOWN")
+						);
+					});
+
+				indexNames.forEach((name, type) -> {
+					if ("LOOKUP".equals(type)) {
+						return;
+					}
+					session.run("DROP INDEX " + name).consume();
+				});
 				session.run("MATCH (n) DETACH DELETE n");
 			}
 		}

@@ -61,6 +61,11 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			this.value = value;
 			this.enterprise = enterprise;
 		}
+
+		@Override
+		public String toString() {
+			return this.value.toString() + (enterprise ? " (enterprise)" : "");
+		}
 	}
 	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.1", "4.2", "4.3", "4.4"));
 	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = Collections.singletonList("4.4");

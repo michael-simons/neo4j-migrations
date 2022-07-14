@@ -34,7 +34,7 @@ image:https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/n
 // tag::introduction[]
 Neo4j-Migrations are a set of tools to make your schema migrations as easy as possible.
 They provide a uniform way for applications, the command line and build tools alike to track, manage and apply changes to your database, in short: to refactor your database.
-The project is inspired to a large extend by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
+The project is inspired to a large extent by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
 Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.
 
 Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver], supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.

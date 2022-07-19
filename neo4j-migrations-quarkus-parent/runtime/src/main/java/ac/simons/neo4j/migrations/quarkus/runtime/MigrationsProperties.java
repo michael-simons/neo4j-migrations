@@ -86,7 +86,7 @@ public class MigrationsProperties {
 	public boolean validateOnMigrate;
 
 	/**
-	 * If you’re programming on Windows and working with people who are not (or vice-versa), you’ll probably run into
+	 * If you're programming on Windows and working with people who are not (or vice-versa), you'll probably run into
 	 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
 	 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
 	 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace

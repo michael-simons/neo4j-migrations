@@ -38,6 +38,7 @@ class MigrationsLockIT extends TestBase {
 		MigrationsLock lock = new MigrationsLock(context);
 		String lockId = lock.lock();
 
+		assertThat(lock.isLocked()).isTrue();
 		try (Session session = context.getSession()) {
 
 			long cnt = session.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) RETURN count(l) AS cnt",
@@ -48,6 +49,8 @@ class MigrationsLockIT extends TestBase {
 
 			lock.unlock();
 		}
+
+		assertThat(lock.isLocked()).isFalse();
 	}
 
 	@Test

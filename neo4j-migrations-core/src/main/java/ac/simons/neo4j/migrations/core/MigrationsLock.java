@@ -22,6 +22,7 @@ import ac.simons.neo4j.migrations.core.internal.Messages;
 
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
@@ -58,6 +59,8 @@ final class MigrationsLock {
 	private final MigrationContext context;
 	private final String id = UUID.randomUUID().toString();
 	private final String nameOfLock;
+
+	private final ReentrantReadWriteLock lockLockingLocks = new ReentrantReadWriteLock();
 
 	private final Thread cleanUpTask = new Thread(this::unlock0);
 
@@ -142,7 +145,7 @@ final class MigrationsLock {
 		createUniqueConstraintIfNecessary();
 
 		try (Session session = context.getSchemaSession()) {
-
+			lockLockingLocks.writeLock().lock();
 			long internalId = session.writeTransaction(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
 					Values.parameters("id", id, "name", nameOfLock))
@@ -154,6 +157,22 @@ final class MigrationsLock {
 		} catch (Neo4jException e) {
 			throw new MigrationsException(
 				"Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed", e);
+		} finally {
+			lockLockingLocks.writeLock().unlock();
+		}
+	}
+
+	boolean isLocked() {
+
+		try (Session session = context.getSchemaSession()) {
+			lockLockingLocks.readLock().lock();
+			long count = session.readTransaction(
+				tx -> tx.run("MATCH (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN count(l)",
+						Values.parameters("id", id, "name", nameOfLock))
+					.single().get(0).asLong());
+			return count >= 1;
+		} finally {
+			lockLockingLocks.readLock().unlock();
 		}
 	}
 

@@ -121,6 +121,24 @@ MigrationsConfig configLookingAtDifferentPlaces = MigrationsConfig.builder()
 
 ==== Switching database inside Cypher scripts
 
+===== With the command `:USE`
+
+The command `:USE` has the same meaning as in Neo4j-Browser or Cypher-Shell: All following commands will be applied in the given database.
+The transaction mode will be applied as configured per database and will "restart" when you switch the database again.
+This is the preferred way of doing things like this:
+
+.Switching databases in flight with `:USE`
+[source,cypher]
+----
+CREATE database foo IF NOT EXISTS WAIT;
+:use foo;
+CREATE (n:InFoo {foo: 'bar'});
+:use neo4j;
+CREATE (n:InNeo4j);
+----
+
+===== With the Cypher keyword `USE`
+
 It is of course possible to use the Cypher keyword `USE <graph>` (See https://neo4j.com/docs/cypher-manual/current/clauses/use/[USE]) inside your scripts.
 There are a couple of things to remember, though:
 

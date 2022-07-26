@@ -16,13 +16,16 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -210,5 +213,85 @@ class DefaultCypherResourceTest {
 		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(script1);
 		assertThat(migrationWithoutAssumptions.getChecksum()).hasValueSatisfying(v -> assertThat(v).isNotEqualTo("2104077345"));
 		assertThat(migrationWithoutAssumptions.getAlternativeChecksums()).isEmpty();
+	}
+
+	@ParameterizedTest
+	@CsvSource({ ":use abc,abc", ":use ABC,abc", ":use Abc,abc", ":use abc,abc", ":Use whatever1-will-be.Que-sera,whatever1-will-be.que-sera", ":use  hallo,hallo", ":use the-force;,the-force"})
+	void validDatabaseNamesShouldBeRecognized(String line, String expected) {
+		Optional<String> databaseName = DefaultCypherResource.getDatabaseName(line);
+		assertThat(databaseName).hasValue(expected);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {":use umbruch-umbruch\n", ":use umbruch-umbruch;\n"})
+	void validDatabaseNamesShouldBeRecognized(String line) {
+		Optional<String> databaseName = DefaultCypherResource.getDatabaseName(line);
+		assertThat(databaseName).hasValue("umbruch-umbruch");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"1ab", "ab", "aab__b"})
+	void invalidDbNames(String line) {
+		Optional<String> databaseName = DefaultCypherResource.getDatabaseName(":use " + line);
+		assertThat(databaseName).isEmpty();
+	}
+
+	@Test
+	void shouldHandleUseStatements() {
+		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
+			DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements.cypher"));
+
+		assertThat(cypherResource.getExecutableStatements()).containsExactly(
+			"MATCH (n) RETURN count(n)",
+			"CREATE (f) RETURN f",
+			":use system",
+			"CALL apoc.trigger.add('test', \"CALL apoc.log.info('OK') RETURN 1\", { phase: 'after' })",
+			":use neo4j",
+			"MATCH (n)\nDETACH DELETE n",
+			":use system",
+			"CALL apoc.trigger.remove('testTrigger')"
+		);
+		assertThat(cypherResource.getSingleLineComments()).isEmpty();
+
+		List<Precondition> preconditions = Precondition.in(cypherResource);
+		assertThat(preconditions).isEmpty();
+
+		List<DefaultCypherResource.DatabaseAndStatements> groups = DefaultCypherResource.groupStatements(cypherResource.getExecutableStatements());
+		assertThat(groups)
+			.hasSize(4)
+			.satisfies(e -> {
+				assertThat(e.database()).isEmpty();
+				assertThat(e.statements()).containsExactly(
+					"MATCH (n) RETURN count(n)",
+					"CREATE (f) RETURN f"
+				);
+			}, Index.atIndex(0))
+			.satisfies(e -> {
+				assertThat(e.database()).hasValue("system");
+				assertThat(e.statements()).containsExactly(
+					"CALL apoc.trigger.add('test', \"CALL apoc.log.info('OK') RETURN 1\", { phase: 'after' })"
+				);
+			}, Index.atIndex(1))
+			.satisfies(e -> {
+				assertThat(e.database()).hasValue("neo4j");
+				assertThat(e.statements()).containsExactly("MATCH (n)\nDETACH DELETE n");
+			}, Index.atIndex(2))
+			.satisfies(e -> {
+				assertThat(e.database()).hasValue("system");
+				assertThat(e.statements()).containsExactly("CALL apoc.trigger.remove('testTrigger')");
+			}, Index.atIndex(3));
+	}
+
+	@Test
+	void shouldDetectWrongUseStatements() {
+		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
+			DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements_wrong.cypher"));
+
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(cypherResource::getExecutableStatements)
+			.withMessage("Can't switch database inside a statement, offending statement:\n"
+				+ "MATCH (n)\n"
+				+ ":use something\n"
+				+ "DETACH DELETE n");
 	}
 }

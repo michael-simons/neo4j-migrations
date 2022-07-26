@@ -372,7 +372,9 @@ public final class Migrations {
 			}
 		} finally {
 			try {
-				lock.unlock();
+				if (lock.isLocked()) {
+					lock.unlock();
+				}
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Could not unlock… Please check for residues (Nodes labeled `__Neo4jMigrationsLock`).");
 			}

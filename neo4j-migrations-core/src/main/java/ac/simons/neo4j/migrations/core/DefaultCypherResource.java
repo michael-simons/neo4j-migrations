@@ -183,7 +183,7 @@ final class DefaultCypherResource implements CypherResource {
 				}
 				Matcher useMatcher = USE_DATABASE_PATTERN.matcher(statement);
 				boolean isMl = statement.contains("\n");
-				StringBuilder finalStatement = new StringBuilder();
+				StringBuffer finalStatement = new StringBuffer();
 				if (useMatcher.find()) {
 					handleUseStatement(newStatements, useMatcher, finalStatement);
 				}
@@ -205,7 +205,7 @@ final class DefaultCypherResource implements CypherResource {
 		return Collections.unmodifiableList(newStatements);
 	}
 
-	private static void handleUseStatement(List<String> newStatements, Matcher useMatcher, StringBuilder finalStatement) {
+	private static void handleUseStatement(List<String> newStatements, Matcher useMatcher, StringBuffer finalStatement) {
 		useMatcher.appendReplacement(finalStatement, "");
 		newStatements.add(useMatcher.group(0).trim());
 	}

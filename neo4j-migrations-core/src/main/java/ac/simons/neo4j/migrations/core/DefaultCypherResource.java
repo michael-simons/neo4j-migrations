@@ -182,13 +182,13 @@ final class DefaultCypherResource implements CypherResource {
 					continue;
 				}
 				Matcher useMatcher = USE_DATABASE_PATTERN.matcher(statement);
-				boolean isMl = statement.contains("\n");
+				boolean isMultiLine = statement.contains("\n");
 				StringBuffer finalStatement = new StringBuffer();
 				if (useMatcher.find()) {
 					handleUseStatement(newStatements, useMatcher, finalStatement);
 				}
 				while (useMatcher.find()) {
-					if (isMl) {
+					if (isMultiLine) {
 						useMatcher.appendTail(finalStatement);
 						throw new MigrationsException(
 							"Can't switch database inside a statement, offending statement:\n" + finalStatement);

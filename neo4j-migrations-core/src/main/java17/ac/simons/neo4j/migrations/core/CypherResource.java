@@ -95,17 +95,22 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	String getIdentifier();
 
 	/**
-	 * @return The checksum of this resource
+	 * {@return The checksum of this resource}
 	 */
 	String getChecksum();
 
 	/**
-	 * @return A list of executable statements (they might have or might not have comments in them, we don't care)
+	 * Returns all statements that are not single line comments. The list of statements might contain {@code :use database}
+	 * statements, which neo4j-migrations (browser and cypher-shell) can deal with but the pure driver can't.
+	 * <p>
+	 * The returned list will never include single line comments, but the statements themselves might contain comments.
+	 *
+	 * @return A list of executable statements
 	 */
 	List<String> getExecutableStatements();
 
 	/**
-	 * @return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement
+	 * {@return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement}
 	 */
 	List<String> getSingleLineComments();
 }

@@ -138,6 +138,32 @@ class MigrationsEEIT {
 	}
 
 	@Test
+	void useShouldWork() {
+
+		TestBase.clearDatabase(driver, "neo4j");
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan("classpath:usestatements")
+			.build(), driver);
+		migrations.apply();
+
+		try (Session session = driver.session()) {
+
+			long cnt = session.run("MATCH (n:`InNeo4j`) RETURN count(n) AS cnt").single().get("cnt").asLong();
+			assertThat(cnt).isEqualTo(1L);
+
+			cnt = session.run("MATCH (n:`InFoo`) RETURN count(n) AS cnt").single().get("cnt").asLong();
+			assertThat(cnt).isZero();
+
+			cnt = session.run("SHOW databases YIELD name WHERE name = \"foo\" RETURN count(distinct name) AS cnt").single().get("cnt").asLong();
+			assertThat(cnt).isZero();
+		}
+
+		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(2);
+	}
+
+	@Test
 	void needsSchemaDatabase() {
 
 		TestBase.clearDatabase(driver, "neo4j");

@@ -1,0 +1,61 @@
+= Markdown support for Neo4j-Migrations
+Gerrit Meier <gerrit.meier@neo4j.com>
+:doctype: article
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:artifactIdFormatMarkdown: neo4j-migrations-formats-markdown
+
+include::../../README.adoc[tags=properties]
+
+WARNING: This is an extension to the main project and independent of it.
+         As of publishing and writing the first version (1.9.0), it is considered
+         experimental.
+
+// tag::content[]
+== What does it do?
+
+When added to one of the supported use-case scenarios as an external library, it allows Neo4j-Migrations to discover
+Markdown files and use them as sources of Cypher statements for defining refactorings.
+
+A Markdown based migration can have zero to many fenced code blocks with an id matching our versioning scheme
+and valid inline Cypher content. The block definition looks like this:
+
+[source,markdown]
+....
+```id=V1.0__Create_initial_data
+// Your Cypher based migration
+....
+
+== How to use it?
+
+The extension is loaded via service loader. In a standard Spring Boot or Quarkus application you just need to add one additional
+dependency:
+
+[source,xml,subs="verbatim,attributes"]
+.Markdown extension as Maven dependency
+----
+<dependency>
+    <groupId>{groupId}</groupId>
+    <artifactId>{artifactIdFormatMarkdown}</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+Or in case you fancy Gradle:
+
+[source,groovy,subs="verbatim,attributes"]
+.AsciiDoctor extension as Gradle dependency
+----
+dependencies {
+    implementation '{groupId}:{artifactIdFormatMarkdown}:{latest_version}'
+}
+----
+
+And that's all.
+
+For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{latest_version}/neo4j-migrations-formats-markdown-{latest_version}-all.jar[neo4j-migrations-formats-markdown-{latest_version}-all.jar]
+This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[here].
+
+// end::content[]

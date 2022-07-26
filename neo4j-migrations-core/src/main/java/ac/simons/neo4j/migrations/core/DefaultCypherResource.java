@@ -196,7 +196,7 @@ final class DefaultCypherResource implements CypherResource {
 					handleUseStatement(newStatements, useMatcher, finalStatement);
 				}
 				useMatcher.appendTail(finalStatement);
-				if (!finalStatement.isEmpty()) {
+				if (finalStatement.length() != 0) {
 					newStatements.add(finalStatement.toString());
 				}
 			}

@@ -37,6 +37,7 @@ class Neo4jVersionComparatorTest {
 		"4, 4.0.0",
 		"Neo4j/4.4-aura, 4.4",
 		"4.4-aura, 4.4",
+		"5.0.0-drop04.0, 5.0"
 	})
 	void equalsShouldWork(String v1, String v2) {
 		Assertions.assertThat(VERSION_COMPARATOR.compare(v1, v2)).isZero();

@@ -112,6 +112,19 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration combine.self="append">
+					<environmentVariables>
+						<NEO4J_URI>bolt://aura-nicht-ok:1234</NEO4J_URI>
+						<NEO4J_USERNAME>foo</NEO4J_USERNAME>
+						<NEO4J_PASSWORD>bar</NEO4J_PASSWORD>
+					</environmentVariables>
+					<systemPropertyVariables>
+						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>

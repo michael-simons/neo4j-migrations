@@ -177,6 +177,34 @@ There are 4 ways to specify the password:
 
 The last two options are a safe choice in scripts or in a CI/CD environment.
 
+=== Well-known Neo4j environment variables
+
+Neo4j AuraDB provides `.env` files when creating new instances that look like this:
+
+.A Neo4j AuraDB .env file
+[source]
+----
+# Wait 60 seconds before connecting using these details, or login to https://console.neo4j.io to validate the Aura Instance is available
+NEO4J_URI=neo4j+s://xxxx.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=somepassword
+AURA_INSTANCENAME=Instance01
+----
+
+Neo4j-Migrations will recognize those environment variables when present.
+If you didn't specify a value for username, password or address and those variables are present and not empty, Neo4j-Migrations will use them.
+
+Above file can be directly used in a command like this (on a *Nix-system):
+
+[source,console]
+----
+set -o allexport # <.>
+(source ~/Downloads/credentials-xxx.env; neo4j-migrations info)
+set +o allexport
+----
+<.> Might not be needed in your shell
+
+
 === Enable autocompletion for Neo4j-Migrations in your shell
 
 Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.

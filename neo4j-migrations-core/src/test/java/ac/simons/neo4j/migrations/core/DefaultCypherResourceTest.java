@@ -202,6 +202,17 @@ class DefaultCypherResourceTest {
 		assertThat(migrationWithAssumptions.getAlternativeChecksums()).contains("1995107586");
 	}
 
+	@SuppressWarnings("deprecation")
+	@Test
+	void shouldParseDescription() {
+
+		URL url = DefaultCypherResourceTest.class.getResource("/parsing/V01__without_assumption.cypher");
+
+		Migration migration = new CypherBasedMigration(url);
+		assertThat(migration.getDescription()).isEqualTo("without assumption");
+		assertThat(migration.getOptionalDescription()).hasValue("without assumption");
+	}
+
 	@Test
 	void randomCommentsMustChangeChecksums() {
 

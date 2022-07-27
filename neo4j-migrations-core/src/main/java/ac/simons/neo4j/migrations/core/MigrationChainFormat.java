@@ -86,7 +86,7 @@ final class MigrationChainFormat {
 			column.add(element.getVersion());
 
 			column = table.computeIfAbsent("Description", k -> new ArrayList<>());
-			column.add(element.getDescription());
+			column.add(element.getOptionalDescription().orElse(""));
 
 			column = table.computeIfAbsent("Type", k -> new ArrayList<>());
 			column.add(element.getType().name());

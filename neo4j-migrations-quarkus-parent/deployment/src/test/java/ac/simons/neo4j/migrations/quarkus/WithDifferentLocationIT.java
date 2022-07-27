@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -81,8 +82,13 @@ class WithDifferentLocationIT {
 		}
 
 		var elements = migrations.info().getElements();
-		assertThat(elements).hasSize(2).element(0)
-			.extracting(MigrationChain.Element::getDescription).isEqualTo("2nd location");
+		assertThat(elements)
+			.extracting(MigrationChain.Element::getOptionalDescription)
+			.filteredOn(Optional::isPresent)
+			.hasSize(2)
+			.element(0)
+			.extracting(Optional::get)
+			.isEqualTo("2nd location");
 	}
 
 	@AfterEach

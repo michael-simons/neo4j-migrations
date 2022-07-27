@@ -101,6 +101,17 @@ class CatalogBasedMigrationTest {
 			.allMatch(p -> p instanceof EditionPrecondition || p instanceof QueryPrecondition);
 	}
 
+	@SuppressWarnings("deprecation")
+	@Test
+	void shouldParseDescription() {
+
+		URL url = Objects.requireNonNull(CatalogBasedMigration.class.getResource("/catalogbased/identical-migrations/V01__01.xml"));
+
+		Migration migration = CatalogBasedMigration.from(url);
+		assertThat(migration.getDescription()).isEqualTo("01");
+		assertThat(migration.getOptionalDescription()).hasValue("01");
+	}
+
 	@Test
 	void shouldParsePreconditions2() {
 		URL url = CatalogBasedMigration.class.getResource("/preconditions/V0002__Create_node_keys.xml");

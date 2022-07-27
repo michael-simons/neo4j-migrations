@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -45,8 +46,11 @@ class DiscoveryServiceTest {
 			.build(), Mockito.mock(Driver.class));
 
 		List<Migration> migrations = new DiscoveryService().findMigrations(context);
-		assertThat(migrations).hasSize(16)
-			.extracting(Migration::getDescription)
+		assertThat(migrations)
+			.extracting(Migration::getOptionalDescription)
+			.filteredOn(Optional::isPresent)
+			.hasSize(16)
+			.map(Optional::get)
 			.containsExactly("FirstMigration", "AnotherMigration", "InnerMigration", "BondTheNameIsBond",
 				"BondTheNameIsBondNew", "BondTheNameIsBondNewNew", "Create constraints", "Die halbe Wahrheit", "Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu", "NichtsIstWieEsScheint", "NichtsIstWieEsScheintNeu", "NichtsIstWieEsScheintNeuNeu",

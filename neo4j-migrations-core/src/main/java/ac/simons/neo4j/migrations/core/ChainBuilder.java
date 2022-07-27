@@ -276,7 +276,7 @@ final class ChainBuilder {
 		static Element pendingElement(Migration pendingMigration) {
 			return new DefaultChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
 				pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
-				pendingMigration.getDescription(), pendingMigration.getSource(), null);
+				pendingMigration.getOptionalDescription().orElse(null), pendingMigration.getSource(), null);
 		}
 
 		private final MigrationState state;
@@ -325,8 +325,14 @@ final class ChainBuilder {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public String getDescription() {
 			return description;
+		}
+
+		@Override
+		public Optional<String> getOptionalDescription() {
+			return Optional.ofNullable(description);
 		}
 
 		@Override

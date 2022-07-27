@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -63,8 +65,11 @@ class MigrationsAutoConfigurationIT {
 
 		MigrationChain migrationChain = migrations.info();
 
-		assertThat(migrationChain.getElements()).hasSize(2);
-		assertThat(migrationChain.getElements()).extracting(MigrationChain.Element::getDescription)
+		assertThat(migrationChain.getElements())
+			.extracting(MigrationChain.Element::getOptionalDescription)
+			.filteredOn(Optional::isPresent)
+			.extracting(Optional::get)
+			.hasSize(2)
 			.containsExactly("KeepMe", "SomeOtherMigration");
 
 		try (Session session = driver.session()) {

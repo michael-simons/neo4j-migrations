@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,8 +91,8 @@ public final class MigrationVersion {
 	/**
 	 * @return The extracted description. Maybe null.
 	 */
-	String getDescription() {
-		return description;
+	Optional<String> getOptionalDescription() {
+		return Optional.ofNullable(description);
 	}
 
 	@Override

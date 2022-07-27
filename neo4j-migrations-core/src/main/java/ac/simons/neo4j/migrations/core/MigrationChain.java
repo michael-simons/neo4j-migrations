@@ -95,7 +95,7 @@ public interface MigrationChain extends ConnectionDetails {
 
 	/**
 	 * @return The database if applicable (Neo4j 4.0 and up), maybe null
-	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabaseName()} ()}
+	 * @deprecated since 1.1.0, see {@link #getOptionalDatabaseName()}
 	 */
 	@Deprecated
 	String getDatabaseName();
@@ -138,8 +138,20 @@ public interface MigrationChain extends ConnectionDetails {
 
 		/**
 		 * @return The description of the migration.
+		 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
 		 */
+		@SuppressWarnings("DeprecatedIsStillUsed")
+		@Deprecated
 		String getDescription();
+
+		/**
+		 * @return An optional description of the migration represented by this element.
+		 * @since 1.9.0
+		 */
+		@SuppressWarnings("squid:S1874")
+		default Optional<String> getOptionalDescription() {
+			return Optional.ofNullable(getDescription());
+		}
 
 		/**
 		 * @return The name of the script or class on which this migration is based.

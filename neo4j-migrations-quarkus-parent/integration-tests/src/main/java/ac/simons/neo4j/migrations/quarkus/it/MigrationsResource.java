@@ -45,7 +45,7 @@ public class MigrationsResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> get() {
 		return migrations.info().getElements().stream()
-			.map(e -> e.getVersion() + ": " + e.getDescription() + " (" + e.getState() + ")")
+			.map(e -> e.getVersion() + ": " + e.getOptionalDescription().orElse("n/a") + " (" + e.getState() + ")")
 			.collect(Collectors.toList());
 
 	}

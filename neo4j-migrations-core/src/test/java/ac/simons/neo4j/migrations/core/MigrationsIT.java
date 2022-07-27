@@ -292,7 +292,7 @@ class MigrationsIT extends TestBase {
 
 		Optional<MigrationVersion> finalVersion = migrations.apply();
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(1);
-		assertThat(finalVersion).map(MigrationVersion::getDescription).hasValue("Just a couple of matches");
+		assertThat(finalVersion).flatMap(MigrationVersion::getOptionalDescription).hasValue("Just a couple of matches");
 
 		configuration = MigrationsConfig.builder()
 			.withLocationsToScan("classpath:ml/unix")
@@ -302,7 +302,7 @@ class MigrationsIT extends TestBase {
 
 		finalVersion = migrations.apply();
 		assertThat(lengthOfMigrations(driver, null)).isEqualTo(1);
-		assertThat(finalVersion).map(MigrationVersion::getDescription).hasValue("Just a couple of matches");
+		assertThat(finalVersion).flatMap(MigrationVersion::getOptionalDescription).hasValue("Just a couple of matches");
 	}
 
 	@Test

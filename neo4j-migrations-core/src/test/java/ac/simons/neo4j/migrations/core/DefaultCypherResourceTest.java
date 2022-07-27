@@ -202,6 +202,7 @@ class DefaultCypherResourceTest {
 		assertThat(migrationWithAssumptions.getAlternativeChecksums()).contains("1995107586");
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	void shouldParseDescription() {
 

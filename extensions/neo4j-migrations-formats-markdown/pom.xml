@@ -88,32 +88,6 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>add-test-resource</id>
-						<goals>
-							<goal>add-test-resource</goal>
-						</goals>
-						<phase>generate-test-sources</phase>
-
-						<configuration>
-							<resources>
-								<resource>
-									<directory>${project.basedir}</directory>
-									<includes>
-										<incude>README.adoc</incude>
-									</includes>
-									<targetPath>neo4j/migrations-with-includes</targetPath>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>${maven-shade-plugin.version}</version>
 				<configuration>

@@ -1,1 +1,1 @@
-ac.simons.neo4j.migrations.formats.adoc.MarkdownBasedMigrationProvider
+ac.simons.neo4j.migrations.formats.markdown.MarkdownBasedMigrationProvider

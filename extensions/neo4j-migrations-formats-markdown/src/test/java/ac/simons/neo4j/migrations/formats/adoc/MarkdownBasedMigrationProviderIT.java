@@ -15,16 +15,10 @@
  */
 package ac.simons.neo4j.migrations.formats.adoc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,10 +30,13 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.exceptions.Neo4jException;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.TestcontainersConfiguration;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -60,32 +57,8 @@ class MarkdownBasedMigrationProviderIT {
 
 	@BeforeEach
 	void clearDatabase() {
-		List<String> constraintsToBeDropped;
-		List<String> indexesToBeDropped;
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
-			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD name RETURN 'DROP CONSTRAINT ' + name as cmd")
-				.list(r -> r.get("cmd").asString());
-			indexesToBeDropped = session.run("SHOW INDEXES YIELD name RETURN 'DROP INDEX ' + name as cmd")
-				.list(r -> r.get("cmd").asString());
-		}
-
-		constraintsToBeDropped.forEach(cmd -> dropConstraint(driver, cmd));
-		indexesToBeDropped.forEach(cmd -> dropIndex(driver, cmd));
-	}
-
-	static void dropConstraint(Driver driver, String constraint) {
-		try (Session session = driver.session()) {
-			assertThat(
-				session.writeTransaction(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
-		} catch (Neo4jException ignored) {
-		}
-	}
-
-	static void dropIndex(Driver driver, String index) {
-		try (Session session = driver.session()) {
-			assertThat(session.writeTransaction(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
-		} catch (Neo4jException ignored) {
 		}
 	}
 

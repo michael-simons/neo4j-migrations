@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1658956512619">
+<licensePluginReport goal="CHECK" timestamp="1658957274030">
     <module artifactId="neo4j-migrations-cli" groupId="eu.michael-simons.neo4j" version="1.9.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -7,6 +7,7 @@
         <file path="src/main/assembly/assembly-native-osx.xml" result="PRESENT"/>
         <file path="src/main/assembly/assembly-native.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/CleanCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/CommonEnvVarDefaultProvider.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/ConnectedCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/InfoCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/InitCommand.java" result="PRESENT"/>
@@ -21,6 +22,7 @@
         <file path="src/main/resources/META-INF/native-image/eu.michael-simons.neo4j/neo4j-migrations-cli/native-image.properties" result="PRESENT"/>
         <file path="src/main/resources/logging.properties" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/CleanCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/EnvironmentVarIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/ExceptionHandlingTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/InfoCommandTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/InitCommandTest.java" result="PRESENT"/>

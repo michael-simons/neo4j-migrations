@@ -2338,13 +2338,51 @@ The password will be read from this file.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="enableautocompletionforneo4j-migrationsinyourshell"><a class="anchor" href="#enableautocompletionforneo4j-migrationsinyourshell"></a>4.2.4. Enable autocompletion for Neo4j-Migrations in your shell</h4>
+<h4 id="well-knownneo4jenvironmentvariables"><a class="anchor" href="#well-knownneo4jenvironmentvariables"></a>4.2.4. Well-known Neo4j environment variables</h4>
+<div class="paragraph">
+<p>Neo4j AuraDB provides <code>.env</code> files when creating new instances that look like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 20. A Neo4j AuraDB .env file</div>
+<div class="content">
+<pre class="CodeRay highlight"><code># Wait 60 seconds before connecting using these details, or login to https://console.neo4j.io to validate the Aura Instance is available
+NEO4J_URI=neo4j+s://xxxx.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=somepassword
+AURA_INSTANCENAME=Instance01</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Neo4j-Migrations will recognize those environment variables when present.
+If you didn&#8217;t specify a value for username, password or address and those variables are present and not empty, Neo4j-Migrations will use them.</p>
+</div>
+<div class="paragraph">
+<p>Above file can be directly used in a command like this (on a *Nix-system):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">set -o allexport <i class="conum" data-value="1"></i><b>(1)</b>
+(source ~/Downloads/credentials-xxx.env; neo4j-migrations info)
+set +o allexport</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Might not be needed in your shell</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="enableautocompletionforneo4j-migrationsinyourshell"><a class="anchor" href="#enableautocompletionforneo4j-migrationsinyourshell"></a>4.2.5. Enable autocompletion for Neo4j-Migrations in your shell</h4>
 <div class="paragraph">
 <p>Neo4j-Migrations can generate a shell script providing autocompletion for its options in Bash, zsh and others.
 Here&#8217;s how to use it:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 20. Generate autocompletion script</div>
+<div class="title">Listing 21. Generate autocompletion script</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">./bin/neo4j-migrations generate-completion &gt; neo4j-migrations_completion.sh</code></pre>
 </div>
@@ -2357,7 +2395,7 @@ sourcing it in your <code>~/.bashrc</code> or <code>~/.zshrc</code>.</p>
 <p>If you want to have autocompletion for Neo4j-Migrations just in your current shell use the following command</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 21. Add autocompletion to your current shell</div>
+<div class="title">Listing 22. Add autocompletion to your current shell</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">source &lt;(./bin/neo4j-migrations generate-completion)</code></pre>
 </div>
@@ -2376,7 +2414,7 @@ Autocompletion for macOS is automatically installed when you use <a href="#downl
 </div>
 </div>
 <div class="sect3">
-<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.5. Full example</h4>
+<h4 id="fullexample"><a class="anchor" href="#fullexample"></a>4.2.6. Full example</h4>
 <div class="paragraph">
 <p>Here&#8217;s an example that looks for migrations in a Java package, its subpackages and in a filesystem location for Cypher-based migrations.
 In this example we have exported the directory with our Java-based migrations like this: <code>export CLASSPATH_PREFIX=~/Projects/neo4j-migrations/neo4j-migrations-core/target/test-classes/</code>.
@@ -2491,7 +2529,7 @@ All resolved migrations have been applied to the default database.</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.6. A template for Java-based migrations</h4>
+<h4 id="atemplateforjava-basedmigrations"><a class="anchor" href="#atemplateforjava-basedmigrations"></a>4.2.7. A template for Java-based migrations</h4>
 <div class="paragraph">
 <p>As stated above, this will work only with the JVM distribution.
 Follow those steps:</p>
@@ -2560,7 +2598,7 @@ An instance of <code>MigrationsConfig</code> is created via a fluent-builder API
 Putting everything together looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 22. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
+<div class="title">Listing 23. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Migrations migrations = <span class="keyword">new</span> Migrations(
     MigrationsConfig.builder()
@@ -2596,7 +2634,7 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 Resoruces on the classpath should be picked up automatically:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 23. Using Neo4j-Migrations on the module path</div>
+<div class="title">Listing 24. Using Neo4j-Migrations on the module path</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">module my.module {
     requires ac.simons.neo4j.migrations.core;
@@ -2646,7 +2684,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 24. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
+<div class="title">Listing 25. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
@@ -2916,7 +2954,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 25. Configure both the driver and scan for Java-based migrations, too</div>
+<div class="title">Listing 26. Configure both the driver and scan for Java-based migrations, too</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">quarkus.neo4j.uri=bolt://localhost:7687
 quarkus.neo4j.authentication.username=neo4j
@@ -2988,7 +3026,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <p>Most of the time you will configure the following properties for the plugin:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 26. Configuring the Maven-Plugin</div>
+<div class="title">Listing 27. Configuring the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -3013,7 +3051,7 @@ By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#
 You can change that via <code>locationsToScan</code> inside the <code>configuration</code> element like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 27. Changing the locations to scan for the Maven-Plugin</div>
+<div class="title">Listing 28. Changing the locations to scan for the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;locationsToScan&gt;</span>
     <span class="tag">&lt;locationToScan&gt;</span>file://${project.build.outputDirectory}/custom/path<span class="tag">&lt;/locationToScan&gt;</span>
@@ -3069,7 +3107,7 @@ possible scenarios that can be implemented.</p>
 holding connection data such as URL and credentials as well as your migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 28. Create migrations directory with credentials etc.</div>
+<div class="title">Listing 29. Create migrations directory with credentials etc.</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">neo4j-migrations -a bolt://localhost:7687 -u neo4j -p secret init
 tree -a</code></pre>
@@ -3096,7 +3134,7 @@ tree -a</code></pre>
 In this example we assert toe remote catalog to be empty and we define our first migration like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 29. V010__Assert_empty_schema.xml</div>
+<div class="title">Listing 30. V010__Assert_empty_schema.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3128,7 +3166,7 @@ verification does not happen again, as the 010 has been applied. Therefore, a ve
 each catalog based migration:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 30. V020__Create_person_name_unique.xml</div>
+<div class="title">Listing 31. V020__Create_person_name_unique.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3168,7 +3206,7 @@ fix that. Assuming for sake of sanity that every person has a name, we replace t
 for the next version:</p>
 </div>
 <div id="V030Fix_person_name_constraint_CE" class="listingblock">
-<div class="title">Listing 31. V030__Fix_person_name_constraint_CE.xml</div>
+<div class="title">Listing 32. V030__Fix_person_name_constraint_CE.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3181,7 +3219,7 @@ for the next version:</p>
 <p>and for the enterprise edition, we can redefine the constraint like this:</p>
 </div>
 <div id="V030Fix_person_name_constraint_EE" class="listingblock">
-<div class="title">Listing 32. V030__Fix_person_name_constraint_EE.xml</div>
+<div class="title">Listing 33. V030__Fix_person_name_constraint_EE.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3203,8 +3241,8 @@ for the next version:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Note how we <strong>can</strong> <code>refer</code> to the constraint by ref in <a href="#V030Fix_person_name_constraint_EE">Listing 32</a> and how we <strong>must</strong> use
-<code>item</code> in <a href="#V030Fix_person_name_constraint_CE">Listing 31</a>. The reason for that is that we refer to an older item only in the
+<p>Note how we <strong>can</strong> <code>refer</code> to the constraint by ref in <a href="#V030Fix_person_name_constraint_EE">Listing 33</a> and how we <strong>must</strong> use
+<code>item</code> in <a href="#V030Fix_person_name_constraint_CE">Listing 32</a>. The reason for that is that we refer to an older item only in the
 migration for community edition. We redefined the item in the script for the enterprise edition, so we might as well
 refer to it.
 In older Neo4j versions not supporting names for constraints Neo4j-Migrations will use the old definition to drop the item
@@ -3227,7 +3265,7 @@ Database migrated to version 030.</code></pre>
 <p>Assuming you some other enterprise stuff related items in the following listing:</p>
 </div>
 <div id="V040Additional_stuff" class="listingblock">
-<div class="title">Listing 33. V040__Additional_stuff.xml</div>
+<div class="title">Listing 34. V040__Additional_stuff.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3260,7 +3298,7 @@ Database migrated to version 030.</code></pre>
 <p>To get some information about your database, you can inspect the remote catalog:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 34. Inspecting the remote catalog</div>
+<div class="title">Listing 35. Inspecting the remote catalog</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">neo4j-migrations show-catalog</code></pre>
 </div>
@@ -3337,7 +3375,7 @@ defined items, too.</p>
 <p>Therefore, you need to reset the catalog as shown in the following listing:</p>
 </div>
 <div id="V050A_new_start" class="listingblock">
-<div class="title">Listing 35. V050__A_new_start.xml</div>
+<div class="title">Listing 36. V050__A_new_start.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3359,7 +3397,7 @@ defined items, too.</p>
 <p>followed by a final verification:</p>
 </div>
 <div id="V060Assert_final_state" class="listingblock">
-<div class="title">Listing 36. V060__Assert_final_state.xml</div>
+<div class="title">Listing 37. V060__Assert_final_state.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3505,7 +3543,7 @@ to the target entity. This attribute defines the type of the element (such as un
 <p>Look up valid preconditions <a href="#concepts_preconditions">here</a>. The full XMl schema for <a href="#concepts_migrations_catalog-based">catalog-based migrations</a> looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 37. migration.xsd</div>
+<div class="title">Listing 38. migration.xsd</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span>
 <span class="comment">&lt;!--
@@ -3835,7 +3873,7 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 38. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 39. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -3848,7 +3886,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 39. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 40. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:1.9.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -3907,7 +3945,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-27 21:12:11 UTC
+Last updated 2022-07-27 21:25:36 UTC
 </div>
 </div>
 </body>

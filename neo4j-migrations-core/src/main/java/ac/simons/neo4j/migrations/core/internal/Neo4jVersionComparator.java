@@ -29,7 +29,7 @@ public final class Neo4jVersionComparator implements Comparator<String> {
 	static String[] sanitize(String in) {
 		return in
 			.replaceFirst("(?i)^Neo4j/", "")
-			.replaceFirst("-\\w+$", "")
+			.replaceFirst("-[\\w.]+$", "")
 			.split("\\.");
 	}
 

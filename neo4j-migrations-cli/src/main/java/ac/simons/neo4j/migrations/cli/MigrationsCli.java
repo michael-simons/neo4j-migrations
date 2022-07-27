@@ -78,6 +78,7 @@ public final class MigrationsCli implements Runnable {
 	static final String MIGRATIONS_PROPERTIES_FILENAME = ".migrations.properties";
 	static final String OPTION_ADDRESS = "-a";
 	static final String OPTION_USERNAME = "-u";
+	@SuppressWarnings("squid:S2068") // This is not a password, this is the option to specify one.
 	static final String OPTION_PASSWORD = "-p";
 
 	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = "--max-connection-pool-size";

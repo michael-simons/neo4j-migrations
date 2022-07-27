@@ -69,12 +69,17 @@ import org.neo4j.driver.Logging;
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
 	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
-	versionProvider = ManifestVersionProvider.class
+	versionProvider = ManifestVersionProvider.class,
+	defaultValueProvider = CommonEnvVarDefaultProvider.class
 )
 public final class MigrationsCli implements Runnable {
 
 	static final Logger LOGGER;
 	static final String MIGRATIONS_PROPERTIES_FILENAME = ".migrations.properties";
+	static final String OPTION_ADDRESS = "-a";
+	static final String OPTION_USERNAME = "-u";
+	static final String OPTION_PASSWORD = "-p";
+
 	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = "--max-connection-pool-size";
 
 	static {
@@ -104,7 +109,7 @@ public final class MigrationsCli implements Runnable {
 		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);
 
 		loadProperties(MIGRATIONS_PROPERTIES_FILENAME)
-			.map(CommandLine.PropertiesDefaultProvider::new)
+			.map(CommonEnvVarDefaultProvider::new)
 			.ifPresent(commandLine.getCommandSpec()::defaultValueProvider);
 
 		int exitCode = commandLine.execute(args);
@@ -112,7 +117,7 @@ public final class MigrationsCli implements Runnable {
 	}
 
 	@Option(
-		names = { "-a", "--address" },
+		names = { OPTION_ADDRESS, "--address" },
 		description = "The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.",
 		required = true,
 		defaultValue = "bolt://localhost:7687"
@@ -120,7 +125,7 @@ public final class MigrationsCli implements Runnable {
 	private URI address;
 
 	@Option(
-		names = { "-u", "--username" },
+		names = { OPTION_USERNAME, "--username" },
 		description = "The login of the user connecting to the database.",
 		required = true,
 		defaultValue = Defaults.DEFAULT_USER
@@ -134,7 +139,7 @@ public final class MigrationsCli implements Runnable {
 	String passwordEnv;
 
 	@Option(
-		names = { "-p", "--password" },
+		names = { OPTION_PASSWORD, "--password" },
 		description = "The password of the user connecting to the database.",
 		arity = "0..1", interactive = true
 	)

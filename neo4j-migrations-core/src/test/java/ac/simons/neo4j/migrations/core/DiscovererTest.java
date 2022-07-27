@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.Nested;
@@ -45,8 +46,11 @@ class DiscovererTest {
 					"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), Mockito.mock(Driver.class));
 
 			Collection<JavaBasedMigration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
-			assertThat(migrations).hasSize(2)
-				.extracting(Migration::getDescription)
+			assertThat(migrations)
+				.extracting(Migration::getOptionalDescription)
+				.filteredOn(Optional::isPresent)
+				.hasSize(2)
+				.extracting(Optional::get)
 				.contains("FirstMigration", "AnotherMigration");
 		}
 
@@ -58,8 +62,11 @@ class DiscovererTest {
 					"ac.simons.neo4j.migrations.core.test_migrations.changeset3").build(), Mockito.mock(Driver.class));
 
 			Collection<JavaBasedMigration> migrations = new JavaBasedMigrationDiscoverer().discover(context);
-			assertThat(migrations).hasSize(1)
-				.extracting(Migration::getDescription)
+			assertThat(migrations)
+				.extracting(Migration::getOptionalDescription)
+				.filteredOn(Optional::isPresent)
+				.hasSize(1)
+				.extracting(Optional::get)
 				.contains("InnerMigration");
 		}
 	}
@@ -82,8 +89,11 @@ class DiscovererTest {
 					"classpath:my/awesome/migrations", "classpath:some/changeset").build(), Mockito.mock(Driver.class));
 
 			Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
-			assertThat(migrations).hasSize(12)
-				.extracting(Migration::getDescription)
+			assertThat(migrations)
+				.extracting(Migration::getOptionalDescription)
+				.filteredOn(Optional::isPresent)
+				.hasSize(12)
+				.extracting(Optional::get)
 				.contains("delete old data", "create new data",
 					"BondTheNameIsBond",
 					"BondTheNameIsBondNew",
@@ -123,8 +133,11 @@ class DiscovererTest {
 					Mockito.mock(Driver.class));
 
 				Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
-				assertThat(migrations).hasSize(3)
-					.extracting(Migration::getDescription)
+				assertThat(migrations)
+					.extracting(Migration::getOptionalDescription)
+					.filteredOn(Optional::isPresent)
+					.hasSize(3)
+					.extracting(Optional::get)
 					.contains("One", "Two", "Three");
 			} finally {
 				for (File file : files) {

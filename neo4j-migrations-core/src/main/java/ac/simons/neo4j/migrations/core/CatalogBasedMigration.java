@@ -353,9 +353,15 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		return version;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public String getDescription() {
-		return version.getDescription();
+		return version.getOptionalDescription().orElse(null);
+	}
+
+	@Override
+	public Optional<String> getOptionalDescription() {
+		return version.getOptionalDescription();
 	}
 
 	@Override

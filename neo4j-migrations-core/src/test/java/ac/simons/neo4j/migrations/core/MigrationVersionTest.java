@@ -37,7 +37,7 @@ class MigrationVersionTest {
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse(name);
 		assertThat(migrationVersion.getValue()).isEqualTo(value);
-		assertThat(migrationVersion.getDescription()).isEqualTo(description);
+		assertThat(migrationVersion.getOptionalDescription()).hasValue(description);
 	}
 
 	@ParameterizedTest
@@ -48,7 +48,7 @@ class MigrationVersionTest {
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse(name);
 		assertThat(migrationVersion.getValue()).isEqualTo(value);
-		assertThat(migrationVersion.getDescription()).isEqualTo(description);
+		assertThat(migrationVersion.getOptionalDescription()).hasValue(description);
 	}
 
 	@Test
@@ -56,7 +56,7 @@ class MigrationVersionTest {
 
 		MigrationVersion migrationVersion;
 		migrationVersion = MigrationVersion.parse("V1__a_b");
-		assertThat(migrationVersion.getDescription()).isEqualTo("a b");
+		assertThat(migrationVersion.getOptionalDescription()).hasValue("a b");
 	}
 
 	@ParameterizedTest

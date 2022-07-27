@@ -32,8 +32,18 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 
 	/**
 	 * {@return some description}
+	 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
 	 */
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
 	String getDescription();
+
+	/**
+	 * {@return An optional description of this migration}
+	 */
+	default Optional<String> getOptionalDescription() {
+		return Optional.ofNullable(getDescription());
+	}
 
 	/**
 	 * {@return something that describes the source of this migration}

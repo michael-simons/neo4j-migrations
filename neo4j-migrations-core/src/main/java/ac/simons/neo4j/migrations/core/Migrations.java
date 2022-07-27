@@ -530,10 +530,10 @@ public final class Migrations {
 		Map<String, Object> properties = new HashMap<>();
 
 		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());
-		properties.put(PROPERTY_MIGRATION_DESCRIPTION, migration.getDescription());
+		migration.getOptionalDescription().ifPresent(v -> properties.put(PROPERTY_MIGRATION_DESCRIPTION, v));
 		properties.put("type", getMigrationType(migration).name());
 		properties.put("source", migration.getSource());
-		migration.getChecksum().ifPresent(checksum -> properties.put("checksum", checksum));
+		migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
 
 		return Collections.unmodifiableMap(properties);
 	}
@@ -562,6 +562,7 @@ public final class Migrations {
 
 	static String toString(Migration migration) {
 
-		return String.format("%s (\"%s\")", migration.getVersion(), migration.getDescription());
+		return migration.getVersion().getValue()
+			+ migration.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
 	}
 }

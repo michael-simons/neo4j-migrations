@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Optional;
-
 /**
  * Interface to be implemented for Java-based migrations.
  *
@@ -31,8 +29,9 @@ public interface JavaBasedMigration extends Migration {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	default String getDescription() {
-		return Optional.ofNullable(getVersion().getDescription()).orElseGet(() -> getClass().getSimpleName());
+		return getVersion().getOptionalDescription().orElseGet(() -> getClass().getSimpleName());
 	}
 
 	@Override

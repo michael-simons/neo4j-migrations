@@ -30,13 +30,17 @@ import java.util.function.UnaryOperator;
 public abstract class AbstractCypherBasedMigration implements Migration {
 
 	protected final CypherResource cypherResource;
+	/**
+	 * @deprecated since 1.9.0, see {@link #getOptionalDescription()}
+	 */
+	@Deprecated
 	protected final String description;
 	protected final MigrationVersion version;
 
 	protected AbstractCypherBasedMigration(CypherResource cypherResource) {
 		this.cypherResource = cypherResource;
 		this.version = MigrationVersion.parse(this.cypherResource.getIdentifier());
-		this.description = this.version.getDescription();
+		this.description = this.version.getOptionalDescription().orElse(null);
 	}
 
 	@Override
@@ -45,8 +49,14 @@ public abstract class AbstractCypherBasedMigration implements Migration {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public final String getDescription() {
-		return description;
+		return version.getOptionalDescription().orElse(null);
+	}
+
+	@Override
+	public Optional<String> getOptionalDescription() {
+		return version.getOptionalDescription();
 	}
 
 	/**

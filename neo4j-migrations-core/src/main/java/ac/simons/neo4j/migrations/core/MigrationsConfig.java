@@ -141,7 +141,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * @return An optional target database, maybe {@literal null}
-	 * @deprecated since 1.1.0, please use {@link #getOptionalDatabase()}
+	 * @deprecated since 1.1.0, see {@link #getOptionalDatabase()}
 	 */
 	@Deprecated
 	public String getDatabase() {
@@ -166,7 +166,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * @return An optional user to impersonate, maybe {@literal null}
-	 * @deprecated since 1.1.0, please use {@link #getOptionalImpersonatedUser()}
+	 * @deprecated since 1.1.0, see {@link #getOptionalImpersonatedUser()}
 	 */
 	@Deprecated
 	public String getImpersonatedUser() {
@@ -183,7 +183,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * @return Optional user information about the user executing the migration, maybe {@literal null}
-	 * @deprecated since 1.1.0, please use {@link #getOptionalInstalledBy()}
+	 * @deprecated since 1.1.0, see {@link #getOptionalInstalledBy()}
 	 */
 	@Deprecated
 	public String getInstalledBy() {
@@ -258,7 +258,7 @@ public final class MigrationsConfig {
 	/**
 	 * This is internal API and will be made package private in 2.0.0
 	 * @return True if there are packages to scan
-	 * @deprecated Since 1.1.0, will be removed from public without replace.
+	 * @deprecated Since 1.1.0, will be removed from public without replacement.
 	 */
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated

@@ -148,6 +148,7 @@ public interface MigrationChain extends ConnectionDetails {
 		 * @return An optional description of the migration represented by this element.
 		 * @since 1.9.0
 		 */
+		@SuppressWarnings("squid:S1874")
 		default Optional<String> getOptionalDescription() {
 			return Optional.ofNullable(getDescription());
 		}

@@ -41,6 +41,7 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 	/**
 	 * {@return An optional description of this migration}
 	 */
+	@SuppressWarnings("squid:S1874")
 	default Optional<String> getOptionalDescription() {
 		return Optional.ofNullable(getDescription());
 	}

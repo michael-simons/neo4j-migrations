@@ -37,6 +37,7 @@ public abstract class AbstractCypherBasedMigration implements Migration {
 	protected final String description;
 	protected final MigrationVersion version;
 
+	@SuppressWarnings("squid:S1874") // Assignment to description
 	protected AbstractCypherBasedMigration(CypherResource cypherResource) {
 		this.cypherResource = cypherResource;
 		this.version = MigrationVersion.parse(this.cypherResource.getIdentifier());

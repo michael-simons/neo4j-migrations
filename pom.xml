@@ -64,6 +64,7 @@
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
 		<module>extensions/neo4j-migrations-formats-adoc</module>
+		<module>extensions/neo4j-migrations-formats-markdown</module>
 	</modules>
 
 	<scm>

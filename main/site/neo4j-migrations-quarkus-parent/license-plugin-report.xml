@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1659003129633">
-    <module artifactId="neo4j-migrations-quarkus-parent" groupId="eu.michael-simons.neo4j" version="1.9.0-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1659004958454">
+    <module artifactId="neo4j-migrations-quarkus-parent" groupId="eu.michael-simons.neo4j" version="1.9.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
     </files>

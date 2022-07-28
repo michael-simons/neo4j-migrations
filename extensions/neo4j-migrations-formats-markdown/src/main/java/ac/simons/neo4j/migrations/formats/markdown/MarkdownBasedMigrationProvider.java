@@ -40,6 +40,7 @@ import java.util.List;
  *
  * @author Gerrit Meier
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public final class MarkdownBasedMigrationProvider implements ResourceBasedMigrationProvider {
 
 	@Override

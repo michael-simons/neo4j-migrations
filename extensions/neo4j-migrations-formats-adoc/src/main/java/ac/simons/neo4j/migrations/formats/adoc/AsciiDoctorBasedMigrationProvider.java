@@ -50,6 +50,7 @@ import org.asciidoctor.extension.Treeprocessor;
  * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public final class AsciiDoctorBasedMigrationProvider implements ResourceBasedMigrationProvider {
 
 	private static final String INCLUDED_IGNORED_MARKER = "$NEO4J_MIGRATIONS_CHOSE_TO_IGNORE_THIS_INCLUDE$";

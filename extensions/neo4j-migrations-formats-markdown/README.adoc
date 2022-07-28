@@ -58,4 +58,37 @@ And that's all.
 For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{latest_version}/neo4j-migrations-formats-markdown-{latest_version}-all.jar[neo4j-migrations-formats-markdown-{latest_version}-all.jar]
 This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[here].
 
+A full example looks like this:
+
+[source,console,subs="verbatim,attributes"]
+----
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{latest_version}/neo4j-migrations-formats-markdown-{latest_version}-all.jar
+unzip neo4j-migrations-{latest_version}.zip
+cd neo4j-migrations-{latest_version}
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-{latest_version}-all.jar \
+  bin/neo4j-migrations --password secret \
+  --location file:///path/to/neo4j/markdown-migrations \
+  info
+----
+
+Which will result in:
+
+[source,console]
+----
+neo4j@localhost:7687 (Neo4j/4.4.8)
+Database: neo4j
+
++---------+---------------------+--------+---------+--------------------------------------------+
+| Version | Description         | Type   | State   | Source                                     |
++---------+---------------------+--------+---------+--------------------------------------------+
+| 1.0     | initial data        | CYPHER | PENDING | initial_schema_draft.md#V1.0__initial_data |
+| 1.2     | more data           | CYPHER | PENDING | initial_schema_draft.md#V1.2__more_data    |
+| 1.3     | something different | CYPHER | PENDING | more_content.md#V1.3__something_different  |
++---------+---------------------+--------+---------+--------------------------------------------+
+----
+
+(Note: empty columns have been omitted for brevity.)
+
+
 // end::content[]

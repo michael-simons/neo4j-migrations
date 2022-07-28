@@ -116,16 +116,6 @@
 								<exclude>META-INF/*.RSA</exclude>
 							</excludes>
 						</filter>
-						<!-- Duplicates -->
-						<filter>
-							<artifact>org.jruby:jruby-stdlib</artifact>
-							<excludes>
-								<exclude>META-INF/BSDL</exclude>
-								<exclude>META-INF/COPYING</exclude>
-								<exclude>META-INF/LEGAL</exclude>
-								<exclude>META-INF/LICENSE.RUBY</exclude>
-							</excludes>
-						</filter>
 					</filters>
 				</configuration>
 				<executions>

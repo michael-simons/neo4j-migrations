@@ -55,3 +55,7 @@ include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/
 === AsciiDoctor Support (Experimental)
 
 include::../extensions/neo4j-migrations-formats-adoc/README.adoc[leveloffset=+2,tag=content]
+
+=== Markdown Support (Experimental)
+
+include::../extensions/neo4j-migrations-formats-markdown/README.adoc[leveloffset=+2,tag=content]

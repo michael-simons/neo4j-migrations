@@ -64,6 +64,7 @@
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
 		<module>extensions/neo4j-migrations-formats-adoc</module>
+		<module>extensions/neo4j-migrations-formats-markdown</module>
 	</modules>
 
 	<scm>
@@ -607,7 +608,7 @@
 						<exclude>**/V*.xml</exclude>
 					</excludes>
 					<dependencyEnforce>true</dependencyEnforce>
-					<dependencyExceptionMessage>A custom error message for how to handle approvals in your organization</dependencyExceptionMessage>
+					<dependencyExceptionMessage>One or more dependencies are licensed under a non-approved license.</dependencyExceptionMessage>
 					<dependencyPolicies>
 						<dependencyPolicy>
 							<type>LICENSE_URL</type>
@@ -648,6 +649,11 @@
 							<type>LICENSE_NAME</type>
 							<rule>APPROVE</rule>
 							<value>Universal Permissive License, Version 1.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>BSD 2-Clause License</value>
 						</dependencyPolicy>
 						<dependencyPolicy>
 							<type>ARTIFACT_PATTERN</type>

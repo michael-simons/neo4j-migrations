@@ -23,7 +23,7 @@ import java.util.ServiceLoader;
 
 /**
  * An interface defining a provider with a set of supported extension and a mapper from resource to {@link Migration}.
- * The interface is ordered so that we can pick the accordingly when one provider maps to the same extension.
+ * The interface is ordered so that we can pick accordingly when one provider maps to the same extension.
  *
  * @author Michael J. Simons
  * @soundtrack Fatoni - Andorra

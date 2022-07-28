@@ -3939,13 +3939,103 @@ Database: neo4j
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="markdownsupportexperimental"><a class="anchor" href="#markdownsupportexperimental"></a>Markdown Support (Experimental)</h4>
+<div class="sect4">
+<h5 id="whatdoesitdo2"><a class="anchor" href="#whatdoesitdo2"></a>What does it do?</h5>
+<div class="paragraph">
+<p>When added to one of the supported use-case scenarios as an external library, it allows Neo4j-Migrations to discover
+Markdown files and use them as sources of Cypher statements for defining refactorings.</p>
+</div>
+<div class="paragraph">
+<p>A Markdown based migration can have zero to many fenced code blocks with an id matching our versioning scheme
+and valid inline Cypher content. The block definition looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="markdown">```id=V1.0__Create_initial_data
+// Your Cypher based migration</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="howtouseit2"><a class="anchor" href="#howtouseit2"></a>How to use it?</h5>
+<div class="paragraph">
+<p>The extension is loaded via service loader. In a standard Spring Boot or Quarkus application you just need to add one additional
+dependency:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 41. Markdown extension as Maven dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatMarkdown}<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.9.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in case you fancy Gradle:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 42. AsciiDoctor extension as Gradle dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatMarkdown}:1.9.0-SNAPSHOT</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And that&#8217;s all.</p>
+</div>
+<div class="paragraph">
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.9.0-SNAPSHOT/neo4j-migrations-formats-markdown-1.9.0-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-1.9.0-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.0-SNAPSHOT/neo4j-migrations-1.9.0-SNAPSHOT.zip">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>A full example looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.0-SNAPSHOT/neo4j-migrations-1.9.0-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.9.0-SNAPSHOT/neo4j-migrations-formats-markdown-1.9.0-SNAPSHOT-all.jar
+unzip neo4j-migrations-1.9.0-SNAPSHOT.zip
+cd neo4j-migrations-1.9.0-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-1.9.0-SNAPSHOT-all.jar \
+  bin/neo4j-migrations --password secret \
+  --location file:///path/to/neo4j/markdown-migrations \
+  info</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which will result in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j@localhost:7687 (Neo4j/4.4.8)
+Database: neo4j
+
++---------+---------------------+--------+---------+--------------------------------------------+
+| Version | Description         | Type   | State   | Source                                     |
++---------+---------------------+--------+---------+--------------------------------------------+
+| 1.0     | initial data        | CYPHER | PENDING | initial_schema_draft.md#V1.0__initial_data |
+| 1.2     | more data           | CYPHER | PENDING | initial_schema_draft.md#V1.2__more_data    |
+| 1.3     | something different | CYPHER | PENDING | more_content.md#V1.3__something_different  |
++---------+---------------------+--------+---------+--------------------------------------------+</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>(Note: empty columns have been omitted for brevity.)</p>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-27 21:25:36 UTC
+Last updated 2022-07-28 09:20:51 UTC
 </div>
 </div>
 </body>

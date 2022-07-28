@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.formats.adoc;
 
+import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
@@ -50,24 +51,12 @@ import org.asciidoctor.extension.Treeprocessor;
  * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
-@SuppressWarnings("common-java:DuplicatedBlocks")
-public final class AsciiDoctorBasedMigrationProvider implements ResourceBasedMigrationProvider {
+public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
 
 	private static final String INCLUDED_IGNORED_MARKER = "$NEO4J_MIGRATIONS_CHOSE_TO_IGNORE_THIS_INCLUDE$";
 
-	@Override
-	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
-	}
-
-	@Override
-	public String getExtension() {
-		return "adoc";
-	}
-
-	@Override
-	public boolean supportsArbitraryResourceNames() {
-		return true;
+	public AsciiDoctorBasedMigrationProvider() {
+		super(Ordered.LOWEST_PRECEDENCE, "adoc", true);
 	}
 
 	@Override

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.formats.markdown;
 
+import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.Ordered;
@@ -40,22 +41,10 @@ import java.util.List;
  *
  * @author Gerrit Meier
  */
-@SuppressWarnings("common-java:DuplicatedBlocks")
-public final class MarkdownBasedMigrationProvider implements ResourceBasedMigrationProvider {
+public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
 
-	@Override
-	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
-	}
-
-	@Override
-	public String getExtension() {
-		return "md";
-	}
-
-	@Override
-	public boolean supportsArbitraryResourceNames() {
-		return true;
+	public MarkdownBasedMigrationProvider() {
+		super(Ordered.LOWEST_PRECEDENCE, "md", true);
 	}
 
 	@Override

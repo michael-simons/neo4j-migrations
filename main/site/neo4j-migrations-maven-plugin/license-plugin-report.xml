@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1659000443716">
+<licensePluginReport goal="CHECK" timestamp="1659003387896">
     <module artifactId="neo4j-migrations-maven-plugin" groupId="eu.michael-simons.neo4j" version="1.9.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>

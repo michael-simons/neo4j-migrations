@@ -87,7 +87,7 @@ class CatalogRendererTest {
 	@Test
 	void shouldNotRenderUnsupportedItems() {
 		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
-		Catalog c = Catalog.of(Collections.singletonList(new CatalogItem<>() {
+		Catalog c = Catalog.of(Collections.singletonList(new CatalogItem<ItemType>() {
 			@Override
 			public Name getName() {
 				return null;

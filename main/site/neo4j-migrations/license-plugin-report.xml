@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1659442219459">
-    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.9.1-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1659449140079">
+    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.9.2-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>

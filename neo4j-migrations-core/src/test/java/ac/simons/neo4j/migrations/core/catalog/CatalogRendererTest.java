@@ -21,6 +21,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,36 @@ class CatalogRendererTest {
 			+ "                </properties>\n"
 			+ "            </constraint>\n"
 			+ "        </constraints>\n"
+			+ "    </catalog>\n"
+			+ "</migration>\n"
+			+ "");
+	}
+
+	// This test can go away when Neo4j-Migrations is pure JDK 17, as the catalog item will be properly sealed all the time
+	@Test
+	void shouldNotRenderUnsupportedItems() {
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
+		Catalog c = Catalog.of(Collections.singletonList(new CatalogItem<>() {
+			@Override
+			public Name getName() {
+				return null;
+			}
+
+			@Override public ItemType getType() {
+				return null;
+			}
+
+			@Override public boolean hasGeneratedName() {
+				return false;
+			}
+		}));
+		assertThat(renderer.render(c, RenderConfig.defaultConfig())).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <catalog>\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints/>\n"
 			+ "    </catalog>\n"
 			+ "</migration>\n"
 			+ "");

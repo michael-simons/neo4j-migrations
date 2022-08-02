@@ -21,6 +21,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,10 @@ class CatalogRendererTest {
 			.unique("id"),
 		Constraint.forNode("Book")
 			.named("book_isbn_exists")
-			.exists("isbn")
+			.exists("isbn"),
+		Index.forNode("Person")
+			.named("person_name")
+			.onProperties("name")
 	));
 
 	@Test
@@ -52,7 +56,14 @@ class CatalogRendererTest {
 			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
 			+ "    <catalog>\n"
-			+ "        <indexes/>\n"
+			+ "        <indexes>\n"
+			+ "            <index name=\"person_name\" type=\"property\">\n"
+			+ "                <label>Person</label>\n"
+			+ "                <properties>\n"
+			+ "                    <property>name</property>\n"
+			+ "                </properties>\n"
+			+ "            </index>\n"
+			+ "        </indexes>\n"
 			+ "        <constraints>\n"
 			+ "            <constraint name=\"book_id_unique\" type=\"unique\">\n"
 			+ "                <label>Book</label>\n"
@@ -72,14 +83,44 @@ class CatalogRendererTest {
 			+ "");
 	}
 
+	// This test can go away when Neo4j-Migrations is pure JDK 17, as the catalog item will be properly sealed all the time
+	@Test
+	void shouldNotRenderUnsupportedItems() {
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
+		Catalog c = Catalog.of(Collections.singletonList(new CatalogItem<ItemType>() {
+			@Override
+			public Name getName() {
+				return null;
+			}
+
+			@Override public ItemType getType() {
+				return null;
+			}
+
+			@Override public boolean hasGeneratedName() {
+				return false;
+			}
+		}));
+		assertThat(renderer.render(c, RenderConfig.defaultConfig())).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <catalog>\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints/>\n"
+			+ "    </catalog>\n"
+			+ "</migration>\n"
+			+ "");
+	}
+
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderCatalogAsCypher() {
 
 		return Stream.of(
 			Arguments.of(Neo4jVersion.V3_5, String.format(
-				"CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%nCREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn);%n")),
+				"CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%nCREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn);%nCREATE INDEX ON :Person(name);%n")),
 			Arguments.of(Neo4jVersion.V4_4, String.format(
-				"CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE;%nCREATE CONSTRAINT book_isbn_exists FOR (n:Book) REQUIRE n.isbn IS NOT NULL;%n")
+				"CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE;%nCREATE CONSTRAINT book_isbn_exists FOR (n:Book) REQUIRE n.isbn IS NOT NULL;%nCREATE INDEX person_name FOR (n:Person) ON (n.name);%n")
 			));
 	}
 

@@ -40,7 +40,10 @@ class CatalogRendererTest {
 			.unique("id"),
 		Constraint.forNode("Book")
 			.named("book_isbn_exists")
-			.exists("isbn")
+			.exists("isbn"),
+		Index.forNode("Person")
+			.named("person_name")
+			.onProperties("name")
 	));
 
 	@Test
@@ -52,7 +55,14 @@ class CatalogRendererTest {
 			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
 			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
 			+ "    <catalog>\n"
-			+ "        <indexes/>\n"
+			+ "        <indexes>\n"
+			+ "            <index name=\"person_name\" type=\"property\">\n"
+			+ "                <label>Person</label>\n"
+			+ "                <properties>\n"
+			+ "                    <property>name</property>\n"
+			+ "                </properties>\n"
+			+ "            </index>\n"
+			+ "        </indexes>\n"
 			+ "        <constraints>\n"
 			+ "            <constraint name=\"book_id_unique\" type=\"unique\">\n"
 			+ "                <label>Book</label>\n"
@@ -77,9 +87,9 @@ class CatalogRendererTest {
 
 		return Stream.of(
 			Arguments.of(Neo4jVersion.V3_5, String.format(
-				"CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%nCREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn);%n")),
+				"CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE;%nCREATE CONSTRAINT ON (n:Book) ASSERT exists(n.isbn);%nCREATE INDEX ON :Person(name);%n")),
 			Arguments.of(Neo4jVersion.V4_4, String.format(
-				"CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE;%nCREATE CONSTRAINT book_isbn_exists FOR (n:Book) REQUIRE n.isbn IS NOT NULL;%n")
+				"CREATE CONSTRAINT book_id_unique FOR (n:Book) REQUIRE n.id IS UNIQUE;%nCREATE CONSTRAINT book_isbn_exists FOR (n:Book) REQUIRE n.isbn IS NOT NULL;%nCREATE INDEX person_name FOR (n:Person) ON (n.name);%n")
 			));
 	}
 

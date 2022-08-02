@@ -62,6 +62,8 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			for (CatalogItem<?> item : catalog.getItems()) {
 				if (item instanceof Constraint) {
 					constraintsElement.appendChild(((Constraint) item).toXML(document));
+				} else if (item instanceof Index) {
+					indexesElement.appendChild(((Index) item).toXML(document));
 				}
 			}
 

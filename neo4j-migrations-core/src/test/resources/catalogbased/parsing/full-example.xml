@@ -15,6 +15,15 @@
 					<property>percentage</property>
 				</properties>
 			</index>
+			<index name="metrics" type="property">
+				<label>Metric</label>
+				<properties>
+					<property>timestamp</property>
+					<property>name</property>
+					<property>agentId</property>
+					<property>instanceId</property>
+				</properties>
+			</index>
 		</indexes>
 		<constraints>
 			<constraint name="unique_isbn" type="unique">

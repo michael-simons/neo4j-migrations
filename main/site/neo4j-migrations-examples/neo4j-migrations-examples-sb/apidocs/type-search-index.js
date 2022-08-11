@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.neo4j.migrations.examples.sb","l":"Application"}];updateSearchResults();

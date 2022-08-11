@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"ac.simons.neo4j.migrations.quarkus.deployment"},{"l":"ac.simons.neo4j.migrations.quarkus.it"},{"l":"ac.simons.neo4j.migrations.quarkus.it.migrations"},{"l":"ac.simons.neo4j.migrations.quarkus.runtime"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();

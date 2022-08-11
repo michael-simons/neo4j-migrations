@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure","l":"MigrationsAutoConfiguration"},{"p":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure","l":"MigrationsProperties"}];updateSearchResults();

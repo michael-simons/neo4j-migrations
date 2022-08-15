@@ -75,6 +75,23 @@ final class StringsTest {
 		assertThat(Strings.escapeIfNecessary(valueUsed)).isSameAs(valueUsed);
 	}
 
+	@ParameterizedTest
+	@CsvSource({
+		"ABC, ABC",
+		"A C, `A C`",
+		"A` C, `A`` C`",
+		"A`` C, `A`` C`",
+		"ALabel, ALabel",
+		"A Label, `A Label`",
+		"A `Label, `A ``Label`",
+		"`A `Label, ```A ``Label`",
+		"Spring Data Neo4j⚡️RX, `Spring Data Neo4j⚡️RX`"
+	})
+	void shouldEscapeProper(String in, String expected) {
+		String value = Strings.escapeIfNecessary(in);
+		assertThat(value).isEqualTo(expected);
+	}
+
 	@Nested
 	class Capitalization {
 

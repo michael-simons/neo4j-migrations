@@ -135,7 +135,7 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.version>3.8.6</maven.version>
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
-		<mockito.version>4.6.1</mockito.version>
+		<mockito.version>4.7.0</mockito.version>
 		<native.maven.plugin.version>0.9.13</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.4.9</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>1.9.1</neo4j-migrations.previous.version>

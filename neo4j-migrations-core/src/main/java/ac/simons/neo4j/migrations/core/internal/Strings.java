@@ -58,7 +58,7 @@ public final class Strings {
 	};
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
-	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
+	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?!`)");
 
 	/**
 	 * A Base64 encoder.

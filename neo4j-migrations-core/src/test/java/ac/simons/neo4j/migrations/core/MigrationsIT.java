@@ -41,7 +41,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -308,8 +307,7 @@ class MigrationsIT extends TestBase {
 	@Test
 	void shouldNotFailOnDisabledAuth() {
 
-		try (Neo4jContainer<?> containerWithoutAuth = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE).withoutAuthentication()
-			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())) {
+		try (Neo4jContainer<?> containerWithoutAuth = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE).withoutAuthentication()) {
 			containerWithoutAuth.start();
 
 			try (Driver driverWithoutAuth = GraphDatabase.driver(containerWithoutAuth.getBoltUrl())) {

@@ -30,7 +30,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -41,29 +40,27 @@ class UnsupportedTargetsIT {
 	@ParameterizedTest
 	@CsvSource({"neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0"})
 	void migrationTargetDeterminationMustNotFailWithOlderEnterprise(String databaseVersion) {
-		try (Neo4jContainer<?> neo4jWithoutMultiDB = new Neo4jContainer<>(databaseVersion)
-			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
+		Neo4jContainer<?> neo4jWithoutMultiDB = new Neo4jContainer<>(databaseVersion)
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
+		neo4jWithoutMultiDB.start();
 
-			neo4jWithoutMultiDB.start();
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
 
-			Config config = Config.builder().withLogging(Logging.none()).build();
-			try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
+			MigrationsConfig migrationsConfig = MigrationsConfig.builder()
+				.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+				.withSchemaDatabase("irrelevant")
+				.build();
 
-				MigrationsConfig migrationsConfig = MigrationsConfig.builder()
-					.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
-					.withSchemaDatabase("irrelevant")
-					.build();
+			MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, localDriver);
+			Optional<String> migrationTarget = migrationsConfig.getMigrationTargetIn(ctx);
 
-				MigrationContext ctx = new DefaultMigrationContext(migrationsConfig, localDriver);
-				Optional<String> migrationTarget = migrationsConfig.getMigrationTargetIn(ctx);
-
-				if (databaseVersion.contains("3.5")) {
-					assertThat(migrationTarget).isEmpty();
-				} else {
-					assertThat(migrationTarget).hasValue("neo4j");
-				}
+			if (databaseVersion.contains("3.5")) {
+				assertThat(migrationTarget).isEmpty();
+			} else {
+				assertThat(migrationTarget).hasValue("neo4j");
 			}
 		}
 	}
@@ -71,26 +68,23 @@ class UnsupportedTargetsIT {
 	@ParameterizedTest
 	@CsvSource("neo4j:4.3-enterprise")
 	void impersonationOnOldDBShouldFail(String databaseVersion) {
-		try (Neo4jContainer<?> neo4j43 = new Neo4jContainer<>(databaseVersion)
-			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")) {
+		Neo4jContainer<?> neo4j43 = new Neo4jContainer<>(databaseVersion)
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
+		neo4j43.start();
 
-			neo4j43.start();
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver localDriver = GraphDatabase.driver(neo4j43.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
 
-			Config config = Config.builder().withLogging(Logging.none()).build();
+			Migrations migrations = new Migrations(MigrationsConfig.builder()
+				.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+				.withImpersonatedUser("TheImposter")
+				.build(), localDriver);
 
-			try (Driver localDriver = GraphDatabase.driver(neo4j43.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
-
-				Migrations migrations = new Migrations(MigrationsConfig.builder()
-					.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
-					.withImpersonatedUser("TheImposter")
-					.build(), localDriver);
-
-				assertThatExceptionOfType(ClientException.class).isThrownBy(migrations::info)
-					.withMessageStartingWith(
-						"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
-			}
+			assertThatExceptionOfType(ClientException.class).isThrownBy(migrations::info)
+				.withMessageStartingWith(
+					"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
 		}
 	}
 }

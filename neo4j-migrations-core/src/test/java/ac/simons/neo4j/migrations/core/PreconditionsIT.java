@@ -29,7 +29,6 @@ import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -46,28 +45,25 @@ class PreconditionsIT {
 	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.3-enterprise")
 	void assumptionsShouldWork() {
 
-		try (
-			Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3-enterprise")
-				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-				.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-		) {
-			neo4j.start();
-			Config config = Config.builder().withLogging(Logging.none()).build();
-			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3-enterprise")
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
+		neo4j.start();
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-				Migrations migrations;
-				migrations = new Migrations(MigrationsConfig.builder()
-					.withLocationsToScan("classpath:preconditions")
-					.build(), driver);
-				migrations.apply();
+			Migrations migrations;
+			migrations = new Migrations(MigrationsConfig.builder()
+				.withLocationsToScan("classpath:preconditions")
+				.build(), driver);
+			migrations.apply();
 
-				try (Session session = driver.session()) {
+			try (Session session = driver.session()) {
 
-					long cnt = session.run("MATCH (n:__Neo4jMigration) RETURN count(n) AS cnt").single().get("cnt")
-						.asLong();
-					assertThat(cnt).isEqualTo(2L);
-				}
+				long cnt = session.run("MATCH (n:__Neo4jMigration) RETURN count(n) AS cnt").single().get("cnt")
+					.asLong();
+				assertThat(cnt).isEqualTo(2L);
 			}
 		}
 	}
@@ -75,56 +71,55 @@ class PreconditionsIT {
 	@Test
 	void assertionsShouldWork() {
 
-		try (
-			Neo4jContainer<?> neo4j = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE)
-				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-		) {
-			neo4j.start();
-			Config config = Config.builder().withLogging(Logging.none()).build();
-			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
-				Migrations migrations;
-				migrations = new Migrations(MigrationsConfig.builder()
-					.withLocationsToScan("classpath:preconditions")
-					.build(), driver);
+		Neo4jContainer<?> neo4j = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE)
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
+		neo4j.start();
 
-				assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
-					.withMessage("Could not satisfy `// assert that edition is ENTERPRISE`.");
-			}
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Migrations migrations;
+			migrations = new Migrations(MigrationsConfig.builder()
+				.withLocationsToScan("classpath:preconditions")
+				.build(), driver);
+
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
+				.withMessage("Could not satisfy `// assert that edition is ENTERPRISE`.");
 		}
 	}
 
 	@Test
 	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.0")
 	void thingsShouldNotFailWhenAssumptionsChangeDueToVersionUpgrade() {
-		try (
-			Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")
-				.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-		) {
-			neo4j.start();
-			Config config = Config.builder().withLogging(Logging.none()).build();
-			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-				Migrations migrations;
-				migrations = new Migrations(MigrationsConfig.builder()
-					.withLocationsToScan("classpath:preconditions2")
-					.build(), driver);
+		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
+		neo4j.start();
 
-				migrations.apply();
-				assertStateBeforeAndAfterPreconditionChanged(driver);
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
-				try (Session session = driver.session()) {
-					session.writeTransaction(tx -> tx.run("CREATE(v:Version {name:'4.1'})").consume());
-				}
+			Migrations migrations;
+			migrations = new Migrations(MigrationsConfig.builder()
+				.withLocationsToScan("classpath:preconditions2")
+				.build(), driver);
 
-				migrations = new Migrations(MigrationsConfig.builder()
-					.withLocationsToScan("classpath:preconditions2")
-					.build(), driver);
+			migrations.apply();
+			assertStateBeforeAndAfterPreconditionChanged(driver);
 
-				migrations.apply();
-				assertStateBeforeAndAfterPreconditionChanged(driver);
+			try (Session session = driver.session()) {
+				session.writeTransaction(tx -> tx.run("CREATE(v:Version {name:'4.1'})").consume());
 			}
+
+			migrations = new Migrations(MigrationsConfig.builder()
+				.withLocationsToScan("classpath:preconditions2")
+				.build(), driver);
+
+			migrations.apply();
+			assertStateBeforeAndAfterPreconditionChanged(driver);
 		}
 	}
 

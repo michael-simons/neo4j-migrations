@@ -29,12 +29,38 @@
 			<xs:element name="verify" minOccurs="0" type="verifyOperation" />
 			<xs:choice>
 				<xs:choice maxOccurs="unbounded">
-					<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="createOperation"/>
-					<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="dropOperation"/>
+					<xs:element name="refactor" minOccurs="0" maxOccurs="unbounded" type="refactoring"/>
+					<xs:choice maxOccurs="unbounded">
+						<xs:element name="create" minOccurs="0" maxOccurs="unbounded" type="createOperation"/>
+						<xs:element name="drop" minOccurs="0" maxOccurs="unbounded" type="dropOperation"/>
+					</xs:choice>
 				</xs:choice>
 				<xs:element name="apply" minOccurs="0" type="applyOperation"/>
 			</xs:choice>
 		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="refactoring">
+		<xs:sequence minOccurs="0">
+			<xs:element name="parameters">
+				<xs:complexType>
+					<xs:sequence maxOccurs="unbounded">
+						<xs:any processContents="lax"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="type">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="merge.nodes"/>
+					<xs:enumeration value="rename.label"/>
+					<xs:enumeration value="rename.type"/>
+					<xs:enumeration value="rename.nodeProperty"/>
+					<xs:enumeration value="rename.relationshipProperty"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
 	</xs:complexType>
 
 	<xs:complexType name="catalog">
@@ -109,8 +135,7 @@
 
 	<xs:complexType name="properties">
 		<xs:sequence>
-			<xs:element type="xs:string" name="property"
-						maxOccurs="unbounded" minOccurs="1"/>
+			<xs:element type="xs:string" name="property" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 

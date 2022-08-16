@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration>
+
+	<refactor type="merge.nodes" id="merge.nodes.no-source-query1"/>
+
+	<refactor type="merge.nodes" id="merge.nodes.no-source-query2">
+		<parameters>
+		</parameters>
+	</refactor>
+
+	<refactor type="merge.nodes" id="merge.nodes.no-source-query3">
+		<parameters>
+			<parameter>MATCH (n)</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="merge.nodes" id="merge.nodes.no-source-query4">
+		<parameters>
+			<parameter name="sourceQuery">
+
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="merge.nodes" id="merge.nodes.no-source-query5">
+		<parameters>
+			<parameter name="sourceQuery"/>
+		</parameters>
+	</refactor>
+
+	<refactor type="rename.invalid" id="rename-invalid-type">
+		<parameters>
+			<parameter name="from">roles</parameter>
+			<parameter name="to">rollen</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="rename.label" id="rename-no-from">
+		<parameters>
+			<parameter name="to">rollen</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="rename.label" id="rename-no-to">
+		<parameters>
+			<parameter name="from">roles</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="rename.label" id="rename-no-anything-1"/>
+
+	<refactor type="rename.label" id="rename-no-anything-2">
+		<parameters/>
+	</refactor>
+
+	<refactor type="rename.label" id="rename-invalid-batch-size">
+		<parameters>
+			<parameter name="batchSize">foobar</parameter>
+			<parameter name="from">rollen</parameter>
+			<parameter name="to">rollen</parameter>
+		</parameters>
+	</refactor>
+</migration>

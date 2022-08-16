@@ -373,6 +373,7 @@ NOTE: We do add this here for completeness, but we do think that Java-based migr
       regardless whether it's a Spring Boot, Quarkus or just a plain Java application.
       The CLI should be seen primarily as a script runner.
 
+[[usage_core]]
 == Core API
 
 We publish the Java-API-Docs here: link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].

@@ -56,6 +56,7 @@ public final class Strings {
 			throw new UncheckedNoSuchAlgorithmException(e);
 		}
 	};
+	public static final String VALID_DATABASE_NAME = "([a-z][a-z\\d.\\-]{2,62})";
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
 	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?!`)");
@@ -216,6 +217,26 @@ public final class Strings {
 
 		Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(potentiallyNonIdentifier);
 		return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``"));
+	}
+
+	/**
+	 * Replaces all calls to {@code elementId()} (A Neo4j 5 feature) with a combination of {@code toString(id())} so that
+	 * callers can reliably work on String based ids.
+	 *
+	 * @param query The query in which to replace calls to {@code elementId()}
+	 * @return An updated query
+	 */
+	public static String replaceElementIdCalls(String query) {
+
+		String prefix = "toString(id(";
+		String postfix = "))";
+		StringBuffer sb = new StringBuffer();
+		Matcher m = Pattern.compile("([\\s(]?)elementId\\((.+?)\\)").matcher(query);
+		while (m.find()) {
+			m.appendReplacement(sb, m.group(1) + prefix + m.group(2) + postfix);
+		}
+		m.appendTail(sb);
+		return sb.toString();
 	}
 
 	private Strings() {

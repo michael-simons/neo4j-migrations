@@ -27,7 +27,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -55,8 +54,8 @@ class DefaultMigrationContextIT {
 
 	private Neo4jContainer<?> getNeo4j(String tag) {
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
-			.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse())
-			.withLabel("ac.simons.neo4j.migrations.core", this.getClass().getSimpleName());
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+			.withReuse(true);
 		neo4j.start();
 		return neo4j;
 	}

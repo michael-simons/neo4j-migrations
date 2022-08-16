@@ -36,7 +36,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -51,8 +50,7 @@ class MigrationsAutoConfigurationIT {
 	}
 
 	@Container
-	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"))
-		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
+	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"));
 
 	private final Driver driver;
 

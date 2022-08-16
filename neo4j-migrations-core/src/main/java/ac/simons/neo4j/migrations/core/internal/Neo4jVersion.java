@@ -15,8 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
@@ -26,6 +28,10 @@ import java.util.Set;
  */
 public enum Neo4jVersion {
 
+	/**
+	 * Constant for an undefined version.
+	 */
+	UNDEFINED,
 	/**
 	 * Constant for everything Neo4j 3.5 and earlier.
 	 */
@@ -51,13 +57,13 @@ public enum Neo4jVersion {
 	 */
 	V4_4,
 	/**
+	 * Constant for everything Neo4j 5.0
+	 */
+	V5_0,
+	/**
 	 * Constant when we assume the latest version.
 	 */
-	LATEST,
-	/**
-	 * Constant for an undefined version.
-	 */
-	UNDEFINED;
+	LATEST;
 
 	private static final String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
 	private static final String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
@@ -71,6 +77,14 @@ public enum Neo4jVersion {
 	private static final Set<Neo4jVersion> WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));
 
 	private static final Set<Neo4jVersion> WITH_TEXT_INDEXES = EnumSet.complementOf(EnumSet.of(V3_5, V4_0, V4_1, V4_2, V4_3, UNDEFINED));
+
+	private static final Set<Neo4jVersion> SERIES_3 = EnumSet.of(V3_5);
+
+	private static final Set<Neo4jVersion> SERIES_4 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V4_")).collect(
+		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
+
+	private static final Set<Neo4jVersion> SERIES_5 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V5_")).collect(
+		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
 
 	/**
 	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.
@@ -95,6 +109,8 @@ public enum Neo4jVersion {
 			return V4_3;
 		} else if (value.startsWith("4.4")) {
 			return V4_4;
+		} else if (value.startsWith("5.0")) {
+			return V5_0;
 		} else {
 			return LATEST;
 		}
@@ -154,5 +170,20 @@ public enum Neo4jVersion {
 	 */
 	public String getShowIndexes() {
 		return showIndexes;
+	}
+
+	/**
+	 * @return The major version of the database.
+	 * @since 1.10.0
+	 */
+	public int getMajorVersion() {
+		if (SERIES_3.contains(this)) {
+			return 3;
+		} else if (SERIES_4.contains(this)) {
+			return 4;
+		} else if (SERIES_5.contains(this)) {
+			return 5;
+		}
+		throw new IllegalStateException("Unknown major version");
 	}
 }

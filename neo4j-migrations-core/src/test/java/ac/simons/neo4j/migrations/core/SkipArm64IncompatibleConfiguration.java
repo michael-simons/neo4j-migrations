@@ -26,6 +26,7 @@ import org.testcontainers.DockerClientFactory;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -44,8 +45,13 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 
 		@Override
 		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+			boolean testOnlyLatestNeo4j = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
+			if (testOnlyLatestNeo4j) {
+				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
+			}
+			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.LATEST, Neo4jVersion.UNDEFINED, Neo4jVersion.V5_0);
 			return Arrays.stream(Neo4jVersion.values())
-					.filter(version -> version != Neo4jVersion.LATEST && version != Neo4jVersion.UNDEFINED)
+					.filter(version -> !unsupported.contains(version))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));
 		}
 	}

@@ -55,6 +55,16 @@ class PackageStructureTest {
 	}
 
 	@Test
+	void refactoringShouldBeIndependentFromCore() {
+
+		ArchRule rule = noClasses()
+			.that().resideInAPackage("..refactorings..")
+			.should().dependOnClassesThat()
+			.resideInAPackage("..core");
+		rule.check(coreClasses);
+	}
+
+	@Test
 	void internalShouldNotHaveDependencies() {
 
 		ArchRule rule = noClasses()

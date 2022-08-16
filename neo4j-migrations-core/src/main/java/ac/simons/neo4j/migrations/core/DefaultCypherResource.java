@@ -64,9 +64,8 @@ final class DefaultCypherResource implements CypherResource {
 			return false;
 		};
 
-
 	private static final String USE_DATABASE_EXPRESSION =
-		"(?i):use +([a-z][a-z\\d.\\-]{2,62})(?:;?(?:" + Strings.LINE_DELIMITER + ")?)?";
+		"(?i):use +" + Strings.VALID_DATABASE_NAME + "(?:;?(?:" + Strings.LINE_DELIMITER + ")?)?";
 
 	/**
 	 * Cypher delimiter
@@ -74,7 +73,6 @@ final class DefaultCypherResource implements CypherResource {
 	private static final String CYPHER_STATEMENT_DELIMITER = ";(?:" + Strings.LINE_DELIMITER + ")";
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
-
 
 	/**
 	 * The identifier of this resource.

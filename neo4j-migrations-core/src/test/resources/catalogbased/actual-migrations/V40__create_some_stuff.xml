@@ -23,6 +23,14 @@
 	</catalog>
 
 	<create ref="person_liked_book_day" ifNotExists="false"/>
+
+	<refactor type="rename.label">
+		<parameters>
+			<parameter name="from">Buch</parameter>
+			<parameter name="to">Book</parameter>
+		</parameters>
+	</refactor>
+
 	<create>
 		<constraint name="a_local_duplicate_equivalent_to_the_catalog_one" type="unique">
 			<label>Book</label>
@@ -31,6 +39,13 @@
 			</properties>
 		</constraint>
 	</create>
+
+	<refactor type="rename.type">
+		<parameters>
+			<parameter name="from">HAT_GELESEN</parameter>
+			<parameter name="to">READ</parameter>
+		</parameters>
+	</refactor>
 
 	<create ref="a_new_book_index" ifNotExists="false" />
 </migration>

@@ -148,6 +148,9 @@ class CatalogBasedMigrationIT {
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 				}
 			}
+			try (Session session = driver.session()) { // Data should not be cleansed
+				assertThat(session.run("MATCH (b:Book)<-[:READ]-(p:Person) RETURN b.title").single().get(0).asString()).isEqualTo("Doctor Sleep");
+			}
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
 				neo4j.stop();
@@ -163,9 +166,7 @@ class CatalogBasedMigrationIT {
 		String theVersion = versionValue == null ? version.toString() : versionValue;
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), theVersion))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-			.withReuse(version.hasIdempotentOperations() && TestcontainersConfiguration.getInstance()
-				.environmentSupportsReuse())
-			.withLabel("ac.simons.neo4j.migrations.core", this.getClass().getSimpleName() + "-" + version.name());
+			.withReuse(version.hasIdempotentOperations());
 		neo4j.start();
 
 		// We might reuse the containers from which we can easily drop the constraints again

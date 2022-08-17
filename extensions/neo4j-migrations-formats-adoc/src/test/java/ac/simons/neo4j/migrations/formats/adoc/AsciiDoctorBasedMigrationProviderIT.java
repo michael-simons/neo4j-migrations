@@ -39,14 +39,15 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.Neo4jException;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AsciiDoctorBasedMigrationProviderIT {
 
-	@SuppressWarnings("resource") protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"))
-		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
+	@SuppressWarnings("resource")
+	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"))
+		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+		.withReuse(true);
 
 	Driver driver;
 

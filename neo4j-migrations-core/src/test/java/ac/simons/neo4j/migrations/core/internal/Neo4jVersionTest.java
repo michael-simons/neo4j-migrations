@@ -17,7 +17,9 @@ package ac.simons.neo4j.migrations.core.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -30,5 +32,23 @@ class Neo4jVersionTest {
 	void shouldParseDespitePrefixAndSuffix(String value) {
 		Neo4jVersion version = Neo4jVersion.of(value);
 		assertThat(version).isEqualTo(Neo4jVersion.V4_3);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "5.0.0", "Neo4j/5.0.0", "5.0.0-drop04.0", "5.0.0-aura"})
+	void shouldIdenfify5(String value) {
+		Neo4jVersion version = Neo4jVersion.of(value);
+		assertThat(version).isEqualTo(Neo4jVersion.V5_0);
+	}
+
+	@Test
+	void shouldIdentifyMajorVersion3() {
+		assertThat(Neo4jVersion.V3_5.getMajorVersion()).isEqualTo(3);
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
+	void shouldIdentifyMajorVersion4(Neo4jVersion version) {
+		assertThat(version.getMajorVersion()).isEqualTo(4);
 	}
 }

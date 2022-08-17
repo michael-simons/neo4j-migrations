@@ -37,7 +37,6 @@ import org.neo4j.driver.exceptions.Neo4jException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
  * @author Michael J. Simons
@@ -55,8 +54,8 @@ abstract class TestBase {
 	}
 
 	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(DEFAULT_NEO4J_IMAGE)
-		.withLabel("ac.simons.neo4j.migrations.core", TestBase.class.getSimpleName())
-		.withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse());
+		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+		.withReuse(true);
 
 	Driver driver;
 

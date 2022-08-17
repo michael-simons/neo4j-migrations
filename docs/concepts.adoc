@@ -199,12 +199,29 @@ NOTE: The XML schema supports types for indexes as well: `FULLTEXT` and `TEXT`. 
 To learn more about the scheme, have a look at the <<appendix_xml_schemes_migration, XML schema explained>> and also make
 sure you follow the <<concepts_catalog, concepts about catalogs>> as well as the <<usage_defining_asserting_applying_catalogs, catalog examples>>.
 
+Last but not least, Neo4j-Migrations offers several built-in refactorings, modelled after https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/[APOC Refactor] but without requiring APOC to be installed inside the database or cluster.
+
+The example given in the APOC docs above can be identically modelled with the following catalog item:
+
+.V42__Rename_labels.xml
+[source,xml,indent=0,tabsize=2]
+----
+include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V42__Rename_labels.xml[]
+----
+
+It will rename the label `Engineer` on all nodes matching the custom query to `DevRel`.
+
+All supported refactorings are described in <<appendix_refactorings>>.
+
+
 *What's the advantage of using XML instead of a Cypher-based migration for this purpose?*
 The syntax for defining constraints and indexes has been changed considerably over the last decade of Neo4j versions and
 many variants that used to be possible in Neo4j 3.5 have been deprecated for a while and will vanish in Neo4j 5.0.
 
 With a neutral representation of constraints and indexes, we can translate these items into the syntax that fits your target
 database. In addition, we also can do idempotent operations on older databases that don't actually have them.
+
+Furthermore, some structured form is necessary for creating a representation of concepts like refactorings.
 
 *What's the advantage of using Catalog-based migrations for the purpose of creating constraints and indexes for specific
 versions of Neo4j compared to Cypher-based migrations with <<concepts_preconditions,preconditions>>?* When using preconditions
@@ -352,6 +369,8 @@ NOTE: Why the heck XML? While XML has been badmouthed for a while now, it has a 
       Our benefit lies in the fact that XML support comes directly with the JVM, and we don't need to introduce any additional
       dependencies to parse and validate content.
 
+A catalog is also used to represent predefined or built-in <<appendix_refactorings,refactorings>>, such as renaming all occurrences of types or labels.
+
 === What is a catalog?
 
 Inside Neo4j-Migrations the concept of a catalog has been introduced. A catalog holds the same type of entities as a schema
@@ -360,6 +379,8 @@ and migrations can pick up elements from the catalog to define the final schema.
 Items can reside multiple times inside the catalog, identified by their id and the version of the migration in which
 they have been defined. This is so that a drop operation for example can refer to the last version of an entity applied
 to the schema and not to the latest, in which properties or options might have change.
+
+Refactorings exists as a general concept in a catalog, they don't need to be defined, but just declared as an <<catalog_operations, operation>> to be executed.
 
 ==== How is a catalog defined?
 
@@ -380,6 +401,7 @@ Last but not least: Sometimes it is required to start fresh in a given migration
 an additional attribute `reset`. Setting this to true in any given migration will cause the catalog to be reset in this version.
 Resetting means either being replaced with an empty catalog (`<catalog reset="true" />`) or replaced with the actual content.
 
+[[catalog_operations]]
 === Operations working with a catalog
 
 Operations available to catalog based migrations are
@@ -388,6 +410,7 @@ Operations available to catalog based migrations are
 `drop`:: Drops an item
 `verify`:: Verify the locally defined catalog against the remote schema
 `apply`:: Drops all supported types from the remote schema and creates all elements of the local catalog.
+`refactor`:: Executes one of several predefined refactorings
 
 While `create` and `drop` work on single item,  `verify` and `apply` work on the whole, known catalog  in a defined version range.
 
@@ -438,6 +461,10 @@ WARNING: The `apply` operation loads all supported item types from the database,
 
 `apply` can't be used together with `drop` or `create` in the same migration.
 
+==== Executing refactorings
+
+`refactor` is used to run parameterized predefined refactorings. The `refactor` element can be used after the `verify` operation and before, after or in between `drop` or `create` operations. It will be executed in the order in which it was defined. It cannot be used together with `apply`.
+
 === Create a catalog from the actual database schema
 
 The API provides `getDatabaseCatalog` and `getLocalCatalog` methods.
@@ -449,6 +476,8 @@ own XML format or as Cypher script targeting a specific Neo4j version.
 
 Last but not least, there's public API `ac.simons.neo4j.migrations.core.catalog.CatalogDiff.between` that can be used to
 diff two catalogs and evaluate whether they are identical, equivalent or different to each other.
+
+Refactorings cannot be derived from an existing database.
 
 [[concepts_naming-conventions]]
 == Naming conventions

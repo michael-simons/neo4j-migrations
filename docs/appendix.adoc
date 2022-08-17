@@ -49,6 +49,151 @@ Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema
 include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/core/migration.xsd[]
 ----
 
+[[appendix_refactorings]]
+== Refactorings
+
+Neo4j-Migrations contains a set of ready-to-use database refactorings. These refactorings are all modelled very closely to those available in https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/[APOC] but *none* of them requires APOC to be installed in your database. The refactorings are mostly designed to work from within a <<concepts_catalog, catalog>> but they work very well on their own to. While they are part of the <<usage_core, Core API>>, they don't depend on a Migration instance. Their API is subject to the same versioning guarantees as the rest of Neo4j-Migrations. Refactorings might evolve into a their module at a later point in time.
+
+=== Renaming labels, types and properties
+
+`ac.simons.neo4j.migrations.core.refactorings.Rename` renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target enetities require Neo4j 4.1, batches Neo4j 4.4.
+
+==== Common methods
+
+`inBatchesOf`:: Enables or disables batching, requires Neo4j 4.4
+`withCustomQuery`:: Provides a custom query matching an entity (Node or Label) for renaming. The query must return zero or more rows each containing one item. This feature requires Neo4j 4.1
+
+==== Renaming labels
+
+`Rename.label(String from, String to)` renames all labels on all nodes that are equal the value of `from` to the value of `to`.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="rename.label">
+  <parameters>
+    <parameter name="from">Engineer</parameter>
+    <parameter name="to">DevRel</parameter>
+    <!-- Optional custom query -->
+    <!--
+    <parameter name="customQuery"><![CDATA[
+      MATCH (person:Engineer)
+      WHERE person.name IN ["Mark", "Jennifer", "Michael"]
+      RETURN person
+    ]]></parameter>
+    -->
+    <!-- Optional batch size (requires Neo4j 4.4+) -->
+    <!--
+    <parameter name="batchSize">23</parameter>
+    -->
+  </parameters>
+</refactor>
+----
+
+==== Renaming types
+
+`Rename.type(String from, String to)` renames all types on all relationships that are equal the value of `from` to the value of `to`.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="rename.type">
+  <parameters>
+    <parameter name="from">COLLEAGUES</parameter>
+    <parameter name="to">FROLLEAGUES</parameter>
+    <!-- Optional custom query -->
+    <!--
+    <parameter name="customQuery"><![CDATA[
+      MATCH (:Engineer {name: "Jim"})-[rel]->(:Engineer {name: "Alistair"})
+      RETURN rel
+    ]]></parameter>
+    -->
+    <!-- Optional batch size (requires Neo4j 4.4+) -->
+    <!--
+    <parameter name="batchSize">23</parameter>
+    -->
+  </parameters>
+</refactor>
+----
+
+==== Renaming node properties
+
+`Rename.nodeProperty(String from, String to)` renames all properties on all nodes that are equal the value of `from` to the value of `to`.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="rename.nodeProperty">
+  <parameters>
+    <parameter name="from">released</parameter>
+    <parameter name="to">veröffentlicht im Jahr</parameter>
+    <!-- Optional custom query -->
+    <!--
+    <parameter name="customQuery"><![CDATA[
+      MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n
+    ]]></parameter>
+    -->
+    <!-- Optional batch size (requires Neo4j 4.4+) -->
+    <!--
+    <parameter name="batchSize">23</parameter>
+    -->
+  </parameters>
+</refactor>
+----
+
+==== Renaming type properties
+
+`Rename.typeProperty(String from, String to)` renames all properties on all relationships that are equal the value of `from` to the value of `to`.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="rename.relationshipProperty">
+  <parameters>
+    <parameter name="from">roles</parameter>
+    <parameter name="to">rollen</parameter>
+    <!-- Optional custom query -->
+    <!--
+    <parameter name="customQuery"><![CDATA[
+      MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r
+    ]]></parameter>
+    -->
+    <!-- Optional batch size (requires Neo4j 4.4+) -->
+    <!--
+    <parameter name="batchSize">23</parameter>
+    -->
+  </parameters>
+</refactor>
+----
+
+=== Merging nodes
+
+`Merge.nodes(String source, List<PropertyMergePolicy> mergePolicies)` merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="merge.nodes">
+  <parameters>
+    <parameter name="sourceQuery">MATCH (p:Person) RETURN p ORDER BY p.name ASC</parameter>
+    <!-- Repeat as often as necessary -->
+    <parameter name="mergePolicy">
+      <pattern>name</pattern>
+      <strategy>KEEP_LAST</strategy>
+    </parameter>
+    <parameter name="mergePolicy">
+      <pattern>.*</pattern>
+      <strategy>KEEP_FIRST</strategy>
+    </parameter>
+  </parameters>
+</refactor>
+----
+
 [[appendix_extesions]]
 == Extensions
 

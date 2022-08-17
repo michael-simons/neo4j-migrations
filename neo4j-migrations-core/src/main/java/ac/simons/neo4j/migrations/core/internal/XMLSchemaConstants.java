@@ -81,10 +81,14 @@ public final class XMLSchemaConstants {
 	 */
 	public static final String CONSTRAINTS = "constraints";
 	/**
+	 * Constant for the element {@literal refactor}
+	 */
+	public static final String REFACTOR = "refactor";
+	/**
 	 * Constant for the element names of supported operations.
 	 */
-	public static final Set<String> OPERATIONS = Collections.unmodifiableSet(
-		new HashSet<>(Arrays.asList("verify", "create", "drop", "apply")));
+	public static final Set<String> SUPPORTED_OPERATIONS = Collections.unmodifiableSet(
+		new HashSet<>(Arrays.asList("verify", "create", "drop", "apply", REFACTOR)));
 
 	private XMLSchemaConstants() {
 	}

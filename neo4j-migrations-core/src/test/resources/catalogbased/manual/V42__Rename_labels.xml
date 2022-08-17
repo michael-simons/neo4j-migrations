@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<refactor type="rename.label">
+		<parameters>
+			<parameter name="from">Engineer</parameter>
+			<parameter name="to">DevRel</parameter>
+			<parameter name="customQuery"><![CDATA[
+				MATCH (person:Engineer)
+				WHERE person.name IN ["Mark", "Jennifer", "Michael"]
+				RETURN person
+			]]></parameter>
+		</parameters>
+	</refactor>
+</migration>

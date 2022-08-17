@@ -92,6 +92,18 @@ final class StringsTest {
 		assertThat(value).isEqualTo(expected);
 	}
 
+	@CsvSource(delimiterString = "@@", value = {
+		"RETURN toUpper(elementId(n))@@ RETURN toUpper(toString(id(n)))",
+		"RETURN toUpper(elementId( n ))@@ RETURN toUpper(toString(id( n )))",
+		"RETURN elementId(n)@@ RETURN toString(id(n))",
+		"RETURN id(n)@@ RETURN id(n)"
+	})
+	void replaceElementIdCallsShouldWork(String query, String expected) {
+
+		String newQuery = Strings.replaceElementIdCalls(query);
+		assertThat(newQuery).isEqualTo(expected);
+	}
+
 	@Nested
 	class Capitalization {
 

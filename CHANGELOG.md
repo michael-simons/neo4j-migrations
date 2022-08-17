@@ -1,3 +1,217 @@
+# 1.9.2
+
+## 🐛 Bug Fixes
+- a99b33f Add missing type `property` to allowed index types.
+
+## 🧹 Housekeeping
+- 127996f Bump maven-javadoc-plugin from 3.4.0 to 3.4.1 (#600)
+- 75191a9 Bump neo4j-harness from 4.4.9 to 4.4.10 (#601)
+- 538ccd1 Bump maven-project-info-reports-plugin from 3.4.0 to 3.4.1 (#602)
+- 8c6ad22 Bump mockito.version from 4.6.1 to 4.7.0 (#603)
+- 123acdd Bump maven-site-plugin from 3.12.0 to 3.12.1 (#599)
+- 2c91338 Bump byte-buddy.version from 1.12.12 to 1.12.13 (#598)
+- 7ec3a03 Bump objenesis from 3.2 to 3.3 (#597)
+- 2c5ebeb Bump quarkus.version from 2.11.1.Final to 2.11.2.Final (#596)
+
+## 🛠 Build
+- d736df7 Use `quarkus-extension-maven-plugin` instead of `quarkus-bootstrap-maven-plugin`.
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.9.1
+
+## 🐛 Bug Fixes
+- 766333a Render indexes while rendering an XML catalog, too. (#595)
+
+## 🧹 Housekeeping
+- c49486c Bump docker-maven-plugin from 0.40.1 to 0.40.2 (#594)
+- d33e902 Bump junit-jupiter-causal-cluster-testcontainer-extension (#593)
+- ea1619d Bump asciidoctorj from 2.5.4 to 2.5.5 (#592)
+- 27f4f44 Bump junit-bom from 5.8.2 to 5.9.0 (#591)
+- 4141884 Bump maven-resources-plugin from 3.2.0 to 3.3.0 (#590)
+- de709fe Bump checkstyle from 10.3.1 to 10.3.2 (#589)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.9.0
+
+## 🚀 Features
+- 3cb4c25 Add experimental Markdown extension. (#585)
+- 1ab051c Add `:USE` command. (#583)
+- a83b60b Support well-known Neo4j environment variables. (#587)
+
+## 🐛 Bug Fixes
+- 7808fa5 Handle additional Neo4j server agent strings. (#588)
+- 3564781 Adjust layout to commonly used one. (#582)
+- f50b365 Fix encoding issue in dev ui.
+- a5d7d92 Fix spelling. (#567)
+
+## 🔄️ Refactorings
+- 462cfba Avoid an unlock attempt if the lock isn’t locked. (#581)
+- 9c26342 Deprecate `ac.simons.neo4j.migrations.core.Migration#getDescription`. (#584)
+
+## 🧹 Housekeeping
+- b68caee Bump quarkus-neo4j.version from 1.3.2 to 1.4.0
+- 78a06f4 Bump quarkus.version from 2.11.0.Final to 2.11.1.Final
+- d3dba4a Bump maven-project-info-reports-plugin from 3.3.0 to 3.4.0 (#568)
+- b2f5b8a Bump maven-install-plugin from 3.0.0-M1 to 3.0.1 (#579)
+- 0a7fbfa Bump spring-boot.version from 2.7.1 to 2.7.2 (#578)
+- 1d6434f Bump maven-deploy-plugin from 3.0.0-M2 to 3.0.0 (#577)
+- 330be58 Bump maven-assembly-plugin from 3.4.1 to 3.4.2 (#575)
+- e76fb8c Bump neo4j-harness from 4.4.8 to 4.4.9 (#580)
+- f404a07 Bump quarkus.version from 2.10.2.Final to 2.11.0.Final (#574)
+- 129cebf Bump exec-maven-plugin from 3.0.0 to 3.1.0 (#570)
+- 8c65341 Bump native-maven-plugin from 0.9.12 to 0.9.13 (#571)
+- 9995d00 Bump sortpom-maven-plugin from 3.1.3 to 3.2.0 (#569)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @ali-ince
+- @meistermeier
+- @michael-simons
+- @SeanKilleen
+
+
+# 1.8.3
+
+## 🚀 Features
+- d4c1061 Allow adding preconditions to migrations after they have been applied. (#565)
+
+## 🐛 Bug Fixes
+- 207b14c Add a check for Neo4j 5 constraint backing indexes. (#564)
+
+## 🔄️ Refactorings
+- 01f2d3b Warn only on empty locations. (#555)
+
+## 🧹 Housekeeping
+- bc1b61c Bump quarkus-neo4j.version from 1.3.1 to 1.3.2
+- 8349c44 Bump neo4j-java-driver from 4.4.6 to 4.4.9
+
+## 🛠 Build
+- 6cc739b Don't drop LOOKUP constraints prior to tests. (#562)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @ali-ince
+- @injectives
+- @meistermeier
+- @michael-simons
+
+
+# 1.8.2
+
+## 🐛 Bug Fixes
+- a0bf11c Strip leading product specific information from version string. (#550)
+
+## 🧹 Housekeeping
+- 9d768f8 Bump quarkus-neo4j.version from 1.3.0 to 1.3.1
+- 3edeca0 Bump quarkus.version from 2.10.1.Final to 2.10.2.Final (#552)
+- b698497 Bump classgraph from 4.8.147 to 4.8.149 (#553)
+- 9048202 Bump maven-assembly-plugin from 3.4.0 to 3.4.1 (#554)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @Hosch250
+
+
+# 1.8.1
+
+## 🔄️ Refactorings
+- c577565 Avoid using `ServerVersion` in favor of a plain string. (#540)
+
+## 🧹 Housekeeping
+- d795d6c Bump testcontainers.version from 1.17.2 to 1.17.3 (#547)
+- 61811af Bump jreleaser-maven-plugin from 1.0.0 to 1.1.0 (#543)
+- 2b10f8e Bump quarkus.version from 2.10.0.Final to 2.10.1.Final (#545)
+- 20c41fd Bump jna from 5.12.0 to 5.12.1 (#548)
+- 06f4e78 Bump checkstyle from 10.3 to 10.3.1 (#544)
+- 4db301f Bump maven-assembly-plugin from 3.3.0 to 3.4.0 (#546)
+
+## 🛠 Build
+- 847c26f Add support for integration tests running on Apple silicon. (#538)
+- 3da7550 Use a system property to configure a central Neo4j image to be used as default in integration tests. (#542)
+- 3e25207 Completely exclude asciidoc extension from site plugin.
+- 9d58c90 Install a Ruby version compatible with JRuby and Maven.
+- d49d744 Add mavengem-wagon as extension to avoid site generation errors. (#541)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+- @meistermeier
+- @bsideup 
+
+
+# 1.8.0
+
+## 🚀 Features
+- b7883da Add asciidoctor to supported migration formats as external extension.
+
+## 🔄️ Refactorings
+- b2981bb Refine extension API.
+
+## 📝 Documentation
+- e7d551f Add customer feedback.
+- 89b4ece Replace  with the correct version (1.7.0).
+
+## 🧹 Housekeeping
+- 7b26a3a Bump byte-buddy.version from 1.12.10 to 1.12.12 (#533)
+- 49b509d Bump spring-boot.version from 2.7.0 to 2.7.1 (#532)
+- d1a077e Bump quarkus-neo4j.version from 1.2.0 to 1.3.0 (#534)
+- 2b9cfe8 Bump build-helper-maven-plugin from 1.12 to 3.3.0 (#535)
+- 91b5b9c Bump jna from 5.11.0 to 5.12.0 (#536)
+- a010e25 Bump native-maven-plugin from 0.9.11 to 0.9.12 (#537)
+- 440eb1d Bump quarkus.version from 2.9.2.Final to 2.10.0.Final (#528)
+- 2f86e65 Bump neo4j-harness from 4.4.7 to 4.4.8 (#529)
+- c7b8338 Bump maven.version from 3.8.5 to 3.8.6 (#525)
+- 2150dc1 Bump docker-maven-plugin from 0.40.0 to 0.40.1 (#526)
+
+## 🛠 Build
+- 902b782 Add a CODEOWNERS declaration.
+- 0d55287 Optionally use a local database for Windows tests. (#523)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @michael-simons
+
+
+# 1.7.1
+
+## 🐛 Bug Fixes
+- aa86a67 Use proper URIs for filesystem based locations. (#522)
+- bea46c5 Check if dbms.procedures is available or not. (#520)
+- dc06016 Missing export of catalog package.
+
+## 📝 Documentation
+- a192ada Update local changelog.
+
+## 🧹 Housekeeping
+- 7cff26f Bump assertj-core from 3.22.0 to 3.23.1 (#519)
+- a127f05 Bump neo4j-java-driver from 4.4.5 to 4.4.6 (#518)
+- a950fe8 Bump mockito.version from 4.6.0 to 4.6.1 (#517)
+- ee390ae Bump asciidoctorj from 2.5.3 to 2.5.4 (#515)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @ali-ince
+- @Dcanzano
+- @michael-simons
+
+
 # 1.7.0
 
 It's my pleasure to introduce an exciting new feature with this release: The possibility to manage your constraints and indexes for Neo4j in a version agnostic way!

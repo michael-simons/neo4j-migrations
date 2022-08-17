@@ -573,7 +573,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <ul class="sectlevel2">
 <li><a href="#usage_common">4.1. Common operations</a></li>
 <li><a href="#cli">4.2. CLI</a></li>
-<li><a href="#coreapi">4.3. Core API</a></li>
+<li><a href="#usage_core">4.3. Core API</a></li>
 <li><a href="#usage_spring-boot-starter">4.4. Spring-Boot-Starter</a></li>
 <li><a href="#usage_quarkus">4.5. Quarkus</a></li>
 <li><a href="#usage_maven-plugin">4.6. Maven-Plugin</a></li>
@@ -584,6 +584,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <ul class="sectlevel2">
 <li><a href="#glossary">Glossary</a></li>
 <li><a href="#appendix_xml_schemes">XML Schemes</a></li>
+<li><a href="#appendix_refactorings">Refactorings</a></li>
 <li><a href="#appendix_extesions">Extensions</a></li>
 </ul>
 </li>
@@ -599,7 +600,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 1.9.3-SNAPSHOT.</p>
+<p>This is the Neo4j-Migrations manual version 1.10.0-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -763,7 +764,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -774,7 +775,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -787,7 +788,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -820,7 +821,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -831,7 +832,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.9.3-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:1.10.0-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -850,7 +851,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -862,7 +863,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.9.3-SNAPSHOT'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:1.10.0-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -882,7 +883,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -899,7 +900,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -1251,6 +1252,37 @@ The XML schema supports types for indexes as well: <code>FULLTEXT</code> and <co
 sure you follow the <a href="#concepts_catalog">concepts about catalogs</a> as well as the <a href="#usage_defining_asserting_applying_catalogs">catalog examples</a>.</p>
 </div>
 <div class="paragraph">
+<p>Last but not least, Neo4j-Migrations offers several built-in refactorings, modelled after <a href="https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/">APOC Refactor</a> but without requiring APOC to be installed inside the database or cluster.</p>
+</div>
+<div class="paragraph">
+<p>The example given in the APOC docs above can be identically modelled with the following catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 14. V42__Rename_labels.xml</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.label</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;parameters&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">from</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>Engineer<span class="tag">&lt;/parameter&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">to</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>DevRel<span class="tag">&lt;/parameter&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">customQuery</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span><span class="inline-delimiter">&lt;![CDATA[</span>
+        MATCH (person:Engineer)
+        WHERE person.name IN [&quot;Mark&quot;, &quot;Jennifer&quot;, &quot;Michael&quot;]
+        RETURN person
+      <span class="inline-delimiter">]]&gt;</span><span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;/parameters&gt;</span>
+  <span class="tag">&lt;/refactor&gt;</span>
+<span class="tag">&lt;/migration&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It will rename the label <code>Engineer</code> on all nodes matching the custom query to <code>DevRel</code>.</p>
+</div>
+<div class="paragraph">
+<p>All supported refactorings are described in <a href="#appendix_refactorings">Refactorings</a>.</p>
+</div>
+<div class="paragraph">
 <p><strong>What&#8217;s the advantage of using XML instead of a Cypher-based migration for this purpose?</strong>
 The syntax for defining constraints and indexes has been changed considerably over the last decade of Neo4j versions and
 many variants that used to be possible in Neo4j 3.5 have been deprecated for a while and will vanish in Neo4j 5.0.</p>
@@ -1258,6 +1290,9 @@ many variants that used to be possible in Neo4j 3.5 have been deprecated for a w
 <div class="paragraph">
 <p>With a neutral representation of constraints and indexes, we can translate these items into the syntax that fits your target
 database. In addition, we also can do idempotent operations on older databases that don&#8217;t actually have them.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore, some structured form is necessary for creating a representation of concepts like refactorings.</p>
 </div>
 <div class="paragraph">
 <p><strong>What&#8217;s the advantage of using Catalog-based migrations for the purpose of creating constraints and indexes for specific
@@ -1272,7 +1307,7 @@ In contrast to that, Catalog-based migrations have a very strong focus on actual
 anywhere in the document and look like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 14. Example for preconditions as processing instructions</div>
+<div class="title">Listing 15. Example for preconditions as processing instructions</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -1307,7 +1342,7 @@ You can refactor everything in your database in a programmatic way.
 One possible migration looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 15. Example for a Java-based refactoring</div>
+<div class="title">Listing 16. Example for a Java-based refactoring</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">some.migrations</span>;
 
@@ -1495,6 +1530,9 @@ Why the heck XML? While XML has been badmouthed for a while now, it has a couple
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>A catalog is also used to represent predefined or built-in <a href="#appendix_refactorings">refactorings</a>, such as renaming all occurrences of types or labels.</p>
+</div>
 <div class="sect3">
 <h4 id="whatisacatalog"><a class="anchor" href="#whatisacatalog"></a>3.4.1. What is a catalog?</h4>
 <div class="paragraph">
@@ -1505,6 +1543,9 @@ and migrations can pick up elements from the catalog to define the final schema.
 <p>Items can reside multiple times inside the catalog, identified by their id and the version of the migration in which
 they have been defined. This is so that a drop operation for example can refer to the last version of an entity applied
 to the schema and not to the latest, in which properties or options might have change.</p>
+</div>
+<div class="paragraph">
+<p>Refactorings exists as a general concept in a catalog, they don&#8217;t need to be defined, but just declared as an <a href="#catalog_operations">operation</a> to be executed.</p>
 </div>
 <div class="sect4">
 <h5 id="howisacatalogdefined"><a class="anchor" href="#howisacatalogdefined"></a>How is a catalog defined?</h5>
@@ -1531,7 +1572,7 @@ Resetting means either being replaced with an empty catalog (<code>&lt;catalog r
 </div>
 </div>
 <div class="sect3">
-<h4 id="operationsworkingwithacatalog"><a class="anchor" href="#operationsworkingwithacatalog"></a>3.4.2. Operations working with a catalog</h4>
+<h4 id="catalog_operations"><a class="anchor" href="#catalog_operations"></a>3.4.2. Operations working with a catalog</h4>
 <div class="paragraph">
 <p>Operations available to catalog based migrations are</p>
 </div>
@@ -1552,6 +1593,10 @@ Resetting means either being replaced with an empty catalog (<code>&lt;catalog r
 <dt class="hdlist1"><code>apply</code></dt>
 <dd>
 <p>Drops all supported types from the remote schema and creates all elements of the local catalog.</p>
+</dd>
+<dt class="hdlist1"><code>refactor</code></dt>
+<dd>
+<p>Executes one of several predefined refactorings</p>
 </dd>
 </dl>
 </div>
@@ -1634,6 +1679,12 @@ The <code>apply</code> operation loads all supported item types from the databas
 <p><code>apply</code> can&#8217;t be used together with <code>drop</code> or <code>create</code> in the same migration.</p>
 </div>
 </div>
+<div class="sect4">
+<h5 id="executingrefactorings"><a class="anchor" href="#executingrefactorings"></a>Executing refactorings</h5>
+<div class="paragraph">
+<p><code>refactor</code> is used to run parameterized predefined refactorings. The <code>refactor</code> element can be used after the <code>verify</code> operation and before, after or in between <code>drop</code> or <code>create</code> operations. It will be executed in the order in which it was defined. It cannot be used together with <code>apply</code>.</p>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="createacatalogfromtheactualdatabaseschema"><a class="anchor" href="#createacatalogfromtheactualdatabaseschema"></a>3.4.3. Create a catalog from the actual database schema</h4>
@@ -1649,6 +1700,9 @@ own XML format or as Cypher script targeting a specific Neo4j version.</p>
 <div class="paragraph">
 <p>Last but not least, there&#8217;s public API <code>ac.simons.neo4j.migrations.core.catalog.CatalogDiff.between</code> that can be used to
 diff two catalogs and evaluate whether they are identical, equivalent or different to each other.</p>
+</div>
+<div class="paragraph">
+<p>Refactorings cannot be derived from an existing database.</p>
 </div>
 </div>
 </div>
@@ -1867,7 +1921,7 @@ certain conditions (for example, on losing connectivity inside a cluster setup).
 transactional function or if each statement goes into its own transactional scope:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 16. Choose transaction behaviour</div>
+<div class="title">Listing 17. Choose transaction behaviour</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">MigrationsConfig configPerMigration = MigrationsConfig.builder()
     .withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
@@ -1989,7 +2043,7 @@ want. For example: Your minimum supported database version is 4.3 and you want t
 You want to have 2 migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 17. 43/V0001__Create_existence_constraint.cypher</div>
+<div class="title">Listing 18. 43/V0001__Create_existence_constraint.cypher</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
 // assume that version is 4.3
@@ -2000,7 +2054,7 @@ CREATE CONSTRAINT isbn_exists IF NOT EXISTS ON (book:Library) ASSERT exists(book
 <p>And the different one for 4.4 or higher:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 18. 44/V0001__Create_existence_constraint.cypher</div>
+<div class="title">Listing 19. 44/V0001__Create_existence_constraint.cypher</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cypher">// assert that edition is enterprise
 // assume that version is ge 4.4
@@ -2175,12 +2229,12 @@ In the following we assume you downloaded and unzipped the architecture independ
 For that version to work, you need to have JDK 8 or higher installed:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 19. Download and extraction of the JVM based version</div>
+<div class="title">Listing 20. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip
-unzip neo4j-migrations-1.9.3-SNAPSHOT.zip
-cd neo4j-migrations-1.9.3-SNAPSHOT
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip
+unzip neo4j-migrations-1.10.0-SNAPSHOT.zip
+cd neo4j-migrations-1.10.0-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -2343,7 +2397,7 @@ The password will be read from this file.</p>
 <p>Neo4j AuraDB provides <code>.env</code> files when creating new instances that look like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 20. A Neo4j AuraDB .env file</div>
+<div class="title">Listing 21. A Neo4j AuraDB .env file</div>
 <div class="content">
 <pre class="CodeRay highlight"><code># Wait 60 seconds before connecting using these details, or login to https://console.neo4j.io to validate the Aura Instance is available
 NEO4J_URI=neo4j+s://xxxx.databases.neo4j.io
@@ -2382,7 +2436,7 @@ set +o allexport</code></pre>
 Here&#8217;s how to use it:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 21. Generate autocompletion script</div>
+<div class="title">Listing 22. Generate autocompletion script</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">./bin/neo4j-migrations generate-completion &gt; neo4j-migrations_completion.sh</code></pre>
 </div>
@@ -2395,7 +2449,7 @@ sourcing it in your <code>~/.bashrc</code> or <code>~/.zshrc</code>.</p>
 <p>If you want to have autocompletion for Neo4j-Migrations just in your current shell use the following command</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 22. Add autocompletion to your current shell</div>
+<div class="title">Listing 23. Add autocompletion to your current shell</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">source &lt;(./bin/neo4j-migrations generate-completion)</code></pre>
 </div>
@@ -2536,9 +2590,9 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip
-unzip neo4j-migrations-1.9.3-SNAPSHOT.zip
-cd neo4j-migrations-1.9.3-SNAPSHOT
+<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip
+unzip neo4j-migrations-1.10.0-SNAPSHOT.zip
+cd neo4j-migrations-1.10.0-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -2579,9 +2633,9 @@ We do add this here for completeness, but we do think that Java-based migrations
 </div>
 </div>
 <div class="sect2">
-<h3 id="coreapi"><a class="anchor" href="#coreapi"></a>4.3. Core API</h3>
+<h3 id="usage_core"><a class="anchor" href="#usage_core"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.9.3-SNAPSHOT API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 1.10.0-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">Section 2.2</a>.</p>
 </div>
 <div class="paragraph">
@@ -2598,7 +2652,7 @@ An instance of <code>MigrationsConfig</code> is created via a fluent-builder API
 Putting everything together looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 23. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
+<div class="title">Listing 24. Creating an instance of <code>Migrations</code> based on a configuration object and the Java driver</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">Migrations migrations = <span class="keyword">new</span> Migrations(
     MigrationsConfig.builder()
@@ -2634,7 +2688,7 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 Resoruces on the classpath should be picked up automatically:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 24. Using Neo4j-Migrations on the module path</div>
+<div class="title">Listing 25. Using Neo4j-Migrations on the module path</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java">module my.module {
     requires ac.simons.neo4j.migrations.core;
@@ -2664,7 +2718,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2684,7 +2738,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 25. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
+<div class="title">Listing 26. Configure both the driver, disable the existence check for migration scripts and scan for Java-based migration</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">spring.neo4j.authentication.username=neo4j
 spring.neo4j.authentication.password=secret
@@ -2937,7 +2991,7 @@ Declare the following dependency in your Quarkus application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -2954,7 +3008,7 @@ It does not scan by default for Java-based migrations.</p>
 <p>Here&#8217;s an example on how to configure the driver and the migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 26. Configure both the driver and scan for Java-based migrations, too</div>
+<div class="title">Listing 27. Configure both the driver and scan for Java-based migrations, too</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="properties">quarkus.neo4j.uri=bolt://localhost:7687
 quarkus.neo4j.authentication.username=neo4j
@@ -3026,12 +3080,12 @@ a detailed list of all goals and configuration option as well as the default lif
 <p>Most of the time you will configure the following properties for the plugin:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 27. Configuring the Maven-Plugin</div>
+<div class="title">Listing 28. Configuring the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -3051,7 +3105,7 @@ By default, the plugin will look in <code>neo4j/migrations</code> for <a href="#
 You can change that via <code>locationsToScan</code> inside the <code>configuration</code> element like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 28. Changing the locations to scan for the Maven-Plugin</div>
+<div class="title">Listing 29. Changing the locations to scan for the Maven-Plugin</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;locationsToScan&gt;</span>
     <span class="tag">&lt;locationToScan&gt;</span>file://${project.build.outputDirectory}/custom/path<span class="tag">&lt;/locationToScan&gt;</span>
@@ -3107,7 +3161,7 @@ possible scenarios that can be implemented.</p>
 holding connection data such as URL and credentials as well as your migrations:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 29. Create migrations directory with credentials etc.</div>
+<div class="title">Listing 30. Create migrations directory with credentials etc.</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">neo4j-migrations -a bolt://localhost:7687 -u neo4j -p secret init
 tree -a</code></pre>
@@ -3134,7 +3188,7 @@ tree -a</code></pre>
 In this example we assert toe remote catalog to be empty and we define our first migration like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 30. V010__Assert_empty_schema.xml</div>
+<div class="title">Listing 31. V010__Assert_empty_schema.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3166,7 +3220,7 @@ verification does not happen again, as the 010 has been applied. Therefore, a ve
 each catalog based migration:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 31. V020__Create_person_name_unique.xml</div>
+<div class="title">Listing 32. V020__Create_person_name_unique.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3206,7 +3260,7 @@ fix that. Assuming for sake of sanity that every person has a name, we replace t
 for the next version:</p>
 </div>
 <div id="V030Fix_person_name_constraint_CE" class="listingblock">
-<div class="title">Listing 32. V030__Fix_person_name_constraint_CE.xml</div>
+<div class="title">Listing 33. V030__Fix_person_name_constraint_CE.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3219,7 +3273,7 @@ for the next version:</p>
 <p>and for the enterprise edition, we can redefine the constraint like this:</p>
 </div>
 <div id="V030Fix_person_name_constraint_EE" class="listingblock">
-<div class="title">Listing 33. V030__Fix_person_name_constraint_EE.xml</div>
+<div class="title">Listing 34. V030__Fix_person_name_constraint_EE.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3241,8 +3295,8 @@ for the next version:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Note how we <strong>can</strong> <code>refer</code> to the constraint by ref in <a href="#V030Fix_person_name_constraint_EE">Listing 33</a> and how we <strong>must</strong> use
-<code>item</code> in <a href="#V030Fix_person_name_constraint_CE">Listing 32</a>. The reason for that is that we refer to an older item only in the
+<p>Note how we <strong>can</strong> <code>refer</code> to the constraint by ref in <a href="#V030Fix_person_name_constraint_EE">Listing 34</a> and how we <strong>must</strong> use
+<code>item</code> in <a href="#V030Fix_person_name_constraint_CE">Listing 33</a>. The reason for that is that we refer to an older item only in the
 migration for community edition. We redefined the item in the script for the enterprise edition, so we might as well
 refer to it.
 In older Neo4j versions not supporting names for constraints Neo4j-Migrations will use the old definition to drop the item
@@ -3265,7 +3319,7 @@ Database migrated to version 030.</code></pre>
 <p>Assuming you some other enterprise stuff related items in the following listing:</p>
 </div>
 <div id="V040Additional_stuff" class="listingblock">
-<div class="title">Listing 34. V040__Additional_stuff.xml</div>
+<div class="title">Listing 35. V040__Additional_stuff.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3298,7 +3352,7 @@ Database migrated to version 030.</code></pre>
 <p>To get some information about your database, you can inspect the remote catalog:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 35. Inspecting the remote catalog</div>
+<div class="title">Listing 36. Inspecting the remote catalog</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">neo4j-migrations show-catalog</code></pre>
 </div>
@@ -3375,7 +3429,7 @@ defined items, too.</p>
 <p>Therefore, you need to reset the catalog as shown in the following listing:</p>
 </div>
 <div id="V050A_new_start" class="listingblock">
-<div class="title">Listing 36. V050__A_new_start.xml</div>
+<div class="title">Listing 37. V050__A_new_start.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3397,7 +3451,7 @@ defined items, too.</p>
 <p>followed by a final verification:</p>
 </div>
 <div id="V060Assert_final_state" class="listingblock">
-<div class="title">Listing 37. V060__Assert_final_state.xml</div>
+<div class="title">Listing 38. V060__Assert_final_state.xml</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3543,7 +3597,7 @@ to the target entity. This attribute defines the type of the element (such as un
 <p>Look up valid preconditions <a href="#concepts_preconditions">here</a>. The full XMl schema for <a href="#concepts_migrations_catalog-based">catalog-based migrations</a> looks like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 38. migration.xsd</div>
+<div class="title">Listing 39. migration.xsd</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span>
 <span class="comment">&lt;!--
@@ -3576,12 +3630,38 @@ to the target entity. This attribute defines the type of the element (such as un
       <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">verify</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">verifyOperation</span><span class="delimiter">&quot;</span></span> <span class="tag">/&gt;</span>
       <span class="tag">&lt;xs:choice&gt;</span>
         <span class="tag">&lt;xs:choice</span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-          <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">create</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">createOperation</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
-          <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">drop</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dropOperation</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">refactor</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">refactoring</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:choice</span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">create</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">createOperation</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+            <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">drop</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">dropOperation</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;/xs:choice&gt;</span>
         <span class="tag">&lt;/xs:choice&gt;</span>
         <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">apply</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">applyOperation</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
       <span class="tag">&lt;/xs:choice&gt;</span>
     <span class="tag">&lt;/xs:sequence&gt;</span>
+  <span class="tag">&lt;/xs:complexType&gt;</span>
+
+  <span class="tag">&lt;xs:complexType</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">refactoring</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;xs:sequence</span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">0</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;xs:element</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">parameters</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;xs:complexType&gt;</span>
+          <span class="tag">&lt;xs:sequence</span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;xs:any</span> <span class="attribute-name">processContents</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">lax</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;/xs:sequence&gt;</span>
+        <span class="tag">&lt;/xs:complexType&gt;</span>
+      <span class="tag">&lt;/xs:element&gt;</span>
+    <span class="tag">&lt;/xs:sequence&gt;</span>
+    <span class="tag">&lt;xs:attribute</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">type</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;xs:simpleType&gt;</span>
+        <span class="tag">&lt;xs:restriction</span> <span class="attribute-name">base</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xs:string</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">merge.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.label</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.type</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.nodeProperty</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.relationshipProperty</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+        <span class="tag">&lt;/xs:restriction&gt;</span>
+      <span class="tag">&lt;/xs:simpleType&gt;</span>
+    <span class="tag">&lt;/xs:attribute&gt;</span>
   <span class="tag">&lt;/xs:complexType&gt;</span>
 
   <span class="tag">&lt;xs:complexType</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">catalog</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
@@ -3656,8 +3736,7 @@ to the target entity. This attribute defines the type of the element (such as un
 
   <span class="tag">&lt;xs:complexType</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">properties</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;xs:sequence&gt;</span>
-      <span class="tag">&lt;xs:element</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xs:string</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">property</span><span class="delimiter">&quot;</span></span>
-            <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">minOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">1</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+      <span class="tag">&lt;xs:element</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xs:string</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">property</span><span class="delimiter">&quot;</span></span> <span class="attribute-name">maxOccurs</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">unbounded</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
     <span class="tag">&lt;/xs:sequence&gt;</span>
   <span class="tag">&lt;/xs:complexType&gt;</span>
 
@@ -3713,6 +3792,179 @@ to the target entity. This attribute defines the type of the element (such as un
     <span class="tag">&lt;/xs:complexContent&gt;</span>
   <span class="tag">&lt;/xs:complexType&gt;</span>
 <span class="tag">&lt;/xs:schema&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="appendix_refactorings"><a class="anchor" href="#appendix_refactorings"></a>Refactorings</h3>
+<div class="paragraph">
+<p>Neo4j-Migrations contains a set of ready-to-use database refactorings. These refactorings are all modelled very closely to those available in <a href="https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/">APOC</a> but <strong>none</strong> of them requires APOC to be installed in your database. The refactorings are mostly designed to work from within a <a href="#concepts_catalog">catalog</a> but they work very well on their own to. While they are part of the <a href="#usage_core">Core API</a>, they don&#8217;t depend on a Migration instance. Their API is subject to the same versioning guarantees as the rest of Neo4j-Migrations. Refactorings might evolve into a their module at a later point in time.</p>
+</div>
+<div class="sect3">
+<h4 id="renaminglabelstypesandproperties"><a class="anchor" href="#renaminglabelstypesandproperties"></a>Renaming labels, types and properties</h4>
+<div class="paragraph">
+<p><code>ac.simons.neo4j.migrations.core.refactorings.Rename</code> renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target enetities require Neo4j 4.1, batches Neo4j 4.4.</p>
+</div>
+<div class="sect4">
+<h5 id="commonmethods"><a class="anchor" href="#commonmethods"></a>Common methods</h5>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>inBatchesOf</code></dt>
+<dd>
+<p>Enables or disables batching, requires Neo4j 4.4</p>
+</dd>
+<dt class="hdlist1"><code>withCustomQuery</code></dt>
+<dd>
+<p>Provides a custom query matching an entity (Node or Label) for renaming. The query must return zero or more rows each containing one item. This feature requires Neo4j 4.1</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect4">
+<h5 id="renaminglabels"><a class="anchor" href="#renaminglabels"></a>Renaming labels</h5>
+<div class="paragraph">
+<p><code>Rename.label(String from, String to)</code> renames all labels on all nodes that are equal the value of <code>from</code> to the value of <code>to</code>.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.label</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">from</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>Engineer<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">to</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>DevRel<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Optional custom query --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;customQuery&quot;&gt;&lt;![CDATA[
+      MATCH (person:Engineer)
+      WHERE person.name IN [&quot;Mark&quot;, &quot;Jennifer&quot;, &quot;Michael&quot;]
+      RETURN person
+    ]]&gt;&lt;/parameter&gt;
+    --&gt;</span>
+    <span class="comment">&lt;!-- Optional batch size (requires Neo4j 4.4+) --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;batchSize&quot;&gt;23&lt;/parameter&gt;
+    --&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="renamingtypes"><a class="anchor" href="#renamingtypes"></a>Renaming types</h5>
+<div class="paragraph">
+<p><code>Rename.type(String from, String to)</code> renames all types on all relationships that are equal the value of <code>from</code> to the value of <code>to</code>.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.type</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">from</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>COLLEAGUES<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">to</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>FROLLEAGUES<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Optional custom query --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;customQuery&quot;&gt;&lt;![CDATA[
+      MATCH (:Engineer {name: &quot;Jim&quot;})-[rel]-&gt;(:Engineer {name: &quot;Alistair&quot;})
+      RETURN rel
+    ]]&gt;&lt;/parameter&gt;
+    --&gt;</span>
+    <span class="comment">&lt;!-- Optional batch size (requires Neo4j 4.4+) --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;batchSize&quot;&gt;23&lt;/parameter&gt;
+    --&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="renamingnodeproperties"><a class="anchor" href="#renamingnodeproperties"></a>Renaming node properties</h5>
+<div class="paragraph">
+<p><code>Rename.nodeProperty(String from, String to)</code> renames all properties on all nodes that are equal the value of <code>from</code> to the value of <code>to</code>.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.nodeProperty</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">from</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>released<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">to</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>veröffentlicht im Jahr<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Optional custom query --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;customQuery&quot;&gt;&lt;![CDATA[
+      MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n
+    ]]&gt;&lt;/parameter&gt;
+    --&gt;</span>
+    <span class="comment">&lt;!-- Optional batch size (requires Neo4j 4.4+) --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;batchSize&quot;&gt;23&lt;/parameter&gt;
+    --&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="renamingtypeproperties"><a class="anchor" href="#renamingtypeproperties"></a>Renaming type properties</h5>
+<div class="paragraph">
+<p><code>Rename.typeProperty(String from, String to)</code> renames all properties on all relationships that are equal the value of <code>from</code> to the value of <code>to</code>.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.relationshipProperty</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">from</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>roles<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">to</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>rollen<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Optional custom query --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;customQuery&quot;&gt;&lt;![CDATA[
+      MATCH (n:Movie) &lt;-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r
+    ]]&gt;&lt;/parameter&gt;
+    --&gt;</span>
+    <span class="comment">&lt;!-- Optional batch size (requires Neo4j 4.4+) --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;batchSize&quot;&gt;23&lt;/parameter&gt;
+    --&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="mergingnodes"><a class="anchor" href="#mergingnodes"></a>Merging nodes</h4>
+<div class="paragraph">
+<p><code>Merge.nodes(String source, List&lt;PropertyMergePolicy&gt; mergePolicies)</code> merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">merge.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceQuery</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>MATCH (p:Person) RETURN p ORDER BY p.name ASC<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Repeat as often as necessary --&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;pattern&gt;</span>name<span class="tag">&lt;/pattern&gt;</span>
+      <span class="tag">&lt;strategy&gt;</span>KEEP_LAST<span class="tag">&lt;/strategy&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;pattern&gt;</span>.*<span class="tag">&lt;/pattern&gt;</span>
+      <span class="tag">&lt;strategy&gt;</span>KEEP_FIRST<span class="tag">&lt;/strategy&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
 </div>
 </div>
 </div>
@@ -3874,12 +4126,12 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 39. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 40. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatAdoc}<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3887,10 +4139,10 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 40. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 41. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:1.9.3-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:1.10.0-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -3898,19 +4150,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.9.3-SNAPSHOT/neo4j-migrations-formats-adoc-1.9.3-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-1.9.3-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.10.0-SNAPSHOT/neo4j-migrations-formats-adoc-1.10.0-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-1.10.0-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.9.3-SNAPSHOT/neo4j-migrations-formats-adoc-1.9.3-SNAPSHOT-all.jar
-unzip neo4j-migrations-1.9.3-SNAPSHOT.zip
-cd neo4j-migrations-1.9.3-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-1.9.3-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/1.10.0-SNAPSHOT/neo4j-migrations-formats-adoc-1.10.0-SNAPSHOT-all.jar
+unzip neo4j-migrations-1.10.0-SNAPSHOT.zip
+cd neo4j-migrations-1.10.0-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-1.10.0-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/adoc-migrations \
   info</code></pre>
@@ -3966,12 +4218,12 @@ and valid inline Cypher content. The block definition looks like this:</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 41. Markdown extension as Maven dependency</div>
+<div class="title">Listing 42. Markdown extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatMarkdown}<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>1.9.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>1.10.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3979,10 +4231,10 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 42. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 43. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatMarkdown}:1.9.3-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatMarkdown}:1.10.0-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -3990,19 +4242,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.9.3-SNAPSHOT/neo4j-migrations-formats-markdown-1.9.3-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-1.9.3-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.10.0-SNAPSHOT/neo4j-migrations-formats-markdown-1.10.0-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-1.10.0-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.9.3-SNAPSHOT/neo4j-migrations-1.9.3-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.9.3-SNAPSHOT/neo4j-migrations-formats-markdown-1.9.3-SNAPSHOT-all.jar
-unzip neo4j-migrations-1.9.3-SNAPSHOT.zip
-cd neo4j-migrations-1.9.3-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-1.9.3-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/1.10.0-SNAPSHOT/neo4j-migrations-1.10.0-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/1.10.0-SNAPSHOT/neo4j-migrations-formats-markdown-1.10.0-SNAPSHOT-all.jar
+unzip neo4j-migrations-1.10.0-SNAPSHOT.zip
+cd neo4j-migrations-1.10.0-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-1.10.0-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/markdown-migrations \
   info</code></pre>
@@ -4036,7 +4288,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-16 16:52:01 UTC
+Last updated 2022-08-17 12:10:09 UTC
 </div>
 </div>
 </body>

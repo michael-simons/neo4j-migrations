@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"ac.simons.neo4j.migrations.core"},{"l":"ac.simons.neo4j.migrations.core.catalog"},{"l":"ac.simons.neo4j.migrations.core.internal"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();
+packageSearchIndex = [{"l":"ac.simons.neo4j.migrations.core"},{"l":"ac.simons.neo4j.migrations.core.catalog"},{"l":"ac.simons.neo4j.migrations.core.internal"},{"l":"ac.simons.neo4j.migrations.core.refactorings"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();

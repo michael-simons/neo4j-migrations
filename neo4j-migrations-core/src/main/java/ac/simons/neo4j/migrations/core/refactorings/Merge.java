@@ -73,10 +73,16 @@ public interface Merge extends Refactoring {
 			this.strategy = strategy;
 		}
 
+		/**
+		 * @return A strategy describing who to deal with any property that matched this policy
+		 */
 		public Strategy strategy() {
 			return strategy;
 		}
 
+		/**
+		 * @return The pattern that is used to check if a graph property matches this policy
+		 */
 		public Pattern pattern() {
 			return pattern;
 		}

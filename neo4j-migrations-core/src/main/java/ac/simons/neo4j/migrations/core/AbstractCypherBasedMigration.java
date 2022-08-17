@@ -29,14 +29,25 @@ import java.util.function.UnaryOperator;
  */
 public abstract class AbstractCypherBasedMigration implements Migration {
 
+	/**
+	 * The underlying resource representing the content of this migration.
+	 */
 	protected final CypherResource cypherResource;
 	/**
 	 * @deprecated since 1.9.0, see {@link #getOptionalDescription()}
 	 */
 	@Deprecated
 	protected final String description;
+	/**
+	 * The version of this migration.
+	 */
 	protected final MigrationVersion version;
 
+	/**
+	 * Required to be called so that the {@link #cypherResource} gets initialized proper
+	 *
+	 * @param cypherResource The resource to be dealt with
+	 */
 	@SuppressWarnings("squid:S1874") // Assignment to description
 	protected AbstractCypherBasedMigration(CypherResource cypherResource) {
 		this.cypherResource = cypherResource;

@@ -56,7 +56,13 @@ public final class Strings {
 			throw new UncheckedNoSuchAlgorithmException(e);
 		}
 	};
+
+	/**
+	 * A pattern representing valid Neo4j database names as described in
+	 * <a href="https://neo4j.com/docs/cypher-manual/current/databases/#administration-databases-create-database">Database management</a>.
+	 */
 	public static final String VALID_DATABASE_NAME = "([a-z][a-z\\d.\\-]{2,62})";
+
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
 	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?!`)");

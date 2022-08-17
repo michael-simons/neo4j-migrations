@@ -19,17 +19,28 @@ import java.util.Map;
 
 /**
  * Represents the available changes to the Graph done by a refactoring.
+ *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Adrenochrom
  * @since 1.10.0
  */
 public interface Counters {
 
+	/**
+	 * @return An empty instance
+	 */
 	static Counters empty() {
 		return Empty.INSTANCE;
 	}
 
-	static Counters of(Map<String, Integer> values)  {
+	/**
+	 * Creates a new {@link Counters} instance from the values inside a map. If a required value is not present, {@literal 0}
+	 * will be assumed.
+	 *
+	 * @param values The values to be used
+	 * @return Counters, never {@literal null}
+	 */
+	static Counters of(Map<String, Integer> values) {
 		return new DefaultCounters(
 			values.getOrDefault("nodesCreated", 0),
 			values.getOrDefault("nodesDeleted", 0),
@@ -113,6 +124,9 @@ public interface Counters {
 	 */
 	enum Empty implements Counters {
 
+		/**
+		 * The single, empty instance.
+		 */
 		INSTANCE;
 
 		@Override

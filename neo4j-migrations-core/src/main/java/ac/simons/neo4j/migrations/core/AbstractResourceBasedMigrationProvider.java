@@ -29,6 +29,13 @@ public abstract class AbstractResourceBasedMigrationProvider implements Resource
 
 	private final boolean supportsArbitraryResourceNames;
 
+	/**
+	 * The given parameters are all required.
+	 *
+	 * @param order                          The order in which this provider should be consulted
+	 * @param extension                      The file extension that this provider can deal with
+	 * @param supportsArbitraryResourceNames A flag if arbitrary resource names are supported in contrast to names that match {@link MigrationVersion#VERSION_PATTERN}
+	 */
 	protected AbstractResourceBasedMigrationProvider(int order, String extension,
 		boolean supportsArbitraryResourceNames) {
 		this.order = order;

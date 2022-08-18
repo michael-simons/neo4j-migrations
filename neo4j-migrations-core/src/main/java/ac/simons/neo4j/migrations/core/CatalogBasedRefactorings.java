@@ -16,14 +16,17 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.w3c.dom.Node;
@@ -46,9 +49,50 @@ final class CatalogBasedRefactorings {
 			return createMerge(node, type);
 		} else if (type.startsWith("rename.")) {
 			return createRename(node, type);
+		} else if (type.equals("normalize.asBoolean")) {
+			return createNormalizeAsBoolean(node, type);
 		}
 
 		throw createException(node, type, null);
+	}
+
+	private static Normalize createNormalizeAsBoolean(Node node, String type) {
+
+		NodeList parameterList = findParameterList(node).orElseThrow(() ->
+				createException(node, type, "The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters")
+		);
+
+		String property = findParameter(node, "property", parameterList).orElseThrow(
+				() -> createException(node, type, "No `property` parameter")
+		);
+
+		List<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
+				.orElseThrow(() -> createException(node, type, "No `trueValues` parameter"));
+
+		List<String> rawFalseValues = findParameterValues(parameterList, "falseValues")
+				.orElseThrow(() -> createException(node, type, "No `falseValues` parameter"));
+
+		Function<String, ? extends Serializable> mapToType = value -> {
+			try {
+				if (value == null) {
+					return null;
+				}
+				return Long.parseLong(value);
+			} catch (NumberFormatException e) {
+				return value;
+			}
+		};
+		List<Object> trueValues = rawTrueValues.stream().map(mapToType).collect(Collectors.toList());
+		List<Object> falseValues = rawFalseValues.stream().map(mapToType).collect(Collectors.toList());
+
+		Normalize normalize = Normalize.asBoolean(property, trueValues, falseValues);
+
+		Optional<String> customQuery = findParameter(node, "customQuery", parameterList);
+		if (customQuery.isPresent()) {
+			normalize = normalize.withCustomQuery(customQuery.get());
+		}
+
+		return normalize;
 	}
 
 	private static Merge createMerge(Node node, String type) {
@@ -174,6 +218,35 @@ final class CatalogBasedRefactorings {
 			}
 			return result;
 		}).orElseGet(Collections::emptyList);
+	}
+
+	private static Optional<List<String>> findParameterValues(NodeList parametersNodeList, String parameterNameToFind) {
+		Node parameterNode = null;
+
+		// Look for the right parameter field
+		for (int i = 0; i < parametersNodeList.getLength(); ++i) {
+			Node parameterNodeCandidate = parametersNodeList.item(i);
+			Node parameterName = parameterNodeCandidate.getAttributes().getNamedItem("name");
+			if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
+				parameterNode = parameterNodeCandidate;
+				break;
+			}
+		}
+
+		if (parameterNode == null) {
+			return Optional.empty();
+		}
+		// Aggregate its values
+		List<String> values = new ArrayList<>();
+
+		NodeList childNodes = parameterNode.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			if ("value".equals(childNodes.item(i).getNodeName())) {
+				values.add(childNodes.item(i).getNodeValue());
+			}
+		}
+
+		return Optional.of(values);
 	}
 
 	private CatalogBasedRefactorings() {

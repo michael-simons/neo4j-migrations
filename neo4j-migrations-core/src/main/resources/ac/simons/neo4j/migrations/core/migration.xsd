@@ -58,6 +58,7 @@
 					<xs:enumeration value="rename.type"/>
 					<xs:enumeration value="rename.nodeProperty"/>
 					<xs:enumeration value="rename.relationshipProperty"/>
+					<xs:enumeration value="normalize.asBoolean"/>
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:attribute>

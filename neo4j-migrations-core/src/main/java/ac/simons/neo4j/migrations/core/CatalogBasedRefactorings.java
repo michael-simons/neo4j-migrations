@@ -22,6 +22,7 @@ import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -66,15 +68,15 @@ final class CatalogBasedRefactorings {
 				() -> createException(node, type, "No `property` parameter")
 		);
 
-		List<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
+		Collection<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
 				.orElseThrow(() -> createException(node, type, "No `trueValues` parameter"));
 
-		List<String> rawFalseValues = findParameterValues(parameterList, "falseValues")
+		Collection<String> rawFalseValues = findParameterValues(parameterList, "falseValues")
 				.orElseThrow(() -> createException(node, type, "No `falseValues` parameter"));
 
 		Function<String, ? extends Serializable> mapToType = value -> {
 			try {
-				if (value == null) {
+				if (value == null || "null".equals(value)) {
 					return null;
 				}
 				return Long.parseLong(value);
@@ -226,7 +228,11 @@ final class CatalogBasedRefactorings {
 		// Look for the right parameter field
 		for (int i = 0; i < parametersNodeList.getLength(); ++i) {
 			Node parameterNodeCandidate = parametersNodeList.item(i);
-			Node parameterName = parameterNodeCandidate.getAttributes().getNamedItem("name");
+			NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
+			if (attributes == null) {
+				continue;
+			}
+			Node parameterName = attributes.getNamedItem("name");
 			if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
 				parameterNode = parameterNodeCandidate;
 				break;
@@ -242,7 +248,12 @@ final class CatalogBasedRefactorings {
 		NodeList childNodes = parameterNode.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
 			if ("value".equals(childNodes.item(i).getNodeName())) {
-				values.add(childNodes.item(i).getNodeValue());
+				Node item = childNodes.item(i).getChildNodes().item(0);
+				if (item == null) {
+					values.add(null);
+				} else {
+					values.add(item.getNodeValue());
+				}
 			}
 		}
 

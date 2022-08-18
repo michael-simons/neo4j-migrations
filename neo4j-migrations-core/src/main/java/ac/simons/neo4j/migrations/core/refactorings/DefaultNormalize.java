@@ -165,4 +165,22 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		parameters.put("nullValue", Values.value(nullValue));
 		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, batchSize), parameters);
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		DefaultNormalize that = (DefaultNormalize) o;
+		return property.equals(that.property) && trueValues.equals(that.trueValues) && falseValues.equals(that.falseValues)
+				&& Objects.equals(customQuery, that.customQuery) && Objects.equals(batchSize, that.batchSize);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(property, trueValues, falseValues, customQuery, batchSize);
+	}
 }

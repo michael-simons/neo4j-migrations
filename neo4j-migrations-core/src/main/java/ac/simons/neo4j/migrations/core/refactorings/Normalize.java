@@ -30,9 +30,14 @@ import java.util.Objects;
 public interface Normalize extends CustomizableRefactoring<Normalize> {
 
 	/**
-	 * Normalizes respectively converts the property to a boolean or deletes it in case it is not in the lists of true or false values.
+	 * Normalizes respectively converts the property to a boolean or deletes it in case it is not in the lists of true or
+	 * false values.
+	 * <p>
+	 * If {@code trueValues} or {@code falseValues} contains the literal value {@literal null} than a property with either
+	 * the value {@literal true} or {@literal false} will be added to all matched entities.
 	 *
-	 * @param property    The name of the property to normalize. All entities that spot such a property will be matched (nodes and relationships)
+	 * @param property    The name of the property to normalize. All entities that spot such a property will be matched
+	 *                    (nodes and relationships)
 	 * @param trueValues  A list of values that should be treated as {@literal true}. Can be a mixed content list.
 	 * @param falseValues A list of values that should be treated as {@literal false}. Can be a mixed content list.
 	 * @return The refactoring ready to use

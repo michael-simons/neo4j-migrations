@@ -17,12 +17,14 @@ package ac.simons.neo4j.migrations.core.refactorings;
 
 import ac.simons.neo4j.migrations.core.refactorings.DefaultRename.Target;
 
+import java.util.Objects;
+
 /**
  * Renames entities or properties of entities.
  * @author Michael J. Simons
  * @since 1.10.0
  */
-public interface Rename extends Refactoring {
+public interface Rename extends CustomizableRefactoring<Rename> {
 
 	/**
 	 * Provides a refactoring renaming a given node label. Any customization can be done directly on the {@link Rename} instance.
@@ -32,7 +34,7 @@ public interface Rename extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static Rename label(String from, String to) {
-		return new DefaultRename(Target.LABEL, from, to);
+		return new DefaultRename(Target.LABEL, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
@@ -43,7 +45,7 @@ public interface Rename extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static Rename type(String from, String to) {
-		return new DefaultRename(Target.TYPE, from, to);
+		return new DefaultRename(Target.TYPE, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
@@ -55,7 +57,7 @@ public interface Rename extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static Rename nodeProperty(String from, String to) {
-		return new DefaultRename(Target.NODE_PROPERTY, from, to);
+		return new DefaultRename(Target.NODE_PROPERTY, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
@@ -67,23 +69,6 @@ public interface Rename extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static Rename relationshipProperty(String from, String to) {
-		return new DefaultRename(Target.REL_PROPERTY, from, to);
+		return new DefaultRename(Target.REL_PROPERTY, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
-
-	/**
-	 * Creates a new {@link Rename refactoring} that may use batching (if the new batch size is not null and greater than 1
-	 *
-	 * @param newBatchSize Use {@literal null} to disable batching or any value >= 1 to use batches.
-	 * @return A new refactoring.
-	 */
-	Rename inBatchesOf(Integer newBatchSize);
-
-	/**
-	 * Creates a new {@link Rename refactoring} that may use a custom query
-	 *
-	 * @param newCustomQuery Use {@literal null} to disable any custom query or a valid Cypher statement returning a single
-	 *                       entity column to enable custom query
-	 * @return A new refactoring.
-	 */
-	Rename withCustomQuery(String newCustomQuery);
 }

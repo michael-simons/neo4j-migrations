@@ -56,7 +56,7 @@ Neo4j-Migrations contains a set of ready-to-use database refactorings. These ref
 
 === Renaming labels, types and properties
 
-`ac.simons.neo4j.migrations.core.refactorings.Rename` renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target enetities require Neo4j 4.1, batches Neo4j 4.4.
+`ac.simons.neo4j.migrations.core.refactorings.Rename` renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target entities require Neo4j 4.1, batches Neo4j 4.4.
 
 ==== Common methods
 
@@ -173,6 +173,8 @@ As catalog item:
 === Merging nodes
 
 `Merge.nodes(String source, List<PropertyMergePolicy> mergePolicies)` merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.
+
+The `Merge` refactoring requires Neo4j 4.4+.
 
 As catalog item:
 

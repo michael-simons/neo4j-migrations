@@ -42,7 +42,7 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 
 	private final List<Object> falseValues;
 
-	private final Boolean nullValue;
+	private final QueryRunner.FeatureSet featureSet;
 
 	DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues) {
 		this(property, trueValues, falseValues, null, null);
@@ -51,9 +51,9 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues, String customQuery, Integer batchSize) {
 		super(customQuery, batchSize);
 
-		Predicate<Object> isNull = v -> v == null || Values.NULL.equals(v);
-		boolean nullIsTrue = trueValues.stream().anyMatch(isNull);
-		boolean nullIsFalse = falseValues.stream().anyMatch(isNull);
+
+		boolean nullIsTrue = trueValues.stream().anyMatch(DefaultNormalize::isNull);
+		boolean nullIsFalse = falseValues.stream().anyMatch(DefaultNormalize::isNull);
 
 		if (nullIsFalse && nullIsTrue) {
 			throw new IllegalArgumentException("Both true and false values contain the literal value null");
@@ -65,16 +65,25 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			});
 
 		this.property = property;
-		this.trueValues = nullIsTrue ? trueValues.stream().filter(isNull.negate()).collect(Collectors.toList()) : trueValues;
-		this.falseValues = nullIsFalse ? falseValues.stream().filter(isNull.negate()).collect(Collectors.toList()) : falseValues;
+		this.trueValues = trueValues;
+		this.falseValues = falseValues;
 
-		if (nullIsTrue) {
-			this.nullValue = true;
-		} else if (nullIsFalse) {
-			this.nullValue = false;
+		if (this.batchSize != null) {
+			this.featureSet = QueryRunner.defaultFeatureSet()
+				.withRequiredVersion("4.4")
+				.withBatchingSupport(true);
 		} else {
-			this.nullValue = null;
+			this.featureSet = QueryRunner.defaultFeatureSet()
+				.withRequiredVersion("4.1");
 		}
+	}
+
+	static boolean isNull(Object v) {
+		return v == null || Values.NULL.equals(v);
+	}
+
+	QueryRunner.FeatureSet getFeatures() {
+		return featureSet;
 	}
 
 	@Override
@@ -99,10 +108,24 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 
 	@Override
 	public Counters apply(RefactoringContext refactoringContext) {
-		return null;
+		try (QueryRunner queryRunner = refactoringContext.getQueryRunner(featureSet)) {
+			return new DefaultCounters(queryRunner.run(generateQuery(refactoringContext::findSingleResultIdentifier)).consume().counters());
+		}
 	}
 
 	Query generateQuery(Function<String, Optional<String>> elementExtractor) {
+
+		List<Object> tv = trueValues;
+		List<Object> fv = falseValues;
+		Boolean nullValue = null;
+		Predicate<Object> isNull = DefaultNormalize::isNull;
+		if (trueValues.stream().anyMatch(isNull)) {
+			nullValue = true;
+			tv = trueValues.stream().filter(isNull.negate()).collect(Collectors.toList());
+		} else if (falseValues.stream().anyMatch(DefaultNormalize::isNull)) {
+			nullValue = false;
+			fv = falseValues.stream().filter(isNull.negate()).collect(Collectors.toList());
+		}
 
 		String varName;
 		String innerQuery;
@@ -137,8 +160,8 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			.replace("<FILTER />\n", nullValue == null ? "WHERE e.%1$s IS NOT NULL\n" : "");
 
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("trueValues", Values.value(trueValues));
-		parameters.put("falseValues", Values.value(falseValues));
+		parameters.put("trueValues", Values.value(tv));
+		parameters.put("falseValues", Values.value(fv));
 		parameters.put("nullValue", Values.value(nullValue));
 		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, batchSize), parameters);
 	}

@@ -68,6 +68,7 @@ class DefaultNormalizeTest {
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
 		assertThat(query.parameters().get("falseValues")).isEqualTo(Values.value(Collections.emptyList()));
+		assertThat(normalize.getFeatures().requiredVersion()).isEqualTo("4.4");
 	}
 
 	@Test
@@ -89,6 +90,7 @@ class DefaultNormalizeTest {
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
 		assertThat(query.parameters().get("falseValues")).isEqualTo(Values.value(Collections.emptyList()));
+		assertThat(normalize.getFeatures().requiredVersion()).isEqualTo("4.1");
 	}
 
 	@Test

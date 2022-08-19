@@ -231,6 +231,7 @@ class CatalogBasedMigrationTest {
 							Arrays.asList("The Matrix"),
 							Arrays.asList("Das deutsche Kettensägenmassaker", null, null))
 						.withCustomQuery("MATCH (n:Movie) return n")
+						.inBatchesOf(42)
 				);
 		}
 

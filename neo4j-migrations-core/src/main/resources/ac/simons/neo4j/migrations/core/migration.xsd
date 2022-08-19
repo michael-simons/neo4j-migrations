@@ -54,11 +54,11 @@
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="merge.nodes"/>
+					<xs:enumeration value="normalize.asBoolean"/>
 					<xs:enumeration value="rename.label"/>
 					<xs:enumeration value="rename.type"/>
 					<xs:enumeration value="rename.nodeProperty"/>
 					<xs:enumeration value="rename.relationshipProperty"/>
-					<xs:enumeration value="normalize.asBoolean"/>
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:attribute>

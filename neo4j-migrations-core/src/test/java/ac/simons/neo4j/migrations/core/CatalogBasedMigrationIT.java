@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,6 +47,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.types.Node;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.TestcontainersConfiguration;
@@ -125,6 +127,10 @@ class CatalogBasedMigrationIT {
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
+			try (Session session = driver.session()) {
+				session.run("MATCH (n) DETACH DELETE n").consume();
+			}
+
 			Migrations migrations;
 			migrations = new Migrations(
 				MigrationsConfig.builder().withLocationsToScan("classpath:catalogbased/actual-migrations").build(), driver);
@@ -150,6 +156,21 @@ class CatalogBasedMigrationIT {
 			}
 			try (Session session = driver.session()) { // Data should not be cleansed
 				assertThat(session.run("MATCH (b:Book)<-[:READ]-(p:Person) RETURN b.title").single().get(0).asString()).isEqualTo("Doctor Sleep");
+				MigrationChain migrationChain = migrations.info();
+				if (migrationChain.isApplied("45")) {
+					List<Node> books = session.run("MATCH (b:Book) RETURN b ORDER BY b.name ASC")
+						.list(r -> r.get("b").asNode());
+					assertThat(books)
+						.hasSize(2)
+						.satisfies(n -> {
+							assertThat(n.get("title").asString()).isEqualTo("Doctor Sleep");
+							assertThat(n.get("gelesen").asBoolean()).isTrue();
+						}, Index.atIndex(0))
+						.satisfies(n -> {
+							assertThat(n.get("title").asString()).isEqualTo("Fairy Tale");
+							assertThat(n.get("gelesen").asBoolean()).isFalse();
+						}, Index.atIndex(1));
+				}
 			}
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {

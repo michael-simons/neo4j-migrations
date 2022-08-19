@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,12 @@ class DefaultNormalizeTest {
 
 		DefaultNormalize normalize = new DefaultNormalize("a property", Collections.emptyList(), Collections.emptyList());
 		Query query = normalize.generateQuery(s -> Optional.of("n"));
+
+		Normalize.asBoolean(
+			"watched",
+			List.of("y", "YES", "JA"),
+			Arrays.asList("n", "NO", null)
+		);
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));

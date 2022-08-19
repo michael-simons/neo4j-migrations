@@ -54,6 +54,110 @@ include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/
 
 Neo4j-Migrations contains a set of ready-to-use database refactorings. These refactorings are all modelled very closely to those available in https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/[APOC] but *none* of them requires APOC to be installed in your database. The refactorings are mostly designed to work from within a <<concepts_catalog, catalog>> but they work very well on their own to. While they are part of the <<usage_core, Core API>>, they don't depend on a Migration instance. Their API is subject to the same versioning guarantees as the rest of Neo4j-Migrations. Refactorings might evolve into a their module at a later point in time.
 
+Some refactorings require certain Neo4j versions. If you do support multiple Neo4j versions, define those refactorings as single itemed migrations and add assumptions like in the following example:
+
+.Normalize boolean properties when running Neo4j 4.1+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+
+  <?assume that version is ge 4.1 ?>
+
+  <refactor type="normalize.asBoolean">
+    <parameters>
+      <parameter name="property">watched</parameter>
+      <parameter name="trueValues">
+        <value>y</value>
+        <value>YES</value>
+      </parameter>
+      <parameter name="falseValues">
+        <value>n</value>
+        <value>NO</value>
+      </parameter>
+    </parameters>
+  </refactor>
+</migration>
+----
+
+=== Merging nodes
+
+`Merge.nodes(String source, List<PropertyMergePolicy> mergePolicies)` merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.
+
+The `Merge` refactoring requires Neo4j 4.4+.
+
+As catalog item:
+
+[source,xml]
+----
+<refactor type="merge.nodes">
+  <parameters>
+    <parameter name="sourceQuery">MATCH (p:Person) RETURN p ORDER BY p.name ASC</parameter>
+    <!-- Repeat as often as necessary -->
+    <parameter name="mergePolicy">
+      <pattern>name</pattern>
+      <strategy>KEEP_LAST</strategy>
+    </parameter>
+    <parameter name="mergePolicy">
+      <pattern>.*</pattern>
+      <strategy>KEEP_FIRST</strategy>
+    </parameter>
+  </parameters>
+</refactor>
+----
+
+== Normalizing
+
+Normalizing is the process to take an humongous set of properties and other Graph Items and apply a scheme to it.
+The normalizing refactoring requires at least Neo4j 4.1, running it with batches requires Neo4j 4.4 or higher.
+
+=== Normalize properties as boolean
+
+Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as `ja`, `Y`, `yes`, `NO` or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with `Normalize.asBoolean`.
+
+`Normalize.asBoolean` takes in the name of a property and a list of values that are treated as `true` and a list of values that are treated as `false`. A property with a value that is not in any of those lists will be deleted. `null` as value is a non-existent property. However, if either lists contains literal `null`, a property will be created with the corresponding value.
+
+By default all properties of all nodes and relationships will be normalized. To only apply this refactoring to a subset, i.e. only to nodes, you would want to use a custom query.
+
+A Java example looks like this:
+
+[source,java]
+----
+Normalize.asBoolean(
+    "watched",
+    List.of("y", "YES", "JA"),
+	// List.of does not support literal null,
+	// so we need to this the old-school
+    Arrays.asList("n", "NO", null)
+);
+----
+
+The same as a catalog item:
+
+[source,xml]
+----
+<refactor type="normalize.asBoolean">
+  <parameters>
+    <parameter name="property">watched</parameter>
+    <parameter name="trueValues">
+      <value>y</value>
+      <value>YES</value>
+      <value>JA</value>
+    </parameter>
+    <parameter name="falseValues">
+      <value>n</value>
+      <value>NO</value>
+      <value />
+    </parameter>
+    <!-- Optional custom query and batch size -->
+    <!--
+    <parameter name="customQuery">MATCH (n:Movie) return n</parameter>
+    <parameter name="batchSize">42</parameter>
+    -->
+  </parameters>
+</refactor>
+----
+
 === Renaming labels, types and properties
 
 `ac.simons.neo4j.migrations.core.refactorings.Rename` renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target entities require Neo4j 4.1, batches Neo4j 4.4.
@@ -166,32 +270,6 @@ As catalog item:
     <!--
     <parameter name="batchSize">23</parameter>
     -->
-  </parameters>
-</refactor>
-----
-
-=== Merging nodes
-
-`Merge.nodes(String source, List<PropertyMergePolicy> mergePolicies)` merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.
-
-The `Merge` refactoring requires Neo4j 4.4+.
-
-As catalog item:
-
-[source,xml]
-----
-<refactor type="merge.nodes">
-  <parameters>
-    <parameter name="sourceQuery">MATCH (p:Person) RETURN p ORDER BY p.name ASC</parameter>
-    <!-- Repeat as often as necessary -->
-    <parameter name="mergePolicy">
-      <pattern>name</pattern>
-      <strategy>KEEP_LAST</strategy>
-    </parameter>
-    <parameter name="mergePolicy">
-      <pattern>.*</pattern>
-      <strategy>KEEP_FIRST</strategy>
-    </parameter>
   </parameters>
 </refactor>
 ----

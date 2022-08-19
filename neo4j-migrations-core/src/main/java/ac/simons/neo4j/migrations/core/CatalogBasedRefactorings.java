@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
@@ -88,13 +89,25 @@ final class CatalogBasedRefactorings {
 		List<Object> falseValues = rawFalseValues.stream().map(mapToType).collect(Collectors.toList());
 
 		Normalize normalize = Normalize.asBoolean(property, trueValues, falseValues);
+		return customize(normalize, node, type, parameterList);
+	}
 
+	static <T extends CustomizableRefactoring<T>> T customize(T refactoring, Node node, String type, NodeList parameterList) {
+		Optional<String> batchSize = findParameter(node, "batchSize", parameterList);
+		T result = refactoring;
+		if (batchSize.isPresent()) {
+			try {
+				result = result.inBatchesOf(Integer.parseInt(batchSize.get()));
+			} catch (NumberFormatException nfe) {
+				throw createException(node, type, "Invalid value `" + batchSize.get() + "` for parameter `batchSize",
+					nfe);
+			}
+		}
 		Optional<String> customQuery = findParameter(node, "customQuery", parameterList);
 		if (customQuery.isPresent()) {
-			normalize = normalize.withCustomQuery(customQuery.get());
+			result = result.withCustomQuery(customQuery.get());
 		}
-
-		return normalize;
+		return result;
 	}
 
 	private static Merge createMerge(Node node, String type) {
@@ -143,19 +156,7 @@ final class CatalogBasedRefactorings {
 			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
 		}
 
-		Optional<String> batchSize = findParameter(node, "batchSize", parameterList);
-		if (batchSize.isPresent()) {
-			try {
-				rename = rename.inBatchesOf(Integer.parseInt(batchSize.get()));
-			} catch (NumberFormatException nfe) {
-				throw createException(node, type, "Invalid value `" + batchSize.get() + "` for parameter `batchSize", nfe);
-			}
-		}
-		Optional<String> customQuery = findParameter(node, "customQuery", parameterList);
-		if (customQuery.isPresent()) {
-			rename = rename.withCustomQuery(customQuery.get());
-		}
-		return rename;
+		return customize(rename, node, type, parameterList);
 	}
 
 	private static IllegalArgumentException createException(Node node, String type, String optionalMessage) {

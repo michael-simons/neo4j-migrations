@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -188,21 +187,26 @@ final class CatalogBasedRefactorings {
 		return findParameter(refactoring, name, null);
 	}
 
+	private static Optional<Node> findParameterNode(NodeList parameters, String name) {
+		for (int i = 0; i < parameters.getLength(); ++i) {
+			Node parameter = parameters.item(i);
+			if (!("parameter".equals(parameter.getNodeName()) && parameter.hasAttributes())) {
+				continue;
+			}
+			Node parameterName = parameter.getAttributes().getNamedItem("name");
+			if (parameterName != null && name.equals(parameterName.getNodeValue())) {
+				return Optional.of(parameter);
+			}
+		}
+		return Optional.empty();
+	}
+
 	private static Optional<String> findParameter(Node refactoring, String name, NodeList optionalParameters) {
 
-		return (optionalParameters != null ? Optional.of(optionalParameters) : findParameterList(refactoring)).flatMap(parameters -> {
-			for (int i = 0; i < parameters.getLength(); ++i) {
-				Node parameter = parameters.item(i);
-				if (!("parameter".equals(parameter.getNodeName()) && parameter.hasAttributes())) {
-					continue;
-				}
-				Node parameterName = parameter.getAttributes().getNamedItem("name");
-				if (parameterName != null && name.equals(parameterName.getNodeValue())) {
-					return Optional.ofNullable(parameter.getTextContent()).map(String::trim).filter(v -> !v.isEmpty());
-				}
-			}
-			return Optional.empty();
-		});
+		return (optionalParameters != null ? Optional.of(optionalParameters) : findParameterList(refactoring))
+			.flatMap(parameters -> findParameterNode(parameters, name))
+			.map(Node::getTextContent)
+			.map(String::trim).filter(v -> !v.isEmpty());
 	}
 
 	private static List<Node> findAllParameters(Node refactoring, String name) {
@@ -229,40 +233,23 @@ final class CatalogBasedRefactorings {
 			return Optional.empty();
 		}
 
-		Node parameterNode = null;
-
-		// Look for the right parameter field
-		for (int i = 0; i < parametersNodeList.getLength(); ++i) {
-			Node parameterNodeCandidate = parametersNodeList.item(i);
-			if (parameterNodeCandidate.hasAttributes()) {
-				NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
-				Node parameterName = attributes.getNamedItem("name");
-				if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
-					parameterNode = parameterNodeCandidate;
-					break;
+		Function<Node, List<String>> aggregateValues = parameterNode -> {
+			List<String> values = new ArrayList<>();
+			NodeList childNodes = parameterNode.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				Node childNode = childNodes.item(i);
+				if ("value".equals(childNode.getNodeName())) {
+					if (!childNode.hasChildNodes()) {
+						values.add(null);
+					} else {
+						values.add(childNode.getTextContent());
+					}
 				}
 			}
-		}
+			return values;
+		};
 
-		if (parameterNode == null) {
-			return Optional.empty();
-		}
-		// Aggregate its values
-		List<String> values = new ArrayList<>();
-
-		NodeList childNodes = parameterNode.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); ++i) {
-			if ("value".equals(childNodes.item(i).getNodeName())) {
-				Node item = childNodes.item(i).getChildNodes().item(0);
-				if (item == null) {
-					values.add(null);
-				} else {
-					values.add(item.getNodeValue());
-				}
-			}
-		}
-
-		return Optional.of(values);
+		return findParameterNode(parametersNodeList, parameterNameToFind).map(aggregateValues);
 	}
 
 	private CatalogBasedRefactorings() {

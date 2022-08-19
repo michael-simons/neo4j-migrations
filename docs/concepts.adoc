@@ -464,6 +464,7 @@ WARNING: The `apply` operation loads all supported item types from the database,
 ==== Executing refactorings
 
 `refactor` is used to run parameterized predefined refactorings. The `refactor` element can be used after the `verify` operation and before, after or in between `drop` or `create` operations. It will be executed in the order in which it was defined. It cannot be used together with `apply`.
+Have a look at the general <<concepts_migrations_catalog-based, catalog example>> or at the <<appendix_refactorings, appendix>> for some concrete examples of executing predefined refactorings.
 
 === Create a catalog from the actual database schema
 

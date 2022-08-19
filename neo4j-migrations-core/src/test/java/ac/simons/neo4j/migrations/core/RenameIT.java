@@ -27,6 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 
@@ -59,16 +61,20 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 		}
 	}
 
-	@Test
-	void shouldRenameLabelsNotExecutingThings() {
+	@ParameterizedTest
+	@CsvSource({
+		"'Whatever``` WITH s MATCH (m) DETACH DELETE m //','Whatever`` WITH s MATCH (m) DETACH DELETE m //'",
+		"'Whatever\\u0060 WITH s MATCH (m) DETACH DELETE m //','Whatever\u0060 WITH s MATCH (m) DETACH DELETE m //'"
+	})
+	void shouldRenameLabelsNotExecutingThings(String bogus, String expected) {
 
-		Rename rename = Rename.label("Movie", "'Whatever\\u0060 WITH s MATCH (m) DETACH DELETE m //'");
+		Rename rename = Rename.label("Movie", bogus);
 
 		try (Session session = driver.session()) {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			Counters counters = rename.apply(refactoringContext);
 
-			assertThatAllLabelsHaveBeenRenamed(session, counters, "'Whatever\u0060 WITH s MATCH (m) DETACH DELETE m //'");
+			assertThatAllLabelsHaveBeenRenamed(session, counters, expected);
 		}
 	}
 

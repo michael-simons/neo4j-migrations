@@ -282,6 +282,19 @@ class CatalogBasedMigrationTest {
 				.withMessage(
 					"Cannot parse <refactor type=\"rename.%s\" /> into a supported refactoring%s", type, message);
 		}
+
+		@ParameterizedTest
+		@CsvSource(delimiterString = "@@", value = {
+			"nothing@@The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters",
+			"no-op@@No `property` parameter",
+			"no-truth@@No `trueValues` parameter",
+			"just-the-truth@@No `falseValues` parameter"
+		})
+		void brokenNormalizes(String id, String messsage) {
+			Node refactoring = getElementById("normalize-" + id);
+			assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
+				.withMessageEndingWith(messsage);
+		}
 	}
 
 	@Nested

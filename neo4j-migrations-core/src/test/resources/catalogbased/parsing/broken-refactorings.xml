@@ -60,4 +60,27 @@
 			<parameter name="to">rollen</parameter>
 		</parameters>
 	</refactor>
+
+	<refactor type="normalize.asBoolean" id="normalize-nothing" />
+
+	<refactor type="normalize.asBoolean" id="normalize-no-op">
+		<parameters>
+
+		</parameters>
+	</refactor>
+
+	<refactor type="normalize.asBoolean" id="normalize-no-truth">
+		<parameters>
+			<parameter name="property">foo</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="normalize.asBoolean" id="normalize-just-the-truth">
+		<parameters>
+			<parameter name="property">foo</parameter>
+			<parameter name="trueValues">
+				<value>foo</value>
+			</parameter>
+		</parameters>
+	</refactor>
 </migration>

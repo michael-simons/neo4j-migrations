@@ -92,7 +92,7 @@ final class CatalogBasedRefactorings {
 		return customize(normalize, node, type, parameterList);
 	}
 
-	static <T extends CustomizableRefactoring<T>> T customize(T refactoring, Node node, String type, NodeList parameterList) {
+	private static <T extends CustomizableRefactoring<T>> T customize(T refactoring, Node node, String type, NodeList parameterList) {
 		Optional<String> batchSize = findParameter(node, "batchSize", parameterList);
 		T result = refactoring;
 		if (batchSize.isPresent()) {
@@ -234,14 +234,13 @@ final class CatalogBasedRefactorings {
 		// Look for the right parameter field
 		for (int i = 0; i < parametersNodeList.getLength(); ++i) {
 			Node parameterNodeCandidate = parametersNodeList.item(i);
-			if (!parameterNodeCandidate.hasAttributes()) {
-				continue;
-			}
-			NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
-			Node parameterName = attributes.getNamedItem("name");
-			if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
-				parameterNode = parameterNodeCandidate;
-				break;
+			if (parameterNodeCandidate.hasAttributes()) {
+				NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
+				Node parameterName = attributes.getNamedItem("name");
+				if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
+					parameterNode = parameterNodeCandidate;
+					break;
+				}
 			}
 		}
 

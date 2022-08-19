@@ -224,15 +224,20 @@ final class CatalogBasedRefactorings {
 	}
 
 	private static Optional<List<String>> findParameterValues(NodeList parametersNodeList, String parameterNameToFind) {
+
+		if (parametersNodeList == null) {
+			return Optional.empty();
+		}
+
 		Node parameterNode = null;
 
 		// Look for the right parameter field
 		for (int i = 0; i < parametersNodeList.getLength(); ++i) {
 			Node parameterNodeCandidate = parametersNodeList.item(i);
-			NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
-			if (attributes == null) {
+			if (!parameterNodeCandidate.hasAttributes()) {
 				continue;
 			}
+			NamedNodeMap attributes = parameterNodeCandidate.getAttributes();
 			Node parameterName = attributes.getNamedItem("name");
 			if (parameterName != null && parameterNameToFind.equals(parameterName.getNodeValue())) {
 				parameterNode = parameterNodeCandidate;

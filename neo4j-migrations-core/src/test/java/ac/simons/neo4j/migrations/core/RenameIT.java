@@ -60,6 +60,19 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 	}
 
 	@Test
+	void shouldRenameLabelsNotExecutingThings() {
+
+		Rename rename = Rename.label("Movie", "'Whatever\\u0060 WITH s MATCH (m) DETACH DELETE m //'");
+
+		try (Session session = driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			Counters counters = rename.apply(refactoringContext);
+
+			assertThatAllLabelsHaveBeenRenamed(session, counters, "'Whatever\u0060 WITH s MATCH (m) DETACH DELETE m //'");
+		}
+	}
+
+	@Test
 	@EnabledIf("customQueriesSupported")
 	void shouldSafelyRenamePropertiesWithMultipleCalls() {
 
@@ -100,6 +113,11 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 	}
 
 	private static void assertThatAllLabelsHaveBeenRenamed(Session session, Counters counters) {
+
+		assertThatAllLabelsHaveBeenRenamed(session, counters, "Film");
+	}
+
+	private static void assertThatAllLabelsHaveBeenRenamed(Session session, Counters counters, String newName) {
 		assertThat(counters.nodesCreated()).isZero();
 		assertThat(counters.nodesDeleted()).isZero();
 		assertThat(counters.labelsAdded()).isEqualTo(38);
@@ -112,7 +130,7 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 			+ "WITH label ORDER BY label ASC\n"
 			+ "RETURN collect(distinct label) AS labels"
 		).single().get("labels").asList(Value::asString);
-		assertThat(labels).containsExactly("Film", "Person");
+		assertThat(labels).containsExactlyInAnyOrder("Person", newName);
 	}
 
 	@Test

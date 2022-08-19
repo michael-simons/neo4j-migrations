@@ -85,7 +85,9 @@ final class StringsTest {
 		"A Label, `A Label`",
 		"A `Label, `A ``Label`",
 		"`A `Label, ```A ``Label`",
-		"Spring Data Neo4j⚡️RX, `Spring Data Neo4j⚡️RX`"
+		"Spring Data Neo4j⚡️RX, `Spring Data Neo4j⚡️RX`",
+		"Foo \u0060, `Foo ```", // This is the backtick itself in the string
+		"Foo \\u0060, `Foo `\\u0060`" // This is the backtick unicode escaped so that without further processing `foo \u0060` would end up at Cypher
 	})
 	void shouldEscapeProper(String in, String expected) {
 		String value = Strings.escapeIfNecessary(in);

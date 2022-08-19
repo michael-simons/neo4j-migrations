@@ -65,7 +65,9 @@ public final class Strings {
 
 	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
-	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("(?<!`)`(?!`)");
+	private static final String BACKTICK_OR_UC = "[`\\\\\u0060]";
+
+	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile(String.format("(?<!%1$s)%1$s(?!%1$s)", BACKTICK_OR_UC));
 
 	/**
 	 * A Base64 encoder.
@@ -222,7 +224,7 @@ public final class Strings {
 		}
 
 		Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(potentiallyNonIdentifier);
-		return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``"));
+		return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("`$0"));
 	}
 
 	/**

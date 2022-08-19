@@ -119,7 +119,9 @@
 				<value>The Matrix</value>
 			</parameter>
 			<parameter name="falseValues">
-				<value>Das Deutsche Kettensägenmassaker</value>
+				<value>Das deutsche Kettensägenmassaker</value>
+				<value/>
+				<value>null</value>
 			</parameter>
 		</parameters>
 	</refactor>

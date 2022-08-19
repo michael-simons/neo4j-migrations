@@ -229,7 +229,7 @@ class CatalogBasedMigrationTest {
 						.inBatchesOf(23),
 					Normalize.asBoolean("title",
 							Arrays.asList("The Matrix"),
-							Arrays.asList("Das deutsche Kettensägenmassaker"))
+							Arrays.asList("Das deutsche Kettensägenmassaker", null, null))
 						.withCustomQuery("MATCH (n:Movie) return n")
 				);
 		}

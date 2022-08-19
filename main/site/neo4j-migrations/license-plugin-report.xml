@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1660914724909">
+<licensePluginReport goal="CHECK" timestamp="1660916442365">
     <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.10.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -103,11 +103,15 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/UncheckedNoSuchAlgorithmException.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/XMLSchemaConstants.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/XMLUtils.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/AbstractCustomizableRefactoring.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Counters.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/CustomizableRefactoring.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultCounters.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultMerge.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultNormalize.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultRename.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Merge.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Normalize.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/QueryRunner.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Refactoring.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/RefactoringContext.java" result="PRESENT"/>
@@ -159,6 +163,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsLockIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/Neo4jImageNameSubstitutor.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/NormalizeIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PackageStructureTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionsIT.java" result="PRESENT"/>
@@ -185,6 +190,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/StringsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultCountersTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultNormalizeTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultRenameTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/QueryRunnerTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset1/V001__FirstMigration.java" result="PRESENT"/>

@@ -585,6 +585,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <li><a href="#glossary">Glossary</a></li>
 <li><a href="#appendix_xml_schemes">XML Schemes</a></li>
 <li><a href="#appendix_refactorings">Refactorings</a></li>
+<li><a href="#normalizing">Normalizing</a></li>
 <li><a href="#appendix_extesions">Extensions</a></li>
 </ul>
 </li>
@@ -3655,6 +3656,7 @@ to the target entity. This attribute defines the type of the element (such as un
       <span class="tag">&lt;xs:simpleType&gt;</span>
         <span class="tag">&lt;xs:restriction</span> <span class="attribute-name">base</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">xs:string</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">merge.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">normalize.asBoolean</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.label</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.type</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.nodeProperty</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
@@ -3801,10 +3803,127 @@ to the target entity. This attribute defines the type of the element (such as un
 <div class="paragraph">
 <p>Neo4j-Migrations contains a set of ready-to-use database refactorings. These refactorings are all modelled very closely to those available in <a href="https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/">APOC</a> but <strong>none</strong> of them requires APOC to be installed in your database. The refactorings are mostly designed to work from within a <a href="#concepts_catalog">catalog</a> but they work very well on their own to. While they are part of the <a href="#usage_core">Core API</a>, they don&#8217;t depend on a Migration instance. Their API is subject to the same versioning guarantees as the rest of Neo4j-Migrations. Refactorings might evolve into a their module at a later point in time.</p>
 </div>
+<div class="paragraph">
+<p>Some refactorings require certain Neo4j versions. If you do support multiple Neo4j versions, define those refactorings as single itemed migrations and add assumptions like in the following example:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 40. Normalize boolean properties when running Neo4j 4.1+</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="preprocessor">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="tag">&lt;migration</span> <span class="attribute-name">xmlns</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">https://michael-simons.github.io/neo4j-migrations</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+
+  <span class="comment">&lt;?assume that version is ge 4.1 ?&gt;</span>
+
+  <span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">normalize.asBoolean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;parameters&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">property</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>watched<span class="tag">&lt;/parameter&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">trueValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;value&gt;</span>y<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>YES<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;/parameter&gt;</span>
+      <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">falseValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+        <span class="tag">&lt;value&gt;</span>n<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;value&gt;</span>NO<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;/parameters&gt;</span>
+  <span class="tag">&lt;/refactor&gt;</span>
+<span class="tag">&lt;/migration&gt;</span></code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="mergingnodes"><a class="anchor" href="#mergingnodes"></a>Merging nodes</h4>
+<div class="paragraph">
+<p><code>Merge.nodes(String source, List&lt;PropertyMergePolicy&gt; mergePolicies)</code> merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Merge</code> refactoring requires Neo4j 4.4+.</p>
+</div>
+<div class="paragraph">
+<p>As catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">merge.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceQuery</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>MATCH (p:Person) RETURN p ORDER BY p.name ASC<span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Repeat as often as necessary --&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;pattern&gt;</span>name<span class="tag">&lt;/pattern&gt;</span>
+      <span class="tag">&lt;strategy&gt;</span>KEEP_LAST<span class="tag">&lt;/strategy&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;pattern&gt;</span>.*<span class="tag">&lt;/pattern&gt;</span>
+      <span class="tag">&lt;strategy&gt;</span>KEEP_FIRST<span class="tag">&lt;/strategy&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="normalizing"><a class="anchor" href="#normalizing"></a>Normalizing</h3>
+<div class="paragraph">
+<p>Normalizing is the process to take an humongous set of properties and other Graph Items and apply a scheme to it.
+The normalizing refactoring requires at least Neo4j 4.1, running it with batches requires Neo4j 4.4 or higher.</p>
+</div>
+<div class="sect3">
+<h4 id="normalizepropertiesasboolean"><a class="anchor" href="#normalizepropertiesasboolean"></a>Normalize properties as boolean</h4>
+<div class="paragraph">
+<p>Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as <code>ja</code>, <code>Y</code>, <code>yes</code>, <code>NO</code> or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with <code>Normalize.asBoolean</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>Normalize.asBoolean</code> takes in the name of a property and a list of values that are treated as <code>true</code> and a list of values that are treated as <code>false</code>. A property with a value that is not in any of those lists will be deleted. <code>null</code> as value is a non-existent property. However, if either lists contains literal <code>null</code>, a property will be created with the corresponding value.</p>
+</div>
+<div class="paragraph">
+<p>By default all properties of all nodes and relationships will be normalized. To only apply this refactoring to a subset, i.e. only to nodes, you would want to use a custom query.</p>
+</div>
+<div class="paragraph">
+<p>A Java example looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">Normalize.asBoolean(
+    <span class="string"><span class="delimiter">&quot;</span><span class="content">watched</span><span class="delimiter">&quot;</span></span>,
+    <span class="predefined-type">List</span>.of(<span class="string"><span class="delimiter">&quot;</span><span class="content">y</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">YES</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">JA</span><span class="delimiter">&quot;</span></span>),
+        <span class="comment">// List.of does not support literal null,</span>
+        <span class="comment">// so we need to this the old-school</span>
+    <span class="predefined-type">Arrays</span>.asList(<span class="string"><span class="delimiter">&quot;</span><span class="content">n</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">NO</span><span class="delimiter">&quot;</span></span>, <span class="predefined-constant">null</span>)
+);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same as a catalog item:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">normalize.asBoolean</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+  <span class="tag">&lt;parameters&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">property</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>watched<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">trueValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;value&gt;</span>y<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;value&gt;</span>YES<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;value&gt;</span>JA<span class="tag">&lt;/value&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">falseValues</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+      <span class="tag">&lt;value&gt;</span>n<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;value&gt;</span>NO<span class="tag">&lt;/value&gt;</span>
+      <span class="tag">&lt;value</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/parameter&gt;</span>
+    <span class="comment">&lt;!-- Optional custom query and batch size --&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;parameter name=&quot;customQuery&quot;&gt;MATCH (n:Movie) return n&lt;/parameter&gt;
+    &lt;parameter name=&quot;batchSize&quot;&gt;42&lt;/parameter&gt;
+    --&gt;</span>
+  <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+</div>
 <div class="sect3">
 <h4 id="renaminglabelstypesandproperties"><a class="anchor" href="#renaminglabelstypesandproperties"></a>Renaming labels, types and properties</h4>
 <div class="paragraph">
-<p><code>ac.simons.neo4j.migrations.core.refactorings.Rename</code> renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target enetities require Neo4j 4.1, batches Neo4j 4.4.</p>
+<p><code>ac.simons.neo4j.migrations.core.refactorings.Rename</code> renames labels, types and properties and requires in its default form only Neo4j 3.5 to work. Custom queries for filtering target entities require Neo4j 4.1, batches Neo4j 4.4.</p>
 </div>
 <div class="sect4">
 <h5 id="commonmethods"><a class="anchor" href="#commonmethods"></a>Common methods</h5>
@@ -3938,33 +4057,6 @@ to the target entity. This attribute defines the type of the element (such as un
   <span class="tag">&lt;/parameters&gt;</span>
 <span class="tag">&lt;/refactor&gt;</span></code></pre>
 </div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="mergingnodes"><a class="anchor" href="#mergingnodes"></a>Merging nodes</h4>
-<div class="paragraph">
-<p><code>Merge.nodes(String source, List&lt;PropertyMergePolicy&gt; mergePolicies)</code> merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.</p>
-</div>
-<div class="paragraph">
-<p>As catalog item:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">merge.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-  <span class="tag">&lt;parameters&gt;</span>
-    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">sourceQuery</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>MATCH (p:Person) RETURN p ORDER BY p.name ASC<span class="tag">&lt;/parameter&gt;</span>
-    <span class="comment">&lt;!-- Repeat as often as necessary --&gt;</span>
-    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;pattern&gt;</span>name<span class="tag">&lt;/pattern&gt;</span>
-      <span class="tag">&lt;strategy&gt;</span>KEEP_LAST<span class="tag">&lt;/strategy&gt;</span>
-    <span class="tag">&lt;/parameter&gt;</span>
-    <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">mergePolicy</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
-      <span class="tag">&lt;pattern&gt;</span>.*<span class="tag">&lt;/pattern&gt;</span>
-      <span class="tag">&lt;strategy&gt;</span>KEEP_FIRST<span class="tag">&lt;/strategy&gt;</span>
-    <span class="tag">&lt;/parameter&gt;</span>
-  <span class="tag">&lt;/parameters&gt;</span>
-<span class="tag">&lt;/refactor&gt;</span></code></pre>
 </div>
 </div>
 </div>
@@ -4126,7 +4218,7 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 40. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 41. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4139,7 +4231,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 41. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 42. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:1.10.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4218,7 +4310,7 @@ and valid inline Cypher content. The block definition looks like this:</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 42. Markdown extension as Maven dependency</div>
+<div class="title">Listing 43. Markdown extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4231,7 +4323,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 43. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 44. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatMarkdown}:1.10.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4288,7 +4380,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-19 13:09:05 UTC
+Last updated 2022-08-19 13:38:14 UTC
 </div>
 </div>
 </body>

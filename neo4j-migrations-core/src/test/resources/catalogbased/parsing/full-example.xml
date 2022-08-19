@@ -110,4 +110,20 @@
 			<parameter name="batchSize">23</parameter>
 		</parameters>
 	</refactor>
+
+	<refactor type="normalize.asBoolean">
+		<parameters>
+			<parameter name="customQuery">MATCH (n:Movie) return n</parameter>
+			<parameter name="batchSize">42</parameter>
+			<parameter name="property">title</parameter>
+			<parameter name="trueValues">
+				<value>The Matrix</value>
+			</parameter>
+			<parameter name="falseValues">
+				<value>Das deutsche Kettensägenmassaker</value>
+				<value/>
+				<value>null</value>
+			</parameter>
+		</parameters>
+	</refactor>
 </migration>

@@ -42,6 +42,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
 import java.net.URL;
@@ -225,7 +226,12 @@ class CatalogBasedMigrationTest {
 					Rename.type("ACTED_IN", "HAT_GESPIELT_IN")
 						.withCustomQuery(
 							"MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n")
-						.inBatchesOf(23)
+						.inBatchesOf(23),
+					Normalize.asBoolean("title",
+							Arrays.asList("The Matrix"),
+							Arrays.asList("Das deutsche Kettensägenmassaker", null, null))
+						.withCustomQuery("MATCH (n:Movie) return n")
+						.inBatchesOf(42)
 				);
 		}
 

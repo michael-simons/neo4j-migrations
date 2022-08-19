@@ -28,7 +28,7 @@ import org.neo4j.driver.Query;
  * @soundtrack Nightwish - Decades: Live In Buenos Aires
  * @since 1.10.0
  */
-final class DefaultRename implements Rename {
+final class DefaultRename extends AbstractCustomizableRefactoring implements Rename {
 
 	/**
 	 * Target of the renaming
@@ -100,18 +100,6 @@ final class DefaultRename implements Rename {
 	 */
 	private final String newValue;
 
-	/**
-	 * An optional, custom query to generate the list of nodes or relationships whose labels or types should be renamed.
-	 * This query must return rows with one single element per row. This is checked upon before executing.
-	 */
-	private final String customQuery;
-
-	/**
-	 * The batch size to perform renaming. If {@literal null}, no batching is attempted and the refactoring will use one
-	 * a transactional function when applied. Setting this to a value different from {@literal null} also requires Neo4j >= 4.4
-	 */
-	private final Integer batchSize;
-
 	private final QueryRunner.FeatureSet featureSet;
 
 	DefaultRename(Target targetEntityType, String oldValue, String newValue) {
@@ -119,12 +107,11 @@ final class DefaultRename implements Rename {
 	}
 
 	private DefaultRename(Target target, String oldValue, String newValue, String customQuery, Integer batchSize) {
+		super(customQuery, batchSize);
 
 		this.target = target;
-		this.oldValue = Objects.requireNonNull(oldValue);
-		this.newValue = Objects.requireNonNull(newValue);
-		this.customQuery = customQuery;
-		this.batchSize = batchSize;
+		this.oldValue = oldValue;
+		this.newValue = newValue;
 
 		if (this.batchSize != null) {
 			this.featureSet = QueryRunner.defaultFeatureSet()
@@ -163,15 +150,12 @@ final class DefaultRename implements Rename {
 
 	@Override
 	public Rename withCustomQuery(String newCustomQuery) {
-		String value = Optional.ofNullable(newCustomQuery).map(String::trim)
-			.filter(s -> !s.isEmpty())
-			.orElse(null);
+		String value = filterCustomQuery(newCustomQuery);
 
 		return Objects.equals(this.customQuery, value) ?
 			this :
 			new DefaultRename(this.target, this.oldValue, this.newValue, value, this.batchSize);
 	}
-
 
 	private String generateFormatString() {
 		String ptSource;

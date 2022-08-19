@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+
+	<?assume that version is ge 4.1 ?>
+
+	<refactor type="normalize.asBoolean">
+		<parameters>
+			<parameter name="property">gelesen</parameter>
+			<parameter name="trueValues">
+				<value>j</value>
+				<value>ja</value>
+			</parameter>
+			<parameter name="falseValues">
+				<value>n</value>
+				<value />
+			</parameter>
+		</parameters>
+	</refactor>
+</migration>

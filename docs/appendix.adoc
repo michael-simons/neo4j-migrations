@@ -106,12 +106,12 @@ As catalog item:
 </refactor>
 ----
 
-== Normalizing
+=== Normalizing
 
 Normalizing is the process to take an humongous set of properties and other Graph Items and apply a scheme to it.
 The normalizing refactoring requires at least Neo4j 4.1, running it with batches requires Neo4j 4.4 or higher.
 
-=== Normalize properties as boolean
+==== Normalize properties as boolean
 
 Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as `ja`, `Y`, `yes`, `NO` or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with `Normalize.asBoolean`.
 

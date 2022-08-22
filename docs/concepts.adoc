@@ -82,6 +82,23 @@ Migrations are all operations or refactorings you apply to a database.
 These operations might be creating, changing, or dropping indexes and constraints or altering data.
 Sometimes you might even want to create users or databases.
 
+Cypher (`.cypher`), Catalog-based (`.xml`) and class based (i.e. `.java` or `.kt`) based migrations require a certain naming
+convention to be recognized:
+
+[source,console]
+----
+V1_2_3__Add_last_name_index.(cypher|xml|java)
+----
+
+* Prefix `V` for "__V__ersioned Migrations"
+* Version with optional underscores separating as many parts as you like
+* Separator: `__` (two underscores)
+* Required description: Underscores or spaces might be used to separate words
+* Suffix: Depending on the given type.
+
+Exceptions are made for callbacks (see <<concepts_naming-conventions,naming conventions>>) and some <<appendix_extesions, extensions>> supported by Neo4j-Migrations.
+
+
 [[concepts_migrations_cypher-based]]
 === Cypher-based
 

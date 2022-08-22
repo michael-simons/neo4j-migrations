@@ -585,7 +585,6 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <li><a href="#glossary">Glossary</a></li>
 <li><a href="#appendix_xml_schemes">XML Schemes</a></li>
 <li><a href="#appendix_refactorings">Refactorings</a></li>
-<li><a href="#normalizing">Normalizing</a></li>
 <li><a href="#appendix_extesions">Extensions</a></li>
 </ul>
 </li>
@@ -3892,15 +3891,14 @@ to the target entity. This attribute defines the type of the element (such as un
 </div>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="normalizing"><a class="anchor" href="#normalizing"></a>Normalizing</h3>
+<div class="sect3">
+<h4 id="normalizing"><a class="anchor" href="#normalizing"></a>Normalizing</h4>
 <div class="paragraph">
 <p>Normalizing is the process to take an humongous set of properties and other Graph Items and apply a scheme to it.
 The normalizing refactoring requires at least Neo4j 4.1, running it with batches requires Neo4j 4.4 or higher.</p>
 </div>
-<div class="sect3">
-<h4 id="normalizepropertiesasboolean"><a class="anchor" href="#normalizepropertiesasboolean"></a>Normalize properties as boolean</h4>
+<div class="sect4">
+<h5 id="normalizepropertiesasboolean"><a class="anchor" href="#normalizepropertiesasboolean"></a>Normalize properties as boolean</h5>
 <div class="paragraph">
 <p>Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as <code>ja</code>, <code>Y</code>, <code>yes</code>, <code>NO</code> or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with <code>Normalize.asBoolean</code>.</p>
 </div>
@@ -3949,6 +3947,7 @@ The normalizing refactoring requires at least Neo4j 4.1, running it with batches
     --&gt;</span>
   <span class="tag">&lt;/parameters&gt;</span>
 <span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -4412,7 +4411,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-22 13:17:00 UTC
+Last updated 2022-08-22 16:34:34 UTC
 </div>
 </div>
 </body>

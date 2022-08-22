@@ -1057,6 +1057,37 @@ If you need more control about what happens in a migration, have a look at our J
 These operations might be creating, changing, or dropping indexes and constraints or altering data.
 Sometimes you might even want to create users or databases.</p>
 </div>
+<div class="paragraph">
+<p>Cypher (<code>.cypher</code>), Catalog-based (<code>.xml</code>) and class based (i.e. <code>.java</code> or <code>.kt</code>) based migrations require a certain naming
+convention to be recognized:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">V1_2_3__Add_last_name_index.(cypher|xml|java)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Prefix <code>V</code> for "<em>V</em>ersioned Migrations"</p>
+</li>
+<li>
+<p>Version with optional underscores separating as many parts as you like</p>
+</li>
+<li>
+<p>Separator: <code>__</code> (two underscores)</p>
+</li>
+<li>
+<p>Required description: Underscores or spaces might be used to separate words</p>
+</li>
+<li>
+<p>Suffix: Depending on the given type.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Exceptions are made for callbacks (see <a href="#concepts_naming-conventions">naming conventions</a>) and some <a href="#appendix_extesions">extensions</a> supported by Neo4j-Migrations.</p>
+</div>
 <div class="sect3">
 <h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.2.1. Cypher-based</h4>
 <div class="paragraph">
@@ -4381,7 +4412,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-22 08:17:02 UTC
+Last updated 2022-08-22 13:17:00 UTC
 </div>
 </div>
 </body>

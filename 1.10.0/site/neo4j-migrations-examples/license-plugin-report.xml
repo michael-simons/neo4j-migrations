@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1661184492279">
+    <module artifactId="neo4j-migrations-examples" groupId="eu.michael-simons.neo4j" version="1.10.0"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

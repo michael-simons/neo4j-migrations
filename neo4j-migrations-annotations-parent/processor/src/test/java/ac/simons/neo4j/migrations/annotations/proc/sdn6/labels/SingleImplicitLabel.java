@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
 
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
@@ -25,6 +26,5 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public final class SingleImplicitLabel {
 
-	private SingleImplicitLabel() {
-	}
+	@Id String name;
 }

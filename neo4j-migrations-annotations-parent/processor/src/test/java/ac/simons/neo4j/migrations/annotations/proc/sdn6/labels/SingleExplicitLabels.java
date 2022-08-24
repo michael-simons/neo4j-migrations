@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
 
+import java.util.UUID;
+
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
@@ -26,10 +29,12 @@ public final class SingleExplicitLabels {
 
 	@Node("1o1")
 	static class AsValue {
+		@Id Long someId;
 	}
 
 	@Node(primaryLabel = "pl")
 	static class AsPrimaryLabel {
+		@Id UUID someOtherId;
 	}
 
 	private SingleExplicitLabels() {

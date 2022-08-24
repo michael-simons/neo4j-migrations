@@ -15,7 +15,12 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
 
+import java.util.UUID;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
  * @author Michael J. Simons
@@ -24,10 +29,14 @@ public final class MultipleExplicitLabels {
 
 	@Node({ "l1", "l2", "l3" })
 	static class MultipleValues {
+
+		@Id @GeneratedValue(UUIDStringGenerator.class) String uuid;
 	}
 
 	@Node(primaryLabel = "pl", value = { "l1", "l2", "l3" })
 	static class PrimaryAndValuesCombined {
+
+		@Id @GeneratedValue(GeneratedValue.UUIDGenerator.class) UUID uuid;
 	}
 
 	private MultipleExplicitLabels() {

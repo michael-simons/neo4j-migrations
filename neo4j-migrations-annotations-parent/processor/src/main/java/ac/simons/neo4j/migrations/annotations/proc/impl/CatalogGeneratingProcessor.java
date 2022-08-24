@@ -23,21 +23,32 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.ElementKindVisitor8;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -63,14 +74,22 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	static final String OPTION_WRITE_TIMESTAMP = "org.neo4j.migrations.catalog_generator.write_timestamp";
 	static final String OPTION_TIMESTAMP = "org.neo4j.migrations.catalog_generator.timestamp";
 
+	static final Set<String> VALID_GENERATED_ID_TYPES = Collections.unmodifiableSet(
+		new HashSet<>(Arrays.asList(Long.class.getName(), long.class.getName())));
+
 	private ConstraintNameGenerator constraintNameGenerator;
 
+	private Messager messager;
 	private Types typeUtils;
 
 	private TypeElement sdn6Node;
 	private ExecutableElement sdn6NodeValue;
 	private ExecutableElement sdn6NodeLabels;
 	private ExecutableElement sdn6NodePrimaryLabel;
+
+	private TypeElement sdn6Id;
+	private TypeElement sdn6GeneratedValue;
+	private TypeElement commonsId;
 
 	public CatalogGeneratingProcessor() {
 	}
@@ -98,6 +117,11 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.sdn6NodeLabels = getAnnotationAttribute(sdn6Node, "labels");
 		this.sdn6NodePrimaryLabel = getAnnotationAttribute(sdn6Node, "primaryLabel");
 
+		this.sdn6Id = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_ID);
+		this.sdn6GeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
+		this.commonsId = elementUtils.getTypeElement(FullyQualifiedNames.COMMONS_ID);
+
+		this.messager = processingEnv.getMessager();
 		this.typeUtils = processingEnv.getTypeUtils();
 	}
 
@@ -109,6 +133,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+
 		if (roundEnv.processingOver()) {
 			try {
 				/*
@@ -130,7 +155,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 			roundEnv.getElementsAnnotatedWith(sdn6Node)
 				.stream()
-				.filter(e -> e.getKind().isClass() && !e.getModifiers().contains(Modifier.ABSTRACT))
+				.filter(this::f)
 				.map(TypeElement.class::cast)
 				.forEach(t -> {
 
@@ -160,6 +185,74 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		return true;
 	}
 
+	boolean f(Element e) {
+			return e.accept(new RequiresPrimaryKeyConstraint(), false);
+	}
+
+	class RequiresPrimaryKeyConstraint extends ElementKindVisitor8<Boolean, Boolean> {
+
+		@Override
+		protected Boolean defaultAction(Element e, Boolean aBoolean) {
+			return aBoolean;
+		}
+
+		@Override
+		public Boolean visitType(TypeElement e, Boolean includeAbstractClasses) {
+			boolean isNonAbstractClass = e.getKind().isClass() && !e.getModifiers().contains(Modifier.ABSTRACT);
+			if (!isNonAbstractClass && !includeAbstractClasses) {
+				return false;
+			}
+			if (!e.getEnclosedElements().stream().anyMatch(ee -> ee.accept(this, false))) {
+				return findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, true)).orElse(false);
+			}
+			return true;
+		}
+
+		@Override
+		public Boolean visitVariableAsField(VariableElement e, Boolean defaultValue) {
+
+			Set<Element> fieldAnnotations = e.getAnnotationMirrors().stream()
+				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());
+
+			if (!(fieldAnnotations.contains(sdn6Id)) || fieldAnnotations.contains(commonsId)) {
+				return defaultValue;
+			}
+			return e.getAnnotationMirrors().stream()
+				.filter(m -> m.getAnnotationType().asElement().equals(sdn6GeneratedValue))
+				.noneMatch(generatedValue -> isUsingInternalIdGenerator(e, generatedValue));
+		}
+
+		private boolean isUsingInternalIdGenerator(VariableElement e, AnnotationMirror generatedValue) {
+
+			Map<String, ? extends AnnotationValue> values = generatedValue
+				.getElementValues().entrySet().stream()
+				.collect(Collectors.toMap(entry -> entry.getKey().getSimpleName().toString(), Map.Entry::getValue));
+
+			DeclaredType generatorClassValue = values.containsKey("generatorClass") ?
+				(DeclaredType) values.get("generatorClass").getValue() : null;
+			DeclaredType valueValue = values.containsKey("value") ?
+				(DeclaredType) values.get("value").getValue() : null;
+
+			String name = null;
+			if (generatorClassValue != null && valueValue != null && !generatorClassValue.equals(valueValue)) {
+				messager.printMessage(
+					Diagnostic.Kind.ERROR,
+					"Different @AliasFor mirror values for annotation [org.springframework.data.neo4j.core.schema.GeneratedValue]!",
+					e
+				);
+			} else if (generatorClassValue != null) {
+				name = generatorClassValue.toString();
+			} else if (valueValue != null) {
+				name = valueValue.toString();
+			}
+
+			// The defaults will not be materialized
+			return (name == null || "org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator".equals(name))
+				&& VALID_GENERATED_ID_TYPES.contains(e.asType().toString());
+		}
+	}
+
+
 	@SuppressWarnings("unchecked")
 	List<Label> computeLabels(TypeElement typeElement, boolean addSimpleName) {
 
@@ -168,18 +261,17 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.filter(m -> m.getAnnotationType().asElement().equals(sdn6Node))
 			.findFirst()
 			.ifPresent(t -> {
-				Map<? extends ExecutableElement, ? extends AnnotationValue> elementValues = t.getElementValues();
-				if (elementValues.containsKey(sdn6NodePrimaryLabel)) {
-					result.add(Label.of((String) elementValues.get(sdn6NodePrimaryLabel).getValue()));
-
+				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+				if (attributes.containsKey(sdn6NodePrimaryLabel)) {
+					result.add(Label.of((String) attributes.get(sdn6NodePrimaryLabel).getValue()));
 				}
 
 				List<AnnotationValue> values = new ArrayList<>();
-				if (elementValues.containsKey(sdn6NodeValue)) {
-					values.addAll((List<AnnotationValue>) elementValues.get(sdn6NodeValue).getValue());
+				if (attributes.containsKey(sdn6NodeValue)) {
+					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeValue).getValue());
 				}
-				if (elementValues.containsKey(sdn6NodeLabels)) {
-					values.addAll((List<AnnotationValue>) elementValues.get(sdn6NodeLabels).getValue());
+				if (attributes.containsKey(sdn6NodeLabels)) {
+					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeLabels).getValue());
 				}
 				values.stream().map(v -> Label.of((String) v.getValue())).forEach(result::add);
 			});
@@ -193,11 +285,16 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.map(i -> typeUtils.asElement(i))
 			.map(TypeElement.class::cast)
 			.forEach(i -> result.addAll(computeLabels(i, false)));
-		TypeElement superclass = (TypeElement) typeUtils.asElement(typeElement.getSuperclass());
-		if (superclass != null && !superclass.getQualifiedName().contentEquals("java.lang.Object")) {
-			result.addAll(computeLabels(superclass, false));
-		}
+
+		findSuperclassOfInterest(typeElement).ifPresent(superclass -> result.addAll(computeLabels(superclass, false)));
 		return result;
+	}
+
+	Optional<TypeElement> findSuperclassOfInterest(TypeElement typeElement) {
+		return Optional.ofNullable(typeElement.getSuperclass())
+			.map(typeUtils::asElement)
+			.map(TypeElement.class::cast)
+			.filter(e -> !e.getQualifiedName().contentEquals("java.lang.Object"));
 	}
 
 	String getOutputDir() {

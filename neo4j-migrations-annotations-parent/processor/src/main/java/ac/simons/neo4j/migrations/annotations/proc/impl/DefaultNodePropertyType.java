@@ -41,6 +41,6 @@ final class DefaultNodePropertyType implements PropertyType<NodeType> {
 
 	@Override
 	public String getName() {
-		return null;
+		return this.name;
 	}
 }

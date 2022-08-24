@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.annotations.proc;
 
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
+import java.util.Collection;
+
 /**
  * Contract for generating names for primary keys representing the unique identifier of a concrete model class.
  *
@@ -30,8 +32,8 @@ public interface ConstraintNameGenerator {
 	/**
 	 * Generate a primary key name for the given combination of a {@link  NodeType node-} and a {@link PropertyType property type}.
 	 *
-	 * @param propertyType The property type to generate the primary key name for
+	 * @param properties The properties to create the constraint for. All properties will have the same owner.
 	 * @return A valid primary key (constraint) name
 	 */
-	String generateName(Constraint.Type constraintType, PropertyType<NodeType> propertyType);
+	String generateName(Constraint.Type constraintType, Collection<PropertyType<NodeType>> properties);
 }

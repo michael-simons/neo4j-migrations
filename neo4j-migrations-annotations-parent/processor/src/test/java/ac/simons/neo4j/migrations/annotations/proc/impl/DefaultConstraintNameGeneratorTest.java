@@ -15,36 +15,36 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
 import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
-import java.util.Collection;
-import java.util.Locale;
-import java.util.stream.Collectors;
+import java.util.Collections;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Verliebt
- * @since TBA
  */
-final class DefaultConstraintNameGenerator implements ConstraintNameGenerator {
+class DefaultConstraintNameGeneratorTest {
 
-	@Override
-	public String generateName(Constraint.Type constraintType, Collection<PropertyType<NodeType>> properties) {
+	@Test
+	void shouldGenerateExpectedName() {
+		ConstraintNameGenerator generator = new DefaultConstraintNameGenerator();
 
+		NodeType nodeType = mock(NodeType.class);
+		when(nodeType.getOwningTypeName()).thenReturn("this.is.a.Test");
+		@SuppressWarnings("unchecked")
+		PropertyType<NodeType> property = mock(PropertyType.class);
+		when(property.getOwner()).thenReturn(nodeType);
+		when(property.getName()).thenReturn("id");
 
-		NodeType owner = properties.stream()
-			.findFirst().map(PropertyType::getOwner)
-			.orElseThrow(() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));
-
-		String propertyNames = properties.stream()
-			.map(PropertyType::getName).collect(Collectors.joining("_"));
-
-		// Basically the OGM approach
-		return String.format("%s_%s_%s",
-			owner.getOwningTypeName().toLowerCase(Locale.ROOT).replace(".", "_"),
-			propertyNames, constraintType.name().toLowerCase(Locale.ROOT));
+		String name = generator.generateName(Constraint.Type.UNIQUE, Collections.singleton(property));
+		assertThat(name).isEqualTo("this_is_a_test_id_unique");
 	}
 }

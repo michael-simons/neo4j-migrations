@@ -26,6 +26,7 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
-import org.assertj.core.api.Assertions;
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -89,14 +90,23 @@ class CatalogGeneratingProcessorTest {
 	}
 
 	@Test
-	void shouldGenerateCatalog() {
+	void shouldGenerateConstraints() {
+		CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
 		Compilation compilation = getCompiler()
-			.withProcessors(new CatalogGeneratingProcessor())
+			.withProcessors(catalogGeneratingProcessor)
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/movies"));
 
 		CompilationSubject.assertThat(compilation).succeeded();
 
-		Assertions.fail("not enough testing here...");
+		Constraint expectedConstraint = Constraint.forNode("Movie")
+			.named("ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_movie_title_unique").unique("title");
+
+		assertThat(catalogGeneratingProcessor.getConstraints())
+			.hasSize(1)
+			.satisfies(c -> {
+				assertThat(c.isEquivalentTo(expectedConstraint)).isTrue();
+				assertThat(c.getName()).isEqualTo(expectedConstraint.getName());
+			}, Index.atIndex(0));
 	}
 
 	static class CollectingConstraintNameGenerator implements ConstraintNameGenerator {
@@ -104,9 +114,10 @@ class CatalogGeneratingProcessorTest {
 		Map<String, List<String>> labels = new HashMap<>();
 
 		@Override
-		public String generateName(Constraint.Type type, PropertyType<NodeType> propertyType) {
+		public String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties) {
 
-			NodeType owner = propertyType.getOwner();
+			NodeType owner = properties.stream().findFirst().map(PropertyType::getOwner).orElseThrow(
+				() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));
 			String owningTypeName = owner.getOwningTypeName();
 			this.labels.put(owningTypeName.substring(owningTypeName.lastIndexOf("labels.") + "labels.".length()),
 				owner.getLabels().stream().map(Label::getValue).collect(Collectors.toList()));
@@ -124,7 +135,7 @@ class CatalogGeneratingProcessorTest {
 
 		CompilationSubject.assertThat(compilation).succeeded();
 		assertThat(generator.labels)
-//			.hasSize(7)
+			.hasSize(7)
 			.containsEntry("SingleImplicitLabel",
 				Collections.singletonList("SingleImplicitLabel"))
 			.containsEntry("SingleExplicitLabels.AsPrimaryLabel",
@@ -137,6 +148,18 @@ class CatalogGeneratingProcessorTest {
 				Arrays.asList("l1", "l2", "l3"))
 			.containsEntry("InheritedLabels.Child",
 				Arrays.asList("Child", "Person", "Base", "Bases"));
+	}
+
+	@Test
+	void shouldIgnoreClassesWithGeneratedOrNoIdValues() {
+
+		CollectingConstraintNameGenerator generator = new CollectingConstraintNameGenerator();
+		Compilation compilation = getCompiler()
+			.withProcessors(new CatalogGeneratingProcessor(generator))
+			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
+
+		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(generator.labels).isEmpty();
 	}
 
 }

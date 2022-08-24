@@ -13,32 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
-
-import java.util.UUID;
+package ac.simons.neo4j.migrations.annotations.proc.sdn6.ignored;
 
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
+ * Models that are ignored because they have no id or only internally generated ids.
  * @author Michael J. Simons
  */
-public final class MultipleExplicitLabels {
+public final class IgnoredModels {
 
-	@Node({ "l1", "l2", "l3" })
-	static class MultipleValues {
-
-		@org.springframework.data.annotation.Id @GeneratedValue(UUIDStringGenerator.class) String uuid;
+	@Node
+	static class NoId {
 	}
 
-	@Node(primaryLabel = "pl", value = { "l1", "l2", "l3" })
-	static class PrimaryAndValuesCombined {
-
-		@Id @GeneratedValue(GeneratedValue.UUIDGenerator.class) UUID uuid;
+	@Node
+	static class InternalId {
+		@Id @GeneratedValue long id;
 	}
 
-	private MultipleExplicitLabels() {
+	@Node
+	static abstract class IdButAbstract {
+		@Id String id;
+	}
+
+	@Node
+	interface Whatever {
+	}
+
+	static class Someclass {
+	}
+
+	@Node
+	static class NoIdInHierarchy extends Someclass implements Whatever {
+	}
+
+	private IgnoredModels() {
 	}
 }

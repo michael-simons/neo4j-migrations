@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
 import ac.simons.neo4j.migrations.annotations.proc.Label;
+import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
 import java.io.BufferedWriter;
@@ -29,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -90,6 +93,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement sdn6Id;
 	private TypeElement sdn6GeneratedValue;
 	private TypeElement commonsId;
+
+	private final List<Constraint> constraints = new ArrayList<>();
 
 	public CatalogGeneratingProcessor() {
 	}
@@ -155,13 +160,14 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 			roundEnv.getElementsAnnotatedWith(sdn6Node)
 				.stream()
-				.filter(this::f)
+				.filter(this::requiresPrimaryKeyConstraint)
 				.map(TypeElement.class::cast)
 				.forEach(t -> {
-
-					DefaultNodeType nodeType = new DefaultNodeType(t.getQualifiedName().toString(), computeLabels(t, true));
-					DefaultNodePropertyType propertyType = new DefaultNodePropertyType(nodeType, "todo");
-					this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, propertyType);
+					List<Label> labels = computeLabels(t, true);
+					PropertyType<NodeType> idProperty = t.accept(new PropertyTypeExtractingVisitor(), new DefaultNodeType(t.getQualifiedName().toString(), labels));
+					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, Collections.singleton(idProperty));
+					constraints.add(Constraint.forNode(labels.get(0).getValue()).named(name)
+						.unique(idProperty.getName()));
 				});
 
 
@@ -185,8 +191,38 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		return true;
 	}
 
-	boolean f(Element e) {
-			return e.accept(new RequiresPrimaryKeyConstraint(), false);
+	List<Constraint> getConstraints() {
+		return Collections.unmodifiableList(constraints);
+	}
+
+	boolean requiresPrimaryKeyConstraint(Element e) {
+		return e.accept(new RequiresPrimaryKeyConstraint(), false);
+	}
+
+	class PropertyTypeExtractingVisitor extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
+
+		@Override
+		public PropertyType<NodeType> visitType(TypeElement e, DefaultNodeType nodeType) {
+			Optional<PropertyType<NodeType>> property = e.getEnclosedElements().stream()
+				.map(ee -> ee.accept(this, nodeType))
+				.filter(Objects::nonNull)
+				.findFirst();
+
+			return property.orElseGet(() -> findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, nodeType))
+				.orElseThrow(() -> new IllegalStateException(
+					"This visitor might only be used after a certain type has been marked for inclusion in the generated catalog.")));
+		}
+
+		@Override
+		public PropertyType<NodeType> visitVariableAsField(VariableElement e, DefaultNodeType nodeType) {
+
+			Set<Element> fieldAnnotations = e.getAnnotationMirrors().stream()
+				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());
+			if (fieldAnnotations.contains(sdn6Id) || fieldAnnotations.contains(commonsId)) {
+				return nodeType.addProperty(e.getSimpleName().toString());
+			}
+			return null;
+		}
 	}
 
 	class RequiresPrimaryKeyConstraint extends ElementKindVisitor8<Boolean, Boolean> {
@@ -202,7 +238,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			if (!isNonAbstractClass && !includeAbstractClasses) {
 				return false;
 			}
-			if (!e.getEnclosedElements().stream().anyMatch(ee -> ee.accept(this, false))) {
+			if (e.getEnclosedElements().stream().noneMatch(ee -> ee.accept(this, false))) {
 				return findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, true)).orElse(false);
 			}
 			return true;
@@ -213,8 +249,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 			Set<Element> fieldAnnotations = e.getAnnotationMirrors().stream()
 				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());
-
-			if (!(fieldAnnotations.contains(sdn6Id)) || fieldAnnotations.contains(commonsId)) {
+			if (!(fieldAnnotations.contains(sdn6Id) || fieldAnnotations.contains(commonsId))) {
 				return defaultValue;
 			}
 			return e.getAnnotationMirrors().stream()
@@ -247,11 +282,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			}
 
 			// The defaults will not be materialized
-			return (name == null || "org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator".equals(name))
+			return
+				(name == null || "org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator".equals(
+					name))
 				&& VALID_GENERATED_ID_TYPES.contains(e.asType().toString());
 		}
 	}
-
 
 	@SuppressWarnings("unchecked")
 	List<Label> computeLabels(TypeElement typeElement, boolean addSimpleName) {

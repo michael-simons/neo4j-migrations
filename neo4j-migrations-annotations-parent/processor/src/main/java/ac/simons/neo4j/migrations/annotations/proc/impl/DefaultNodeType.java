@@ -40,7 +40,6 @@ final class DefaultNodeType implements NodeType {
 		this.owningTypeName = owningTypeName;
 		this.labels = labels;
 		this.properties = new ArrayList<>();
-		// TODO BIDI prop
 	}
 
 	@Override public String getOwningTypeName() {
@@ -55,5 +54,11 @@ final class DefaultNodeType implements NodeType {
 	@Override
 	public List<Label> getLabels() {
 		return Collections.unmodifiableList(this.labels);
+	}
+
+	PropertyType<NodeType> addProperty(String property) {
+		PropertyType<NodeType> propertyType = new DefaultNodePropertyType(this, property);
+		this.properties.add(propertyType);
+		return propertyType;
 	}
 }

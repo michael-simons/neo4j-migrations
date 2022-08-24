@@ -19,8 +19,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Used for tests only.
+ *
  * @author Michael J. Simons
  */
 @Node
-public class SingleImplicitLabel {
+public final class SingleImplicitLabel {
+
+	private SingleImplicitLabel() {
+	}
 }

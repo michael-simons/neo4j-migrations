@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
+package ac.simons.neo4j.migrations.annotations.proc;
 
-import org.springframework.data.neo4j.core.schema.Node;
+import java.util.List;
 
 /**
- * Used for tests only.
+ * The type of an element inside a graph.
  *
  * @author Michael J. Simons
+ * @param <ET> The concrete element type
+ * @soundtrack Kraftklub - KARGO
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+public interface ElementType<ET extends ElementType<ET>> {
 
-	@Node("1o1")
-	static class AsValue {
-	}
+	/**
+	 * @return The canonical name of the (Java) type that "owns" this graph element
+	 */
+	String getOwningTypeName();
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
-	}
+	/**
+	 * @return the properties of this entity.
+	 */
+	List<PropertyType<ET>> getProperties();
 }

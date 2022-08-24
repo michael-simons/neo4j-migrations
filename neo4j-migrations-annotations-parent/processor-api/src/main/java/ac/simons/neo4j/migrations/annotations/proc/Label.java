@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
-
-import org.springframework.data.neo4j.core.schema.Node;
+package ac.simons.neo4j.migrations.annotations.proc;
 
 /**
- * Used for tests only.
+ * Schema element describing a graph.
  *
  * @author Michael J. Simons
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+public interface Label {
 
-	@Node("1o1")
-	static class AsValue {
+	/**
+	 * Creates a label with the given value.
+	 *
+	 * @param value The value of this label, must not be null.
+	 * @return A label with the given value.
+	 */
+	static Label of(String value) {
+
+		return new DefaultLabel(value);
 	}
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
-	}
+	/**
+	 * @return the {@link String} value
+	 */
+	String getValue();
 }

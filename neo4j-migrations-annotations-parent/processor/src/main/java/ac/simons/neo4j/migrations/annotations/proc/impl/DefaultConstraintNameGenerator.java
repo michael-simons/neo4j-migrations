@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
+package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import org.springframework.data.neo4j.core.schema.Node;
+import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
+import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
 /**
- * Used for tests only.
- *
  * @author Michael J. Simons
+ * @soundtrack Antilopen Gang - Verliebt
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+class DefaultConstraintNameGenerator implements ConstraintNameGenerator {
 
-	@Node("1o1")
-	static class AsValue {
-	}
-
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
+	@Override
+	public String generateName(Constraint.Type constraintType, PropertyType<NodeType> propertyType) {
+		throw new UnsupportedOperationException("Oops");
 	}
 }

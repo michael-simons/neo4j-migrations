@@ -15,23 +15,47 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
 
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Used for tests only.
- *
  * @author Michael J. Simons
  */
-public final class SingleExplicitLabels {
+public final class InheritedLabels {
 
-	@Node("1o1")
-	static class AsValue {
+	@Node(primaryLabel = "Base", labels = { "Bases" })
+	private static abstract class BaseClass {
+		@Id private Long id;
 	}
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
+	@Node(primaryLabel = "Child", labels = { "Person" })
+	private static class Child extends BaseClass {
+		private String name;
 	}
 
-	private SingleExplicitLabels() {
+	@Node
+	private static abstract class A {
+		@Id private Long id;
+	}
+
+	private static abstract class B extends A {
+	}
+
+	@Node
+	private static abstract class C extends B {
+	}
+
+	private interface X {
+	}
+
+	@Node
+	private interface Y {
+	}
+
+	@Node(primaryLabel = "Foo")
+	private static class Foo extends C implements X, Y {
+	}
+
+	private InheritedLabels() {
 	}
 }

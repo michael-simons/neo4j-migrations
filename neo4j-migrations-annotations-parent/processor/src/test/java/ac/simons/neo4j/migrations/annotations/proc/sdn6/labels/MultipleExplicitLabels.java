@@ -18,20 +18,18 @@ package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Used for tests only.
- *
  * @author Michael J. Simons
  */
-public final class SingleExplicitLabels {
+public final class MultipleExplicitLabels {
 
-	@Node("1o1")
-	static class AsValue {
+	@Node({ "l1", "l2", "l3" })
+	static class MultipleValues {
 	}
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
+	@Node(primaryLabel = "pl", value = { "l1", "l2", "l3" })
+	static class PrimaryAndValuesCombined {
 	}
 
-	private SingleExplicitLabels() {
+	private MultipleExplicitLabels() {
 	}
 }

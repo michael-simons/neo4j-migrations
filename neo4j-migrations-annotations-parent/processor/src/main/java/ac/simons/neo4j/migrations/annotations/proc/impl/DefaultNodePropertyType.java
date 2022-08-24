@@ -13,25 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
+package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import org.springframework.data.neo4j.core.schema.Node;
+import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
- * Used for tests only.
- *
  * @author Michael J. Simons
+ * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+final class DefaultNodePropertyType implements PropertyType<NodeType> {
 
-	@Node("1o1")
-	static class AsValue {
+	private final NodeType owner;
+
+	private final String name;
+
+	DefaultNodePropertyType(NodeType owner, String name) {
+		this.owner = owner;
+		this.name = name;
 	}
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
+	@Override
+	public NodeType getOwner() {
+		return this.owner;
 	}
 
-	private SingleExplicitLabels() {
+	@Override
+	public String getName() {
+		return null;
 	}
 }

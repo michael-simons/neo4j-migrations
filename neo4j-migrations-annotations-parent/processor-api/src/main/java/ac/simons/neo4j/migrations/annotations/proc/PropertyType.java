@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
-
-import org.springframework.data.neo4j.core.schema.Node;
+package ac.simons.neo4j.migrations.annotations.proc;
 
 /**
- * Used for tests only.
+ * Describes the property of a {@link NodeType node} or relationship.
  *
  * @author Michael J. Simons
+ * @param <OT> the owning type
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+public interface PropertyType<OT extends ElementType<OT>> {
 
-	@Node("1o1")
-	static class AsValue {
-	}
+	/**
+	 * @return the owner of the property.
+	 */
+	OT getOwner();
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
-	}
+	/**
+	 * @return the name of the property
+	 */
+	String getName();
 }

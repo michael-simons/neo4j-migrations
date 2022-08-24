@@ -31,29 +31,14 @@
 	<description>Annotation processor generating catalog files from various annotation sources</description>
 
 	<properties>
-		<java-module-name>ac.simons.neo4j.migrations.annotations.proc</java-module-name>
+		<java-module-name>ac.simons.neo4j.migrations.annotations.proc.impl</java-module-name>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>neo4j-migrations-annotations-processor-support</artifactId>
+			<artifactId>neo4j-migrations-annotations-processor-api</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>neo4j-migrations</artifactId>
-			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>io.github.classgraph</groupId>
-					<artifactId>classgraph</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.neo4j.driver</groupId>
-					<artifactId>neo4j-java-driver</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.testing.compile</groupId>

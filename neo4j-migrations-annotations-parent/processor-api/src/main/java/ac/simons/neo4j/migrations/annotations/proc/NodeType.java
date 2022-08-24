@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
+package ac.simons.neo4j.migrations.annotations.proc;
 
-import org.springframework.data.neo4j.core.schema.Node;
+import java.util.List;
 
 /**
- * Used for tests only.
+ * Describing a node.
  *
  * @author Michael J. Simons
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+public interface NodeType extends ElementType<NodeType> {
 
-	@Node("1o1")
-	static class AsValue {
-	}
-
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
-	}
+	/**
+	 * The returned list will be sorted, first label is the primary label (the most explicit one declared in with any supported
+	 * means in a class).
+	 *
+	 * @return the list of labels of this type.
+	 */
+	List<Label> getLabels();
 }

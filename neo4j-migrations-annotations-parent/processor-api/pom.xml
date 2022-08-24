@@ -21,18 +21,34 @@
 
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
-		<artifactId>neo4j-migrations-parent</artifactId>
+		<artifactId>neo4j-migrations-annotations-parent</artifactId>
 		<version>1.10.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>neo4j-migrations-annotations-parent</artifactId>
-	<packaging>pom</packaging>
+	<artifactId>neo4j-migrations-annotations-processor-api</artifactId>
 
-	<name>Neo4j Migrations (Annotations Parent)</name>
-	<description>Parent project for the annotation processing efforts.</description>
+	<name>Neo4j Migrations (Annotations Processor Api)</name>
+	<description>Infrastructure that can be used to change functionality of the processor</description>
 
-	<modules>
-		<module>processor-api</module>
-		<module>processor</module>
-	</modules>
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations.annotations.proc</java-module-name>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>io.github.classgraph</groupId>
+					<artifactId>classgraph</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.neo4j.driver</groupId>
+					<artifactId>neo4j-java-driver</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
 </project>

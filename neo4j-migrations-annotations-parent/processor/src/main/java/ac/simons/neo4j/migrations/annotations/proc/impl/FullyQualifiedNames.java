@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.sdn6.labels;
-
-import org.springframework.data.neo4j.core.schema.Node;
+package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 /**
- * Used for tests only.
+ * Constants for various external annotations. We decided to not depend on the actual classes in the processor to keep its
+ * dependencies as small as possible.
  *
  * @author Michael J. Simons
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since TBA
  */
-public final class SingleExplicitLabels {
+final class FullyQualifiedNames {
 
-	@Node("1o1")
-	static class AsValue {
-	}
+	static final String OGM_NODE = "org.neo4j.ogm.annotation.NodeEntity";
+	static final String OGM_INDEX = "org.neo4j.ogm.annotation.Index";
+	static final String SDN6_NODE = "org.springframework.data.neo4j.core.schema.Node";
+	static final String SDN6_ID = "org.springframework.data.neo4j.core.schema.Id";
 
-	@Node(primaryLabel = "pl")
-	static class AsPrimaryLabel {
-	}
-
-	private SingleExplicitLabels() {
+	private FullyQualifiedNames() {
 	}
 }

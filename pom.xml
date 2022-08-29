@@ -63,6 +63,7 @@
 		<module>neo4j-migrations-quarkus-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
+		<module>neo4j-migrations-annotations-parent</module>
 		<module>extensions/neo4j-migrations-formats-adoc</module>
 		<module>extensions/neo4j-migrations-formats-markdown</module>
 	</modules>
@@ -95,13 +96,17 @@
 		<assertj.version>3.23.1</assertj.version>
 		<build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.12.14</byte-buddy.version>
+		<checker-qual.version>3.24.0</checker-qual.version>
 		<checkstyle.version>10.3.3</checkstyle.version>
 		<classgraph.version>4.8.149</classgraph.version>
+		<compile-testing.version>0.19</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
+		<error_prone_annotations.version>2.12.1</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
 		<graalvm.version>21.3.2</graalvm.version>
+		<guava.version>31.1-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.16.0</japicmp-maven-plugin.version>
 		<java-module-name />
@@ -155,6 +160,7 @@
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.2.0</sortpom-maven-plugin.version>
 		<spring-boot.version>2.7.3</spring-boot.version>
+		<spring-data-neo4j.version>6.3.2</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.17.3</testcontainers.version>
 	</properties>
@@ -281,6 +287,11 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-neo4j</artifactId>
+				<version>${spring-data-neo4j.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>junit-jupiter</artifactId>
 				<version>${testcontainers.version}</version>
@@ -289,6 +300,39 @@
 				<groupId>org.testcontainers</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${testcontainers.version}</version>
+			</dependency>
+			<dependency>
+				<!-- compile-testing depends on several versions of this -->
+				<groupId>com.google.errorprone</groupId>
+				<artifactId>error_prone_annotations</artifactId>
+				<version>${error_prone_annotations.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<!-- compile-testing depends on several versions of this -->
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.testing.compile</groupId>
+				<artifactId>compile-testing</artifactId>
+				<version>${compile-testing.version}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>junit</groupId>
+						<artifactId>junit</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<!-- compile-testing depends on several versions of this -->
+				<groupId>org.checkerframework</groupId>
+				<artifactId>checker-qual</artifactId>
+				<version>${checker-qual.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

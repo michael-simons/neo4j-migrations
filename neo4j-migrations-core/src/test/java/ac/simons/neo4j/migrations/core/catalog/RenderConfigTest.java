@@ -20,7 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Michael J. Simons
@@ -70,5 +74,31 @@ class RenderConfigTest {
 
 		assertThat(ctx.isIgnoreName()).isFalse();
 		assertThat(ctx2.isIgnoreName()).isTrue();
+	}
+
+	@Test
+	void addingNewOptionsShouldWork() {
+
+		RenderConfig ctx = RenderConfig.drop().forVersionAndEdition("4.0", "ENTERPRISE");
+		List<RenderConfig.XMLRenderingOptions> newOptions = Collections.singletonList(Mockito.mock(RenderConfig.XMLRenderingOptions.class));
+
+		RenderConfig newConfig = ctx.withAdditionalOptions(newOptions);
+		assertThat(newConfig).isNotSameAs(ctx);
+		assertThat(newConfig.getAdditionalOptions()).hasSize(1);
+
+		RenderConfig newConfig2 = newConfig.withAdditionalOptions(newOptions);
+		assertThat(newConfig2).isSameAs(newConfig);
+
+		RenderConfig newConfig3 = newConfig.withAdditionalOptions(null);
+		assertThat(newConfig3).isNotSameAs(newConfig);
+		assertThat(newConfig3.getAdditionalOptions()).isEmpty();
+
+		newConfig3 = newConfig.withAdditionalOptions(Collections.emptyList());
+		assertThat(newConfig3).isNotSameAs(newConfig);
+		assertThat(newConfig3.getAdditionalOptions()).isEmpty();
+
+		newConfig3 = newConfig.withAdditionalOptions(Collections.singletonList(Mockito.mock(RenderConfig.XMLRenderingOptions.class)));
+		assertThat(newConfig3).isNotSameAs(newConfig);
+		assertThat(newConfig3.getAdditionalOptions()).hasSize(1);
 	}
 }

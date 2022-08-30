@@ -69,6 +69,7 @@ class MigrationsIT extends TestBase {
 		assertThat(migrationChain.getElements())
 			.hasSizeGreaterThan(0)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
+		assertThat(migrationChain.getLastAppliedVersion()).hasValue(MigrationVersion.withValue("023.1.1"));
 	}
 
 	@Test

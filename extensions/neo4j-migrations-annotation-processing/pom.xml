@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>1.10.2-SNAPSHOT</version>
+		<version>1.11.0-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -35,6 +35,5 @@
 	<modules>
 		<module>processor-api</module>
 		<module>processor</module>
-		<module>integration-tests</module>
 	</modules>
 </project>

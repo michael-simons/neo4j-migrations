@@ -15,11 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig.XMLRenderingOptions;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import ac.simons.neo4j.migrations.core.internal.XMLUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,6 +45,24 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 
 	@Override
 	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
+
+		List<XMLRenderingOptions> relevantOptions = config.getAdditionalOptions().stream()
+			.filter(XMLRenderingOptions.class::isInstance)
+			.map(XMLRenderingOptions.class::cast)
+			.collect(Collectors.toList());
+		boolean withApply = relevantOptions
+			.stream().map(XMLRenderingOptions::withApply)
+			.reduce(!relevantOptions.isEmpty(), (v1, v2) -> v1 && v2);
+		boolean withReset = relevantOptions
+			.stream().map(XMLRenderingOptions::withReset)
+			.reduce(!relevantOptions.isEmpty(), (v1, v2) -> v1 && v2);
+
+		String header = relevantOptions.stream()
+			.map(XMLRenderingOptions::optionalHeader)
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.collect(Collectors.joining(System.lineSeparator(), " ", " "));
+
 		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
@@ -48,12 +70,19 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 
 			Element migrationElement = document.createElementNS(XMLSchemaConstants.MIGRATION_NS,
 				XMLSchemaConstants.MIGRATION);
+
+			if (!header.isEmpty()) {
+				migrationElement.appendChild(document.createComment(header));
+			}
 			document.appendChild(migrationElement);
 
 			Element catalogElement = document.createElement(XMLSchemaConstants.CATALOG);
-			migrationElement.appendChild(catalogElement);
+			if (withReset) {
+				catalogElement.setAttribute(XMLSchemaConstants.RESET, Boolean.toString(true));
+			}
 
 			Element indexesElement = document.createElement(XMLSchemaConstants.INDEXES);
+			migrationElement.appendChild(catalogElement);
 			catalogElement.appendChild(indexesElement);
 
 			Element constraintsElement = document.createElement(XMLSchemaConstants.CONSTRAINTS);
@@ -65,6 +94,11 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 				} else if (item instanceof Index) {
 					indexesElement.appendChild(((Index) item).toXML(document));
 				}
+			}
+
+			if (withApply) {
+				Element apply = document.createElement(XMLSchemaConstants.APPLY);
+				migrationElement.appendChild(apply);
 			}
 
 			XMLUtils.getIndentingTransformer().transform(new DOMSource(document), new StreamResult(target));

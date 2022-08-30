@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -110,6 +111,14 @@ public interface MigrationChain extends ConnectionDetails {
 	 * @return The elements of this migration
 	 */
 	Collection<Element> getElements();
+
+	/**
+	 * @return the last applied version
+	 * @since TBA
+	 */
+	default Optional<MigrationVersion> getLastAppliedVersion() {
+		return Optional.empty();
+	}
 
 	/**
 	 * A chain element describing a pending or applied migration.

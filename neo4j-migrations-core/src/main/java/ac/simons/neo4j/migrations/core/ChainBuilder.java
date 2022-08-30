@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -222,6 +223,16 @@ final class ChainBuilder {
 		@Override
 		public Collection<Element> getElements() {
 			return this.elements.values();
+		}
+
+		@Override
+		public Optional<MigrationVersion> getLastAppliedVersion() {
+			Iterator<MigrationVersion> it = this.elements.keySet().iterator();
+			MigrationVersion version = null;
+			while (it.hasNext()) {
+				version = it.next();
+			}
+			return Optional.ofNullable(version);
 		}
 	}
 

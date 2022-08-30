@@ -18,6 +18,12 @@ package ac.simons.neo4j.migrations.core.catalog;
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * Contextual information passed to renderers.
  *
@@ -29,6 +35,50 @@ public final class RenderConfig {
 
 	static RenderConfig defaultConfig() {
 		return new RenderConfig(Neo4jVersion.UNDEFINED, Neo4jEdition.UNDEFINED, null, true);
+	}
+
+	/**
+	 * Additional options passed to a {@link RenderConfig configuration}.
+	 * <strong>Warning</strong>: Not to be implemented by user code. Will be sealed in a later release.
+	 *
+	 * @since TBA
+	 */
+	@Deprecated
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	public interface AdditionalRenderingOptions {
+	}
+
+	/**
+	 * Additional options passed to an XML renderer. Some options might be ignored for some content.
+	 *
+	 * @since TBA
+	 */
+	public interface XMLRenderingOptions extends AdditionalRenderingOptions {
+
+		/**
+		 * Only applicable to {@link Catalog catalogs}.
+		 *
+		 * @return {@literal true} to add an {@code <apply />} element.
+		 */
+		default boolean withApply() {
+			return false;
+		}
+
+		/**
+		 * Only applicable to {@link Catalog catalogs}.
+		 *
+		 * @return {@literal true} to add an {@code reset} attribute.
+		 */
+		default boolean withReset() {
+			return false;
+		}
+
+		/**
+		 * @return Optional comment to add to the generated document
+		 */
+		default Optional<String> optionalHeader() {
+			return Optional.empty();
+		}
 	}
 
 	/**
@@ -145,17 +195,20 @@ public final class RenderConfig {
 	 */
 	private final boolean ignoreName;
 
+	private final List<AdditionalRenderingOptions> additionalOptions;
+
 	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
-		this(version, edition, operator, idempotent, false);
+		this(version, edition, operator, idempotent, false, null);
 	}
 
 	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent,
-		boolean ignoreName) {
+		boolean ignoreName, List<AdditionalRenderingOptions> additionalOptions) {
 		this.version = version;
 		this.edition = edition;
 		this.operator = operator;
 		this.idempotent = idempotent;
 		this.ignoreName = ignoreName;
+		this.additionalOptions = additionalOptions == null ? Collections.emptyList() : additionalOptions;
 	}
 
 	Neo4jVersion getVersion() {
@@ -182,12 +235,31 @@ public final class RenderConfig {
 		return ignoreName;
 	}
 
+	List<AdditionalRenderingOptions> getAdditionalOptions() {
+		return Collections.unmodifiableList(additionalOptions);
+	}
+
 	/**
 	 * This is useful to get a render context that ignores the name of an object to force dropping things created without a name.
 	 * @return a new context ignoring the name
 	 */
 	public RenderConfig ignoreName() {
-		return new RenderConfig(version, edition, operator, idempotent, true);
+		return new RenderConfig(version, edition, operator, idempotent, true, additionalOptions);
+	}
+
+	/**
+	 * Adds additional options to the renderer or deletes the existing ones.
+	 *
+	 * @param newOptions New list of options, may be {@literal null} or empty
+	 * @return A (potentially) new {@link RenderConfig}
+	 * @since TBA
+	 */
+	public RenderConfig withAdditionalOptions(List<? extends AdditionalRenderingOptions> newOptions) {
+		if (Objects.equals(this.additionalOptions, newOptions)) {
+			return this;
+		}
+
+		return new RenderConfig(version, edition, operator, idempotent, ignoreName, newOptions == null ? null : new ArrayList<>(newOptions));
 	}
 
 	/**

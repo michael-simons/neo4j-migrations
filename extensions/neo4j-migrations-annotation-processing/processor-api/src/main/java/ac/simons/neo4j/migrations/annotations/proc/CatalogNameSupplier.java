@@ -15,14 +15,18 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc;
 
-import java.util.function.Supplier;
-
 /**
  * A contract how to generate the filename of the resource any catalog is written to.
+ *
  * @author Michael J. Simons
  * @soundtrack Brad Fiedel - The Terminator (Original Motion Picture Soundtrack)
  * @since TBA
  */
 @FunctionalInterface
-public interface CatalogNameSupplier extends Supplier<String> {
+public interface CatalogNameSupplier {
+
+	/**
+	 * @return the name of the catalog which will be used as the filename.
+	 */
+	String getCatalogName();
 }

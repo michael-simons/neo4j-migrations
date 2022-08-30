@@ -28,7 +28,7 @@ public final class Testgenerators {
 	private static class HiddenA implements CatalogNameSupplier {
 
 		@Override
-		public String get() {
+		public String getCatalogName() {
 			return null;
 		}
 	}
@@ -39,7 +39,7 @@ public final class Testgenerators {
 	static class HiddenB implements CatalogNameSupplier {
 
 		@Override
-		public String get() {
+		public String getCatalogName() {
 			return null;
 		}
 	}
@@ -53,7 +53,7 @@ public final class Testgenerators {
 		}
 
 		@Override
-		public String get() {
+		public String getCatalogName() {
 			return null;
 		}
 	}
@@ -68,7 +68,7 @@ public final class Testgenerators {
 		}
 
 		@Override
-		public String get() {
+		public String getCatalogName() {
 			return null;
 		}
 	}

@@ -301,33 +301,34 @@ The annotation processor is available under the following coordinates:
 It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4j-OGM), so it is safe to use it either directly as dependency so that it will be picked up by all recent Java compilers or as dedicated processor for the compiler:
 
 [source,xml,subs="verbatim,attributes"]
-.Annotation processor configured as processor fot the compiler plugin
+.Annotation processor configured as processor fot the compiler plugin inside a Maven pom
 ----
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <annotationProcessorPaths>
-                    <annotationProcessorPath>
-                        <groupId>{groupId}</groupId>
-                        <artifactId>neo4j-migrations-annotation-processor</artifactId>
-                        <version>{latest_version}</version>
-                    </annotationProcessorPath>
-                </annotationProcessorPaths>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <annotationProcessorPath>
+                <groupId>{groupId}</groupId>
+                <artifactId>neo4j-migrations-annotation-processor</artifactId>
+                <version>{latest_version}</version>
+            </annotationProcessorPath>
+        </annotationProcessorPaths>
+        <compilerArgs>
+            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V${next-migration-version}__Create_sdn_constraints.xml</arg>
+            <arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
+        </compilerArgs>
+    </configuration>
+</plugin>
 ----
 
 The latter approach allows for passing additional configuration to the processor, such as the output location relativ to `target/generated-sources` and various name generators.
-There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameSupplier`. You can provide implementations as shown in the following example (taking from our integration tests):
+There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameSupplier`.
+You can provide implementations but they must live outside the project that is being subject to compilation, as otherwise those classes can't be loaded by us.
+All implementations must provide a default, publicly accessible constructor or - if they take in any nested options - a public constructor taking in exactly one argument of type `Map<String, String>`.
 
-TODO INTEGRATION TESTS EXAMPLE
 
-NOTE: All implementations must provide a default, publicly accessible constructor.
+
 
 The scope of the generator is limited on purpose: It will generate a valid catalog declaration and by default an `<apply />` operation. The latter is safe todo because catalogs are internally bound to their migration version and elements added or changed in v2 of a catalog will be appended, no elements will be deleted from the known catalog. Optionally the generator can be configured to generate a `reset` catalog, which will start the catalog at the given version fresh.
 
@@ -337,9 +338,45 @@ The generator does not generate a migration in a known migrations directory nor 
 - a name that evaluates to a correctly ordered version number
 - be part of the directories in the target that are configured to be picked by Neo4j-Migrations
 
-For the naming generation APIs are provided and for the rest, `build-helper-maven-plugin` and similar are helpful. The decision to delegate that work has been made as it is rather difficult to propose a one-size-fits-all solution within this tool for all the combinations of different setups and build-systems out there.
+Taking the above configuration of the processor one exemplary way to take this further is this:
+
+.Adding generated migrations to the actual target dir
+[source,xml]
+----
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-resources</id>
+            <goals>
+                <goal>copy-resources</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+                <outputDirectory>${project.build.outputDirectory}/neo4j/migrations/</outputDirectory>
+                <resources>
+                    <resource>
+                        <directory>${project.build.directory}/generated-sources/annotations/my-generated-migrations</directory>
+                        <filtering>false</filtering>
+                    </resource>
+                </resources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+This works in our examples but bear in mind: The migration will always be regenerated. This is fine as long as you don't change your annotated model in any capacity that results in a new or modified index (renaming attributes, labels etc.).
+
+One approach is to add the processor to your build and run a diff with the last "good" generated catalog and the new one. If it is different, add the new catalog under an incremented version number.
+
+A simpler approach is using a name generator that is connected to your target dev-database using a `Migrations` instance and our api (`MigrationChain info = migrations.info(MigrationChain.ChainBuilderMode.REMOTE);`) to get the latest applied version from the `info` instance (via `.getLastAppliedVersion`) and take that and increment it and just add the catalog fresh with a new version if it has change, otherwise resuse the old name.
+
+For the naming generation APIs are provided and for the rest, `maven-resources-plugin` and maybe `build-helper-maven-plugin` are helpful. The decision to delegate that work has been made as it is rather difficult to propose a one-size-fits-all solution within this tool for all the combinations of different setups and build-systems out there.
 
 Options can be passed to name generators via `-Aorg.neo4j.migrations.catalog_generator.naming_options=<nestedproperties>`  with `nestedproperties` following a structure like `a=x,b=y` and so on. If you want to use that, your own name generator must provide a public constructor taking in one single `Map<String, String>` argument.
+
 
 [[appendix_extesions]]
 == Extensions

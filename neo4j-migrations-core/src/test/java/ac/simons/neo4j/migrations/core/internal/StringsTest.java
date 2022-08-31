@@ -97,6 +97,8 @@ final class StringsTest {
 		"Hi`````there, `Hi``````there`",
 		"`a`b`c`, ```a``b``c```",
 		"\u0060a`b`c\u0060d\u0060, ```a``b``c``d```",
+		"Foo\\`bar, `Foo\\``bar`",
+		"Foo\\\\`bar, `Foo\\\\``bar`",
 	})
 	void shouldEscapeProper(String in, String expected) {
 		String value = Strings.escapeIfNecessary(in);

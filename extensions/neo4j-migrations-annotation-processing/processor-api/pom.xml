@@ -39,16 +39,6 @@
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>io.github.classgraph</groupId>
-					<artifactId>classgraph</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.neo4j.driver</groupId>
-					<artifactId>neo4j-java-driver</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 </project>

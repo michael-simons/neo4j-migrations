@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1661765747824">
+<licensePluginReport goal="CHECK" timestamp="1661947507908">
     <module artifactId="neo4j-migrations-spring-boot-autoconfigure" groupId="eu.michael-simons.neo4j" version="1.10.2-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>

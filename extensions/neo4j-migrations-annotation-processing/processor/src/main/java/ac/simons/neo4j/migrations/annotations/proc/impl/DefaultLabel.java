@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 import ac.simons.neo4j.migrations.annotations.proc.Label;
 
+import java.util.Objects;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
@@ -50,5 +52,22 @@ final class DefaultLabel implements Label {
 		return "DefaultLabel{" +
 			"value='" + value + '\'' +
 			'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		DefaultLabel that = (DefaultLabel) o;
+		return value.equals(that.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(value);
 	}
 }

@@ -31,9 +31,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -78,7 +77,8 @@ import javax.tools.StandardLocation;
  * @since TBA
  */
 @SupportedAnnotationTypes({
-	FullyQualifiedNames.SDN6_NODE
+	FullyQualifiedNames.SDN6_NODE,
+	FullyQualifiedNames.OGM_NODE
 })
 @SupportedOptions({
 	CatalogGeneratingProcessor.OPTION_CATALOG_NAME_SUPPLIER,
@@ -119,11 +119,19 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement sdn6GeneratedValue;
 	private TypeElement commonsId;
 
+	private TypeElement ogmNode;
+	private ExecutableElement ogmNodeValue;
+	private ExecutableElement ogmNodeLabel;
+
+	private TypeElement ogmIndex;
+	private ExecutableElement ogmIndexUnique;
+
 	private final List<CatalogItem<?>> constraints = new ArrayList<>();
 
 	private boolean addReset;
 
 	private Clock clock = Clock.systemDefaultZone();
+
 
 	public CatalogGeneratingProcessor() {
 	}
@@ -195,6 +203,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.sdn6GeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
 		this.commonsId = elementUtils.getTypeElement(FullyQualifiedNames.COMMONS_ID);
 
+		this.ogmNode = elementUtils.getTypeElement(FullyQualifiedNames.OGM_NODE);
+		this.ogmNodeValue = getAnnotationAttribute(ogmNode, "value");
+		this.ogmNodeLabel = getAnnotationAttribute(ogmNode, "label");
+
+		this.ogmIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_INDEX);
+		this.ogmIndexUnique = getAnnotationAttribute(ogmIndex, "unique");
+
 		this.typeUtils = processingEnv.getTypeUtils();
 
 		this.addReset = Boolean.parseBoolean(options.getOrDefault(OPTION_ADD_RESET, "false"));
@@ -237,14 +252,34 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 			roundEnv.getElementsAnnotatedWith(sdn6Node)
 				.stream()
-				.filter(this::requiresPrimaryKeyConstraint)
+				.filter(this::requiresPrimaryKeyConstraintSDN6)
 				.map(TypeElement.class::cast)
 				.forEach(t -> {
-					List<Label> labels = computeLabels(t, true);
+					List<Label> labels = computeLabelsSDN6(t, true);
 					PropertyType<NodeType> idProperty = t.accept(new PropertyTypeExtractingVisitor(), new DefaultNodeType(t.getQualifiedName().toString(), labels));
 					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, Collections.singleton(idProperty));
 					constraints.add(Constraint.forNode(labels.get(0).getValue()).named(name)
 						.unique(idProperty.getName()));
+				});
+
+
+			roundEnv.getElementsAnnotatedWith(ogmNode)
+				.stream()
+				// .filter(this::requiresPrimaryKeyConstraint)
+				.map(TypeElement.class::cast)
+				.forEach(t -> {
+					System.out.println(t);
+
+					List<Label> labels = computeLabelsOGM(t, true);
+					System.out.println(labels);
+					constraints.addAll(t.accept(new UniqueIndexExtractingVisitor(labels), new DefaultNodeType(t.getQualifiedName().toString(), labels)));
+					System.out.println(constraints.get(0).getName());
+					/*
+					PropertyType<NodeType> idProperty = t.accept(new PropertyTypeExtractingVisitor(), new DefaultNodeType(t.getQualifiedName().toString(), labels));
+					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, Collections.singleton(idProperty));
+					constraints.add(Constraint.forNode(labels.get(0).getValue()).named(name)
+						.unique(idProperty.getName()));
+					*/
 				});
 		}
 
@@ -255,8 +290,133 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		return Collections.unmodifiableList(constraints);
 	}
 
-	boolean requiresPrimaryKeyConstraint(Element e) {
-		return e.accept(new RequiresPrimaryKeyConstraint(), false);
+	boolean requiresPrimaryKeyConstraintSDN6(Element e) {
+		return e.accept(new RequiresPrimaryKeyConstraintSDN6(), false);
+	}
+
+	@SuppressWarnings("unchecked")
+	List<Label> computeLabelsSDN6(TypeElement typeElement, boolean addSimpleName) {
+
+		Set<Label> result = new LinkedHashSet<>();
+		typeElement.getAnnotationMirrors().stream()
+			.filter(m -> m.getAnnotationType().asElement().equals(sdn6Node))
+			.findFirst()
+			.ifPresent(t -> {
+				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+				if (attributes.containsKey(sdn6NodePrimaryLabel)) {
+					result.add(DefaultLabel.of((String) attributes.get(sdn6NodePrimaryLabel).getValue()));
+				}
+
+				List<AnnotationValue> values = new ArrayList<>();
+				if (attributes.containsKey(sdn6NodeValue)) {
+					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeValue).getValue());
+				}
+				if (attributes.containsKey(sdn6NodeLabels)) {
+					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeLabels).getValue());
+				}
+				values.stream().map(v -> DefaultLabel.of((String) v.getValue())).forEach(result::add);
+			});
+
+		if (result.isEmpty() && addSimpleName) {
+			result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
+		}
+
+		typeElement.getInterfaces()
+			.stream()
+			.map(i -> typeUtils.asElement(i))
+			.map(TypeElement.class::cast)
+			.forEach(i -> result.addAll(computeLabelsSDN6(i, false)));
+
+		findSuperclassOfInterest(typeElement).ifPresent(superclass -> result.addAll(computeLabelsSDN6(superclass, false)));
+		return new ArrayList<>(result);
+	}
+
+	List<Label> computeLabelsOGM(TypeElement typeElement, boolean addSimpleName) {
+
+		Set<Label> result = new LinkedHashSet<>();
+		typeElement.getAnnotationMirrors().stream()
+			.filter(m -> m.getAnnotationType().asElement().equals(ogmNode))
+			.findFirst()
+			.ifPresent(t -> {
+				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+				if (attributes.containsKey(ogmNodeLabel)) {
+					result.add(DefaultLabel.of((String) attributes.get(ogmNodeLabel).getValue()));
+				}
+				if (attributes.containsKey(ogmNodeValue)) {
+					result.add(DefaultLabel.of((String) attributes.get(ogmNodeValue).getValue()));
+				}
+			});
+
+		if (result.isEmpty() && addSimpleName) {
+			result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
+		}
+
+		typeElement.getInterfaces()
+			.stream()
+			.map(i -> typeUtils.asElement(i))
+			.map(TypeElement.class::cast)
+			.forEach(i -> result.addAll(computeLabelsOGM(i, false)));
+
+		findSuperclassOfInterest(typeElement).ifPresent(superclass -> result.addAll(computeLabelsOGM(superclass, false)));
+		return new ArrayList<>(result);
+	}
+
+	Optional<TypeElement> findSuperclassOfInterest(TypeElement typeElement) {
+		return Optional.ofNullable(typeElement.getSuperclass())
+			.map(typeUtils::asElement)
+			.map(TypeElement.class::cast)
+			.filter(e -> !e.getQualifiedName().contentEquals("java.lang.Object"));
+	}
+
+	String getOutputDir() {
+
+		String subDir = processingEnv.getOptions().getOrDefault(OPTION_OUTPUT_DIR, "neo4j-migrations");
+		if (!subDir.endsWith("/")) {
+			subDir += "/";
+		}
+		return subDir;
+	}
+
+	class UniqueIndexExtractingVisitor extends ElementKindVisitor8<List<Constraint>, DefaultNodeType> {
+
+
+private final List<Label> labels;
+
+		public UniqueIndexExtractingVisitor(List<Label> labels) {
+			this.labels = labels;
+		}
+
+		@Override
+		public List<Constraint> visitType(TypeElement e, DefaultNodeType nodeType) {
+			return e.getEnclosedElements().stream()
+				.map(ee -> ee.accept(this, nodeType))
+				.filter(Objects::nonNull)
+				.flatMap(List::stream)
+				.collect(Collectors.toList());
+		}
+
+		@Override
+		public List<Constraint> visitVariableAsField(VariableElement e, DefaultNodeType nodeType) {
+			System.out.println("hello");
+			boolean isUnique = e.getAnnotationMirrors().stream()
+				.anyMatch(a -> {
+					boolean isIndex = a.getAnnotationType().asElement().equals(ogmIndex);
+					if (isIndex) {
+						Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = a.getElementValues();
+						if (attributes.containsKey(ogmIndexUnique)) {
+							return (boolean) attributes.get(ogmIndexUnique).getValue();
+						}
+					}
+					return false;
+				});
+			if(isUnique) {
+				PropertyType<NodeType> property = nodeType.addProperty(e.getSimpleName().toString());
+				String name = constraintNameGenerator.generateName(Constraint.Type.UNIQUE, Collections.singleton(property));
+				return Collections.singletonList(Constraint.forNode(labels.get(0).getValue()).named(name).unique(property.getName()));
+			}
+
+			return Collections.emptyList();
+		}
 	}
 
 	class PropertyTypeExtractingVisitor extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
@@ -285,7 +445,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 	}
 
-	class RequiresPrimaryKeyConstraint extends ElementKindVisitor8<Boolean, Boolean> {
+	/**
+	 * Visitor that computes if an SDN 6 annotated type requires a primary key constraint.
+	 */
+	class RequiresPrimaryKeyConstraintSDN6 extends ElementKindVisitor8<Boolean, Boolean> {
 
 		@Override
 		protected Boolean defaultAction(Element e, Boolean aBoolean) {
@@ -348,58 +511,4 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				&& VALID_GENERATED_ID_TYPES.contains(e.asType().toString());
 		}
 	}
-
-	@SuppressWarnings("unchecked")
-	List<Label> computeLabels(TypeElement typeElement, boolean addSimpleName) {
-
-		List<Label> result = new ArrayList<>();
-		typeElement.getAnnotationMirrors().stream()
-			.filter(m -> m.getAnnotationType().asElement().equals(sdn6Node))
-			.findFirst()
-			.ifPresent(t -> {
-				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
-				if (attributes.containsKey(sdn6NodePrimaryLabel)) {
-					result.add(DefaultLabel.of((String) attributes.get(sdn6NodePrimaryLabel).getValue()));
-				}
-
-				List<AnnotationValue> values = new ArrayList<>();
-				if (attributes.containsKey(sdn6NodeValue)) {
-					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeValue).getValue());
-				}
-				if (attributes.containsKey(sdn6NodeLabels)) {
-					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeLabels).getValue());
-				}
-				values.stream().map(v -> DefaultLabel.of((String) v.getValue())).forEach(result::add);
-			});
-
-		if (result.isEmpty() && addSimpleName) {
-			result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
-		}
-
-		typeElement.getInterfaces()
-			.stream()
-			.map(i -> typeUtils.asElement(i))
-			.map(TypeElement.class::cast)
-			.forEach(i -> result.addAll(computeLabels(i, false)));
-
-		findSuperclassOfInterest(typeElement).ifPresent(superclass -> result.addAll(computeLabels(superclass, false)));
-		return result;
-	}
-
-	Optional<TypeElement> findSuperclassOfInterest(TypeElement typeElement) {
-		return Optional.ofNullable(typeElement.getSuperclass())
-			.map(typeUtils::asElement)
-			.map(TypeElement.class::cast)
-			.filter(e -> !e.getQualifiedName().contentEquals("java.lang.Object"));
-	}
-
-	String getOutputDir() {
-
-		String subDir = processingEnv.getOptions().getOrDefault(OPTION_OUTPUT_DIR, "neo4j-migrations");
-		if (!subDir.endsWith("/")) {
-			subDir += "/";
-		}
-		return subDir;
-	}
-
 }

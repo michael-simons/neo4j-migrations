@@ -15,18 +15,25 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc;
 
+import ac.simons.neo4j.migrations.core.catalog.Index;
+
+import java.util.Collection;
+
 /**
- * A contract how to generate the filename of the resource any catalog is written to.
+ * Generator for index names.
  *
  * @author Michael J. Simons
- * @soundtrack Brad Fiedel - The Terminator (Original Motion Picture Soundtrack)
  * @since TBA
  */
 @FunctionalInterface
-public interface CatalogNameSupplier {
+public interface IndexNameGenerator {
 
 	/**
-	 * @return the name of the catalog which will be used as the filename.
+	 * Generates a name for an index with the given {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the
+	 * given list of {@link PropertyType properties}.
+	 *
+	 * @param properties The properties to create the index for. All properties will have the same owner.
+	 * @return A valid index name
 	 */
-	String getCatalogName();
+	String generateName(Index.Type type, Collection<PropertyType<NodeType>> properties);
 }

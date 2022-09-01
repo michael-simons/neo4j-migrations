@@ -15,27 +15,18 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc;
 
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
-
-import java.util.Collection;
-
 /**
- * Generator for constraint names
+ * A contract how to generate the filename of the resource any catalog is written to.
  *
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @soundtrack Brad Fiedel - The Terminator (Original Motion Picture Soundtrack)
  * @since TBA
  */
 @FunctionalInterface
-public interface ConstraintNameGenerator {
+public interface CatalogNameGenerator {
 
 	/**
-	 * Generates a name for an index with the given {@link Type type} for the
-	 * given list of {@link PropertyType properties}.
-	 *
-	 * @param properties The properties to create the constraint for. All properties will have the same owner.
-	 * @return A valid constraint name
+	 * @return the name of the catalog which will be used as the filename.
 	 */
-	String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties);
+	String getCatalogName();
 }

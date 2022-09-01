@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 
 /**

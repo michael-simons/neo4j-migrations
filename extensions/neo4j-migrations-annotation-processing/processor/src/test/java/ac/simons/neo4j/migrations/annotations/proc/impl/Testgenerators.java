@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.CatalogNameSupplier;
+import ac.simons.neo4j.migrations.annotations.proc.CatalogNameGenerator;
 
 /**
  * @author Michael J. Simons
@@ -25,7 +25,7 @@ public final class Testgenerators {
 	/**
 	 * Not visible.
 	 */
-	private static class HiddenA implements CatalogNameSupplier {
+	private static class HiddenA implements CatalogNameGenerator {
 
 		@Override
 		public String getCatalogName() {
@@ -36,7 +36,7 @@ public final class Testgenerators {
 	/**
 	 * Not visible.
 	 */
-	static class HiddenB implements CatalogNameSupplier {
+	static class HiddenB implements CatalogNameGenerator {
 
 		@Override
 		public String getCatalogName() {
@@ -47,7 +47,7 @@ public final class Testgenerators {
 	/**
 	 * Missing constructor.
 	 */
-	public static class NoDefaultCtor implements CatalogNameSupplier {
+	public static class NoDefaultCtor implements CatalogNameGenerator {
 
 		private NoDefaultCtor() {
 		}
@@ -61,7 +61,7 @@ public final class Testgenerators {
 	/**
 	 * Throws up all the time.
 	 */
-	public static class BellyUp implements CatalogNameSupplier {
+	public static class BellyUp implements CatalogNameGenerator {
 
 		public BellyUp() {
 			throw new IllegalArgumentException("Ooops");

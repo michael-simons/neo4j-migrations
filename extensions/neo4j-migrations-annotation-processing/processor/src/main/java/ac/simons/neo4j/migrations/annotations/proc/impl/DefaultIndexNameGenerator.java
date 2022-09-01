@@ -15,22 +15,21 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
+import ac.simons.neo4j.migrations.annotations.proc.IndexNameGenerator;
 import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
 
 import java.util.Collection;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Verliebt
  * @since TBA
  */
-final class DefaultConstraintNameGenerator extends AbstractNameGeneratorForCatalogItems implements ConstraintNameGenerator {
+public class DefaultIndexNameGenerator extends AbstractNameGeneratorForCatalogItems implements IndexNameGenerator {
 
 	@Override
-	public String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties) {
+	public String generateName(Index.Type type, Collection<PropertyType<NodeType>> properties) {
 
 		return generateName(type.name(), properties);
 	}

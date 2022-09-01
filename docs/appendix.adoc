@@ -323,7 +323,7 @@ It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4
 ----
 
 The latter approach allows for passing additional configuration to the processor, such as the output location relativ to `target/generated-sources` and various name generators.
-There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameSupplier`.
+There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameGenerator`.
 You can provide implementations but they must live outside the project that is being subject to compilation, as otherwise those classes can't be loaded by us.
 All implementations must provide a default, publicly accessible constructor or - if they take in any nested options - a public constructor taking in exactly one argument of type `Map<String, String>`.
 

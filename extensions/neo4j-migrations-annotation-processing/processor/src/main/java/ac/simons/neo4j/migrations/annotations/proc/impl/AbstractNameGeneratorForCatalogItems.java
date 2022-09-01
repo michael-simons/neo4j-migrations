@@ -15,23 +15,33 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
 import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
 import java.util.Collection;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
+ * Utility base class.
+ *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Verliebt
- * @since TBA
  */
-final class DefaultConstraintNameGenerator extends AbstractNameGeneratorForCatalogItems implements ConstraintNameGenerator {
+abstract class AbstractNameGeneratorForCatalogItems {
 
-	@Override
-	public String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties) {
+	final String generateName(String type, Collection<PropertyType<NodeType>> properties) {
 
-		return generateName(type.name(), properties);
+		NodeType owner = properties.stream()
+			.findFirst().map(PropertyType::getOwner)
+			.orElseThrow(
+				() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));
+
+		String propertyNames = properties.stream()
+			.map(PropertyType::getName).collect(Collectors.joining("_"));
+
+		// Basically the OGM approach
+		return String.format("%s_%s_%s",
+			owner.getOwningTypeName().toLowerCase(Locale.ROOT).replace(".", "_"),
+			propertyNames, type.toLowerCase(Locale.ROOT));
 	}
 }

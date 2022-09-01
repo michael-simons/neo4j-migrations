@@ -39,6 +39,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -48,8 +49,11 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -128,6 +132,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement ogmNode;
 	private ExecutableElement ogmNodeValue;
 	private ExecutableElement ogmNodeLabel;
+
+	private TypeElement ogmCompositeIndexes;
+	private ExecutableElement ogmCompositeIndexesValue;
+	private TypeElement ogmCompositeIndex;
+	private ExecutableElement ogmCompositeIndexValue;
+	private ExecutableElement ogmCompositeIndexProperties;
+	private ExecutableElement ogmCompositeIndexUnique;
 
 	private TypeElement ogmIndex;
 	private ExecutableElement ogmIndexUnique;
@@ -222,6 +233,14 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.ogmNodeValue = getAnnotationAttribute(ogmNode, "value");
 		this.ogmNodeLabel = getAnnotationAttribute(ogmNode, "label");
 
+		this.ogmCompositeIndexes = elementUtils.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEXES);
+		this.ogmCompositeIndexesValue = getAnnotationAttribute(ogmCompositeIndexes, "value");
+
+		this.ogmCompositeIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEX);
+		this.ogmCompositeIndexValue = getAnnotationAttribute(ogmCompositeIndex, "value");
+		this.ogmCompositeIndexProperties = getAnnotationAttribute(ogmCompositeIndex, "properties");
+		this.ogmCompositeIndexUnique = getAnnotationAttribute(ogmCompositeIndex, "unique");
+
 		this.ogmIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_INDEX);
 		this.ogmIndexUnique = getAnnotationAttribute(ogmIndex, "unique");
 
@@ -236,6 +255,9 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	static ExecutableElement getAnnotationAttribute(TypeElement annotation, String name) {
+		if (annotation == null) {
+			return null;
+		}
 		return (ExecutableElement) annotation.getEnclosedElements().stream()
 			.filter(e -> e.getSimpleName().contentEquals(name)).findFirst()
 			.orElseThrow(NoSuchElementException::new);
@@ -266,37 +288,104 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			}
 		} else if (!annotations.isEmpty()) {
 
-			roundEnv.getElementsAnnotatedWith(sdn6Node)
-				.stream()
-				.filter(this::requiresPrimaryKeyConstraintSDN6)
-				.map(TypeElement.class::cast)
-				.forEach(t -> {
-					List<Label> labels = computeLabelsSDN6(t, true);
-					PropertyType<NodeType> idProperty = t.accept(new SharedPropertyTypeSelector(supportedSDN6Annotations),
-						new DefaultNodeType(t.getQualifiedName().toString(), labels));
-					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
-						Collections.singleton(idProperty));
-					catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name)
-						.unique(idProperty.getName()));
-				});
-
-			roundEnv.getElementsAnnotatedWith(ogmNode)
-				.stream()
-				.map(TypeElement.class::cast)
-				.forEach(t -> {
-					List<Label> labels = computeLabelsOGM(t, true);
-					catalogItems.addAll(t.accept(new OGMIndexVisitor(labels),
-						new DefaultNodeType(t.getQualifiedName().toString(), labels)));
-					/*
-					PropertyType<NodeType> idProperty = t.accept(new PropertyTypeExtractingVisitor(), new DefaultNodeType(t.getQualifiedName().toString(), labels));
-					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, Collections.singleton(idProperty));
-					constraints.add(Constraint.forNode(labels.get(0).getValue()).named(name)
-						.unique(idProperty.getName()));
-					*/
-				});
+			if (sdn6Node != null) {
+				processSDN6IdAnnotations(roundEnv);
+			}
+			if (ogmNode != null) {
+				processOGMIndexAnnotations(roundEnv);
+				processOGMCompositeIndexAnnotations(roundEnv);
+			}
 		}
 
 		return true;
+	}
+
+	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {
+		roundEnv.getElementsAnnotatedWith(sdn6Node)
+			.stream()
+			.filter(this::requiresPrimaryKeyConstraintSDN6)
+			.map(TypeElement.class::cast)
+			.forEach(t -> {
+				List<Label> labels = computeLabelsSDN6(t);
+				PropertyType<NodeType> idProperty = t.accept(new PropertySelector(supportedSDN6Annotations),
+					new DefaultNodeType(t.getQualifiedName().toString(), labels));
+				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
+					Collections.singleton(idProperty));
+				catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name)
+					.unique(idProperty.getName()));
+			});
+	}
+
+	private void processOGMIndexAnnotations(RoundEnvironment roundEnv) {
+		roundEnv.getElementsAnnotatedWith(ogmNode)
+			.stream()
+			.map(TypeElement.class::cast)
+			.forEach(t -> {
+				List<Label> labels = computeLabelsOGM(t);
+				catalogItems.addAll(t.accept(new OGMIndexVisitor(labels),
+					new DefaultNodeType(t.getQualifiedName().toString(), labels)));
+			});
+	}
+
+	private void processOGMCompositeIndexAnnotations(RoundEnvironment roundEnv) {
+
+		Set<? extends Element> nodes = roundEnv.getElementsAnnotatedWith(ogmNode);
+		Set<? extends Element> composeIndexNodes = roundEnv.getElementsAnnotatedWith(ogmCompositeIndex);
+		Set<? extends Element> composeIndexesNodes = roundEnv.getElementsAnnotatedWith(ogmCompositeIndexes);
+		Predicate<Element> elementsAnnotatedWithCompositeIndex = composeIndexNodes::contains;
+		elementsAnnotatedWithCompositeIndex = elementsAnnotatedWithCompositeIndex.or(composeIndexesNodes::contains);
+		nodes
+			.stream()
+			.filter(elementsAnnotatedWithCompositeIndex)
+			.map(TypeElement.class::cast)
+			.forEach(t -> catalogItems.addAll(computeOGMCompositeIndexes(t)));
+	}
+
+	@SuppressWarnings("unchecked")
+	Collection<CatalogItem<?>> computeOGMCompositeIndexes(TypeElement typeElement) {
+
+		List<Label> labels = computeLabelsOGM(typeElement);
+		DefaultNodeType node = new DefaultNodeType(typeElement.getQualifiedName().toString(), labels);
+		return typeElement.getAnnotationMirrors().stream()
+			.flatMap(m -> {
+				if (m.getAnnotationType().asElement().equals(ogmCompositeIndex)) {
+					return Stream.of(m);
+				} else if (m.getAnnotationType().asElement().equals(ogmCompositeIndexes)) {
+					List<AnnotationValue> values = (List<AnnotationValue>) m.getElementValues()
+						.get(ogmCompositeIndexesValue).getValue();
+					return values.stream().map(AnnotationValue::getValue).map(AnnotationMirror.class::cast);
+				}
+				return Stream.empty();
+			})
+			.map(t -> {
+				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+				List<AnnotationValue> values = new ArrayList<>();
+				if (attributes.containsKey(ogmCompositeIndexValue)) {
+					values.addAll((List<AnnotationValue>) attributes.get(ogmCompositeIndexValue).getValue());
+				}
+				if (attributes.containsKey(ogmCompositeIndexProperties)) {
+					values.addAll((List<AnnotationValue>) attributes.get(ogmCompositeIndexProperties).getValue());
+				}
+
+				boolean isUnique =
+					attributes.containsKey(ogmCompositeIndexUnique) && (boolean) attributes.get(ogmCompositeIndexUnique)
+						.getValue();
+				List<PropertyType<NodeType>> properties = values.stream()
+					.map(v -> node.addProperty((String) v.getValue()))
+					.collect(Collectors.toList());
+				String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);
+
+				CatalogItem<?> item;
+				if (isUnique) {
+					String name = constraintNameGenerator.generateName(Constraint.Type.KEY, properties);
+					item = Constraint.forNode(node.getLabels().get(0).getValue()).named(name).key(propertyNames);
+				} else {
+					String indexName = indexNameGenerator.generateName(Index.Type.PROPERTY, properties);
+					item = Index.forNode(node.getLabels().get(0).getValue()).named(indexName).onProperties(propertyNames);
+				}
+				return item;
+			})
+			.collect(Collectors.toList());
 	}
 
 	List<CatalogItem<?>> getCatalogItems() {
@@ -307,73 +396,80 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		return e.accept(new SDN6RequiresPrimaryKeyConstraintPredicate(), false);
 	}
 
+	/**
+	 * @param typeElement The type element to process
+	 * @return An ordered list so that we can pass it to any API that requires the labels to be in order (primary first).
+	 */
 	@SuppressWarnings("unchecked")
-	List<Label> computeLabelsSDN6(TypeElement typeElement, boolean addSimpleName) {
+	private List<Label> computeLabelsSDN6(TypeElement typeElement) {
 
 		Set<Label> result = new LinkedHashSet<>();
-		typeElement.getAnnotationMirrors().stream()
-			.filter(m -> m.getAnnotationType().asElement().equals(sdn6Node))
-			.findFirst()
-			.ifPresent(t -> {
-				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
-				if (attributes.containsKey(sdn6NodePrimaryLabel)) {
-					result.add(DefaultLabel.of((String) attributes.get(sdn6NodePrimaryLabel).getValue()));
-				}
+		BiConsumer<Boolean, AnnotationMirror> computation = (addSimpleName, t) -> {
+			Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+			if (attributes.containsKey(sdn6NodePrimaryLabel)) {
+				result.add(DefaultLabel.of((String) attributes.get(sdn6NodePrimaryLabel).getValue()));
+			}
 
-				List<AnnotationValue> values = new ArrayList<>();
-				if (attributes.containsKey(sdn6NodeValue)) {
-					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeValue).getValue());
-				}
-				if (attributes.containsKey(sdn6NodeLabels)) {
-					values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeLabels).getValue());
-				}
-				values.stream().map(v -> DefaultLabel.of((String) v.getValue())).forEach(result::add);
-			});
+			List<AnnotationValue> values = new ArrayList<>();
+			if (attributes.containsKey(sdn6NodeValue)) {
+				values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeValue).getValue());
+			}
+			if (attributes.containsKey(sdn6NodeLabels)) {
+				values.addAll((List<AnnotationValue>) attributes.get(sdn6NodeLabels).getValue());
+			}
+			values.stream().map(v -> DefaultLabel.of((String) v.getValue())).forEach(result::add);
 
-		if (result.isEmpty() && addSimpleName) {
-			result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
-		}
-
-		typeElement.getInterfaces()
-			.stream()
-			.map(i -> typeUtils.asElement(i))
-			.map(TypeElement.class::cast)
-			.forEach(i -> result.addAll(computeLabelsSDN6(i, false)));
-
-		findSuperclassOfInterest(typeElement).ifPresent(
-			superclass -> result.addAll(computeLabelsSDN6(superclass, false)));
+			if (result.isEmpty() && addSimpleName) {
+				result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
+			}
+		};
+		traverseClassHierarchy(sdn6Node, typeElement, computation, true);
 		return new ArrayList<>(result);
 	}
 
-	List<Label> computeLabelsOGM(TypeElement typeElement, boolean addSimpleName) {
+	/**
+	 * @param typeElement The type element to process
+	 * @return An ordered list so that we can pass it to any API that requires the labels to be in order (primary first).
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Label> computeLabelsOGM(TypeElement typeElement) {
 
 		Set<Label> result = new LinkedHashSet<>();
-		typeElement.getAnnotationMirrors().stream()
-			.filter(m -> m.getAnnotationType().asElement().equals(ogmNode))
-			.findFirst()
-			.ifPresent(t -> {
-				Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
-				if (attributes.containsKey(ogmNodeLabel)) {
-					result.add(DefaultLabel.of((String) attributes.get(ogmNodeLabel).getValue()));
-				}
-				if (attributes.containsKey(ogmNodeValue)) {
-					result.add(DefaultLabel.of((String) attributes.get(ogmNodeValue).getValue()));
-				}
-			});
+		BiConsumer<Boolean, AnnotationMirror> labelComputation = (addSimpleName, t) -> {
+			Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = t.getElementValues();
+			if (attributes.containsKey(ogmNodeLabel)) {
+				result.add(DefaultLabel.of((String) attributes.get(ogmNodeLabel).getValue()));
+			}
+			if (attributes.containsKey(ogmNodeValue)) {
+				result.add(DefaultLabel.of((String) attributes.get(ogmNodeValue).getValue()));
+			}
 
-		if (result.isEmpty() && addSimpleName) {
-			result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
-		}
+			if (result.isEmpty() && addSimpleName) {
+				result.add(DefaultLabel.of(typeElement.getSimpleName().toString()));
+			}
+		};
+		traverseClassHierarchy(ogmNode, typeElement, labelComputation, true);
+		return new ArrayList<>(result);
+	}
+
+	private void traverseClassHierarchy(
+		TypeElement requiredAnnotation,
+		TypeElement typeElement,
+		BiConsumer<Boolean, AnnotationMirror> consumer,
+		boolean addSimpleName
+	) {
+		typeElement.getAnnotationMirrors().stream()
+			.filter(m -> m.getAnnotationType().asElement().equals(requiredAnnotation))
+			.findFirst()
+			.ifPresent(v -> consumer.accept(addSimpleName, v));
 
 		typeElement.getInterfaces()
 			.stream()
 			.map(i -> typeUtils.asElement(i))
 			.map(TypeElement.class::cast)
-			.forEach(i -> result.addAll(computeLabelsOGM(i, false)));
+			.forEach(i -> traverseClassHierarchy(requiredAnnotation, i, consumer, false));
 
-		findSuperclassOfInterest(typeElement).ifPresent(
-			superclass -> result.addAll(computeLabelsOGM(superclass, false)));
-		return new ArrayList<>(result);
+		findSuperclassOfInterest(typeElement).ifPresent(superclass -> traverseClassHierarchy(requiredAnnotation, superclass, consumer, false));
 	}
 
 	Optional<TypeElement> findSuperclassOfInterest(TypeElement typeElement) {
@@ -401,16 +497,16 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 
 		@Override
-		public List<CatalogItem<?>> visitType(TypeElement e, DefaultNodeType nodeType) {
+		public List<CatalogItem<?>> visitType(TypeElement e, DefaultNodeType owner) {
 			return e.getEnclosedElements().stream()
-				.map(ee -> ee.accept(this, nodeType))
+				.map(ee -> ee.accept(this, owner))
 				.filter(Objects::nonNull)
 				.flatMap(List::stream)
 				.collect(Collectors.toList());
 		}
 
 		@Override
-		public List<CatalogItem<?>> visitVariableAsField(VariableElement e, DefaultNodeType nodeType) {
+		public List<CatalogItem<?>> visitVariableAsField(VariableElement e, DefaultNodeType owner) {
 
 			List<? extends AnnotationMirror> indexAnnotations = e.getAnnotationMirrors().stream()
 				.filter(a -> a.getAnnotationType().asElement().equals(ogmIndex))
@@ -429,7 +525,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 					return false;
 				});
 
-			PropertyType<NodeType> property = nodeType.addProperty(e.getSimpleName().toString());
+			PropertyType<NodeType> property = owner.addProperty(e.getSimpleName().toString());
 			if (isUnique) {
 				String name = constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
 					Collections.singleton(property));
@@ -443,35 +539,35 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 	}
 
-	class SharedPropertyTypeSelector extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
+	class PropertySelector extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
 
 		private final Set<Element> requiredAnnotations;
 
-		SharedPropertyTypeSelector(Set<Element> requiredAnnotations) {
+		PropertySelector(Set<Element> requiredAnnotations) {
 			this.requiredAnnotations = requiredAnnotations;
 		}
 
 		@Override
-		public PropertyType<NodeType> visitType(TypeElement e, DefaultNodeType nodeType) {
+		public PropertyType<NodeType> visitType(TypeElement e, DefaultNodeType owner) {
 			Optional<PropertyType<NodeType>> property = e.getEnclosedElements().stream()
-				.map(ee -> ee.accept(this, nodeType))
+				.map(ee -> ee.accept(this, owner))
 				.filter(Objects::nonNull)
 				.findFirst();
 
 			return property.orElseGet(
-				() -> findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, nodeType))
+				() -> findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, owner))
 					.orElseThrow(() -> new IllegalStateException(
 						"This visitor might only be used after a certain type has been marked for inclusion in the generated catalog.")));
 		}
 
 		@Override
-		public PropertyType<NodeType> visitVariableAsField(VariableElement e, DefaultNodeType nodeType) {
+		public PropertyType<NodeType> visitVariableAsField(VariableElement e, DefaultNodeType owner) {
 
 			boolean requiredAnnotationPresent = e.getAnnotationMirrors().stream()
 				.map(AnnotationMirror::getAnnotationType)
 				.map(DeclaredType::asElement)
 				.anyMatch(requiredAnnotations::contains);
-			return requiredAnnotationPresent ? nodeType.addProperty(e.getSimpleName().toString()) : null;
+			return requiredAnnotationPresent ? owner.addProperty(e.getSimpleName().toString()) : null;
 		}
 	}
 

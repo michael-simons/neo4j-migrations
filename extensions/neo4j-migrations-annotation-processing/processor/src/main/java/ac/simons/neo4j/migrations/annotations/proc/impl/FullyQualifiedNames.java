@@ -27,6 +27,8 @@ final class FullyQualifiedNames {
 
 	static final String OGM_NODE = "org.neo4j.ogm.annotation.NodeEntity";
 	static final String OGM_INDEX = "org.neo4j.ogm.annotation.Index";
+	static final String OGM_COMPOSITE_INDEX = "org.neo4j.ogm.annotation.CompositeIndex";
+	static final String OGM_COMPOSITE_INDEXES = "org.neo4j.ogm.annotation.CompositeIndexes";
 
 	static final String SDN6_NODE = "org.springframework.data.neo4j.core.schema.Node";
 	static final String SDN6_ID = "org.springframework.data.neo4j.core.schema.Id";

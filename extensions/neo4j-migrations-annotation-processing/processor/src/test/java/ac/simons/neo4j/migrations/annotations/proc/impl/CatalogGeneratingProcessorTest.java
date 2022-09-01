@@ -103,12 +103,8 @@ class CatalogGeneratingProcessorTest {
 
 		CompilationSubject.assertThat(compilation).succeeded();
 
-		Constraint expectedConstraint = Constraint.forNode("Entity")
-			.named("ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_uniqueconstraintentity_login_unique")
-			.unique("login");
-
 		assertThat(catalogGeneratingProcessor.getCatalogItems())
-			.hasSize(2);
+			.hasSize(6);
 
 		CompilationSubject.assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
@@ -125,12 +121,40 @@ class CatalogGeneratingProcessorTest {
 				+ "                    <property>login</property>\n"
 				+ "                </properties>\n"
 				+ "            </index>\n"
+				+ "            <index name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_compositeindexentity_name_age_property\" type=\"property\">\n"
+				+ "                <label>EntityWithCompositeIndex</label>\n"
+				+ "                <properties>\n"
+				+ "                    <property>name</property>\n"
+				+ "                    <property>age</property>\n"
+				+ "                </properties>\n"
+				+ "            </index>\n"
+				+ "            <index name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_multiplecompositeindexentity_firstName_age_property\" type=\"property\">\n"
+				+ "                <label>EntityWithMultipleCompositeIndexes</label>\n"
+				+ "                <properties>\n"
+				+ "                    <property>firstName</property>\n"
+				+ "                    <property>age</property>\n"
+				+ "                </properties>\n"
+				+ "            </index>\n"
+				+ "            <index name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_multiplecompositeindexentity_firstName_email_property\" type=\"property\">\n"
+				+ "                <label>EntityWithMultipleCompositeIndexes</label>\n"
+				+ "                <properties>\n"
+				+ "                    <property>firstName</property>\n"
+				+ "                    <property>email</property>\n"
+				+ "                </properties>\n"
+				+ "            </index>\n"
 				+ "        </indexes>\n"
 				+ "        <constraints>\n"
 				+ "            <constraint name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_uniqueconstraintentity_login_unique\" type=\"unique\">\n"
 				+ "                <label>Entity</label>\n"
 				+ "                <properties>\n"
 				+ "                    <property>login</property>\n"
+				+ "                </properties>\n"
+				+ "            </constraint>\n"
+				+ "            <constraint name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_nodekeyconstraintentity_name_age_key\" type=\"key\">\n"
+				+ "                <label>Entity</label>\n"
+				+ "                <properties>\n"
+				+ "                    <property>name</property>\n"
+				+ "                    <property>age</property>\n"
 				+ "                </properties>\n"
 				+ "            </constraint>\n"
 				+ "        </constraints>\n"

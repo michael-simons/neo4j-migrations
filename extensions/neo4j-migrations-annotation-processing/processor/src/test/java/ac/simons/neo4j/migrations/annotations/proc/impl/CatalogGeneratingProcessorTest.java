@@ -104,7 +104,7 @@ class CatalogGeneratingProcessorTest {
 		CompilationSubject.assertThat(compilation).succeeded();
 
 		assertThat(catalogGeneratingProcessor.getCatalogItems())
-			.hasSize(6);
+			.hasSize(7);
 
 		CompilationSubject.assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
@@ -144,6 +144,12 @@ class CatalogGeneratingProcessorTest {
 				+ "            </index>\n"
 				+ "        </indexes>\n"
 				+ "        <constraints>\n"
+				+ "            <constraint name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_nodepropertyexistenceconstraintentity_login_exists\" type=\"exists\">\n"
+				+ "                <label>Entity</label>\n"
+				+ "                <properties>\n"
+				+ "                    <property>login</property>\n"
+				+ "                </properties>\n"
+				+ "            </constraint>\n"
 				+ "            <constraint name=\"ac_simons_neo4j_migrations_annotations_proc_ogm_intermediate_uniqueconstraintentity_login_unique\" type=\"unique\">\n"
 				+ "                <label>Entity</label>\n"
 				+ "                <properties>\n"

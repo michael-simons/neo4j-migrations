@@ -143,6 +143,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement ogmIndex;
 	private ExecutableElement ogmIndexUnique;
 
+	private TypeElement ogmRequired;
+
 	private final List<CatalogItem<?>> catalogItems = new ArrayList<>();
 
 	private boolean addReset;
@@ -243,6 +245,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		this.ogmIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_INDEX);
 		this.ogmIndexUnique = getAnnotationAttribute(ogmIndex, "unique");
+
+		this.ogmRequired = elementUtils.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);
 
 		this.typeUtils = processingEnv.getTypeUtils();
 
@@ -509,7 +513,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		public List<CatalogItem<?>> visitVariableAsField(VariableElement e, DefaultNodeType owner) {
 
 			List<? extends AnnotationMirror> indexAnnotations = e.getAnnotationMirrors().stream()
-				.filter(a -> a.getAnnotationType().asElement().equals(ogmIndex))
+				.filter(a -> {
+					Element element = a.getAnnotationType().asElement();
+					return element.equals(ogmIndex) || element.equals(ogmRequired);
+				})
 				.collect(Collectors.toList());
 
 			if (indexAnnotations.isEmpty()) {
@@ -532,6 +539,15 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				return Collections.singletonList(
 					Constraint.forNode(labels.get(0).getValue()).named(name).unique(property.getName()));
 			}
+
+			boolean isRequired = indexAnnotations.stream().anyMatch(a -> a.getAnnotationType().asElement().equals(ogmRequired));
+			if (isRequired) {
+				String name = constraintNameGenerator.generateName(Constraint.Type.EXISTS,
+					Collections.singleton(property));
+				return Collections.singletonList(
+					Constraint.forNode(labels.get(0).getValue()).named(name).exists(property.getName()));
+			}
+
 			String name = indexNameGenerator.generateName(Index.Type.PROPERTY,
 				Collections.singleton(property));
 			return Collections.singletonList(

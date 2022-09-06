@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm;
+package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
 
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
- * Verbatim copy from Neo4j-OGM.
- *
- * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "Entity")
-public class Entity {
+@NodeEntity(label = "EntityWithAssignedId")
+public class EntityWithAssignedId {
 
+	@Id
 	Long id;
 }

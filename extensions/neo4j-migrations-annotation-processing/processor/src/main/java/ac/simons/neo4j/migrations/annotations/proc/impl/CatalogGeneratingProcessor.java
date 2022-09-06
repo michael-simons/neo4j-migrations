@@ -127,11 +127,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement sdn6Id;
 	private TypeElement sdn6GeneratedValue;
 	private TypeElement commonsId;
-	private final Set<Element> supportedSDN6Annotations = new HashSet<>();
 
 	private TypeElement ogmNode;
 	private ExecutableElement ogmNodeValue;
 	private ExecutableElement ogmNodeLabel;
+
+	private TypeElement ogmId;
+	private TypeElement ogmGeneratedValue;
 
 	private TypeElement ogmCompositeIndexes;
 	private ExecutableElement ogmCompositeIndexesValue;
@@ -228,12 +230,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.sdn6Id = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_ID);
 		this.sdn6GeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
 		this.commonsId = elementUtils.getTypeElement(FullyQualifiedNames.COMMONS_ID);
-		this.supportedSDN6Annotations.add(sdn6Id);
-		this.supportedSDN6Annotations.add(commonsId);
 
 		this.ogmNode = elementUtils.getTypeElement(FullyQualifiedNames.OGM_NODE);
 		this.ogmNodeValue = getAnnotationAttribute(ogmNode, "value");
 		this.ogmNodeLabel = getAnnotationAttribute(ogmNode, "label");
+
+		this.ogmId = elementUtils.getTypeElement(FullyQualifiedNames.OGM_ID);
+		this.ogmGeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.OGM_GENERATED_VALUE);
 
 		this.ogmCompositeIndexes = elementUtils.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEXES);
 		this.ogmCompositeIndexesValue = getAnnotationAttribute(ogmCompositeIndexes, "value");
@@ -296,6 +299,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				processSDN6IdAnnotations(roundEnv);
 			}
 			if (ogmNode != null) {
+				processOGMIdAnnotations(roundEnv);
 				processOGMIndexAnnotations(roundEnv);
 				processOGMCompositeIndexAnnotations(roundEnv);
 			}
@@ -305,6 +309,11 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {
+
+		Set<Element> supportedSDN6Annotations = new HashSet<>();
+		supportedSDN6Annotations.add(sdn6Id);
+		supportedSDN6Annotations.add(commonsId);
+
 		roundEnv.getElementsAnnotatedWith(sdn6Node)
 			.stream()
 			.filter(this::requiresPrimaryKeyConstraintSDN6)
@@ -312,6 +321,22 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.forEach(t -> {
 				List<Label> labels = computeLabelsSDN6(t);
 				PropertyType<NodeType> idProperty = t.accept(new PropertySelector(supportedSDN6Annotations),
+					new DefaultNodeType(t.getQualifiedName().toString(), labels));
+				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
+					Collections.singleton(idProperty));
+				catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name)
+					.unique(idProperty.getName()));
+			});
+	}
+
+	private void processOGMIdAnnotations(RoundEnvironment roundEnv) {
+		roundEnv.getElementsAnnotatedWith(ogmNode)
+			.stream()
+			.filter(this::requiresPrimaryKeyConstraintOGM)
+			.map(TypeElement.class::cast)
+			.forEach(t -> {
+				List<Label> labels = computeLabelsOGM(t);
+				PropertyType<NodeType> idProperty = t.accept(new PropertySelector(Collections.singleton(ogmId)),
 					new DefaultNodeType(t.getQualifiedName().toString(), labels));
 				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
 					Collections.singleton(idProperty));
@@ -397,7 +422,19 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	boolean requiresPrimaryKeyConstraintSDN6(Element e) {
-		return e.accept(new SDN6RequiresPrimaryKeyConstraintPredicate(), false);
+		Collection<TypeElement> idAnnotations = Arrays.asList(sdn6Id, commonsId);
+		TypeElement generatedValueAnnotation = sdn6GeneratedValue;
+		String generatorAttributeName = "generatorClass";
+		String internalIdGeneratorClass = "org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator";
+		return e.accept(new RequiresPrimaryKeyConstraintPredicate(idAnnotations, generatedValueAnnotation, generatorAttributeName, internalIdGeneratorClass), false);
+	}
+
+	boolean requiresPrimaryKeyConstraintOGM(Element e) {
+		Collection<TypeElement> idAnnotations = Arrays.asList(ogmId);
+		TypeElement generatedValueAnnotation = ogmGeneratedValue;
+		String generatorAttributeName = "strategy";
+		String internalIdGeneratorClass = "org.neo4j.ogm.id.InternalIdStrategy";
+		return e.accept(new RequiresPrimaryKeyConstraintPredicate(idAnnotations, generatedValueAnnotation, generatorAttributeName, internalIdGeneratorClass), false);
 	}
 
 	/**
@@ -590,7 +627,22 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	/**
 	 * Visitor that computes if an SDN 6 annotated type requires a primary key constraint.
 	 */
-	class SDN6RequiresPrimaryKeyConstraintPredicate extends ElementKindVisitor8<Boolean, Boolean> {
+	class RequiresPrimaryKeyConstraintPredicate extends ElementKindVisitor8<Boolean, Boolean> {
+
+		private final Collection<TypeElement> idAnnotations;
+
+		private final TypeElement generatedValueAnnotation;
+
+		private final String generatorAttributeName;
+
+		private final String internalIdGeneratorClass;
+
+		RequiresPrimaryKeyConstraintPredicate(Collection<TypeElement> idAnnotations, TypeElement generatedValueAnnotation, String generatorAttributeName, String internalIdGeneratorClass) {
+			this.idAnnotations = idAnnotations;
+			this.generatedValueAnnotation = generatedValueAnnotation;
+			this.generatorAttributeName = generatorAttributeName;
+			this.internalIdGeneratorClass = internalIdGeneratorClass;
+		}
 
 		@Override
 		protected Boolean defaultAction(Element e, Boolean aBoolean) {
@@ -614,11 +666,11 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 			Set<Element> fieldAnnotations = e.getAnnotationMirrors().stream()
 				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());
-			if (!(fieldAnnotations.contains(sdn6Id) || fieldAnnotations.contains(commonsId))) {
+			if (!fieldAnnotations.stream().anyMatch(idAnnotations::contains)) {
 				return defaultValue;
 			}
 			return e.getAnnotationMirrors().stream()
-				.filter(m -> m.getAnnotationType().asElement().equals(sdn6GeneratedValue))
+				.filter(m -> m.getAnnotationType().asElement().equals(generatedValueAnnotation))
 				.noneMatch(generatedValue -> isUsingInternalIdGenerator(e, generatedValue));
 		}
 
@@ -628,8 +680,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				.getElementValues().entrySet().stream()
 				.collect(Collectors.toMap(entry -> entry.getKey().getSimpleName().toString(), Map.Entry::getValue));
 
-			DeclaredType generatorClassValue = values.containsKey("generatorClass") ?
-				(DeclaredType) values.get("generatorClass").getValue() : null;
+			DeclaredType generatorClassValue = values.containsKey(generatorAttributeName) ?
+				(DeclaredType) values.get(generatorAttributeName).getValue() : null;
 			DeclaredType valueValue = values.containsKey("value") ?
 				(DeclaredType) values.get("value").getValue() : null;
 
@@ -637,7 +689,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			if (generatorClassValue != null && valueValue != null && !generatorClassValue.equals(valueValue)) {
 				messager.printMessage(
 					Diagnostic.Kind.ERROR,
-					"Different @AliasFor mirror values for annotation [org.springframework.data.neo4j.core.schema.GeneratedValue]!",
+					String.format("Different @AliasFor mirror values for annotation [%s]!", generatedValue.getAnnotationType()),
 					e
 				);
 			} else if (generatorClassValue != null) {
@@ -647,10 +699,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			}
 
 			// The defaults will not be materialized
-			return
-				(name == null || "org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator".equals(
-					name))
-				&& VALID_GENERATED_ID_TYPES.contains(e.asType().toString());
+			return (name == null || internalIdGeneratorClass.equals(name)) && VALID_GENERATED_ID_TYPES.contains(e.asType().toString());
 		}
 	}
 }

@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm;
+package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
 
-import ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate.Entity;
-
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.Required;
-import org.neo4j.ogm.annotation.StartNode;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.id.IdStrategy;
 
 /**
- * Verbatim copy from Neo4j-OGM.
- *
- * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@RelationshipEntity(type = "REL")
-public class RelPropertyExistenceConstraintEntity {
+@NodeEntity(label = "EntityWithExternallyGeneratedId")
+public class EntityWithExternallyGeneratedId {
 
-	Long id;
+	/**
+	 * Non-functional id generation for testing purpose.
+	 */
+	public static class MyGeneration implements IdStrategy {
+		@Override
+		public Object generateId(Object entity) {
+			return "People tried to put us down…";
+		}
+	}
 
-	@StartNode
-	Entity start;
-
-	@EndNode
-	Entity end;
-
-	@Required
-	String description;
+	@Id @GeneratedValue(strategy = MyGeneration.class)
+	String id;
 }

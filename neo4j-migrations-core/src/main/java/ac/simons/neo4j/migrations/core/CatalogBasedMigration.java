@@ -244,7 +244,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	static boolean isResetCatalog(Document document) {
 
 		NodeList catalog = document.getElementsByTagName(XMLSchemaConstants.CATALOG);
-		return catalog.getLength() == 1 && Boolean.parseBoolean(((Element) catalog.item(0)).getAttribute("reset"));
+		return catalog.getLength() == 1 && Boolean.parseBoolean(((Element) catalog.item(0)).getAttribute(XMLSchemaConstants.RESET));
 	}
 
 	static List<Precondition> getPreconditions(Node parentNode) {

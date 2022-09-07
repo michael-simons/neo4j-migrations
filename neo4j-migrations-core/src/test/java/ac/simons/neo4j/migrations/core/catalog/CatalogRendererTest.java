@@ -22,6 +22,7 @@ import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,74 @@ class CatalogRendererTest {
 			+ "                </properties>\n"
 			+ "            </constraint>\n"
 			+ "        </constraints>\n"
+			+ "    </catalog>\n"
+			+ "</migration>\n"
+			+ "");
+	}
+
+	@Test
+	void shouldAddReset() {
+
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
+		assertThat(renderer.render(Catalog.of(Collections.emptyList()), RenderConfig.defaultConfig().withAdditionalOptions(Collections.singletonList(
+			new RenderConfig.XMLRenderingOptions() {
+				@Override
+				public boolean withReset() {
+					return true;
+				}
+			})))).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <catalog reset=\"true\">\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints/>\n"
+			+ "    </catalog>\n"
+			+ "</migration>\n"
+			+ "");
+	}
+
+	@Test
+	void shouldAddApply() {
+
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
+		assertThat(renderer.render(Catalog.of(Collections.emptyList()), RenderConfig.defaultConfig().withAdditionalOptions(Collections.singletonList(
+			new RenderConfig.XMLRenderingOptions() {
+				@Override
+				public boolean withApply() {
+					return true;
+				}
+			})))).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <catalog>\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints/>\n"
+			+ "    </catalog>\n"
+			+ "    <apply/>\n"
+			+ "</migration>\n"
+			+ "");
+	}
+
+	@Test
+	void shouldAddComments() {
+
+		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
+		assertThat(renderer.render(Catalog.of(Collections.emptyList()), RenderConfig.defaultConfig().withAdditionalOptions(Collections.singletonList(
+			new RenderConfig.XMLRenderingOptions() {
+				@Override
+				public Optional<String> optionalHeader() {
+					return Optional.of("I was there.");
+				}
+			})))).isEqualTo(
+			""
+			+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+			+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
+			+ "    <!-- I was there. -->\n"
+			+ "    <catalog>\n"
+			+ "        <indexes/>\n"
+			+ "        <constraints/>\n"
 			+ "    </catalog>\n"
 			+ "</migration>\n"
 			+ "");

@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-examples</artifactId>
-		<version>1.10.2-SNAPSHOT</version>
+		<version>1.11.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-examples-sb</artifactId>
@@ -32,6 +32,7 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
+		<next-migration-version>020</next-migration-version>
 	</properties>
 
 	<dependencyManagement>
@@ -53,6 +54,10 @@
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-spring-boot-starter</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-neo4j</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -139,6 +144,45 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration combine.self="append">
+					<annotationProcessorPaths>
+						<annotationProcessorPath>
+							<groupId>eu.michael-simons.neo4j</groupId>
+							<artifactId>neo4j-migrations-annotation-processor</artifactId>
+							<version>${project.version}</version>
+						</annotationProcessorPath>
+					</annotationProcessorPaths>
+					<compilerArgs>
+						<arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V${next-migration-version}__Create_sdn_constraints.xml</arg>
+						<arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>process-classes</phase>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/neo4j/migrations/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/generated-sources/annotations/my-generated-migrations</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

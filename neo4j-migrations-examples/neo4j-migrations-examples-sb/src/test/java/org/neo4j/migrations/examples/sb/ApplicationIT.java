@@ -17,6 +17,11 @@ package org.neo4j.migrations.examples.sb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
@@ -79,6 +84,11 @@ class ApplicationIT {
 		) {
 			long cnt = session.readTransaction(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(1L);
+
+			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+			MigrationChain info = migrations.info(MigrationChain.ChainBuilderMode.REMOTE);
+			assertThat(info.getLastAppliedVersion().map(MigrationVersion::getValue)).hasValue("020");
+			assertThat(info.isApplied("020")).isTrue();
 		}
 	}
 }

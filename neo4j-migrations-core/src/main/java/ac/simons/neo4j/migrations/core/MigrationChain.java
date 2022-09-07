@@ -112,6 +112,14 @@ public interface MigrationChain extends ConnectionDetails {
 	Collection<Element> getElements();
 
 	/**
+	 * @return the last applied version
+	 * @since 1.11.0
+	 */
+	default Optional<MigrationVersion> getLastAppliedVersion() {
+		return Optional.empty();
+	}
+
+	/**
 	 * A chain element describing a pending or applied migration.
 	 */
 	interface Element {

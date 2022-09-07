@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc;
+package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.core.catalog.Index;
-
-import java.util.Collection;
+import ac.simons.neo4j.migrations.annotations.proc.ElementType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
- * Generator for index names.
+ * Helper for creating properties on element types
  *
  * @author Michael J. Simons
+ * @param <ET> The concrete element type
  * @since TBA
  */
-@FunctionalInterface
-public interface IndexNameGenerator {
+interface WriteableElementType<ET extends ElementType<ET>> {
 
 	/**
-	 * Generates a name for an index with the given {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the
-	 * given list of {@link PropertyType properties}.
+	 * Adds the given property
 	 *
-	 * @param properties The properties to create the index for. All properties will have the same owner.
-	 * @return A valid index name
+	 * @param property The property to add
+	 * @return The new property created, with {@literal this} as the owner
 	 */
-	String generateName(Index.Type type, Collection<PropertyType<?>> properties);
+	PropertyType<ET> addProperty(String property);
 }

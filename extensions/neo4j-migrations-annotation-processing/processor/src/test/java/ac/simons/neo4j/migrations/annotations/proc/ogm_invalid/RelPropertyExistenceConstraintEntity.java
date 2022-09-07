@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
+package ac.simons.neo4j.migrations.annotations.proc.ogm_invalid;
 
-import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.EndNode;
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.annotation.StartNode;
 
 /**
  * Verbatim copy from Neo4j-OGM.
@@ -23,8 +26,17 @@ import org.neo4j.ogm.annotation.NodeEntity;
  * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "Entity")
-public class Entity {
+@RelationshipEntity
+public class RelPropertyExistenceConstraintEntity {
 
 	Long id;
+
+	@StartNode
+	Entity start;
+
+	@EndNode
+	Entity end;
+
+	@Index(unique = true)
+	String description;
 }

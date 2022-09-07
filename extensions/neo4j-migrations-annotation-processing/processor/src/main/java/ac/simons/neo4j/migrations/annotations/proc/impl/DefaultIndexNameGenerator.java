@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 import ac.simons.neo4j.migrations.annotations.proc.IndexNameGenerator;
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 import ac.simons.neo4j.migrations.core.catalog.Index;
 
@@ -29,7 +28,7 @@ import java.util.Collection;
 public class DefaultIndexNameGenerator extends AbstractNameGeneratorForCatalogItems implements IndexNameGenerator {
 
 	@Override
-	public String generateName(Index.Type type, Collection<PropertyType<NodeType>> properties) {
+	public String generateName(Index.Type type, Collection<PropertyType<?>> properties) {
 
 		return generateName(type.name(), properties);
 	}

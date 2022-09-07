@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.CompositeIndex;
 import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
+ * Verbatim copy from Neo4j-OGM.
+ *
+ * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "InternallyGeneratedId")
-public class InternallyGeneratedId {
+@NodeEntity(label = "EntityWithMultipleCompositeIndexes")
+@CompositeIndex({ "firstName", "age" })
+@CompositeIndex({ "firstName", "email" })
+public class MultipleCompositeIndexEntity {
 
-	@Id @GeneratedValue
 	Long id;
+
+	String firstName;
+
+	int age;
+
+	String email;
 }

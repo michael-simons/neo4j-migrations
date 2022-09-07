@@ -32,5 +32,5 @@ public interface NodeType extends ElementType<NodeType> {
 	 *
 	 * @return the list of labels of this type.
 	 */
-	List<Label> getLabels();
+	List<SchemaName> getLabels();
 }

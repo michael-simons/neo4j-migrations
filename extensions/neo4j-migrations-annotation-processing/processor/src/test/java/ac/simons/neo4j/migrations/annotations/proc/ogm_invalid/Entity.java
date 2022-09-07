@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm;
+package ac.simons.neo4j.migrations.annotations.proc.ogm_invalid;
 
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * Verbatim copy from Neo4j-OGM.
  *
- * @author Gerrit Meier
+ * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@RelationshipEntity(type = "SAME_TYPE")
-public class RelationshipEntityWithSameType2 {
+@NodeEntity(label = "Entity")
+public class Entity {
 
-	@Id
-	private Long id;
+	Long id;
 }

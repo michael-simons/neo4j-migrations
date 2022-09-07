@@ -13,27 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
-import ac.simons.neo4j.migrations.core.catalog.Index;
-
-import java.util.Collection;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
- * Generator for index names.
- *
+ * Verbatim copy from Neo4j-OGM.
+ * @author Frantisek Hartman
  * @author Michael J. Simons
- * @since TBA
  */
-@FunctionalInterface
-public interface IndexNameGenerator {
-
-	/**
-	 * Generates a name for an index with the given {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the
-	 * given list of {@link PropertyType properties}.
-	 *
-	 * @param properties The properties to create the index for. All properties will have the same owner.
-	 * @return A valid index name
-	 */
-	String generateName(Index.Type type, Collection<PropertyType<?>> properties);
+@NodeEntity(label = "EntityChild")
+public class CompositeIndexChild extends CompositeIndexEntity {
 }

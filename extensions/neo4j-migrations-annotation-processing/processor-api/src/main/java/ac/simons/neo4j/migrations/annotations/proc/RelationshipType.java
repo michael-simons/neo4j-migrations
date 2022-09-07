@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
-
-import org.neo4j.ogm.annotation.CompositeIndex;
-import org.neo4j.ogm.annotation.NodeEntity;
+package ac.simons.neo4j.migrations.annotations.proc;
 
 /**
- * Verbatim copy from Neo4j-OGM.
- *
- * @author Frantisek Hartman
+ * Represents a relationship type
  * @author Michael J. Simons
+ * @since TBA
  */
-@NodeEntity(label = "EntityWithMultipleCompositeIndexes")
-@CompositeIndex({ "firstName", "age" })
-@CompositeIndex({ "firstName", "email" })
-public class MultipleCompositeIndexEntity {
+public interface RelationshipType extends ElementType<RelationshipType> {
 
-	Long id;
-
-	String firstName;
-
-	int age;
-
-	String email;
+	/**
+	 * @return the single schema name.
+	 */
+	SchemaName getName();
 }

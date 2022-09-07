@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Required;
 
 /**
  * Verbatim copy from Neo4j-OGM.
+ *
  * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "EntityChild")
-public class CompositeIndexChild extends CompositeIndexEntity {
+@NodeEntity(label = "Entity")
+public class NodePropertyExistenceConstraintEntity {
+
+	Long id;
+
+	@Required
+	String login;
 }

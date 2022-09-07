@@ -87,7 +87,8 @@
 			<testResource>
 				<directory>src/test/java</directory>
 				<includes>
-					<include>ac/simons/neo4j/migrations/annotations/proc/ogm_intermediate/**/*.java</include>
+					<include>ac/simons/neo4j/migrations/annotations/proc/ogm/**/*.java</include>
+					<include>ac/simons/neo4j/migrations/annotations/proc/ogm_invalid/**/*.java</include>
 					<include>ac/simons/neo4j/migrations/annotations/proc/sdn6/**/*.java</include>
 				</includes>
 			</testResource>

@@ -16,8 +16,8 @@
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.RelationshipType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,20 +25,19 @@ import java.util.List;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
  * @since TBA
  */
-final class DefaultNodeType implements NodeType, WriteableElementType<NodeType> {
+final class DefaultRelationshipType implements RelationshipType, WriteableElementType<RelationshipType> {
 
 	private final String owningTypeName;
 
-	private final List<SchemaName> names;
+	private final SchemaName name;
 
-	private final List<PropertyType<NodeType>> properties;
+	private final List<PropertyType<RelationshipType>> properties;
 
-	DefaultNodeType(String owningTypeName, List<SchemaName> names) {
+	DefaultRelationshipType(String owningTypeName, SchemaName name) {
 		this.owningTypeName = owningTypeName;
-		this.names = names;
+		this.name = name;
 		this.properties = new ArrayList<>();
 	}
 
@@ -47,18 +46,18 @@ final class DefaultNodeType implements NodeType, WriteableElementType<NodeType> 
 	}
 
 	@Override
-	public List<PropertyType<NodeType>> getProperties() {
+	public List<PropertyType<RelationshipType>> getProperties() {
 		return Collections.unmodifiableList(this.properties);
 	}
 
 	@Override
-	public List<SchemaName> getLabels() {
-		return Collections.unmodifiableList(this.names);
+	public SchemaName getName() {
+		return name;
 	}
 
 	@Override
-	public PropertyType<NodeType> addProperty(String property) {
-		PropertyType<NodeType> propertyType = new DefaultPropertyType<>(this, property);
+	public PropertyType<RelationshipType> addProperty(String property) {
+		PropertyType<RelationshipType> propertyType = new DefaultPropertyType<>(this, property);
 		this.properties.add(propertyType);
 		return propertyType;
 	}

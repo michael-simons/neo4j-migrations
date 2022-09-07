@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
@@ -30,7 +29,7 @@ import java.util.Collection;
 final class DefaultConstraintNameGenerator extends AbstractNameGeneratorForCatalogItems implements ConstraintNameGenerator {
 
 	@Override
-	public String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties) {
+	public String generateName(Constraint.Type type, Collection<PropertyType<?>> properties) {
 
 		return generateName(type.name(), properties);
 	}

@@ -15,23 +15,27 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
-import org.neo4j.ogm.annotation.CompositeIndex;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.id.IdStrategy;
 
 /**
- * Verbatim copy from Neo4j-OGM.
- *
- * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "Entity")
-@CompositeIndex
-public class NoPropertyCompositeIndexEntity {
+@NodeEntity(label = "EntityWithExternallyGeneratedId")
+public class EntityWithExternallyGeneratedId {
 
+	/**
+	 * Non-functional id generation for testing purpose.
+	 */
+	public static class MyGeneration implements IdStrategy {
+		@Override
+		public Object generateId(Object entity) {
+			return "People tried to put us down…";
+		}
+	}
 
-	Long id;
-
-	String name;
-
-	int age;
+	@Id @GeneratedValue(strategy = MyGeneration.class)
+	String id;
 }

@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
+
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
- * Schema element describing a graph.
+ * Verbatim copy from Neo4j-OGM.
  *
+ * @author Frantisek Hartman
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
- * @since TBA
  */
-public interface Label {
+@NodeEntity(label = "Entity")
+public class UniqueConstraintEntity {
 
-	/**
-	 * @return the {@link String} value
-	 */
-	String getValue();
+	Long id;
+
+	@Index(unique = true)
+	String login;
 }

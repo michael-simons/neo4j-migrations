@@ -37,5 +37,5 @@ public interface ConstraintNameGenerator {
 	 * @param properties The properties to create the constraint for. All properties will have the same owner.
 	 * @return A valid constraint name
 	 */
-	String generateName(Constraint.Type type, Collection<PropertyType<NodeType>> properties);
+	String generateName(Constraint.Type type, Collection<PropertyType<?>> properties);
 }

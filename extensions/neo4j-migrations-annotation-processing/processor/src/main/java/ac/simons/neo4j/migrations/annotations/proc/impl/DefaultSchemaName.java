@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.Label;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
 
 import java.util.Objects;
 
@@ -24,7 +24,7 @@ import java.util.Objects;
  * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
  * @since TBA
  */
-final class DefaultLabel implements Label {
+final class DefaultSchemaName implements SchemaName {
 
 	private final String value;
 
@@ -34,12 +34,12 @@ final class DefaultLabel implements Label {
 	 * @param value The value of this label, must not be null.
 	 * @return A label with the given value.
 	 */
-	static Label of(String value) {
+	static SchemaName of(String value) {
 
-		return new DefaultLabel(value);
+		return new DefaultSchemaName(value);
 	}
 
-	private DefaultLabel(String value) {
+	private DefaultSchemaName(String value) {
 		this.value = value;
 	}
 
@@ -62,7 +62,7 @@ final class DefaultLabel implements Label {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		DefaultLabel that = (DefaultLabel) o;
+		DefaultSchemaName that = (DefaultSchemaName) o;
 		return value.equals(that.value);
 	}
 

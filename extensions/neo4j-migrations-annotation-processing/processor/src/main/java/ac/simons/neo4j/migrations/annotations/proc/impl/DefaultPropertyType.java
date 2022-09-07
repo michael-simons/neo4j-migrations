@@ -15,27 +15,28 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.ElementType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
+ * @param <T> The type of the property
  * @since TBA
  */
-final class DefaultNodePropertyType implements PropertyType<NodeType> {
+final class DefaultPropertyType<T extends ElementType<T>> implements PropertyType<T> {
 
-	private final NodeType owner;
+	private final T owner;
 
 	private final String name;
 
-	DefaultNodePropertyType(NodeType owner, String name) {
+	DefaultPropertyType(T owner, String name) {
 		this.owner = owner;
 		this.name = name;
 	}
 
 	@Override
-	public NodeType getOwner() {
+	public T getOwner() {
 		return this.owner;
 	}
 

@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.ElementType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 import java.util.Collection;
@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
  */
 abstract class AbstractNameGeneratorForCatalogItems {
 
-	final String generateName(String type, Collection<PropertyType<NodeType>> properties) {
+	final String generateName(String type, Collection<PropertyType<?>> properties) {
 
-		NodeType owner = properties.stream()
+		ElementType<?> owner = properties.stream()
 			.findFirst().map(PropertyType::getOwner)
 			.orElseThrow(
 				() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));

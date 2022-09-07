@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
 import org.neo4j.ogm.annotation.CompositeIndex;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -24,13 +24,14 @@ import org.neo4j.ogm.annotation.NodeEntity;
  * @author Frantisek Hartman
  * @author Michael J. Simons
  */
-@NodeEntity(label = "EntityWithCompositeIndex")
-@CompositeIndex({ "name", "age" })
-public class CompositeIndexEntity {
+@NodeEntity(label = "Entity")
+@CompositeIndex(properties = { "name", "age" }, unique = true)
+public class NodeKeyConstraintEntity {
 
 	Long id;
 
 	String name;
 
 	int age;
+
 }

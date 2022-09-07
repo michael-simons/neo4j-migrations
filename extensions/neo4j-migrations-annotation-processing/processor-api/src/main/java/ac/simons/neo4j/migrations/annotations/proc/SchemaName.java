@@ -13,29 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_intermediate;
-
-import org.neo4j.ogm.annotation.GeneratedValue;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.id.IdStrategy;
+package ac.simons.neo4j.migrations.annotations.proc;
 
 /**
+ * Schema element describing a graph.
+ *
  * @author Michael J. Simons
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since TBA
  */
-@NodeEntity(label = "EntityWithExternallyGeneratedId")
-public class EntityWithExternallyGeneratedId {
+public interface SchemaName {
 
 	/**
-	 * Non-functional id generation for testing purpose.
+	 * @return the {@link String} value
 	 */
-	public static class MyGeneration implements IdStrategy {
-		@Override
-		public Object generateId(Object entity) {
-			return "People tried to put us down…";
-		}
-	}
-
-	@Id @GeneratedValue(strategy = MyGeneration.class)
-	String id;
+	String getValue();
 }

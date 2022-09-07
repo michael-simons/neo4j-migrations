@@ -238,6 +238,7 @@ public final class RenderConfig {
 		return ignoreName;
 	}
 
+	@SuppressWarnings("squid:S1874")
 	List<AdditionalRenderingOptions> getAdditionalOptions() {
 		return Collections.unmodifiableList(additionalOptions);
 	}
@@ -257,7 +258,7 @@ public final class RenderConfig {
 	 * @return A (potentially) new {@link RenderConfig}
 	 * @since 1.11.0
 	 */
-	public RenderConfig withAdditionalOptions(List<? extends AdditionalRenderingOptions> newOptions) {
+	public RenderConfig withAdditionalOptions(@SuppressWarnings("squid:S1874") List<? extends AdditionalRenderingOptions> newOptions) {
 		if (Objects.equals(this.additionalOptions, newOptions)) {
 			return this;
 		}

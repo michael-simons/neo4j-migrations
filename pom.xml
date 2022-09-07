@@ -63,7 +63,7 @@
 		<module>neo4j-migrations-quarkus-parent</module>
 		<module>neo4j-migrations-examples</module>
 		<module>neo4j-migrations-maven-plugin</module>
-		<module>neo4j-migrations-processor-parent</module>
+		<module>extensions/neo4j-migrations-annotation-processing</module>
 		<module>extensions/neo4j-migrations-formats-adoc</module>
 		<module>extensions/neo4j-migrations-formats-markdown</module>
 	</modules>

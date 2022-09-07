@@ -113,7 +113,7 @@ The normalizing refactoring requires at least Neo4j 4.1, running it with batches
 
 ==== Normalize properties as boolean
 
-Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as `ja`, `Y`, `yes`, `NO` or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with `Normalize.asBoolean`.
+Often times database schemes evolved over time, and you find properties with a boolean meaning and a string datatype with content such as `ja`, `HiddenB`, `yes`, `NO` or literal null. To use them proper in queries, you might want to normalize them into a real boolean value. This is done with `Normalize.asBoolean`.
 
 `Normalize.asBoolean` takes in the name of a property and a list of values that are treated as `true` and a list of values that are treated as `false`. A property with a value that is not in any of those lists will be deleted. `null` as value is a non-existent property. However, if either lists contains literal `null`, a property will be created with the corresponding value.
 
@@ -273,6 +273,73 @@ As catalog item:
   </parameters>
 </refactor>
 ----
+
+[[appendix_annotation]]
+== Annotation processing
+
+Neo4j-Migrations offers annotation processing for https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/[SDN 6] and generates <<concepts_catalog, catalogs>> containing unique constraints for all `@Node` entities using either assigned or externally generated ids (via `@Id` plus an optional external `@GeneratedValue` or without further annotation).
+
+This is in line with recommended best practices for SDN 6:
+
+* Use externally assigned or generated IDs instead of Neo4j internal id values (especially when making those ids available to external systems)
+* Create at least indexes for them, better unique constraint to ensure that any assigned value is fit for its purpose
+
+For more ideas and ruminations around that, please have a look at https://medium.com/neo4j/neo4j-ogm-and-spring-data-neo4j-a55a866df68c[How to choose an unique identifier for your database entities]. While that article is still from an SDN5+OGM perspective, it's core ideas still apply.
+
+The annotation processor is available under the following coordinates:
+
+[source,xml,subs="verbatim,attributes"]
+.Annotation processor as Maven dependency
+----
+<dependency>
+    <groupId>{groupId}</groupId>
+    <artifactId>neo4j-migrations-annotation-processor</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4j-OGM), so it is safe to use it either directly as dependency so that it will be picked up by all recent Java compilers or as dedicated processor for the compiler:
+
+[source,xml,subs="verbatim,attributes"]
+.Annotation processor configured as processor fot the compiler plugin
+----
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <annotationProcessorPaths>
+                    <annotationProcessorPath>
+                        <groupId>{groupId}</groupId>
+                        <artifactId>neo4j-migrations-annotation-processor</artifactId>
+                        <version>{latest_version}</version>
+                    </annotationProcessorPath>
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+----
+
+The latter approach allows for passing additional configuration to the processor, such as the output location relativ to `target/generated-sources` and various name generators.
+There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameSupplier`. You can provide implementations as shown in the following example (taking from our integration tests):
+
+TODO INTEGRATION TESTS EXAMPLE
+
+NOTE: All implementations must provide a default, publicly accessible constructor.
+
+The scope of the generator is limited on purpose: It will generate a valid catalog declaration and by default an `<apply />` operation. The latter is safe todo because catalogs are internally bound to their migration version and elements added or changed in v2 of a catalog will be appended, no elements will be deleted from the known catalog. Optionally the generator can be configured to generate a `reset` catalog, which will start the catalog at the given version fresh.
+
+The generator does not generate a migration in a known migrations directory nor does it use a name that will be picked up Neo4j-Migrations by default. It is your task to configure the build system in such a way that any generated migration will
+
+- have a recognized naming schema
+- a name that evaluates to a correctly ordered version number
+- be part of the directories in the target that are configured to be picked by Neo4j-Migrations
+
+For the naming generation APIs are provided and for the rest, `build-helper-maven-plugin` and similar are helpful. The decision to delegate that work has been made as it is rather difficult to propose a one-size-fits-all solution within this tool for all the combinations of different setups and build-systems out there.
+
+Options can be passed to name generators via `-Aorg.neo4j.migrations.catalog_generator.naming_options=<nestedproperties>`  with `nestedproperties` following a structure like `a=x,b=y` and so on. If you want to use that, your own name generator must provide a public constructor taking in one single `Map<String, String>` argument.
 
 [[appendix_extesions]]
 == Extensions

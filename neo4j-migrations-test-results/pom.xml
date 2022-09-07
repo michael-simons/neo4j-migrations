@@ -46,12 +46,22 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>neo4j-migrations-annotations-processor</artifactId>
+			<artifactId>neo4j-migrations-annotation-processor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-annotation-processing-tests-sdn6</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-formats-adoc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations-formats-markdown</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

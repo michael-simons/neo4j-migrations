@@ -71,7 +71,7 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			Element migrationElement = document.createElementNS(XMLSchemaConstants.MIGRATION_NS,
 				XMLSchemaConstants.MIGRATION);
 
-			if (!header.isEmpty()) {
+			if (!header.trim().isEmpty()) {
 				migrationElement.appendChild(document.createComment(header));
 			}
 			document.appendChild(migrationElement);

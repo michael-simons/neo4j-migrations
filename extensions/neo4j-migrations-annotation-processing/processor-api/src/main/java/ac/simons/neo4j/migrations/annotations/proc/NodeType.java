@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author Michael J. Simons
  * @soundtrack Moonbootica - ...And Then We Started To Dance
- * @since TBA
+ * @since 1.11.0
  */
 public interface NodeType extends ElementType<NodeType> {
 

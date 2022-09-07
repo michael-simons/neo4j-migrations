@@ -113,7 +113,7 @@ public interface MigrationChain extends ConnectionDetails {
 
 	/**
 	 * @return the last applied version
-	 * @since TBA
+	 * @since 1.11.0
 	 */
 	default Optional<MigrationVersion> getLastAppliedVersion() {
 		return Optional.empty();

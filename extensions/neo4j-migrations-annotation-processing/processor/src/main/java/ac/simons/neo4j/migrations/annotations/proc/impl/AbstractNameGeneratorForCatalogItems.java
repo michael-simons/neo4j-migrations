@@ -23,13 +23,13 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Utility base class.
+ * Utility mixin.
  *
  * @author Michael J. Simons
  */
-abstract class AbstractNameGeneratorForCatalogItems {
+interface AbstractNameGeneratorForCatalogItems {
 
-	final String generateName(String type, Collection<PropertyType<?>> properties) {
+	default String generateName(String type, Collection<PropertyType<?>> properties) {
 
 		ElementType<?> owner = properties.stream()
 			.findFirst().map(PropertyType::getOwner)

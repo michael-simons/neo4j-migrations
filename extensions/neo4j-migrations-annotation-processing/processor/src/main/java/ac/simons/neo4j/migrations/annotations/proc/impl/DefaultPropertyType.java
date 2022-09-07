@@ -22,7 +22,7 @@ import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
  * @author Michael J. Simons
  * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
  * @param <T> The type of the property
- * @since TBA
+ * @since 1.11.0
  */
 final class DefaultPropertyType<T extends ElementType<T>> implements PropertyType<T> {
 

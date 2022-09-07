@@ -21,8 +21,9 @@ package ac.simons.neo4j.migrations.annotations.proc;
  * @author Michael J. Simons
  * @param <OT> the owning type
  * @soundtrack Moonbootica - ...And Then We Started To Dance
- * @since TBA
+ * @since 1.11.0
  */
+@SuppressWarnings("squid:S119") // I like the generic parameter name.
 public interface PropertyType<OT extends ElementType<OT>> {
 
 	/**

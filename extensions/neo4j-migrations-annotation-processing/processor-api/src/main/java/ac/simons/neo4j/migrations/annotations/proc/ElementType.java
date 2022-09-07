@@ -23,8 +23,9 @@ import java.util.List;
  * @author Michael J. Simons
  * @param <ET> The concrete element type
  * @soundtrack Kraftklub - KARGO
- * @since TBA
+ * @since 1.11.0
  */
+@SuppressWarnings("squid:S119") // I like the generic parameter name.
 public interface ElementType<ET extends ElementType<ET>> {
 
 	/**

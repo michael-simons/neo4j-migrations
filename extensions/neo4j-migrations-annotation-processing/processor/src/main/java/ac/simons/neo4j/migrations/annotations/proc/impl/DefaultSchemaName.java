@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * @author Michael J. Simons
  * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
- * @since TBA
+ * @since 1.11.0
  */
 final class DefaultSchemaName implements SchemaName {
 

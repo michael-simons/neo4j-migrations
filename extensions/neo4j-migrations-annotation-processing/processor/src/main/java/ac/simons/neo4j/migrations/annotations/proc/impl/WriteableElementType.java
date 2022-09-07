@@ -23,8 +23,9 @@ import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
  *
  * @author Michael J. Simons
  * @param <ET> The concrete element type
- * @since TBA
+ * @since 1.11.0
  */
+@SuppressWarnings("squid:S119") // I like the generic parameter name.
 interface WriteableElementType<ET extends ElementType<ET>> {
 
 	/**

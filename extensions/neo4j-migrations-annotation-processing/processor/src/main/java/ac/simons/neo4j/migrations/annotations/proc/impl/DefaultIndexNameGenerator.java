@@ -23,9 +23,9 @@ import java.util.Collection;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.11.0
  */
-public class DefaultIndexNameGenerator extends AbstractNameGeneratorForCatalogItems implements IndexNameGenerator {
+public class DefaultIndexNameGenerator implements IndexNameGenerator, AbstractNameGeneratorForCatalogItems {
 
 	@Override
 	public String generateName(Index.Type type, Collection<PropertyType<?>> properties) {

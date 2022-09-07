@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.11.0
  */
 final class DefaultRelationshipType implements RelationshipType, WriteableElementType<RelationshipType> {
 

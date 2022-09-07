@@ -23,7 +23,7 @@ import java.util.Collection;
  * Generator for index names.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.11.0
  */
 @FunctionalInterface
 public interface IndexNameGenerator {

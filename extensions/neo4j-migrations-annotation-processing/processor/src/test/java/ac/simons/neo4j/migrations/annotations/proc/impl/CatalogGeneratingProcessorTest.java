@@ -40,7 +40,6 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
-import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -119,10 +118,6 @@ class CatalogGeneratingProcessorTest {
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/ogm"));
 
 		CompilationSubject.assertThat(compilation).succeeded();
-
-		assertThat(catalogGeneratingProcessor.getCatalogItems())
-			.hasSize(11);
-
 		CompilationSubject.assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)
@@ -220,17 +215,6 @@ class CatalogGeneratingProcessorTest {
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/movies"));
 
 		CompilationSubject.assertThat(compilation).succeeded();
-
-		Constraint expectedConstraint = Constraint.forNode("Movie")
-			.named("ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_movie_title_unique").unique("title");
-
-		assertThat(catalogGeneratingProcessor.getCatalogItems())
-			.hasSize(1)
-			.satisfies(c -> {
-				assertThat(c.isEquivalentTo(expectedConstraint)).isTrue();
-				assertThat(c.getName()).isEqualTo(expectedConstraint.getName());
-			}, Index.atIndex(0));
-
 		CompilationSubject.assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)

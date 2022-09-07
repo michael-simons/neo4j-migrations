@@ -18,7 +18,7 @@ package ac.simons.neo4j.migrations.annotations.proc;
 /**
  * Represents a relationship type
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.11.0
  */
 public interface RelationshipType extends ElementType<RelationshipType> {
 

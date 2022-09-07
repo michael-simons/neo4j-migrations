@@ -41,18 +41,20 @@ public final class RenderConfig {
 	 * Additional options passed to a {@link RenderConfig configuration}.
 	 * <strong>Warning</strong>: Not to be implemented by user code. Will be sealed in a later release.
 	 *
-	 * @since TBA
+	 * @since 1.11.0
+	 * @deprecated Not meant to be part of a public API, but cannot restrict it in Java 8
 	 */
 	@Deprecated
-	@SuppressWarnings("DeprecatedIsStillUsed")
+	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 	public interface AdditionalRenderingOptions {
 	}
 
 	/**
 	 * Additional options passed to an XML renderer. Some options might be ignored for some content.
 	 *
-	 * @since TBA
+	 * @since 1.11.0
 	 */
+	@SuppressWarnings("squid:S1874") // Complains about the purposeful deprecated option
 	public interface XMLRenderingOptions extends AdditionalRenderingOptions {
 
 		/**
@@ -195,6 +197,7 @@ public final class RenderConfig {
 	 */
 	private final boolean ignoreName;
 
+	@SuppressWarnings("squid:S1874")
 	private final List<AdditionalRenderingOptions> additionalOptions;
 
 	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
@@ -202,7 +205,7 @@ public final class RenderConfig {
 	}
 
 	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent,
-		boolean ignoreName, List<AdditionalRenderingOptions> additionalOptions) {
+		boolean ignoreName, @SuppressWarnings("squid:S1874") List<AdditionalRenderingOptions> additionalOptions) {
 		this.version = version;
 		this.edition = edition;
 		this.operator = operator;
@@ -252,7 +255,7 @@ public final class RenderConfig {
 	 *
 	 * @param newOptions New list of options, may be {@literal null} or empty
 	 * @return A (potentially) new {@link RenderConfig}
-	 * @since TBA
+	 * @since 1.11.0
 	 */
 	public RenderConfig withAdditionalOptions(List<? extends AdditionalRenderingOptions> newOptions) {
 		if (Objects.equals(this.additionalOptions, newOptions)) {

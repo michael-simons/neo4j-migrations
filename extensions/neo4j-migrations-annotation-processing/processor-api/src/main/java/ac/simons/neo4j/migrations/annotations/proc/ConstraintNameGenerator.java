@@ -25,7 +25,7 @@ import java.util.Collection;
  *
  * @author Michael J. Simons
  * @soundtrack Moonbootica - ...And Then We Started To Dance
- * @since TBA
+ * @since 1.11.0
  */
 @FunctionalInterface
 public interface ConstraintNameGenerator {

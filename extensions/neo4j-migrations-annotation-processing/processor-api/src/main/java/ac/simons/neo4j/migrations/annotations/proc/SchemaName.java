@@ -20,7 +20,7 @@ package ac.simons.neo4j.migrations.annotations.proc;
  *
  * @author Michael J. Simons
  * @soundtrack Moonbootica - ...And Then We Started To Dance
- * @since TBA
+ * @since 1.11.0
  */
 public interface SchemaName {
 

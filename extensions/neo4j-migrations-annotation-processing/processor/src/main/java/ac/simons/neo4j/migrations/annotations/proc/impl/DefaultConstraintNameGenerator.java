@@ -24,9 +24,9 @@ import java.util.Collection;
 /**
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Verliebt
- * @since TBA
+ * @since 1.11.0
  */
-final class DefaultConstraintNameGenerator extends AbstractNameGeneratorForCatalogItems implements ConstraintNameGenerator {
+final class DefaultConstraintNameGenerator implements ConstraintNameGenerator, AbstractNameGeneratorForCatalogItems {
 
 	@Override
 	public String generateName(Constraint.Type type, Collection<PropertyType<?>> properties) {

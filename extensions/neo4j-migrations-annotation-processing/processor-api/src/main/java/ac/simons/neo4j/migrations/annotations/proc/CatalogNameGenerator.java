@@ -20,7 +20,7 @@ package ac.simons.neo4j.migrations.annotations.proc;
  *
  * @author Michael J. Simons
  * @soundtrack Brad Fiedel - The Terminator (Original Motion Picture Soundtrack)
- * @since TBA
+ * @since 1.11.0
  */
 @FunctionalInterface
 public interface CatalogNameGenerator {

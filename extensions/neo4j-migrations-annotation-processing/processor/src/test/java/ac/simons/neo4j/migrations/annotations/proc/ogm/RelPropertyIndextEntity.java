@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
-import ac.simons.neo4j.migrations.annotations.proc.ogm_invalid.Entity;
-
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Index;
 import org.neo4j.ogm.annotation.RelationshipEntity;

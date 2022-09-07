@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.ogm_invalid;
+package ac.simons.neo4j.migrations.annotations.proc.ogm;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 

@@ -324,11 +324,8 @@ It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4
 
 The latter approach allows for passing additional configuration to the processor, such as the output location relativ to `target/generated-sources` and various name generators.
 There is a limited API to the processor living in the `neo4j-migrations-annotation-processor-api` module, such as `ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator` and the `CatalogNameGenerator`.
-You can provide implementations but they must live outside the project that is being subject to compilation, as otherwise those classes can't be loaded by us.
+You can provide implementations, but they must live outside the project that is being subject to compilation, as otherwise those classes can't be loaded by us.
 All implementations must provide a default, publicly accessible constructor or - if they take in any nested options - a public constructor taking in exactly one argument of type `Map<String, String>`.
-
-
-
 
 The scope of the generator is limited on purpose: It will generate a valid catalog declaration and by default an `<apply />` operation. The latter is safe todo because catalogs are internally bound to their migration version and elements added or changed in v2 of a catalog will be appended, no elements will be deleted from the known catalog. Optionally the generator can be configured to generate a `reset` catalog, which will start the catalog at the given version fresh.
 
@@ -377,6 +374,48 @@ For the naming generation APIs are provided and for the rest, `maven-resources-p
 
 Options can be passed to name generators via `-Aorg.neo4j.migrations.catalog_generator.naming_options=<nestedproperties>`  with `nestedproperties` following a structure like `a=x,b=y` and so on. If you want to use that, your own name generator must provide a public constructor taking in one single `Map<String, String>` argument.
 
+TIP: Our recommended approach is to use `javac` directly and script it's invocation in your CI/CD system
+     as shown in the following paragraph!
+
+=== Using Javac and our annotation processor
+
+The annotation processor itself is made of 3 artifacts:
+
+`neo4j-migrations-{latest_version}.jar`:: Needed to generate the catalogs
+`neo4j-migrations-annotation-processor-api-{latest_version}.jar`:: Contains the API and built-in annotations
+`neo4j-migrations-annotation-processor-{latest_version}.jar` :: The processor itself
+
+You need to make sure to include all of them in the processor path, otherwise you will most likely read something like `error: Bad service configuration file, or exception thrown while constructing Processor object: javax.annotation.processing.Processor: ac.simons.neo4j.migrations.annotations.proc.impl.CatalogGeneratingProcessor Unable to get public no-arg constructor`, which is a bit misleading.
+
+==== For OGM entities
+
+You need at least `neo4j-ogm-core` as dependency for processing Neo4j-OGM entities and most likely all libraries that you are used in addition to OGM annotations in those entities. The following statement generates `V01__Create_OGM_schema.xml` in a directory `output`. It only does annotation processing:
+
+.Generating a catalog from Neo4j-OGM entities
+[source,bash,subs="verbatim,attributes"]
+----
+javac -proc:only \
+-processorpath neo4j-migrations-{latest_version}.jar:neo4j-migrations-annotation-processor-api-{latest_version}.jar:neo4j-migrations-annotation-processor-{latest_version}.jar \
+-Aorg.neo4j.migrations.catalog_generator.output_dir=output \
+-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
+-cp neo4j-ogm-core-3.2.37.jar \
+extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/*
+----
+
+==== For SDN Entities
+
+The only difference here is that you must use SDN 6.0+ and its dependencies as a dependencies to JavaC:
+
+.Generating a catalog from Neo4j-OGM entities
+[source,bash,subs="verbatim,attributes"]
+----
+javac -proc:only \
+-processorpath neo4j-migrations-{latest_version}.jar:neo4j-migrations-annotation-processor-api-{latest_version}.jar:neo4j-migrations-annotation-processor-{latest_version}.jar \
+-Aorg.neo4j.migrations.catalog_generator.output_dir=output \
+-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
+-cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
+extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/*
+----
 
 [[appendix_extesions]]
 == Extensions

@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
-import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -183,20 +182,21 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		} else {
 			return index.getDeconstructedIdentifiers()
 				.stream()
-				.map(Strings::escapeIfNecessary)
+				.map(version::sanitizeSchemaName)
 				.collect(Collectors.joining("|"));
 		}
 	}
 
 	private String renderProperties(String prefix, Index item, RenderConfig config) {
 
-		if (config.getVersion() == Neo4jVersion.V3_5 || config.getOperator() == Operator.DROP) {
+		Neo4jVersion version = config.getVersion();
+		if (version == Neo4jVersion.V3_5 || config.getOperator() == Operator.DROP) {
 			return item.getProperties().stream()
-				.map(Strings::escapeIfNecessary)
+				.map(version::sanitizeSchemaName)
 				.collect(Collectors.joining(", "));
 		} else {
 			return item.getProperties().stream()
-				.map(Strings::escapeIfNecessary)
+				.map(version::sanitizeSchemaName)
 				.map(v -> prefix + "." + v).collect(Collectors.joining(", "));
 		}
 	}

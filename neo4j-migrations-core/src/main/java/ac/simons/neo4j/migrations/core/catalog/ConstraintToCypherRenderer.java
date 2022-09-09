@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
-import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -104,12 +103,13 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				String.format("This constraint cannot be created with %s edition.", config.getEdition()));
 		}
 
+		Neo4jVersion version = config.getVersion();
+
 		Formattable item = formattableItem(constraint, config);
-		String identifier = getAndEscapeIdentifier(constraint);
-		String properties = renderProperties("n", constraint);
+		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
+		String properties = renderProperties(version, "n", constraint);
 		Operator operator = config.getOperator();
 
-		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS NODE KEY", operator, item, identifier, properties);
 		} else if (RANGE_41_TO_43.contains(version)) {
@@ -149,13 +149,14 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderPropertyExists(Constraint constraint, RenderConfig config, String variable, String templateFragment) {
 
+		Neo4jVersion version = config.getVersion();
+
 		Formattable item = formattableItem(constraint, config);
-		String identifier = getAndEscapeIdentifier(constraint);
-		String properties = renderProperties(variable, constraint);
+		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
+		String properties = renderProperties(version, variable, constraint);
 		Operator operator = config.getOperator();
 		String object = String.format(operator == Operator.CREATE ? "%s IS NOT NULL" : "exists(%s)", properties);
 
-		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			String format = "%s %#s ON " + templateFragment + " ASSERT exists(%s)";
 			return String.format(format, operator, item, variable, identifier, properties);
@@ -180,13 +181,14 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 			throw new IllegalArgumentException("Composite unique constraints are not supported prior to Neo4j/4.4.");
 		}
 
+		Neo4jVersion version = config.getVersion();
+
 		Formattable item = formattableItem(constraint, config);
-		String identifier = getAndEscapeIdentifier(constraint);
-		String properties = renderProperties("n", constraint);
+		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
+		String properties = renderProperties(version, "n", constraint);
 		Constraint.Type type = constraint.getType();
 		Operator operator = config.getOperator();
 
-		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
 			return String.format("%s %#s ON (n:%s) ASSERT %s IS %s", operator, item, identifier, properties, type);
 		} else if (RANGE_41_TO_43.contains(version)) {
@@ -201,18 +203,14 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		}
 	}
 
-	private static String getAndEscapeIdentifier(Constraint constraint) {
-		return Strings.escapeIfNecessary(constraint.getIdentifier());
-	}
-
-	private static String renderProperties(String prefix, Constraint item) {
+	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item) {
 
 		if (item.getProperties().size() == 1) {
-			return prefix + "." + Strings.escapeIfNecessary(item.getProperties().iterator().next());
+			return prefix + "." + version.sanitizeSchemaName(item.getProperties().iterator().next());
 		}
 
 		return item.getProperties().stream()
-			.map(Strings::escapeIfNecessary)
+			.map(version::sanitizeSchemaName)
 			.map(v -> prefix + "." + v).collect(Collectors.joining(", ", "(", ")"));
 	}
 

@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
@@ -107,13 +106,13 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 	}
 
 	@Override
-	public Counters apply(RefactoringContext refactoringContext) {
-		try (QueryRunner queryRunner = refactoringContext.getQueryRunner(featureSet)) {
-			return new DefaultCounters(queryRunner.run(generateQuery(refactoringContext::findSingleResultIdentifier)).consume().counters());
+	public Counters apply(RefactoringContext context) {
+		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {
+			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());
 		}
 	}
 
-	Query generateQuery(Function<String, Optional<String>> elementExtractor) {
+	Query generateQuery(UnaryOperator<String> sanitizer, Function<String, Optional<String>> elementExtractor) {
 
 		List<Object> tv = trueValues;
 		List<Object> fv = falseValues;
@@ -137,7 +136,7 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			innerQuery = customQuery;
 		}
 
-		String quotedProperty = Strings.escapeIfNecessary(this.property);
+		String quotedProperty = sanitizer.apply(this.property);
 		String formatString = ""
 			+ "CALL { %2$s } WITH %3$s AS e\n"
 			+ "<FILTER />\n"

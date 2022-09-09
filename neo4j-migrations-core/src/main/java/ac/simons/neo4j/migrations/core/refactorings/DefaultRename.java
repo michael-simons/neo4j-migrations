@@ -15,11 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.Query;
 
@@ -131,9 +130,9 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 	}
 
 	@Override
-	public Counters apply(RefactoringContext refactoringContext) {
-		try (QueryRunner queryRunner = refactoringContext.getQueryRunner(featureSet)) {
-			return new DefaultCounters(queryRunner.run(generateQuery(refactoringContext::findSingleResultIdentifier)).consume().counters());
+	public Counters apply(RefactoringContext context) {
+		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {
+			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());
 		}
 	}
 
@@ -176,7 +175,7 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 		return ptSource + " " + ptAction;
 	}
 
-	Query generateQuery(Function<String, Optional<String>> elementExtractor) {
+	Query generateQuery(UnaryOperator<String> sanitizer, Function<String, Optional<String>> elementExtractor) {
 
 		String varName;
 		if (customQuery == null) {
@@ -185,8 +184,8 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);
 		}
 
-		return new Query(String.format(generateFormatString(), Strings.escapeIfNecessary(oldValue),
-			Strings.escapeIfNecessary(newValue), batchSize, customQuery, varName));
+		return new Query(String.format(generateFormatString(), sanitizer.apply(oldValue),
+			sanitizer.apply(newValue), batchSize, customQuery, varName));
 	}
 
 	@Override

@@ -17,8 +17,11 @@ package ac.simons.neo4j.migrations.core.internal;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 
 /**
  * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
@@ -185,5 +188,45 @@ public enum Neo4jVersion {
 			return 5;
 		}
 		throw new IllegalStateException("Unknown major version");
+	}
+
+	/**
+	 * @return The minor version or {@code -1} if it can be determined
+	 * @since 1.11.0
+	 */
+	int getMinorVersion() {
+		if (this == LATEST || this == UNDEFINED) {
+			return -1;
+		}
+		String[] parts = this.name().split("_");
+		if (parts.length != 2) {
+			return -1;
+		}
+		return Integer.parseInt(parts[1]);
+	}
+
+	/**
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier, fitting the given version
+	 *
+	 * @param potentiallyNonIdentifier A value to escape, must not be {@literal null} or blank
+	 * @return The sanitized and quoted value or the same value if no change is necessary.
+	 * @since 1.11.0
+	 */
+	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+
+		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.length() == 0) {
+			return potentiallyNonIdentifier;
+		}
+
+		int major;
+		try {
+			major = getMajorVersion();
+		} catch (IllegalStateException e) {
+			major = -1;
+		}
+		int minor = getMinorVersion();
+
+		return SchemaNames.sanitize(potentiallyNonIdentifier, false, major, minor)
+			.orElseThrow(NoSuchElementException::new);
 	}
 }

@@ -68,43 +68,6 @@ final class StringsTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "", " ", "\t\t", "NULL", "a"})
-	void escapeIfNecessaryShouldBailOutEarly(String value) {
-
-		String valueUsed = "NULL".equals(value) ? null : value;
-		assertThat(Strings.escapeIfNecessary(valueUsed)).isSameAs(valueUsed);
-	}
-
-	@ParameterizedTest
-	@CsvSource({
-		"ABC, ABC",
-		"A C, `A C`",
-		"A` C, `A`` C`",
-		"A`` C, `A`` C`",
-		"ALabel, ALabel",
-		"A Label, `A Label`",
-		"A `Label, `A ``Label`",
-		"`A `Label, ```A ``Label`",
-		"Spring Data Neo4j⚡️RX, `Spring Data Neo4j⚡️RX`",
-		"Foo \u0060, `Foo ```", // This is the backtick itself in the string
-		"Foo \\u0060, `Foo `\\u0060`", // This is the backtick unicode escaped so that without further processing `foo \u0060` would end up at Cypher,
-		"`, ````",
-		"\u0060, ````",
-		"```, ``````",
-		"\u0060\u0060\u0060, ``````",
-		"Hello`, `Hello```",
-		"Hi````there, `Hi````there`",
-		"Hi`````there, `Hi``````there`",
-		"`a`b`c`, ```a``b``c```",
-		"\u0060a`b`c\u0060d\u0060, ```a``b``c``d```",
-		"Foo\\`bar, `Foo\\``bar`",
-		"Foo\\\\`bar, `Foo\\\\``bar`",
-	})
-	void shouldEscapeProper(String in, String expected) {
-		String value = Strings.escapeIfNecessary(in);
-		assertThat(value).isEqualTo(expected);
-	}
-
 	@CsvSource(delimiterString = "@@", value = {
 		"RETURN toUpper(elementId(n))@@ RETURN toUpper(toString(id(n)))",
 		"RETURN toUpper(elementId( n ))@@ RETURN toUpper(toString(id( n )))",

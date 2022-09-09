@@ -57,7 +57,7 @@ class Neo4jVersionTest {
 	@EnumSource(value = Neo4jVersion.class, names = { "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
 	void shouldParseMinor(Neo4jVersion version) {
 
-		assertThat(version.getMinorVersion()).isGreaterThanOrEqualTo(0);
+		assertThat(version.getMinorVersion()).isNotNegative();
 	}
 
 	@Test

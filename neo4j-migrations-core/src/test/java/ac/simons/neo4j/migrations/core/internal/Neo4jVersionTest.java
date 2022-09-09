@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -50,5 +51,54 @@ class Neo4jVersionTest {
 	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
 	void shouldIdentifyMajorVersion4(Neo4jVersion version) {
 		assertThat(version.getMajorVersion()).isEqualTo(4);
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Neo4jVersion.class, names = { "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
+	void shouldParseMinor(Neo4jVersion version) {
+
+		assertThat(version.getMinorVersion()).isNotNegative();
+	}
+
+	@Test
+	void shouldDealWithBlanks() {
+
+		assertThat(Neo4jVersion.LATEST.sanitizeSchemaName(" ")).isEqualTo("` `");
+		assertThat(Neo4jVersion.LATEST.sanitizeSchemaName("\t\t")).isEqualTo("`\t\t`");
+		assertThat(Neo4jVersion.LATEST.sanitizeSchemaName(null)).isNull();
+		String empty = "";
+		assertThat(Neo4jVersion.LATEST.sanitizeSchemaName(empty)).isSameAs(empty);
+		String a = "a";
+		String firstResult = Neo4jVersion.LATEST.sanitizeSchemaName(a);
+		assertThat(firstResult).isEqualTo("a");
+		assertThat(Neo4jVersion.LATEST.sanitizeSchemaName("a")).isSameAs(firstResult);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+		"ABC, ABC",
+		"A C, `A C`",
+		"A` C, `A`` C`",
+		"A`` C, `A`` C`",
+		"ALabel, ALabel",
+		"A Label, `A Label`",
+		"A `Label, `A ``Label`",
+		"`A `Label, ```A ``Label`",
+		"Spring Data Neo4j⚡️RX, `Spring Data Neo4j⚡️RX`",
+		"Foo \u0060, `Foo ```", // This is the backtick itself in the string
+		"Foo \\u0060, `Foo ```", // This is the backtick unicode escaped so that without further processing `foo \u0060` would end up at Cypher,
+		"`, ````",
+		"\u0060, ````",
+		"```, ``````",
+		"\u0060\u0060\u0060, ``````",
+		"Hello`, `Hello```",
+		"Hi````there, `Hi````there`",
+		"Hi`````there, `Hi``````there`",
+		"`a`b`c`, ```a``b``c```",
+		"\u0060a`b`c\u0060d\u0060, ```a``b``c``d```"
+	})
+	void shouldEscapeProper(String in, String expected) {
+		String value = Neo4jVersion.LATEST.sanitizeSchemaName(in);
+		assertThat(value).isEqualTo(expected);
 	}
 }

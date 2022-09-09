@@ -43,6 +43,9 @@
         <fileSet>
             <directory>${project.build.directory}/assembly</directory>
             <outputDirectory/>
+            <excludes>
+                <exclude>lib/neo4j-cypher-dsl-schema-name-support-${cypher-dsl.version}.jar</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/assembly/bin</directory>

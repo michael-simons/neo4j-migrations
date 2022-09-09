@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
@@ -83,12 +82,12 @@ final class DefaultMerge implements Merge {
 	}
 
 	@Override
-	public Counters apply(RefactoringContext refactoringContext) {
+	public Counters apply(RefactoringContext context) {
 
-		try (QueryRunner tx = refactoringContext.getQueryRunner(QueryRunner.defaultFeatureSet()
+		try (QueryRunner tx = context.getQueryRunner(QueryRunner.defaultFeatureSet()
 			.withElementIdSupport(true))) {
 
-			String element = refactoringContext.findSingleResultIdentifier(query).orElseThrow(IllegalArgumentException::new);
+			String element = context.findSingleResultIdentifier(query).orElseThrow(IllegalArgumentException::new);
 
 			Ids ids = Ids.of(tx.run(new Query(String.format("CALL { %s } WITH %s RETURN collect(elementId(%2$s)) AS ids", query, element))).single().get(0).asList(Value::asString));
 			if (ids.size() < 2) {
@@ -98,16 +97,16 @@ final class DefaultMerge implements Merge {
 			Function<Query, Counters> runAndConsume = q -> new DefaultCounters(tx.run(q).consume().counters());
 
 			List<Counters> results = new ArrayList<>(4);
-			generateLabelCopyQuery(tx, ids).map(runAndConsume).ifPresent(results::add);
+			generateLabelCopyQuery(context::sanitizeSchemaName, tx, ids).map(runAndConsume).ifPresent(results::add);
 			generatePropertyCopyQuery(tx, ids, mergePolicies).map(runAndConsume).ifPresent(results::add);
-			generateRelationshipCopyQuery(tx, ids).map(runAndConsume).ifPresent(results::add);
+			generateRelationshipCopyQuery(context::sanitizeSchemaName, tx, ids).map(runAndConsume).ifPresent(results::add);
 			generateNodeDeletion(ids).map(runAndConsume).ifPresent(results::add);
 
 			return results.stream().reduce(Counters.empty(), Counters::add);
 		}
 	}
 
-	private static Optional<Query> generateLabelCopyQuery(QueryRunner queryRunner, Ids ids) {
+	private static Optional<Query> generateLabelCopyQuery(UnaryOperator<String> sanitizer, QueryRunner queryRunner, Ids ids) {
 
 		String queryForLabels = ""
 			+ "MATCH (n) WHERE elementId(n) IN $ids\n"
@@ -121,8 +120,7 @@ final class DefaultMerge implements Merge {
 		if (labels.isEmpty()) {
 			return Optional.empty();
 		}
-		String literals = labels.stream().map(Strings::escapeIfNecessary)
-			.collect(Collectors.joining(":", ":", ""));
+		String literals = labels.stream().map(sanitizer).collect(Collectors.joining(":", ":", ""));
 
 		return Optional.of(
 			new Query(String.format("MATCH (n) WHERE elementId(n) = $id SET n%s", literals), Collections.singletonMap("id", ids.first)));
@@ -164,7 +162,7 @@ final class DefaultMerge implements Merge {
 			Values.parameters("id", ids.first, "properties", combinedProperties)));
 	}
 
-	private static Optional<Query> generateRelationshipCopyQuery(QueryRunner queryRunner, Ids ids) {
+	private static Optional<Query> generateRelationshipCopyQuery(UnaryOperator<String> sanitizer, QueryRunner queryRunner, Ids ids) {
 
 		String queryForRels = ""
 			+ "MATCH (n) WHERE elementId(n) IN $ids\n"
@@ -190,7 +188,7 @@ final class DefaultMerge implements Merge {
 
 			String startId = row.get("startId").asString();
 			String endId = row.get("endId").asString();
-			String relationshipType = Strings.escapeIfNecessary(relation.type());
+			String relationshipType = sanitizer.apply(relation.type());
 			if (ids.tail.contains(startId) && ids.tail.contains(endId)) { // current or post-merge self-rel
 				query.append(
 					String.format("WITH target CREATE (target)-[rel_%1$d:%2$s]->(target) SET rel_%1$d = $%3$d ", parameterIndex, relationshipType, parameterIndex));

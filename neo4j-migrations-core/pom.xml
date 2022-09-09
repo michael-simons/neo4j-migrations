@@ -40,6 +40,10 @@
 			<groupId>io.github.classgraph</groupId>
 			<artifactId>classgraph</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
@@ -112,6 +116,40 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>org.neo4j:neo4j-cypher-dsl-schema-name-support</include>
+								</includes>
+							</artifactSet>
+							<relocations>
+								<relocation>
+									<pattern>org.neo4j.cypherdsl.support.schema_name</pattern>
+									<shadedPattern>ac.simons.neo4j.migrations.core.internal</shadedPattern>
+								</relocation>
+							</relocations>
+							<createSourcesJar>true</createSourcesJar>
+							<filters>
+								<filter>
+									<artifact>org.neo4j:neo4j-cypher-dsl-schema-name-support</artifact>
+									<includes>
+										<include>**/SchemaNames*class</include>
+									</includes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.github.siom79.japicmp</groupId>
 				<artifactId>japicmp-maven-plugin</artifactId>

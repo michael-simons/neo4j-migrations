@@ -23,6 +23,8 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Query;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+
 /**
  * @author Michael J. Simons
  */
@@ -35,7 +37,7 @@ class DefaultRenameTest {
 
 		DefaultRename rename = (DefaultRename) Rename.label("Movie", "Film");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s:Movie) REMOVE s:Movie SET s:Film");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("3.5");
@@ -46,7 +48,7 @@ class DefaultRenameTest {
 
 		DefaultRename rename = (DefaultRename) Rename.label("Le Movie", "Der Film");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s:`Le Movie`) REMOVE s:`Le Movie` SET s:`Der Film`");
 	}
@@ -58,7 +60,7 @@ class DefaultRenameTest {
 				.inBatchesOf(23)
 				.inBatchesOf(null);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s:`Le Movie`) REMOVE s:`Le Movie` SET s:`Der Film`");
 	}
@@ -69,7 +71,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.label("Film", "Movie")
 			.inBatchesOf(23);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s:Film) CALL { WITH s REMOVE s:Film SET s:Movie } IN TRANSACTIONS OF 23 ROWS");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("4.4");
@@ -80,7 +82,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.label("Movie", "Film")
 			.withCustomQuery("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n } WITH n AS s REMOVE s:Movie SET s:Film");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("4.1");
@@ -92,7 +94,7 @@ class DefaultRenameTest {
 			.withCustomQuery("MATCH (n) WHERE n.title =~ '.*Matrix.*' RETURN n")
 			.inBatchesOf(23);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n) WHERE n.title =~ '.*Matrix.*' RETURN n } WITH n AS s CALL { WITH s REMOVE s:Film SET s:Movie } IN TRANSACTIONS OF 23 ROWS");
 	}
@@ -101,7 +103,7 @@ class DefaultRenameTest {
 	void simpleTypeRename() {
 		DefaultRename rename = (DefaultRename) Rename.type("ACTED_IN", "HAT_GESPIELT_IN");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (a)-[old:ACTED_IN]->(b) CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new+=old DELETE old");
 	}
@@ -111,7 +113,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.type("ACTED_IN", "HAT_GESPIELT_IN")
 			.withCustomQuery("MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new+=old DELETE old");
 	}
@@ -120,7 +122,7 @@ class DefaultRenameTest {
 	void simpleTypeRenameWithBatchSize() {
 		DefaultRename rename = (DefaultRename) Rename.type("HAT_GESPIELT_IN", "ACTED_IN").inBatchesOf(42);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (a)-[old:HAT_GESPIELT_IN]->(b) CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF 42 ROWS");
 	}
@@ -132,7 +134,7 @@ class DefaultRenameTest {
 			.withCustomQuery(
 				"MATCH (n:Movie) <-[r:HAT_GESPIELT_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) <-[r:HAT_GESPIELT_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF 42 ROWS");
 	}
@@ -142,7 +144,7 @@ class DefaultRenameTest {
 
 		DefaultRename rename = (DefaultRename) Rename.nodeProperty("released", "veröffentlicht in");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s) WHERE s.released IS NOT NULL SET s.`veröffentlicht in` = s.released REMOVE s.released");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("3.5");
@@ -154,7 +156,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.nodeProperty("veröffentlicht in", "released")
 			.inBatchesOf(23);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (s) WHERE s.`veröffentlicht in` IS NOT NULL CALL { WITH s SET s.released = s.`veröffentlicht in` REMOVE s.`veröffentlicht in` } IN TRANSACTIONS OF 23 ROWS");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("4.4");
@@ -166,7 +168,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.nodeProperty("released", "veröffentlicht in")
 			.withCustomQuery("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n } WITH n AS s WHERE s.released IS NOT NULL SET s.`veröffentlicht in` = s.released REMOVE s.released");
 		assertThat(rename.getFeatures().requiredVersion()).isEqualTo("4.1");
@@ -179,7 +181,7 @@ class DefaultRenameTest {
 			.withCustomQuery("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n")
 			.inBatchesOf(23);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n } WITH n AS s WHERE s.`veröffentlicht in` IS NOT NULL CALL { WITH s SET s.released = s.`veröffentlicht in` REMOVE s.`veröffentlicht in` } IN TRANSACTIONS OF 23 ROWS");
 	}
@@ -188,7 +190,7 @@ class DefaultRenameTest {
 	void simpleRelPropertyRename() {
 		DefaultRename rename = (DefaultRename) Rename.relationshipProperty("roles", "die rollen");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (a)-[r]->(b) WHERE r.roles IS NOT NULL SET r.`die rollen` = r.roles REMOVE r.roles");
 	}
@@ -198,7 +200,7 @@ class DefaultRenameTest {
 		DefaultRename rename = (DefaultRename) Rename.relationshipProperty("roles", "die rollen")
 			.withCustomQuery("MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS r WHERE r.roles IS NOT NULL SET r.`die rollen` = r.roles REMOVE r.roles");
 	}
@@ -207,7 +209,7 @@ class DefaultRenameTest {
 	void simpleRelPropertyRenameWithBatchSize() {
 		DefaultRename rename = (DefaultRename) Rename.relationshipProperty("die rollen", "roles").inBatchesOf(42);
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("MATCH (a)-[r]->(b) WHERE r.`die rollen` IS NOT NULL CALL { WITH r SET r.roles = r.`die rollen` REMOVE r.`die rollen` } IN TRANSACTIONS OF 42 ROWS");
 	}
@@ -219,7 +221,7 @@ class DefaultRenameTest {
 			.withCustomQuery(
 				"MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n");
 
-		assertThat(rename.generateQuery(elementExtractor))
+		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo("CALL { MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS r WHERE r.`die rollen` IS NOT NULL CALL { WITH r SET r.roles = r.`die rollen` REMOVE r.`die rollen` } IN TRANSACTIONS OF 42 ROWS");
 	}

@@ -70,8 +70,9 @@ class PackageStructureTest {
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..internal..")
 			.should().dependOnClassesThat(
-				resideOutsideOfPackages("..internal", "java..", "javax..", "org.xml..", "org.w3c..")
-					.and(areNotPrimitives())
+				resideOutsideOfPackages("..internal", "java..", "javax..", "org.xml..", "org.w3c..",
+					"org.neo4j.cypherdsl.support.schema_name.." // That will be shaded anyway into the same internal package
+				).and(areNotPrimitives())
 			);
 		rule.check(coreClasses);
 	}

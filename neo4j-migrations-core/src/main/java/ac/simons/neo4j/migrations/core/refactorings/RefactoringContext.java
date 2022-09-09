@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner.FeatureSet;
 
 import java.util.Optional;
@@ -49,4 +50,16 @@ public interface RefactoringContext {
 	 * @throws IllegalStateException In case there is no defined version in this context
 	 */
 	QueryRunner getQueryRunner(FeatureSet featureSet);
+
+	/**
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier in the given context
+	 *
+	 * @param potentiallyNonIdentifier A value to escape, must not be {@literal null} or blank
+	 * @return The sanitized and quoted value or the same value if no change is necessary.
+	 * @since 1.11.0
+	 */
+	default String sanitizeSchemaName(String potentiallyNonIdentifier) {
+
+		return Neo4jVersion.LATEST.sanitizeSchemaName(potentiallyNonIdentifier);
+	}
 }

@@ -185,4 +185,9 @@ final class DefaultRefactoringContext implements RefactoringContext {
 			session.close();
 		}
 	}
+
+	@Override
+	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+		return this.getVersion().sanitizeSchemaName(potentiallyNonIdentifier);
+	}
 }

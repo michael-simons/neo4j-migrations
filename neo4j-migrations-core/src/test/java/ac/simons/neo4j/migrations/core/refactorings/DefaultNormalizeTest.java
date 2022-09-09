@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+
 /**
  * @author Michael J. Simons
  */
@@ -45,7 +47,7 @@ class DefaultNormalizeTest {
 			+ "END";
 
 		DefaultNormalize normalize = new DefaultNormalize("a property", Collections.emptyList(), Collections.emptyList());
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
@@ -66,7 +68,7 @@ class DefaultNormalizeTest {
 
 		DefaultNormalize normalize = (DefaultNormalize) new DefaultNormalize("a property", Collections.emptyList(), Collections.emptyList())
 			.inBatchesOf(15);
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
@@ -88,7 +90,7 @@ class DefaultNormalizeTest {
 
 		DefaultNormalize normalize = (DefaultNormalize) new DefaultNormalize("a property", Collections.emptyList(), Collections.emptyList())
 			.withCustomQuery("MATCH (n:`A Movie`) RETURN n");
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
@@ -111,7 +113,7 @@ class DefaultNormalizeTest {
 		DefaultNormalize normalize = (DefaultNormalize) new DefaultNormalize("a property", Collections.emptyList(), Collections.emptyList())
 			.withCustomQuery("MATCH (n:`A Movie`) RETURN n")
 			.inBatchesOf(15);
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues")).isEqualTo(Values.value(Collections.emptyList()));
@@ -143,7 +145,7 @@ class DefaultNormalizeTest {
 			+ "END";
 
 		DefaultNormalize normalize = new DefaultNormalize("a property", trueValues, falseValues);
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues").asList()).containsAll(trueValues);
@@ -171,7 +173,7 @@ class DefaultNormalizeTest {
 			+ "END";
 
 		DefaultNormalize normalize = new DefaultNormalize("a property", trueValues, falseValues);
-		Query query = normalize.generateQuery(s -> Optional.of("n"));
+		Query query = normalize.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
 
 		assertThat(query.text()).isEqualTo(expected);
 		assertThat(query.parameters().get("trueValues").asList()).containsExactly("ja", "YES", 1L);

@@ -52,6 +52,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "injectives",
+      "name": "injectives",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11927660?v=4",
+      "profile": "https://github.com/injectives",
+      "contributions": [
+        "code",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,

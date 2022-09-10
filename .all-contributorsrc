@@ -6,13 +6,24 @@
   "commit": false,
   "contributors": [
     {
-      "login": "meistermeier",
-      "name": "Gerrit Meier",
-      "avatar_url": "https://avatars.githubusercontent.com/u/435872?v=4",
-      "profile": "http://meistermeier.com",
+      "login": "aalmiray",
+      "name": "Andres Almiray",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13969?v=4",
+      "profile": "https://andresalmiray.com/",
       "contributions": [
         "code",
-        "doc"
+        "plugin",
+        "ideas",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "ali-ince",
+      "name": "Ali Ince",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24190262?v=4",
+      "profile": "https://github.com/ali-ince",
+      "contributions": [
+        "bug"
       ]
     },
     {
@@ -22,6 +33,55 @@
       "profile": "https://bsideup.github.io",
       "contributions": [
         "review"
+      ]
+    },
+    {
+      "login": "Dcanzano",
+      "name": "dana canzano",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16004526?v=4",
+      "profile": "https://github.com/Dcanzano",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
+    },
+    {
+      "login": "Hosch250",
+      "name": "Hosch250",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6299719?v=4",
+      "profile": "https://github.com/Hosch250",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
+    },
+    {
+      "login": "injectives",
+      "name": "injectives",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11927660?v=4",
+      "profile": "https://github.com/injectives",
+      "contributions": [
+        "code",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "marianozunino",
+      "name": "Mariano Zunino",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6627528?v=4",
+      "profile": "https://github.com/marianozunino",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "meistermeier",
+      "name": "Gerrit Meier",
+      "avatar_url": "https://avatars.githubusercontent.com/u/435872?v=4",
+      "profile": "http://meistermeier.com",
+      "contributions": [
+        "code",
+        "doc"
       ]
     },
     {
@@ -36,72 +96,12 @@
       ]
     },
     {
-      "login": "ali-ince",
-      "name": "Ali Ince",
-      "avatar_url": "https://avatars.githubusercontent.com/u/24190262?v=4",
-      "profile": "https://github.com/ali-ince",
-      "contributions": [
-        "bug"
-      ]
-    },
-    {
       "login": "SeanKilleen",
       "name": "Sean Killeen",
       "avatar_url": "https://avatars.githubusercontent.com/u/2148318?v=4",
       "profile": "http://SeanKilleen.com",
       "contributions": [
         "doc"
-      ]
-    },
-    {
-      "login": "injectives",
-      "name": "injectives",
-      "avatar_url": "https://avatars.githubusercontent.com/u/11927660?v=4",
-      "profile": "https://github.com/injectives",
-      "contributions": [
-        "code",
-        "userTesting"
-      ]
-    },
-    {
-      "login": "Hosch250",
-      "name": "Hosch250",
-      "avatar_url": "https://avatars.githubusercontent.com/u/6299719?v=4",
-      "profile": "https://github.com/Hosch250",
-      "contributions": [
-        "userTesting",
-        "bug"
-      ]
-    },
-    {
-      "login": "Dcanzano",
-      "name": "dana canzano",
-      "avatar_url": "https://avatars.githubusercontent.com/u/16004526?v=4",
-      "profile": "https://github.com/Dcanzano",
-      "contributions": [
-        "userTesting",
-        "bug"
-      ]
-    },
-    {
-      "login": "aalmiray",
-      "name": "Andres Almiray",
-      "avatar_url": "https://avatars.githubusercontent.com/u/13969?v=4",
-      "profile": "https://andresalmiray.com/",
-      "contributions": [
-        "code",
-        "plugin",
-        "ideas",
-        "mentoring"
-      ]
-    },
-    {
-      "login": "marianozunino",
-      "name": "Mariano Zunino",
-      "avatar_url": "https://avatars.githubusercontent.com/u/6627528?v=4",
-      "profile": "https://github.com/marianozunino",
-      "contributions": [
-        "ideas"
       ]
     }
   ],

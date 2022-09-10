@@ -85,3 +85,16 @@ If you want to be listed here too, please reach out and we can collaborate to en
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].
 The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
+
+== Contributors
+
+++++
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+++++

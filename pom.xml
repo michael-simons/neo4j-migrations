@@ -1232,7 +1232,7 @@
 											</categories>
 											<hide>
 												<categories>dependabot,nocl</categories>
-												<contributors>GitHub,dependabot</contributors>
+												<contributors>GitHub,dependabot,all-contributors</contributors>
 											</hide>
 										</changelog>
 									</github>

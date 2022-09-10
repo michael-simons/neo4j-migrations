@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.adoc'
+      - '.all-contributorsrc'
   pull_request:
+    paths-ignore:
+      - 'README.adoc'
+      - '.all-contributorsrc'
 
 jobs:
   build:

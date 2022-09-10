@@ -1,0 +1,14 @@
+{
+  "files": [
+    "README.adoc"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [],
+  "contributorsPerLine": 7,
+  "projectName": "neo4j-migrations",
+  "projectOwner": "michael-simons",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

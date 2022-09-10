@@ -62,6 +62,16 @@
         "code",
         "userTesting"
       ]
+    },
+    {
+      "login": "Hosch250",
+      "name": "Hosch250",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6299719?v=4",
+      "profile": "https://github.com/Hosch250",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

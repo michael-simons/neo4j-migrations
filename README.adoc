@@ -101,6 +101,7 @@ The API documentation for the core module is available here: https://michael-sim
       <td align="center"><a href="https://github.com/ali-ince"><img src="https://avatars.githubusercontent.com/u/24190262?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ali Ince</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/issues?q=author%3Aali-ince" title="Bug reports">🐛</a></td>
       <td align="center"><a href="http://SeanKilleen.com"><img src="https://avatars.githubusercontent.com/u/2148318?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sean Killeen</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=SeanKilleen" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/injectives"><img src="https://avatars.githubusercontent.com/u/11927660?v=4?s=100" width="100px;" alt=""/><br /><sub><b>injectives</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=injectives" title="Code">💻</a> <a href="#userTesting-injectives" title="User Testing">📓</a></td>
+      <td align="center"><a href="https://github.com/Hosch250"><img src="https://avatars.githubusercontent.com/u/6299719?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hosch250</b></sub></a><br /><a href="#userTesting-Hosch250" title="User Testing">📓</a> <a href="https://github.com/michael-simons/neo4j-migrations/issues?q=author%3AHosch250" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>

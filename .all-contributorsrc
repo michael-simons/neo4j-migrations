@@ -72,6 +72,16 @@
         "userTesting",
         "bug"
       ]
+    },
+    {
+      "login": "Dcanzano",
+      "name": "dana canzano",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16004526?v=4",
+      "profile": "https://github.com/Dcanzano",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

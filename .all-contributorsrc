@@ -4,7 +4,17 @@
   ],
   "imageSize": 100,
   "commit": false,
-  "contributors": [],
+  "contributors": [
+    {
+      "login": "meistermeier",
+      "name": "Gerrit Meier",
+      "avatar_url": "https://avatars.githubusercontent.com/u/435872?v=4",
+      "profile": "http://meistermeier.com",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
   "contributorsPerLine": 7,
   "projectName": "neo4j-migrations",
   "projectOwner": "michael-simons",

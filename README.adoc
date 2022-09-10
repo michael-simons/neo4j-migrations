@@ -92,6 +92,13 @@ The API documentation for the core module is available here: https://michael-sim
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="http://meistermeier.com"><img src="https://avatars.githubusercontent.com/u/435872?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gerrit Meier</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=meistermeier" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->

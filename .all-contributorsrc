@@ -121,6 +121,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "atomfrede",
+      "name": "Frederik Hahne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/203401?v=4",
+      "profile": "https://atomfrede.gitlab.io/",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

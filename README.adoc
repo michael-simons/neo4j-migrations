@@ -106,6 +106,7 @@ The API documentation for the core module is available here: https://michael-sim
     <tr>
       <td align="center"><a href="https://github.com/Dcanzano"><img src="https://avatars.githubusercontent.com/u/16004526?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dana canzano</b></sub></a><br /><a href="#userTesting-Dcanzano" title="User Testing">📓</a> <a href="https://github.com/michael-simons/neo4j-migrations/issues?q=author%3ADcanzano" title="Bug reports">🐛</a></td>
       <td align="center"><a href="https://andresalmiray.com/"><img src="https://avatars.githubusercontent.com/u/13969?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andres Almiray</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=aalmiray" title="Code">💻</a> <a href="#plugin-aalmiray" title="Plugin/utility libraries">🔌</a> <a href="#ideas-aalmiray" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-aalmiray" title="Mentoring">🧑‍🏫</a></td>
+      <td align="center"><a href="https://github.com/marianozunino"><img src="https://avatars.githubusercontent.com/u/6627528?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mariano Zunino</b></sub></a><br /><a href="#ideas-marianozunino" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>

@@ -95,7 +95,7 @@ The API documentation for the core module is available here: https://michael-sim
 <table>
   <tbody>
     <tr>
-      <td align="center"><a href="http://meistermeier.com"><img src="https://avatars.githubusercontent.com/u/435872?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gerrit Meier</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=meistermeier" title="Code">💻</a></td>
+      <td align="center"><a href="http://meistermeier.com"><img src="https://avatars.githubusercontent.com/u/435872?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gerrit Meier</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/commits?author=meistermeier" title="Code">💻</a> <a href="https://github.com/michael-simons/neo4j-migrations/commits?author=meistermeier" title="Documentation">📖</a></td>
       <td align="center"><a href="https://bsideup.github.io"><img src="https://avatars.githubusercontent.com/u/1050762?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sergei Egorov</b></sub></a><br /><a href="https://github.com/michael-simons/neo4j-migrations/pulls?q=is%3Apr+reviewed-by%3Absideup" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>

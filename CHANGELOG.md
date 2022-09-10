@@ -1,3 +1,51 @@
+# 1.10.1
+
+## 📝 Documentation
+- b93d9be Use correct heading level.
+- 491b793 Improve intro to naming conventions.
+
+## 🧹 Housekeeping
+- 95fdff1 Bump quarkus-neo4j.version from 1.4.0 to 1.4.1
+- 3a2c08a Bump quarkus.version from 2.11.2.Final to 2.11.3.Final
+- 0f8b5d8 Bump checkstyle from 10.3.2 to 10.3.3 (#615)
+- 621db9e Bump maven-checkstyle-plugin from 3.1.2 to 3.2.0 (#614)
+- 3a31f05 Bump byte-buddy.version from 1.12.13 to 1.12.14 (#613)
+- d30cd1a Bump jreleaser-maven-plugin from 1.1.0 to 1.2.0 (#612)
+
+
+# 1.10.0
+
+There's an exiting new feature in this release: Predefined database refactorings, such as "rename the label `Movie` into `Film`" or "normalise all properties that have the values `ja`, `yes` and `y` and all of `nein`, `no`, `vielleicht` into a boolean `true` respectively `false`". Those refactorings are largely modeled after [apoc.refactor](https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/) but *do not* require APOC to be installed and run into pure Cypher. They even do support batching in Neo4j 4.4 or higher.
+
+Some inspiration has been taken from @fbiville's post about [Graph Refactoring: The Hard Way](https://medium.com/neo4j/graph-refactoring-the-hard-way-5762067ead46) for the general initiative and the `Merge.nodes` refactoring. Thanks for that, Florent!
+
+The refactorings of this project here are in [`ac.simons.neo4j.migrations.core.refactorings`](https://github.com/michael-simons/neo4j-migrations/tree/main/neo4j-migrations-core/src/main/java/ac/simons/neo4j/migrations/core/refactorings) and can actually be used without the migrations itself, a connected Neo4j driver instance will be enough to use them. We will maybe extract them into a separate module or even separate library in a new org at a later stage. Until than, they will be part of the publicly maintained API here. Have a look at the document how to use them in catalogs or standalone (full example [here](https://michael-simons.github.io/neo4j-migrations/current/#concepts_migrations_catalog-based) and a list of [predefined refactorings](https://michael-simons.github.io/neo4j-migrations/current/#appendix_refactorings)).
+
+This feature does not have *any* breaking changes to the core, so 1.10.0 is a drop-in replacement of 1.9 and depending if you are using it in Spring Boot or Quarkus and your versions there, for 1.8 or 1.7, too.
+
+## 🚀 Features
+- cbd1075 Add refactoring `Normalize.asBoolean`. (#606)
+- 2ec53be Add support for running predefined refactorings. (#605)
+
+## 🐛 Bug Fixes
+- 36459cc Escape escaped Unicode 0060 (backtick) proper. (#607)
+
+## 🔄️ Refactorings
+- 794238f Don't double escape already escaped backticks. (#604)
+
+## 📝 Documentation
+- 7ea2bd8 Add JavaDoc where required.
+- ff0a922 Update local changelog.
+
+## 🧹 Housekeeping
+- 2a1ca61 Bump spring-boot.version from 2.7.2 to 2.7.3 (#610)
+
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @meistermeier
+
+
 # 1.9.2
 
 ## 🐛 Bug Fixes
@@ -17,11 +65,6 @@
 - d736df7 Use `quarkus-extension-maven-plugin` instead of `quarkus-bootstrap-maven-plugin`.
 
 
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
-
-
 # 1.9.1
 
 ## 🐛 Bug Fixes
@@ -34,11 +77,6 @@ We'd like to thank the following people for their contributions:
 - 27f4f44 Bump junit-bom from 5.8.2 to 5.9.0 (#591)
 - 4141884 Bump maven-resources-plugin from 3.2.0 to 3.3.0 (#590)
 - de709fe Bump checkstyle from 10.3.1 to 10.3.2 (#589)
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
 
 
 # 1.9.0
@@ -77,7 +115,6 @@ We'd like to thank the following people for their contributions:
 We'd like to thank the following people for their contributions:
 - @ali-ince
 - @meistermeier
-- @michael-simons
 - @SeanKilleen
 
 
@@ -105,7 +142,6 @@ We'd like to thank the following people for their contributions:
 - @ali-ince
 - @injectives
 - @meistermeier
-- @michael-simons
 
 
 # 1.8.2
@@ -122,7 +158,6 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @Hosch250
 
 
@@ -149,7 +184,6 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @meistermeier
 - @bsideup 
 
@@ -183,11 +217,6 @@ We'd like to thank the following people for their contributions:
 - 0d55287 Optionally use a local database for Windows tests. (#523)
 
 
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
-
-
 # 1.7.1
 
 ## 🐛 Bug Fixes
@@ -209,7 +238,6 @@ We'd like to thank the following people for their contributions:
 We'd like to thank the following people for their contributions:
 - @ali-ince
 - @Dcanzano
-- @michael-simons
 
 
 # 1.7.0
@@ -287,7 +315,6 @@ Other notable changes in this release are better logging in the CLI (general war
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @meistermeier
 
 
@@ -298,10 +325,6 @@ We'd like to thank the following people for their contributions:
 ## 🧹 Housekeeping
 - f0ebfe4 Bump quarkus.version from 2.8.2.Final to 2.9.1.Final (#489)
 
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
-
 
 # 1.5.6
 
@@ -310,10 +333,6 @@ We'd like to thank the following people for their contributions:
 
 ## 📝 Documentation
 - a3752ec Update local changelog.
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
 
 
 # 1.5.5
@@ -348,11 +367,6 @@ We'd like to thank the following people for their contributions:
 - 557699e Upgrade to GraalVM 22.1.0. (#482)
 
 
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
-
-
 # 1.5.4
 
 This is a release to acknowledge the work done by @aalmiray with @jreleaser which just released itself over the weekend in version 1.0.0 and to which I just bumped this repository. 
@@ -378,11 +392,6 @@ Thank you for making me rethink releasing my stuff a lot. I truly enjoyed our co
 - e59a0d6 Bump neo4j-harness from 4.4.4 to 4.4.5 (#462)
 - 5f52e20 Bump native-maven-plugin from 0.9.10 to 0.9.11 (#463)
 - 46dc74b Bump classgraph from 4.8.141 to 4.8.143 (#464)
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
 
 
 # 1.5.2
@@ -412,7 +421,6 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @meistermeier
 
 
@@ -434,7 +442,6 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @marc0der for super quick onboarding to SDKMAN!
 
 
@@ -479,7 +486,6 @@ Thanks to @fbiville for an inspirational presentation!
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @meistermeier
 
 
@@ -530,11 +536,6 @@ The feature I like the most in this release is the new and shiny integration wit
 - a2ac68f Remove sysouts.
 
 
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
-
-
 # 1.3.3
 
 *No breaking changes*.  Biggest change is the upgrade to Quarkus 2.7 inside the Quarkus extension. Thanks to @lukehutch for a new release of [ClassGraph](https://github.com/classgraph/classgraph) that improves compatibility with Quarkus' classloader.
@@ -553,11 +554,6 @@ We'd like to thank the following people for their contributions:
 - f5d8c32 Bump maven-javadoc-plugin from 3.3.1 to 3.3.2 (#408)
 - 2f281a3 Bump quarkus.version from 2.6.3.Final to 2.7.1.Final (#401)
 - fcebed4 Bump classgraph from 4.8.138 to 4.8.139 (#405)
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- @michael-simons
 
 
 # 1.3.2
@@ -604,7 +600,6 @@ Most notable is the fact that the native binaries are now build with **GraalVM 2
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- @michael-simons
 - @bsideup
 
 
@@ -623,11 +618,6 @@ We'd like to thank the following people for their contributions:
 - 5a74da1 Improve caching of Maven dependencies. (#375)
 - 1360fd9 Use actions/cache@v2. (#374)
 - dc37038 Add dedicated categories for chores and refactorings.
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
 
 
 # 1.3.0
@@ -664,8 +654,7 @@ The API hasn't changed in an incompatible way, but there are 2 changes in behavi
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
-- [Gerrit Meier](https://github.com/meistermeier)
+- @meistermeier
 
 
 # 1.2.3
@@ -696,8 +685,7 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
-- [Gerrit Meier](https://github.com/meistermeier)
+- @meistermeier
 
 
 # 1.2.2
@@ -737,8 +725,7 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
-- [Gerrit Meier](https://github.com/meistermeier)
+- @meistermeier
 
 
 # 1.2.1
@@ -770,9 +757,8 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
-- [Andres Almiray](https://github.com/aalmiray)
-- [Gerrit Meier](https://github.com/meistermeier)
+- @aalmiray
+- @meistermeier
 
 
 # 1.2.0
@@ -803,11 +789,6 @@ We'd like to thank the following people for their contributions:
 
 ## Changes
 - da5722b Separate integration tests from unittests. (#328)
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
 
 
 # 1.1.0
@@ -847,11 +828,6 @@ We'd like to thank the following people for their contributions:
 - 57e07be Rename `master` to `main`.
 - 4c126ed Add a code of conduct.
 - 74784c1 Rename license file in a generic way.
-
-
-## Contributors
-We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
 
 
 # 1.0.0
@@ -908,9 +884,8 @@ We'd like to thank the following people for their contributions:
 
 ## Contributors
 We'd like to thank the following people for their contributions:
-- [Michael Simons](https://github.com/michael-simons)
-- [Gerrit Meier](https://github.com/meistermeier)
-- [Andres Almiray](https://github.com/aalmiray)
+- @aalmiray
+- @meistermeier
 
 
 # 0.3.2

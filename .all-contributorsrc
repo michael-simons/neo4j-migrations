@@ -103,6 +103,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "corneil",
+      "name": "Corneil du Plessis",
+      "avatar_url": "https://avatars.githubusercontent.com/u/466422?v=4",
+      "profile": "http://about.me/corneil",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

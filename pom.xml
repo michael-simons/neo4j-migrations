@@ -56,16 +56,22 @@
 	</developers>
 
 	<modules>
+		<!--
+		When adding new modules, make sure that neither the explicit order here nor the order derived from module
+		dependencies lead to a scenario where the last module is not deployed (this is the case for all the examples and
+		the test results). If this happens, the sonar-maven-plugin.version will skip the whole staging. This is a known
+		and unfixed issue.
+		-->
 		<module>neo4j-migrations-test-resources</module>
 		<module>neo4j-migrations-core</module>
 		<module>neo4j-migrations-cli</module>
 		<module>neo4j-migrations-spring-boot-starter-parent</module>
 		<module>neo4j-migrations-quarkus-parent</module>
-		<module>neo4j-migrations-maven-plugin</module>
 		<module>extensions/neo4j-migrations-annotation-processing</module>
 		<module>extensions/neo4j-migrations-formats-adoc</module>
 		<module>extensions/neo4j-migrations-formats-markdown</module>
 		<module>neo4j-migrations-examples</module>
+		<module>neo4j-migrations-maven-plugin</module>
 	</modules>
 
 	<scm>

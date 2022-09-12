@@ -92,9 +92,52 @@ jobs:
           name: artifacts
           path: neo4j-migrations-cli/target/neo4j-migrations*.zip
 
+  create_native_arm_binaries:
+    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
+    name: 'Build with Graal on ${{ matrix.os }} ARM64'
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ linux ]
+    runs-on:
+      - self-hosted
+      - ${{ matrix.os }}
+      - ARM64
+
+    steps:
+      - name: 'Prepare git'
+        run: git config --global core.autocrlf false
+
+      - name: 'Prepare branch name'
+        run: >
+          echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: 'Checkout relevant branch'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.refName }}
+
+      - name: 'Set up Graal'
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '21.3.2'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Create distribution'
+        run: >
+          ./mvnw --no-transfer-progress -Pnative -DskipCompress -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
+
+      - name: 'Upload build artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
+
   release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
-    needs: [ create_binaries, create_native_binaries ]
+    needs: [ create_binaries, create_native_binaries, create_native_arm_binaries ]
     runs-on: ubuntu-latest
     steps:
       - name: 'Prepare branch name'

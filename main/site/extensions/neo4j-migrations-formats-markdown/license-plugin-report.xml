@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1662975512684">
-    <module artifactId="neo4j-migrations-formats-markdown" groupId="eu.michael-simons.neo4j" version="1.11.0-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1662978825291">
+    <module artifactId="neo4j-migrations-formats-markdown" groupId="eu.michael-simons.neo4j" version="1.11.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigration.java" result="PRESENT"/>

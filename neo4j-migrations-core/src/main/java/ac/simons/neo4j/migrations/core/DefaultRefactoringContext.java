@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
 import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;

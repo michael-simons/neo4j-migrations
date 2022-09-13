@@ -28,8 +28,8 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
-import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

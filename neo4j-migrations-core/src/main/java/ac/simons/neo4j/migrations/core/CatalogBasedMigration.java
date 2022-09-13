@@ -24,8 +24,6 @@ import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
-import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.internal.NodeSetDataImpl;
 import ac.simons.neo4j.migrations.core.internal.NoopDOMCryptoContext;
 import ac.simons.neo4j.migrations.core.internal.ThrowingErrorHandler;

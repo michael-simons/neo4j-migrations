@@ -15,7 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner.FeatureSet;
 
 import java.util.Optional;

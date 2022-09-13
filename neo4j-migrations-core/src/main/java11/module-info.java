@@ -33,9 +33,5 @@ module ac.simons.neo4j.migrations.core {
 	exports ac.simons.neo4j.migrations.core.catalog;
 	exports ac.simons.neo4j.migrations.core.refactorings;
 
-	exports ac.simons.neo4j.migrations.core.internal to
-		ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven,
-		ac.simons.neo4j.migrations.quarkus.deployment, ac.simons.neo4j.migrations.quarkus.runtime;
-
 	provides ResourceBasedMigrationProvider with CypherResourceBasedMigrationProvider, DefaultCatalogBasedMigrationProvider;
 }

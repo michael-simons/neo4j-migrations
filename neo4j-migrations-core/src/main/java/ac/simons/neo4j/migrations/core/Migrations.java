@@ -21,7 +21,6 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Collections;
 import java.util.HashMap;

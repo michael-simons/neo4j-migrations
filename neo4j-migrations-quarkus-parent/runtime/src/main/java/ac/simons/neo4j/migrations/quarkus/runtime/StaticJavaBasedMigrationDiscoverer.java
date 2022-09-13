@@ -19,7 +19,6 @@ import ac.simons.neo4j.migrations.core.Discoverer;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.internal.Reflections;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,7 +72,7 @@ public class StaticJavaBasedMigrationDiscoverer implements Discoverer<JavaBasedM
 			.filter(c -> packagesToScan.contains(c.getPackageName()))
 			.map(c -> {
 				try {
-					return Reflections.getDefaultConstructorFor(c).newInstance();
+					return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();
 				} catch (Exception e) {
 					throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 				}

@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -35,6 +38,8 @@ import com.tngtech.archunit.lang.ArchRule;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PackageStructureTest {
 
+	private final DescribedPredicate<JavaClass> areInCoreExceptVersionAndEditionAPI =
+		resideInAPackage("..core").and(not(assignableTo(Neo4jVersion.class).or(assignableTo(Neo4jEdition.class))));
 	private JavaClasses coreClasses;
 
 	@BeforeAll
@@ -49,8 +54,7 @@ class PackageStructureTest {
 
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..catalog..")
-			.should().dependOnClassesThat()
-			.resideInAPackage("..core");
+			.should().dependOnClassesThat(areInCoreExceptVersionAndEditionAPI);
 		rule.check(coreClasses);
 	}
 
@@ -59,8 +63,7 @@ class PackageStructureTest {
 
 		ArchRule rule = noClasses()
 			.that().resideInAPackage("..refactorings..")
-			.should().dependOnClassesThat()
-			.resideInAPackage("..core");
+			.should().dependOnClassesThat(areInCoreExceptVersionAndEditionAPI);
 		rule.check(coreClasses);
 	}
 
@@ -78,7 +81,7 @@ class PackageStructureTest {
 	}
 
 	DescribedPredicate<JavaClass> areNotPrimitives() {
-		return DescribedPredicate.not(new DescribedPredicate<JavaClass>("Should be a primitive") {
+		return not(new DescribedPredicate<JavaClass>("Should be a primitive") {
 			@Override
 			public boolean apply(JavaClass input) {
 				return input.isPrimitive() || (input.isArray() && input.getBaseComponentType().isPrimitive());

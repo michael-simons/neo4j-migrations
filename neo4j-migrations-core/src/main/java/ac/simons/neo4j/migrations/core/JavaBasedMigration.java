@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.lang.reflect.Constructor;
+
 /**
  * Interface to be implemented for Java-based migrations.
  *
@@ -37,5 +39,22 @@ public interface JavaBasedMigration extends Migration {
 	@Override
 	default String getSource() {
 		return getClass().getName();
+	}
+
+	/**
+	 * Helper method for retrieving the default constructor of a given class. When such a constructor exist, it will be
+	 * made accessible.
+	 *
+	 * @param c   The class whose constructor should be returned
+	 * @param <T> The type of the class
+	 * @return The default constructor
+	 * @throws NoSuchMethodException If there is no such default constructor
+	 * @since TBA
+	 */
+	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
+	static <T extends JavaBasedMigration> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
+		Constructor<T> ctr = c.getDeclaredConstructor();
+		ctr.setAccessible(true);
+		return ctr;
 	}
 }

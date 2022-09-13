@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,8 +115,8 @@ public final class RenderConfig {
 	public interface Builder {
 
 		/**
-		 * @param version will be parsed lenient into a {@link Neo4jVersion} abd defazkt to {@link Neo4jVersion#LATEST}
-		 * @param edition will be parsed lenient into a {@link Neo4jEdition} and default to {@link Neo4jEdition#UNDEFINED}
+		 * @param version will be parsed lenient into a static version and default to {@code LATEST}
+		 * @param edition will be parsed lenient into a static edition and default to {@code UNDEFINED}
 		 * @return a config accommodating the given version and edition
 		 */
 		default RenderConfig forVersionAndEdition(String version, String edition) {

@@ -167,7 +167,7 @@ final class ChainBuilder {
 		}
 	}
 
-	final static class DefaultMigrationChain implements MigrationChain {
+	static final class DefaultMigrationChain implements MigrationChain {
 
 		private final ConnectionDetails connectionDetailsDelegate;
 

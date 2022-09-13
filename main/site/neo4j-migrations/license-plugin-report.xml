@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1662978520934">
-    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.11.1-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1663087837762">
+    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.12.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>
@@ -39,6 +39,7 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/LifecycleEvent.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/LifecyclePhase.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Location.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/Messages.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Migration.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/MigrationChain.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/MigrationChainFormat.java" result="PRESENT"/>
@@ -52,6 +53,8 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/MigrationsException.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/MigrationsLock.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Neo4jCodes.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/Neo4jEdition.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/Neo4jVersion.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/OperationResult.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Ordered.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/Precondition.java" result="PRESENT"/>
@@ -91,13 +94,9 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/RenderConfig.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/Renderer.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/TargetEntityType.java" result="PRESENT"/>
-        <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Messages.java" result="PRESENT"/>
-        <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Neo4jEdition.java" result="PRESENT"/>
-        <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersion.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersionComparator.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/NodeSetDataImpl.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/NoopDOMCryptoContext.java" result="PRESENT"/>
-        <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Reflections.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/Strings.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/ThrowingErrorHandler.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/internal/UncheckedNoSuchAlgorithmException.java" result="PRESENT"/>
@@ -117,11 +116,16 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/RefactoringContext.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Rename.java" result="PRESENT"/>
         <file path="src/main/java11/module-info.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/ConnectionDetails.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/CypherResource.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/DatabaseOperationResult.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/JavaBasedMigration.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/Migration.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/MigrationWithPreconditions.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/OperationResult.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/catalog/AbstractCatalogItem.java" result="PRESENT"/>
+        <file path="src/main/java17/ac/simons/neo4j/migrations/core/catalog/AbstractName.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/catalog/CatalogItem.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/catalog/ItemType.java" result="PRESENT"/>
         <file path="src/main/java17/ac/simons/neo4j/migrations/core/catalog/Name.java" result="PRESENT"/>
@@ -163,6 +167,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsLockIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/MigrationsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/Neo4jImageNameSubstitutor.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/Neo4jVersionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/NormalizeIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PackageStructureTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/PreconditionTest.java" result="PRESENT"/>
@@ -187,7 +192,6 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/RenderConfigTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/XMLParsingTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersionComparatorTest.java" result="PRESENT"/>
-        <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersionTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/StringsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultCountersTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultNormalizeTest.java" result="PRESENT"/>

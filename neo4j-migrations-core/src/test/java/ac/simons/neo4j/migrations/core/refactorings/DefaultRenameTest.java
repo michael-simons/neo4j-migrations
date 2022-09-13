@@ -23,7 +23,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Query;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 /**
  * @author Michael J. Simons

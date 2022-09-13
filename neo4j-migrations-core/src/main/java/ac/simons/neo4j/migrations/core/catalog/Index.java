@@ -155,7 +155,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	/**
 	 * Fulltext is the only index available for multiple labels and multiple types in on go.
 	 */
-	interface NamedFulltextBuilder extends NamedBuilder {
+	public interface NamedFulltextBuilder extends NamedBuilder {
 
 		/**
 		 * Creates a fulltext index

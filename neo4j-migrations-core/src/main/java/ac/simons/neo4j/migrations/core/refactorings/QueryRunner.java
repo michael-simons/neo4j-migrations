@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
-
 import java.util.Objects;
 
 import org.neo4j.driver.Query;
@@ -37,7 +35,7 @@ public interface QueryRunner extends AutoCloseable {
 	 * @return The default feature set
 	 */
 	static FeatureSet defaultFeatureSet() {
-		return new FeatureSet(false, false, Neo4jVersion.V4_4.toString());
+		return new FeatureSet(false, false, "4.4");
 	}
 
 	/**

@@ -19,7 +19,6 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Index;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collection;

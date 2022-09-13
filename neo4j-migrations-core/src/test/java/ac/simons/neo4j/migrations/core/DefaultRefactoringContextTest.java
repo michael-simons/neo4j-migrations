@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
 
 import java.util.Arrays;

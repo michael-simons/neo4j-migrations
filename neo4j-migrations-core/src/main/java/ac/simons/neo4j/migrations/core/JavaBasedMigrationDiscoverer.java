@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Reflections;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
@@ -50,7 +49,7 @@ final class JavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigratio
 					.stream()
 					.map(c -> {
 						try {
-							return Reflections.getDefaultConstructorFor(c).newInstance();
+							return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();
 						} catch (Exception e) {
 							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 						}

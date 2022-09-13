@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.internal;
+package ac.simons.neo4j.migrations.core;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -194,7 +194,7 @@ public enum Neo4jVersion {
 	 * @return The minor version or {@code -1} if it can be determined
 	 * @since 1.11.0
 	 */
-	int getMinorVersion() {
+	public int getMinorVersion() {
 		if (this == LATEST || this == UNDEFINED) {
 			return -1;
 		}

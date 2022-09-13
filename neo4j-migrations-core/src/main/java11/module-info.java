@@ -21,18 +21,17 @@ import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 module ac.simons.neo4j.migrations.core {
 
 	requires io.github.classgraph;
+	requires java.xml.crypto;
+	requires org.neo4j.cypherdsl.support.schema_name;
 
 	requires transitive java.logging;
+	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
 
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;
 	exports ac.simons.neo4j.migrations.core.refactorings;
-
-	exports ac.simons.neo4j.migrations.core.internal to
-		ac.simons.neo4j.migrations.cli, ac.simons.neo4j.migrations.maven,
-		ac.simons.neo4j.migrations.quarkus.deployment, ac.simons.neo4j.migrations.quarkus.runtime;
 
 	provides ResourceBasedMigrationProvider with CypherResourceBasedMigrationProvider, DefaultCatalogBasedMigrationProvider;
 }

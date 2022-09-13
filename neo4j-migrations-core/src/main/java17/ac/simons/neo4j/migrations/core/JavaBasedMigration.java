@@ -13,16 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.internal;
+package ac.simons.neo4j.migrations.core;
 
 import java.lang.reflect.Constructor;
 
 /**
- * Utilities to deal with some minor reflection tasks.
+ * Interface to be implemented for Java-based migrations.
  *
  * @author Michael J. Simons
+ * @since 0.0.1
  */
-public final class Reflections {
+public non-sealed interface JavaBasedMigration extends Migration {
+
+	@Override
+	default MigrationVersion getVersion() {
+		return MigrationVersion.of(getClass());
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	default String getDescription() {
+		return getVersion().getOptionalDescription().orElseGet(() -> getClass().getSimpleName());
+	}
+
+	@Override
+	default String getSource() {
+		return getClass().getName();
+	}
 
 	/**
 	 * Helper method for retrieving the default constructor of a given class. When such a constructor exist, it will be
@@ -31,15 +48,13 @@ public final class Reflections {
 	 * @param c   The class whose constructor should be returned
 	 * @param <T> The type of the class
 	 * @return The default constructor
-	 * @throws NoSuchMethodException If there is no such default constructr
+	 * @throws NoSuchMethodException If there is no such default constructor
+	 * @since TBA
 	 */
 	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
-	public static <T> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
+	static <T extends JavaBasedMigration> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
 		Constructor<T> ctr = c.getDeclaredConstructor();
 		ctr.setAccessible(true);
 		return ctr;
-	}
-
-	private Reflections() {
 	}
 }

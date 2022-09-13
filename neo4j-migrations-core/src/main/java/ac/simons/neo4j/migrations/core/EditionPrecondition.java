@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;

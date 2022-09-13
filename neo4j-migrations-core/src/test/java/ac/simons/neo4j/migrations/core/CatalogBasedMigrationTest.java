@@ -38,8 +38,6 @@ import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerifyOperation;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
-import ac.simons.neo4j.migrations.core.internal.Neo4jEdition;
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;

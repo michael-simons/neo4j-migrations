@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
-import ac.simons.neo4j.migrations.core.internal.Messages;
 
 import java.util.Locale;
 import java.util.UUID;

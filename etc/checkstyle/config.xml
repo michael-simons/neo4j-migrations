@@ -83,6 +83,7 @@
                     org.hamcrest.Matchers.*,
                     com.github.stefanbirkner.systemlambda.SystemLambda.*,
                     com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*,
+                    com.tngtech.archunit.base.DescribedPredicate.*,
                     com.tngtech.archunit.core.domain.JavaClass.Predicates.*
                 "
             />

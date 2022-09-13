@@ -17,9 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,60 +26,20 @@ import org.junit.jupiter.api.Test;
  */
 class MigrationChainTest {
 
-	static class FakeChain implements MigrationChain {
-
-		Optional<String> databaseName = Optional.empty();
-		Optional<String> schemaDatabaseName = Optional.empty();
-
-		@Override public String getServerAddress() {
-			return "aura";
-		}
-
-		@Override public String getServerVersion() {
-			return "hidden";
-		}
-
-		@Override public String getServerEdition() {
-			return "Special Edition";
-		}
-
-		@Override public String getUsername() {
-			return "j";
-		}
-
-		@SuppressWarnings("deprecation")
-		@Override public String getDatabaseName() {
-			return null;
-		}
-
-		@Override public Optional<String> getOptionalDatabaseName() {
-			return databaseName;
-		}
-
-		@Override public Optional<String> getOptionalSchemaDatabaseName() {
-			return schemaDatabaseName;
-		}
-
-		@Override public boolean isApplied(String version) {
-			return false;
-		}
-
-		@Override public Collection<Element> getElements() {
-			return Collections.emptyList();
-		}
-	}
+	static final ConnectionDetails CONNECTION_DETAILS = new DefaultConnectionDetails("aura", "hidden", null, "j", null, null);
 
 	@Test
 	void shouldIncludeConnectionInfo() {
 
-		FakeChain chain = new FakeChain();
+		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("j@aura (hidden)");
 	}
 
 	@Test
-	void shouldNotPrintyEmptyDatabase() {
-		FakeChain chain = new FakeChain();
+	void shouldNotPrintEmptyDatabase() {
+
+		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.doesNotContain("Database:")
 			.doesNotContain("Schema database: ")
@@ -90,16 +48,15 @@ class MigrationChainTest {
 
 	@Test
 	void shouldPrintDatabase() {
-		FakeChain chain = new FakeChain();
-		chain.databaseName = Optional.of("a");
+
+		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", null), Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("Database: a");
 	}
 
 	@Test
 	void shouldPrintSchemaDatabase() {
-		FakeChain chain = new FakeChain();
-		chain.databaseName = Optional.of("a");
-		chain.schemaDatabaseName = Optional.of("b");
+
+		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "b"), Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("Database: a")
 			.contains("Schema database: b");
@@ -107,9 +64,8 @@ class MigrationChainTest {
 
 	@Test
 	void shouldNotPrintSameSchemaDatabase() {
-		FakeChain chain = new FakeChain();
-		chain.databaseName = Optional.of("a");
-		chain.schemaDatabaseName = Optional.of("a");
+
+		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "a"), Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("Database: a")
 			.doesNotContain("Schema database: a");

@@ -21,11 +21,11 @@ import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 module ac.simons.neo4j.migrations.core {
 
 	requires io.github.classgraph;
-	requires java.xml;
 	requires java.xml.crypto;
 	requires org.neo4j.cypherdsl.support.schema_name;
 
 	requires transitive java.logging;
+	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
 

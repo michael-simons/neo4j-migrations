@@ -141,6 +141,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "SaschaPeukert",
+      "name": "Sascha Peukert",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6998439?v=4",
+      "profile": "https://github.com/SaschaPeukert",
+      "contributions": [
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,

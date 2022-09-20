@@ -107,7 +107,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		Formattable item = formattableItem(constraint, config);
 		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
-		String properties = renderProperties(version, "n", constraint);
+		String properties = renderProperties(version, "n", constraint, !version.isPriorTo44());
 		Operator operator = config.getOperator();
 
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
@@ -204,8 +204,12 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	}
 
 	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item) {
+		return renderProperties(version, prefix, item, true);
+	}
 
-		if (item.getProperties().size() == 1) {
+	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item, boolean optimizeSingle) {
+
+		if (item.getProperties().size() == 1 && optimizeSingle) {
 			return prefix + "." + version.sanitizeSchemaName(item.getProperties().iterator().next());
 		}
 

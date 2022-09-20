@@ -307,6 +307,47 @@ class ConstraintToCypherRendererTest {
 	}
 
 	@SuppressWarnings("unused")
+	static Stream<Arguments> shouldRendereSingleNodeKeyConstraint() {
+
+		return Stream.of(
+			Arguments.of("3.5", Operator.CREATE, false, "CREATE CONSTRAINT ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.0", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.1", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.1", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.2", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.2", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.3", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.3", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.4", Operator.CREATE, false, "CREATE CONSTRAINT constraint_name FOR (n:Person) REQUIRE n.firstname IS NODE KEY"),
+			Arguments.of("4.4", Operator.CREATE, true, "CREATE CONSTRAINT constraint_name IF NOT EXISTS FOR (n:Person) REQUIRE n.firstname IS NODE KEY"),
+
+			Arguments.of("3.5", Operator.DROP, false, "DROP CONSTRAINT ON (n:Person) ASSERT (n.firstname) IS NODE KEY"),
+			Arguments.of("4.0", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.1", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.2", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.2", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.3", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.3", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS"),
+			Arguments.of("4.4", Operator.DROP, false, "DROP CONSTRAINT constraint_name"),
+			Arguments.of("4.4", Operator.DROP, true, "DROP CONSTRAINT constraint_name IF EXISTS")
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldRendereSingleNodeKeyConstraint(String serverVersion, Operator operator, boolean idempotent, String expected) {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
+			idempotent);
+		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
+			Arrays.asList("firstname"));
+
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
+	}
+
+	@SuppressWarnings("unused")
 	static Stream<Arguments> ignoreNameShouldWork() {
 
 		return Stream.of(

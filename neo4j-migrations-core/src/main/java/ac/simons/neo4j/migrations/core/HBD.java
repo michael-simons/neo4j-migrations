@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
 
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import org.neo4j.driver.Session;
@@ -94,6 +95,36 @@ final class HBD {
 	static boolean constraintWithNameAlreadyExists(MigrationsException e) {
 		return e != null && e.getCause() instanceof ClientException && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
 			((ClientException) e.getCause()).code());
+	}
+
+	/**
+	 * Checks whether the constraint creation might have failed because wrong edition.
+	 *
+	 * @param rawException      The exception to check for specific indicators that the wrong edition has been used
+	 * @param connectionDetails The connection details being used
+	 * @return {@literal true} when we are relatively sure that a constraint couldn't be created due to the wrong edition being used
+	 */
+	static boolean constraintProbablyRequiredEnterpriseEdition(Exception rawException, ConnectionDetails connectionDetails) {
+
+		Neo4jException e;
+		if (rawException instanceof Neo4jException) {
+			e = (Neo4jException) rawException;
+		} else if (rawException.getCause() instanceof Neo4jException) {
+			e = (Neo4jException) rawException.getCause();
+		} else {
+			return false;
+		}
+
+		if (!Neo4jCodes.CONSTRAINT_CREATION_FAILED.equals(e.code())) {
+			return false;
+		}
+
+		if (Neo4jEdition.of(connectionDetails.getServerEdition()) == Neo4jEdition.ENTERPRISE) {
+			return false;
+		}
+
+		return e.getMessage().toLowerCase(Locale.ROOT)
+			.contains("constraint requires Neo4j Enterprise Edition".toLowerCase(Locale.ROOT));
 	}
 
 	private HBD() {

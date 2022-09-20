@@ -69,7 +69,7 @@ class ValidationResultTest {
 	@CsvSource(value = {
 		"VALID,aDatabase,All resolved migrations have been applied to `aDatabase`.",
 		"VALID,n/a,All resolved migrations have been applied to the default database.",
-		"INCOMPLETE_MIGRATIONS,kaputt,Some versions previously applied to `kaputt` cannot be resolved any more."
+		"INCOMPLETE_MIGRATIONS,kaputt,Some versions previously applied to `kaputt` cannot be resolved anymore."
 	}, nullValues = "n/a")
 	void prettyPrintingShouldWork(ValidationResult.Outcome outcome, String affectedDatabase, String expected) {
 

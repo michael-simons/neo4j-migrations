@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 /**
@@ -42,5 +43,17 @@ public enum Messages {
 	 */
 	public String get(String key) {
 		return defaultBundle.getString(key);
+	}
+
+	/**
+	 * Creates a {@link MessageFormat message format} from the value of the given key and uses the arguments to format it.
+	 *
+	 * @param key  The key of the message
+	 * @param args The arguments to the format
+	 * @return A formatted message
+	 * @since 1.11.1
+	 */
+	public String format(String key, Object... args) {
+		return MessageFormat.format(defaultBundle.getString(key), args);
 	}
 }

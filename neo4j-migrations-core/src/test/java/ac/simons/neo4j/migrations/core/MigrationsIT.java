@@ -327,6 +327,22 @@ class MigrationsIT extends TestBase {
 		}
 	}
 
+	@Test // GH-647
+	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch() {
+
+		MigrationsConfig configuration = MigrationsConfig.builder()
+			.withLocationsToScan("classpath:ee")
+			.withAutocrlf(true)
+			.build();
+		Migrations migrations = new Migrations(configuration, driver);
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(migrations::apply)
+			.withMessage("Migration `01 (\"Use some enterprise features\")` uses a constraint that requires "
+				+ "Neo4j Enterprise Edition but the database connected to is a Community edition, "
+				+ "you might want to add a guard like `// assume that edition is enterprise` in your script"
+			);
+	}
+
 	private static List<File> createMigrationFiles(int n, File dir) throws IOException {
 		List<File> files = new ArrayList<>();
 		for (int i = 1; i <= n; ++i) {

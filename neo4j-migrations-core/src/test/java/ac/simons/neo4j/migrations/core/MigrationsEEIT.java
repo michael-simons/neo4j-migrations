@@ -18,6 +18,10 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -32,10 +36,12 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -45,6 +51,7 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.exceptions.FatalDiscoveryException;
+import org.neo4j.driver.exceptions.Neo4jException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -274,6 +281,37 @@ class MigrationsEEIT {
 				"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.name) IS UNIQUE",
 				"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.id) IS UNIQUE"
 			);
+		}
+	}
+
+	@Test // GH-647
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch() {
+
+		TestBase.clearDatabase(driver, "neo4j");
+		Constraint constraint = Constraint.forNode("Book").named("x").unique("isbn");
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		ConnectionDetails connectionDetails = null;
+		try (
+			Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()));
+			Session session = driver.session()
+		) {
+			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+			connectionDetails = migrations.getConnectionDetails();
+			RenderConfig cfg = RenderConfig.create()
+				.forVersionAndEdition(connectionDetails.getServerVersion(), connectionDetails.getServerEdition());
+
+			// Having two books with the same attribute here will make the constraint creation false for reasons
+			// other than the wrong edition
+			session.run("CREATE (b1:Book {isbn:'x'}) CREATE (b2:Book {isbn:'x'})");
+			String statement = renderer.render(constraint, cfg);
+			try {
+				session.run(statement);
+				Assertions.fail("An exception was expected");
+			} catch (Neo4jException e) {
+				assertThat(connectionDetails).isNotNull();
+				assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isFalse();
+			}
 		}
 	}
 

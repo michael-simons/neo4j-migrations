@@ -56,6 +56,11 @@ final class Neo4jCodes {
 	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet<>(
 		Arrays.asList(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS, CONSTRAINT_ALREADY_EXISTS)));
 
+	/**
+	 * Used when the creation of a constraint fails.
+	 */
+	static final String CONSTRAINT_CREATION_FAILED = "Neo.DatabaseError.Schema.ConstraintCreationFailed";
+
 	private Neo4jCodes() {
 	}
 }

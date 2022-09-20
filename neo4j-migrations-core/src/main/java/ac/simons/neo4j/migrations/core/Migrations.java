@@ -23,10 +23,12 @@ import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -72,6 +74,8 @@ public final class Migrations {
 	private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
 
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
+
+	private final Set<Constraint.Type> ENTERPRISE_ONLY_CONSTRAINTS = EnumSet.of(Constraint.Type.EXISTS, Constraint.Type.KEY);
 
 	/**
 	 * Creates a {@link Migrations migrations instance} ready to used with the given configuration over the connection
@@ -472,9 +476,12 @@ public final class Migrations {
 				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
 				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
-			} catch (MigrationsException e) {
-				throw e;
 			} catch (Exception e) {
+				if (HBD.constraintProbablyRequiredEnterpriseEdition(e, getConnectionDetails())) {
+					throw new MigrationsException(Messages.INSTANCE.format("errors.edition_mismatch", toString(migration), getConnectionDetails().getServerEdition()));
+				} else if (e instanceof MigrationsException) {
+					throw e;
+				}
 				throw new MigrationsException("Could not apply migration: " + toString(migration) + ".", e);
 			} finally {
 				stopWatch.reset();

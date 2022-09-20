@@ -76,8 +76,9 @@ class EnterpriseRequiredDetectionIT {
 			ConnectionDetails connectionDetails = migrations.getConnectionDetails();
 
 			for (Constraint constraint : exists) {
+				String statement = renderer.render(constraint, cfg);
 				try (Session session = driver.session()) {
-					session.run(renderer.render(constraint, cfg));
+					session.run(statement);
 					Assertions.fail("An exception was expected");
 				} catch (Neo4jException e) {
 					assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isTrue();

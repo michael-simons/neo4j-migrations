@@ -304,11 +304,14 @@ class MigrationsEEIT {
 			// Having two books with the same attribute here will make the constraint creation false for reasons
 			// other than the wrong edition
 			session.run("CREATE (b1:Book {isbn:'x'}) CREATE (b2:Book {isbn:'x'})");
-			session.run(renderer.render(constraint, cfg));
-			Assertions.fail("An exception was expected");
-		} catch (Neo4jException e) {
-			assertThat(connectionDetails).isNotNull();
-			assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isFalse();
+			String statement = renderer.render(constraint, cfg);
+			try {
+				session.run(statement);
+				Assertions.fail("An exception was expected");
+			} catch (Neo4jException e) {
+				assertThat(connectionDetails).isNotNull();
+				assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isFalse();
+			}
 		}
 	}
 

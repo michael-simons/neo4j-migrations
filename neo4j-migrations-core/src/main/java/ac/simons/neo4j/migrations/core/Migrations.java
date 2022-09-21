@@ -192,10 +192,10 @@ public final class Migrations {
 	 */
 	public Optional<MigrationVersion> apply(boolean log) {
 
-		if (log && STARTUP_LOGGER.isLoggable(Level.INFO)) {
-			STARTUP_LOGGER.info(() -> Messages.INSTANCE.format("startup_log", getUserAgent(), ConnectionDetailsFormatter.INSTANCE.format(this.getConnectionDetails())));
-		}
 		return executeWithinLock(() -> {
+			if (log && STARTUP_LOGGER.isLoggable(Level.INFO)) {
+				STARTUP_LOGGER.info(() -> Messages.INSTANCE.format("startup_log", getUserAgent(), ConnectionDetailsFormatter.INSTANCE.format(this.getConnectionDetails())));
+			}
 			apply0(this.getMigrations());
 			return getLastAppliedVersion();
 		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);

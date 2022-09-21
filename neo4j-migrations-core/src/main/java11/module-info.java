@@ -34,4 +34,5 @@ module ac.simons.neo4j.migrations.core {
 	exports ac.simons.neo4j.migrations.core.refactorings;
 
 	provides ResourceBasedMigrationProvider with CypherResourceBasedMigrationProvider, DefaultCatalogBasedMigrationProvider;
+	uses ResourceBasedMigrationProvider;
 }

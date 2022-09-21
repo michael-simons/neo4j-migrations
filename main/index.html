@@ -2787,6 +2787,18 @@ org.neo4j.migrations.check-location=false</code></pre>
 <div class="paragraph">
 <p>Have a look at <a href="#usage_spring-boot_all-properties">Section 4.4.2</a> for all supported properties.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The starter will log some details about the product version and the database connected to. This can be disabled by setting the logger <code>ac.simons.neo4j.migrations.core.Migrations.Startup</code> to a level higher than <code>INFO</code>.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="usagewithdataneo4jtest"><a class="anchor" href="#usagewithdataneo4jtest"></a>4.4.1. Usage with <code>@DataNeo4jTest</code></h4>
 <div class="paragraph">
@@ -3063,6 +3075,7 @@ will still be in the context to be used.</p>
 <td class="content">
 All other properties available for the <a href="#usage_spring-boot_all-properties">Spring-Boot-Starter</a> are available for the Quarkus extension, too.
 Their namespace is the same: <code>org.neo4j.migrations</code>.
+The module will also log some details about the product version and the database connected to. This can be disabled by setting the logger <code>ac.simons.neo4j.migrations.core.Migrations.Startup</code> to a level higher than <code>INFO</code>.
 </td>
 </tr>
 </table>
@@ -4614,7 +4627,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-20 18:13:50 UTC
+Last updated 2022-09-21 08:30:07 UTC
 </div>
 </div>
 </body>

@@ -50,6 +50,7 @@ import org.neo4j.driver.types.Node;
 public final class Migrations {
 
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
+	static final Logger STARTUP_LOGGER = Logger.getLogger(Migrations.class.getName() + ".Startup");
 
 	private static final String PROPERTY_MIGRATION_VERSION = "version";
 	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
@@ -168,10 +169,32 @@ public final class Migrations {
 	 * @return The last applied migration (if any)
 	 * @throws ServiceUnavailableException in case the driver is not connected
 	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @see #apply(boolean)
 	 * @since 0.0.1
 	 */
 	public Optional<MigrationVersion> apply() {
 
+		return apply(false);
+	}
+
+	/**
+	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
+	 * or Cypher script migrations that are on the classpath or filesystem.
+	 * <p>
+	 * The startup will be logged to {@code ac.simons.neo4j.migrations.core.Migrations.Startup} and can be individiually
+	 * disabled through that logger.
+	 *
+	 * @param log set to {@literal true} to log connection details prior to applying the migrations
+	 * @return The last applied migration (if any)
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @since 1.12.0
+	 */
+	public Optional<MigrationVersion> apply(boolean log) {
+
+		if (log && STARTUP_LOGGER.isLoggable(Level.INFO)) {
+			STARTUP_LOGGER.info(() -> Messages.INSTANCE.format("startup_log", getUserAgent(), ConnectionDetailsFormatter.INSTANCE.format(this.getConnectionDetails())));
+		}
 		return executeWithinLock(() -> {
 			apply0(this.getMigrations());
 			return getLastAppliedVersion();

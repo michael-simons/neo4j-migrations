@@ -64,24 +64,7 @@ public interface MigrationChain extends ConnectionDetails {
 	 */
 	default String prettyPrint() {
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(MigrationChainFormat.LS)
-			.append(getUsername()).append("@").append(getServerAddress())
-			.append(" (").append(getServerVersion()).append(")");
-
-		Optional<String> optionalDatabase = getOptionalDatabaseName();
-		optionalDatabase.ifPresent(name ->
-			sb.append(MigrationChainFormat.LS).append("Database: ").append(name)
-		);
-
-		Optional<String> optionalSchemaDatabase = getOptionalSchemaDatabaseName();
-		if (!optionalSchemaDatabase.equals(optionalDatabase)) {
-			optionalSchemaDatabase.ifPresent(name ->
-				sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
-			);
-		}
-
-		sb
+		StringBuilder sb = new StringBuilder(ConnectionDetailsFormatter.INSTANCE.format(this))
 			.append(MigrationChainFormat.LS)
 			.append(MigrationChainFormat.LS);
 

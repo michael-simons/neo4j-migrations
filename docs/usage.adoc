@@ -469,6 +469,8 @@ org.neo4j.migrations.check-location=false
 
 Have a look at <<usage_spring-boot_all-properties>> for all supported properties.
 
+TIP: The starter will log some details about the product version and the database connected to. This can be disabled by setting the logger `ac.simons.neo4j.migrations.core.Migrations.Startup` to a level higher than `INFO`.
+
 === Usage with `@DataNeo4jTest`
 
 If you want to use your migrations together with `@DataNeo4jTest` which is provided with Spring Boot out of the box,
@@ -635,6 +637,8 @@ will still be in the context to be used.
 
 TIP: All other properties available for the <<usage_spring-boot_all-properties,Spring-Boot-Starter>> are available for the Quarkus extension, too.
 Their namespace is the same: `org.neo4j.migrations`.
+The module will also log some details about the product version and the database connected to. This can be disabled by setting the logger `ac.simons.neo4j.migrations.core.Migrations.Startup` to a level higher than `INFO`.
+
 
 === Build-time vs runtime config
 

@@ -22,7 +22,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 /**
- * Utility class to retrieve the core modules version aka the product version.
+ * Utility class to retrieve the version of the core module aka the product version.
  *
  * @author Michael J. Simons
  * @since 1.2.1

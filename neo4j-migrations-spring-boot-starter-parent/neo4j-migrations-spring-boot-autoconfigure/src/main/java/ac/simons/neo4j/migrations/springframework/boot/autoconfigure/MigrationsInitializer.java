@@ -42,7 +42,7 @@ final class MigrationsInitializer implements InitializingBean {
 	public void afterPropertiesSet() {
 
 		try {
-			migrations.apply();
+			migrations.apply(true);
 		} catch (ServiceUnavailableException e) {
 			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.", e);
 		}

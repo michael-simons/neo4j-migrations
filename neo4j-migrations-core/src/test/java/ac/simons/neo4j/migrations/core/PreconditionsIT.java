@@ -41,6 +41,12 @@ class PreconditionsIT {
 		SLF4JBridgeHandler.install();
 	}
 
+	private void clearDatabase(Driver driver) {
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n").consume();
+		}
+	}
+
 	@Test
 	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.3-enterprise")
 	void assumptionsShouldWork() {
@@ -52,6 +58,8 @@ class PreconditionsIT {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+
+			clearDatabase(driver);
 
 			Migrations migrations;
 			migrations = new Migrations(MigrationsConfig.builder()
@@ -79,6 +87,9 @@ class PreconditionsIT {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+
+			clearDatabase(driver);
+
 			Migrations migrations;
 			migrations = new Migrations(MigrationsConfig.builder()
 				.withLocationsToScan("classpath:preconditions")
@@ -101,6 +112,8 @@ class PreconditionsIT {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+
+			clearDatabase(driver);
 
 			Migrations migrations;
 			migrations = new Migrations(MigrationsConfig.builder()

@@ -48,6 +48,7 @@ class EnterpriseRequiredDetectionIT {
 		SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s", version.value.toString()))
+			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
 

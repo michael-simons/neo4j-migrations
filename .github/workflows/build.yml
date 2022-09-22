@@ -115,7 +115,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 8
+          java-version: 17
       - name: Download assembly
         uses: actions/download-artifact@v1
         with:
@@ -133,7 +133,7 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '21.3.2'
+          version: '22.3.0'
           java-version: '17'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -160,7 +160,7 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '21.3.2'
+          version: '22.3.0'
           java-version: '17'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}

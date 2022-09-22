@@ -300,7 +300,9 @@
 						<configuration>
 							<mainClass>${name-of-main-class}</mainClass>
 							<imageName>neo4j-migrations</imageName>
-							<buildArgs>--no-fallback</buildArgs>
+							<buildArgs>
+								<arg>--no-fallback</arg>
+							</buildArgs>
 						</configuration>
 						<executions>
 							<execution>

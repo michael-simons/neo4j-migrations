@@ -89,9 +89,17 @@ class ConstraintsIT {
 	void dropAllConstraints(Driver driver) {
 
 		try (Session session = driver.session()) {
-			session.run("call db.constraints()")
-				.list(record -> "DROP " + record.get("description").asString())
-				.forEach(session::run);
+			List<Record> constraints = session.run("call db.constraints()").list(Function.identity());
+			for (Record constraint : constraints) {
+				if (constraint.containsKey("name")) {
+					try {
+						session.run("DROP constraint " + constraint.get("name").asString());
+						continue;
+					} catch (Exception ignored) {
+					}
+				}
+				session.run("DROP " + constraint.get("description").asString());
+			}
 		}
 	}
 

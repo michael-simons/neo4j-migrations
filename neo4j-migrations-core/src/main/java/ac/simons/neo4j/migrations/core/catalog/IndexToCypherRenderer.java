@@ -87,6 +87,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			default:
 				throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
 		}
+
+		CypherRenderingUtils.renderOptions(index, config, w);
 		w.flush();
 	}
 

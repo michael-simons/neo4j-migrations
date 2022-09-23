@@ -329,7 +329,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			type = Type.CONSTRAINT_BACKING_INDEX;
 		}
 
-		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties));
+		String options = resolveOptions(row).orElse(null);
+		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties), options);
 	}
 
 	static boolean isConstraintBackingIndex(MapAccessor row) {

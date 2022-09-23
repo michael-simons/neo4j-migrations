@@ -227,8 +227,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
 		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
+		String options = resolveOptions(row).orElse(null);
 
-		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
+		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties), options);
 	}
 
 	/**

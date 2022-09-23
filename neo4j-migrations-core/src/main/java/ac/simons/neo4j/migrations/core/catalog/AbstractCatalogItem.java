@@ -25,14 +25,19 @@ import java.util.Collection;
 import java.util.Formattable;
 import java.util.Formatter;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.value.ListValue;
+import org.neo4j.driver.internal.value.MapValue;
+import org.neo4j.driver.types.MapAccessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -42,6 +47,40 @@ import org.w3c.dom.NodeList;
  * @since 1.7.0
  */
 abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
+
+	/**
+	 * Reads an optional {@code options} column from a row and formats it as a map that is renderable as Cypher.
+	 *
+	 * @param row Row returned from {@code SHOW INDEXES} or {@code SHOW CONSTRAINTS}
+	 * @return An optional options value.
+	 */
+	static Optional<String> resolveOptions(MapAccessor row) {
+		if (!row.containsKey("options")) {
+			return Optional.empty();
+		}
+
+		Value options = row.get("options");
+		if (options.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return Optional.of(renderMap(options));
+	}
+
+	private static String renderMap(Value value) {
+		if (value instanceof MapValue) {
+			Map<String, Value> map = value.asMap(Function.identity());
+			return map.entrySet()
+				.stream()
+				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
+				.collect(Collectors.joining(", ", "", ""));
+		} else if (value instanceof ListValue) {
+			List<Value> list = value.asList(Function.identity());
+			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
+		} else {
+			return value.toString();
+		}
+	}
 
 	/**
 	 * The unique name of this item.
@@ -91,12 +130,6 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 			this.name = Name.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
 		} else {
 			this.name = Name.of(name);
-		}
-
-		if (options != null && !options.trim().isEmpty()) {
-			Logger.getLogger(AbstractCatalogItem.class.getPackage().getName()).log(Level.WARNING,
-				"Using non default options for the catalog item named `{1}` of type {0}. These are not yet used while rendering the item.",
-				new Object[] { this.getClass().getSimpleName(), this.getName().getValue() });
 		}
 	}
 

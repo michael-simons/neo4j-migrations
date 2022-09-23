@@ -93,6 +93,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 					throw new IllegalArgumentException("Unsupported type of constraint: " + constraint.getType());
 			}
 		}
+
+		CypherRenderingUtils.renderOptions(constraint, config, w);
 		w.flush();
 	}
 

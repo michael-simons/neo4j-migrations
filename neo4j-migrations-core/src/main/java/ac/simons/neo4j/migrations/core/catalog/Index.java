@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Value;
@@ -44,6 +45,10 @@ import org.w3c.dom.Element;
 // from the identifier in a one-to-one onto relationship and therefor ok.
 @SuppressWarnings("squid:S2160")
 public final class Index extends AbstractCatalogItem<Index.Type> {
+
+	private static final String PROVIDER_PATTERN_FMT = "(?i)`?indexProvider`?\\s*:\\s*(['\"])%s-\\d\\.0(['\"])";
+	private static final Pattern PROVIDER_PATTERN_RANGE = Pattern.compile(String.format(PROVIDER_PATTERN_FMT, "range"));
+	private static final Pattern PROVIDER_PATTERN_BTREE = Pattern.compile(String.format(PROVIDER_PATTERN_FMT, "native-btree"));
 
 	/**
 	 * Enumerates the different kinds of indexes.
@@ -397,5 +402,19 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 	Collection<String> getDeconstructedIdentifiers() {
 		return Collections.unmodifiableSet(deconstructedIdentifiers);
+	}
+
+	boolean isRangePropertyIndex() {
+		return isPropertyIndexMatching(PROVIDER_PATTERN_RANGE);
+	}
+
+	boolean isBtreePropertyIndex() {
+		return isPropertyIndexMatching(PROVIDER_PATTERN_BTREE);
+	}
+
+	private boolean isPropertyIndexMatching(Pattern pattern) {
+		return this.getType() == Type.PROPERTY && getOptionalOptions()
+			.filter(pattern.asPredicate())
+			.isPresent();
 	}
 }

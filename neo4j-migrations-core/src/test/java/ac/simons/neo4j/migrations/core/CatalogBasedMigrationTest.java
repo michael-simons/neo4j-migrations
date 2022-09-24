@@ -333,6 +333,7 @@ class CatalogBasedMigrationTest {
 					VerifyOperation verifyOperation = (VerifyOperation) op;
 					assertThat(verifyOperation.useCurrent()).isFalse();
 					assertThat(verifyOperation.allowEquivalent()).isTrue();
+					assertThat(verifyOperation.includeOptions()).isFalse();
 					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}
@@ -351,6 +352,7 @@ class CatalogBasedMigrationTest {
 					VerifyOperation verifyOperation = (VerifyOperation) op;
 					assertThat(verifyOperation.useCurrent()).isTrue();
 					assertThat(verifyOperation.allowEquivalent()).isFalse();
+					assertThat(verifyOperation.includeOptions()).isTrue();
 					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}

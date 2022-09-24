@@ -458,7 +458,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				case VERIFY:
 					return Operation
 						.verify(Boolean.parseBoolean(operationElement.getAttribute("useCurrent")))
-						.includingOptions(Boolean.parseBoolean(operationElement.getAttribute("includingOptions")))
+						.includeOptions(Boolean.parseBoolean(operationElement.getAttribute("includeOptions")))
 						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
 						.at(targetVersion);
 				case CREATE:
@@ -705,7 +705,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		/**
 		 * @return {@literal true} if options should be included during verification
 		 */
-		boolean includingOptions();
+		boolean includeOptions();
 	}
 
 	/**
@@ -730,7 +730,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	 */
 	interface VerifyBuilder extends TerminalVerifyBuilder {
 
-		VerifyBuilder includingOptions(boolean includingOptions);
+		VerifyBuilder includeOptions(boolean includeOptions);
 
 		TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent);
 	}
@@ -796,9 +796,9 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		@SuppressWarnings({ "HiddenField" })
 		@Override
-		public VerifyBuilder includingOptions(boolean includingOptions) {
+		public VerifyBuilder includeOptions(boolean includeOptions) {
 
-			this.includingOptions = includingOptions;
+			this.includingOptions = includeOptions;
 			return this;
 		}
 
@@ -1041,12 +1041,12 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		private final boolean useCurrent;
 		private final boolean allowEquivalent;
-		private final boolean includingOptions;
+		private final boolean includeOptions;
 		private final MigrationVersion definedAt;
 
-		DefaultVerifyOperation(boolean useCurrent, boolean includingOptions, boolean allowEquivalent, MigrationVersion definedAt) {
+		DefaultVerifyOperation(boolean useCurrent, boolean includeOptions, boolean allowEquivalent, MigrationVersion definedAt) {
 			this.useCurrent = useCurrent;
-			this.includingOptions = includingOptions;
+			this.includeOptions = includeOptions;
 			this.definedAt = definedAt;
 			this.allowEquivalent = allowEquivalent;
 		}
@@ -1056,7 +1056,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 			try (Session queryRunner = context.sessionSupplier.get()) {
 				// Get all the constraints
-				Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner, includingOptions);
+				Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner, includeOptions);
 				VersionedCatalog currentCatalog = context.catalog;
 
 				CatalogDiff diff = CatalogDiff.between(databaseCatalog,
@@ -1103,8 +1103,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 
 		@Override
-		public boolean includingOptions() {
-			return includingOptions;
+		public boolean includeOptions() {
+			return includeOptions;
 		}
 
 		@Override

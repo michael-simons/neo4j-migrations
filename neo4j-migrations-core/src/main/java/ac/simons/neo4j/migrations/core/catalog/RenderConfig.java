@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Contextual information passed to renderers.
@@ -92,9 +93,18 @@ public final class RenderConfig {
 	public interface CypherRenderingOptions extends AdditionalRenderingOptions {
 
 		/**
-		 * @return return {@literal true} to enable rendering of options
+		 * @return {@literal true} to enable rendering of options
 		 */
 		default boolean includingOptions() {
+			return false;
+		}
+
+		/**
+		 * This setting will only have effect if an index uses an option map defining a valid index provider for property indexes.
+		 *
+		 * @return {@literal true} to enable the use of explicit index types for property index based on the index provider
+		 */
+		default boolean useExplicitPropertyIndexType() {
 			return false;
 		}
 	}
@@ -216,6 +226,16 @@ public final class RenderConfig {
 	@SuppressWarnings("squid:S1874")
 	private final List<AdditionalRenderingOptions> additionalOptions;
 
+	/**
+	 * Flag to include options when rendering to cypher.
+	 */
+	private final boolean includingOptions;
+
+	/**
+	 * Flag to include an explicit index type for property indizes when available.
+	 */
+	private final boolean useExplicitPropertyIndexType;
+
 	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
 		this(version, edition, operator, idempotent, false, null);
 	}
@@ -228,6 +248,18 @@ public final class RenderConfig {
 		this.idempotent = idempotent;
 		this.ignoreName = ignoreName;
 		this.additionalOptions = additionalOptions == null ? Collections.emptyList() : additionalOptions;
+
+		List<CypherRenderingOptions> cypherRenderingOptions = this.additionalOptions.stream()
+			.filter(CypherRenderingOptions.class::isInstance)
+			.map(CypherRenderingOptions.class::cast)
+			.collect(Collectors.toList());
+
+		this.includingOptions = cypherRenderingOptions.stream()
+			.map(CypherRenderingOptions::includingOptions)
+			.reduce(!cypherRenderingOptions.isEmpty(), (v1, v2) -> v1 && v2);
+		this.useExplicitPropertyIndexType = cypherRenderingOptions.stream()
+			.map(CypherRenderingOptions::useExplicitPropertyIndexType)
+			.reduce(!cypherRenderingOptions.isEmpty(), (v1, v2) -> v1 && v2);
 	}
 
 	Neo4jVersion getVersion() {
@@ -246,14 +278,6 @@ public final class RenderConfig {
 		return idempotent;
 	}
 
-	boolean isIncludingOptions() {
-		return this.additionalOptions.stream()
-			.filter(CypherRenderingOptions.class::isInstance)
-			.map(CypherRenderingOptions.class::cast)
-			.map(CypherRenderingOptions::includingOptions)
-			.reduce(false, (v1, v2) -> v1 || v2);
-	}
-
 	boolean isVersionPriorTo44() {
 		return getVersion().isPriorTo44();
 	}
@@ -265,6 +289,14 @@ public final class RenderConfig {
 	@SuppressWarnings("squid:S1874")
 	List<AdditionalRenderingOptions> getAdditionalOptions() {
 		return Collections.unmodifiableList(additionalOptions);
+	}
+
+	boolean includeOptions() {
+		return includingOptions;
+	}
+
+	public boolean useExplicitPropertyIndexType() {
+		return useExplicitPropertyIndexType;
 	}
 
 	/**

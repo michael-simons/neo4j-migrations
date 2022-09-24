@@ -35,7 +35,7 @@ final class CypherRenderingUtils {
 	static void renderOptions(AbstractCatalogItem<?> item, RenderConfig config, Writer writer) throws IOException {
 		Optional<String> options = item.getOptionalOptions().map(String::trim);
 		Neo4jVersion version = config.getVersion();
-		if (config.isIncludingOptions() && config.getOperator() == Operator.CREATE && version.supportsSchemaOptions() && options.isPresent()) {
+		if (config.getOperator() == Operator.CREATE && version.supportsSchemaOptions() && options.isPresent() && config.includeOptions()) {
 			boolean hasBraces = MAP_PATTERN.matcher(options.get()).matches();
 			if (hasBraces) {
 				writer.write(" OPTIONS " + options.get());

@@ -63,7 +63,6 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		if (options.isNull() || options.isEmpty()) {
 			return Optional.empty();
 		}
-
 		return Optional.of(renderMap(options));
 	}
 

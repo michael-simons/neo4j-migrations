@@ -105,6 +105,13 @@ class DefaultMigrateBTreeToRangeIndexesTest {
 					"default_unique_constraint",
 					"default_node_key_constraint"
 				);
+
+			constraints.values().stream().forEach(i -> {
+				System.out.println(i.getOptionalOptions().get().replaceAll("`(.+?)`:", "\"$1\":"));
+				JsonWheel.WheelNode read = JsonWheel.read(i.getOptionalOptions().get().replaceAll("`(.+?)`:", "\"$1\":"));
+				System.out.println(read.val(Map.class));
+			});
+
 		}
 	}
 

@@ -155,6 +155,24 @@ class ConstraintToCypherRendererTest {
 				.withMessage("This constraint cannot be created with %s edition.", edition);
 	}
 
+	@Test
+	void shouldOptionallyRenderOptions() {
+
+		RenderConfig renderConfig = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		Constraint constraint = new Constraint("unique_isbn", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
+			Collections.singleton("isbn"), "{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo("CREATE CONSTRAINT unique_isbn FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
+		assertThat(renderer.render(constraint, renderConfig.withAdditionalOptions(
+			Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override public boolean includingOptions() {
+					return true;
+				}
+			}))))
+			.isEqualTo("CREATE CONSTRAINT unique_isbn FOR (n:Book) REQUIRE n.isbn IS UNIQUE OPTIONS {`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+	}
+
 	@ParameterizedTest
 	@CsvSource({ "CREATE, false", "DROP, true" })
 	void idempotencyShouldRequireName(Operator operator, boolean fails) {

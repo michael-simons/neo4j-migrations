@@ -363,7 +363,7 @@ public final class Migrations {
 		return executeWithinLock(() -> {
 			try (Session session = context.getSession()) {
 				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
-				return DatabaseCatalog.of(neo4jVersion, session);
+				return DatabaseCatalog.of(neo4jVersion, session, true);
 			}
 		}, null, null);
 	}

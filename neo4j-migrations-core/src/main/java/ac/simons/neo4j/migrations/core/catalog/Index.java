@@ -392,8 +392,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		return this.getType().equals(other.getType()) &&
 				this.getTargetEntityType().equals(other.getTargetEntityType()) &&
 				this.getIdentifier().equals(other.getIdentifier()) &&
-				this.getProperties().equals(other.getProperties()) &&
-				this.getOptionalOptions().equals(other.getOptionalOptions());
+				this.getProperties().equals(other.getProperties());
 	}
 
 	Collection<String> getDeconstructedIdentifiers() {

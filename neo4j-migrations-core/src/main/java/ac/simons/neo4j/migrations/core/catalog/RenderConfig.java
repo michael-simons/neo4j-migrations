@@ -84,6 +84,22 @@ public final class RenderConfig {
 	}
 
 	/**
+	 * Additional options passed to a Cypher renderer. Some options might be ignored for some content.
+	 *
+	 * @since TBA
+	 */
+	@SuppressWarnings("squid:S1874") // Complains about the purposeful deprecated option
+	public interface CypherRenderingOptions extends AdditionalRenderingOptions {
+
+		/**
+		 * @return return {@literal true} to enable rendering of options
+		 */
+		default boolean includingOptions() {
+			return false;
+		}
+	}
+
+	/**
 	 * Allows adding idempotency to the context.
 	 */
 	public interface IfNotExistsConfigBuilder extends Builder {
@@ -228,6 +244,14 @@ public final class RenderConfig {
 
 	boolean isIdempotent() {
 		return idempotent;
+	}
+
+	boolean isIncludingOptions() {
+		return this.additionalOptions.stream()
+			.filter(CypherRenderingOptions.class::isInstance)
+			.map(CypherRenderingOptions.class::cast)
+			.map(CypherRenderingOptions::includingOptions)
+			.reduce(false, (v1, v2) -> v1 || v2);
 	}
 
 	boolean isVersionPriorTo44() {

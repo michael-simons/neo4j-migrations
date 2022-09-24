@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes>
+			<index name="book_title">
+				<label>Book</label>
+				<properties>
+					<property>title</property>
+				</properties>
+				<options>{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: "native-btree-1.0"}</options>
+			</index>
+		</indexes>
+		<constraints>
+			<constraint name="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+				<options>{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: "native-btree-1.0"}</options>
+			</constraint>
+			<constraint name="exists_isbn" type="exists">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<apply />
+</migration>

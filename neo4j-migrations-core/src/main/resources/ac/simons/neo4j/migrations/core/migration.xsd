@@ -99,6 +99,7 @@
 			<xs:extension base="operation" >
 				<xs:attribute name="useCurrent" type="xs:boolean" default="false"/>
 				<xs:attribute name="allowEquivalent" type="xs:boolean" default="true"/>
+				<xs:attribute name="includingOptions" type="xs:boolean" default="false"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>

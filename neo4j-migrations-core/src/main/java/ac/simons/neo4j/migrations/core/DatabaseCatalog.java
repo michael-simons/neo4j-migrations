@@ -22,10 +22,18 @@ import ac.simons.neo4j.migrations.core.catalog.Index;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
 
 /**
  * Catalog based on the items discoverable inside a Neo4j instance at a given point in time.
@@ -36,11 +44,71 @@ import org.neo4j.driver.QueryRunner;
  */
 final class DatabaseCatalog implements Catalog {
 
-	static Catalog of(Neo4jVersion version, QueryRunner queryRunner) {
+	/**
+	 * A map accessor that can filter other mapaccessors. It does not support iterating over elements.
+	 */
+	private final static class FilteredMapAccessor implements MapAccessor {
+
+		private final MapAccessor delegate;
+
+		private final Set<String> filteredKeys;
+
+		FilteredMapAccessor(MapAccessor delegate, Set<String> filter) {
+			this.delegate = delegate;
+			this.filteredKeys = new HashSet<>();
+			this.delegate.keys().forEach(this.filteredKeys::add);
+			this.filteredKeys.removeAll(filter);
+		}
+
+		@Override
+		public Iterable<String> keys() {
+			return filteredKeys;
+		}
+
+		@Override
+		public boolean containsKey(String key) {
+			return filteredKeys.contains(key);
+		}
+
+		@Override
+		public Value get(String key) {
+			return filteredKeys.contains(key) ?  delegate.get(key) : Values.NULL;
+		}
+
+		@Override
+		public int size() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Iterable<Value> values() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <T> Iterable<T> values(Function<Value, T> mapFunction) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Map<String, Object> asMap() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	static Catalog of(Neo4jVersion version, QueryRunner queryRunner, boolean readOptions) {
+
 		Set<CatalogItem<?>> items = new LinkedHashSet<>();
+		Function<Record, MapAccessor> mapAccessorMapper = r -> readOptions ? r : new FilteredMapAccessor(r, Collections.singleton("options"));
 
 		queryRunner.run(version.getShowConstraints())
 			.stream()
+			.map(mapAccessorMapper)
 			.map(Constraint::parse)
 			.filter(constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS).noneMatch(constraint::isEquivalentTo))
 			.filter(constraint -> !Migrations.UNIQUE_VERSION.isEquivalentTo(constraint))
@@ -48,6 +116,7 @@ final class DatabaseCatalog implements Catalog {
 
 		queryRunner.run(version.getShowIndexes())
 			.stream()
+			.map(mapAccessorMapper)
 			.map(Index::parse)
 			.filter(index -> index.getType() != Index.Type.LOOKUP && index.getType() != Index.Type.CONSTRAINT_BACKING_INDEX)
 			.forEach(items::add);

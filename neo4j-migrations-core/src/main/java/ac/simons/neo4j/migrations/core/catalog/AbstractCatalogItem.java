@@ -60,7 +60,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		}
 
 		Value options = row.get("options");
-		if (options.isEmpty()) {
+		if (options.isNull() || options.isEmpty()) {
 			return Optional.empty();
 		}
 
@@ -73,7 +73,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 			return map.entrySet()
 				.stream()
 				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
-				.collect(Collectors.joining(", ", "", ""));
+				.collect(Collectors.joining(", ", "{", "}"));
 		} else if (value instanceof ListValue) {
 			List<Value> list = value.asList(Function.identity());
 			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
@@ -203,7 +203,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 			return false;
 		}
 		AbstractCatalogItem<?> that = (AbstractCatalogItem<?>) o;
-		return getName().equals(that.getName()) && isEquivalentTo(that);
+		return getName().equals(that.getName()) && getOptionalOptions().equals(that.getOptionalOptions()) && isEquivalentTo(that);
 	}
 
 	static final class Target {

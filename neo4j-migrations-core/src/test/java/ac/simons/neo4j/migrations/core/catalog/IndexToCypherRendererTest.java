@@ -91,6 +91,23 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@Test
+	void shouldOptionallyRenderOptions() {
+
+		RenderConfig renderConfig = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		Index index = new Index("title_idx", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("Book"), Collections.singleton("title"), "{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig)).isEqualTo("CREATE INDEX title_idx FOR (n:Book) ON (n.title)");
+		assertThat(renderer.render(index, renderConfig.withAdditionalOptions(
+			Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override public boolean includingOptions() {
+					return true;
+				}
+			}))))
+			.isEqualTo("CREATE INDEX title_idx FOR (n:Book) ON (n.title) OPTIONS {`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+	}
+
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderNamedIndexCreation() {
 

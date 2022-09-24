@@ -280,6 +280,17 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@Test
+	void shouldNotIncludeIndexTypeOnDrop() {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of("4.4"), Neo4jEdition.ENTERPRISE, Operator.DROP, true);
+		Index index = new Index("index_name", Index.Type.TEXT, TargetEntityType.NODE,
+			Collections.singleton("Person"), Collections.singleton("firstname"));
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig)).isEqualTo("DROP INDEX index_name IF EXISTS");
+	}
+
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderIdempotentNamedIndexDrop() {
 
@@ -771,5 +782,44 @@ class IndexToCypherRendererTest {
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, config)).isEqualTo(
 			"CREATE TEXT INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.interest)");
+	}
+
+	@Test
+	void shouldRenderRange() {
+		Index index = new Index("n_a_r", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'range-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE)
+			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override
+				public boolean useExplicitPropertyIndexType() {
+					return true;
+				}
+			}));
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE RANGE INDEX n_a_r FOR (n:A) ON (n.a)");
+	}
+
+	@Test
+	void shouldRenderBtree() {
+		Index index = new Index("n_a_b", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'native-btree-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE)
+			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override
+				public boolean useExplicitPropertyIndexType() {
+					return true;
+				}
+			}));
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE BTREE INDEX n_a_b FOR (n:A) ON (n.a)");
+	}
+
+	@Test
+	void shouldNotRenderExplicitType() {
+		Index index = new Index("n_a_n", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'native-btree-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE INDEX n_a_n FOR (n:A) ON (n.a)");
 	}
 }

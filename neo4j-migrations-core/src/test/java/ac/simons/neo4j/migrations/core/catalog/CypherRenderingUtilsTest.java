@@ -28,6 +28,14 @@ import org.junit.jupiter.api.Test;
  */
 class CypherRenderingUtilsTest {
 
+	public static final RenderConfig RENDER_CONFIG = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE")
+		.withAdditionalOptions(Collections.singletonList(
+			new RenderConfig.CypherRenderingOptions() {
+				@Override public boolean includingOptions() {
+					return true;
+				}
+			}));
+
 	@Test
 	void shouldAddBraces() throws IOException {
 		String options = "notValid: 'i dont care',\nsomethingElse: 'same'";
@@ -35,8 +43,7 @@ class CypherRenderingUtilsTest {
 		try (StringWriter writer = new StringWriter()) {
 			Constraint constraint = new Constraint("isbn_unique", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
 				Collections.singleton("isbn"), options);
-			CypherRenderingUtils.renderOptions(constraint,
-				RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"), writer);
+			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
 			assertThat(writer.toString()).isEqualTo(" OPTIONS {" + options + "}");
 		}
@@ -49,8 +56,7 @@ class CypherRenderingUtilsTest {
 		try (StringWriter writer = new StringWriter()) {
 			Constraint constraint = new Constraint("isbn_unique", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
 				Collections.singleton("isbn"), options);
-			CypherRenderingUtils.renderOptions(constraint,
-				RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"), writer);
+			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
 			assertThat(writer.toString()).isEqualTo(" OPTIONS " + options.trim());
 		}

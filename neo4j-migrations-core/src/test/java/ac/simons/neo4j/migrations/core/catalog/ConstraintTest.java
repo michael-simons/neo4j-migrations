@@ -483,11 +483,11 @@ class ConstraintTest {
 			)).isFalse();
 		}
 
-		@Test
-		void sameOptionsAreRequired() {
+		@Test // GH-656
+		void sameOptionsAreNotRequired() {
 
 			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), "foo");
-			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isFalse();
+			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
 		}
 
 		@Test

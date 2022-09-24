@@ -147,7 +147,16 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 		Operator operator = config.getOperator();
 
-		String type = index.getType() == Index.Type.PROPERTY ? " " : " " + index.getType().name() + " ";
+		String type = " ";
+		if (index.getType() != Index.Type.PROPERTY || config.useExplicitPropertyIndexType()) {
+			if (index.isBtreePropertyIndex()) {
+				type = " BTREE ";
+			} else if (index.isRangePropertyIndex()) {
+				type = " RANGE ";
+			} else {
+				type = " " + index.getType().name() + " ";
+			}
+		}
 
 		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5) {

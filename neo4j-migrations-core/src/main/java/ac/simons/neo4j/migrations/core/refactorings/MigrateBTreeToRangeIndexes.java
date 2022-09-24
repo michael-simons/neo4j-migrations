@@ -19,7 +19,7 @@ package ac.simons.neo4j.migrations.core.refactorings;
  * Migrates existing B-Tree indexes and constraints backed by such indexes to Neo4j 5.0+ and higher Range-Indexes.
  *
  * @author Michael J. Simons
- * @soundtrack Bobby Fletcher & Koljah - Vielleicht ist es besser so
+ * @soundtrack Bobby Fletcher &amp; Koljah - Vielleicht ist es besser so
  * @since TBA
  */
 public interface MigrateBTreeToRangeIndexes extends Refactoring {

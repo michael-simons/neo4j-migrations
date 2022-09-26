@@ -110,7 +110,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	/**
 	 * Any additional options to be passed to the item. Might be {@literal null}.
 	 */
-	private final String options;
+	protected final String options;
 
 	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier,
 		Collection<String> properties, String options) {

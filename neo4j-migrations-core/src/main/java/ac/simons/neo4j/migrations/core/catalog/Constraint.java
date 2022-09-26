@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -342,6 +343,36 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		if (type == Type.KEY && getTargetEntityType() != TargetEntityType.NODE) {
 			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
 		}
+	}
+
+	/**
+	 * Creates a copy of this constraint with the specific set of options added. Will return {@literal this} instance if
+	 * the options are identical to current options
+	 *
+	 * @param options The new options to use
+	 * @return A (potentially) new constraint
+	 * @since TBA
+	 */
+	@SuppressWarnings("HiddenField")
+	public Constraint withOptions(String options) {
+
+		if (Objects.equals(super.options, options)) {
+			return this;
+		}
+
+		return new Constraint(getName().getValue(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),
+			options);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public Constraint withName(String name) {
+
+		if (Objects.equals(super.getName().getValue(), name)) {
+			return this;
+		}
+
+		return new Constraint(name, getType(), getTargetEntityType(), getIdentifier(), getProperties(), options);
 	}
 
 	/**

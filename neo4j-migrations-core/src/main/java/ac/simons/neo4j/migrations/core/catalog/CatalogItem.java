@@ -48,4 +48,15 @@ public interface CatalogItem<T extends ItemType> {
 	 */
 	boolean hasGeneratedName();
 
+	/**
+	 * Creates a copy of this item with the specific name. Will return {@literal this} instance if the name has not
+	 * changed.
+	 *
+	 * @param name The new name to use
+	 * @return A (potentially) new item
+	 * @since TBA
+	 */
+	default CatalogItem<?> withName(String name) {
+		throw new UnsupportedOperationException();
+	}
 }

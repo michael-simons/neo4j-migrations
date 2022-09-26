@@ -530,4 +530,43 @@ class ConstraintTest {
 			)).isTrue();
 		}
 	}
+
+
+	@Nested
+	class Wither {
+
+		@Test
+		void shouldReturnSameOnUnchangedOptions() {
+
+			Constraint constraint = Constraint.forNode("X").named("x").unique("x");
+			Constraint constraint2 = constraint.withOptions(null);
+			assertThat(constraint2).isSameAs(constraint);
+
+			constraint = Constraint.forNode("X").named("x").unique("x").withOptions("x");
+			constraint2 = constraint.withOptions("x");
+			assertThat(constraint2).isSameAs(constraint);
+		}
+
+		@Test
+		void shouldModifyOptions() {
+
+			Constraint constraint = Constraint.forNode("X").named("x").unique("x").withOptions("ox");
+			assertThat(constraint.getOptionalOptions()).hasValue("ox");
+		}
+
+		@Test
+		void shouldReturnSameOnUnchangedName() {
+
+			Constraint constraint = Constraint.forNode("X").named("nx").unique("x");
+			Constraint constraint2 = constraint.withName("nx");
+			assertThat(constraint2).isSameAs(constraint);
+		}
+
+		@Test
+		void shouldModifyName() {
+
+			Constraint constraint = Constraint.forNode("X").named("x").unique("x").withName("a brand new name");
+			assertThat(constraint.getName()).isEqualTo(Name.of("a brand new name"));
+		}
+	}
 }

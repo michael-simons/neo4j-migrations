@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -72,6 +73,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 * Text indexes for 4.4 and later.
 		 */
 		TEXT,
+		/**
+		 * Point indexes for 5.0 and later.
+		 */
+		POINT,
 		/**
 		 * An index backing a constraint.
 		 */
@@ -372,6 +377,50 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	@Override
 	public String toString() {
 		return getName().getValue() + getType() + getIdentifier();
+	}
+
+	@Override
+	public Index withName(String newName) {
+
+		if (Objects.equals(super.getName().getValue(), newName)) {
+			return this;
+		}
+
+		return new Index(newName, getType(), getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), options);
+	}
+
+	/**
+	 * Creates a copy of this index with the specific set of options added. Will return {@literal this} instance if
+	 * the options are identical to current options.
+	 *
+	 * @param newOptions The new options to use
+	 * @return A (potentially) new index
+	 * @since TBA
+	 */
+	public Index withOptions(String newOptions) {
+
+		if (Objects.equals(super.options, newOptions)) {
+			return this;
+		}
+
+		return new Index(getName().getValue(), getType(), getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), newOptions);
+	}
+
+	/**
+	 * Creates a copy of this index with the given type. Will return {@literal this} instance if the type is identical
+	 * to the current one.
+	 *
+	 * @param newType The new type to use
+	 * @return A (potentially) new index
+	 * @since TBA
+	 */
+	public Index withType(Index.Type newType) {
+
+		if (Objects.equals(this.getType(), newType)) {
+			return this;
+		}
+
+		return new Index(getName().getValue(), newType, getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), options);
 	}
 
 	/**

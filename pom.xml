@@ -120,7 +120,7 @@
 		<java.version>8</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.0</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
-		<junit.jupiter.version>5.9.0</junit.jupiter.version>
+		<junit.jupiter.version>5.9.1</junit.jupiter.version>
 		<license-maven-plugin.version>4.2.rc2</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>

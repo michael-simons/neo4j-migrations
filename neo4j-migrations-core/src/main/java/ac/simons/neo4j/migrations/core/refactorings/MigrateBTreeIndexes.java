@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.catalog.Index;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Migrates existing B-tree indexes and constraints backed by such indexes to Neo4j 5.0+ and higher supported indexes.
@@ -30,6 +31,11 @@ import java.util.Map;
  * @since TBA
  */
 public interface MigrateBTreeIndexes extends Refactoring {
+
+	/**
+	 * Items that are not dropped will be logged through this logger.
+	 */
+	Logger LOGGER = Logger.getLogger(MigrateBTreeIndexes.class.getName());
 
 	/**
 	 * The default suffix for constraints and indexes that are bound to replace old btree based constraints and indexes.

@@ -30,9 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
@@ -74,6 +76,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 
 	private final RenderConfig createConfigConstraint;
 	private final RenderConfig createConfigIndex;
+	private final RenderConfig dropConfig;
 
 	DefaultMigrateBTreeIndexes() {
 		this(false, null, null, null);
@@ -89,6 +92,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		this.featureSet = QueryRunner.defaultFeatureSet()
 			.withRequiredVersion("4.4");
 		this.createConfigConstraint = RenderConfig.create()
+			.idempotent(true)
 			.forVersionAndEdition(featureSet.requiredVersion(), "ENTERPRISE")
 			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
 				@Override
@@ -107,6 +111,9 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 					return true;
 				}
 			}));
+		this.dropConfig = RenderConfig.drop()
+			.ifExists()
+			.forVersionAndEdition(featureSet.requiredVersion(), "ENTERPRISE");
 	}
 
 	/**
@@ -207,23 +214,25 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 
 		Counters counters = Counters.empty();
 		try (QueryRunner tx = context.getQueryRunner(featureSet)) {
-			List<CatalogItem<?>> oldIndexes = findBTreeBasedItems(tx);
-			if (dropOldIndexes) {
-				RenderConfig dropConfig = RenderConfig.drop()
-					.forVersionAndEdition(featureSet.requiredVersion(), "ENTERPRISE");
-				for (CatalogItem<?> item : oldIndexes) {
-					Renderer<CatalogItem<?>> renderer = rendererProvider.apply(item);
-					counters = counters.add(
-						new DefaultCounters(tx.run(new Query(renderer.render(item, dropConfig))).consume().counters()));
+			List<CatalogItem<?>> bTreeBasedItems = findBTreeBasedItems(tx);
+			StringJoiner dropStatements = new StringJoiner(System.lineSeparator(), System.lineSeparator(), "");
+			for (CatalogItem<?> item : bTreeBasedItems) {
+				Renderer<CatalogItem<?>> renderer = rendererProvider.apply(item);
+
+				String dropStatement = renderer.render(item, dropConfig);
+				if (dropOldIndexes) {
+					counters = counters.add(new DefaultCounters(tx.run(new Query(dropStatement)).consume().counters()));
+				} else {
+					dropStatements.add(dropStatement + ";");
 				}
-			}
 
-
-			for (CatalogItem<?> item : oldIndexes) {
 				CatalogItem<?> migratedItem = migrate(item);
-				Renderer<CatalogItem<?>> renderer = rendererProvider.apply(migratedItem);
 				RenderConfig config = item instanceof Index ? createConfigIndex : createConfigConstraint;
 				counters = counters.add(new DefaultCounters(tx.run(new Query(renderer.render(migratedItem, config))).consume().counters()));
+			}
+
+			if (!dropOldIndexes && LOGGER.isLoggable(Level.INFO)) {
+				LOGGER.log(Level.INFO, "Future indexes have been created. Use the following statements to drop all BTREE based constraints and indexes:{0}", dropStatements);
 			}
 		}
 

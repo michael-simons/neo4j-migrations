@@ -77,6 +77,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 
 		switch (index.getType()) {
+			case POINT:
 			case PROPERTY:
 			case TEXT:
 				w.write(renderNodePropertiesIndex(index, config));
@@ -87,6 +88,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			default:
 				throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
 		}
+
+		CypherRenderingUtils.renderOptions(index, config, w);
 		w.flush();
 	}
 
@@ -144,8 +147,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			: renderProperties("r", index, config); // relationship
 
 		Operator operator = config.getOperator();
-
-		String type = index.getType() == Index.Type.PROPERTY ? " " : " " + index.getType().name() + " ";
+		String type = determineType(index, config);
 
 		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5) {
@@ -165,6 +167,21 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		} else {
 			return String.format("%s%s%#s %sFOR ()-[r:%s]-() ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
 				identifier, properties);
+		}
+	}
+
+	private static String determineType(Index index, RenderConfig config) {
+
+		if (index.getType() == Index.Type.PROPERTY && !config.useExplicitPropertyIndexType()) {
+			return " ";
+		}
+
+		if (index.isBtreePropertyIndex()) {
+			return " BTREE ";
+		} else if (index.isRangePropertyIndex()) {
+			return " RANGE ";
+		} else {
+			return " " + index.getType().name() + " ";
 		}
 	}
 

@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.assertj.core.data.Index;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -81,9 +82,9 @@ class CatalogBasedMigrationIT {
 			Session session = driver.session()) {
 			Catalog catalog;
 			if (version.value == Neo4jVersion.V4_2) {
-				catalog = session.writeTransaction(tx -> DatabaseCatalog.of(version.value, tx));
+				catalog = session.writeTransaction(tx -> DatabaseCatalog.of(version.value, tx, true));
 			} else {
-				catalog = session.readTransaction(tx -> DatabaseCatalog.of(version.value, tx));
+				catalog = session.readTransaction(tx -> DatabaseCatalog.of(version.value, tx, true));
 			}
 			assertThat(catalog.getItems()).isNotEmpty();
 			assertThat(catalog.getItems()).allMatch(expectedCatalog::containsEquivalentItem);
@@ -170,6 +171,28 @@ class CatalogBasedMigrationIT {
 						}, Index.atIndex(1));
 				}
 			}
+		} finally {
+			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
+				neo4j.stop();
+			}
+		}
+	}
+
+	@Test
+	void optionsCanBeIncluded() throws IOException {
+
+		Neo4jContainer<?> neo4j = getNeo4j(Neo4jVersion.V4_4, true, false);
+		Config config = Config.builder().withLogging(Logging.none()).build();
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			try (Session session = driver.session()) {
+				session.run("MATCH (n) DETACH DELETE n").consume();
+			}
+			Migrations migrations = new Migrations(MigrationsConfig.builder()
+				.withLocationsToScan("classpath:catalogbased/actual-migrations-with-complete-verification").build(),
+				driver
+			);
+			Optional<MigrationVersion> optionalMigrationVersion = migrations.apply();
+			assertThat(optionalMigrationVersion).hasValue(MigrationVersion.withValue("60"));
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
 				neo4j.stop();

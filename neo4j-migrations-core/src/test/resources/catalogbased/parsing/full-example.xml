@@ -126,4 +126,54 @@
 			</parameter>
 		</parameters>
 	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" />
+	<refactor type="migrate.createFutureIndexes">
+		<parameters>
+			<parameter name="suffix">_future</parameter>
+			<parameter name="excludes">
+				<value>a</value>
+				<value>b</value>
+			</parameter>
+			<parameter name="typeMapping">
+				<mapping>
+					<name>c</name>
+					<type>POINT</type>
+				</mapping>
+				<mapping>
+					<name>d</name>
+					<type>TEXT</type>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.replaceBTreeIndexes" />
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="excludes">
+				<value>a</value>
+				<value>b</value>
+			</parameter>
+			<parameter name="typeMapping">
+				<mapping>
+					<name>c</name>
+					<type>POINT</type>
+				</mapping>
+				<mapping>
+					<name>d</name>
+					<type>TEXT</type>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="includes">
+				<value>x</value>
+				<value>y</value>
+			</parameter>
+		</parameters>
+	</refactor>
 </migration>

@@ -33,7 +33,7 @@ enum CatalogToCypherRenderer implements Renderer<Catalog> {
 	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
 
 		byte[] separator = (";" + System.lineSeparator()).getBytes(StandardCharsets.UTF_8);
-		Map<Class<CatalogItem<?>>, Renderer<CatalogItem<?>>> cachedRenderer = new ConcurrentHashMap<>(2);
+		Map<Class<CatalogItem<?>>, Renderer<CatalogItem<?>>> cachedRenderer = new ConcurrentHashMap<>(4);
 		for (CatalogItem<?> item : catalog.getItems()) {
 			@SuppressWarnings("unchecked")
 			Renderer<CatalogItem<?>> renderer = cachedRenderer.computeIfAbsent((Class<CatalogItem<?>>) item.getClass(),

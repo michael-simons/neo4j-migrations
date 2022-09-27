@@ -15,8 +15,10 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -49,6 +52,10 @@ final class CatalogBasedRefactorings {
 
 		if (type.equals("merge.nodes")) {
 			return createMerge(node, type);
+		} else if (type.equals("migrate.createFutureIndexes")) {
+			return createMigrateBtreeIndexes(node, false);
+		} else if (type.equals("migrate.replaceBTreeIndexes")) {
+			return createMigrateBtreeIndexes(node, true);
 		} else if (type.startsWith("rename.")) {
 			return createRename(node, type);
 		} else if (type.equals("normalize.asBoolean")) {
@@ -56,6 +63,38 @@ final class CatalogBasedRefactorings {
 		}
 
 		throw createException(node, type, null);
+	}
+
+	private static Refactoring createMigrateBtreeIndexes(Node node, boolean drop) {
+
+		Optional<NodeList> optionalParameters = findParameterList(node);
+		MigrateBTreeIndexes migrateBTreeIndexes;
+		if (drop) {
+			migrateBTreeIndexes = MigrateBTreeIndexes
+				.replaceBTreeIndexes();
+		} else {
+			String suffix = optionalParameters.flatMap(parameters -> findParameter(node, "suffix", parameters)).orElse(null);
+			migrateBTreeIndexes =  MigrateBTreeIndexes
+				.createFutureIndexes(suffix);
+		}
+
+		List<String> excludes = optionalParameters
+			.flatMap(parameters -> findParameterValues(parameters, "excludes")).orElse(Collections.emptyList());
+		List<String> includes = optionalParameters
+			.flatMap(parameters -> findParameterValues(parameters, "includes")).orElse(Collections.emptyList());
+		Map<String, Index.Type> typeMappings = optionalParameters
+			.flatMap(parameters -> findParameterNode(parameters, "typeMapping"))
+			.map(typeMapping -> findChildNodes(typeMapping, "mapping"))
+			.map(mappings -> mappings.stream().collect(Collectors.toMap(
+				mapping -> findChildNode(mapping, "name").map(Node::getTextContent).map(String::trim).orElseThrow(() -> new IllegalArgumentException("Index name is required when customizing type mappings")),
+				mapping -> findChildNode(mapping, "type").map(Node::getTextContent).map(String::trim).map(Index.Type::valueOf).orElseThrow(() -> new IllegalArgumentException("Type is required when customizing type mappings"))
+			)))
+			.orElse(Collections.emptyMap());
+
+		return migrateBTreeIndexes
+			.withExcludes(excludes)
+			.withIncludes(includes)
+			.withTypeMapping(typeMappings);
 	}
 
 	private static Normalize createNormalizeAsBoolean(Node node, String type) {
@@ -250,6 +289,34 @@ final class CatalogBasedRefactorings {
 		};
 
 		return findParameterNode(parametersNodeList, parameterNameToFind).map(aggregateValues);
+	}
+
+	private static Optional<Node> findChildNode(Node node, String childNodeName) {
+		NodeList childNodes = node.getChildNodes();
+		Optional<Node> result = Optional.empty();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Node childNode = childNodes.item(i);
+			if (!childNodeName.equals(childNode.getNodeName())) {
+				continue;
+			}
+			if (result.isPresent()) {
+				throw new IllegalArgumentException("Duplicate child node `" + childNodeName + "`");
+			}
+			result = Optional.of(childNode);
+		}
+		return result;
+	}
+
+	private static List<Node> findChildNodes(Node node, String childNodeName) {
+		NodeList childNodes = node.getChildNodes();
+		List<Node> result = new ArrayList<>();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Node childNode = childNodes.item(i);
+			if (childNodeName.equals(childNode.getNodeName())) {
+				result.add(childNode);
+			}
+		}
+		return result;
 	}
 
 	private CatalogBasedRefactorings() {

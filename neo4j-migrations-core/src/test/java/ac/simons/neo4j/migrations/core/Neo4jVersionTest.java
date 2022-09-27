@@ -101,4 +101,16 @@ class Neo4jVersionTest {
 		String value = Neo4jVersion.LATEST.sanitizeSchemaName(in);
 		assertThat(value).isEqualTo(expected);
 	}
+
+	@ParameterizedTest
+	@EnumSource(value = Neo4jVersion.class, names = {"V3_5", "V4_0", "V4_1", "UNDEFINED"}, mode = EnumSource.Mode.INCLUDE)
+	void oldVersionsShouldNotSupportOptions(Neo4jVersion version) {
+		assertThat(version.supportsSchemaOptions()).isFalse();
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Neo4jVersion.class, names = {"V3_5", "V4_0", "V4_1", "UNDEFINED"}, mode = EnumSource.Mode.EXCLUDE)
+	void newVersionsShouldSupportOptions(Neo4jVersion version) {
+		assertThat(version.supportsSchemaOptions()).isTrue();
+	}
 }

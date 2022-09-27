@@ -91,6 +91,23 @@ class IndexToCypherRendererTest {
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
+	@Test
+	void shouldOptionallyRenderOptions() {
+
+		RenderConfig renderConfig = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		Index index = new Index("title_idx", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("Book"), Collections.singleton("title"), "{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig)).isEqualTo("CREATE INDEX title_idx FOR (n:Book) ON (n.title)");
+		assertThat(renderer.render(index, renderConfig.withAdditionalOptions(
+			Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override public boolean includingOptions() {
+					return true;
+				}
+			}))))
+			.isEqualTo("CREATE INDEX title_idx FOR (n:Book) ON (n.title) OPTIONS {`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+	}
+
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldRenderNamedIndexCreation() {
 
@@ -261,6 +278,17 @@ class IndexToCypherRendererTest {
 
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldNotIncludeIndexTypeOnDrop() {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of("4.4"), Neo4jEdition.ENTERPRISE, Operator.DROP, true);
+		Index index = new Index("index_name", Index.Type.TEXT, TargetEntityType.NODE,
+			Collections.singleton("Person"), Collections.singleton("firstname"));
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig)).isEqualTo("DROP INDEX index_name IF EXISTS");
 	}
 
 	@SuppressWarnings("unused")
@@ -754,5 +782,44 @@ class IndexToCypherRendererTest {
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, config)).isEqualTo(
 			"CREATE TEXT INDEX rel_index_name FOR ()-[r:KNOWS]-() ON (r.interest)");
+	}
+
+	@Test
+	void shouldRenderRange() {
+		Index index = new Index("n_a_r", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'range-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE)
+			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override
+				public boolean useExplicitPropertyIndexType() {
+					return true;
+				}
+			}));
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE RANGE INDEX n_a_r FOR (n:A) ON (n.a)");
+	}
+
+	@Test
+	void shouldRenderBtree() {
+		Index index = new Index("n_a_b", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'native-btree-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE)
+			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {
+				@Override
+				public boolean useExplicitPropertyIndexType() {
+					return true;
+				}
+			}));
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE BTREE INDEX n_a_b FOR (n:A) ON (n.a)");
+	}
+
+	@Test
+	void shouldNotRenderExplicitType() {
+		Index index = new Index("n_a_n", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{`indexProvider`: 'native-btree-1.0'}");
+		RenderConfig config = RenderConfig.create()
+			.forVersionAndEdition(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE);
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("CREATE INDEX n_a_n FOR (n:A) ON (n.a)");
 	}
 }

@@ -86,12 +86,25 @@ final class MigrationsLock {
 		try (Session session = context.getSchemaSession()) {
 			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
 				String cypher = renderer.render(constraint, createConfig);
-				constraintsAdded += HBD.silentCreateConstraint(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
+				try {
+					constraintsAdded += HBD.silentCreateConstraint(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
+				} catch (MigrationsException e) {
+					if (!constraintWithNameAlreadyExistsAndIsEquivalent(cd, session, constraint, e)) {
+						throw e;
+					}
+				}
 			}
 		}
 		LOGGER.log(Level.FINE, "Created {0} constraints", constraintsAdded);
+	}
+
+	private static boolean constraintWithNameAlreadyExistsAndIsEquivalent(ConnectionDetails cd, Session session, Constraint constraint, MigrationsException e) {
+		return e.getCause() instanceof Neo4jException && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
+			((Neo4jException) e.getCause()).code()) && DatabaseCatalog.full(Neo4jVersion.of(cd.getServerVersion()),
+			session).containsEquivalentItem(constraint);
 	}
 
 	SummaryCounters clean() {

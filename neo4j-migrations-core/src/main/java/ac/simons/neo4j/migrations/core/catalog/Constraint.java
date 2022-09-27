@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -227,8 +228,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
 		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
+		String options = resolveOptions(row).orElse(null);
 
-		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties));
+		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties), options);
 	}
 
 	/**
@@ -344,6 +346,36 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	/**
+	 * Creates a copy of this constraint with the specific set of options added. Will return {@literal this} instance if
+	 * the options are identical to current options
+	 *
+	 * @param options The new options to use
+	 * @return A (potentially) new constraint
+	 * @since 1.13.0
+	 */
+	@SuppressWarnings("HiddenField")
+	public Constraint withOptions(String options) {
+
+		if (Objects.equals(super.options, options)) {
+			return this;
+		}
+
+		return new Constraint(getName().getValue(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),
+			options);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public Constraint withName(String name) {
+
+		if (Objects.equals(super.getName().getValue(), name)) {
+			return this;
+		}
+
+		return new Constraint(name, getType(), getTargetEntityType(), getIdentifier(), getProperties(), options);
+	}
+
+	/**
 	 * {@literal true}, if {@literal item} is a constraint of the same type for the same entity containing the same properties.
 	 *
 	 * @param that the other item to compare to
@@ -365,7 +397,6 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		return this.getType().equals(other.getType()) &&
 			this.getTargetEntityType().equals(other.getTargetEntityType()) &&
 			this.getIdentifier().equals(other.getIdentifier()) &&
-			this.getProperties().equals(other.getProperties()) &&
-			this.getOptionalOptions().equals(other.getOptionalOptions());
+			this.getProperties().equals(other.getProperties());
 	}
 }

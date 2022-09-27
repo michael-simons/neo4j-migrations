@@ -40,6 +40,7 @@ import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
@@ -204,6 +205,10 @@ class CatalogBasedMigrationTest {
 		@Test
 		void allRefactoringsShouldWork() {
 
+			Map<String, ac.simons.neo4j.migrations.core.catalog.Index.Type> typeMappings = new HashMap<>();
+			typeMappings.put("c", ac.simons.neo4j.migrations.core.catalog.Index.Type.POINT);
+			typeMappings.put("d", ac.simons.neo4j.migrations.core.catalog.Index.Type.TEXT);
+
 			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/full-example.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
@@ -229,7 +234,18 @@ class CatalogBasedMigrationTest {
 							Arrays.asList("The Matrix"),
 							Arrays.asList("Das deutsche Kettensägenmassaker", null, null))
 						.withCustomQuery("MATCH (n:Movie) return n")
-						.inBatchesOf(42)
+						.inBatchesOf(42),
+					MigrateBTreeIndexes.createFutureIndexes(),
+					MigrateBTreeIndexes
+						.createFutureIndexes("_future")
+						.withExcludes(Arrays.asList("a", "b"))
+						.withTypeMapping(typeMappings),
+					MigrateBTreeIndexes.replaceBTreeIndexes(),
+					MigrateBTreeIndexes.replaceBTreeIndexes()
+						.withExcludes(Arrays.asList("a", "b"))
+						.withTypeMapping(typeMappings),
+					MigrateBTreeIndexes.replaceBTreeIndexes()
+						.withIncludes(Arrays.asList("x", "y"))
 				);
 		}
 
@@ -252,6 +268,33 @@ class CatalogBasedMigrationTest {
 				}
 			}
 			throw new NoSuchElementException(id);
+		}
+
+		@ParameterizedTest
+		@CsvSource(nullValues = "n/a", value = {
+			"create-future-index-empty-suffix, n/a",
+			"create-future-index-empty-ignore1, n/a",
+			"create-future-index-empty-ignore2, n/a",
+			"create-future-index-empty-tm1, n/a",
+			"create-future-index-empty-tm2, n/a",
+			"create-future-index-empty-duplicate-name, is",
+			"create-future-index-empty-no-name, Index name is required when customizing type mappings",
+			"create-future-index-empty-no-type, Type is required when customizing type mappings"
+		})
+		void brokenMigrateBtreeNodes(String id, String message) {
+
+			Node refactoring = getElementById(id);
+			if (message == null) {
+				MigrateBTreeIndexes migrateBTreeIndexes = (MigrateBTreeIndexes) CatalogBasedRefactorings.fromNode(refactoring);
+				assertThat(migrateBTreeIndexes).isEqualTo(MigrateBTreeIndexes.createFutureIndexes());
+			} else if ("is".equals(message)) {
+				assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
+					.withMessage("Duplicate child node `name`");
+			} else {
+				assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
+					.withMessage(message);
+			}
+
 		}
 
 		@ParameterizedTest
@@ -333,6 +376,7 @@ class CatalogBasedMigrationTest {
 					VerifyOperation verifyOperation = (VerifyOperation) op;
 					assertThat(verifyOperation.useCurrent()).isFalse();
 					assertThat(verifyOperation.allowEquivalent()).isTrue();
+					assertThat(verifyOperation.includeOptions()).isFalse();
 					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}
@@ -351,6 +395,7 @@ class CatalogBasedMigrationTest {
 					VerifyOperation verifyOperation = (VerifyOperation) op;
 					assertThat(verifyOperation.useCurrent()).isTrue();
 					assertThat(verifyOperation.allowEquivalent()).isFalse();
+					assertThat(verifyOperation.includeOptions()).isTrue();
 					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}

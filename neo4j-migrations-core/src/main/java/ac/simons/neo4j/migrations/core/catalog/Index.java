@@ -25,8 +25,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Value;
@@ -44,6 +46,10 @@ import org.w3c.dom.Element;
 // from the identifier in a one-to-one onto relationship and therefor ok.
 @SuppressWarnings("squid:S2160")
 public final class Index extends AbstractCatalogItem<Index.Type> {
+
+	private static final String PROVIDER_PATTERN_FMT = "(?i)`?indexProvider`?\\s*:\\s*(['\"])%s-\\d\\.0(['\"])";
+	private static final Pattern PROVIDER_PATTERN_RANGE = Pattern.compile(String.format(PROVIDER_PATTERN_FMT, "range"));
+	private static final Pattern PROVIDER_PATTERN_BTREE = Pattern.compile(String.format(PROVIDER_PATTERN_FMT, "native-btree"));
 
 	/**
 	 * Enumerates the different kinds of indexes.
@@ -67,6 +73,10 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		 * Text indexes for 4.4 and later.
 		 */
 		TEXT,
+		/**
+		 * Point indexes for 5.0 and later.
+		 */
+		POINT,
 		/**
 		 * An index backing a constraint.
 		 */
@@ -329,7 +339,8 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			type = Type.CONSTRAINT_BACKING_INDEX;
 		}
 
-		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties));
+		String options = resolveOptions(row).orElse(null);
+		return new Index(name, type, targetEntityType, labelsOrTypes, new LinkedHashSet<>(properties), options);
 	}
 
 	static boolean isConstraintBackingIndex(MapAccessor row) {
@@ -368,6 +379,50 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		return getName().getValue() + getType() + getIdentifier();
 	}
 
+	@Override
+	public Index withName(String newName) {
+
+		if (Objects.equals(super.getName().getValue(), newName)) {
+			return this;
+		}
+
+		return new Index(newName, getType(), getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), options);
+	}
+
+	/**
+	 * Creates a copy of this index with the specific set of options added. Will return {@literal this} instance if
+	 * the options are identical to current options.
+	 *
+	 * @param newOptions The new options to use
+	 * @return A (potentially) new index
+	 * @since 1.13.0
+	 */
+	public Index withOptions(String newOptions) {
+
+		if (Objects.equals(super.options, newOptions)) {
+			return this;
+		}
+
+		return new Index(getName().getValue(), getType(), getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), newOptions);
+	}
+
+	/**
+	 * Creates a copy of this index with the given type. Will return {@literal this} instance if the type is identical
+	 * to the current one.
+	 *
+	 * @param newType The new type to use
+	 * @return A (potentially) new index
+	 * @since 1.13.0
+	 */
+	public Index withType(Index.Type newType) {
+
+		if (Objects.equals(this.getType(), newType)) {
+			return this;
+		}
+
+		return new Index(getName().getValue(), newType, getTargetEntityType(), getDeconstructedIdentifiers(), getProperties(), options);
+	}
+
 	/**
 	 * {@literal true}, if {@literal item} is an index of the same type for the same entity containing the same properties.
 	 * Also index name and options will be compared.
@@ -391,11 +446,24 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		return this.getType().equals(other.getType()) &&
 				this.getTargetEntityType().equals(other.getTargetEntityType()) &&
 				this.getIdentifier().equals(other.getIdentifier()) &&
-				this.getProperties().equals(other.getProperties()) &&
-				this.getOptionalOptions().equals(other.getOptionalOptions());
+				this.getProperties().equals(other.getProperties());
 	}
 
 	Collection<String> getDeconstructedIdentifiers() {
 		return Collections.unmodifiableSet(deconstructedIdentifiers);
+	}
+
+	boolean isRangePropertyIndex() {
+		return isPropertyIndexMatching(PROVIDER_PATTERN_RANGE);
+	}
+
+	boolean isBtreePropertyIndex() {
+		return isPropertyIndexMatching(PROVIDER_PATTERN_BTREE);
+	}
+
+	private boolean isPropertyIndexMatching(Pattern pattern) {
+		return this.getType() == Type.PROPERTY && getOptionalOptions()
+			.filter(pattern.asPredicate())
+			.isPresent();
 	}
 }

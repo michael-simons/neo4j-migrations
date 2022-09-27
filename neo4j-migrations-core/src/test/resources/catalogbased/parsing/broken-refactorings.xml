@@ -83,4 +83,69 @@
 			</parameter>
 		</parameters>
 	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-suffix">
+		<parameters>
+			<parameter name="suffix" />
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-ignore1">
+		<parameters>
+			<parameter name="excludes" />
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-ignore2">
+		<parameters>
+			<parameter name="excludes">
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-tm1">
+		<parameters>
+			<parameter name="typeMapping" />
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-tm2">
+		<parameters>
+			<parameter name="typeMapping">
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-duplicate-name">
+		<parameters>
+			<parameter name="typeMapping">
+				<mapping>
+					<name>c</name>
+					<name>d</name>
+					<type>POINT</type>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-no-name">
+		<parameters>
+			<parameter name="typeMapping">
+				<mapping>
+					<type>POINT</type>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.createFutureIndexes" id="create-future-index-empty-no-type">
+		<parameters>
+			<parameter name="typeMapping">
+				<mapping>
+					<name>n</name>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+
 </migration>

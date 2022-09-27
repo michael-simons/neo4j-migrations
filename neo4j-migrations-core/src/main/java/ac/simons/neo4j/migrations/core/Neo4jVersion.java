@@ -163,6 +163,14 @@ public enum Neo4jVersion {
 	}
 
 	/**
+	 * @return true if this version supports specifying options on constraints and indexes.
+	 * @since 1.13.0
+	 */
+	public boolean supportsSchemaOptions() {
+		return this.compareTo(Neo4jVersion.V4_1) > 0;
+	}
+
+	/**
 	 * @return The command recommended for this specific version to get a list of all known constraints
 	 */
 	public String getShowConstraints() {

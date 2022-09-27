@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+
+	<?assume that version is 4.4 ?>
+
+	<refactor type="migrate.createFutureIndexes">
+		<parameters>
+			<parameter name="excludes">
+				<value>__Neo4jMigrationsLock__has_unique_id</value>
+				<value>__Neo4jMigrationsLock__has_unique_name</value>
+				<value>unique_version___Neo4jMigration</value>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<!-- Those are the future indexes, created by the refactoring above. They won't exist if the refactoring didn't work. -->
+	<drop ifExists="false">
+		<constraint name="unique_isbn_new" type="unique">
+			<label>Book</label>
+			<properties>
+				<property>isbn</property>
+			</properties>
+		</constraint>
+	</drop>
+
+	<drop ifExists="false">
+		<index name="book_title_new">
+			<label>Book</label>
+			<properties>
+				<property>title</property>
+			</properties>
+		</index>
+	</drop>
+
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="includes">
+				<value>__Neo4jMigrationsLock__has_unique_id</value>
+				<value>__Neo4jMigrationsLock__has_unique_name</value>
+				<value>unique_version___Neo4jMigration</value>
+			</parameter>
+		</parameters>
+	</refactor>
+</migration>

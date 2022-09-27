@@ -274,6 +274,65 @@ As catalog item:
 </refactor>
 ----
 
+=== Migrating BTREE indexes to "future" indexes
+
+Neo4j 4.4 introduces https://neo4j.com/docs/cypher-manual/current/indexes-for-search-performance/#indexes-future-indexes[future indexes], `RANGE` and `POINT` which replace the well known `BTREE` indexes of Neo4j 4.x. These new indexes are available from Neo4j 4.4 onwards but will not participate in any query planing in Neo4j 4.4. They exist merely for migration purposes in Neo4j 4.4: Neo4j 5.0 does not support `BTREE` indexes at all. This means a database that contains `BTREE` indexes _cannot_ be upgraded to Neo4j 5.0. Existing `BTREE` indexes need to be dropped prior to attempting the upgrade. The class `ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes` has been created for this purpose. It allows creation of matching new indexes and optionally dropping the indexes that are no longer supported in Neo4j 5.0 and higher prior to upgrading the store.
+
+As with all the other refactorings, it can be used programmatically in your own application or through Neo4j-Migrations.
+
+==== Preparing an upgrade to Neo4j 5.0 by creating future indexes in parallel
+
+[source,xml]
+.Creating future indexes in parallel to old indexes
+----
+<refactor type="migrate.createFutureIndexes">
+    <parameters> <!--.-->
+        <parameter name="suffix">_future</parameter> <!--.-->
+        <parameter name="excludes"> <!--.-->
+            <value>a</value>
+            <value>b</value>
+        </parameter>
+        <parameter name="typeMapping"> <!--.-->
+            <mapping>
+                <name>c</name>
+                <type>POINT</type>
+            </mapping>
+            <mapping>
+                <name>d</name>
+                <type>TEXT</type>
+            </mapping>
+        </parameter>
+    </parameters>
+</refactor>
+----
+<.> All parameters are optional
+<.> The default suffix is `_new`
+<.> An `excludes` list can be used to exclude items from being processed by name. Its pendant is the `includes` list. If
+the latter is not empty, only the items in the list will be processed
+<.> By default, `RANGE` indexes are created. The type mapping allows to map specific old indexes to either `RANGE`, `POINT` or `TEXT`.
+The type mappings are not consulted when migrating constraint-backing indexes.
+
+When the above refactoring is applied, new indexes and constraints will be created in parallel to the old ones. The refactoring will log statements for dropping the old constraints.
+
+==== Preparing an upgrade to Neo4j 5.0 by replacing `BTREE` indexes with future indexes
+
+The advantage of this approach is the fact that it won't need additional manual work before doing a store upgrade. However, the store upgrade should follow closely after dropping the old indexes and creating the replacement indexes as the latter won't participate in planning at all prior to the actual upgrade to Neo4j 5.0 or higher.
+
+[source,xml]
+.Replacing `BTREE` indexes with future indexes
+----
+<refactor type="migrate.replaceBTreeIndexes">
+    <parameters>
+        <parameter name="includes">
+            <value>x</value>
+            <value>y</value>
+        </parameter>
+    </parameters>
+</refactor>
+----
+
+The `suffix` parameter is not supported as it is not needed. The other parameters have the same meaning as with `migrate.createFutureIndexes`. The above example shows the `includes` parameter.
+
 [[appendix_annotation]]
 == Annotation processing
 

@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 
@@ -324,4 +326,44 @@ class IndexTest {
 		return result;
 	}
 
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"{indexConfig: {}, indexProvider: \"range-1.0\"} ",
+		"{indexConfig: {}, `indexProvider`: \"range-1.0\"}",
+		"{indexConfig: {},\n `indexProvider`  : 'range-1.0'}",
+		"{`indexProvider`  : 'range-1.0'}",
+		"{`indexProvider`  : 'range-1.0', `indexConfig`: {}}",
+	})
+	void shouldDetectRangeIndex(String options) {
+		Index index;
+		index = new Index("n/a", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), options);
+		assertThat(index.isRangePropertyIndex()).isTrue();
+
+		index = new Index("n/a", Index.Type.TEXT, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), options);
+		assertThat(index.isRangePropertyIndex()).isFalse();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"{indexConfig: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, indexProvider: \"native-btree-1.0\"}",
+		"{indexConfig: {}, `indexProvider`: \"native-btree-1.0\"}",
+		"{indexConfig: {},\n `indexProvider`  : 'native-btree-1.0'}",
+		"{`indexProvider`  : 'native-btree-1.0'}",
+		"{`indexProvider`  : 'native-btree-1.0', `indexConfig`: {}}"
+	})
+	void shouldDetectBtreeIndex(String options) {
+		Index index;
+		index = new Index("n/a", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), options);
+		assertThat(index.isBtreePropertyIndex()).isTrue();
+
+		index = new Index("n/a", Index.Type.TEXT, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), options);
+		assertThat(index.isBtreePropertyIndex()).isFalse();
+	}
+
+	@Test
+	void shouldIgnoreTextForType() {
+		Index index = new Index("n/a", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("A"), Collections.singleton("a"), "{indexConfig: {}, indexProvider: \"text-1.0\"}");
+		assertThat(index.isRangePropertyIndex()).isFalse();
+		assertThat(index.isBtreePropertyIndex()).isFalse();
+	}
 }

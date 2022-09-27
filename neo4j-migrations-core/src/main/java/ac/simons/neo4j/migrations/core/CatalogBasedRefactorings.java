@@ -53,9 +53,9 @@ final class CatalogBasedRefactorings {
 		if (type.equals("merge.nodes")) {
 			return createMerge(node, type);
 		} else if (type.equals("migrate.createFutureIndexes")) {
-			return createMigrateBtreeIndexes(false, node, type);
+			return createMigrateBtreeIndexes(node, false);
 		} else if (type.equals("migrate.replaceBTreeIndexes")) {
-			return createMigrateBtreeIndexes(true, node, type);
+			return createMigrateBtreeIndexes(node, true);
 		} else if (type.startsWith("rename.")) {
 			return createRename(node, type);
 		} else if (type.equals("normalize.asBoolean")) {
@@ -65,7 +65,7 @@ final class CatalogBasedRefactorings {
 		throw createException(node, type, null);
 	}
 
-	private static Refactoring createMigrateBtreeIndexes(boolean drop, Node node, String type) {
+	private static Refactoring createMigrateBtreeIndexes(Node node, boolean drop) {
 
 		Optional<NodeList> optionalParameters = findParameterList(node);
 		MigrateBTreeIndexes migrateBTreeIndexes;

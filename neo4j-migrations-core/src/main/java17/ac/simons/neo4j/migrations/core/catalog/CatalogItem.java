@@ -56,7 +56,7 @@ public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogI
 	 * @return A (potentially) new item
 	 * @since 1.13.0
 	 */
-	default CatalogItem<?> withName(String name) {
+	default CatalogItem<T> withName(String name) {
 		throw new UnsupportedOperationException();
 	}
 }

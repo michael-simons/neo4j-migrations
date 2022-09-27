@@ -155,6 +155,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	 * @param queryRunner Might be a session or tx
 	 * @return A list with items that need processing
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	List<CatalogItem<?>> findBTreeBasedItems(QueryRunner queryRunner) {
 
 		Map<Long, Index> indexes = findBTreeBasedIndexes(queryRunner);
@@ -184,6 +185,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	 * @return modified one
 	 * @throws IllegalArgumentException on {@literal null} or unsupported items
 	 */
+	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	CatalogItem<?> migrate(CatalogItem<?> old) {
 
 		if (old == null) {

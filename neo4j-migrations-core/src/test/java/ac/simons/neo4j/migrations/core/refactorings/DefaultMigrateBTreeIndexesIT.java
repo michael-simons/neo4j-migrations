@@ -159,9 +159,9 @@ class DefaultMigrateBTreeIndexesIT {
 			Counters counters = refactoring.apply(new TestRefactoringContext(session));
 
 			assertThat(counters.constraintsAdded()).isEqualTo(2);
-			assertThat(counters.constraintsRemoved()).isEqualTo(0);
+			assertThat(counters.constraintsRemoved()).isZero();
 			assertThat(counters.indexesAdded()).isEqualTo(3);
-			assertThat(counters.indexesRemoved()).isEqualTo(0);
+			assertThat(counters.indexesRemoved()).isZero();
 
 			List<String> oldConstraints = session
 				.run(QUERY_GET_OLD_CONSTRAINTS)

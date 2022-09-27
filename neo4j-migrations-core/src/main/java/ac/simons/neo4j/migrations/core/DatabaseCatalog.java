@@ -46,9 +46,9 @@ import org.neo4j.driver.types.MapAccessor;
 final class DatabaseCatalog implements Catalog {
 
 	/**
-	 * A map accessor that can filter other mapaccessors. It does not support iterating over elements.
+	 * A map accessor that can filter other map-accessors. It does not support iterating over elements.
 	 */
-	private final static class FilteredMapAccessor implements MapAccessor {
+	private static final class FilteredMapAccessor implements MapAccessor {
 
 		private final MapAccessor delegate;
 

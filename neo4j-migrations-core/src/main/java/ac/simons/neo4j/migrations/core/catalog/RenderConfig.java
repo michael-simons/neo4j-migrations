@@ -295,7 +295,7 @@ public final class RenderConfig {
 		return includingOptions;
 	}
 
-	public boolean useExplicitPropertyIndexType() {
+	boolean useExplicitPropertyIndexType() {
 		return useExplicitPropertyIndexType;
 	}
 

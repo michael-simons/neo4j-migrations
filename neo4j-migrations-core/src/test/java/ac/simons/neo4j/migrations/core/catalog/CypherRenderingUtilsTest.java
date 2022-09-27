@@ -45,7 +45,7 @@ class CypherRenderingUtilsTest {
 				Collections.singleton("isbn"), options);
 			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
-			assertThat(writer.toString()).isEqualTo(" OPTIONS {" + options + "}");
+			assertThat(writer).hasToString(" OPTIONS {" + options + "}");
 		}
 	}
 
@@ -58,7 +58,7 @@ class CypherRenderingUtilsTest {
 				Collections.singleton("isbn"), options);
 			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
-			assertThat(writer.toString()).isEqualTo(" OPTIONS " + options.trim());
+			assertThat(writer).hasToString(" OPTIONS " + options.trim());
 		}
 	}
 }

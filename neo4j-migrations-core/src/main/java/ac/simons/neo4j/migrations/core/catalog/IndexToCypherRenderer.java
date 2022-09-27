@@ -147,17 +147,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			: renderProperties("r", index, config); // relationship
 
 		Operator operator = config.getOperator();
-
-		String type = " ";
-		if (index.getType() != Index.Type.PROPERTY || config.useExplicitPropertyIndexType()) {
-			if (index.isBtreePropertyIndex()) {
-				type = " BTREE ";
-			} else if (index.isRangePropertyIndex()) {
-				type = " RANGE ";
-			} else {
-				type = " " + index.getType().name() + " ";
-			}
-		}
+		String type = determineType(index, config);
 
 		Neo4jVersion version = config.getVersion();
 		if (version == Neo4jVersion.V3_5) {
@@ -177,6 +167,21 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		} else {
 			return String.format("%s%s%#s %sFOR ()-[r:%s]-() ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
 				identifier, properties);
+		}
+	}
+
+	private static String determineType(Index index, RenderConfig config) {
+
+		if (index.getType() == Index.Type.PROPERTY && !config.useExplicitPropertyIndexType()) {
+			return " ";
+		}
+
+		if (index.isBtreePropertyIndex()) {
+			return " BTREE ";
+		} else if (index.isRangePropertyIndex()) {
+			return " RANGE ";
+		} else {
+			return " " + index.getType().name() + " ";
 		}
 	}
 

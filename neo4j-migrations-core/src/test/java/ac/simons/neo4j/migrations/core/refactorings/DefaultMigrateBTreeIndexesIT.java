@@ -188,7 +188,7 @@ class DefaultMigrateBTreeIndexesIT {
 	}
 
 	@Test
-	void shouldUseIgnore() {
+	void shouldUseExcludes() {
 
 		try (Driver driver = getDriver(); Session session = driver.session()) {
 			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(),

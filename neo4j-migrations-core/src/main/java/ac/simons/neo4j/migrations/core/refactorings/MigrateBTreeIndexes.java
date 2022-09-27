@@ -83,10 +83,10 @@ public interface MigrateBTreeIndexes extends Refactoring {
 	MigrateBTreeIndexes withTypeMapping(Map<String, Index.Type> typeMapping);
 
 	/**
-	 * Creates a new refactoring that ignores the set of configured items during migration.
+	 * Creates a new refactoring that excludes the set of configured items during migration.
 	 *
-	 * @param ignoredItems Indexes and constraints to ignore
+	 * @param excludes Indexes and constraints to ignore
 	 * @return The refactoring ready to use
 	 */
-	MigrateBTreeIndexes withIgnoredItems(Collection<String> ignoredItems);
+	MigrateBTreeIndexes withExcludes(Collection<String> excludes);
 }

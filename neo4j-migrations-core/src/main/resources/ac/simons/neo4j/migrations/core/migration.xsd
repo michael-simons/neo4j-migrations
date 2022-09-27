@@ -54,6 +54,8 @@
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="merge.nodes"/>
+					<xs:enumeration value="migrate.createFutureIndexes"/>
+					<xs:enumeration value="migrate.replaceBTreeIndexes"/>
 					<xs:enumeration value="normalize.asBoolean"/>
 					<xs:enumeration value="rename.label"/>
 					<xs:enumeration value="rename.type"/>

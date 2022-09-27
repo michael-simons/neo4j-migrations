@@ -72,7 +72,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	/**
 	 * A set of catalog items (both indexes and constraints) that are ignored and not touched.
 	 */
-	private final Set<String> ignoredItems;
+	private final Set<String> excludes;
 
 	private final RenderConfig createConfigConstraint;
 	private final RenderConfig createConfigIndex;
@@ -82,12 +82,12 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		this(false, null, null, null);
 	}
 
-	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map<String, Index.Type> typeMapping, Collection<String> ignoredItems) {
+	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map<String, Index.Type> typeMapping, Collection<String> excludes) {
 
 		this.dropOldIndexes = dropOldIndexes;
 		this.suffix = suffix == null || suffix.trim().isEmpty() ? DEFAULT_SUFFIX : suffix.trim();
 		this.typeMapping = typeMapping == null ? Collections.emptyMap() : new HashMap<>(typeMapping);
-		this.ignoredItems = ignoredItems == null ? Collections.emptySet() : new HashSet<>(ignoredItems);
+		this.excludes = excludes == null ? Collections.emptySet() : new HashSet<>(excludes);
 
 		this.featureSet = QueryRunner.defaultFeatureSet()
 			.withRequiredVersion("4.4");
@@ -155,7 +155,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		Map<Long, Constraint> constraints = findBTreeBasedConstraints(queryRunner, indexes);
 
 		List<CatalogItem<?>> result = new ArrayList<>();
-		Predicate<CatalogItem<?>> notIgnored = c -> !ignoredItems.contains(c.getName().getValue());
+		Predicate<CatalogItem<?>> notIgnored = c -> !excludes.contains(c.getName().getValue());
 		constraints.values()
 			.stream()
 			.filter(notIgnored)
@@ -245,15 +245,32 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 			return this;
 		}
 
-		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, newTypeMapping, ignoredItems);
+		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, newTypeMapping, excludes);
 	}
 
 	@Override
-	public MigrateBTreeIndexes withIgnoredItems(Collection<String> newIgnoredItems) {
-		if (Objects.equals(this.ignoredItems, newIgnoredItems) || ((newIgnoredItems == null || newIgnoredItems.isEmpty()) && this.ignoredItems.isEmpty())) {
+	public MigrateBTreeIndexes withExcludes(Collection<String> newExcludes) {
+		if (Objects.equals(this.excludes, newExcludes) || ((newExcludes == null || newExcludes.isEmpty()) && this.excludes.isEmpty())) {
 			return this;
 		}
 
-		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, newIgnoredItems);
+		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, newExcludes);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		DefaultMigrateBTreeIndexes that = (DefaultMigrateBTreeIndexes) o;
+		return dropOldIndexes == that.dropOldIndexes && suffix.equals(that.suffix) && typeMapping.equals(that.typeMapping) && excludes.equals(that.excludes);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(dropOldIndexes, suffix, typeMapping, excludes);
 	}
 }

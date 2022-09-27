@@ -128,9 +128,9 @@ class DefaultMigrateBTreeIndexesTest {
 	void shouldIgnoreSameIgnores() {
 
 		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes();
-		MigrateBTreeIndexes m2 = m1.withIgnoredItems(null);
-		MigrateBTreeIndexes m3 = m2.withIgnoredItems(Collections.emptySet());
-		MigrateBTreeIndexes m4 = m2.withIgnoredItems(Collections.emptyList());
+		MigrateBTreeIndexes m2 = m1.withExcludes(null);
+		MigrateBTreeIndexes m3 = m2.withExcludes(Collections.emptySet());
+		MigrateBTreeIndexes m4 = m2.withExcludes(Collections.emptyList());
 
 		assertThat(m2).isSameAs(m1);
 		assertThat(m3).isSameAs(m2);
@@ -142,10 +142,14 @@ class DefaultMigrateBTreeIndexesTest {
 	void shouldConfigureIgnores() throws IllegalAccessException, NoSuchFieldException {
 
 		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes()
-			.withIgnoredItems(Collections.singleton("a"));
+			.withExcludes(Collections.singleton("a"));
 
 		Field ignoredItems = DefaultMigrateBTreeIndexes.class.getDeclaredField("ignoredItems");
 		ignoredItems.setAccessible(true);
 		assertThat(((Set<String>) ignoredItems.get(m1))).containsExactly("a");
+
+		MigrateBTreeIndexes m2 = MigrateBTreeIndexes.replaceBTreeIndexes()
+			.withExcludes(Collections.singleton("a"));
+		assertThat(m2).isEqualTo(m1);
 	}
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1664190308572">
-    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.12.1-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1664284365684">
+    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.13.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>
@@ -83,6 +83,7 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/Constraint.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/ConstraintToCypherRenderer.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/ConstraintToXMLRenderer.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/CypherRenderingUtils.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/DefaultName.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/EmptyCatalog.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/GeneratedName.java" result="PRESENT"/>
@@ -108,9 +109,11 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/CustomizableRefactoring.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultCounters.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultMerge.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultMigrateBTreeIndexes.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultNormalize.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/DefaultRename.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Merge.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/MigrateBTreeIndexes.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Normalize.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/QueryRunner.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/refactorings/Refactoring.java" result="PRESENT"/>
@@ -182,11 +185,13 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/UnsupportedTargetsIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ValidateIT.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/ValidationResultTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/AbstractCatalogItemTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/CatalogDiffTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/CatalogRendererTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/ConstraintTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/ConstraintToCypherRendererTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/ConstraintToXMLRendererTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/CypherRenderingUtilsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/GeneratedNameTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/IndexTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/catalog/IndexToCypherRendererTest.java" result="PRESENT"/>
@@ -196,6 +201,8 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/Neo4jVersionComparatorTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/internal/StringsTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultCountersTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultMigrateBTreeIndexesIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultMigrateBTreeIndexesTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultNormalizeTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/DefaultRenameTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/refactorings/QueryRunnerTest.java" result="PRESENT"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1664190330575">
-    <module artifactId="neo4j-migrations-cli" groupId="eu.michael-simons.neo4j" version="1.12.1-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1664284382790">
+    <module artifactId="neo4j-migrations-cli" groupId="eu.michael-simons.neo4j" version="1.13.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/assembly/assembly-java.xml" result="PRESENT"/>

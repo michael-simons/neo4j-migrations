@@ -167,4 +167,13 @@
 			</parameter>
 		</parameters>
 	</refactor>
+
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="includes">
+				<value>x</value>
+				<value>y</value>
+			</parameter>
+		</parameters>
+	</refactor>
 </migration>

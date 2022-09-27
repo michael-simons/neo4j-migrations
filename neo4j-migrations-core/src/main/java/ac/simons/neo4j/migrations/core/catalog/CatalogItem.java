@@ -54,7 +54,7 @@ public interface CatalogItem<T extends ItemType> {
 	 *
 	 * @param name The new name to use
 	 * @return A (potentially) new item
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	default CatalogItem<?> withName(String name) {
 		throw new UnsupportedOperationException();

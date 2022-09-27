@@ -192,7 +192,7 @@ class DefaultMigrateBTreeIndexesIT {
 
 		try (Driver driver = getDriver(); Session session = driver.session()) {
 			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(),
-				Arrays.asList("m_default_unique_constraint", "m_default_index"));
+				Arrays.asList("m_default_unique_constraint", "m_default_index"), Collections.emptyList());
 			Counters counters = refactoring.apply(new TestRefactoringContext(session));
 
 			assertThat(counters.constraintsAdded()).isEqualTo(1);
@@ -223,10 +223,45 @@ class DefaultMigrateBTreeIndexesIT {
 	}
 
 	@Test
+	void shouldUseIncludes() {
+
+		try (Driver driver = getDriver(); Session session = driver.session()) {
+			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(),
+				Collections.emptyList(), Arrays.asList("m_default_unique_constraint", "m_default_index"));
+			Counters counters = refactoring.apply(new TestRefactoringContext(session));
+
+			assertThat(counters.constraintsAdded()).isEqualTo(1);
+			assertThat(counters.constraintsRemoved()).isEqualTo(1);
+			assertThat(counters.indexesAdded()).isEqualTo(1);
+			assertThat(counters.indexesRemoved()).isEqualTo(1);
+
+			List<String> oldConstraints = session
+				.run(QUERY_GET_OLD_CONSTRAINTS)
+				.list(EXTRACT_NAME);
+			assertThat(oldConstraints).containsExactlyInAnyOrder("m_default_node_key_constraint");
+
+			List<String> newConstraints = session
+				.run(QUERY_GET_NEW_CONSTRAINTS)
+				.list(EXTRACT_NAME);
+			assertThat(newConstraints).containsExactlyInAnyOrder("m_default_unique_constraint");
+
+			List<String> oldIndexes = session
+				.run(QUERY_GET_OLD_INDEXES)
+				.list(EXTRACT_NAME);
+			assertThat(oldIndexes).containsExactlyInAnyOrder("m_default_composite_index", "m_location_index");
+
+			List<String> newIndexes = session
+				.run(QUERY_GET_NEW_INDEXES)
+				.list(EXTRACT_NAME);
+			assertThat(newIndexes).containsExactlyInAnyOrder("m_default_index");
+		}
+	}
+
+	@Test
 	void shouldDropIndexes() {
 
 		try (Driver driver = getDriver(); Session session = driver.session()) {
-			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(), Collections.emptyList());
+			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
 			Counters counters = refactoring.apply(new TestRefactoringContext(session));
 
 			assertThat(counters.constraintsAdded()).isEqualTo(2);
@@ -256,7 +291,7 @@ class DefaultMigrateBTreeIndexesIT {
 		typeMapping.put("m_location_index", Index.Type.POINT);
 
 		try (Driver driver = getDriver(); Session session = driver.session()) {
-			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, typeMapping, Collections.emptyList());
+			DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(true, null, typeMapping, Collections.emptyList(), Collections.emptyList());
 			Counters counters = refactoring.apply(new TestRefactoringContext(session));
 
 			assertThat(counters.constraintsAdded()).isEqualTo(2);

@@ -51,7 +51,7 @@ class DefaultMigrateBTreeIndexesTest {
 	void shouldFailProperOnInvalidMigrate() {
 
 		DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes();
-		CatalogItem<?> wrongItem = new CatalogItem<>() {
+		CatalogItem<?> wrongItem = new CatalogItem<ItemType>() {
 			@Override public Name getName() {
 				return Name.of("whatever");
 			}
@@ -76,7 +76,7 @@ class DefaultMigrateBTreeIndexesTest {
 		Constraint constraint = Constraint.forNode("Book").named(oldName).unique("isbn");
 
 		DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(dropOldIndexes, null,
-			Collections.emptyMap(), Collections.emptyList());
+			Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
 		CatalogItem<?> item = refactoring.migrate(constraint);
 		assertThat(item.getName()).extracting(Name::getValue)
 			.isEqualTo(dropOldIndexes ? oldName : "book_isbn_unique_new");
@@ -91,7 +91,7 @@ class DefaultMigrateBTreeIndexesTest {
 		Index index = Index.forNode("Book").named(oldName).onProperties("isbn");
 
 		DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes(dropOldIndexes, null,
-			Collections.emptyMap(), Collections.emptyList());
+			Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
 		CatalogItem<?> item = refactoring.migrate(index);
 		assertThat(item.getName()).extracting(Name::getValue).isEqualTo(dropOldIndexes ? oldName : "book_isbn_idx_new");
 		assertThat(((Index) item).getOptionalOptions()).hasValue("{`indexProvider`: \"range-1.0\"}");
@@ -125,7 +125,7 @@ class DefaultMigrateBTreeIndexesTest {
 	}
 
 	@Test
-	void shouldIgnoreSameIgnores() {
+	void shouldIgnoreSameExcludes() {
 
 		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes();
 		MigrateBTreeIndexes m2 = m1.withExcludes(null);
@@ -138,18 +138,37 @@ class DefaultMigrateBTreeIndexesTest {
 	}
 
 	@Test
+	void shouldIgnoreSameIncludes() {
+
+		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes();
+		MigrateBTreeIndexes m2 = m1.withIncludes(null);
+		MigrateBTreeIndexes m3 = m2.withIncludes(Collections.emptySet());
+		MigrateBTreeIndexes m4 = m2.withIncludes(Collections.emptyList());
+
+		assertThat(m2).isSameAs(m1);
+		assertThat(m3).isSameAs(m2);
+		assertThat(m4).isSameAs(m3);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"excludes", "includes"})
 	@SuppressWarnings({ "unchecked", "squid:S3011" })
-	void shouldConfigureIgnores() throws IllegalAccessException, NoSuchFieldException {
+	void shouldConfigureExcludesAndIncludes(String field) throws IllegalAccessException, NoSuchFieldException {
 
-		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes()
-			.withExcludes(Collections.singleton("a"));
+		MigrateBTreeIndexes m1 = MigrateBTreeIndexes.replaceBTreeIndexes();
+		MigrateBTreeIndexes m2 = MigrateBTreeIndexes.replaceBTreeIndexes();
+		if ("excludes".equals(field)) {
+			m1 = m1.withExcludes(Collections.singleton("a"));
+			m2 = m2.withExcludes(Collections.singleton("a"));
+		} else {
+			m1 = m1.withIncludes(Collections.singleton("a"));
+			m2 = m2.withIncludes(Collections.singleton("a"));
+		}
 
-		Field ignoredItems = DefaultMigrateBTreeIndexes.class.getDeclaredField("ignoredItems");
+		assertThat(m2).isEqualTo(m1);
+
+		Field ignoredItems = DefaultMigrateBTreeIndexes.class.getDeclaredField(field);
 		ignoredItems.setAccessible(true);
 		assertThat(((Set<String>) ignoredItems.get(m1))).containsExactly("a");
-
-		MigrateBTreeIndexes m2 = MigrateBTreeIndexes.replaceBTreeIndexes()
-			.withExcludes(Collections.singleton("a"));
-		assertThat(m2).isEqualTo(m1);
 	}
 }

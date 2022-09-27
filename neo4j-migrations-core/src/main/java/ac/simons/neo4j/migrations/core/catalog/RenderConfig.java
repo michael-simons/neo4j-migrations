@@ -87,7 +87,7 @@ public final class RenderConfig {
 	/**
 	 * Additional options passed to a Cypher renderer. Some options might be ignored for some content.
 	 *
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	@SuppressWarnings("squid:S1874") // Complains about the purposeful deprecated option
 	public interface CypherRenderingOptions extends AdditionalRenderingOptions {

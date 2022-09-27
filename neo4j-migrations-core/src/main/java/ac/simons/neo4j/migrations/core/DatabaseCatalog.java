@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
@@ -101,17 +102,29 @@ final class DatabaseCatalog implements Catalog {
 		}
 	}
 
+	static Catalog full(Neo4jVersion version, QueryRunner queryRunner) {
+		return of(version, queryRunner, true, false);
+	}
+
 	static Catalog of(Neo4jVersion version, QueryRunner queryRunner, boolean readOptions) {
+		return of(version, queryRunner, readOptions, true);
+	}
+
+	private static Catalog of(Neo4jVersion version, QueryRunner queryRunner, boolean readOptions, boolean filterInternalConstraints) {
 
 		Set<CatalogItem<?>> items = new LinkedHashSet<>();
 		Function<Record, MapAccessor> mapAccessorMapper = r -> readOptions ? r : new FilteredMapAccessor(r, Collections.singleton("options"));
 
+		Predicate<Constraint> internalConstraints = c -> true;
+		if (filterInternalConstraints) {
+			internalConstraints = constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS).noneMatch(constraint::isEquivalentTo);
+			internalConstraints = internalConstraints.and(c -> !Migrations.UNIQUE_VERSION.isEquivalentTo(c));
+		}
 		queryRunner.run(version.getShowConstraints())
 			.stream()
 			.map(mapAccessorMapper)
 			.map(Constraint::parse)
-			.filter(constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS).noneMatch(constraint::isEquivalentTo))
-			.filter(constraint -> !Migrations.UNIQUE_VERSION.isEquivalentTo(constraint))
+			.filter(internalConstraints)
 			.forEach(items::add);
 
 		queryRunner.run(version.getShowIndexes())

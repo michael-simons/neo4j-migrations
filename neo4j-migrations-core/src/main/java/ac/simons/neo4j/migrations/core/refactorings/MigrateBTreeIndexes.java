@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  *
  * @author Michael J. Simons
  * @soundtrack Bobby Fletcher &amp; Koljah - Vielleicht ist es besser so
- * @since TBA
+ * @since 1.13.0
  */
 public interface MigrateBTreeIndexes extends Refactoring {
 
@@ -61,7 +61,7 @@ public interface MigrateBTreeIndexes extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static MigrateBTreeIndexes createFutureIndexes(String suffix) {
-		return new DefaultMigrateBTreeIndexes(false, suffix, Collections.emptyMap(), Collections.emptyList());
+		return new DefaultMigrateBTreeIndexes(false, suffix, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
 	}
 
 	/**
@@ -70,7 +70,7 @@ public interface MigrateBTreeIndexes extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	static MigrateBTreeIndexes replaceBTreeIndexes() {
-		return new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(), Collections.emptyList());
+		return new DefaultMigrateBTreeIndexes(true, null, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
 	}
 
 	/**
@@ -89,4 +89,13 @@ public interface MigrateBTreeIndexes extends Refactoring {
 	 * @return The refactoring ready to use
 	 */
 	MigrateBTreeIndexes withExcludes(Collection<String> excludes);
+
+	/**
+	 * Configures an include list. An empty or {@literal null} value disables the include-list checking. A non empty
+	 * list will configure the refactoring in such a way that only items that are on the list are migrated.
+	 *
+	 * @param newIncludes New includes
+	 * @return The refactoring ready to use
+	 */
+	MigrateBTreeIndexes withIncludes(Collection<String> newIncludes);
 }

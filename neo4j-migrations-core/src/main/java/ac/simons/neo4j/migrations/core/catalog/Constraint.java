@@ -351,7 +351,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 *
 	 * @param options The new options to use
 	 * @return A (potentially) new constraint
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	@SuppressWarnings("HiddenField")
 	public Constraint withOptions(String options) {

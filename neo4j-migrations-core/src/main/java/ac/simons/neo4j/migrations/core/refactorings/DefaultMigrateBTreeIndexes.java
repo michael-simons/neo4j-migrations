@@ -74,20 +74,26 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	 */
 	private final Set<String> excludes;
 
+	/**
+	 * A set of catalog items (both indexes and constraints) that are included.
+	 */
+	private final Set<String> includes;
+
 	private final RenderConfig createConfigConstraint;
 	private final RenderConfig createConfigIndex;
 	private final RenderConfig dropConfig;
 
 	DefaultMigrateBTreeIndexes() {
-		this(false, null, null, null);
+		this(false, null, null, null, null);
 	}
 
-	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map<String, Index.Type> typeMapping, Collection<String> excludes) {
+	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map<String, Index.Type> typeMapping, Collection<String> excludes, Collection<String> includes) {
 
 		this.dropOldIndexes = dropOldIndexes;
 		this.suffix = suffix == null || suffix.trim().isEmpty() ? DEFAULT_SUFFIX : suffix.trim();
 		this.typeMapping = typeMapping == null ? Collections.emptyMap() : new HashMap<>(typeMapping);
 		this.excludes = excludes == null ? Collections.emptySet() : new HashSet<>(excludes);
+		this.includes = includes == null ? Collections.emptySet() : new HashSet<>(includes);
 
 		this.featureSet = QueryRunner.defaultFeatureSet()
 			.withRequiredVersion("4.4");
@@ -155,17 +161,18 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		Map<Long, Constraint> constraints = findBTreeBasedConstraints(queryRunner, indexes);
 
 		List<CatalogItem<?>> result = new ArrayList<>();
-		Predicate<CatalogItem<?>> notIgnored = c -> !excludes.contains(c.getName().getValue());
+		Predicate<CatalogItem<?>> notExcluded = c -> !excludes.contains(c.getName().getValue());
+		notExcluded = notExcluded.and(c -> includes.isEmpty() || includes.contains(c.getName().getValue()));
 		constraints.values()
 			.stream()
-			.filter(notIgnored)
+			.filter(notExcluded)
 			.forEach(result::add);
 		indexes
 			.entrySet()
 			.stream()
 			.filter(e -> !constraints.containsKey(e.getKey()))
 			.map(Map.Entry::getValue)
-			.filter(notIgnored)
+			.filter(notExcluded)
 			.forEach(result::add);
 		return result;
 	}
@@ -201,7 +208,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	@Override
 	public Counters apply(RefactoringContext context) {
 
-		Function<CatalogItem<?>, Renderer<CatalogItem<?>>> rendererProvider = new Function<>() {
+		Function<CatalogItem<?>, Renderer<CatalogItem<?>>> rendererProvider = new Function<CatalogItem<?>, Renderer<CatalogItem<?>>>() {
 			final Map<Class<CatalogItem<?>>, Renderer<CatalogItem<?>>> cachedRenderer = new ConcurrentHashMap<>(4);
 
 			@SuppressWarnings("unchecked")
@@ -245,7 +252,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 			return this;
 		}
 
-		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, newTypeMapping, excludes);
+		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, newTypeMapping, excludes, includes);
 	}
 
 	@Override
@@ -254,7 +261,16 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 			return this;
 		}
 
-		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, newExcludes);
+		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, newExcludes, includes);
+	}
+
+	@Override
+	public MigrateBTreeIndexes withIncludes(Collection<String> newIncludes) {
+		if (Objects.equals(this.includes, newIncludes) || ((newIncludes == null || newIncludes.isEmpty()) && this.includes.isEmpty())) {
+			return this;
+		}
+
+		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, excludes, newIncludes);
 	}
 
 	@Override
@@ -266,7 +282,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 			return false;
 		}
 		DefaultMigrateBTreeIndexes that = (DefaultMigrateBTreeIndexes) o;
-		return dropOldIndexes == that.dropOldIndexes && suffix.equals(that.suffix) && typeMapping.equals(that.typeMapping) && excludes.equals(that.excludes);
+		return dropOldIndexes == that.dropOldIndexes && suffix.equals(that.suffix) && typeMapping.equals(that.typeMapping) && excludes.equals(that.excludes) && includes.equals(that.includes);
 	}
 
 	@Override

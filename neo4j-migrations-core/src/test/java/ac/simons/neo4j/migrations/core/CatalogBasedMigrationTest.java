@@ -243,7 +243,9 @@ class CatalogBasedMigrationTest {
 					MigrateBTreeIndexes.replaceBTreeIndexes(),
 					MigrateBTreeIndexes.replaceBTreeIndexes()
 						.withExcludes(Arrays.asList("a", "b"))
-						.withTypeMapping(typeMappings)
+						.withTypeMapping(typeMappings),
+					MigrateBTreeIndexes.replaceBTreeIndexes()
+						.withIncludes(Arrays.asList("x", "y"))
 				);
 		}
 

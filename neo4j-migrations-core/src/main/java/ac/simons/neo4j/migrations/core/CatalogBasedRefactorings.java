@@ -78,8 +78,10 @@ final class CatalogBasedRefactorings {
 				.createFutureIndexes(suffix);
 		}
 
-		List<String> ignoredItems = optionalParameters
+		List<String> excludes = optionalParameters
 			.flatMap(parameters -> findParameterValues(parameters, "excludes")).orElse(Collections.emptyList());
+		List<String> includes = optionalParameters
+			.flatMap(parameters -> findParameterValues(parameters, "includes")).orElse(Collections.emptyList());
 		Map<String, Index.Type> typeMappings = optionalParameters
 			.flatMap(parameters -> findParameterNode(parameters, "typeMapping"))
 			.map(typeMapping -> findChildNodes(typeMapping, "mapping"))
@@ -90,7 +92,8 @@ final class CatalogBasedRefactorings {
 			.orElse(Collections.emptyMap());
 
 		return migrateBTreeIndexes
-			.withExcludes(ignoredItems)
+			.withExcludes(excludes)
+			.withIncludes(includes)
 			.withTypeMapping(typeMappings);
 	}
 

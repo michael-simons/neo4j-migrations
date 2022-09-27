@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * Shared Cypher specific rendering.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 1.13.0
  */
 final class CypherRenderingUtils {
 

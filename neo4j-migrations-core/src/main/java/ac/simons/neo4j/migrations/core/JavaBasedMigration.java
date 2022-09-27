@@ -49,7 +49,7 @@ public interface JavaBasedMigration extends Migration {
 	 * @param <T> The type of the class
 	 * @return The default constructor
 	 * @throws NoSuchMethodException If there is no such default constructor
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
 	static <T extends JavaBasedMigration> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {

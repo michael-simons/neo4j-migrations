@@ -395,7 +395,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 *
 	 * @param newOptions The new options to use
 	 * @return A (potentially) new index
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	public Index withOptions(String newOptions) {
 
@@ -412,7 +412,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	 *
 	 * @param newType The new type to use
 	 * @return A (potentially) new index
-	 * @since TBA
+	 * @since 1.13.0
 	 */
 	public Index withType(Index.Type newType) {
 

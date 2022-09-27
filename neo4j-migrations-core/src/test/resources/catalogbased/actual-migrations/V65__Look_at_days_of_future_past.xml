@@ -31,4 +31,14 @@
 			</properties>
 		</index>
 	</drop>
+
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="includes">
+				<value>__Neo4jMigrationsLock__has_unique_id</value>
+				<value>__Neo4jMigrationsLock__has_unique_name</value>
+				<value>unique_version___Neo4jMigration</value>
+			</parameter>
+		</parameters>
+	</refactor>
 </migration>

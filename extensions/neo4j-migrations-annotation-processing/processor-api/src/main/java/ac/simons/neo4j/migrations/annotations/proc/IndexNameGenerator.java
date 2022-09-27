@@ -32,6 +32,7 @@ public interface IndexNameGenerator {
 	 * Generates a name for an index with the given {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the
 	 * given list of {@link PropertyType properties}.
 	 *
+	 * @param type       The type of the index
 	 * @param properties The properties to create the index for. All properties will have the same owner.
 	 * @return A valid index name
 	 */

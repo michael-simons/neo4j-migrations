@@ -104,7 +104,6 @@ import javax.tools.StandardLocation;
 })
 public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
-	public static final String ATTRIBUTE_TYPE = "type";
 	static final String OPTION_NAME_GENERATOR_CATALOG = "org.neo4j.migrations.catalog_generator.catalog_name_generator";
 	static final String OPTION_NAME_GENERATOR_CONSTRAINTS = "org.neo4j.migrations.catalog_generator.constraint_name_generator";
 	static final String OPTION_NAME_GENERATOR_INDEXES = "org.neo4j.migrations.catalog_generator.index_name_generator";
@@ -119,6 +118,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	static final Set<String> VALID_GENERATED_ID_TYPES = Collections.unmodifiableSet(
 		new HashSet<>(Arrays.asList(Long.class.getName(), long.class.getName())));
 
+	private static final String ATTRIBUTE_TYPE = "type";
 	private static final String ATTRIBUTE_VALUE = "value";
 	private static final String ATTRIBUTE_LABEL = "label";
 	private static final String ATTRIBUTE_LABELS = "labels";
@@ -171,6 +171,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private Clock clock = Clock.systemDefaultZone();
 
+	/**
+	 * Creates a new instance of this processor. It should not be necessary to call this directly, it will be done
+	 * automatically by Javac.
+	 */
 	public CatalogGeneratingProcessor() {
 	}
 

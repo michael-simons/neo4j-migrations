@@ -43,6 +43,10 @@ import java.util.List;
  */
 public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
 
+	/**
+	 * Creates a new instance of this provider. It should not be necessary to call this directly, it will be done by the
+	 * service loader.
+	 */
 	public MarkdownBasedMigrationProvider() {
 		super(Ordered.LOWEST_PRECEDENCE, "md", true);
 	}

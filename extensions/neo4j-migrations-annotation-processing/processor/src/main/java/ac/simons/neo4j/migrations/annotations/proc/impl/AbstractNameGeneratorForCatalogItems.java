@@ -29,6 +29,13 @@ import java.util.stream.Collectors;
  */
 interface AbstractNameGeneratorForCatalogItems {
 
+	/**
+	 * Generate a name for this item.
+	 *
+	 * @param type       The type of the item
+	 * @param properties The items properties
+	 * @return A generated, stable name
+	 */
 	default String generateName(String type, Collection<PropertyType<?>> properties) {
 
 		ElementType<?> owner = properties.stream()

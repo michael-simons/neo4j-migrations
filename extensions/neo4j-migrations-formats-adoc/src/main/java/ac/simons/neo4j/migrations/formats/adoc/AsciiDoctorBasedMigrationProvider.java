@@ -55,6 +55,10 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 
 	private static final String INCLUDED_IGNORED_MARKER = "$NEO4J_MIGRATIONS_CHOSE_TO_IGNORE_THIS_INCLUDE$";
 
+	/**
+	 * Creates a new instance of this provider. It should not be necessary to call this directly, it will be done by the
+	 * service loader.
+	 */
 	public AsciiDoctorBasedMigrationProvider() {
 		super(Ordered.LOWEST_PRECEDENCE, "adoc", true);
 	}

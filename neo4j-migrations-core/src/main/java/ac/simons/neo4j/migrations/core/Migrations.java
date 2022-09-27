@@ -21,16 +21,25 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
@@ -199,6 +208,72 @@ public final class Migrations {
 			apply0(this.getMigrations());
 			return getLastAppliedVersion();
 		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
+	}
+
+	/**
+	 * Applies one or more refactorings to the target (not the schema) database.
+	 *
+	 * @param refactorings the refactorings to apply
+	 * @return summarized counters
+	 * @since 1.13.0
+	 */
+	public Counters apply(Refactoring... refactorings) {
+
+		if (refactorings == null || refactorings.length == 0) {
+			return Counters.empty();
+		}
+
+		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());
+
+		CatalogBasedMigration.OperationContext operationContext = new CatalogBasedMigration.OperationContext(
+			neo4jVersion, neo4jEdition,
+			(VersionedCatalog) context.getCatalog(), context::getSession);
+
+		return Arrays.stream(refactorings)
+			.filter(Objects::nonNull)
+			.sequential()
+			.map(CatalogBasedMigration.Operation::refactorWith)
+			.map(op -> op.execute(operationContext))
+			.reduce(Counters.empty(), Counters::add);
+	}
+
+	public int apply(URL... resources) {
+
+		int cnt = 0;
+		if (resources == null || resources.length == 0) {
+			return cnt;
+		}
+
+		Map<String, ResourceBasedMigrationProvider> providers = ResourceBasedMigrationProvider.unique().stream()
+			.collect(Collectors.toMap(ResourceBasedMigrationProvider::getExtension, Function.identity()));
+
+		List<Migration> migrations = new ArrayList<>();
+		for (URL resource : resources) {
+			if (resource == null) {
+				continue;
+			}
+
+			String path = resource.getPath();
+			Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
+			if (!matcher.find()) {
+				throw new IllegalArgumentException(Messages.INSTANCE.format("errors.invalid_resource_name", path));
+			}
+			String ext = matcher.group("ext");
+			if (!providers.containsKey(ext)) {
+				throw new IllegalArgumentException(Messages.INSTANCE.format("errors.unsupported_extension", ext));
+			}
+			ResourceBasedMigrationProvider provider = providers.get(ext);
+			migrations.addAll(provider.handle(ResourceContext.of(resource, config)));
+		}
+
+		for (Migration migration : migrations) {
+			migration.apply(context);
+			LOGGER.info(() -> "Applied " + toString(migration));
+			++cnt;
+		}
+
+		return cnt;
 	}
 
 	/**

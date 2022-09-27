@@ -41,7 +41,7 @@ class ExceptionHandlingTest {
 		String result = tapSystemOut(() -> {
 			MigrationsCli cli = mock(MigrationsCli.class);
 			when(cli.getAuthToken()).thenReturn(mock(AuthToken.class));
-			when(cli.getConfig()).thenReturn(MigrationsConfig.builder().build());
+			when(cli.getConfig(false)).thenReturn(MigrationsConfig.builder().build());
 			when(cli.openConnection(Mockito.any(AuthToken.class))).thenReturn(mock(Driver.class));
 
 			ConnectedCommand cmd = new ConnectedCommand() {

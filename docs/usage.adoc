@@ -127,6 +127,8 @@ Commands:
                     and exits.
   init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
+  run             Resolves the specified migrations and applies them. Does not
+                    record any metadata.
   show-catalog    Gets the local or remote catalog and prints it to standard
                     out in the given format.
   validate        Resolves all local migrations and validates the state of the
@@ -336,6 +338,24 @@ The database will be now in a valid state:
 All resolved migrations have been applied to the default database.
 ----
 
+=== Using the CLI as a script runner
+
+The CLI can be used as a simple runner for migrations scripts as well. The only necessity is that all scripts have well-defined names according to the format described <<concepts_migrations, here>>:
+
+[source,console,subs="verbatim,attributes"]
+----
+./bin/neo4j-migrations -uneo4j -psecret \
+  run \
+  --migration file:`pwd`/../../../neo4j-migrations-core/src/test/resources/manual_resources/V000__Create_schema.cypher \
+  --migration file:`pwd`/../../../neo4j-migrations-core/src/test/resources/manual_resources/V000__Create_graph.cypher \
+  --migration file:`pwd`/../../../neo4j-migrations-core/src/test/resources/manual_resources/V000__Refactor_graph.xml
+[2022-09-27T17:24:11.589274000] Applied 000 ("Create graph")
+[2022-09-27T17:24:11.860457000] Applied 000 ("Refactor graph")
+Applied 2 migration(s).
+----
+
+NOTE: You can specify as many resources as you want. They will be applied in order. No checks will be done whether they have already been applied or not and no metadata will be recored.
+
 === A template for Java-based migrations
 
 As stated above, this will work only with the JVM distribution.
@@ -410,6 +430,23 @@ migrations.apply(); // <.>
 
 In case anything goes wrong the API will throw a `ac.simons.neo4j.migrations.core.MigrationsException`.
 Of course your migrations will be recorded as a chain of applied migrations (as nodes with the label `++__Neo4jMigration++`) as well when you use the API directly.
+
+The following operations are available:
+
+info:: Returns information about the context, the database, all applied and all pending applications
+apply:: Applies all discovered migrations
+validate:: Validates the database against the resolved migrations
+clean:: Cleans the selected schema database from every metadata created by this tool
+
+The same operations are available in the CLI and Maven-Plugin. The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run `apply`.
+
+`apply` comes in a couple of overloads:
+
+* It will apply all discovered migrations when called without arguments or with a single boolean argument i
+* It will try to resolve URLS to supported migrations and apply them as is, without writing metadata when called with
+  one or more URLs as argument. This method can also be ce called through the CLI (via the `run` command).
+* It will apply all refactorings in order when called with one or more instances of `Refactoring`.
+  This method is only available in the Core API. Please read more about it here:  <<applying-refactorings-programmatically>>.
 
 === Running on the Java module-path
 

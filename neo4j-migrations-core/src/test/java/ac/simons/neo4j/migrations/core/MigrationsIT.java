@@ -17,20 +17,27 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -70,6 +77,116 @@ class MigrationsIT extends TestBase {
 			.hasSizeGreaterThan(0)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 		assertThat(migrationChain.getLastAppliedVersion()).hasValue(MigrationVersion.withValue("023.1.1"));
+	}
+
+	@Test // GH-573
+	void shouldIgnoreNullRefactorings() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply((Refactoring[]) null);
+		assertThat(counters).isEqualTo(Counters.empty());
+	}
+
+	@Test // GH-573
+	void shouldIgnoreNullRefactoring() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply((Refactoring) null);
+		assertThat(counters).isEqualTo(Counters.empty());
+	}
+
+	@Test // GH-573
+	void shouldIgnoreEmptyRefactorings() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply(new Refactoring[0]);
+		assertThat(counters).isEqualTo(Counters.empty());
+	}
+
+	@Test // GH-573
+	void shouldApplyRefactorings() {
+
+		try (Session session = driver.session()) {
+			session.run("CREATE (m:Person {name:'Michael'}) -[:LIKES]-> (n:Person {name:'Tina', klug:'ja'})");
+		}
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply(
+			Rename.type("LIKES", "MAG"),
+			Normalize.asBoolean("klug", Collections.singletonList("ja"), Collections.singletonList("nein"))
+		);
+		assertThat(counters.propertiesSet()).isOne();
+		assertThat(counters.typesRemoved()).isOne();
+		assertThat(counters.typesAdded()).isOne();
+
+		try (Session session = driver.session()) {
+			long cnt = session.run(
+					"MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
+				.single().get(0).asLong();
+			assertThat(cnt).isOne();
+		}
+	}
+
+	@Test // GH-573
+	void shouldIgnoreNullResources() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		int cnt = migrations.apply((URL[]) null);
+		assertThat(cnt).isZero();
+	}
+
+	@Test // GH-573
+	void shouldIgnoreNullResource() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		int cnt = migrations.apply((URL) null);
+		assertThat(cnt).isZero();
+	}
+
+	@Test // GH-573
+	void shouldIgnoreEmptyResources() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		int cnt = migrations.apply(new URL[0]);
+		assertThat(cnt).isZero();
+	}
+
+	@Test // GH-573
+	void shouldApplyResources() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+
+		int appliedMigrations = migrations.apply(
+			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Create_graph.cypher")),
+			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Refactor_graph.xml"))
+		);
+
+		assertThat(appliedMigrations).isEqualTo(2);
+
+		try (Session session = driver.session()) {
+			long cnt = session.run(
+					"MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
+				.single().get(0).asLong();
+			assertThat(cnt).isOne();
+		}
+	}
+
+	@Test // GH-573
+	void shouldFailProperOnInvalidFileName() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		URL resource = Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/invalid_filename.cypher"));
+		assertThatIllegalArgumentException().isThrownBy(() -> migrations.apply(resource))
+			.withMessage("Invalid name `%s`; the names of resources that should be applied must adhere to well-formed migration versions", resource.getPath());
+	}
+
+	@Test // GH-573
+	void shouldFailProperOnUnsupportedExt() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		URL resource = Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Invalid.extension"));
+		assertThatIllegalArgumentException().isThrownBy(() -> migrations.apply(resource))
+			.withMessage("Unsupported extension: extension");
 	}
 
 	@Test

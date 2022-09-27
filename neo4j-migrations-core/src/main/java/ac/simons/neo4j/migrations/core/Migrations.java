@@ -21,11 +21,15 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -199,6 +203,34 @@ public final class Migrations {
 			apply0(this.getMigrations());
 			return getLastAppliedVersion();
 		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
+	}
+
+	/**
+	 * Applies one or more refactorings to the target (not the schema) database.
+	 *
+	 * @param refactorings the refactorings to apply
+	 * @return summarized counters
+	 * @since 1.13.0
+	 */
+	public Counters apply(Refactoring... refactorings) {
+
+		if (refactorings == null || refactorings.length == 0) {
+			return Counters.empty();
+		}
+
+		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
+		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());
+
+		CatalogBasedMigration.OperationContext operationContext = new CatalogBasedMigration.OperationContext(
+			neo4jVersion, neo4jEdition,
+			(VersionedCatalog) context.getCatalog(), context::getSession);
+
+		return Arrays.stream(refactorings)
+			.filter(Objects::nonNull)
+			.sequential()
+			.map(CatalogBasedMigration.Operation::refactorWith)
+			.map(op -> op.execute(operationContext))
+			.reduce(Counters.empty(), Counters::add);
 	}
 
 	/**

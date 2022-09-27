@@ -411,6 +411,17 @@ migrations.apply(); // <.>
 In case anything goes wrong the API will throw a `ac.simons.neo4j.migrations.core.MigrationsException`.
 Of course your migrations will be recorded as a chain of applied migrations (as nodes with the label `++__Neo4jMigration++`) as well when you use the API directly.
 
+The following operations are available:
+
+info:: Returns information about the context, the database, all applied and all pending applications
+apply:: Applies all discovered migrations
+validate:: Validates the database against the resolved migrations
+clean:: Cleans the selected schema database from every meta data created by this tool
+
+The same operations are available in the CLI and Maven-Plugin. The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run `apply`.
+
+In addition to `apply` without arguments there's also `apply` that takes in one or more refactoring. This method is only available in the Core API. Please read more about it here:  <<applying-refactorings-programmatically>>.
+
 === Running on the Java module-path
 
 Neo4j-Migrations can be used on the Java module path. Make sure you require them in your module and export packages with Java-based migrations in case you're using the latter.

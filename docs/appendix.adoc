@@ -80,6 +80,37 @@ Some refactorings require certain Neo4j versions. If you do support multiple Neo
 </migration>
 ----
 
+[[applying-refactorings-programmatically]]
+=== Applying refactorings programmatically
+While you would normally use the declarative approach of applying refactorings from within XML / catalog based migrations, Neo4j-Migrations offers an API for it as well:
+
+
+[source,java]
+.Rename one type and normalize attributes to boolean in a programmatic fashion
+----
+try (Session session = driver.session()) {
+  session.run("CREATE (m:Person {name:'Michael'}) -[:LIKES]-> (n:Person {name:'Tina', klug:'ja'})"); // <.>
+}
+
+Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver); // <.>
+
+Counters counters = migrations.apply(
+  Rename.type("LIKES", "MAG"), // <.>
+  Normalize.asBoolean("klug", List.of("ja"), List.of("nein"))
+);
+
+try (Session session = driver.session()) {
+  long cnt = session
+    .run("MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
+    .single().get(0).asLong();
+  assert cnt == 1
+}
+----
+<.> The graph that will be refactored
+<.> You can create the instance as shown here or use the existing one when you already use the Spring Boot starter or the Quarkus extensions
+<.> Build as many refactorings as needed, they will be applied in order. You can use the counters to check for the numbers of modifications
+
+
 === Merging nodes
 
 `Merge.nodes(String source, List<PropertyMergePolicy> mergePolicies)` merges all the nodes, their properties and relationships onto a single node (the first in the list of matched nodes). It is important that your query uses an ordered return for this to work proper.

@@ -23,6 +23,10 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +74,46 @@ class MigrationsIT extends TestBase {
 			.hasSizeGreaterThan(0)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 		assertThat(migrationChain.getLastAppliedVersion()).hasValue(MigrationVersion.withValue("023.1.1"));
+	}
+
+	@Test // GH-573
+	void shouldIgnoreNullRefactorings() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply((Refactoring[]) null);
+		assertThat(counters).isEqualTo(Counters.empty());
+	}
+
+	@Test // GH-573
+	void shouldIgnoreEmptyRefactorings() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply(new Refactoring[0]);
+		assertThat(counters).isEqualTo(Counters.empty());
+	}
+
+	@Test // GH-573
+	void shouldApplyRefactorings() {
+
+		try (Session session = driver.session()) {
+			session.run("CREATE (m:Person {name:'Michael'}) -[:LIKES]-> (n:Person {name:'Tina', klug:'ja'})");
+		}
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		Counters counters = migrations.apply(
+			Rename.type("LIKES", "MAG"),
+			Normalize.asBoolean("klug", Collections.singletonList("ja"), Collections.singletonList("nein"))
+		);
+		assertThat(counters.propertiesSet()).isOne();
+		assertThat(counters.typesRemoved()).isOne();
+		assertThat(counters.typesAdded()).isOne();
+
+		try (Session session = driver.session()) {
+			long cnt = session.run(
+					"MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
+				.single().get(0).asLong();
+			assertThat(cnt).isOne();
+		}
 	}
 
 	@Test

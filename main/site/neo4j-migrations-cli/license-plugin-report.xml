@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1664284382790">
+<licensePluginReport goal="CHECK" timestamp="1664297467385">
     <module artifactId="neo4j-migrations-cli" groupId="eu.michael-simons.neo4j" version="1.13.0-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -15,6 +15,7 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrateCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCliExceptionMapper.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/RunCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/ShowCatalogCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/ValidateCommand.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/cli/internal/MigrationsCliConsoleFormatter.java" result="PRESENT"/>
@@ -30,6 +31,7 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/ManifestVersionProviderTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrateCommandTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrationsCliTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/RunCommandTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/ShowCatalogCommandTest.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/cli/ValidateCommandTest.java" result="PRESENT"/>
     </files>

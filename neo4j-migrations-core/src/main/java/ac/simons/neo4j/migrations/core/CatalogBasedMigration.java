@@ -417,9 +417,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				String.format("Removed %d labels and %d types, added %d labels and %d types and modified %d properties in total.",
 					counters.labelsRemoved(), counters.typesRemoved(), counters.labelsAdded(), counters.typesAdded(), counters.propertiesSet()));
 		} catch (VerificationFailedException e) {
-			e.printStackTrace();
-			throw new MigrationsException(
-				"Could not apply migration " + Migrations.toString(this) + " verification failed: " + e.getMessage());
+			throw new MigrationsException("Could not apply migration " + Migrations.toString(this) + " verification failed: " + e.getMessage());
 		}
 	}
 

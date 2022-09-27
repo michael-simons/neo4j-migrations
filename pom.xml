@@ -666,6 +666,7 @@
 						<exclude>**/*.txt</exclude>
 						<exclude>**/*.webm</exclude>
 						<exclude>**/*.yaml</exclude>
+						<exclude>**/*.extension</exclude>
 						<exclude>**/org.mockito.plugins.MockMaker</exclude>
 						<exclude>bin/check_availability.java</exclude>
 						<exclude>bin/start_neo4j.java</exclude>

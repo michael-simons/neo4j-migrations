@@ -47,4 +47,16 @@ public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogI
 	 * {@return {@literal true} if this item has a generated name}
 	 */
 	boolean hasGeneratedName();
+
+	/**
+	 * Creates a copy of this item with the specific name. Will return {@literal this} instance if the name has not
+	 * changed.
+	 *
+	 * @param name The new name to use
+	 * @return A (potentially) new item
+	 * @since 1.13.0
+	 */
+	default CatalogItem<?> withName(String name) {
+		throw new UnsupportedOperationException();
+	}
 }

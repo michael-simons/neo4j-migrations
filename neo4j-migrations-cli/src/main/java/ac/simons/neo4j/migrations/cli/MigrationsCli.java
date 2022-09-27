@@ -68,7 +68,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
+	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateCommand.class, RunCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
 	versionProvider = ManifestVersionProvider.class,
 	defaultValueProvider = CommonEnvVarDefaultProvider.class
 )
@@ -222,8 +222,17 @@ public final class MigrationsCli implements Runnable {
 
 	/**
 	 * @return The migrations config based on the required options.
+	 * @see #getConfig(boolean)
 	 */
 	MigrationsConfig getConfig() {
+		return getConfig(false);
+	}
+
+	/**
+	 * @param forceSilence overwrites {@link #verbose} and disables config logging
+	 * @return The migrations config based on the required options.
+	 */
+	MigrationsConfig getConfig(boolean forceSilence) {
 
 		boolean runsInNativeImage = ImageInfo.inImageRuntimeCode();
 
@@ -257,7 +266,9 @@ public final class MigrationsCli implements Runnable {
 			.withAutocrlf(autocrlf)
 			.build();
 
-		config.logTo(LOGGER, verbose);
+		if (!forceSilence) {
+			config.logTo(LOGGER, verbose);
+		}
 		return config;
 	}
 

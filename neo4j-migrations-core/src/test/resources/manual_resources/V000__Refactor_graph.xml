@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<refactor type="rename.type">
+		<parameters>
+			<parameter name="from">LIKES</parameter>
+			<parameter name="to">MAG</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="normalize.asBoolean">
+		<parameters>
+			<parameter name="property">klug</parameter>
+			<parameter name="trueValues">
+				<value>ja</value>
+			</parameter>
+			<parameter name="falseValues" />
+		</parameters>
+	</refactor>
+
+	<refactor type="migrate.replaceBTreeIndexes" />
+</migration>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1664297442912">
-    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.13.0-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1664306397621">
+    <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.13.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/AbstractCypherBasedMigration.java" result="PRESENT"/>
@@ -213,7 +213,6 @@
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset2/V023__NichtsIstWieEsScheint.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset3/SomeMigrations.java" result="PRESENT"/>
         <file path="src/test/java/ac/simons/neo4j/migrations/core/test_migrations/changeset4/V001__SlowMigration.java" result="PRESENT"/>
-        <file path="src/test/resources/manual_resources/V000__Invalid.extension" result="UNKNOWN"/>
         <file path="src/test/resources/testcontainers.properties" result="PRESENT"/>
     </files>
 </licensePluginReport>

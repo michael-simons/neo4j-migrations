@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
@@ -186,7 +187,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		try {
 			out.append(this.getClass().getSimpleName().toUpperCase(Locale.ROOT));
 			if (!(name instanceof GeneratedName)) {
-				out.append(' ').append(name.getValue());
+				out.append(' ').append(Neo4jVersion.LATEST.sanitizeSchemaName(name.getValue()));
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);

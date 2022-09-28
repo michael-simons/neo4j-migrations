@@ -48,6 +48,15 @@ class ConstraintToCypherRendererTest {
 			IntStream.range(0, 4).mapToObj(i -> Arguments.of("4." + i, true)));
 	}
 
+	@Test
+	void shouldEscapeNames() {
+
+		Constraint constraint = Constraint.forNode("Book").named("das ist ein test").unique("isbn");
+		String cypher = Renderer.get(Renderer.Format.CYPHER, Constraint.class)
+			.render(constraint, RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"));
+		assertThat(cypher).isEqualTo("CREATE CONSTRAINT `das ist ein test` FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
+	}
+
 	@ParameterizedTest
 	@MethodSource
 	void multiplePropertiesAreOnlySupportedOn44AndHigher(String serverVersion, boolean shouldFail) {

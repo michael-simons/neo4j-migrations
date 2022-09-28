@@ -51,6 +51,15 @@ class IndexToCypherRendererTest {
 		);
 	}
 
+	@Test
+	void shouldEscapeNames() {
+
+		Index index = Index.forNode("Book").named("das ist` ein test").onProperties("isbn");
+		String cypher = Renderer.get(Renderer.Format.CYPHER, Index.class)
+			.render(index, RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"));
+		assertThat(cypher).isEqualTo("CREATE INDEX `das ist`` ein test` FOR (n:Book) ON (n.isbn)");
+	}
+
 	@ParameterizedTest
 	@MethodSource
 	void shouldRenderSimpleIndexCreation(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,

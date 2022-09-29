@@ -27,6 +27,7 @@ import java.util.EnumSet;
 import java.util.Formattable;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +47,13 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 	private static final Set<Neo4jVersion> RANGE_35_TO_42 = EnumSet.of(Neo4jVersion.V3_5, Neo4jVersion.V4_0,
 		Neo4jVersion.V4_1, Neo4jVersion.V4_2);
 
-	private static final UnaryOperator<String> TO_LITERAL = v -> "'" + v + "'";
+	private static final String ESCAPED_UNICODE_QUOTE = "\\u0027";
+	private static final Pattern UNESCAPED_QUOTE = Pattern.compile("(?<!\\\\)'");
+
+	private static final UnaryOperator<String> TO_LITERAL = v -> {
+		String result = UNESCAPED_QUOTE.matcher(v.replace(ESCAPED_UNICODE_QUOTE, "'")).replaceAll("\\\\'");
+		return "'" + result + "'";
+	};
 
 	@Override
 	public void render(Index index, RenderConfig config, OutputStream target) throws IOException {
@@ -105,24 +112,31 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		}
 	}
 
-	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version, String indexName,
-		String identifier) {
+	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version, String indexName, String identifier) {
+
+		String safeName;
+		if (RANGE_35_TO_42.contains(version)) {
+			safeName = TO_LITERAL.apply(indexName);
+		} else {
+			safeName = config.getVersion().sanitizeSchemaName(indexName);
+		}
+
 		if (index.getTargetEntityType() == TargetEntityType.NODE) {
 			String properties = renderFulltextProperties("n", index, config);
 			if (RANGE_35_TO_42.contains(version)) {
-				return String.format("CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s])", indexName,
+				return String.format("CALL db.index.fulltext.createNodeIndex(%s,[%s],[%s])", safeName,
 					identifier, properties);
 			} else {
-				return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", indexName,
+				return String.format("CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]", safeName,
 					config.ifNotExistsOrEmpty(), identifier, properties);
 			}
 		} else {
 			String properties = renderFulltextProperties("r", index, config);
 			if (RANGE_35_TO_42.contains(version)) {
-				return String.format("CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s])", indexName,
+				return String.format("CALL db.index.fulltext.createRelationshipIndex(%s,[%s],[%s])", safeName,
 					identifier, properties);
 			} else {
-				return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", indexName,
+				return String.format("CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]", safeName,
 					config.ifNotExistsOrEmpty(), identifier, properties);
 			}
 		}
@@ -130,7 +144,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 	private static String renderDropFulltext(Index index, RenderConfig config, Neo4jVersion version) {
 		if (RANGE_35_TO_42.contains(version)) {
-			return String.format("CALL db.index.fulltext.drop(\"%s\")", index.getName().getValue());
+			return String.format("CALL db.index.fulltext.drop(%s)", TO_LITERAL.apply(index.getName().getValue()));
 		} else {
 			return String.format("DROP %#s%s", index, config.ifNotExistsOrEmpty());
 		}

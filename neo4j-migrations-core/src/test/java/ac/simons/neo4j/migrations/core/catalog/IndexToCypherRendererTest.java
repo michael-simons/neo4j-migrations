@@ -54,10 +54,36 @@ class IndexToCypherRendererTest {
 	@Test
 	void shouldEscapeNames() {
 
-		Index index = Index.forNode("Book").named("das ist` ein test").onProperties("isbn");
-		String cypher = Renderer.get(Renderer.Format.CYPHER, Index.class)
-			.render(index, RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"));
-		assertThat(cypher).isEqualTo("CREATE INDEX `das ist`` ein test` FOR (n:Book) ON (n.isbn)");
+		Renderer<Index> indexRenderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+
+		Index index;
+		String cypher;
+		index = Index.forNode("Book").named("das' ist` \\u0027ein \\'test").onProperties("isbn");
+
+		RenderConfig create = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		RenderConfig drop = RenderConfig.drop().forVersionAndEdition("4.4", "ENTERPRISE");
+
+		cypher = indexRenderer.render(index, create);
+		assertThat(cypher).isEqualTo("CREATE INDEX `das' ist`` 'ein \\'test` FOR (n:Book) ON (n.isbn)");
+
+		cypher = indexRenderer.render(index, drop);
+		assertThat(cypher).isEqualTo("DROP INDEX `das' ist`` 'ein \\'test`");
+
+		index = Index.forNode("Book").named("das' ist` \\u0027ein \\'test").fulltext("isbn");
+		cypher = indexRenderer.render(index, create);
+		assertThat(cypher).isEqualTo("CREATE FULLTEXT INDEX `das' ist`` 'ein \\'test` FOR (n:Book) ON EACH [n.`isbn`]");
+
+		cypher = indexRenderer.render(index, drop);
+		assertThat(cypher).isEqualTo("DROP INDEX `das' ist`` 'ein \\'test`");
+
+		create = RenderConfig.create().forVersionAndEdition("4.2", "ENTERPRISE");
+		drop = RenderConfig.drop().forVersionAndEdition("4.2", "ENTERPRISE");
+
+		cypher = indexRenderer.render(index, create);
+		assertThat(cypher).isEqualTo("CALL db.index.fulltext.createNodeIndex('das\\' ist` \\'ein \\'test',['Book'],['isbn'])");
+
+		cypher = indexRenderer.render(index, drop);
+		assertThat(cypher).isEqualTo("CALL db.index.fulltext.drop('das\\' ist` \\'ein \\'test')");
 	}
 
 	@ParameterizedTest
@@ -568,13 +594,13 @@ class IndexToCypherRendererTest {
 		return Stream.of(
 			// All versions to be safe
 			Arguments.of("3.5", true, Neo4jEdition.UNDEFINED, Operator.DROP, false,
-				"CALL db.index.fulltext.drop(\"index_name\")"),
+				"CALL db.index.fulltext.drop('index_name')"),
 			Arguments.of("4.0", true, Neo4jEdition.UNDEFINED, Operator.DROP, false,
-				"CALL db.index.fulltext.drop(\"index_name\")"),
+				"CALL db.index.fulltext.drop('index_name')"),
 			Arguments.of("4.1", true, Neo4jEdition.UNDEFINED, Operator.DROP, false,
-				"CALL db.index.fulltext.drop(\"index_name\")"),
+				"CALL db.index.fulltext.drop('index_name')"),
 			Arguments.of("4.2", true, Neo4jEdition.UNDEFINED, Operator.DROP, false,
-				"CALL db.index.fulltext.drop(\"index_name\")"),
+				"CALL db.index.fulltext.drop('index_name')"),
 			Arguments.of("4.3", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name"),
 			Arguments.of("4.4", true, Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP INDEX index_name")
 		);

@@ -51,10 +51,16 @@ class ConstraintToCypherRendererTest {
 	@Test
 	void shouldEscapeNames() {
 
+		RenderConfig create = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		RenderConfig drop = RenderConfig.drop().forVersionAndEdition("4.4", "ENTERPRISE");
+
 		Constraint constraint = Constraint.forNode("Book").named("das ist ein test").unique("isbn");
-		String cypher = Renderer.get(Renderer.Format.CYPHER, Constraint.class)
-			.render(constraint, RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE"));
+
+		String cypher = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(constraint, create);
 		assertThat(cypher).isEqualTo("CREATE CONSTRAINT `das ist ein test` FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
+
+		cypher = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(constraint, drop);
+		assertThat(cypher).isEqualTo("DROP CONSTRAINT `das ist ein test`");
 	}
 
 	@ParameterizedTest

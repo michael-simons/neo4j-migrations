@@ -15,19 +15,13 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Formattable;
-import java.util.Formatter;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,7 +41,7 @@ import org.w3c.dom.NodeList;
  * @author Michael J. Simons
  * @since 1.7.0
  */
-abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
+abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T> {
 
 	/**
 	 * Reads an optional {@code options} column from a row and formats it as a map that is renderable as Cypher.
@@ -181,20 +175,6 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	}
 
 	@Override
-	public final void formatTo(Formatter formatter, int flags, int width, int precision) {
-
-		Appendable out = formatter.out();
-		try {
-			out.append(this.getClass().getSimpleName().toUpperCase(Locale.ROOT));
-			if (!(name instanceof GeneratedName)) {
-				out.append(' ').append(Neo4jVersion.LATEST.sanitizeSchemaName(name.getValue()));
-			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -206,24 +186,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		return getName().equals(that.getName()) && getOptionalOptions().equals(that.getOptionalOptions()) && isEquivalentTo(that);
 	}
 
-	static final class Target {
-
-		private final String identifier;
-
-		private final TargetEntityType targetEntityType;
-
-		Target(String identifier, TargetEntityType targetEntityType) {
-			this.identifier = identifier;
-			this.targetEntityType = targetEntityType;
-		}
-
-		String identifier() {
-			return identifier;
-		}
-
-		TargetEntityType targetEntityType() {
-			return targetEntityType;
-		}
+	record Target(String identifier, TargetEntityType targetEntityType) {
 	}
 
 	/**

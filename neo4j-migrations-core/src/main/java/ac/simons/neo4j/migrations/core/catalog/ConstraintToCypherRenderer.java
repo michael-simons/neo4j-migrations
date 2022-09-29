@@ -77,7 +77,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 		if (config.getOperator() == Operator.DROP && config.getVersion() != Neo4jVersion.V3_5 && constraint.hasName() && !config.isIgnoreName()) {
-			w.write(String.format("DROP %#s%s", constraint, config.ifNotExistsOrEmpty()));
+			w.write(String.format("DROP %#s%s", new FormattableCatalogItem(constraint, config.getVersion()), config.ifNotExistsOrEmpty()));
 		} else {
 			switch (constraint.getType()) {
 				case UNIQUE -> w.write(renderUniqueConstraint(constraint, config));
@@ -215,6 +215,6 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	}
 
 	Formattable formattableItem(Constraint item, RenderConfig config) {
-		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ? new AnonymousCatalogItem(item) : item;
+		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ? new AnonymousCatalogItem(item) : new FormattableCatalogItem(item, config.getVersion());
 	}
 }

@@ -144,7 +144,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		if (RANGE_35_TO_42.contains(version)) {
 			return String.format("CALL db.index.fulltext.drop(%s)", TO_LITERAL.apply(index.getName().getValue()));
 		} else {
-			return String.format("DROP %#s%s", index, config.ifNotExistsOrEmpty());
+			return String.format("DROP %#s%s", new FormattableCatalogItem(index, config.getVersion()), config.ifNotExistsOrEmpty());
 		}
 	}
 
@@ -243,6 +243,6 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 	Formattable formattablePropertyIndexItem(Index item, RenderConfig config) {
 		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ?
 			new AnonymousCatalogItem(item) :
-			item;
+			new FormattableCatalogItem(item, config.getVersion());
 	}
 }

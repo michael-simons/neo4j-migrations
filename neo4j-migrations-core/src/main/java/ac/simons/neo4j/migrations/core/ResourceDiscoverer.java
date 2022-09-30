@@ -59,7 +59,11 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 						return path.endsWith(provider.getExtension());
 					}
 					Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
-					return matcher.find() && provider.getExtension().equals(matcher.group("ext"));
+					boolean isValidResource = matcher.find();
+					if (!isValidResource && LOGGER.isLoggable(Level.FINE) && !LifecyclePhase.canParse(path)) {
+						LOGGER.log(Level.FINE, "Skipping resource {0}", path);
+					}
+					return isValidResource && provider.getExtension().equals(matcher.group("ext"));
 				} catch (UnsupportedEncodingException e) {
 					throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
 				}

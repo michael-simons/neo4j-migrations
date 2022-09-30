@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Discoverer of migrations.
@@ -26,6 +27,11 @@ import java.util.Collection;
  * @since 0.0.3
  */
 public interface Discoverer<T> {
+
+	/**
+	 * Logger used for writing specific discovery information.
+	 */
+	Logger LOGGER = Logger.getLogger(Discoverer.class.getName());
 
 	/**
 	 * Discover migrations within the given context.

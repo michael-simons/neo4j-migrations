@@ -238,6 +238,14 @@ public final class Migrations {
 			.reduce(Counters.empty(), Counters::add);
 	}
 
+	/**
+	 * Applies one or more migrations to the target (not the schema) database without recording any metadata and also
+	 * without acquiring the lock.
+	 *
+	 * @param resources One or more resources pointing to parsable migration data
+	 * @return the number of migrations applied
+	 * @since 1.13.0
+	 */
 	public int apply(URL... resources) {
 
 		int cnt = 0;

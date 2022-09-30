@@ -54,13 +54,7 @@ final class DefaultMerge implements Merge {
 		this.mergePolicies = mergePolicies;
 	}
 
-	private static class Ids {
-
-		final List<String> value;
-
-		final String first;
-
-		final List<String> tail;
+	private record Ids(List<String> value, String first, List<String> tail) {
 
 		static Ids of(List<String> ids) {
 			if (ids.isEmpty()) {
@@ -70,15 +64,9 @@ final class DefaultMerge implements Merge {
 			}
 		}
 
-		private Ids(List<String> value, String first, List<String> tail) {
-			this.value = value;
-			this.first = first;
-			this.tail = tail;
-		}
-
 		int size() {
-			return value.size();
-		}
+				return value.size();
+			}
 	}
 
 	@Override

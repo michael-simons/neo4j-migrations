@@ -18,8 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -46,8 +44,8 @@ final class DiscoveryService {
 
 	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {
 
-		this.migrationDiscoverers = Collections.unmodifiableList(Arrays.asList(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner)));
-		this.callbackDiscoverers = Collections.singletonList(ResourceDiscoverer.forCallbacks(resourceScanner));
+		this.migrationDiscoverers = List.of(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner));
+		this.callbackDiscoverers = List.of(ResourceDiscoverer.forCallbacks(resourceScanner));
 	}
 
 	/**
@@ -78,7 +76,7 @@ final class DiscoveryService {
 				.map(CatalogBasedMigration.class::cast)
 				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));
 		}
-		return Collections.unmodifiableList(migrations);
+		return List.copyOf(migrations);
 	}
 
 	private void computeAlternativeChecksums(List<MigrationWithPreconditions> migrations,
@@ -95,7 +93,7 @@ final class DiscoveryService {
 			List<String> alternativeChecksums = migrations.stream()
 				.filter(o -> o != m && o.getSource().equals(m.getSource()) && !migrationsAndPreconditions.get(o).isEmpty())
 				.flatMap(o -> {
-					Stream<String> checksum = o.getChecksum().map(Stream::of).orElseGet(Stream::empty);
+					Stream<String> checksum = o.getChecksum().stream();
 					return Stream.concat(checksum, o.getAlternativeChecksums().stream()).distinct();
 				})
 				.toList();
@@ -116,13 +114,13 @@ final class DiscoveryService {
 			return false;
 		}
 
-		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION, Collections.emptyList())) {
+		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION, List.of())) {
 			if (!assertion.isMet(context)) {
 				throw new MigrationsException("Could not satisfy `" + assertion + "`.");
 			}
 		}
 
-		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
+		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, List.of())
 			.stream().filter(precondition -> !precondition.isMet(context)).toList();
 
 		if (unmet.isEmpty()) {
@@ -139,11 +137,11 @@ final class DiscoveryService {
 
 	Map<LifecyclePhase, List<Callback>> findCallbacks(MigrationContext context) {
 
-		return Collections.unmodifiableMap(this.callbackDiscoverers.stream()
+		return this.callbackDiscoverers.stream()
 			.flatMap(d -> d.discover(context).stream())
-			.collect(Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -> {
+			.collect(Collectors.collectingAndThen(Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -> {
 				l.sort(Comparator.comparing(c -> c.getOptionalDescription().orElse("")));
-				return Collections.unmodifiableList(l);
-			}))));
+				return List.copyOf(l);
+			})), Map::copyOf));
 	}
 }

@@ -412,23 +412,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		return Collections.unmodifiableList(preconditions);
 	}
 
-	static class OperationContext {
-
-		final Neo4jVersion version;
-
-		final Neo4jEdition edition;
-
-		final VersionedCatalog catalog;
-
-		final Supplier<Session> sessionSupplier;
-
-		OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog,
-			final Supplier<Session> sessionSupplier) {
-			this.version = version;
-			this.edition = edition;
-			this.catalog = catalog;
-			this.sessionSupplier = sessionSupplier;
-		}
+	record OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog, Supplier<Session> sessionSupplier) {
 	}
 
 	private enum OperationType {

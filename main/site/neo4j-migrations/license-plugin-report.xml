@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1664440609635">
+<licensePluginReport goal="CHECK" timestamp="1664538877613">
     <module artifactId="neo4j-migrations" groupId="eu.michael-simons.neo4j" version="1.13.1-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
@@ -70,7 +70,6 @@
         <file path="src/main/java/ac/simons/neo4j/migrations/core/VersionedCatalog.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/WriteableCatalog.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/AbstractCatalogItem.java" result="PRESENT"/>
-        <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/AbstractContext.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/AbstractName.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/AnonymousCatalogItem.java" result="PRESENT"/>
         <file path="src/main/java/ac/simons/neo4j/migrations/core/catalog/Catalog.java" result="PRESENT"/>

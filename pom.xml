@@ -111,7 +111,7 @@
 		<docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
 		<error_prone_annotations.version>2.15.0</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
-		<graalvm.version>21.3.2</graalvm.version>
+		<graalvm.version>22.2.0.1</graalvm.version>
 		<guava.version>31.1-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.16.0</japicmp-maven-plugin.version>

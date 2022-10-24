@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1666596215165">
-    <module artifactId="neo4j-migrations-test-resources" groupId="eu.michael-simons.neo4j" version="1.13.2-SNAPSHOT"/>
+<licensePluginReport goal="CHECK" timestamp="1666601062717">
+    <module artifactId="neo4j-migrations-test-resources" groupId="eu.michael-simons.neo4j" version="1.13.3-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>
     </files>

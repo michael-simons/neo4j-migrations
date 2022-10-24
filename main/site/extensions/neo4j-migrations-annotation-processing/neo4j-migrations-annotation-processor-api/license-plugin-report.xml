@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1665675845469">
+<licensePluginReport goal="CHECK" timestamp="1666596639634">
     <module artifactId="neo4j-migrations-annotation-processor-api" groupId="eu.michael-simons.neo4j" version="1.13.2-SNAPSHOT"/>
     <files>
         <file path="pom.xml" result="PRESENT"/>

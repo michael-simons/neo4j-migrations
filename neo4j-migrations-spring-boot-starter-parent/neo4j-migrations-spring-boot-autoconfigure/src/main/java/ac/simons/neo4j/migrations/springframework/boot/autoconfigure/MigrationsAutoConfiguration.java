@@ -24,6 +24,7 @@ import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Driver;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,7 +36,6 @@ import org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfigurat
 import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -45,7 +45,7 @@ import org.springframework.core.io.ResourceLoader;
  * @author Michael J. Simons
  * @since 0.0.6
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnClass(Migrations.class)
 @ConditionalOnBean(Driver.class)
 @AutoConfigureAfter({ Neo4jAutoConfiguration.class })

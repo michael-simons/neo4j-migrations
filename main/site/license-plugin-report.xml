@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<licensePluginReport goal="CHECK" timestamp="1666600998184">
+<licensePluginReport goal="CHECK" timestamp="1667398521578">
     <module artifactId="neo4j-migrations-parent" groupId="eu.michael-simons.neo4j" version="1.13.3-SNAPSHOT"/>
     <files>
         <file path="etc/checkstyle/config.xml" result="PRESENT"/>

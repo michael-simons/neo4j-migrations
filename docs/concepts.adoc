@@ -90,23 +90,13 @@ convention to be recognized:
 V1_2_3__Add_last_name_index.(cypher|xml|java)
 ----
 
-* Prefix `V` for "__V__ersioned Migrations"
+* Prefix `V` for "__V__ersioned migration" or `R` for "__R__epeatable migration"
 * Version with optional underscores separating as many parts as you like
 * Separator: `__` (two underscores)
 * Required description: Underscores or spaces might be used to separate words
 * Suffix: Depending on the given type.
 
 Exceptions are made for callbacks (see <<concepts_naming-conventions,naming conventions>>) and some <<appendix_extesions, extensions>> supported by Neo4j-Migrations.
-
-A restricted set of options can be given after the description, prior to the suffix. Allowed options are: `runAlways` and `runOnChange`. These options are mutually exclusive and only applied to Cypher based migrations:
-
-[source,console]
-----
-V1_2_3__Add_last_name_index(runAlways).cypher
-----
-
-The round brackets are required in this pattern.
-
 
 [[concepts_migrations_cypher-based]]
 === Cypher-based
@@ -525,27 +515,18 @@ A Cypher script based migration must have a name following the given pattern to 
 V1_2_3__Add_last_name_index.cypher
 ----
 
-* Prefix `V` for "__V__ersioned Migrations"
+* Prefix `V` for "__V__ersioned migration" or `R` for "__R__epeatable migration"
 * Version with optional underscores separating as many parts as you like
 * Separator: `__` (two underscores)
 * Required description: Underscores or spaces might be used to separate words
 * Suffix: `.cypher`
 
-This applies to both Cypher scripts outside an application (in the file system) and inside an application (as resources). A restricted set of options can be given after the description, prior to the suffix. Allowed options are: `runAlways` and `runOnChange`. These options are mutually exclusive.
+This applies to both Cypher scripts outside an application (in the file system) and inside an application (as resources).
 
-[source,console]
-----
-V1_2_3__Add_last_name_index(runAlways).cypher
-----
-
-The round brackets are required in this pattern.
-
-* `runAlways`: Always run this migration, even if it has been applied before.
-* `runOnChange`: Make this migration mutable and re-run it everytime it has been changed.
-
-WARNING: Cypher-based migrations scripts are considered to be immutable once applied, except for those explicitly marked `runOnChange`.
+WARNING: Cypher-based migrations scripts are considered to be immutable once applied.
 We compute their checksums and record it inside the schema database.
 If you change a Cypher-based migration after it has been applied, any further application will fail.
+By marking a migration as repeatable you indicate that it is safe to repeat it whenever its checksum changes.
 
 ==== Callback scripts
 

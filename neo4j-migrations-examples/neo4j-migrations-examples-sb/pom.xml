@@ -157,7 +157,7 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 					<compilerArgs>
-						<arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V${next-migration-version}__Create_sdn_constraints.xml</arg>
+						<arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R${next-migration-version}__Create_sdn_constraints.xml</arg>
 						<arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
 					</compilerArgs>
 				</configuration>

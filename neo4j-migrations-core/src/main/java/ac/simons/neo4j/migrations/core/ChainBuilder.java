@@ -112,7 +112,11 @@ final class ChainBuilder {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
-			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !matches(expectedChecksum, newMigration)) {
+			if (newMigration.getVersion().isRepeatable() != expectedVersion.isRepeatable()) {
+				throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
+			}
+
+			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
 				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 			}
 			// This is not a pending migration anymore
@@ -159,7 +163,7 @@ final class ChainBuilder {
 				if (result.hasNext()) {
 					result.single().get("p").asPath().forEach(segment -> {
 						Element chainElement = DefaultChainElement.appliedElement(segment);
-						chain.put(MigrationVersion.withValue(chainElement.getVersion()), chainElement);
+						chain.put(MigrationVersion.withValue(chainElement.getVersion(), segment.end().get("repeatable").asBoolean(false)), chainElement);
 					});
 				}
 				return chain;

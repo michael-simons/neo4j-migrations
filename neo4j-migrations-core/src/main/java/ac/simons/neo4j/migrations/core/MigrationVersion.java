@@ -66,15 +66,20 @@ public final class MigrationVersion {
 
 	static MigrationVersion withValue(String value) {
 
-		return withValueAndDescription(value, null);
+		return withValue(value, false);
 	}
 
-	static MigrationVersion withValueAndDescription(String value, String description) {
+	static MigrationVersion withValue(String value, boolean repeatable) {
+
+		return withValueAndDescription(value, null, repeatable);
+	}
+
+	static MigrationVersion withValueAndDescription(String value, String description, boolean repeatable) {
 
 		if (BASELINE_VALUE.equals(value)) {
 			return MigrationVersion.baseline();
 		}
-		return new MigrationVersion(value, description, false);
+		return new MigrationVersion(value, description, repeatable);
 	}
 
 	static MigrationVersion baseline() {

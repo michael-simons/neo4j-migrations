@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -325,6 +327,109 @@ class MigrationsIT extends TestBase {
 			Migrations failingMigrations = new Migrations(configuration, driver);
 			assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
 				.withMessage("Checksum of 2 (\"Some\") changed!");
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test // GH-702
+	void shouldNotAllowChangingRepeatableType1() throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(3, dir);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+
+			File renamedFile = new File(dir, "R" + 2 + "__Some.cypher");
+			if (!files.get(1).renameTo(renamedFile)) {
+				Assertions.fail("Could not rename file");
+			}
+			files.set(1, renamedFile);
+
+			Migrations failingMigrations = new Migrations(configuration, driver);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
+				.withMessage("State of 2 (\"Some\") changed from non-repeatable to repeatable");
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test // GH-702
+	void shouldNotAllowChangingRepeatableType2() throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(3, dir);
+
+		File renamedFile = new File(dir, "R" + 2 + "__Some.cypher");
+		if (!files.get(1).renameTo(renamedFile)) {
+			Assertions.fail("Could not rename file");
+		}
+		File oldFile = files.set(1, renamedFile);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+
+			if (!files.get(1).renameTo(oldFile)) {
+				Assertions.fail("Could not rename file");
+			}
+			files.set(1, oldFile);
+
+			Migrations failingMigrations = new Migrations(configuration, driver);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
+				.withMessage("State of 2 (\"Some\") changed from repeatable to non-repeatable");
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test // GH-702
+	void shouldNotFailChangesInRepeatableMigrations() throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(3, dir);
+
+		File renamedFile = new File(dir, "R" + 2 + "__Some.cypher");
+		if (!files.get(1).renameTo(renamedFile)) {
+			Assertions.fail("Could not rename file");
+		}
+		files.set(1, renamedFile);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+
+			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+
+			Migrations failingMigrations = new Migrations(configuration, driver);
+			assertThatNoException().isThrownBy(failingMigrations::apply);
+
+			try (Session session = driver.session()) {
+				long cnt = session.run("MATCH (m:SomeNode) RETURN count(m)").single().get(0).asLong();
+				assertThat(cnt).isOne();
+			}
+
+			Assertions.fail("Needs testing for repeatable migrations being applied");
 		} finally {
 			for (File file : files) {
 				file.delete();

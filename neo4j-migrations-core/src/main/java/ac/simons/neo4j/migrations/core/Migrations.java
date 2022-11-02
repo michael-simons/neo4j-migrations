@@ -531,7 +531,7 @@ public final class Migrations {
 			String version = lastMigration.get(PROPERTY_MIGRATION_VERSION).asString();
 			String description = lastMigration.get(PROPERTY_MIGRATION_DESCRIPTION).asString();
 
-			return Optional.of(MigrationVersion.withValueAndDescription(version, description));
+			return Optional.of(MigrationVersion.withValueAndDescription(version, description, lastMigration.get("repeatable").asBoolean(false)));
 		} catch (NoSuchRecordException e) {
 			return Optional.empty();
 		}
@@ -554,6 +554,18 @@ public final class Migrations {
 		}
 	}
 
+	boolean checksumOfRepeatableChanged(MigrationChain currentChain, Migration migration) {
+
+		if (!migration.getVersion().isRepeatable()) {
+			return false;
+		}
+		Optional<String> appliedChecksum = currentChain.getElements().stream()
+			.filter(e -> e.getVersion().equals(migration.getVersion().getValue()))
+			.findFirst()
+			.flatMap(MigrationChain.Element::getChecksum);
+		return !ChainBuilder.matches(appliedChecksum, migration);
+	}
+
 	private void apply0(List<Migration> migrations) {
 
 		ensureConstraints(context);
@@ -567,17 +579,23 @@ public final class Migrations {
 		StopWatch stopWatch = new StopWatch();
 		for (Migration migration : migrations) {
 
+			Supplier<String> logMessage = () -> String.format("Applied migration %s.", toString(migration));
 			if (previousVersion != MigrationVersion.baseline() && chain.isApplied(migration.getVersion().getValue())) {
-				LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
-				continue;
+				if (checksumOfRepeatableChanged(chain, migration)) {
+					logMessage = () -> String.format("Reapplied changed repeatable migration %s", toString(migration));
+				} else {
+					LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
+					continue;
+				}
 			}
+
 			try {
 				stopWatch.start();
 				migration.apply(context);
 				long executionTime = stopWatch.stop();
 				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
 
-				LOGGER.log(Level.INFO, "Applied migration {0}.", toString(migration));
+				LOGGER.log(Level.INFO, logMessage);
 			} catch (Exception e) {
 				if (HBD.constraintProbablyRequiredEnterpriseEdition(e, getConnectionDetails())) {
 					throw new MigrationsException(Messages.INSTANCE.format("errors.edition_mismatch", toString(migration), getConnectionDetails().getServerEdition()));
@@ -640,6 +658,7 @@ public final class Migrations {
 		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());
 		migration.getOptionalDescription().ifPresent(v -> properties.put(PROPERTY_MIGRATION_DESCRIPTION, v));
 		properties.put("type", getMigrationType(migration).name());
+		properties.put("repeatable", migration.getVersion().isRepeatable());
 		properties.put("source", migration.getSource());
 		migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
 

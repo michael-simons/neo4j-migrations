@@ -66,4 +66,11 @@ class MigrationVersionTest {
 	void shouldFailOnIncorrectClassNames(String value) {
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse(value));
 	}
+
+	@Test
+	void shouldNotContainOptions() {
+
+		MigrationVersion version = MigrationVersion.parse("V1__a_b(runAlways)");
+		assertThat(version.getOptionalDescription()).hasValue("a b");
+	}
 }

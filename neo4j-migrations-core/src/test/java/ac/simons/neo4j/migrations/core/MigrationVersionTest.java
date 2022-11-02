@@ -68,9 +68,18 @@ class MigrationVersionTest {
 	}
 
 	@Test
-	void shouldNotContainOptions() {
+	void shouldDetectRepeatableVersions() {
 
-		MigrationVersion version = MigrationVersion.parse("V1__a_b(runAlways)");
+		MigrationVersion version = MigrationVersion.parse("R1__a_b");
 		assertThat(version.getOptionalDescription()).hasValue("a b");
+		assertThat(version.isRepeatable()).isTrue();
+	}
+
+	@Test
+	void versionsShouldNotBeRepeatableByDefault() {
+
+		MigrationVersion version = MigrationVersion.parse("V1__a_b");
+		assertThat(version.getOptionalDescription()).hasValue("a b");
+		assertThat(version.isRepeatable()).isFalse();
 	}
 }

@@ -30,11 +30,16 @@ import java.util.regex.Pattern;
 public final class MigrationVersion {
 
 	private static final String BASELINE_VALUE = "BASELINE";
-	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null);
-	static final Pattern VERSION_PATTERN = Pattern.compile("V(\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)__([\\w ]+)(?:\\((?<options>runAlways|runOnChange)\\))?(?:\\.(?<ext>\\w+))?");
+	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null, false);
+	static final Pattern VERSION_PATTERN = Pattern.compile("(?<type>[VR])(?<version>\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)__(?<name>[\\w ]+)(?:\\.(?<ext>\\w+))?");
 
 	private final String value;
 	private final String description;
+	/**
+	 * A flag indicating that this version can be safely repeated, even on checksum changes.
+	 * @since TBA
+	 */
+	private final boolean repeatable;
 
 	/**
 	 * @param pathOrUrl A string representing either a path or an URL.
@@ -55,7 +60,8 @@ public final class MigrationVersion {
 			throw new MigrationsException("Invalid class name for a migration: " + simpleName);
 		}
 
-		return new MigrationVersion(matcher.group(1).replace("_", "."), matcher.group(2).replace("_", " "));
+		boolean repeatable = "R".equalsIgnoreCase(matcher.group("type"));
+		return new MigrationVersion(matcher.group("version").replace("_", "."), matcher.group("name").replace("_", " "), repeatable);
 	}
 
 	static MigrationVersion withValue(String value) {
@@ -68,7 +74,7 @@ public final class MigrationVersion {
 		if (BASELINE_VALUE.equals(value)) {
 			return MigrationVersion.baseline();
 		}
-		return new MigrationVersion(value, description);
+		return new MigrationVersion(value, description, false);
 	}
 
 	static MigrationVersion baseline() {
@@ -76,9 +82,10 @@ public final class MigrationVersion {
 		return BASELINE;
 	}
 
-	private MigrationVersion(String value, String description) {
+	private MigrationVersion(String value, String description, boolean repeatable) {
 		this.value = value;
 		this.description = description;
+		this.repeatable = repeatable;
 	}
 
 	/**
@@ -86,6 +93,14 @@ public final class MigrationVersion {
 	 */
 	public String getValue() {
 		return value;
+	}
+
+	/**
+	 * @return {@literal true} if this version can be safely applied multiple times, even on checksum changes
+	 * @since TBA
+	 */
+	public boolean isRepeatable() {
+		return repeatable;
 	}
 
 	/**

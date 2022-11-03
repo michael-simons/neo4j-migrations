@@ -44,9 +44,11 @@ import java.util.stream.Collectors;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 
@@ -438,6 +440,7 @@ public final class Migrations {
 
 	/**
 	 * Retrieves the database catalog
+	 *
 	 * @return the database catalog
 	 * @since 1.7.0
 	 */
@@ -579,10 +582,12 @@ public final class Migrations {
 		StopWatch stopWatch = new StopWatch();
 		for (Migration migration : migrations) {
 
+			boolean repeated = false;
 			Supplier<String> logMessage = () -> String.format("Applied migration %s.", toString(migration));
 			if (previousVersion != MigrationVersion.baseline() && chain.isApplied(migration.getVersion().getValue())) {
-				if (checksumOfRepeatableChanged(chain, migration)) {
+				if (checksumOfRepeatableChanged(chain, migration) || (migration instanceof JavaBasedMigration && migration.getVersion().isRepeatable())) {
 					logMessage = () -> String.format("Reapplied changed repeatable migration %s", toString(migration));
+					repeated = true;
 				} else {
 					LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
 					continue;
@@ -593,7 +598,7 @@ public final class Migrations {
 				stopWatch.start();
 				migration.apply(context);
 				long executionTime = stopWatch.stop();
-				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime);
+				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime, repeated);
 
 				LOGGER.log(Level.INFO, logMessage);
 			} catch (Exception e) {
@@ -609,21 +614,25 @@ public final class Migrations {
 		}
 	}
 
-	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration,
-		long executionTime) {
+	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration, long executionTime, boolean repeated) {
 
-		try (Session session = context.getSchemaSession()) {
+		Optional<String> migrationTarget = context.getConfig().getMigrationTargetIn(context);
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("neo4jUser", neo4jUser);
+		parameters.put("previousVersion", previousVersion.getValue());
+		parameters.put("appliedMigration", toProperties(appliedMigration));
+		parameters.put("installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));
+		parameters.put("executionTime", executionTime);
+		parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));
 
-			Optional<String> migrationTarget = context.getConfig().getMigrationTargetIn(context);
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put("neo4jUser", neo4jUser);
-			parameters.put("previousVersion", previousVersion.getValue());
-			parameters.put("appliedMigration", toProperties(appliedMigration));
-			parameters.put("installedBy", config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));
-			parameters.put("executionTime", executionTime);
-			parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));
-
-			session.writeTransaction(t -> {
+		TransactionWork<ResultSummary> uow;
+		if (repeated) {
+			uow = t -> t.run(
+				"MATCH (l:__Neo4jMigration) WHERE l.version = $appliedMigration['version'] AND coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') WITH l "
+					+ "CREATE (l) - [:REPEATED {checksum: $appliedMigration['checksum'], at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (l)",
+				parameters).consume();
+		} else {
+			uow = t -> {
 				String mergeOrMatchAndMaybeCreate;
 				if (migrationTarget.isPresent()) {
 					mergeOrMatchAndMaybeCreate = "MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) ";
@@ -645,7 +654,11 @@ public final class Migrations {
 							+ "MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -> (c)",
 						parameters)
 					.consume();
-			});
+			};
+		}
+
+		try (Session session = context.getSchemaSession()) {
+			session.writeTransaction(uow);
 		}
 
 		return appliedMigration.getVersion();

@@ -421,20 +421,96 @@ class MigrationsIT extends TestBase {
 
 			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
 
-			Migrations failingMigrations = new Migrations(configuration, driver);
-			assertThatNoException().isThrownBy(failingMigrations::apply);
+			migrations = new Migrations(configuration, driver);
+			assertThatNoException().isThrownBy(migrations::apply);
 
 			try (Session session = driver.session()) {
 				long cnt = session.run("MATCH (m:SomeNode) RETURN count(m)").single().get(0).asLong();
 				assertThat(cnt).isOne();
 			}
 
-			Assertions.fail("Needs testing for repeatable migrations being applied");
+			MigrationChain chain = migrations.info();
+			assertThat(chain.getElements())
+				.satisfiesExactly(
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("1", Optional.of("2648307716")),
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("2", Optional.of("1179729683")),
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("3", Optional.of("2648307716"))
+				);
 		} finally {
 			for (File file : files) {
 				file.delete();
 			}
 		}
+	}
+
+	@Test // GH-702
+	void shouldBuildGoodChainInTheMiddle() throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(2, dir);
+
+		File renamedFile = new File(dir, "R" + 2 + "__Some.cypher");
+		if (!files.get(1).renameTo(renamedFile)) {
+			Assertions.fail("Could not rename file");
+		}
+		files.set(1, renamedFile);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+
+
+			// First apply 2 migrations
+			Migrations migrations = new Migrations(configuration, driver);
+			migrations.apply();
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(2);
+
+			// Change one, add 2 more and apply
+			Files.write(files.get(1).toPath(), Arrays.asList("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+			files.addAll(createMigrationFiles(2, files.size(), dir));
+			migrations = new Migrations(configuration, driver);
+			assertThatNoException().isThrownBy(migrations::apply);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(4);
+
+			// Change repeatable once more and apply
+			Files.write(files.get(1).toPath(), Collections.singletonList("CREATE (n:SomeNode) RETURN n;"));
+			migrations = new Migrations(configuration, driver);
+			assertThatNoException().isThrownBy(migrations::apply);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(4);
+
+			MigrationChain chain = migrations.info();
+			assertThat(chain.getElements())
+				.satisfiesExactly(
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("1", Optional.of("2648307716")),
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("2", Optional.of("1674913780")),
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("3", Optional.of("2648307716")),
+					e -> assertThat(e).extracting(MigrationChain.Element::getVersion, MigrationChain.Element::getChecksum).containsExactly("4", Optional.of("2648307716"))
+				);
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test // GH-702
+	void shouldReapplyRepeatableJavaMigrations() throws IOException {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset5").build(), driver);
+		migrations.apply();
+		migrations.apply();
+
+		try (Session session = driver.session()) {
+			long cnt = session.run("MATCH (m:FromRepeatedMig) RETURN count(m)").single().get(0).asLong();
+			assertThat(cnt).isEqualTo(2L);
+		}
+
+		MigrationChain chain = migrations.info();
+		assertThat(chain.getElements())
+			.hasSize(2)
+			.extracting(MigrationChain.Element::getType)
+			.containsOnly(MigrationType.JAVA);
 	}
 
 	@Test // GH-237
@@ -566,9 +642,13 @@ class MigrationsIT extends TestBase {
 	}
 
 	private static List<File> createMigrationFiles(int n, File dir) throws IOException {
+		return createMigrationFiles(n, 0, dir);
+	}
+
+	private static List<File> createMigrationFiles(int n, int offset, File dir) throws IOException {
 		List<File> files = new ArrayList<>();
 		for (int i = 1; i <= n; ++i) {
-			File aFile = new File(dir, "V" + i + "__Some.cypher");
+			File aFile = new File(dir, "V" + (i + offset) + "__Some.cypher");
 			aFile.createNewFile();
 			files.add(aFile);
 			Files.write(aFile.toPath(), Collections.singletonList("MATCH (n) RETURN n"));

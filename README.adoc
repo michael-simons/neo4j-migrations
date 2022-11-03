@@ -37,7 +37,7 @@ They provide a uniform way for applications, the command line and build tools al
 The project is inspired to a large extent by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
 Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.
 
-Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver], supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.
+Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver], supports Neo4j from 3.5 on through the whole 4.x series upto Neo4j 5, including enterprise features such as multidatabase support and impersonation.
 The only dependencies are said driver and https://github.com/classgraph/classgraph[ClassGraph], the latter being used to find migrations on the classpath.
 
 The history of migrations applied is stored as a subgraph in your database.
@@ -63,7 +63,7 @@ Other options include Homebrew and Zip bundles. Please checkout the full list of
 
 == Compatibility
 
-Neo4j-Migrations can be used against Neo4j 3.5 and all Neo4j 4.x versions upto 4.4, including Neo4j-Aura.
+Neo4j-Migrations can be used against Neo4j 3.5, all Neo4j 4.x versions upto 4.4 and Neo4j 5, including all current Neo4j-Aura versions.
 
 // tag::compatibility[]
 The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 8 to run.

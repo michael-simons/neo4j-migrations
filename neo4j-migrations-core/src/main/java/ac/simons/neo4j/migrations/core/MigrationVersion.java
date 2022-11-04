@@ -31,6 +31,7 @@ public final class MigrationVersion {
 
 	private static final String BASELINE_VALUE = "BASELINE";
 	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null, false);
+	@SuppressWarnings("squid:S5843") // This is a fine regex
 	static final Pattern VERSION_PATTERN = Pattern.compile("(?<type>[VR])(?<version>\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)__(?<name>[\\w ]+)(?:\\.(?<ext>\\w+))?");
 
 	private final String value;

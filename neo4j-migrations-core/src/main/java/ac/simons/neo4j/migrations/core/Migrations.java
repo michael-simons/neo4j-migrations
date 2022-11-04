@@ -562,6 +562,9 @@ public final class Migrations {
 		if (!migration.getVersion().isRepeatable()) {
 			return false;
 		}
+		if (migration instanceof JavaBasedMigration) {
+			return true;
+		}
 		Optional<String> appliedChecksum = currentChain.getElements().stream()
 			.filter(e -> e.getVersion().equals(migration.getVersion().getValue()))
 			.findFirst()
@@ -573,8 +576,7 @@ public final class Migrations {
 
 		ensureConstraints(context);
 
-		MigrationVersion previousVersion = getLastAppliedVersion()
-			.orElseGet(MigrationVersion::baseline);
+		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);
 
 		// Validate and build the chain of migrations
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);
@@ -585,7 +587,7 @@ public final class Migrations {
 			boolean repeated = false;
 			Supplier<String> logMessage = () -> String.format("Applied migration %s.", toString(migration));
 			if (previousVersion != MigrationVersion.baseline() && chain.isApplied(migration.getVersion().getValue())) {
-				if (checksumOfRepeatableChanged(chain, migration) || (migration instanceof JavaBasedMigration && migration.getVersion().isRepeatable())) {
+				if (checksumOfRepeatableChanged(chain, migration)) {
 					logMessage = () -> String.format("Reapplied changed repeatable migration %s", toString(migration));
 					repeated = true;
 				} else {

@@ -85,6 +85,7 @@ final class ChainBuilder {
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
+	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still fits on one screen
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
 		Map<MigrationVersion, Element> appliedMigrations =
@@ -111,6 +112,7 @@ final class ChainBuilder {
 				}
 				throw new MigrationsException(message);
 			}
+
 			if (!newMigration.getVersion().equals(expectedVersion)) {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
@@ -122,6 +124,7 @@ final class ChainBuilder {
 			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
 				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 			}
+
 			// This is not a pending migration anymore
 			fullMigrationChain.put(expectedVersion, entry.getValue());
 			++i;

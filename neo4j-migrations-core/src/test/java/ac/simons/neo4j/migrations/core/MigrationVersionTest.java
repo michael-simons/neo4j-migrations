@@ -66,4 +66,20 @@ class MigrationVersionTest {
 	void shouldFailOnIncorrectClassNames(String value) {
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse(value));
 	}
+
+	@Test
+	void shouldDetectRepeatableVersions() {
+
+		MigrationVersion version = MigrationVersion.parse("R1__a_b");
+		assertThat(version.getOptionalDescription()).hasValue("a b");
+		assertThat(version.isRepeatable()).isTrue();
+	}
+
+	@Test
+	void versionsShouldNotBeRepeatableByDefault() {
+
+		MigrationVersion version = MigrationVersion.parse("V1__a_b");
+		assertThat(version.getOptionalDescription()).hasValue("a b");
+		assertThat(version.isRepeatable()).isFalse();
+	}
 }

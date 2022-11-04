@@ -391,7 +391,7 @@ The annotation processor is available under the following coordinates:
 It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4j-OGM), so it is safe to use it either directly as dependency so that it will be picked up by all recent Java compilers or as dedicated processor for the compiler:
 
 [source,xml,subs="verbatim,attributes"]
-.Annotation processor configured as processor fot the compiler plugin inside a Maven pom
+.Annotation processor configured as processor for the compiler plugin inside a Maven pom
 ----
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -405,7 +405,7 @@ It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4
             </annotationProcessorPath>
         </annotationProcessorPaths>
         <compilerArgs>
-            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V${next-migration-version}__Create_sdn_constraints.xml</arg>
+            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R${next-migration-version}__Create_sdn_constraints.xml</arg>
             <arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
         </compilerArgs>
     </configuration>
@@ -455,6 +455,9 @@ Taking the above configuration of the processor one exemplary way to take this f
 ----
 
 This works in our examples but bear in mind: The migration will always be regenerated. This is fine as long as you don't change your annotated model in any capacity that results in a new or modified index (renaming attributes, labels etc.).
+
+TIP: The generator will always use idempotent versions of indexes if available in your database. They work well with repeatable migrations.
+     So one solution is to configure the generator that it generates a name like `R1_2_3__Create_domain_indexes.xml`.
 
 One approach is to add the processor to your build and run a diff with the last "good" generated catalog and the new one. If it is different, add the new catalog under an incremented version number.
 

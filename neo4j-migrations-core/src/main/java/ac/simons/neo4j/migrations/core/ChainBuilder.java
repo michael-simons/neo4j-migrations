@@ -22,14 +22,17 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
@@ -82,6 +85,7 @@ final class ChainBuilder {
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
+	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still fits on one screen
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
 		Map<MigrationVersion, Element> appliedMigrations =
@@ -108,13 +112,19 @@ final class ChainBuilder {
 				}
 				throw new MigrationsException(message);
 			}
+
 			if (!newMigration.getVersion().equals(expectedVersion)) {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
-			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !matches(expectedChecksum, newMigration)) {
+			if (newMigration.getVersion().isRepeatable() != expectedVersion.isRepeatable()) {
+				throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
+			}
+
+			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
 				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 			}
+
 			// This is not a pending migration anymore
 			fullMigrationChain.put(expectedVersion, entry.getValue());
 			++i;
@@ -148,7 +158,10 @@ final class ChainBuilder {
 		String query = ""
 			+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
 			+ "WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-			+ "RETURN p";
+			+ "WITH p\n"
+			+ "OPTIONAL MATCH () - [r:REPEATED] -> ()\n"
+			+ "WITH p, r order by r.at DESC\n"
+			+ "RETURN p, collect(r) AS repetitions";
 
 		try (Session session = context.getSchemaSession()) {
 			return session.readTransaction(tx -> {
@@ -157,9 +170,11 @@ final class ChainBuilder {
 				Result result = tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget));
 				// Might be empty (when nothing has applied yet)
 				if (result.hasNext()) {
-					result.single().get("p").asPath().forEach(segment -> {
-						Element chainElement = DefaultChainElement.appliedElement(segment);
-						chain.put(MigrationVersion.withValue(chainElement.getVersion()), chainElement);
+					Record row = result.single();
+					List<Relationship> repetitions = row.get("repetitions").asList(Value::asRelationship);
+					row.get("p").asPath().forEach(segment -> {
+						Element chainElement = DefaultChainElement.appliedElement(segment, repetitions);
+						chain.put(MigrationVersion.withValue(chainElement.getVersion(), segment.end().get("repeatable").asBoolean(false)), chainElement);
 					});
 				}
 				return chain;
@@ -265,12 +280,16 @@ final class ChainBuilder {
 			}
 		}
 
-		static Element appliedElement(Path.Segment appliedMigration) {
+		static Element appliedElement(Path.Segment appliedMigration, List<Relationship> repetitions) {
 
 			Node targetMigration = appliedMigration.end();
 			Map<String, Object> properties = targetMigration.asMap();
 
-			Relationship migrationProperties = appliedMigration.relationship();
+			Relationship migrationProperties = repetitions.stream()
+					.filter(relationship -> relationship.endNodeId() == targetMigration.id())
+					.max(Comparator.comparing((Relationship r) -> r.get("at").asZonedDateTime()))
+					.orElse(appliedMigration.relationship());
+
 			ZonedDateTime installedOn = migrationProperties.get("at").asZonedDateTime();
 			String installedBy = String.format("%s/%s", migrationProperties.get("by").asString(),
 				migrationProperties.get("connectedAs").asString());
@@ -279,7 +298,7 @@ final class ChainBuilder {
 				.plusNanos(storedExecutionTime.nanoseconds());
 
 			return new DefaultChainElement(MigrationState.APPLIED,
-				MigrationType.valueOf((String) properties.get("type")), (String) properties.get("checksum"),
+				MigrationType.valueOf((String) properties.get("type")), migrationProperties.get("checksum").asString((String) properties.get("checksum")),
 				(String) properties.get("version"), (String) properties.get("description"),
 				(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
 		}

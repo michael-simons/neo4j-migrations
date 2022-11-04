@@ -159,6 +159,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "MaurizioCasciano",
+      "name": "Maurizio Casciano",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12021064?v=4",
+      "profile": "https://github.com/MaurizioCasciano",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -166,5 +175,6 @@
   "projectOwner": "michael-simons",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }

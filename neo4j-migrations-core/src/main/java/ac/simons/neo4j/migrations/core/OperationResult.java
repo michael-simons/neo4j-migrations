@@ -24,17 +24,17 @@ import java.util.Collections;
  * @author Michael J. Simons
  * @since 1.1.0
  */
-public interface OperationResult {
+public sealed interface OperationResult permits DatabaseOperationResult {
 
 	/**
-	 * @return all warnings, if any
+	 * {@return all warnings, if any}
 	 */
 	default Collection<String> getWarnings() {
 		return Collections.emptyList();
 	}
 
 	/**
-	 * @return a sensible string applicable in a log or info message
+	 * {@return a sensible string applicable in a log or info message}
 	 */
 	String prettyPrint();
 }

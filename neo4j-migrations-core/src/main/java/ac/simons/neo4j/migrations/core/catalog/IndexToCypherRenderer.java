@@ -84,9 +84,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 
 		switch (index.getType()) {
-			case POINT:
-			case PROPERTY:
-			case TEXT:
+			case POINT, PROPERTY, TEXT:
 				w.write(renderNodePropertiesIndex(index, config));
 				break;
 			case FULLTEXT:

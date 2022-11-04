@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Contextual information passed to renderers.
@@ -43,11 +42,8 @@ public final class RenderConfig {
 	 * <strong>Warning</strong>: Not to be implemented by user code. Will be sealed in a later release.
 	 *
 	 * @since 1.11.0
-	 * @deprecated Not meant to be part of a public API, but cannot restrict it in Java 8
 	 */
-	@Deprecated
-	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
-	public interface AdditionalRenderingOptions {
+	public sealed interface AdditionalRenderingOptions permits XMLRenderingOptions, CypherRenderingOptions {
 	}
 
 	/**
@@ -55,8 +51,7 @@ public final class RenderConfig {
 	 *
 	 * @since 1.11.0
 	 */
-	@SuppressWarnings("squid:S1874") // Complains about the purposeful deprecated option
-	public interface XMLRenderingOptions extends AdditionalRenderingOptions {
+	public non-sealed interface XMLRenderingOptions extends AdditionalRenderingOptions {
 
 		/**
 		 * Only applicable to {@link Catalog catalogs}.
@@ -89,8 +84,7 @@ public final class RenderConfig {
 	 *
 	 * @since 1.13.0
 	 */
-	@SuppressWarnings("squid:S1874") // Complains about the purposeful deprecated option
-	public interface CypherRenderingOptions extends AdditionalRenderingOptions {
+	public non-sealed interface CypherRenderingOptions extends AdditionalRenderingOptions {
 
 		/**
 		 * @return {@literal true} to enable rendering of options
@@ -252,7 +246,7 @@ public final class RenderConfig {
 		List<CypherRenderingOptions> cypherRenderingOptions = this.additionalOptions.stream()
 			.filter(CypherRenderingOptions.class::isInstance)
 			.map(CypherRenderingOptions.class::cast)
-			.collect(Collectors.toList());
+			.toList();
 
 		this.includingOptions = cypherRenderingOptions.stream()
 			.map(CypherRenderingOptions::includingOptions)

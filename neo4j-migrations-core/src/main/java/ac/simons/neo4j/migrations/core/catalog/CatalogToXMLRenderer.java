@@ -49,7 +49,7 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 		List<XMLRenderingOptions> relevantOptions = config.getAdditionalOptions().stream()
 			.filter(XMLRenderingOptions.class::isInstance)
 			.map(XMLRenderingOptions.class::cast)
-			.collect(Collectors.toList());
+			.toList();
 		boolean withApply = relevantOptions
 			.stream().map(XMLRenderingOptions::withApply)
 			.reduce(!relevantOptions.isEmpty(), (v1, v2) -> v1 && v2);
@@ -89,10 +89,10 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			catalogElement.appendChild(constraintsElement);
 
 			for (CatalogItem<?> item : catalog.getItems()) {
-				if (item instanceof Constraint) {
-					constraintsElement.appendChild(((Constraint) item).toXML(document));
-				} else if (item instanceof Index) {
-					indexesElement.appendChild(((Index) item).toXML(document));
+				if (item instanceof Constraint constraint) {
+					constraintsElement.appendChild(constraint.toXML(document));
+				} else if (item instanceof Index index) {
+					indexesElement.appendChild(index.toXML(document));
 				}
 			}
 

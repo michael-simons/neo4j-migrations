@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.CRC32;
 
@@ -157,7 +156,7 @@ final class DefaultCypherResource implements CypherResource {
 				}
 			}
 		}
-		return filter == null ? availableStatements : availableStatements.stream().filter(filter).collect(Collectors.toList());
+		return filter == null ? availableStatements : availableStatements.stream().filter(filter).toList();
 	}
 
 	/**
@@ -221,7 +220,7 @@ final class DefaultCypherResource implements CypherResource {
 		return getStatements()
 			.stream()
 			.flatMap(DefaultCypherResource::getSingleLineComments)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	static Stream<String> getSingleLineComments(String statement) {
@@ -303,24 +302,11 @@ final class DefaultCypherResource implements CypherResource {
 	/**
 	 * A record holding together a list of statements and the database in which they should be executed.
 	 */
-	static class DatabaseAndStatements {
+	record DatabaseAndStatements(Optional<String> database, List<String> statements) {
 
-		private final Optional<String> database;
-
-		private final List<String> statements;
-
-		DatabaseAndStatements(Optional<String> database, List<String> statements) {
-			this.database = database;
-			this.statements = Collections.unmodifiableList(statements);
-		}
-
-		public Optional<String> database() {
-			return database;
-		}
-
-		public List<String> statements() {
-			return statements;
-		}
+			DatabaseAndStatements {
+				statements = List.copyOf(statements);
+			}
 	}
 
 	/**

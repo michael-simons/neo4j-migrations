@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,7 +43,7 @@ public final class CleanResult implements DatabaseOperationResult {
 		long constraintsRemoved,
 		long indexesRemoved) {
 		this.affectedDatabase = affectedDatabase.orElse(null);
-		this.chainsDeleted = Collections.unmodifiableList(new ArrayList<>(chainsDeleted));
+		this.chainsDeleted = List.copyOf(chainsDeleted);
 		this.nodesDeleted = nodesDeleted;
 		this.relationshipsDeleted = relationshipsDeleted;
 		this.constraintsRemoved = constraintsRemoved;

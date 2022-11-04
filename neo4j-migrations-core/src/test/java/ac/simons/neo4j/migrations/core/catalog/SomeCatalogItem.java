@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.Optional;
+import java.util.Collections;
 
 /**
- * A specialization of the {@link OperationResult} that always affects a database, either the default one
- * or a named other.
+ * For testing purposes
  *
  * @author Michael J. Simons
- * @soundtrack Die Krupps - Paradise Now
- * @since 1.2.0
  */
-public sealed interface DatabaseOperationResult extends OperationResult permits CleanResult, ValidationResult {
-
-	/**
-	 * {@return the optional name of the database clean, an empty optional indicates the default database}
-	 */
-	Optional<String> getAffectedDatabase();
+public final class SomeCatalogItem extends AbstractCatalogItem<ItemType> {
+	public SomeCatalogItem() {
+		super("name", null, TargetEntityType.NODE, "x", Collections.singleton("p"), null);
+	}
 }

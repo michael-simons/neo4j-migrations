@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.quarkus.it;
 import ac.simons.neo4j.migrations.core.Migrations;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -46,7 +45,7 @@ public class MigrationsResource {
 	public List<String> get() {
 		return migrations.info().getElements().stream()
 			.map(e -> e.getVersion() + ": " + e.getOptionalDescription().orElse("n/a") + " (" + e.getState() + ")")
-			.collect(Collectors.toList());
+			.toList();
 
 	}
 }

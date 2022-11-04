@@ -209,21 +209,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 
 		String name = nameValue.asString();
-		Constraint.Type type;
-		switch (row.get(XMLSchemaConstants.TYPE).asString()) {
-			case "NODE_KEY":
-				type = Type.KEY;
-				break;
-			case "NODE_PROPERTY_EXISTENCE":
-			case "RELATIONSHIP_PROPERTY_EXISTENCE":
-				type = Type.EXISTS;
-				break;
-			case "UNIQUENESS":
-				type = Type.UNIQUE;
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
-		}
+		Constraint.Type type = switch (row.get(XMLSchemaConstants.TYPE).asString()) {
+			case "NODE_KEY" -> Type.KEY;
+			case "NODE_PROPERTY_EXISTENCE", "RELATIONSHIP_PROPERTY_EXISTENCE" -> Type.EXISTS;
+			case "UNIQUENESS" -> Type.UNIQUE;
+			default -> throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
+		};
 
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get("entityType").asString());
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);

@@ -24,7 +24,7 @@ import java.util.Objects;
  * @author Michael J. Simons
  * @since 1.7.0
  */
-abstract class AbstractName implements Name {
+abstract non-sealed class AbstractName implements Name {
 
 	/**
 	 * Value of this name, might be {@literal null} or blank.

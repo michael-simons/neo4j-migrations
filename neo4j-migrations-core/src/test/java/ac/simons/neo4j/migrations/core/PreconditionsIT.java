@@ -51,6 +51,7 @@ class PreconditionsIT {
 	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.3-enterprise")
 	void assumptionsShouldWork() {
 
+		@SuppressWarnings("resource")
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3-enterprise")
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);

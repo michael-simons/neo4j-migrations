@@ -22,6 +22,7 @@ import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -152,23 +153,10 @@ class CatalogRendererTest {
 			+ "");
 	}
 
-	// This test can go away when Neo4j-Migrations is pure JDK 17, as the catalog item will be properly sealed all the time
 	@Test
 	void shouldNotRenderUnsupportedItems() {
 		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
-		Catalog c = Catalog.of(Collections.singletonList(new CatalogItem<ItemType>() {
-			@Override
-			public Name getName() {
-				return null;
-			}
-
-			@Override public ItemType getType() {
-				return null;
-			}
-
-			@Override public boolean hasGeneratedName() {
-				return false;
-			}
+		Catalog c = Catalog.of(Collections.singletonList(new AbstractCatalogItem<>("Unknown", Index.Type.LOOKUP, TargetEntityType.NODE, "a", List.of(), null) {
 		}));
 		assertThat(renderer.render(c, RenderConfig.defaultConfig())).isEqualTo(
 			""

@@ -28,7 +28,7 @@ import java.util.List;
  * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
-public interface CypherResource {
+public sealed interface CypherResource permits DefaultCypherResource {
 
 	/**
 	 * Creates a new resource for the given URL, using the default settings for autocrlf.
@@ -95,7 +95,7 @@ public interface CypherResource {
 	String getIdentifier();
 
 	/**
-	 * @return The checksum of this resource
+	 * {@return The checksum of this resource}
 	 */
 	String getChecksum();
 
@@ -110,7 +110,7 @@ public interface CypherResource {
 	List<String> getExecutableStatements();
 
 	/**
-	 * @return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement
+	 * {@return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement}
 	 */
 	List<String> getSingleLineComments();
 }

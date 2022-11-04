@@ -222,7 +222,7 @@ class MigrationsCliTest {
 	class LocationsToScan {
 
 		@Test
-		void shouldUseConfiguredValues() throws IllegalAccessException {
+		void shouldUseConfiguredValues() {
 
 			MigrationsCli cli = new MigrationsCli();
 			setLocationsToScan(cli, new String[] { "a", "b" });

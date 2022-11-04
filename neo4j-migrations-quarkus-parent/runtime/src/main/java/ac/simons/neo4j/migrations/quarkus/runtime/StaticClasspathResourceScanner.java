@@ -23,7 +23,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.graalvm.nativeimage.ImageInfo;
 
@@ -85,7 +84,7 @@ public final class StaticClasspathResourceScanner implements ClasspathResourceSc
 
 		var ccl = Thread.currentThread().getContextClassLoader();
 		var stripped = locations.stream()
-			.map(location -> location.charAt(0) == '/' ? location.substring(1) : location).collect(Collectors.toList());
+			.map(location -> location.charAt(0) == '/' ? location.substring(1) : location).toList();
 		return resources.stream()
 			.filter(r -> stripped.stream().anyMatch(location -> r.getPath().startsWith(location)))
 			.map(rw -> {
@@ -102,6 +101,6 @@ public final class StaticClasspathResourceScanner implements ClasspathResourceSc
 					throw new MigrationsException("Could recreate an URL from a resource wrapper.", e);
 				}
 			})
-			.collect(Collectors.toList());
+			.toList();
 	}
 }

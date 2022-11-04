@@ -80,16 +80,10 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 			w.write(String.format("DROP %#s%s", constraint, config.ifNotExistsOrEmpty()));
 		} else {
 			switch (constraint.getType()) {
-				case UNIQUE:
-					w.write(renderUniqueConstraint(constraint, config));
-					break;
-				case EXISTS:
-					w.write(renderPropertyExists(constraint, config));
-					break;
-				case KEY:
-					w.write(renderNodeKey(constraint, config));
-					break;
-				default:
+				case UNIQUE -> w.write(renderUniqueConstraint(constraint, config));
+				case EXISTS -> w.write(renderPropertyExists(constraint, config));
+				case KEY -> w.write(renderNodeKey(constraint, config));
+				default ->
 					throw new IllegalArgumentException("Unsupported type of constraint: " + constraint.getType());
 			}
 		}

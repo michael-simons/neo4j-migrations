@@ -63,14 +63,11 @@ public enum Neo4jEdition {
 			if (!lenient) {
 				return Neo4jEdition.valueOf(value);
 			}
-			switch (value) {
-				case "ENTERPRISE":
-					return Neo4jEdition.ENTERPRISE;
-				case "COMMUNITY":
-					return Neo4jEdition.COMMUNITY;
-				default:
-					return Neo4jEdition.UNDEFINED;
-			}
+			return switch (value) {
+				case "ENTERPRISE" -> Neo4jEdition.ENTERPRISE;
+				case "COMMUNITY" -> Neo4jEdition.COMMUNITY;
+				default -> Neo4jEdition.UNDEFINED;
+			};
 		}
 	}
 }

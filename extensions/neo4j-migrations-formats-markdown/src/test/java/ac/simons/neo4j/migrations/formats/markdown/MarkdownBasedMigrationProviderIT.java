@@ -15,10 +15,15 @@
  */
 package ac.simons.neo4j.migrations.formats.markdown;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +37,6 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

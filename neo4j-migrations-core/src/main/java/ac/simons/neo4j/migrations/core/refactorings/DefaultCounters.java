@@ -22,109 +22,25 @@ import org.neo4j.driver.summary.SummaryCounters;
  * @soundtrack Antilopen Gang - Adrenochrom
  * @since 1.10.0
  */
-final class DefaultCounters implements Counters {
-
-	private final int nodesCreated;
-
-	private final int nodesDeleted;
-
-	private final int labelsAdded;
-
-	private final int labelsRemoved;
-
-	private final int typesAdded;
-
-	private final int typesRemoved;
-
-	private final int propertiesSet;
-
-	private final int indexesAdded;
-
-	private final int indexesRemoved;
-
-	private final int constraintsAdded;
-
-	private final int constraintsRemoved;
+record DefaultCounters(
+	int nodesCreated,
+	int nodesDeleted,
+	int labelsAdded,
+	int labelsRemoved,
+	int typesAdded,
+	int typesRemoved,
+	int propertiesSet,
+	int indexesAdded,
+	int indexesRemoved,
+	int constraintsAdded,
+	int constraintsRemoved
+) implements Counters {
 
 	DefaultCounters(SummaryCounters counters) {
 		this(counters.nodesCreated(), counters.nodesDeleted(), counters.labelsAdded(), counters.labelsRemoved(),
 			counters.relationshipsCreated(),
 			counters.relationshipsDeleted(), counters.propertiesSet(), counters.indexesAdded(),
 			counters.indexesRemoved(), counters.constraintsAdded(), counters.constraintsRemoved());
-
-	}
-
-	@SuppressWarnings("squid:S107") // Yes, 11 arguments are ugly as hell, but it's saner than a map
-	DefaultCounters(int nodesCreated, int nodesDeleted, int labelsAdded, int labelsRemoved,
-		int typesAdded,
-		int typesRemoved, int propertiesSet, int indexesAdded, int indexesRemoved, int constraintsAdded,
-		int constraintsRemoved) {
-		this.nodesCreated = nodesCreated;
-		this.nodesDeleted = nodesDeleted;
-		this.labelsAdded = labelsAdded;
-		this.labelsRemoved = labelsRemoved;
-		this.typesAdded = typesAdded;
-		this.typesRemoved = typesRemoved;
-		this.propertiesSet = propertiesSet;
-		this.indexesAdded = indexesAdded;
-		this.indexesRemoved = indexesRemoved;
-		this.constraintsAdded = constraintsAdded;
-		this.constraintsRemoved = constraintsRemoved;
-	}
-
-	@Override
-	public int nodesCreated() {
-		return nodesCreated;
-	}
-
-	@Override
-	public int nodesDeleted() {
-		return nodesDeleted;
-	}
-
-	@Override
-	public int labelsAdded() {
-		return labelsAdded;
-	}
-
-	@Override
-	public int labelsRemoved() {
-		return labelsRemoved;
-	}
-
-	@Override
-	public int typesAdded() {
-		return typesAdded;
-	}
-
-	@Override
-	public int typesRemoved() {
-		return typesRemoved;
-	}
-
-	@Override
-	public int propertiesSet() {
-		return propertiesSet;
-	}
-
-	@Override
-	public int indexesAdded() {
-		return indexesAdded;
-	}
-
-	@Override
-	public int indexesRemoved() {
-		return indexesRemoved;
-	}
-
-	@Override
-	public int constraintsAdded() {
-		return constraintsAdded;
-	}
-
-	@Override
-	public int constraintsRemoved() {
-		return constraintsRemoved;
 	}
 
 	@Override

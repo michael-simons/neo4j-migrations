@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.lang.reflect.Constructor;
+import java.util.Optional;
 
 /**
  * Interface to be implemented for Java-based migrations.
@@ -23,7 +24,7 @@ import java.lang.reflect.Constructor;
  * @author Michael J. Simons
  * @since 0.0.1
  */
-public interface JavaBasedMigration extends Migration {
+public non-sealed interface JavaBasedMigration extends Migration {
 
 	@Override
 	default MigrationVersion getVersion() {
@@ -31,9 +32,8 @@ public interface JavaBasedMigration extends Migration {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	default String getDescription() {
-		return getVersion().getOptionalDescription().orElseGet(() -> getClass().getSimpleName());
+	default Optional<String> getOptionalDescription() {
+		return getVersion().getOptionalDescription().or(() -> Optional.of(getClass().getSimpleName()));
 	}
 
 	@Override

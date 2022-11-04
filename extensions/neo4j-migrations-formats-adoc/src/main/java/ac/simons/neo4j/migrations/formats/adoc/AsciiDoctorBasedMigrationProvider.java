@@ -112,9 +112,7 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 
 		@Override
 		public Document process(Document document) {
-			Map<Object, Object> selector = new HashMap<>();
-			selector.put("context", ":listing");
-			selector.put("style", "source");
+			Map<Object, Object> selector = Map.of("context", ":listing", "style", "source");
 			Predicate<Block> includedBlocks = b -> "cypher".equals(b.getAttribute("language"));
 			includedBlocks = includedBlocks.and(b -> MigrationVersion.canParse(b.getId()));
 			includedBlocks = includedBlocks.and(b -> !b.getSource().contains(INCLUDED_IGNORED_MARKER));

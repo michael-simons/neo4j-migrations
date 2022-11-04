@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import ac.simons.neo4j.migrations.core.internal.ThrowingErrorHandler;
+import ac.simons.neo4j.migrations.test_resources.TestResources;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -86,7 +87,7 @@ class XMLParsingTest {
 
 	@Test
 	void shouldFindAllConstraintsAndIndexes() {
-		Catalog catalog = load(XMLParsingTest.class.getResource("/catalogbased/parsing/full-example.xml"), true);
+		Catalog catalog = load(TestResources.class.getResource("/catalogbased/parsing/full-example.xml"), true);
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
 			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
@@ -106,7 +107,7 @@ class XMLParsingTest {
 	@Test
 	void shouldNotCreateInvalidConstaints() {
 
-		URL resource = XMLParsingTest.class.getResource("/catalogbased/parsing/invalid_constraint.xml");
+		URL resource = TestResources.class.getResource("/catalogbased/parsing/invalid_constraint.xml");
 		Objects.requireNonNull(resource);
 		assertThatIllegalArgumentException().isThrownBy(() -> load(resource, false));
 	}

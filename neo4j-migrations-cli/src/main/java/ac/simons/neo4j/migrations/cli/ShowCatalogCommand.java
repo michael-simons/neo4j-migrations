@@ -16,12 +16,12 @@
 package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.catalog.Renderer.Format;
-import ac.simons.neo4j.migrations.core.Neo4jEdition;
-import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;

@@ -33,8 +33,8 @@ class JavaBasedMigrationTest {
 	@Test
 	void shouldGetCorrectDescription() {
 
-		assertThat(new V001__SomeMigration().getDescription()).isEqualTo("SomeMigration");
-		assertThat(new V002__SomeWhatBroken().getDescription()).isEqualTo("V002__SomeWhatBroken");
+		assertThat(new V001__SomeMigration().getOptionalDescription()).hasValue("SomeMigration");
+		assertThat(new V002__SomeWhatBroken().getOptionalDescription()).hasValue("V002__SomeWhatBroken");
 	}
 
 	private static class V001__SomeMigration implements JavaBasedMigration {

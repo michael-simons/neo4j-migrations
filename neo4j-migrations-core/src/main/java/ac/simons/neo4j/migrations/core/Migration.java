@@ -23,36 +23,25 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 0.0.1
  */
-public interface Migration {
+public sealed interface Migration permits AbstractCypherBasedMigration, MigrationWithPreconditions, JavaBasedMigration {
 
 	/**
-	 * @return The version.
+	 * {@return the version}
 	 */
 	MigrationVersion getVersion();
 
 	/**
-	 * @return Some description.
-	 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
+	 * {@return An optional description of this migration}
 	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	String getDescription();
+	Optional<String> getOptionalDescription();
 
 	/**
-	 * @return An optional description of this migration.
-	 */
-	@SuppressWarnings("squid:S1874")
-	default Optional<String> getOptionalDescription() {
-		return Optional.ofNullable(getDescription());
-	}
-
-	/**
-	 * @return Something that describes the source of this migration.
+	 * {@return something that describes the source of this migration}
 	 */
 	String getSource();
 
 	/**
-	 * @return Possible checksum of the migration.
+	 * {@return possible checksum of the migration}
 	 */
 	default Optional<String> getChecksum() {
 		return Optional.empty();

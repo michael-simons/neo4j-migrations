@@ -160,16 +160,15 @@ public final class Migrations {
 	/**
 	 * Returns information about the context, the database, all applied and all pending applications.
 	 *
-	 * @param infoCmd Specify how the chain should be computed
+	 * @param mode Specify how the chain should be computed
 	 * @return The chain of migrations.
 	 * @throws ServiceUnavailableException in case the driver is not connected
 	 * @throws MigrationsException         for everything caused by failing migrations
 	 * @since 1.4.0
 	 */
-	public MigrationChain info(ChainBuilderMode infoCmd) {
+	public MigrationChain info(ChainBuilderMode mode) {
 
-		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations(), false,
-				infoCmd),
+		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations(), false, mode),
 			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
 	}
 
@@ -352,13 +351,13 @@ public final class Migrations {
 		boolean all
 	) {
 
-		String query = ""
-			+ "MATCH (n:__Neo4jMigration) "
-			+ "WITH n, coalesce(n.migrationTarget, '<default>') as migrationTarget "
-			+ "WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)"
-			+ "DETACH DELETE n "
-			+ "RETURN DISTINCT migrationTarget "
-			+ "ORDER BY migrationTarget ASC ";
+		String query = """
+			MATCH (n:__Neo4jMigration)
+			WITH n, coalesce(n.migrationTarget, '<default>') as migrationTarget
+			WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)
+			DETACH DELETE n
+			RETURN DISTINCT migrationTarget
+			ORDER BY migrationTarget ASC""";
 
 		try (Session session = context.getSchemaSession()) {
 			DeletedChainsWithCounters deletedChainsWithCounters = session.writeTransaction(tx -> {

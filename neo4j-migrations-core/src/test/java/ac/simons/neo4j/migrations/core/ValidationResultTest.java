@@ -30,12 +30,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 class ValidationResultTest {
 
 	@ParameterizedTest
-	@CsvSource({
-		"VALID,true",
-		"INCOMPLETE_DATABASE,false",
-		"INCOMPLETE_MIGRATIONS,false",
-		"DIFFERENT_CONTENT,false",
-	})
+	@CsvSource(textBlock = """
+		VALID,true
+		INCOMPLETE_DATABASE,false
+		INCOMPLETE_MIGRATIONS,false
+		DIFFERENT_CONTENT,false
+		""")
 	void isValidShouldWork(ValidationResult.Outcome outcome, boolean expected) {
 		ValidationResult result = new ValidationResult(Optional.empty(), outcome, Collections.emptyList());
 		assertThat(result.getOutcome()).isEqualTo(outcome);
@@ -43,12 +43,12 @@ class ValidationResultTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({
-		"VALID,false",
-		"INCOMPLETE_DATABASE,false",
-		"INCOMPLETE_MIGRATIONS,true",
-		"DIFFERENT_CONTENT,true",
-	})
+	@CsvSource(textBlock = """
+		VALID,false
+		INCOMPLETE_DATABASE,false
+		INCOMPLETE_MIGRATIONS,true
+		DIFFERENT_CONTENT,true
+		""")
 	void needsRepairShouldWork(ValidationResult.Outcome outcome, boolean expected) {
 		ValidationResult result = new ValidationResult(Optional.empty(), outcome, Collections.emptyList());
 		assertThat(result.getOutcome()).isEqualTo(outcome);
@@ -56,24 +56,24 @@ class ValidationResultTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = {
-		"aDatabase", "n/a"
-	}, nullValues = "n/a")
+	@CsvSource(value = { "aDatabase", "n/a" }, nullValues = "n/a")
 	void getAffectedDatabaseShouldWork(String affectedDatabase) {
 
 		assertThat(new ValidationResult(Optional.ofNullable(affectedDatabase),
-			ValidationResult.Outcome.VALID, Collections.emptyList()).getAffectedDatabase()).isEqualTo(Optional.ofNullable(affectedDatabase));
+			ValidationResult.Outcome.VALID, Collections.emptyList()).getAffectedDatabase()).isEqualTo(
+			Optional.ofNullable(affectedDatabase));
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = {
-		"VALID,aDatabase,All resolved migrations have been applied to `aDatabase`.",
-		"VALID,n/a,All resolved migrations have been applied to the default database.",
-		"INCOMPLETE_MIGRATIONS,kaputt,Some versions previously applied to `kaputt` cannot be resolved anymore."
-	}, nullValues = "n/a")
+	@CsvSource(nullValues = "n/a", textBlock = """
+			VALID,aDatabase,All resolved migrations have been applied to `aDatabase`.
+			VALID,n/a,All resolved migrations have been applied to the default database.
+			INCOMPLETE_MIGRATIONS,kaputt,Some versions previously applied to `kaputt` cannot be resolved anymore.
+		""")
 	void prettyPrintingShouldWork(ValidationResult.Outcome outcome, String affectedDatabase, String expected) {
 
-		ValidationResult result = new ValidationResult(Optional.ofNullable(affectedDatabase), outcome, Collections.emptyList());
+		ValidationResult result = new ValidationResult(Optional.ofNullable(affectedDatabase), outcome,
+			Collections.emptyList());
 		assertThat(result.prettyPrint()).isEqualTo(expected);
 	}
 }

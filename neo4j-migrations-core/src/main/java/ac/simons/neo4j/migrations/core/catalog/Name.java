@@ -26,7 +26,7 @@ import java.util.Collection;
  * @author Michael J. Simons
  * @since 1.7.0
  */
-public interface Name {
+public sealed interface Name permits AbstractName {
 
 	/**
 	 * Turns a name value into a {@link Name}. The value might be {@literal null}
@@ -65,7 +65,7 @@ public interface Name {
 	}
 
 	/**
-	 * @return the {@link String string representation} of this instance
+	 * {@return the {@link String string representation} of this instance}
 	 */
 	String getValue();
 }

@@ -48,16 +48,13 @@ public class MigrationsDevConsoleHandler extends DevConsolePostHandler {
 
 		var operation = form.get("operation");
 		switch (operation.toLowerCase(Locale.ROOT)) {
-			case "clean":
+			case "clean" -> {
 				var result = migrations.clean(false);
 				flashMessage(event, result.prettyPrint());
-				break;
-			case "apply":
-				migrations.apply()
-					.ifPresent(version -> flashMessage(event, "Database migrated to  " + version.getValue()));
-				break;
-			default:
-				throw new UnsupportedOperationException(operation);
+			}
+			case "apply" -> migrations.apply()
+				.ifPresent(version -> flashMessage(event, "Database migrated to  " + version.getValue()));
+			default -> throw new UnsupportedOperationException(operation);
 		}
 	}
 }

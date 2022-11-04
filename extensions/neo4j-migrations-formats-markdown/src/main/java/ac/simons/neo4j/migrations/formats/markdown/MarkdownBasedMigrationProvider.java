@@ -21,10 +21,6 @@ import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.Ordered;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.ResourceContext;
-import org.commonmark.node.AbstractVisitor;
-import org.commonmark.node.FencedCodeBlock;
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,6 +30,11 @@ import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.commonmark.node.AbstractVisitor;
+import org.commonmark.node.FencedCodeBlock;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
 
 /**
  * Implementation of a {@link ResourceBasedMigrationProvider} that deals with Markdown files under the extension

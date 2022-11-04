@@ -86,7 +86,7 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 				return quotedPatterns.isEmpty() ?
 					statement :
 					statement.replaceAll("(" + quotedPatterns + ")" + Strings.LINE_DELIMITER, "");
-			}).collect(Collectors.toList());
+			}).toList();
 		return Optional.of(DefaultCypherResource.computeChecksum(statements));
 	}
 

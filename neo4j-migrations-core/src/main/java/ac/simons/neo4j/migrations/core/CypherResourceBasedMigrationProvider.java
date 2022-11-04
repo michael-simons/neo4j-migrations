@@ -24,15 +24,8 @@ import java.util.Collections;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("missing-explicit-ctor")
 public final class CypherResourceBasedMigrationProvider implements ResourceBasedMigrationProvider {
-
-	/**
-	 * Save to call, but discouraged.
-	 */
-	@SuppressWarnings("squid:S1186")
-	// Public constructor required by the service loader, cannot be moved to an internal package due to dependencies of the core package
-	public CypherResourceBasedMigrationProvider() {
-	}
 
 	@Override
 	public String getExtension() {

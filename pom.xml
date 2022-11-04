@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>1.13.4-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -116,7 +116,7 @@
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.16.0</japicmp-maven-plugin.version>
 		<java-module-name />
-		<java.version>8</java.version>
+		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.2</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.9.1</junit.jupiter.version>
@@ -127,7 +127,7 @@
 		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.0.0</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
-		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+		<maven-failsafe-plugin.version>3.0.0-M7</maven-failsafe-plugin.version>
 		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
 		<maven-install-plugin.version>3.0.1</maven-install-plugin.version>
 		<maven-invoker-plugin.version>3.3.0</maven-invoker-plugin.version>
@@ -140,7 +140,7 @@
 		<maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
 		<maven-site-plugin.version>3.12.1</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+		<maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
 		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -406,45 +406,30 @@
 					<version>${maven-invoker-plugin.version}</version>
 				</plugin>
 				<plugin>
+
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
 						<forceJavacCompilerUse>true</forceJavacCompilerUse>
+						<showWarnings>true</showWarnings>
 						<compilerArgs>
 							<arg>-Xlint:all,-options,-path,-processing,-classfile</arg>
-							<!-- -classfile due to some weird stuff happening in testCompile. -->
 							<arg>-Werror</arg>
 							<arg>-parameters</arg>
 						</compilerArgs>
 					</configuration>
 					<executions>
 						<execution>
-							<id>compile-java-11</id>
-							<goals>
-								<goal>compile</goal>
-							</goals>
-							<phase>compile</phase>
-							<configuration combine.self="override">
-								<release>11</release>
-								<compileSourceRoots>
-									<compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
-								</compileSourceRoots>
-								<multiReleaseOutput>true</multiReleaseOutput>
-							</configuration>
-						</execution>
-						<execution>
-							<id>compile-java-17</id>
-							<goals>
-								<goal>compile</goal>
-							</goals>
-							<phase>compile</phase>
-							<configuration combine.self="override">
-								<release>17</release>
-								<compileSourceRoots>
-									<compileSourceRoot>${project.basedir}/src/main/java17</compileSourceRoot>
-								</compileSourceRoots>
-								<multiReleaseOutput>true</multiReleaseOutput>
+							<id>default-testCompile</id>
+							<configuration>
+								<forceJavacCompilerUse>true</forceJavacCompilerUse>
+								<showWarnings>true</showWarnings>
+								<compilerArgs>
+									<arg>-Xlint:all,-options,-path,-processing,-classfile,-exports,-missing-explicit-ctor</arg>
+									<arg>-Werror</arg>
+									<arg>-parameters</arg>
+								</compilerArgs>
 							</configuration>
 						</execution>
 					</executions>
@@ -537,9 +522,6 @@
 						<includes>
 							<include>**/*</include>
 						</includes>
-						<excludes>
-							<exclude>META-INF/versions/**/*</exclude>
-						</excludes>
 					</configuration>
 					<executions>
 						<execution>

@@ -27,17 +27,12 @@ import java.util.function.UnaryOperator;
  * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
-public abstract class AbstractCypherBasedMigration implements Migration {
+public abstract non-sealed class AbstractCypherBasedMigration implements Migration {
 
 	/**
 	 * The underlying resource representing the content of this migration.
 	 */
 	protected final CypherResource cypherResource;
-	/**
-	 * @deprecated since 1.9.0, see {@link #getOptionalDescription()}
-	 */
-	@Deprecated
-	protected final String description;
 	/**
 	 * The version of this migration.
 	 */
@@ -48,22 +43,14 @@ public abstract class AbstractCypherBasedMigration implements Migration {
 	 *
 	 * @param cypherResource The resource to be dealt with
 	 */
-	@SuppressWarnings("squid:S1874") // Assignment to description
 	protected AbstractCypherBasedMigration(CypherResource cypherResource) {
 		this.cypherResource = cypherResource;
 		this.version = MigrationVersion.parse(this.cypherResource.getIdentifier());
-		this.description = this.version.getOptionalDescription().orElse(null);
 	}
 
 	@Override
 	public final MigrationVersion getVersion() {
 		return version;
-	}
-
-	@Override
-	@SuppressWarnings("deprecation")
-	public final String getDescription() {
-		return version.getOptionalDescription().orElse(null);
 	}
 
 	@Override

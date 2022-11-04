@@ -22,7 +22,6 @@ import io.github.classgraph.ScanResult;
 
 import java.net.URL;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A {@link ClasspathResourceScanner} that scans the class path for cypher resources on demand.
@@ -42,7 +41,7 @@ final class DefaultClasspathResourceScanner implements ClasspathResourceScanner 
 			return allResources
 				.stream()
 				.map(Resource::getURL)
-				.collect(Collectors.toList());
+				.toList();
 		}
 	}
 }

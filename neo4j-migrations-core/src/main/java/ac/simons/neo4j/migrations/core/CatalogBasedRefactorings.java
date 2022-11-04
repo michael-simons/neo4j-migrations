@@ -23,7 +23,6 @@ import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -113,7 +112,7 @@ final class CatalogBasedRefactorings {
 		Collection<String> rawFalseValues = findParameterValues(parameterList, "falseValues")
 				.orElseThrow(() -> createException(node, type, "No `falseValues` parameter"));
 
-		Function<String, ? extends Serializable> mapToType = value -> {
+		Function<String, Object> mapToType = value -> {
 			try {
 				if (value == null || "null".equals(value)) {
 					return null;
@@ -123,8 +122,8 @@ final class CatalogBasedRefactorings {
 				return value;
 			}
 		};
-		List<Object> trueValues = rawTrueValues.stream().map(mapToType).collect(Collectors.toList());
-		List<Object> falseValues = rawFalseValues.stream().map(mapToType).collect(Collectors.toList());
+		List<Object> trueValues = rawTrueValues.stream().map(mapToType).toList();
+		List<Object> falseValues = rawFalseValues.stream().map(mapToType).toList();
 
 		Normalize normalize = Normalize.asBoolean(property, trueValues, falseValues);
 		return customize(normalize, node, type, parameterList);
@@ -167,7 +166,7 @@ final class CatalogBasedRefactorings {
 					return null;
 				}
 				return Merge.PropertyMergePolicy.of(pattern, strategy);
-			}).filter(Objects::nonNull).collect(Collectors.toList());
+			}).filter(Objects::nonNull).toList();
 		return Merge.nodes(sourceQuery, mergePolicies);
 	}
 
@@ -242,7 +241,7 @@ final class CatalogBasedRefactorings {
 
 	private static Optional<String> findParameter(Node refactoring, String name, NodeList optionalParameters) {
 
-		return (optionalParameters != null ? Optional.of(optionalParameters) : findParameterList(refactoring))
+		return Optional.ofNullable(optionalParameters).or(() -> findParameterList(refactoring))
 			.flatMap(parameters -> findParameterNode(parameters, name))
 			.map(Node::getTextContent)
 			.map(String::trim).filter(v -> !v.isEmpty());

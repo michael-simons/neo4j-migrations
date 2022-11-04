@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
-
-import java.util.Collection;
-import java.util.Collections;
+package ac.simons.neo4j.migrations.test_resources;
 
 /**
- * Represents the result of some operations.
- *
+ * Entrypoint to the test resources, needed on the module path to access the resources in <strong>this</strong> module.
  * @author Michael J. Simons
- * @since 1.1.0
+ * @since 2.0.0
  */
-public sealed interface OperationResult permits DatabaseOperationResult {
-
-	/**
-	 * {@return all warnings, if any}
-	 */
-	default Collection<String> getWarnings() {
-		return Collections.emptyList();
+public final class TestResources {
+	private TestResources() {
 	}
-
-	/**
-	 * {@return a sensible string applicable in a log or info message}
-	 */
-	String prettyPrint();
 }

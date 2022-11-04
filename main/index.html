@@ -619,7 +619,7 @@ The project is inspired to a large extent by <a href="https://flywaydb.org">Flyw
 Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.</p>
 </div>
 <div class="paragraph">
-<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>, supports Neo4j from 3.5 up to 4.4, including enterprise features such as multidatabase support and impersonation.
+<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>, supports Neo4j from 3.5 on through the whole 4.x series upto Neo4j 5, including enterprise features such as multidatabase support and impersonation.
 The only dependencies are said driver and <a href="https://github.com/classgraph/classgraph">ClassGraph</a>, the latter being used to find migrations on the classpath.</p>
 </div>
 <div class="paragraph">
@@ -1069,7 +1069,7 @@ convention to be recognized:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Prefix <code>V</code> for "<em>V</em>ersioned Migrations"</p>
+<p>Prefix <code>V</code> for "<em>V</em>ersioned migration" or <code>R</code> for "<em>R</em>epeatable migration"</p>
 </li>
 <li>
 <p>Version with optional underscores separating as many parts as you like</p>
@@ -1761,7 +1761,7 @@ The CLI has no default search-location.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Prefix <code>V</code> for "<em>V</em>ersioned Migrations"</p>
+<p>Prefix <code>V</code> for "<em>V</em>ersioned migration" or <code>R</code> for "<em>R</em>epeatable migration"</p>
 </li>
 <li>
 <p>Version with optional underscores separating as many parts as you like</p>
@@ -1787,9 +1787,10 @@ The CLI has no default search-location.</p>
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-Cypher-based migrations scripts are considered to be immutable once applied!
+Cypher-based migrations scripts are considered to be immutable once applied.
 We compute their checksums and record it inside the schema database.
 If you change a Cypher-based migration after it has been applied, any further application will fail.
+By marking a migration as repeatable you indicate that it is safe to repeat it whenever its checksum changes.
 </td>
 </tr>
 </table>
@@ -4350,7 +4351,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <p>It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4j-OGM), so it is safe to use it either directly as dependency so that it will be picked up by all recent Java compilers or as dedicated processor for the compiler:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 45. Annotation processor configured as processor fot the compiler plugin inside a Maven pom</div>
+<div class="title">Listing 45. Annotation processor configured as processor for the compiler plugin inside a Maven pom</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
@@ -4364,7 +4365,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
             <span class="tag">&lt;/annotationProcessorPath&gt;</span>
         <span class="tag">&lt;/annotationProcessorPaths&gt;</span>
         <span class="tag">&lt;compilerArgs&gt;</span>
-            <span class="tag">&lt;arg&gt;</span>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V${next-migration-version}__Create_sdn_constraints.xml<span class="tag">&lt;/arg&gt;</span>
+            <span class="tag">&lt;arg&gt;</span>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R${next-migration-version}__Create_sdn_constraints.xml<span class="tag">&lt;/arg&gt;</span>
             <span class="tag">&lt;arg&gt;</span>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations<span class="tag">&lt;/arg&gt;</span>
         <span class="tag">&lt;/compilerArgs&gt;</span>
     <span class="tag">&lt;/configuration&gt;</span>
@@ -4428,6 +4429,19 @@ All implementations must provide a default, publicly accessible constructor or -
 </div>
 <div class="paragraph">
 <p>This works in our examples but bear in mind: The migration will always be regenerated. This is fine as long as you don&#8217;t change your annotated model in any capacity that results in a new or modified index (renaming attributes, labels etc.).</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The generator will always use idempotent versions of indexes if available in your database. They work well with repeatable migrations.
+     So one solution is to configure the generator that it generates a name like <code>R1_2_3__Create_domain_indexes.xml</code>.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>One approach is to add the processor to your build and run a diff with the last "good" generated catalog and the new one. If it is different, add the new catalog under an incremented version number.</p>
@@ -4833,7 +4847,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-02 14:14:15 UTC
+Last updated 2022-11-04 10:31:14 UTC
 </div>
 </div>
 </body>

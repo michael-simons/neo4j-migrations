@@ -175,21 +175,16 @@ final class DefaultMigrationContext implements MigrationContext {
 		}
 	}
 
-	static class ExtendedResultSummary {
-		final boolean showCurrentUserExists;
-		final String version;
-		final ServerInfo server;
-		final DatabaseInfo database;
-		final String edition;
-
+	record ExtendedResultSummary(
+		boolean showCurrentUserExists,
+		String version,
+		String edition,
+		ServerInfo server,
+		DatabaseInfo database
+	) {
 		ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition,
 			ResultSummary actualSummary) {
-
-			this.showCurrentUserExists = showCurrentUserExists;
-			this.version = version;
-			this.edition = edition;
-			this.server = actualSummary.server();
-			this.database = actualSummary.database();
+			this(showCurrentUserExists, version, edition, actualSummary.server(), actualSummary.database());
 		}
 	}
 

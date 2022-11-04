@@ -49,7 +49,6 @@ class ChainBuilderIT extends TestBase {
 		assertThat(migrationChain.getServerEdition()).isEqualTo("Community");
 		assertThat(migrationChain.getUsername()).isEqualTo("neo4j");
 		assertThat(migrationChain.getOptionalDatabaseName()).hasValue("neo4j");
-		assertThat(migrationChain.getDatabaseName()).isEqualTo("neo4j");
 		assertThat(migrationChain.getElements()).hasSize(9);
 		assertThat(migrationChain.getElements()).element(0).satisfies(element -> {
 
@@ -57,7 +56,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.JAVA);
 			assertThat(element.getChecksum()).isEmpty();
 			assertThat(element.getVersion()).isEqualTo("001");
-			assertThat(element.getDescription()).isEqualTo("FirstMigration");
+			assertThat(element.getOptionalDescription()).hasValue("FirstMigration");
 			assertThat(element.getSource())
 				.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset1.V001__FirstMigration");
 			assertThat(element.getInstalledOn()).isPresent();
@@ -70,7 +69,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.JAVA);
 			assertThat(element.getChecksum()).isEmpty();
 			assertThat(element.getVersion()).isEqualTo("002");
-			assertThat(element.getDescription()).isEqualTo("AnotherMigration");
+			assertThat(element.getOptionalDescription()).hasValue("AnotherMigration");
 			assertThat(element.getSource())
 				.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset1.V002__AnotherMigration");
 			assertThat(element.getInstalledOn()).isPresent();
@@ -83,7 +82,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.CYPHER);
 			assertThat(element.getChecksum()).isPresent();
 			assertThat(element.getVersion()).isEqualTo("007");
-			assertThat(element.getDescription()).isEqualTo("BondTheNameIsBond");
+			assertThat(element.getOptionalDescription()).hasValue("BondTheNameIsBond");
 			assertThat(element.getSource()).isEqualTo("V007__BondTheNameIsBond.cypher");
 			assertThat(element.getInstalledOn()).isEmpty();
 			assertThat(element.getInstalledBy()).isEmpty();
@@ -95,7 +94,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.CYPHER);
 			assertThat(element.getChecksum()).isPresent();
 			assertThat(element.getVersion()).isEqualTo("007.1");
-			assertThat(element.getDescription()).isEqualTo("BondTheNameIsBondNew");
+			assertThat(element.getOptionalDescription()).hasValue("BondTheNameIsBondNew");
 			assertThat(element.getSource()).isEqualTo("V007_1__BondTheNameIsBondNew.cypher");
 			assertThat(element.getInstalledOn()).isEmpty();
 			assertThat(element.getInstalledBy()).isEmpty();
@@ -107,7 +106,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.CATALOG);
 			assertThat(element.getChecksum()).hasValue("2581374719");
 			assertThat(element.getVersion()).isEqualTo("008");
-			assertThat(element.getDescription()).isEqualTo("Create constraints");
+			assertThat(element.getOptionalDescription()).hasValue("Create constraints");
 			assertThat(element.getSource()).isEqualTo("V008__Create_constraints.xml");
 			assertThat(element.getInstalledOn()).isEmpty();
 			assertThat(element.getInstalledBy()).isEmpty();
@@ -119,7 +118,7 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getType()).isEqualTo(MigrationType.JAVA);
 			assertThat(element.getChecksum()).isEmpty();
 			assertThat(element.getVersion()).isEqualTo("023");
-			assertThat(element.getDescription()).isEqualTo("NichtsIstWieEsScheint");
+			assertThat(element.getOptionalDescription()).hasValue("NichtsIstWieEsScheint");
 			assertThat(element.getSource())
 					.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset2.V023__NichtsIstWieEsScheint");
 			assertThat(element.getInstalledOn()).isEmpty();

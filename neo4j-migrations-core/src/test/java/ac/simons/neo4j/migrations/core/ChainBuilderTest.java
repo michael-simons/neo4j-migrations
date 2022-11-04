@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ac.simons.neo4j.migrations.test_resources.TestResources;
+
 import java.util.Collections;
 import java.util.Optional;
 
@@ -31,7 +33,7 @@ class ChainBuilderTest {
 	void shouldMatch() {
 
 		CypherBasedMigration cypherBasedMigration = new CypherBasedMigration(
-			ChainBuilderTest.class.getResource("/my/awesome/migrations/V021__Die halbe Wahrheit.cypher"));
+			TestResources.class.getResource("/my/awesome/migrations/V021__Die halbe Wahrheit.cypher"));
 		cypherBasedMigration.setAlternativeChecksums(Collections.singletonList("foobar"));
 
 		assertThat(ChainBuilder.matches(Optional.of("200310393"), cypherBasedMigration)).isTrue();

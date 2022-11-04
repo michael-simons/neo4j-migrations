@@ -47,7 +47,7 @@ import org.w3c.dom.NodeList;
  * @author Michael J. Simons
  * @since 1.7.0
  */
-abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
+abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>, Formattable {
 
 	/**
 	 * Reads an optional {@code options} column from a row and formats it as a map that is renderable as Cypher.
@@ -134,7 +134,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	}
 
 	@Override
-	public Name getName() {
+	public final Name getName() {
 		return name;
 	}
 
@@ -176,7 +176,7 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 	}
 
 	@Override
-	public boolean hasGeneratedName() {
+	public final boolean hasGeneratedName() {
 		return this.getName() instanceof GeneratedName;
 	}
 
@@ -283,9 +283,9 @@ abstract class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T>
 		if (this instanceof Constraint) {
 			elementName = XMLSchemaConstants.CONSTRAINT;
 			labelOrTypeContent = getIdentifier();
-		} else if (this instanceof Index) {
+		} else if (this instanceof Index index) {
 			elementName = XMLSchemaConstants.INDEX;
-			labelOrTypeContent = ((Index) this).getDeconstructedIdentifiers()
+			labelOrTypeContent = index.getDeconstructedIdentifiers()
 				.stream().map(s -> s.replace("|", "\\|")).collect(Collectors.joining("|"));
 		} else {
 			throw new IllegalStateException("Unsupported subclass " + this.getClass());

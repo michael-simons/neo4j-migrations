@@ -140,15 +140,6 @@ public final class MigrationsConfig {
 	}
 
 	/**
-	 * @return An optional target database, maybe {@literal null}
-	 * @deprecated since 1.1.0, see {@link #getOptionalDatabase()}
-	 */
-	@Deprecated
-	public String getDatabase() {
-		return database;
-	}
-
-	/**
 	 * @return An optional target database
 	 * @since 1.1.0
 	 */
@@ -165,29 +156,11 @@ public final class MigrationsConfig {
 	}
 
 	/**
-	 * @return An optional user to impersonate, maybe {@literal null}
-	 * @deprecated since 1.1.0, see {@link #getOptionalImpersonatedUser()}
-	 */
-	@Deprecated
-	public String getImpersonatedUser() {
-		return impersonatedUser;
-	}
-
-	/**
 	 * @return An optional user to impersonate
 	 * @since 1.1.0
 	 */
 	public Optional<String> getOptionalImpersonatedUser() {
 		return Strings.optionalOf(impersonatedUser);
-	}
-
-	/**
-	 * @return Optional user information about the user executing the migration, maybe {@literal null}
-	 * @deprecated since 1.1.0, see {@link #getOptionalInstalledBy()}
-	 */
-	@Deprecated
-	public String getInstalledBy() {
-		return installedBy;
 	}
 
 	/**
@@ -258,11 +231,8 @@ public final class MigrationsConfig {
 	/**
 	 * This is internal API and will be made package private in 2.0.0
 	 * @return True if there are packages to scan
-	 * @deprecated Since 1.1.0, will be removed from public without replacement.
 	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public boolean hasPlacesToLookForMigrations() {
+	boolean hasPlacesToLookForMigrations() {
 		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;
 	}
 
@@ -322,12 +292,7 @@ public final class MigrationsConfig {
 
 		private ClasspathResourceScanner resourceScanner;
 
-		/**
-		 * @deprecated since 1.1.0, will be made private in 2.0.0, please use {@link MigrationsConfig#builder()}.
-		 */
-		@SuppressWarnings({ "DeprecatedIsStillUsed", "squid:S1133" }) // The deprecation warning on any client code calling this is actually the point.
-		@Deprecated
-		public Builder() {
+		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
 			// is used on the module path. JMS will complain about Builder being exported with
 			// a public visible, implicit constructor.

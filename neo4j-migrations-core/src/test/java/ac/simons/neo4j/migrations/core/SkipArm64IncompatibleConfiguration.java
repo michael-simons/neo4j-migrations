@@ -15,19 +15,19 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.InvocationInterceptor;
-import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.testcontainers.DockerClientFactory;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
+
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.InvocationInterceptor;
+import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.testcontainers.DockerClientFactory;
 
 /**
  * Skips the tests if it is running on an aarch64 (Apple silicon / M1) architecture and no suitable image is available.
@@ -101,11 +101,11 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 	private void skipUnsupportedTests(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext) throws Throwable {
 		boolean skip = false;
 		for (Object argument : invocationContext.getArguments()) {
-			if (argument instanceof VersionUnderTest) {
-				skip = skipUnsupported((VersionUnderTest) argument);
+			if (argument instanceof VersionUnderTest versionUnderTest) {
+				skip = skipUnsupported(versionUnderTest);
 			}
-			if (argument instanceof String) {
-				skip = skipUnsupported((String) argument);
+			if (argument instanceof String versionUnderTest) {
+				skip = skipUnsupported(versionUnderTest);
 			}
 		}
 		if (skip) {

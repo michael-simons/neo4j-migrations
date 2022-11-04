@@ -60,14 +60,14 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	}
 
 	@ParameterizedTest
-	@CsvSource(nullValues = "n/a", delimiterString = "|", value = {
-		"                      | MATCH (n) RETURN n",
-		"CREATE (:Foo)         | MATCH (n:Bar) RETURN n",
-		"CREATE (:Foo)         | MATCH (n) RETURN n",
-		"CREATE (:Foo)         | MATCH (n:Foo) RETURN n",
-		"CREATE (:Foo), (:Bar) | MATCH (n:Foo) RETURN n",
-		"CREATE (:Foo), (:Bar) | MATCH (n:Bar) RETURN n"
-	})
+	@CsvSource(nullValues = "n/a", delimiterString = "|", textBlock = """
+		                      | MATCH (n) RETURN n
+		CREATE (:Foo)         | MATCH (n:Bar) RETURN n
+		CREATE (:Foo)         | MATCH (n) RETURN n
+		CREATE (:Foo)         | MATCH (n:Foo) RETURN n
+		CREATE (:Foo), (:Bar) | MATCH (n:Foo) RETURN n
+		CREATE (:Foo), (:Bar) | MATCH (n:Bar) RETURN n
+		""")
 	void shouldNotGenerateAnyStatementsWhenLessThan2NodesMatch(String initQuery, String selectionQuery) {
 
 		Merge merge = Merge.nodes(selectionQuery.trim());

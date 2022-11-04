@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -45,7 +44,7 @@ final class BookmarkManager {
 
 		try {
 			read.lock();
-			return Collections.unmodifiableSet(new HashSet<>(bookmarks));
+			return Set.copyOf(bookmarks);
 		} finally {
 			read.unlock();
 		}
@@ -56,7 +55,9 @@ final class BookmarkManager {
 		try {
 			write.lock();
 			bookmarks.removeAll(usedBookmarks);
-			bookmarks.add(lastBookmark);
+			if (lastBookmark != null) {
+				bookmarks.add(lastBookmark);
+			}
 		} finally {
 			write.unlock();
 		}

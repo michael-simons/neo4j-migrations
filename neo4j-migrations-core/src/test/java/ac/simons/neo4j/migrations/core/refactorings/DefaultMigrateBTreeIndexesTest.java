@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Index;
-import ac.simons.neo4j.migrations.core.catalog.ItemType;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.catalog.SomeCatalogItem;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -51,20 +51,7 @@ class DefaultMigrateBTreeIndexesTest {
 	void shouldFailProperOnInvalidMigrate() {
 
 		DefaultMigrateBTreeIndexes refactoring = new DefaultMigrateBTreeIndexes();
-		CatalogItem<?> wrongItem = new CatalogItem<ItemType>() {
-			@Override public Name getName() {
-				return Name.of("whatever");
-			}
-
-			@Override public ItemType getType() {
-				return null;
-			}
-
-			@Override public boolean hasGeneratedName() {
-				return false;
-			}
-		};
-		assertThatIllegalArgumentException().isThrownBy(() -> refactoring.migrate(wrongItem))
+		assertThatIllegalArgumentException().isThrownBy(() -> refactoring.migrate(new SomeCatalogItem()))
 			.withMessageStartingWith("Cannot migrate catalog items of type class ");
 	}
 

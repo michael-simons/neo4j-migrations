@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>1.13.4-SNAPSHOT</version>
+		<version>2.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-maven-plugin</artifactId>
@@ -161,6 +161,16 @@
 			<artifactId>slf4j-simple</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>neo4j</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -281,6 +291,17 @@
 						<phase>integration-test</phase>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration combine.self="append">
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+					<systemPropertyVariables>
+						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
+					</systemPropertyVariables>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

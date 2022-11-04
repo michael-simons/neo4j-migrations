@@ -92,11 +92,10 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		this.dropOldIndexes = dropOldIndexes;
 		this.suffix = suffix == null || suffix.trim().isEmpty() ? DEFAULT_SUFFIX : suffix.trim();
 		this.typeMapping = typeMapping == null ? Collections.emptyMap() : new HashMap<>(typeMapping);
-		this.excludes = excludes == null ? Collections.emptySet() : new HashSet<>(excludes);
-		this.includes = includes == null ? Collections.emptySet() : new HashSet<>(includes);
+		this.excludes = excludes == null ? Set.of() : new HashSet<>(excludes);
+		this.includes = includes == null ? Set.of() : new HashSet<>(includes);
 
-		this.featureSet = QueryRunner.defaultFeatureSet()
-			.withRequiredVersion("4.4");
+		this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.4");
 		this.createConfigConstraint = RenderConfig.create()
 			.idempotent(true)
 			.forVersionAndEdition(featureSet.requiredVersion(), "ENTERPRISE")
@@ -193,12 +192,12 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		}
 
 		String oldName = old.getName().getValue();
-		if (old instanceof Constraint) {
-			return ((Constraint) old)
+		if (old instanceof Constraint constraint) {
+			return constraint
 				.withOptions(OPTION_USE_RANGE_INDEX_PROVIDER)
 				.withName(dropOldIndexes ? oldName : oldName + suffix);
-		} else if (old instanceof Index) {
-			return ((Index) old)
+		} else if (old instanceof Index index) {
+			return index
 				.withOptions(OPTION_USE_RANGE_INDEX_PROVIDER)
 				.withName(dropOldIndexes ? oldName : oldName + suffix)
 				.withType(typeMapping.getOrDefault(oldName, Index.Type.PROPERTY));
@@ -210,7 +209,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	@Override
 	public Counters apply(RefactoringContext context) {
 
-		Function<CatalogItem<?>, Renderer<CatalogItem<?>>> rendererProvider = new Function<CatalogItem<?>, Renderer<CatalogItem<?>>>() {
+		Function<CatalogItem<?>, Renderer<CatalogItem<?>>> rendererProvider = new Function<>() {
 			final Map<Class<CatalogItem<?>>, Renderer<CatalogItem<?>>> cachedRenderer = new ConcurrentHashMap<>(4);
 
 			@SuppressWarnings("unchecked")

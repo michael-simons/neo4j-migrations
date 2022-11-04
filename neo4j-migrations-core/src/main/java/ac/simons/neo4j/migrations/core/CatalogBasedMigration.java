@@ -34,7 +34,7 @@ import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.Serial;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.InvalidAlgorithmParameterException;
@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -151,11 +150,10 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 			NodeList childNodes = currentItem.getChildNodes();
 			for (int j = 0; j < childNodes.getLength(); ++j) {
 				Node childItem = childNodes.item(j);
-				if (!(childItem instanceof CharacterData) || childItem.getTextContent().trim().isEmpty()) {
+				if (!(childItem instanceof CharacterData textNode) || textNode.getTextContent().trim().isEmpty()) {
 					continue;
 				}
 
-				CharacterData textNode = (CharacterData) childItem;
 				String content = Arrays
 					.stream(textNode.getTextContent().split("\r?\n"))
 					.map(String::trim).collect(Collectors.joining("\n"));
@@ -207,12 +205,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	static Migration from(URL url) {
 
-		String path = url.getPath();
-		try {
-			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
-		} catch (UnsupportedEncodingException e) {
-			throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
-		}
+		String path = URLDecoder.decode(url.getPath(), Defaults.CYPHER_SCRIPT_ENCODING);
 		int lastIndexOf = path.lastIndexOf("/");
 		String fileName = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 		MigrationVersion version = MigrationVersion.parse(fileName);
@@ -287,16 +280,15 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		Comparator<CatalogItem<?>> catalogItemComparator = CatalogBasedMigration::compareCatalogItems;
 		return result.stream().sorted((operation1, operation2) -> {
-					if (operation1 instanceof ItemSpecificOperation && operation2 instanceof ItemSpecificOperation
-					&& ((ItemSpecificOperation) operation1).getLocalItem().isPresent()
-					&& ((ItemSpecificOperation) operation2).getLocalItem().isPresent()) {
-						CatalogItem<?> item1 = ((ItemSpecificOperation) operation1).getLocalItem().get();
-						CatalogItem<?> item2 = ((ItemSpecificOperation) operation2).getLocalItem().get();
+					if (operation1 instanceof ItemSpecificOperation isop1 && operation2 instanceof ItemSpecificOperation isop2
+					&& isop1.getLocalItem().isPresent() && isop2.getLocalItem().isPresent()) {
+						CatalogItem<?> item1 = isop1.getLocalItem().get();
+						CatalogItem<?> item2 = isop2.getLocalItem().get();
 						return catalogItemComparator.compare(item1, item2);
 					}
 					return 0;
 				})
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	private final String source;
@@ -364,12 +356,6 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	@Override
 	public MigrationVersion getVersion() {
 		return version;
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public String getDescription() {
-		return version.getOptionalDescription().orElse(null);
 	}
 
 	@Override
@@ -459,8 +445,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 						.includeOptions(Boolean.parseBoolean(operationElement.getAttribute("includeOptions")))
 						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute("allowEquivalent")))
 						.at(targetVersion);
-				case CREATE:
-				case DROP:
+				case CREATE, DROP:
 					Optional<Name> optionalName = getOptionalReference(operationElement);
 					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute("ifNotExists"));
 					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute("ifExists"));
@@ -475,8 +460,9 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 					);
 				case APPLY:
 					return Operation.apply(targetVersion);
+				default:
+					throw new IllegalArgumentException("Unsupported operation type: " + this);
 			}
-			throw new IllegalArgumentException("Unsupported operation type: " + this);
 		}
 
 		private Optional<Name> getOptionalReference(Element operationElement) {
@@ -643,7 +629,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		/**
 		 * @return the version at which this operation has been defined
 		 */
-		MigrationVersion getDefinedAt();
+		MigrationVersion definedAt();
 	}
 
 	/**
@@ -871,7 +857,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 
 		@Override
-		public MigrationVersion getDefinedAt() {
+		public MigrationVersion definedAt() {
 			return definedAt;
 		}
 
@@ -1014,40 +1000,30 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	static Counters schemaCounters(SummaryCounters summaryCounters) {
 
-		Map<String, Integer> schema = new HashMap<>();
-		schema.put("indexesAdded", summaryCounters.indexesAdded());
-		schema.put("indexesRemoved", summaryCounters.indexesRemoved());
-		schema.put("constraintsAdded", summaryCounters.constraintsAdded());
-		schema.put("constraintsRemoved", summaryCounters.constraintsRemoved());
+		Map<String, Integer> schema = Map.of(
+			"indexesAdded", summaryCounters.indexesAdded(),
+			"indexesRemoved", summaryCounters.indexesRemoved(),
+			"constraintsAdded", summaryCounters.constraintsAdded(),
+			"constraintsRemoved", summaryCounters.constraintsRemoved()
+		);
 		return Counters.of(schema);
 	}
 
 	static Counters schemaCounters(int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved) {
 
-		Map<String, Integer> schema = new HashMap<>();
-		schema.put("indexesAdded", indexesAdded);
-		schema.put("indexesRemoved", indexesRemoved);
-		schema.put("constraintsAdded", constraintsAdded);
-		schema.put("constraintsRemoved", constraintsRemoved);
+		Map<String, Integer> schema = Map.of(
+			"indexesAdded", indexesAdded,
+			"indexesRemoved", indexesRemoved,
+			"constraintsAdded", constraintsAdded,
+			"constraintsRemoved", constraintsRemoved
+		);
 		return Counters.of(schema);
 	}
 
 	/**
 	 * Default implementation of verification.
 	 */
-	static final class DefaultVerifyOperation implements VerifyOperation {
-
-		private final boolean useCurrent;
-		private final boolean allowEquivalent;
-		private final boolean includeOptions;
-		private final MigrationVersion definedAt;
-
-		DefaultVerifyOperation(boolean useCurrent, boolean includeOptions, boolean allowEquivalent, MigrationVersion definedAt) {
-			this.useCurrent = useCurrent;
-			this.includeOptions = includeOptions;
-			this.definedAt = definedAt;
-			this.allowEquivalent = allowEquivalent;
-		}
+	record DefaultVerifyOperation(boolean useCurrent, boolean includeOptions, boolean allowEquivalent, MigrationVersion definedAt) implements VerifyOperation {
 
 		@Override
 		public Counters execute(OperationContext context) {
@@ -1094,30 +1070,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				));
 			return message.toString();
 		}
-
-		@Override
-		public boolean useCurrent() {
-			return useCurrent;
-		}
-
-		@Override
-		public boolean includeOptions() {
-			return includeOptions;
-		}
-
-		@Override
-		public boolean allowEquivalent() {
-			return allowEquivalent;
-		}
-
-		@Override
-		public MigrationVersion getDefinedAt() {
-			return definedAt;
-		}
 	}
 
 	static final class VerificationFailedException extends RuntimeException {
 
+		@Serial
 		private static final long serialVersionUID = 6481650211840799118L;
 
 		VerificationFailedException(String message) {
@@ -1128,13 +1085,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	/**
 	 * Drops everything from the database catalog, adds everything from the migrations catalog.
 	 */
-	static final class DefaultApplyOperation implements ApplyOperation {
-
-		private final MigrationVersion definedAt;
-
-		DefaultApplyOperation(MigrationVersion definedAt) {
-			this.definedAt = definedAt;
-		}
+	record DefaultApplyOperation(MigrationVersion definedAt) implements ApplyOperation {
 
 		@Override
 		public Counters execute(OperationContext context) {
@@ -1172,11 +1123,6 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				return schemaCounters(indexesAdded.get(), indexesRemoved.get(), constraintsAdded.get(),
 					constraintsRemoved.get());
 			}
-		}
-
-		@Override
-		public MigrationVersion getDefinedAt() {
-			return definedAt;
 		}
 	}
 }

@@ -16,10 +16,10 @@
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
@@ -191,8 +191,7 @@ public class MigrationsProcessor {
 		ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem) {
 		return new NativeImageResourceBuildItem(
 			classpathResourceScannerBuildItem.getScanner().getResources().stream().map(
-				ResourceWrapper::getPath).collect(
-				Collectors.toList()));
+				ResourceWrapper::getPath).toList());
 	}
 
 	@BuildStep

@@ -47,8 +47,7 @@ final class CommonEnvVarDefaultProvider extends PropertiesDefaultProvider implem
 	public String defaultValue(CommandLine.Model.ArgSpec argSpec) throws Exception {
 
 		Optional<String> value = Optional.empty();
-		if (argSpec instanceof OptionSpec) {
-			OptionSpec optionSpec = (OptionSpec) argSpec;
+		if (argSpec instanceof OptionSpec optionSpec) {
 			value = getFromEnv(optionSpec);
 		}
 
@@ -59,16 +58,12 @@ final class CommonEnvVarDefaultProvider extends PropertiesDefaultProvider implem
 	}
 
 	static Optional<String> getFromEnv(OptionSpec optionSpec) {
-		switch (optionSpec.shortestName()) {
-			case MigrationsCli.OPTION_ADDRESS:
-				return getOptionalEnv(ENV_ADDRESS);
-			case MigrationsCli.OPTION_USERNAME:
-				return getOptionalEnv(ENV_USERNAME);
-			case MigrationsCli.OPTION_PASSWORD:
-				return getOptionalEnv(ENV_PASSWORD);
-			default:
-				return Optional.empty();
-		}
+		return switch (optionSpec.shortestName()) {
+			case MigrationsCli.OPTION_ADDRESS -> getOptionalEnv(ENV_ADDRESS);
+			case MigrationsCli.OPTION_USERNAME -> getOptionalEnv(ENV_USERNAME);
+			case MigrationsCli.OPTION_PASSWORD -> getOptionalEnv(ENV_PASSWORD);
+			default -> Optional.empty();
+		};
 	}
 
 	static Optional<String> getOptionalEnv(String name) {

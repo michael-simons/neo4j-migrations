@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ac.simons.neo4j.migrations.test_resources.TestResources;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,7 +83,7 @@ class DiscovererTest {
 			// are usually resolved via an internal reactor and thus not being JAR urls, which defeats the purpose
 			// of this test.
 			Assumptions
-				.assumeThat(getClass().getResource("/some/changeset/V0001__delete_old_data.cypher").getProtocol())
+				.assumeThat(TestResources.class.getResource("/some/changeset/V0001__delete_old_data.cypher").getProtocol())
 				.isEqualTo("jar");
 
 			MigrationContext context = new DefaultMigrationContext(

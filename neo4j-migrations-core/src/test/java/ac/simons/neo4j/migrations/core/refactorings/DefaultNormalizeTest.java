@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core.refactorings;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +28,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
-
-import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 /**
  * @author Michael J. Simons

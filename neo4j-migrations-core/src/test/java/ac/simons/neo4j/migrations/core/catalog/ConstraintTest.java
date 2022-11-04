@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -385,21 +384,12 @@ class ConstraintTest {
 		@ParameterizedTest
 		@EnumSource(Constraint.Type.class)
 		void nodeConstraintBuilderShouldWork(Constraint.Type type) {
-			Constraint constraint = null;
 
-			switch (type) {
-				case UNIQUE:
-					constraint = Constraint.forNode("Book").named("foo").unique("bar");
-					break;
-				case EXISTS:
-					constraint = Constraint.forNode("Book").named("foo").exists("bar");
-					break;
-				case KEY:
-					constraint = Constraint.forNode("Book").named("foo").key("bar");
-					break;
-				default:
-					Assertions.fail("Unsupported type: " + type);
-			}
+			Constraint constraint = switch (type) {
+				case UNIQUE -> Constraint.forNode("Book").named("foo").unique("bar");
+				case EXISTS -> Constraint.forNode("Book").named("foo").exists("bar");
+				case KEY -> Constraint.forNode("Book").named("foo").key("bar");
+			};
 
 			assertThat(constraint.getIdentifier()).isEqualTo("Book");
 			assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);

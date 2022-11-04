@@ -71,10 +71,9 @@ abstract class ConnectedCommand implements Callable<Integer> {
 			return CommandLine.ExitCode.SOFTWARE;
 		} catch (MigrationsException e) {
 			Throwable cause = e.getCause();
-			if (cause instanceof ClientException) {
+			if (cause instanceof ClientException ce) {
 				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}{1}\t{2}: {3}",
-					new Object[] { e.getMessage(), System.lineSeparator(), ((ClientException) cause).code(),
-						cause.getMessage() });
+					new Object[] { e.getMessage(), System.lineSeparator(), ce.code(), cause.getMessage() });
 			} else {
 				MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			}

@@ -28,7 +28,7 @@ import java.util.Optional;
  * @soundtrack Paul van Dyk - From Then On
  * @since 0.0.4
  */
-public interface MigrationChain extends ConnectionDetails {
+public sealed interface MigrationChain extends ConnectionDetails permits DefaultMigrationChain {
 
 	/**
 	 * Used for selecting how the {@link MigrationChain} should be computed.
@@ -77,13 +77,6 @@ public interface MigrationChain extends ConnectionDetails {
 	}
 
 	/**
-	 * @return The database if applicable (Neo4j 4.0 and up), maybe null
-	 * @deprecated since 1.1.0, see {@link #getOptionalDatabaseName()}
-	 */
-	@Deprecated
-	String getDatabaseName();
-
-	/**
 	 * @param version An arbitrary version string
 	 * @return True, if the version string maps to a migration that has been applied.
 	 */
@@ -105,7 +98,7 @@ public interface MigrationChain extends ConnectionDetails {
 	/**
 	 * A chain element describing a pending or applied migration.
 	 */
-	interface Element {
+	sealed interface Element permits DefaultMigrationChainElement {
 
 		/**
 		 * @return State of this migration.
@@ -128,21 +121,10 @@ public interface MigrationChain extends ConnectionDetails {
 		String getVersion();
 
 		/**
-		 * @return The description of the migration.
-		 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
-		 */
-		@SuppressWarnings("DeprecatedIsStillUsed")
-		@Deprecated
-		String getDescription();
-
-		/**
 		 * @return An optional description of the migration represented by this element.
 		 * @since 1.9.0
 		 */
-		@SuppressWarnings("squid:S1874")
-		default Optional<String> getOptionalDescription() {
-			return Optional.ofNullable(getDescription());
-		}
+		Optional<String> getOptionalDescription();
 
 		/**
 		 * @return The name of the script or class on which this migration is based.

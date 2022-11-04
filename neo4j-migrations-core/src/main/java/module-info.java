@@ -17,6 +17,11 @@ import ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 
+/**
+ * Neo4j-Migrations core module.
+ * @author Michael J. Simons
+ * @since 2.0.0
+ */
 @SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
 module ac.simons.neo4j.migrations.core {
 

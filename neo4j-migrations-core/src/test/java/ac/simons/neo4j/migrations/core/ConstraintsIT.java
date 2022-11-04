@@ -58,8 +58,17 @@ class ConstraintsIT {
 	public static final Config NO_DRIVER_LOGGING_CONFIG = Config.builder().withLogging(Logging.none()).build();
 
 	@ParameterizedTest
-	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, true", "neo4J/4.0, true", "Neo4j/4, true", "Neo4j/4.4, true",
-		"4.2, true", "N/A, false" }, nullValues = "N/A")
+	@CsvSource(
+		nullValues = "N/A",
+		textBlock = """
+			Neo4j/3.5, false
+			Neo4j/4.0, true
+			neo4J/4.0, true
+			Neo4j/4, true
+			Neo4j/4.4, true
+			4.2, true
+			N/A, false"""
+	)
 	void shouldDetectCorrectVersion(String v, boolean expected) {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
@@ -72,9 +81,20 @@ class ConstraintsIT {
 	}
 
 	@ParameterizedTest
-	@CsvSource(value = { "Neo4j/3.5, false", "Neo4j/4.0, false", "neo4J/4.0, false", "Neo4j/4, false",
-		"Neo4j/4.4, true",
-		"4.5, true", "5.0, true", "5, true", "4.2, false", "4.4.2, true", "N/A, false" }, nullValues = "N/A")
+	@CsvSource(
+		nullValues = "N/A",
+		textBlock = """
+			Neo4j/3.5, false
+			Neo4j/4.0, false
+			neo4J/4.0, false
+			Neo4j/4, false
+			Neo4j/4.4, true
+			4.5, true
+			5.0, true
+			5, true
+			4.2, false
+			4.4.2, true
+			N/A, false""")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
 		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);

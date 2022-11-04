@@ -43,6 +43,7 @@ import ac.simons.neo4j.migrations.core.refactorings.Merge;
 import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
+import ac.simons.neo4j.migrations.test_resources.TestResources;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -53,7 +54,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -92,7 +92,7 @@ class CatalogBasedMigrationTest {
 	@ParameterizedTest
 	@ValueSource(strings = { "01.xml", "02.xml", "03.xml" })
 	void checksumShouldBeCorrect(String in) {
-		URL url = CatalogBasedMigration.class.getResource("/catalogbased/identical-migrations/V01__" + in);
+		URL url = TestResources.class.getResource("/catalogbased/identical-migrations/V01__" + in);
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
 		assertThat(schemaBasedMigration.getChecksum()).hasValue("2210671299");
@@ -101,7 +101,7 @@ class CatalogBasedMigrationTest {
 
 	@Test
 	void shouldParsePreconditions1() {
-		URL url = CatalogBasedMigration.class.getResource("/catalogbased/identical-migrations/V01__01.xml");
+		URL url = TestResources.class.getResource("/catalogbased/identical-migrations/V01__01.xml");
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
 		assertThat(schemaBasedMigration.getPreconditions()).hasSize(2);
@@ -111,20 +111,18 @@ class CatalogBasedMigrationTest {
 			.allMatch(p -> p instanceof EditionPrecondition || p instanceof QueryPrecondition);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	void shouldParseDescription() {
 
-		URL url = Objects.requireNonNull(CatalogBasedMigration.class.getResource("/catalogbased/identical-migrations/V01__01.xml"));
+		URL url = Objects.requireNonNull(TestResources.class.getResource("/catalogbased/identical-migrations/V01__01.xml"));
 
 		Migration migration = CatalogBasedMigration.from(url);
-		assertThat(migration.getDescription()).isEqualTo("01");
 		assertThat(migration.getOptionalDescription()).hasValue("01");
 	}
 
 	@Test
 	void shouldParsePreconditions2() {
-		URL url = CatalogBasedMigration.class.getResource("/preconditions/V0002__Create_node_keys.xml");
+		URL url = TestResources.class.getResource("/preconditions/V0002__Create_node_keys.xml");
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
 		assertThat(schemaBasedMigration.isResetCatalog()).isFalse();
@@ -140,7 +138,7 @@ class CatalogBasedMigrationTest {
 
 	@Test
 	void shouldParseReset() {
-		URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/V01__with_reset.xml");
+		URL url = TestResources.class.getResource("/catalogbased/parsing/V01__with_reset.xml");
 		Objects.requireNonNull(url);
 		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
 		assertThat(schemaBasedMigration.isResetCatalog()).isTrue();
@@ -205,11 +203,12 @@ class CatalogBasedMigrationTest {
 		@Test
 		void allRefactoringsShouldWork() {
 
-			Map<String, ac.simons.neo4j.migrations.core.catalog.Index.Type> typeMappings = new HashMap<>();
-			typeMappings.put("c", ac.simons.neo4j.migrations.core.catalog.Index.Type.POINT);
-			typeMappings.put("d", ac.simons.neo4j.migrations.core.catalog.Index.Type.TEXT);
+			Map<String, ac.simons.neo4j.migrations.core.catalog.Index.Type> typeMappings = Map.of(
+				"c", ac.simons.neo4j.migrations.core.catalog.Index.Type.POINT,
+				"d", ac.simons.neo4j.migrations.core.catalog.Index.Type.TEXT
+			);
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/full-example.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/full-example.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.baseline()))
@@ -255,7 +254,7 @@ class CatalogBasedMigrationTest {
 		void loadErrorSource() throws Exception {
 			errorSource = DocumentBuilderFactory.newInstance()
 				.newDocumentBuilder().parse(
-					CatalogBasedMigration.class.getResource("/catalogbased/parsing/broken-refactorings.xml")
+					TestResources.class.getResource("/catalogbased/parsing/broken-refactorings.xml")
 						.openStream());
 		}
 
@@ -271,16 +270,16 @@ class CatalogBasedMigrationTest {
 		}
 
 		@ParameterizedTest
-		@CsvSource(nullValues = "n/a", value = {
-			"create-future-index-empty-suffix, n/a",
-			"create-future-index-empty-ignore1, n/a",
-			"create-future-index-empty-ignore2, n/a",
-			"create-future-index-empty-tm1, n/a",
-			"create-future-index-empty-tm2, n/a",
-			"create-future-index-empty-duplicate-name, is",
-			"create-future-index-empty-no-name, Index name is required when customizing type mappings",
-			"create-future-index-empty-no-type, Type is required when customizing type mappings"
-		})
+		@CsvSource(nullValues = "n/a", textBlock = """
+			create-future-index-empty-suffix, n/a
+			create-future-index-empty-ignore1, n/a
+			create-future-index-empty-ignore2, n/a
+			create-future-index-empty-tm1, n/a
+			create-future-index-empty-tm2, n/a
+			create-future-index-empty-duplicate-name, is
+			create-future-index-empty-no-name, Index name is required when customizing type mappings
+			create-future-index-empty-no-type, Type is required when customizing type mappings
+			""")
 		void brokenMigrateBtreeNodes(String id, String message) {
 
 			Node refactoring = getElementById(id);
@@ -294,7 +293,6 @@ class CatalogBasedMigrationTest {
 				assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
 					.withMessage(message);
 			}
-
 		}
 
 		@ParameterizedTest
@@ -308,14 +306,14 @@ class CatalogBasedMigrationTest {
 		}
 
 		@ParameterizedTest
-		@CsvSource({
-			"invalid-type,: `invalid` is not a valid rename operation",
-			"no-from,: No `from` parameter",
-			"no-to,: No `to` parameter",
-			"no-anything-1,: The rename refactoring requires `from` and `to` parameters",
-			"no-anything-2,: No `from` parameter",
-			"invalid-batch-size,: Invalid value `foobar` for parameter `batchSize"
-		})
+		@CsvSource(textBlock = """
+			invalid-type,: `invalid` is not a valid rename operation
+			no-from,: No `from` parameter
+			no-to,: No `to` parameter
+			no-anything-1,: The rename refactoring requires `from` and `to` parameters
+			no-anything-2,: No `from` parameter
+			invalid-batch-size,: Invalid value `foobar` for parameter `batchSize
+			""")
 		void brokenRenames(String id, String message) {
 			Node refactoring = getElementById("rename-" + id);
 			String type = "invalid-type".equals(id) ? "invalid" : "label";
@@ -325,12 +323,12 @@ class CatalogBasedMigrationTest {
 		}
 
 		@ParameterizedTest
-		@CsvSource(delimiterString = "@@", value = {
-			"nothing@@The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters",
-			"no-op@@No `property` parameter",
-			"no-truth@@No `trueValues` parameter",
-			"just-the-truth@@No `falseValues` parameter"
-		})
+		@CsvSource(delimiterString = "@@", textBlock = """
+			nothing@@The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters
+			no-op@@No `property` parameter
+			no-truth@@No `trueValues` parameter
+			just-the-truth@@No `falseValues` parameter
+			""")
 		void brokenNormalizes(String id, String messsage) {
 			Node refactoring = getElementById("normalize-" + id);
 			assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
@@ -344,7 +342,7 @@ class CatalogBasedMigrationTest {
 
 		@Test
 		void emptyDocumentShouldBeReadable() {
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/no-operations.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/no-operations.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.withValue("1"))).isEmpty();
@@ -353,7 +351,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void applyShouldWork() {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/apply.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/apply.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
@@ -365,7 +363,7 @@ class CatalogBasedMigrationTest {
 		@Test
 		void defaultVerifyShouldWork() {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/verify-default.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/verify-default.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
@@ -377,14 +375,14 @@ class CatalogBasedMigrationTest {
 					assertThat(verifyOperation.useCurrent()).isFalse();
 					assertThat(verifyOperation.allowEquivalent()).isTrue();
 					assertThat(verifyOperation.includeOptions()).isFalse();
-					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
+					assertThat(verifyOperation.definedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}
 
 		@Test
 		void verifyModifiedShouldWork() {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/verify-modified.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/verify-modified.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
@@ -396,7 +394,7 @@ class CatalogBasedMigrationTest {
 					assertThat(verifyOperation.useCurrent()).isTrue();
 					assertThat(verifyOperation.allowEquivalent()).isFalse();
 					assertThat(verifyOperation.includeOptions()).isTrue();
-					assertThat(verifyOperation.getDefinedAt()).isEqualTo(MigrationVersion.withValue("1"));
+					assertThat(verifyOperation.definedAt()).isEqualTo(MigrationVersion.withValue("1"));
 				});
 		}
 
@@ -412,7 +410,7 @@ class CatalogBasedMigrationTest {
 		@MethodSource
 		void createsAndDrops(String file, Class<?> expectedType) {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/" + file);
+			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file);
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
@@ -451,7 +449,7 @@ class CatalogBasedMigrationTest {
 		@ValueSource(strings = { "create", "drop" })
 		void itemShouldRequireRefOrItem(String file) {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/" + file + "-both-ref-and-item.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file + "-both-ref-and-item.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			MigrationVersion version = MigrationVersion.withValue("1");
@@ -465,7 +463,7 @@ class CatalogBasedMigrationTest {
 		@ValueSource(strings = { "create", "drop" })
 		void itemShouldRequireRefNameOrLocal(String file) {
 
-			URL url = CatalogBasedMigration.class.getResource("/catalogbased/parsing/" + file + "-both-item-and-local.xml");
+			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file + "-both-item-and-local.xml");
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(url);
 			MigrationVersion version = MigrationVersion.withValue("1");
@@ -978,7 +976,7 @@ class CatalogBasedMigrationTest {
 				when(result.list(Mockito.<Function<Record, Constraint>>any()))
 					.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
-						.collect(Collectors.toList()));
+						.toList());
 			} else if (operator == Operator.DROP) {
 				op = Operation
 					.drop(Name.of("book_id_unique"), true)
@@ -1026,7 +1024,7 @@ class CatalogBasedMigrationTest {
 						new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))
 					).map(i.getArgument(0))
-					.collect(Collectors.toList()));
+					.toList());
 
 			String expectedDrop = "CREATE CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
 			when(session.run(expectedDrop))
@@ -1093,7 +1091,7 @@ class CatalogBasedMigrationTest {
 			when(result.list(Mockito.<Function<Record, Constraint>>any()))
 				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")))).map(i.getArgument(0))
-					.collect(Collectors.toList()));
+					.toList());
 
 			String expectedDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
 			when(session.run(expectedDrop))
@@ -1125,7 +1123,7 @@ class CatalogBasedMigrationTest {
 			when(result.list(Mockito.<Function<Record, Constraint>>any()))
 				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
-					.collect(Collectors.toList()));
+					.toList());
 
 			String expectedContraintDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE";
 			when(session.run(expectedContraintDrop))
@@ -1157,7 +1155,7 @@ class CatalogBasedMigrationTest {
 			when(result.list(Mockito.<Function<Record, Constraint>>any()))
 				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
-					.collect(Collectors.toList()));
+					.toList());
 
 			String firstDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE";
 			when(session.run(firstDrop))
@@ -1205,7 +1203,7 @@ class CatalogBasedMigrationTest {
 			when(result.list(Mockito.<Function<Record, Constraint>>any()))
 				.thenAnswer(i -> Stream.of(new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 						Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.id) IS UNIQUE")))).map(i.getArgument(0))
-					.collect(Collectors.toList()));
+					.toList());
 
 			String firstDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE";
 			when(session.run(firstDrop))
@@ -1240,12 +1238,12 @@ class CatalogBasedMigrationTest {
 							new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 								Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.foobar) IS UNIQUE")))
 						)
-						.map(i.getArgument(0)).collect(Collectors.toList())
+						.map(i.getArgument(0)).toList()
 				)
 				.thenAnswer(i -> Stream.of(
 						new MapAccessorAndRecordImpl(Collections.singletonMap("description",
 							Values.value("CONSTRAINT ON ( book:Book ) ASSERT (book.foobar) IS UNIQUE")))
-					).map(i.getArgument(0)).collect(Collectors.toList())
+					).map(i.getArgument(0)).toList()
 				);
 
 			String firstDrop = "DROP CONSTRAINT ON (n:Book) ASSERT n.isbn IS UNIQUE";

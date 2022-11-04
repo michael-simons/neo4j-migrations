@@ -25,10 +25,10 @@ import java.util.Optional;
  * @soundtrack Die Krupps - Paradise Now
  * @since 1.2.0
  */
-public interface DatabaseOperationResult extends OperationResult {
+public sealed interface DatabaseOperationResult extends OperationResult permits CleanResult, ValidationResult {
 
 	/**
-	 * @return the optional name of the database clean, an empty optional indicates the default database
+	 * {@return the optional name of the database clean, an empty optional indicates the default database}
 	 */
 	Optional<String> getAffectedDatabase();
 }

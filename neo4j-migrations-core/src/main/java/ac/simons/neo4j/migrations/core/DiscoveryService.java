@@ -66,15 +66,14 @@ final class DiscoveryService {
 
 		List<MigrationWithPreconditions> cypherBasedMigrations = migrations.stream().filter(MigrationWithPreconditions.class::isInstance)
 			.map(MigrationWithPreconditions.class::cast)
-			.collect(Collectors.toList());
+			.toList();
 		Map<Migration, List<Precondition>> migrationsAndPreconditions = new HashMap<>();
 		computeAlternativeChecksums(cypherBasedMigrations, migrationsAndPreconditions);
 
 		migrations.removeIf(migration -> hasUnmetPreconditions(migrationsAndPreconditions, migration, context));
 		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
 		Catalog catalog = context.getCatalog();
-		if (catalog instanceof WriteableCatalog) {
-			WriteableCatalog writeableSchema = (WriteableCatalog) catalog;
+		if (catalog instanceof WriteableCatalog writeableSchema) {
 			migrations.stream().filter(CatalogBasedMigration.class::isInstance)
 				.map(CatalogBasedMigration.class::cast)
 				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));
@@ -99,7 +98,7 @@ final class DiscoveryService {
 					Stream<String> checksum = o.getChecksum().map(Stream::of).orElseGet(Stream::empty);
 					return Stream.concat(checksum, o.getAlternativeChecksums().stream()).distinct();
 				})
-				.collect(Collectors.toList());
+				.toList();
 			m.setAlternativeChecksums(alternativeChecksums);
 		});
 	}
@@ -124,7 +123,7 @@ final class DiscoveryService {
 		}
 
 		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, Collections.emptyList())
-			.stream().filter(precondition -> !precondition.isMet(context)).collect(Collectors.toList());
+			.stream().filter(precondition -> !precondition.isMet(context)).toList();
 
 		if (unmet.isEmpty()) {
 			return false;

@@ -108,12 +108,12 @@ final class DefaultMerge implements Merge {
 
 	private static Optional<Query> generateLabelCopyQuery(UnaryOperator<String> sanitizer, QueryRunner queryRunner, Ids ids) {
 
-		String queryForLabels = ""
-			+ "MATCH (n) WHERE elementId(n) IN $ids\n"
-			+ "UNWIND labels(n) AS label\n"
-			+ "WITH DISTINCT label\n"
-			+ "ORDER BY label ASC\n"
-			+ "RETURN collect(label) AS labels";
+		String queryForLabels = """
+			MATCH (n) WHERE elementId(n) IN $ids
+			UNWIND labels(n) AS label
+			WITH DISTINCT label
+			ORDER BY label ASC
+			RETURN collect(label) AS labels""";
 
 		List<String> labels = queryRunner.run(new Query(queryForLabels, Collections.singletonMap("ids", ids.tail)))
 			.single().get("labels").asList(Value::asString);
@@ -128,14 +128,14 @@ final class DefaultMerge implements Merge {
 
 	private static Optional<Query> generatePropertyCopyQuery(QueryRunner queryRunner, Ids ids, List<PropertyMergePolicy> policies) {
 
-		String queryForProperties = ""
-			+ "UNWIND $ids AS id\n"
-			+ "MATCH (n) WHERE elementId(n) = id\n"
-			+ "UNWIND keys(n) AS key\n"
-			+ "WITH key, n[key] as value\n "
-			+ "WITH key, collect(value) AS values\n"
-			+ "RETURN {key: key, values: values} AS property\n"
-			+ "ORDER BY property.key ASC";
+		String queryForProperties = """
+			UNWIND $ids AS id
+			MATCH (n) WHERE elementId(n) = id
+			UNWIND keys(n) AS key
+			WITH key, n[key] as value
+			 WITH key, collect(value) AS values
+			RETURN {key: key, values: values} AS property
+			ORDER BY property.key ASC""";
 
 		List<Map<String, ?>> rows = queryRunner.run(new Query(queryForProperties, Collections.singletonMap("ids", ids.value))).list(MapAccessor::asMap);
 		if (rows.isEmpty()) {
@@ -164,12 +164,12 @@ final class DefaultMerge implements Merge {
 
 	private static Optional<Query> generateRelationshipCopyQuery(UnaryOperator<String> sanitizer, QueryRunner queryRunner, Ids ids) {
 
-		String queryForRels = ""
-			+ "MATCH (n) WHERE elementId(n) IN $ids\n"
-			+ "WITH [ (n)-[r]-() | r ] AS rels\n"
-			+ "UNWIND rels AS rel\n"
-			+ "RETURN DISTINCT rel, elementId(startNode(rel)) as startId, elementId(endNode(rel)) as endId\n"
-			+ "ORDER BY type(rel) ASC, elementId(rel) ASC";
+		String queryForRels = """
+			MATCH (n) WHERE elementId(n) IN $ids
+			WITH [ (n)-[r]-() | r ] AS rels
+			UNWIND rels AS rel
+			RETURN DISTINCT rel, elementId(startNode(rel)) as startId, elementId(endNode(rel)) as endId
+			ORDER BY type(rel) ASC, elementId(rel) ASC""";
 
 		List<Record> rows = queryRunner.run(new Query(queryForRels, Collections.singletonMap("ids", ids.tail))).list();
 		if (rows.isEmpty()) {

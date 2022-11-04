@@ -86,7 +86,7 @@ public final class MapAccessorAndRecordImpl implements MapAccessor, Record {
 
 	@Override
 	public <T> Iterable<T> values(Function<Value, T> mapFunction) {
-		return content.values().stream().map(mapFunction).collect(Collectors.toList());
+		return content.values().stream().map(mapFunction).toList();
 	}
 
 	@Override

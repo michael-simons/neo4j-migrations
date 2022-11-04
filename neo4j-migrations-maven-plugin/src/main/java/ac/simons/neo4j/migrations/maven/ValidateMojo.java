@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations.maven;
 
+import ac.simons.neo4j.migrations.core.Messages;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.ValidationResult;
-import ac.simons.neo4j.migrations.core.Messages;
 
 import java.util.Collection;
 

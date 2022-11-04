@@ -178,7 +178,7 @@ The simplest way of defining a catalog based migrations looks like this:
 .V01__Create_unique_isbn.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
+include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
 ----
 
 Here a unique constraint is defined for the property `isbn` of all nodes labelled `Book`. This constraint is known only locally
@@ -189,7 +189,7 @@ This can also be rewritten such as this:
 .V01__Create_unique_isbn.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
+include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
 ----
 
 The constraint can be reused later, too:
@@ -197,7 +197,7 @@ The constraint can be reused later, too:
 .V23__Drop_old_constraint.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
+include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
 ----
 
 Indexes are supported, too:
@@ -205,7 +205,7 @@ Indexes are supported, too:
 .V01__Create_an_index_local.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_an_index_local.xml[]
+include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_an_index_local.xml[]
 ----
 
 NOTE: The XML schema supports types for indexes as well: `FULLTEXT` and `TEXT`. The former being the well known
@@ -222,7 +222,7 @@ The example given in the APOC docs above can be identically modelled with the fo
 .V42__Rename_labels.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/test/resources/catalogbased/manual/V42__Rename_labels.xml[]
+include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V42__Rename_labels.xml[]
 ----
 
 It will rename the label `Engineer` on all nodes matching the custom query to `DevRel`.

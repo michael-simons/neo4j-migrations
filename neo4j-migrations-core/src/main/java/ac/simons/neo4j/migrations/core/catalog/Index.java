@@ -313,26 +313,14 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 			: row.get(PROPERTIES_KEY).asList(Value::asString);
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(entityType);
 
-		Index.Type type;
-		switch (indexType) {
-			case "LOOKUP":
-				type = Type.LOOKUP;
-				break;
-			case "node_label_property":
-			case "BTREE":
-			case "RANGE": // One of the Neo4j 5+ future indexes.
-				type = Type.PROPERTY;
-				break;
-			case "FULLTEXT":
-			case "node_fulltext":
-				type = Type.FULLTEXT;
-				break;
-			case "node_unique_property":
-				type = Type.CONSTRAINT_BACKING_INDEX;
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported index type " + name);
-		}
+		Index.Type type = switch (indexType) {
+			case "LOOKUP" -> Type.LOOKUP;
+			case "node_label_property", "BTREE", "RANGE" -> // One of the Neo4j 5+ future indexes.
+				Type.PROPERTY;
+			case "FULLTEXT", "node_fulltext" -> Type.FULLTEXT;
+			case "node_unique_property" -> Type.CONSTRAINT_BACKING_INDEX;
+			default -> throw new IllegalArgumentException("Unsupported index type " + name);
+		};
 
 		// The definition of indexes backing unique constraints various a bit for different Neo4j versions
 		if (isConstraintBackingIndex(row)) {

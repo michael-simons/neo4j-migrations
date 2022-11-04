@@ -37,7 +37,6 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 /**
  * Abstract base class for implementing discoverer discovering resources.
@@ -140,7 +139,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 			.map(resource -> ResourceContext.of(resource, config))
 			.map(mapper)
 			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private List<T> scanFilesystemLocations(List<URI> filesystemLocations, MigrationsConfig config) {

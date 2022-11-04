@@ -30,11 +30,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 class AsciiDoctorBasedMigrationProviderTest {
 
 	@ParameterizedTest
-	@CsvSource({
-		"/neo4j/adoc-migrations/initial_schema_draft.adoc, 2",
-		"/neo4j/adoc-migrations/more_content.adoc        , 1",
-		"/neo4j/migrations-with-includes/README.adoc     , 2"
-	})
+	@CsvSource(textBlock = """
+		/neo4j/adoc-migrations/initial_schema_draft.adoc, 2
+		/neo4j/adoc-migrations/more_content.adoc        , 1
+		/neo4j/migrations-with-includes/README.adoc     , 2
+		""")
 	void shouldLoadAllMigrationsPerAdoc(String resource, int numMigrations) {
 
 		AsciiDoctorBasedMigrationProvider provider = new AsciiDoctorBasedMigrationProvider();

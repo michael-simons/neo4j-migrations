@@ -20,7 +20,6 @@ import io.github.classgraph.ScanResult;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 /**
  * Discovers all Java-based migrations.
@@ -53,7 +52,7 @@ final class JavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigratio
 						} catch (Exception e) {
 							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
 						}
-					}).collect(Collectors.toList());
+					}).toList();
 		}
 	}
 }

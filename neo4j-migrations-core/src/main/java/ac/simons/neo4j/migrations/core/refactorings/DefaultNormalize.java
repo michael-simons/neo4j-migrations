@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +22,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
@@ -49,7 +47,6 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 
 	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues, String customQuery, Integer batchSize) {
 		super(customQuery, batchSize);
-
 
 		boolean nullIsTrue = trueValues.stream().anyMatch(DefaultNormalize::isNull);
 		boolean nullIsFalse = falseValues.stream().anyMatch(DefaultNormalize::isNull);
@@ -120,10 +117,10 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		Predicate<Object> isNull = DefaultNormalize::isNull;
 		if (trueValues.stream().anyMatch(isNull)) {
 			nullValue = true;
-			tv = trueValues.stream().filter(isNull.negate()).collect(Collectors.toList());
+			tv = trueValues.stream().filter(isNull.negate()).toList();
 		} else if (falseValues.stream().anyMatch(DefaultNormalize::isNull)) {
 			nullValue = false;
-			fv = falseValues.stream().filter(isNull.negate()).collect(Collectors.toList());
+			fv = falseValues.stream().filter(isNull.negate()).toList();
 		}
 
 		String varName;
@@ -137,14 +134,14 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		}
 
 		String quotedProperty = sanitizer.apply(this.property);
-		String formatString = ""
-			+ "CALL { %2$s } WITH %3$s AS e\n"
-			+ "<FILTER />\n"
-			+ "<BATCH>SET e.%1$s = CASE\n"
-			+ "  WHEN e.%1$s IN $trueValues THEN true\n"
-			+ "  WHEN e.%1$s IN $falseValues THEN false\n"
-			+ "  ELSE $nullValue\n"
-			+ "END</BATCH>";
+		String formatString = """
+			CALL { %2$s } WITH %3$s AS e
+			<FILTER />
+			<BATCH>SET e.%1$s = CASE
+			  WHEN e.%1$s IN $trueValues THEN true
+			  WHEN e.%1$s IN $falseValues THEN false
+			  ELSE $nullValue
+			END</BATCH>""";
 
 		if (batchSize == null) {
 			formatString = formatString.replaceAll("<BATCH>|</BATCH>", "");
@@ -158,10 +155,11 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		formatString = formatString
 			.replace("<FILTER />\n", nullValue == null ? "WHERE e.%1$s IS NOT NULL\n" : "");
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("trueValues", Values.value(tv));
-		parameters.put("falseValues", Values.value(fv));
-		parameters.put("nullValue", Values.value(nullValue));
+		Map<String, Object> parameters = Map.of(
+			"trueValues", Values.value(tv),
+			"falseValues", Values.value(fv),
+			"nullValue", Values.value(nullValue)
+		);
 		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, batchSize), parameters);
 	}
 

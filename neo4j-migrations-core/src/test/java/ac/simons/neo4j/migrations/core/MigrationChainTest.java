@@ -31,7 +31,7 @@ class MigrationChainTest {
 	@Test
 	void shouldIncludeConnectionInfo() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("j@aura (hidden)");
 	}
@@ -39,7 +39,7 @@ class MigrationChainTest {
 	@Test
 	void shouldNotPrintEmptyDatabase() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.doesNotContain("Database:")
 			.doesNotContain("Schema database: ")
@@ -49,14 +49,14 @@ class MigrationChainTest {
 	@Test
 	void shouldPrintDatabase() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", null), Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", null), Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("Database: a");
 	}
 
 	@Test // GH-648
 	void shouldPrintEdition() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null), Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null), Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("j@aura (6.66 Special Edition)");
 	}
@@ -64,7 +64,7 @@ class MigrationChainTest {
 	@Test
 	void shouldPrintSchemaDatabase() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "b"), Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "b"), Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("Database: a")
 			.contains("Schema database: b");
@@ -73,7 +73,7 @@ class MigrationChainTest {
 	@Test
 	void shouldNotPrintSameSchemaDatabase() {
 
-		MigrationChain chain = new ChainBuilder.DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "a"), Collections.emptyMap());
+		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "a"), Collections.emptyMap());
 		assertThat(chain.prettyPrint())
 			.contains("Database: a")
 			.doesNotContain("Schema database: a");

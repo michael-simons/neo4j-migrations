@@ -16,12 +16,12 @@
 package ac.simons.neo4j.migrations.cli;
 
 import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Location;
+import ac.simons.neo4j.migrations.core.Location.LocationType;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-import ac.simons.neo4j.migrations.core.Location;
-import ac.simons.neo4j.migrations.core.Location.LocationType;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -45,10 +45,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.neo4j.driver.AuthToken;
@@ -243,7 +243,7 @@ public final class MigrationsCli implements Runnable {
 
 		List<String> classpathLocations = Arrays.stream(locationsToScan)
 				.filter(location -> Location.of(location).getType() == LocationType.CLASSPATH)
-				.collect(Collectors.toList());
+				.toList();
 
 		if (runsInNativeImage && !classpathLocations.isEmpty()) {
 			throw new IllegalArgumentException(
@@ -305,8 +305,7 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		return resolvedPassword
-			.map(String::trim)
-			.filter(s -> !s.isEmpty())
+			.filter(Predicate.not(String::isBlank))
 			.map(s -> AuthTokens.basic(user, s))
 			.orElseThrow(
 				() -> new CommandLine.ParameterException(commandSpec.commandLine(),

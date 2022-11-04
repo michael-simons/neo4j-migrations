@@ -31,13 +31,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 class LifecyclePhaseTest {
 
 	@ParameterizedTest
-	@CsvSource(value = {
-		"afterMigrate.cypher,n/a,true",
-		"beforeMigrate__01test.cypher,01test,true",
-		"beforeClean__test.cypher,test,true",
-		"beforeclean__test.cypher,n/a,false",
-		"afterMigrate.cyp,n/a,false"
-	}, nullValues = "n/a")
+	@CsvSource(
+		nullValues = "n/a",
+		textBlock = """
+			afterMigrate.cypher,n/a,true
+			beforeMigrate__01test.cypher,01test,true
+			beforeClean__test.cypher,test,true
+			beforeclean__test.cypher,n/a,false
+			afterMigrate.cyp,n/a,false
+			""")
 	void patternShouldWork(String in, String description, boolean matches) {
 		Matcher m = LifecyclePhase.LIFECYCLE_PATTERN.matcher(in);
 		if (matches) {

@@ -41,7 +41,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -213,15 +212,15 @@ class MigrationsEEIT {
 	}
 
 	@ParameterizedTest
-	@CsvSource(nullValues = "n/a", value = {
-		"neo4j, n/a",
-		"migrationTest, n/a",
-		"migrationTest, neo4j",
-		"migrationTest, schemaDatabase",
-		"n/a, schemaDatabase",
-		"neo4j, schemaDatabase",
-		"n/a, n/a"
-	})
+	@CsvSource(nullValues = "n/a", textBlock = """
+		neo4j, n/a
+		migrationTest, n/a
+		migrationTest, neo4j
+		migrationTest, schemaDatabase
+		n/a, schemaDatabase
+		neo4j, schemaDatabase
+		n/a, n/a
+		""")
 	void shouldRunInCorrectDatabase(String targetDatabase, String schemaDatabase) {
 
 		Logger logger = Logger.getLogger(MigrationsEEIT.class.getName());
@@ -285,7 +284,6 @@ class MigrationsEEIT {
 	}
 
 	@Test // GH-647
-	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch() {
 
 		TestBase.clearDatabase(driver, "neo4j");
@@ -455,16 +453,16 @@ class MigrationsEEIT {
 	}
 
 	@ParameterizedTest
-	@CsvSource(nullValues = "n/a", value = {
-		"n/a, neo4j, n/a",
-		"n/a, neo4j, schemaDatabase",
-		"n/a, n/a, schemaDatabase",
-		"n/a, n/a, n/a",
-		"neo4j, neo4j, n/a",
-		"neo4j, neo4j, schemaDatabase",
-		"neo4j, n/a, schemaDatabase",
-		"neo4j, n/a, n/a",
-	})
+	@CsvSource(nullValues = "n/a", textBlock = """
+		n/a, neo4j, n/a
+		n/a, neo4j, schemaDatabase
+		n/a, n/a, schemaDatabase
+		n/a, n/a, n/a
+		neo4j, neo4j, n/a
+		neo4j, neo4j, schemaDatabase
+		neo4j, n/a, schemaDatabase
+		neo4j, n/a, n/a
+		""")
 	void lockShouldFailBecauseLockNodeExists(String database1, String database2, String schemaDatabase) {
 
 		TestBase.clearDatabase(driver, schemaDatabase);
@@ -488,13 +486,12 @@ class MigrationsEEIT {
 	}
 
 	@ParameterizedTest
-	@CsvSource(nullValues = "n/a", value = {
-		// All databases to be migrated are none existent, as we want to make sure the schema as well as the lock doesn't go there
-		"n/a, b, n/a",
-		"n/a, b, neo4j",
-		"n/a, b, schemaDatabase",
-		"a, b, schemaDatabase"
-	})
+	@CsvSource(nullValues = "n/a", textBlock = """
+		n/a, b, n/a
+		n/a, b, neo4j
+		n/a, b, schemaDatabase
+		a, b, schemaDatabase
+		""")
 	void lockShouldNotFailInSameDatabaseForDifferentDatabases(String database1, String database2, String schemaDatabase) {
 
 		TestBase.clearDatabase(driver, schemaDatabase);

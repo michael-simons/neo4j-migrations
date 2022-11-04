@@ -15,7 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import org.w3c.dom.Document;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -27,8 +28,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.OutputStream;
+
+import org.w3c.dom.Document;
 
 /**
  * Renders indexes as XML.

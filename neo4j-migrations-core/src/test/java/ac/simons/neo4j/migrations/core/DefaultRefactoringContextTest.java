@@ -26,7 +26,6 @@ import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -91,7 +90,7 @@ class DefaultRefactoringContextTest {
 		Plan plan = mock(Plan.class);
 
 		when(plan.identifiers()).thenReturn(
-			Arrays.stream(value.split(",")).map(v -> "NULL".equals(v) ? null : v).collect(Collectors.toList()));
+			Arrays.stream(value.split(",")).map(v -> "NULL".equals(v) ? null : v).toList());
 		when(plan.arguments()).thenReturn(Collections.singletonMap("Details", Values.value("c")));
 		assertThat(DefaultRefactoringContext.hasSingleElement(plan)).isFalse();
 	}

@@ -26,7 +26,7 @@ import java.util.List;
  * @soundtrack Motörhead - Iron Fist
  * @since 1.7.0
  */
-interface MigrationWithPreconditions extends Migration {
+non-sealed interface MigrationWithPreconditions extends Migration {
 
 	/**
 	 * @return a list of preconditions

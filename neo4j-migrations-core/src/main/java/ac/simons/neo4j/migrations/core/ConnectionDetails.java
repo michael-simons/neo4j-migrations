@@ -24,36 +24,36 @@ import java.util.Optional;
  * @soundtrack Snoop Dogg - Doggystyle
  * @since 1.4.0
  */
-public interface ConnectionDetails {
+public sealed interface ConnectionDetails permits MigrationChain, DefaultConnectionDetails {
 
 	/**
-	 * @return the address of the server used
+	 * {@return the address of the server used}
 	 */
 	String getServerAddress();
 
 	/**
-	 * @return the Neo4j version the server is running
+	 * {@return the Neo4j version the server is running}
 	 */
 	String getServerVersion();
 
 	/**
-	 * @return the Neo4j edition the server is running
+	 * {@return the Neo4j edition the server is running}
 	 * @since 1.5.0
 	 */
 	String getServerEdition();
 
 	/**
-	 * @return the Neo4j user that ran the migrations
+	 * {@return the Neo4j user that ran the migrations}
 	 */
 	String getUsername();
 
 	/**
-	 * @return the database if applicable (Neo4j 4.0 and up)
+	 * {@return the database if applicable (Neo4j 4.0 and up)}
 	 */
 	Optional<String> getOptionalDatabaseName();
 
 	/**
-	 * @return the database if applicable (Neo4j 4.0 and up)
+	 * {@return the database if applicable (Neo4j 4.0 and up)}
 	 */
 	Optional<String> getOptionalSchemaDatabaseName();
 }

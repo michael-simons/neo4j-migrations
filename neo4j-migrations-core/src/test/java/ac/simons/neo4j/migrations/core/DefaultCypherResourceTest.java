@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import ac.simons.neo4j.migrations.test_resources.TestResources;
+
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -91,7 +93,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void singleLineFollowingEachOther() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"));
+			TestResources.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"));
 		assertThat(cypherResource.getStatements()).hasSize(1);
 		assertThat(cypherResource.getSingleLineComments()).hasSize(3);
 		List<Precondition> preconditions = Precondition.in(cypherResource);
@@ -140,7 +142,7 @@ class DefaultCypherResourceTest {
 	@ValueSource(strings = {"unix", "dos"})
 	void shouldConvertLineEndings(String type)  {
 
-		URL resource = DefaultCypherResourceTest.class.getResource("/ml/" + type + "/V0001__Just a couple of matches.cypher");
+		URL resource = TestResources.class.getResource("/ml/" + type + "/V0001__Just a couple of matches.cypher");
 
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(resource, true);
 		List<String> statements = cypherResource.getStatements();
@@ -153,7 +155,7 @@ class DefaultCypherResourceTest {
 	void shouldBeAbleToReadFromJar() {
 
 		// Those are in eu.michael-simons.neo4j.neo4j-migrations:test-migrations
-		URL resource = DefaultCypherResourceTest.class.getResource("/some/changeset/V0002__create_new_data.cypher");
+		URL resource = TestResources.class.getResource("/some/changeset/V0002__create_new_data.cypher");
 		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(resource);
 
 		List<String> statements = migration.getStatements();
@@ -163,8 +165,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void shouldHandleMultilineStatements() {
 
-		URL resource = DefaultCypherResourceTest.class
-			.getResource("/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher");
+		URL resource = TestResources.class.getResource("/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher");
 		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(resource);
 		List<String> statements = migration.getStatements();
 		assertThat(statements).hasSize(2);
@@ -173,7 +174,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void shouldComputeCheckSum() {
 
-		URL resource = DefaultCypherResourceTest.class.getResource("/some/changeset/V0001__delete_old_data.cypher");
+		URL resource = TestResources.class.getResource("/some/changeset/V0001__delete_old_data.cypher");
 
 		CypherBasedMigration migration = new CypherBasedMigration(resource);
 
@@ -209,7 +210,6 @@ class DefaultCypherResourceTest {
 		URL url = DefaultCypherResourceTest.class.getResource("/parsing/V01__without_assumption.cypher");
 
 		Migration migration = new CypherBasedMigration(url);
-		assertThat(migration.getDescription()).isEqualTo("without assumption");
 		assertThat(migration.getOptionalDescription()).hasValue("without assumption");
 	}
 
@@ -227,7 +227,15 @@ class DefaultCypherResourceTest {
 	}
 
 	@ParameterizedTest
-	@CsvSource({ ":use abc,abc", ":use ABC,abc", ":use Abc,abc", ":use abc,abc", ":Use whatever1-will-be.Que-sera,whatever1-will-be.que-sera", ":use  hallo,hallo", ":use the-force;,the-force"})
+	@CsvSource(textBlock = """
+		:use abc,abc
+		:use ABC,abc
+		:use Abc,abc
+		:use abc,abc
+		:Use whatever1-will-be.Que-sera,whatever1-will-be.que-sera
+		:use  hallo,hallo
+		:use the-force;,the-force
+		""")
 	void validDatabaseNamesShouldBeRecognized(String line, String expected) {
 		Optional<String> databaseName = DefaultCypherResource.getDatabaseName(line);
 		assertThat(databaseName).hasValue(expected);

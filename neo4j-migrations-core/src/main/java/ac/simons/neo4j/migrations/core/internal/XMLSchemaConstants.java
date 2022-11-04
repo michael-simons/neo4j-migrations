@@ -15,9 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -95,8 +92,7 @@ public final class XMLSchemaConstants {
 	/**
 	 * Constant for the element names of supported operations.
 	 */
-	public static final Set<String> SUPPORTED_OPERATIONS = Collections.unmodifiableSet(
-		new HashSet<>(Arrays.asList("verify", "create", "drop", APPLY, REFACTOR)));
+	public static final Set<String> SUPPORTED_OPERATIONS = Set.of("verify", "create", "drop", APPLY, REFACTOR);
 
 	private XMLSchemaConstants() {
 	}

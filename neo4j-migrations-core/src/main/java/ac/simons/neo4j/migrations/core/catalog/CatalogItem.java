@@ -23,15 +23,15 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @soundtrack Anthrax - Spreading The Disease
  * @since 1.7.0
  */
-public interface CatalogItem<T extends ItemType> {
+public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogItem {
 
 	/**
-	 * @return A unique name for a catalog item.
+	 * {@return A unique name for a catalog item}
 	 */
 	Name getName();
 
 	/**
-	 * @return Type information for the given item, specialized to the item type itself.
+	 * {@return Type information for the given item, specialized to the item type itself}
 	 */
 	T getType();
 
@@ -44,7 +44,7 @@ public interface CatalogItem<T extends ItemType> {
 	}
 
 	/**
-	 * @return {@literal true} if this item has a generated name.
+	 * {@return {@literal true} if this item has a generated name}
 	 */
 	boolean hasGeneratedName();
 

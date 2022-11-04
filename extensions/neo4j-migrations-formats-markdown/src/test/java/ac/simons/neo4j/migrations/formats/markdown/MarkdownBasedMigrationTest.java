@@ -15,18 +15,19 @@
  */
 package ac.simons.neo4j.migrations.formats.markdown;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.ResourceContext;
-import org.commonmark.node.FencedCodeBlock;
-import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.commonmark.node.FencedCodeBlock;
+import org.junit.jupiter.api.Test;
 
 class MarkdownBasedMigrationTest {
 

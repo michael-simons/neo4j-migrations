@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
 import ac.simons.neo4j.migrations.annotations.proc.NodeType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
 
 import java.util.ArrayList;
 import java.util.Collections;

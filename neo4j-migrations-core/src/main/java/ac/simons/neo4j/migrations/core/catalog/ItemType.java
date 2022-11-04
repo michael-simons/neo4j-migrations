@@ -21,7 +21,7 @@ package ac.simons.neo4j.migrations.core.catalog;
  * @author Michael J. Simons
  * @since 1.7.0
  */
-public interface ItemType {
+public sealed interface ItemType permits Constraint.Type, Index.Type {
 
 	/**
 	 * @return a unique textual representation of this type.

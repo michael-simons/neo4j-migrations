@@ -15,15 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
-import ac.simons.neo4j.migrations.core.MigrationChain.Element;
-
-import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +25,10 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.types.IsoDuration;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
+
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 
 /**
  * Builder for retrieving information about a database and creating a chain containing applied and pending migrations.
@@ -78,19 +70,18 @@ final class ChainBuilder {
 	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
 	 * @return The full migration chain.
 	 */
-	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
+	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
 
-		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses,
-			infoCmd);
+		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses, mode);
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
 	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still fits on one screen
-	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
+	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
 
 		Map<MigrationVersion, Element> appliedMigrations =
-			infoCmd == ChainBuilderMode.LOCAL ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
-		if (infoCmd == ChainBuilderMode.REMOTE) {
+			mode == ChainBuilderMode.LOCAL ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
+		if (mode == ChainBuilderMode.REMOTE) {
 			// Only looking at remote, assume everything is applied
 			return Collections.unmodifiableMap(appliedMigrations);
 		}
@@ -133,7 +124,7 @@ final class ChainBuilder {
 		// All remaining migrations are pending
 		while (i < discoveredMigrations.size()) {
 			Migration pendingMigration = discoveredMigrations.get(i++);
-			Element element = DefaultChainElement.pendingElement(pendingMigration);
+			Element element = DefaultMigrationChainElement.pendingElement(pendingMigration);
 			fullMigrationChain.put(pendingMigration.getVersion(), element);
 		}
 
@@ -155,13 +146,14 @@ final class ChainBuilder {
 
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
-		String query = ""
-			+ "MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration) \n"
-			+ "WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)\n"
-			+ "WITH p\n"
-			+ "OPTIONAL MATCH () - [r:REPEATED] -> ()\n"
-			+ "WITH p, r order by r.at DESC\n"
-			+ "RETURN p, collect(r) AS repetitions";
+		var query = """
+			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)\s
+			WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
+			WITH p
+			OPTIONAL MATCH () - [r:REPEATED] -> ()
+			WITH p, r order by r.at DESC
+			RETURN p, collect(r) AS repetitions
+			""";
 
 		try (Session session = context.getSchemaSession()) {
 			return session.readTransaction(tx -> {
@@ -173,216 +165,12 @@ final class ChainBuilder {
 					Record row = result.single();
 					List<Relationship> repetitions = row.get("repetitions").asList(Value::asRelationship);
 					row.get("p").asPath().forEach(segment -> {
-						Element chainElement = DefaultChainElement.appliedElement(segment, repetitions);
+						Element chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);
 						chain.put(MigrationVersion.withValue(chainElement.getVersion(), segment.end().get("repeatable").asBoolean(false)), chainElement);
 					});
 				}
 				return chain;
 			});
-		}
-	}
-
-	static final class DefaultMigrationChain implements MigrationChain {
-
-		private final ConnectionDetails connectionDetailsDelegate;
-
-		private final Map<MigrationVersion, Element> elements;
-
-		DefaultMigrationChain(ConnectionDetails connectionDetailsDelegate, Map<MigrationVersion, Element> elements) {
-			this.connectionDetailsDelegate = connectionDetailsDelegate;
-			this.elements = elements;
-		}
-
-		@Override
-		public String getServerAddress() {
-			return connectionDetailsDelegate.getServerAddress();
-		}
-
-		@Override
-		public String getServerVersion() {
-			return connectionDetailsDelegate.getServerVersion();
-		}
-
-		@Override
-		public String getServerEdition() {
-			return connectionDetailsDelegate.getServerEdition();
-		}
-
-		@Override
-		public String getUsername() {
-			return connectionDetailsDelegate.getUsername();
-		}
-
-		@Override
-		public Optional<String> getOptionalDatabaseName() {
-			return connectionDetailsDelegate.getOptionalDatabaseName();
-		}
-
-		@Override
-		public Optional<String> getOptionalSchemaDatabaseName() {
-			return connectionDetailsDelegate.getOptionalSchemaDatabaseName();
-		}
-
-		@SuppressWarnings("deprecation")
-		@Override
-		public String getDatabaseName() {
-			return getOptionalDatabaseName().orElse(null);
-		}
-
-		@Override
-		public boolean isApplied(String version) {
-			Element element = this.elements.get(MigrationVersion.withValue(version));
-			return element != null && element.getState() == MigrationState.APPLIED;
-		}
-
-		@Override
-		public Collection<Element> getElements() {
-			return this.elements.values();
-		}
-
-		@Override
-		public Optional<MigrationVersion> getLastAppliedVersion() {
-			Iterator<MigrationVersion> it = this.elements.keySet().iterator();
-			MigrationVersion version = null;
-			while (it.hasNext()) {
-				version = it.next();
-			}
-			return Optional.ofNullable(version);
-		}
-	}
-
-	private static class DefaultChainElement implements Element {
-
-		static class InstallationInfo {
-
-			private final ZonedDateTime installedOn;
-
-			private final String installedBy;
-
-			private final Duration executionTime;
-
-			InstallationInfo(ZonedDateTime installedOn, String installedBy, Duration executionTime) {
-				this.installedOn = installedOn;
-				this.installedBy = installedBy;
-				this.executionTime = executionTime;
-			}
-
-			ZonedDateTime getInstalledOn() {
-				return installedOn;
-			}
-
-			String getInstalledBy() {
-				return installedBy;
-			}
-
-			Duration getExecutionTime() {
-				return executionTime;
-			}
-		}
-
-		static Element appliedElement(Path.Segment appliedMigration, List<Relationship> repetitions) {
-
-			Node targetMigration = appliedMigration.end();
-			Map<String, Object> properties = targetMigration.asMap();
-
-			Relationship migrationProperties = repetitions.stream()
-					.filter(relationship -> relationship.endNodeId() == targetMigration.id())
-					.max(Comparator.comparing((Relationship r) -> r.get("at").asZonedDateTime()))
-					.orElse(appliedMigration.relationship());
-
-			ZonedDateTime installedOn = migrationProperties.get("at").asZonedDateTime();
-			String installedBy = String.format("%s/%s", migrationProperties.get("by").asString(),
-				migrationProperties.get("connectedAs").asString());
-			IsoDuration storedExecutionTime = migrationProperties.get("in").asIsoDuration();
-			Duration executionTime = Duration.ofSeconds(storedExecutionTime.seconds())
-				.plusNanos(storedExecutionTime.nanoseconds());
-
-			return new DefaultChainElement(MigrationState.APPLIED,
-				MigrationType.valueOf((String) properties.get("type")), migrationProperties.get("checksum").asString((String) properties.get("checksum")),
-				(String) properties.get("version"), (String) properties.get("description"),
-				(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
-		}
-
-		static Element pendingElement(Migration pendingMigration) {
-			return new DefaultChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
-				pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
-				pendingMigration.getOptionalDescription().orElse(null), pendingMigration.getSource(), null);
-		}
-
-		private final MigrationState state;
-
-		private final MigrationType type;
-
-		private final String checksum;
-
-		private final String version;
-
-		private final String description;
-
-		private final String source;
-
-		private final InstallationInfo installationInfo;
-
-		private DefaultChainElement(MigrationState state, MigrationType type, String checksum,
-			String version, String description, String source, InstallationInfo installationInfo) {
-			this.state = state;
-			this.type = type;
-			this.checksum = checksum;
-			this.version = version;
-			this.description = description;
-			this.source = source;
-			this.installationInfo = installationInfo;
-		}
-
-		@Override
-		public MigrationState getState() {
-			return state;
-		}
-
-		@Override
-		public MigrationType getType() {
-			return type;
-		}
-
-		@Override
-		public Optional<String> getChecksum() {
-			return Optional.ofNullable(checksum);
-		}
-
-		@Override
-		public String getVersion() {
-			return version;
-		}
-
-		@Override
-		@SuppressWarnings("deprecation")
-		public String getDescription() {
-			return description;
-		}
-
-		@Override
-		public Optional<String> getOptionalDescription() {
-			return Optional.ofNullable(description);
-		}
-
-		@Override
-		public String getSource() {
-			return source;
-		}
-
-		@Override
-		public Optional<ZonedDateTime> getInstalledOn() {
-			return Optional.ofNullable(installationInfo).map(InstallationInfo::getInstalledOn);
-		}
-
-		@Override
-		public Optional<String> getInstalledBy() {
-			return Optional.ofNullable(installationInfo).map(InstallationInfo::getInstalledBy);
-		}
-
-		@Override
-		public Optional<Duration> getExecutionTime() {
-			return Optional.ofNullable(installationInfo).map(InstallationInfo::getExecutionTime);
 		}
 	}
 }

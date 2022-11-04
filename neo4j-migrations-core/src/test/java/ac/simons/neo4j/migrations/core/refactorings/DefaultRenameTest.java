@@ -17,13 +17,13 @@ package ac.simons.neo4j.migrations.core.refactorings;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Query;
-
-import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 /**
  * @author Michael J. Simons

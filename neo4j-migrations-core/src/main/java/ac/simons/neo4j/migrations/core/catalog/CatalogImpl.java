@@ -15,9 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,7 +30,7 @@ final class CatalogImpl implements Catalog {
 	private final List<CatalogItem<?>> items;
 
 	CatalogImpl(Collection<CatalogItem<?>> items) {
-		this.items = Collections.unmodifiableList(new ArrayList<>(items));
+		this.items = List.copyOf(items);
 	}
 
 	@Override

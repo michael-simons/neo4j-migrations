@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1667806512868">
+    <module artifactId="neo4j-migrations-annotation-processor" groupId="eu.michael-simons.neo4j" version="1.13.3"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/AbstractNameGeneratorForCatalogItems.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/CatalogGeneratingProcessor.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultConstraintNameGenerator.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultIndexNameGenerator.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultNodeType.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultPropertyType.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultRelationshipType.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultSchemaName.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/FullyQualifiedNames.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/WriteableElementType.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/annotations/proc/impl/XMLRenderingOptionsImpl.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/impl/CatalogGeneratingProcessorTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/impl/DefaultConstraintNameGeneratorTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/impl/Testgenerators.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/ArbitraryRelationship.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/CompositeIndexChild.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/CompositeIndexEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/Entity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/EntityWithAssignedId.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/EntityWithExternallyGeneratedId.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/InternallyGeneratedId.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/MultipleCompositeIndexEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/NodeKeyConstraintEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/NodePropertyExistenceConstraintEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/RelPropertyExistenceConstraintEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/RelPropertyIndextEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/SingleIndexEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/UniqueConstraintEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm_invalid/NoPropertyCompositeIndexEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm_invalid/RelPropertyExistenceConstraintEntity.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored/IgnoredModels.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/labels/InheritedLabels.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/labels/MultipleExplicitLabels.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/labels/SingleExplicitLabels.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/labels/SingleImplicitLabel.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/Actor.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/Movie.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/Person.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

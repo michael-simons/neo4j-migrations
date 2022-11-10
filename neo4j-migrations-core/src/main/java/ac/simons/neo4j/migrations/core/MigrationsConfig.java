@@ -144,6 +144,7 @@ public final class MigrationsConfig {
 	 * @deprecated since 1.1.0, see {@link #getOptionalDatabase()}
 	 */
 	@Deprecated
+	@SuppressWarnings("squid:S1133")
 	public String getDatabase() {
 		return database;
 	}
@@ -169,6 +170,7 @@ public final class MigrationsConfig {
 	 * @deprecated since 1.1.0, see {@link #getOptionalImpersonatedUser()}
 	 */
 	@Deprecated
+	@SuppressWarnings("squid:S1133")
 	public String getImpersonatedUser() {
 		return impersonatedUser;
 	}
@@ -186,6 +188,7 @@ public final class MigrationsConfig {
 	 * @deprecated since 1.1.0, see {@link #getOptionalInstalledBy()}
 	 */
 	@Deprecated
+	@SuppressWarnings("squid:S1133")
 	public String getInstalledBy() {
 		return installedBy;
 	}
@@ -260,7 +263,7 @@ public final class MigrationsConfig {
 	 * @return True if there are packages to scan
 	 * @deprecated Since 1.1.0, will be removed from public without replacement.
 	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
+	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 	@Deprecated
 	public boolean hasPlacesToLookForMigrations() {
 		return this.getPackagesToScan().length > 0 || this.getLocationsToScan().length > 0;

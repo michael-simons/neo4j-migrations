@@ -108,7 +108,7 @@ final class ChainBuilder {
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
-			if (newMigration.getVersion().isRepeatable() != expectedVersion.isRepeatable()) {
+			if (newMigration.isRepeatable() != expectedVersion.isRepeatable()) {
 				throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
 			}
 

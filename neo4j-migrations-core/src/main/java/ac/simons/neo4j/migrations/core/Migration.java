@@ -54,4 +54,10 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 	 * @throws MigrationsException In case anything happens, wrap your exception or create a new one
 	 */
 	void apply(MigrationContext context);
+
+	/**
+	 * @return {@literal true} if this migration can be safely repeated
+	 * @since 2.0.0
+	 */
+	boolean isRepeatable();
 }

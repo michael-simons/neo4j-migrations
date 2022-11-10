@@ -29,9 +29,11 @@ import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
+import ac.simons.neo4j.migrations.core.test_migrations.changeset5.V003__Repeatable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -493,24 +496,44 @@ class MigrationsIT extends TestBase {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test // GH-702
-	void shouldReapplyRepeatableJavaMigrations() throws IOException {
+	void shouldReapplyRepeatableJavaMigrations() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset5").build(), driver);
+
+		var getMigrations = Migrations.class.getDeclaredMethod("getMigrations");
+		getMigrations.setAccessible(true);
+		List<Migration> m = (List<Migration>) getMigrations.invoke(migrations);
+
 		migrations.apply();
+
+		((V003__Repeatable) m.get(2)).setChecksum(UUID.randomUUID().toString());
 		migrations.apply();
 
 		try (Session session = driver.session()) {
 			long cnt = session.run("MATCH (m:FromRepeatedMig) RETURN count(m)").single().get(0).asLong();
+			assertThat(cnt).isEqualTo(1L);
+
+			cnt = session.run("MATCH (m:V003__Repeatable) RETURN count(m)").single().get(0).asLong();
 			assertThat(cnt).isEqualTo(2L);
+
+			cnt = session.run("MATCH (m:V004__Standard) RETURN count(m)").single().get(0).asLong();
+			assertThat(cnt).isOne();
 		}
 
 		MigrationChain chain = migrations.info();
 		assertThat(chain.getElements())
-			.hasSize(2)
+			.hasSize(4)
 			.extracting(MigrationChain.Element::getType)
 			.containsOnly(MigrationType.JAVA);
+
+		((V003__Repeatable) m.get(2)).setRepeatable(false);
+
+		// Should not change type, though
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
+			.withMessage("State of 003 (\"Repeatable\") changed from repeatable to non-repeatable");
 	}
 
 	@Test // GH-237

@@ -38,7 +38,7 @@ public final class MigrationVersion {
 	private final String description;
 	/**
 	 * A flag indicating that this version can be safely repeated, even on checksum changes.
-	 * @since TBA
+	 * @since 1.13.3
 	 */
 	private final boolean repeatable;
 
@@ -103,8 +103,10 @@ public final class MigrationVersion {
 
 	/**
 	 * @return {@literal true} if this version can be safely applied multiple times, even on checksum changes
-	 * @since TBA
+	 * @since 1.13.3
+	 * @deprecated since 1.14.0, it should not have been public in the first place, no replacement
 	 */
+	@Deprecated
 	public boolean isRepeatable() {
 		return repeatable;
 	}

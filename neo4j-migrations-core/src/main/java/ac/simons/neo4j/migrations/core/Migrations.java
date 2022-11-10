@@ -557,6 +557,7 @@ public final class Migrations {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	boolean checksumOfRepeatableChanged(MigrationChain currentChain, Migration migration) {
 
 		if (!migration.getVersion().isRepeatable()) {
@@ -666,6 +667,7 @@ public final class Migrations {
 		return appliedMigration.getVersion();
 	}
 
+	@SuppressWarnings("deprecation")
 	private static Map<String, Object> toProperties(Migration migration) {
 
 		Map<String, Object> properties = new HashMap<>();

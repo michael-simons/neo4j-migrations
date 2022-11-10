@@ -85,7 +85,7 @@ final class ChainBuilder {
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
-	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still fits on one screen
+	@SuppressWarnings({"squid:S3776", "deprecation"}) // Yep, this is a complex validation, but it still fits on one screen
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode infoCmd) {
 
 		Map<MigrationVersion, Element> appliedMigrations =

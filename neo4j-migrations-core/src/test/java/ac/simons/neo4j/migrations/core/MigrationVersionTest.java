@@ -67,6 +67,7 @@ class MigrationVersionTest {
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> MigrationVersion.parse(value));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	void shouldDetectRepeatableVersions() {
 
@@ -75,6 +76,7 @@ class MigrationVersionTest {
 		assertThat(version.isRepeatable()).isTrue();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	void versionsShouldNotBeRepeatableByDefault() {
 

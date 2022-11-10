@@ -34,7 +34,7 @@ public interface Migration {
 	 * @return Some description.
 	 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
 	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
+	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 	@Deprecated
 	String getDescription();
 

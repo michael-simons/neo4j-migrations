@@ -81,6 +81,7 @@ public interface MigrationChain extends ConnectionDetails {
 	 * @deprecated since 1.1.0, see {@link #getOptionalDatabaseName()}
 	 */
 	@Deprecated
+	@SuppressWarnings("squid:S1133")
 	String getDatabaseName();
 
 	/**
@@ -131,7 +132,7 @@ public interface MigrationChain extends ConnectionDetails {
 		 * @return The description of the migration.
 		 * @deprecated Since 1.9.0 see {@link #getOptionalDescription()}
 		 */
-		@SuppressWarnings("DeprecatedIsStillUsed")
+		@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 		@Deprecated
 		String getDescription();
 

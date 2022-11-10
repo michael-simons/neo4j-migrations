@@ -37,6 +37,7 @@ public abstract class AbstractCypherBasedMigration implements Migration {
 	 * @deprecated since 1.9.0, see {@link #getOptionalDescription()}
 	 */
 	@Deprecated
+	@SuppressWarnings("squid:S1133")
 	protected final String description;
 	/**
 	 * The version of this migration.

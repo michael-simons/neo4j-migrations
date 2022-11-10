@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"ac.simons.neo4j.migrations.quarkus.it","l":"MigrationsResource"},{"p":"ac.simons.neo4j.migrations.quarkus.it.migrations","l":"SomeService"},{"p":"ac.simons.neo4j.migrations.quarkus.it.migrations","l":"V0002__SomethingJava"}];updateSearchResults();

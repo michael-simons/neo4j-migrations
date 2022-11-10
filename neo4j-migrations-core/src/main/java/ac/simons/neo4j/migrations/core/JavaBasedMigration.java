@@ -42,6 +42,21 @@ public non-sealed interface JavaBasedMigration extends Migration {
 	}
 
 	/**
+	 * Return {@literal true} to mark this Java based migration explicitly as repeatable. By default, a Java based
+	 * migration will be repeatable when it's name matches the repeatable version pattern {@literal Rxzy__Something_something.java},
+	 * it will always be repeated as the default checksum is empty.
+	 * <p>
+	 * You can take full control over this by overwriting this method and in addition, {@link #getChecksum()} and react in that
+	 * according to your needs.
+	 *
+	 * @return {@literal true} if this is a repeatable migration
+	 * @since 2.0.0
+	 */
+	default boolean isRepeatable() {
+		return getVersion().isRepeatable();
+	}
+
+	/**
 	 * Helper method for retrieving the default constructor of a given class. When such a constructor exist, it will be
 	 * made accessible.
 	 *

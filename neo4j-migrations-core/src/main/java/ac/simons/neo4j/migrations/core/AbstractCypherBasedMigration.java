@@ -78,4 +78,9 @@ public abstract non-sealed class AbstractCypherBasedMigration implements Migrati
 	public final void apply(MigrationContext context) throws MigrationsException {
 		DefaultCypherResource.executeIn(cypherResource, context, UnaryOperator.identity());
 	}
+
+	@Override
+	public final boolean isRepeatable() {
+		return getVersion().isRepeatable();
+	}
 }

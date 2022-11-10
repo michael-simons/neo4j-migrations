@@ -558,12 +558,10 @@ public final class Migrations {
 
 	boolean checksumOfRepeatableChanged(MigrationChain currentChain, Migration migration) {
 
-		if (!migration.getVersion().isRepeatable()) {
+		if (!migration.isRepeatable()) {
 			return false;
 		}
-		if (migration instanceof JavaBasedMigration) {
-			return true;
-		}
+
 		Optional<String> appliedChecksum = currentChain.getElements().stream()
 			.filter(e -> e.getVersion().equals(migration.getVersion().getValue()))
 			.findFirst()
@@ -672,7 +670,7 @@ public final class Migrations {
 		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());
 		migration.getOptionalDescription().ifPresent(v -> properties.put(PROPERTY_MIGRATION_DESCRIPTION, v));
 		properties.put("type", getMigrationType(migration).name());
-		properties.put("repeatable", migration.getVersion().isRepeatable());
+		properties.put("repeatable", migration.isRepeatable());
 		properties.put("source", migration.getSource());
 		migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
 

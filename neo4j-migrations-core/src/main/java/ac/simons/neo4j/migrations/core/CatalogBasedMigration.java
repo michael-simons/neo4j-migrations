@@ -408,6 +408,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	}
 
 	@Override
+	public boolean isRepeatable() {
+		return version.isRepeatable();
+	}
+
+	@Override
 	public List<Precondition> getPreconditions() {
 		return Collections.unmodifiableList(preconditions);
 	}

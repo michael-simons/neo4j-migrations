@@ -106,6 +106,7 @@ public final class MigrationVersion {
 	 * @since 1.13.3
 	 * @deprecated since 1.14.0, it should not have been public in the first place, no replacement
 	 */
+	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 	@Deprecated
 	public boolean isRepeatable() {
 		return repeatable;

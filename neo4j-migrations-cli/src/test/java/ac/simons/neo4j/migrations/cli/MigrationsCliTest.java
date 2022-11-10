@@ -26,7 +26,6 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -211,7 +210,7 @@ class MigrationsCliTest {
 		void shouldReadProperties() throws IOException {
 
 			Path nm = Files.createTempFile("nm", ".properties");
-			Files.write(nm, "location=a,b,c".getBytes(StandardCharsets.UTF_8));
+			Files.writeString(nm, "location=a,b,c");
 			Optional<Properties> optionalProperties = MigrationsCli.loadProperties(nm.toAbsolutePath().toString());
 			assertThat(optionalProperties).isPresent()
 				.hasValueSatisfying(p -> assertThat(p).containsEntry("location", "a,b,c"));
@@ -308,7 +307,7 @@ class MigrationsCliTest {
 		void shouldUseFile() throws Exception {
 
 			Path passwordfile = Files.createTempFile("passwordfile", "");
-			Files.write(passwordfile, "Vertraulich".getBytes(StandardCharsets.UTF_8));
+			Files.writeString(passwordfile, "Vertraulich");
 
 			MigrationsCli cli = new MigrationsCli();
 			setUserName(cli);

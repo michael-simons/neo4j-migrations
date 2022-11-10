@@ -118,7 +118,7 @@ public interface Renderer<T> {
 			render(item, config, bout);
 			bout.flush();
 
-			return new String(bout.toByteArray(), StandardCharsets.UTF_8);
+			return bout.toString(StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

@@ -246,11 +246,11 @@ public final class MigrationsConfig {
 		Optional<String> optionalDatabase = getOptionalDatabase();
 		Optional<String> optionalSchemaDatabase = getOptionalSchemaDatabase();
 
-		if (!optionalSchemaDatabase.isPresent()) {
+		if (optionalSchemaDatabase.isEmpty()) {
 			return Optional.empty();
 		}
 
-		if (!optionalDatabase.isPresent()) {
+		if (optionalDatabase.isEmpty()) {
 			// We need to connect to get this information
 			try (Session session = context.getSession()) {
 				optionalDatabase =

@@ -48,10 +48,19 @@ class ConnectedCommandTest {
 	}
 
 	@Test
+	void noStackTraceNoCatalogException() {
+		var foo = new IllegalArgumentException("foo");
+		foo.setStackTrace(new StackTraceElement[0]);
+		assertThat(ConnectedCommand.isCatalogException(foo)).isFalse();
+	}
+
+	@Test
 	void aCatalogExceptionIsACatalogException1() {
 		var renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		var constraint = Constraint.forNode("F").named("f").key("f");
+		var renderConfig = RenderConfig.create().forVersionAndEdition(Neo4jVersion.LATEST, Neo4jEdition.COMMUNITY);
 		try {
-			renderer.render(Constraint.forNode("F").named("f").key("f"), RenderConfig.create().forVersionAndEdition(Neo4jVersion.LATEST, Neo4jEdition.COMMUNITY));
+			renderer.render(constraint, renderConfig);
 			Assertions.fail("Exception not thrown as expected.");
 		} catch (IllegalStateException e) {
 			assertThat(ConnectedCommand.isCatalogException(e)).isTrue();
@@ -61,8 +70,10 @@ class ConnectedCommandTest {
 	@Test
 	void aCatalogExceptionIsACatalogException2() {
 		var renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		var constraint = Constraint.forNode("F").named("f").unique("a", "b");
+		var renderConfig = RenderConfig.create().forVersionAndEdition(Neo4jVersion.V3_5, Neo4jEdition.COMMUNITY);
 		try {
-			renderer.render(Constraint.forNode("F").named("f").unique("a", "b"), RenderConfig.create().forVersionAndEdition(Neo4jVersion.V3_5, Neo4jEdition.COMMUNITY));
+			renderer.render(constraint, renderConfig);
 			Assertions.fail("Exception not thrown as expected.");
 		} catch (IllegalArgumentException e) {
 			assertThat(ConnectedCommand.isCatalogException(e)).isTrue();

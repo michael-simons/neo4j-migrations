@@ -76,6 +76,16 @@ final class DiscoveryService {
 				.map(CatalogBasedMigration.class::cast)
 				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));
 		}
+		Map<MigrationVersion, List<Migration>> groupedByVersion = migrations.stream()
+			.collect(Collectors.groupingBy(Migration::getVersion));
+		for (Map.Entry<MigrationVersion, List<Migration>> entry : groupedByVersion.entrySet()) {
+			List<Migration> v = entry.getValue();
+			if (v.size() > 1) {
+				MigrationVersion k = entry.getKey();
+				String sources = v.stream().map(Migration::getSource).collect(Collectors.joining(", "));
+				throw new MigrationsException("Duplicate version '" + k.getValue() + "' (" + sources + ")");
+			}
+		}
 		return List.copyOf(migrations);
 	}
 

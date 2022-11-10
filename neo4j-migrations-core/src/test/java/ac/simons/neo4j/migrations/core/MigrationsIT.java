@@ -641,6 +641,25 @@ class MigrationsIT extends TestBase {
 			);
 	}
 
+	@Test
+	void shouldPreventDoubleVersionsJava() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset6").build(), driver);
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(migrations::apply)
+			.withMessage("Duplicate version '001' (ac.simons.neo4j.migrations.core.test_migrations.changeset6.V001__FirstMigration, ac.simons.neo4j.migrations.core.test_migrations.changeset6.V001__SecondMigration)");
+	}
+
+	@Test // GH-725
+	void shouldPreventDoubleVersionsCypher() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:duplicate").build(), driver);
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(migrations::apply)
+			.withMessage("Duplicate version '001' (V001__Hallo.cypher, V001__Hello.cypher)");
+	}
+
 	private static List<File> createMigrationFiles(int n, File dir) throws IOException {
 		return createMigrationFiles(n, 0, dir);
 	}

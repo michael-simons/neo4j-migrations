@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.cli;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -75,11 +76,26 @@ abstract class ConnectedCommand implements Callable<Integer> {
 				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}{1}\t{2}: {3}",
 					new Object[] { e.getMessage(), System.lineSeparator(), ((ClientException) cause).code(),
 						cause.getMessage() });
+			} else if (isCatalogException(cause)) {
+				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}: {1}", new Object[]{e.getMessage().replaceAll("\\.$", ""), cause.getMessage()});
 			} else {
 				MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			}
 			return CommandLine.ExitCode.SOFTWARE;
 		}
+	}
+
+	static boolean isCatalogException(Throwable e) {
+		if (!(e instanceof IllegalArgumentException || e instanceof IllegalStateException)) {
+			return false;
+		}
+
+		StackTraceElement[] stackTrace = e.getStackTrace();
+		if (stackTrace.length == 0) {
+			return false;
+		}
+
+		return stackTrace[0].getClassName().contains(Renderer.class.getPackage().getName());
 	}
 
 	/**

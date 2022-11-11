@@ -632,20 +632,21 @@ The only dependencies are said driver and <a href="https://github.com/classgraph
 <p>Neo4j-Migrations is tested only against <a href="https://neo4j.com">Neo4j</a>, the world&#8217;s leading Graph database.
 Neo4j-Migrations requires a 4.x version of Neo4j Java Driver.
 The project is build and tested with the latest 4.4 version, however previous versions 4.3, 4.2 and 4.1 are supported as well and can be used as drop-in-replacement.
-Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4 and of course, Neo4j-Aura.
+Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4, 5 and of course, Neo4j-Aura.
 It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
 The tooling may or may not work with other databases using the Bolt protocol. We don&#8217;t provide any support for those.</p>
 </div>
 <div class="paragraph">
-<p>The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 8 to run.
+<p>The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 17 or higher since version 2.0.
+Neo4j-Migrations can safely be used on both the class- and module-path.
 Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don&#8217;t require a JVM to be installed.</p>
 </div>
 <div class="paragraph">
-<p>All releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8. Thus, we ensure both source, target and API compatibility with JDK 8.
-In addition, the Core API is provided as a Multi-Release-Jar, providing a <code>module-info.java</code> for JDK 11 and higher, making it a good citizen on the Java module path.</p>
+<p>For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3)</p>
 </div>
 <div class="paragraph">
-<p>For JDK 17 and higher we do restrict the usage of some interfaces and have better boundaries for you what you can safely implement and what you should not.</p>
+<p>The older releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8.
+The Core API is provided as a Multi-Release-Jar in the older releases, providing a <code>module-info.java</code> for JDK 11 and higher, making it a good citizen on the Java module path as well.</p>
 </div>
 </div>
 <div class="sect2">
@@ -666,8 +667,7 @@ This means in cases where you use the Java API directly, you can be sure that pa
 <dd>
 <p>The core module, providing an API to run both Cypher script and Java-based migrations.
 The API includes builders for configuration.
-The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on JDK 17.
-Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.</p>
+Of course, Neo4j-Migrations works on the module path, and it also has an explicit, correct module definition with a clear API boundary. In addition, we do make use of sealed interfaces for things that are meant to be implemented only by us.</p>
 <div class="paragraph">
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">JavaDoc</a> and <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/index.html">Project info</a></p>
 </div>
@@ -2260,7 +2260,7 @@ If not, you can just call the <a href="#usage_common_migrate">apply operation</a
 <div class="paragraph">
 <p>Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <a href="#download_cli">download</a>.
 In the following we assume you downloaded and unzipped the architecture independent version.
-For that version to work, you need to have JDK 8 or higher installed:</p>
+For that version to work, you need to have JDK 17 or higher installed:</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 20. Download and extraction of the JVM based version</div>
@@ -4902,7 +4902,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-11 14:18:14 UTC
+Last updated 2022-11-11 14:32:37 UTC
 </div>
 </div>
 </body>

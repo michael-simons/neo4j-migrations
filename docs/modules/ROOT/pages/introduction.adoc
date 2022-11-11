@@ -12,7 +12,7 @@ include::{examplesDir}/README.adoc[tags=introduction]
 Neo4j-Migrations is tested only against https://neo4j.com[Neo4j], the world's leading Graph database.
 Neo4j-Migrations requires a 4.x version of Neo4j Java Driver.
 The project is build and tested with the latest 4.4 version, however previous versions 4.3, 4.2 and 4.1 are supported as well and can be used as drop-in-replacement.
-Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4 and of course, Neo4j-Aura.
+Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4, 5 and of course, Neo4j-Aura.
 It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
 The tooling may or may not work with other databases using the Bolt protocol. We don't provide any support for those.
 
@@ -31,8 +31,7 @@ Neo4j-Migrations comes in different flavors:
 
 Core:: The core module, providing an API to run both Cypher script and Java-based migrations.
 The API includes builders for configuration.
-The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on JDK 17.
-Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
+Of course, Neo4j-Migrations works on the module path, and it also has an explicit, correct module definition with a clear API boundary. In addition, we do make use of sealed interfaces for things that are meant to be implemented only by us.
 +
 link:{url-apidocs}/neo4j-migrations/apidocs/index.html[JavaDoc] and link:{url-projectinfo}/neo4j-migrations/index.html[Project info]
 CLI:: A command line tool that supports every interaction that the core module provides.

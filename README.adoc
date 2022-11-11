@@ -70,16 +70,17 @@ Other options include Homebrew and Zip bundles. Please checkout the full list of
 Neo4j-Migrations can be used against Neo4j 3.5, all Neo4j 4.x versions upto 4.4 and Neo4j 5, including all current Neo4j-Aura versions.
 
 // tag::compatibility[]
-The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 8 to run.
+The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 17 or higher since version 2.0.
+Neo4j-Migrations can safely be used on both the class- and module-path.
 Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don't require a JVM to be installed.
 
-All releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8. Thus, we ensure both source, target and API compatibility with JDK 8.
-In addition, the Core API is provided as a Multi-Release-Jar, providing a `module-info.java` for JDK 11 and higher, making it a good citizen on the Java module path.
+For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3)
 
-For JDK 17 and higher we do restrict the usage of some interfaces and have better boundaries for you what you can safely implement and what you should not.
+The older releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8.
+The Core API is provided as a Multi-Release-Jar in the older releases, providing a `module-info.java` for JDK 11 and higher, making it a good citizen on the Java module path as well.
 // end::compatibility[]
 
-While the CLI module actually does not require a JVM installed (it is a native binary, available for a Linux, macOS and Windows alike), some people might prefer a solution native to their ecosystem. The following projects serve the same purpose as Neo4j-Migrations and use the same graph, checksumming and versioning scheme as this project:
+While the CLI module actually does not require a JVM installed (it is a native binary, available for a Linux, macOS and Windows alike), some people might prefer a solution native to their ecosystem. The following projects serve the same purpose as Neo4j-Migrations and use the same graph, check-summing and versioning scheme as this project:
 
 * https://github.com/marianozunino/morpheus[Morpheus], written in TypeScript and published as NPM package, by https://github.com/marianozunino[@marianozunino]
 

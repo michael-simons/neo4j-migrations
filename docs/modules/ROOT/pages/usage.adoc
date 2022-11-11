@@ -55,7 +55,7 @@ If not, you can just call the xref:usage.adoc#usage_common_migrate[apply operati
 
 Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in xref:download.adoc#download_cli[download].
 In the following we assume you downloaded and unzipped the architecture independent version.
-For that version to work, you need to have JDK 8 or higher installed:
+For that version to work, you need to have JDK 17 or higher installed:
 
 .Download and extraction of the JVM based version
 [source,console,subs="verbatim,attributes"]

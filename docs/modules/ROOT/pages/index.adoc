@@ -11,3 +11,7 @@ Michael Simons <michael.simons@neo4j.com>
 --
 This is the Neo4j-Migrations manual version {version}.
 --
+
+include::{examplesDir}/README.adoc[tags=introduction]
+
+Just jump straight to the list of xref:introduction.adoc#introduction-modules[available modules] or the xref:concepts.adoc[concepts] to get started.

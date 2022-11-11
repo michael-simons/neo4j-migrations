@@ -168,6 +168,16 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "Mogztter",
+      "name": "Guillaume Grossetie",
+      "avatar_url": "https://avatars.githubusercontent.com/u/333276?v=4",
+      "profile": "https://blog.yuzutech.fr/",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

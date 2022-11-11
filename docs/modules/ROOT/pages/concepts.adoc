@@ -96,7 +96,7 @@ V1_2_3__Add_last_name_index.(cypher|xml|java)
 * Required description: Underscores or spaces might be used to separate words
 * Suffix: Depending on the given type.
 
-Exceptions are made for callbacks (see xref:concepts.adoc#concepts_naming-conventions[naming conventions]) and some xref:extensions/index.adoc[extensions] supported by Neo4j-Migrations.
+Exceptions are made for callbacks (see xref:concepts.adoc#concepts_naming-conventions[naming conventions]) and some xref:appendix.adoc[extensions] supported by Neo4j-Migrations.
 
 [[concepts_migrations_cypher-based]]
 === Cypher-based

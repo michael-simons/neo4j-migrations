@@ -1,7 +1,7 @@
 = Neo4j Migrations
 Michael Simons <michael.simons@neo4j.com>
 
-:examplesdir: example$
+:examplesDir: example$
 
 :copyright: Copyright 2020-2022 the original author or authors.
 

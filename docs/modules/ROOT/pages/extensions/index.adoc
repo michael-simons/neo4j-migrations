@@ -1,7 +1,0 @@
-= Extensions
-
-These are extensions to the main project and independent of it.
-
-.Additional Formats
-** xref:extensions/asciidoctor.adoc[]
-** xref:extensions/markdown.adoc[]

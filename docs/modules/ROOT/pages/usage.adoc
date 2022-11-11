@@ -61,9 +61,9 @@ For that version to work, you need to have JDK 8 or higher installed:
 [source,console,subs="verbatim,attributes"]
 ----
 java -version
-curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
-unzip neo4j-migrations-{latest_version}.zip
-cd neo4j-migrations-{latest_version}
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}.zip
+unzip neo4j-migrations-{version}.zip
+cd neo4j-migrations-{version}
 ./bin/neo4j-migrations -V
 ----
 
@@ -363,9 +363,9 @@ Follow those steps:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
-unzip neo4j-migrations-{latest_version}.zip
-cd neo4j-migrations-{latest_version}
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}.zip
+unzip neo4j-migrations-{version}.zip
+cd neo4j-migrations-{version}
 mkdir -p my-migrations/some/migrations
 cat <<EOT >> my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -396,7 +396,7 @@ NOTE: We do add this here for completeness, but we do think that Java-based migr
 [[usage_core]]
 == Core API
 
-We publish the Java-API-Docs here: link:{url-apidocs}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
+We publish the Java-API-Docs here: link:{url-apidocs}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {version} API].
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in xref:download.adoc#download_core[download].
 
 The classes you will be working with are `ac.simons.neo4j.migrations.core.MigrationsConfig` and its related builder and
@@ -475,7 +475,7 @@ Declare the following dependency in your Spring Boot application:
 <dependency>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>{artifactIdSpringBoot}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -655,7 +655,7 @@ Declare the following dependency in your Quarkus application:
 <dependency>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>{artifactIdQuarkus}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -739,7 +739,7 @@ Most of the time you will configure the following properties for the plugin:
 <plugin>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>neo4j-migrations-maven-plugin</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
     <executions>
         <execution>
             <configuration>

@@ -15,7 +15,8 @@
 #
 
 name: migrations 
-version: ~
+version: &the-version 1.12.1-SNAPSHOT
+prerelease: "true"
 title: Neo4j Migrations Docs
 start_page: ROOT:index.adoc
 nav:
@@ -24,15 +25,12 @@ nav:
 asciidoc:
   attributes:
     page-theme: labs
-    #lang: en
     listing-caption: Listing
     icons: font
     sectlink: ''
     sectanchors: ''
-    #numbered: ''
     xrefstyle: short
-    version: 1.12.0
-    latest_version: 1.12.0
+    version: *the-version
     page-product: Migrations
     page-type: Neo4j Migrations Manual
     page-canonical-root: /labs
@@ -44,4 +42,6 @@ asciidoc:
     artifactIdSpringBoot: neo4j-migrations-spring-boot-starter
     artifactIdQuarkus: neo4j-migrations-quarkus
     artifactIdCore: neo4j-migrations
+    artifactIdFormatAdoc: neo4j-migrations-formats-adoc
+    artifactIdFormatMarkdown: neo4j-migrations-formats-markdown
     branch: main

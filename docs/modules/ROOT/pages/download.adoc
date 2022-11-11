@@ -32,7 +32,7 @@ As download from our {url-gh-releases}[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}-linux-x86_64.zip
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}-linux-x86_64.zip
 ----
 
 === Windows
@@ -41,7 +41,7 @@ As download from our {url-gh-releases}[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}-windows-x86_64.zip
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}-windows-x86_64.zip
 ----
 
 === Architecture independent
@@ -52,7 +52,7 @@ Get this version here:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}.zip
 ----
 
 TIP: The architecture independent version can be used via Neo4js official https://www.jbang.dev[JBang] catalog:
@@ -73,7 +73,7 @@ Here are the coordinates:
 <dependency>
     <groupId>{groupId}</groupId>
     <artifactId>{artifactIdCore}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -83,7 +83,7 @@ Or in case you fancy Gradle:
 .Core API as Gradle dependency
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdCore}:{latest_version}'
+    implementation '{groupId}:{artifactIdCore}:{version}'
 }
 ----
 
@@ -101,7 +101,7 @@ This starter here has a custom namespace, please refer to xref:usage.adoc#usage_
     <dependency>
         <groupId>{groupId}</groupId>
         <artifactId>{artifactIdSpringBoot}</artifactId>
-        <version>{latest_version}</version>
+        <version>{version}</version>
     </dependency>
 </dependencies>
 ----
@@ -112,7 +112,7 @@ Or in case you fancy Gradle:
 .Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdSpringBoot}:{latest_version}'
+    implementation '{groupId}:{artifactIdSpringBoot}:{version}'
 }
 ----
 
@@ -131,7 +131,7 @@ The namespace for this extension is also `++org.neo4j.migrations.*++`.
     <dependency>
         <groupId>{groupId}</groupId>
         <artifactId>{artifactIdQuarkus}</artifactId>
-        <version>{latest_version}</version>
+        <version>{version}</version>
     </dependency>
 </dependencies>
 ----
@@ -146,7 +146,7 @@ Include the Maven-Plugin like this in your build and configure it according to t
     <plugin>
         <groupId>{groupId}</groupId>
         <artifactId>{artifactIdMavenPlugin}</artifactId>
-        <version>{latest_version}</version>
+        <version>{version}</version>
         <configuration>
             <user>neo4j</user>
             <password>secret</password>

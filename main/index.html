@@ -843,7 +843,7 @@ Here are the coordinates:</p>
 <div class="paragraph">
 <p>Use your dependency management to include the <a href="https://start.spring.io">Spring-Boot</a>-Starter.
 The starter automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the <code>spring.neo4j.*</code> namespace.
-This starter here has a custom namespace, please refer to <a href="#usage_spring-boot-starter">Section 4.4</a> for more information.</p>
+This starter here has a custom namespace, please refer to <a href="#usage_spring-boot-starter">for more information</a>.</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 3. Neo4j-Migrations-Spring-Boot-Starter as Maven dependency</div>
@@ -863,7 +863,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="listingblock">
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="xml">dependencies {
+<pre class="CodeRay highlight"><code data-lang="gradle">dependencies {
     implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:2.0.0-SNAPSHOT'
 }</code></pre>
 </div>
@@ -893,7 +893,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
 <div class="sect2">
 <h3 id="maven-plugin"><a class="anchor" href="#maven-plugin"></a>2.5. Maven-Plugin</h3>
 <div class="paragraph">
-<p>Include the Maven-Plugin like this in your build and configure it according to <a href="#usage_maven-plugin">Section 4.6</a>:</p>
+<p>Include the Maven-Plugin like this in your build and configure it according to the <a href="#usage_maven-plugin">usage section</a>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -934,7 +934,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
 <div class="sectionbody">
 <div class="paragraph">
 <p>This chapter deals with various concepts that are applicable for all modules offered.
-Especially checkout <a href="#concepts_naming-conventions">Section 3.5</a> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.</p>
+Especially checkout the page regarding <a href="#concepts_naming-conventions">naming conventions</a>, for all Cypher and Java-based migrations and callbacks.</p>
 </div>
 <div class="sect2">
 <h3 id="concepts_connectivity"><a class="anchor" href="#concepts_connectivity"></a>3.1. Connectivity</h3>
@@ -1047,7 +1047,7 @@ The Neo4j-Protocol might be one of the following:</p>
 <div class="paragraph">
 <p>This instance needs to be passed than to the Neo4j-Migrations Core API in case you aren&#8217;t using one of our integrations.
 Mostly everything else than can be done via Cypher scripts alone.
-If you need more control about what happens in a migration, have a look at our Java-based migration support in <a href="#concepts_migrations_java-based">Section 3.2.3</a>.</p>
+If you need more control about what happens in a migration, have a look at our <a href="#concepts_migrations_java-based">Java-based migration support</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1086,7 +1086,7 @@ convention to be recognized:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Exceptions are made for callbacks (see <a href="#concepts_naming-conventions">naming conventions</a>) and some <a href="#appendix_extesions">extensions</a> supported by Neo4j-Migrations.</p>
+<p>Exceptions are made for callbacks (see <a href="#concepts_naming-conventions">naming conventions</a>) and some <a href="#">extensions</a> supported by Neo4j-Migrations.</p>
 </div>
 <div class="sect3">
 <h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.2.1. Cypher-based</h4>
@@ -2165,7 +2165,7 @@ your application originally and you might have invalid Cypher now in potentially
 </ul>
 </div>
 <div class="paragraph">
-<p>Thus you support the following scenarios:</p>
+<p>Thus, you support the following scenarios:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2258,7 +2258,7 @@ If not, you can just call the <a href="#usage_common_migrate">apply operation</a
 <div class="sect2">
 <h3 id="cli"><a class="anchor" href="#cli"></a>4.2. CLI</h3>
 <div class="paragraph">
-<p>Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <a href="#download_cli">Section 2.1</a>.
+<p>Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <a href="#download_cli">download</a>.
 In the following we assume you downloaded and unzipped the architecture independent version.
 For that version to work, you need to have JDK 8 or higher installed:</p>
 </div>
@@ -2656,7 +2656,7 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">wget https://github.com/michael-simons/neo4j-migrations/releases/download/2.0.0-SNAPSHOT/neo4j-migrations-2.0.0-SNAPSHOT.zip
+<pre class="CodeRay highlight"><code data-lang="bash">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.0.0-SNAPSHOT/neo4j-migrations-2.0.0-SNAPSHOT.zip
 unzip neo4j-migrations-2.0.0-SNAPSHOT.zip
 cd neo4j-migrations-2.0.0-SNAPSHOT
 mkdir -p my-migrations/some/migrations
@@ -2702,7 +2702,7 @@ We do add this here for completeness, but we do think that Java-based migrations
 <h3 id="usage_core"><a class="anchor" href="#usage_core"></a>4.3. Core API</h3>
 <div class="paragraph">
 <p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 2.0.0-SNAPSHOT API</a>.
-Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">Section 2.2</a>.</p>
+Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">download</a>.</p>
 </div>
 <div class="paragraph">
 <p>The classes you will be working with are <code>ac.simons.neo4j.migrations.core.MigrationsConfig</code> and its related builder and
@@ -2713,7 +2713,7 @@ want to do programmatic refactorings.</p>
 <h4 id="configurationandusage"><a class="anchor" href="#configurationandusage"></a>4.3.1. Configuration and usage</h4>
 <div class="paragraph">
 <p>Configuration is basically made up of two parts:
-Creating a driver instance that points to your database or cluster as described in <a href="#concepts_connectivity">Section 3.1</a> and an instance of <code>MigrationsConfig</code>.
+Creating a driver instance that points to your database or cluster as described in the <a href="#concepts_connectivity">Connectivity section</a> and an instance of <code>MigrationsConfig</code>.
 An instance of <code>MigrationsConfig</code> is created via a fluent-builder API.
 Putting everything together looks like this:</p>
 </div>
@@ -2795,7 +2795,7 @@ This method is only available in the Core API. Please read more about it here:  
 <h4 id="runningonthejavamodule-path"><a class="anchor" href="#runningonthejavamodule-path"></a>4.3.2. Running on the Java module-path</h4>
 <div class="paragraph">
 <p>Neo4j-Migrations can be used on the Java module path. Make sure you require them in your module and export packages with Java-based migrations in case you&#8217;re using the latter.
-Resoruces on the classpath should be picked up automatically:</p>
+Resources on the classpath should be picked up automatically:</p>
 </div>
 <div class="listingblock">
 <div class="title">Listing 25. Using Neo4j-Migrations on the module path</div>
@@ -2833,7 +2833,7 @@ Declare the following dependency in your Spring Boot application:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Or follow the instructions for Gradle in <a href="#download_springboot">Section 2.3</a>.</p>
+<p>Or follow the instructions for Gradle in <a href="#download_springboot">download</a>.</p>
 </div>
 <div class="paragraph">
 <p>That starter itself depends on the <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java Driver</a>.
@@ -2950,144 +2950,183 @@ you have to manually import our autoconfiguration like this:</p>
 <div class="paragraph">
 <p>The following configuration properties in the <code>org.neo4j.migrations</code> namespace are supported:</p>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 40%;">
-<col style="width: 5%;">
-<col style="width: 5%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Name</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Default</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.check-location</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>org.neo4j.migrations.check-location</code></dt>
+<dd>
 <p>Whether to check that migration scripts location exists.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.database</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.schema-database</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>The database that should be used for storing information about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.impersonated-user</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>An alternative user to impersonate during migration. Might have higher privileges than the user connected, which  will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.enabled</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.Boolean</code></p>
+</li>
+<li>
+<p>Default: <code>true</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.database</code></dt>
+<dd>
+<p>The database that should be migrated (Neo4j EE 4.0+ only).
+Leave <code>null</code> for using the default database.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String</code></p>
+</li>
+<li>
+<p>Default: <code>null</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.schema-database</code></dt>
+<dd>
+<p>The database that should be used for storing information about migrations (Neo4j EE 4.0+ only).
+Leave <code>null</code> for using the default database.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String</code></p>
+</li>
+<li>
+<p>Default: <code>null</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.impersonated-user</code></dt>
+<dd>
+<p>An alternative user to impersonate during migration.
+Might have higher privileges than the user connected, which  will be dropped again after migration.
+Requires Neo4j EE 4.4+.
+Leave <code>null</code> for using the connected user.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String</code></p>
+</li>
+<li>
+<p>Default: <code>null</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.enabled</code></dt>
+<dd>
 <p>Whether to enable Neo4j-Migrations or not.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.encoding</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.nio.charset.Charset</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UTF-8</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.Boolean</code></p>
+</li>
+<li>
+<p>Default: <code>true</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.encoding</code></dt>
+<dd>
 <p>Encoding of Cypher migrations.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.installed-by</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>System user</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>Username recorded as property {@literal by} on the MIGRATED_TO relationship.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.locations-to-scan</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String[]</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>classpath:neo4j/migrations</code></code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.nio.charset.Charset</code></p>
+</li>
+<li>
+<p>Default: <code>UTF-8</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.installed-by</code></dt>
+<dd>
+<p>Username recorded as property <code>by</code> on the <code>MIGRATED_TO</code> relationship.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String</code></p>
+</li>
+<li>
+<p>Default: <code>System user</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.locations-to-scan</code></dt>
+<dd>
 <p>Locations of migrations scripts.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.packages-to-scan</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>java.lang.String[]</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>An empty array</code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String[]</code></p>
+</li>
+<li>
+<p>Default: <code>[classpath:neo4j/migrations]</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.packages-to-scan</code></dt>
+<dd>
 <p>List of packages to scan for Java migrations.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.transaction-mode</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>TransactionMode</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>PER_MIGRATION</code></code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.String[]</code></p>
+</li>
+<li>
+<p>Default: <code>[]</code> (an empty array)</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.transaction-mode</code></dt>
+<dd>
 <p>The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.validate-on-migrate</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>true</code></code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>TransactionMode</code></p>
+</li>
+<li>
+<p>Default: <code>PER_MIGRATION</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.validate-on-migrate</code></dt>
+<dd>
 <p>Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><code>org.neo4j.migrations.autocrlf</code></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>false</code></code></p></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.Boolean</code></p>
+</li>
+<li>
+<p>Default: <code>true</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.autocrlf</code></dt>
+<dd>
 <p>Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.</p>
-</div></div></td>
-</tr>
-</tbody>
-</table>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.Boolean</code></p>
+</li>
+<li>
+<p>Default: <code>false</code></p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -3185,9 +3224,13 @@ It provides a <a href="http://localhost:8080/q/dev/eu.michael-simons.neo4j.neo4j
 which can be used to clean the database or apply all migrations.
 The latter is handy when migrate at start is disabled or in case there are callbacks that might reset or recreate testdata.</p>
 </div>
-<video controls>
-  <source src="videos/quarkus-dev-ui.webm" type="video/webm">
+<div class="videoblock">
+<div class="content">
+<video controls style="width: 100%;">
+  <source src="_images/quarkus-dev-ui.webm" type="video/webm">
 </video>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -4534,6 +4577,18 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <h4 id="asciidoctorsupportexperimental"><a class="anchor" href="#asciidoctorsupportexperimental"></a>AsciiDoctor Support (Experimental)</h4>
 <div class="sect4">
 <h5 id="whatdoesitdo"><a class="anchor" href="#whatdoesitdo"></a>What does it do?</h5>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Please open this <code>README.adoc</code> not only in a rendered view, but have a look at the raw asciidoc version!
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>When added to one of the supported use-case scenarios as an external library, it allows  Neo4j-Migrations to discover
 AsciiDoctor files and use them as sources of Cypher statements for defining refactorings.</p>
@@ -4689,7 +4744,7 @@ dependency:</p>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatAdoc}<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-adoc<span class="tag">&lt;/artifactId&gt;</span>
     <span class="tag">&lt;version&gt;</span>2.0.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
@@ -4701,7 +4756,7 @@ dependency:</p>
 <div class="title">Listing 50. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatAdoc}:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -4781,7 +4836,7 @@ dependency:</p>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
-    <span class="tag">&lt;artifactId&gt;</span>{artifactIdFormatMarkdown}<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-markdown<span class="tag">&lt;/artifactId&gt;</span>
     <span class="tag">&lt;version&gt;</span>2.0.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
@@ -4793,7 +4848,7 @@ dependency:</p>
 <div class="title">Listing 52. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:{artifactIdFormatMarkdown}:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -4847,7 +4902,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-11 05:41:59 UTC
+Last updated 2022-11-11 14:18:14 UTC
 </div>
 </div>
 </body>

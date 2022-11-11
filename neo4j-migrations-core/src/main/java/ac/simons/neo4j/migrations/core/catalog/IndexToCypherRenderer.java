@@ -84,14 +84,9 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 
 		switch (index.getType()) {
-			case POINT, PROPERTY, TEXT:
-				w.write(renderNodePropertiesIndex(index, config));
-				break;
-			case FULLTEXT:
-				w.write(renderFulltextIndex(index, config));
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
+			case POINT, PROPERTY, TEXT -> w.write(renderNodePropertiesIndex(index, config));
+			case FULLTEXT -> w.write(renderFulltextIndex(index, config));
+			default -> throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
 		}
 
 		CypherRenderingUtils.renderOptions(index, config, w);

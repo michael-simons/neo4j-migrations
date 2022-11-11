@@ -23,7 +23,6 @@ import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.QuarkusTestResource;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -49,7 +48,7 @@ class WithDifferentLocationIT {
 		try {
 			var dir  = Files.createTempDirectory("more-migrations");
 			p = dir.resolve("V0002__2nd_migration.cypher");
-			Files.write(p, "CREATE (n:IWasHere) RETURN n".getBytes(StandardCharsets.UTF_8));
+			Files.writeString(p, "CREATE (n:IWasHere) RETURN n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

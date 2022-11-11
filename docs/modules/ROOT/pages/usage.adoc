@@ -61,7 +61,7 @@ For that version to work, you need to have JDK 8 or higher installed:
 [source,console,subs="verbatim,attributes"]
 ----
 java -version
-curl -LO {url-release-zip}
+curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
 unzip neo4j-migrations-{latest_version}.zip
 cd neo4j-migrations-{latest_version}
 ./bin/neo4j-migrations -V
@@ -363,7 +363,7 @@ Follow those steps:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-wget {url-release-zip}
+curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
 unzip neo4j-migrations-{latest_version}.zip
 cd neo4j-migrations-{latest_version}
 mkdir -p my-migrations/some/migrations
@@ -819,7 +819,7 @@ In this example we assert toe remote catalog to be empty and we define our first
 .V010__Assert_empty_schema.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V010__Assert_empty_schema.xml[]
+include::{examplesDir}/catalogbased_changesets/V010__Assert_empty_schema.xml[]
 ----
 <.> `useCurrent` has been set to `true` to refer to the local catalog as defined in version 10, which is been empty,
     exactly what we expect
@@ -839,7 +839,7 @@ each catalog based migration:
 .V020__Create_person_name_unique.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V020__Create_person_name_unique.xml[]
+include::{examplesDir}/catalogbased_changesets/V020__Create_person_name_unique.xml[]
 ----
 
 Note that we didn't specify `useCurrent` here. This means verification should happen based on the local catalog prior to
@@ -862,7 +862,7 @@ for the next version:
 .V030__Fix_person_name_constraint_CE.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V030__Fix_person_name_constraint_CE.xml[]
+include::{examplesDir}/catalogbased_changesets/V030__Fix_person_name_constraint_CE.xml[]
 ----
 
 and for the enterprise edition, we can redefine the constraint like this:
@@ -871,7 +871,7 @@ and for the enterprise edition, we can redefine the constraint like this:
 .V030__Fix_person_name_constraint_EE.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V030__Fix_person_name_constraint_EE.xml[]
+include::{examplesDir}/catalogbased_changesets/V030__Fix_person_name_constraint_EE.xml[]
 ----
 
 Note how we *can* `refer` to the constraint by ref in <<V030Fix_person_name_constraint_EE>> and how we *must* use
@@ -899,7 +899,7 @@ Assuming you some other enterprise stuff related items in the following listing:
 .V040__Additional_stuff.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V040__Additional_stuff.xml[]
+include::{examplesDir}/catalogbased_changesets/V040__Additional_stuff.xml[]
 ----
 
 To get some information about your database, you can inspect the remote catalog:
@@ -979,7 +979,7 @@ Therefore, you need to reset the catalog as shown in the following listing:
 .V050__A_new_start.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V050__A_new_start.xml[]
+include::{examplesDir}/catalogbased_changesets/V050__A_new_start.xml[]
 ----
 
 followed by a final verification:
@@ -988,7 +988,7 @@ followed by a final verification:
 .V060__Assert_final_state.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$catalogbased_changesets/V060__Assert_final_state.xml[]
+include::{examplesDir}/catalogbased_changesets/V060__Assert_final_state.xml[]
 ----
 
 Run the following commands to see the outcome:

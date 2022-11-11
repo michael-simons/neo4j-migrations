@@ -641,8 +641,6 @@
 						<include>**</include>
 					</includes>
 					<excludes>
-						<exclude>etc/antora/*.yml</exclude>
-						<exclude>docs/**</exclude>
 						<exclude>**/*.adoc</exclude>
 						<exclude>**/*.cypher</exclude>
 						<exclude>**/*.sh</exclude>
@@ -908,6 +906,53 @@
 					<completionGoals>compile exec:exec@release-prepared</completionGoals>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>${asciidoctor-maven-plugin.version}</version>
+				<inherited>false</inherited>
+				<configuration>
+					<backend>html</backend>
+					<doctype>book</doctype>
+					<sourceDirectory>${basedir}/docs/modules/ROOT/pages</sourceDirectory>
+					<sourceDocumentName>../../../index.adoc</sourceDocumentName>
+					<attributes>
+						<icons>font</icons>
+						<toc>left</toc>
+						<setanchors />
+						<idprefix />
+						<idseparator />
+						<imagesdir>img</imagesdir>
+						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
+						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
+						<source-highlighter>coderay</source-highlighter>
+						<branch>${project.build.docs.branch}</branch>
+						<latest_version>${project.version}</latest_version>
+						<manualIncludeDir>${project.basedir}</manualIncludeDir>
+						<pagesDir>.</pagesDir>
+					</attributes>
+					<requires>
+						<require>asciidoctor-diagram</require>
+					</requires>
+					<outputDirectory>${project.build.docs}</outputDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-diagram</artifactId>
+						<version>${asciidoctorj-diagram.version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>generate-docs</id>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<phase>prepare-package</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<extensions>
 			<extension>
@@ -1030,6 +1075,7 @@
 				</property>
 			</activation>
 			<properties>
+				<asciidoctor.skip>true</asciidoctor.skip>
 				<checkstyle.skip>true</checkstyle.skip>
 				<docker.skip>true</docker.skip>
 				<invoker.skip>true</invoker.skip>

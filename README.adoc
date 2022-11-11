@@ -13,7 +13,9 @@ Michael Simons <michael.simons@neo4j.com>
 :artifactIdQuarkus: neo4j-migrations-quarkus
 :artifactIdCore: neo4j-migrations
 :branch: main
-:siteBaseUrl: https://michael-simons.github.io/neo4j-migrations/{branch}/site
+:url-apidocs: https://michael-simons.github.io/neo4j-migrations/main/site
+:url-projectinfo: https://michael-simons.github.io/neo4j-migrations/main/site
+:url-gh-releases: https://github.com/michael-simons/neo4j-migrations/releases
 // end::properties[]
 
 [abstract]

@@ -46,7 +46,7 @@ Look up valid preconditions xref:concepts.adoc#concepts_preconditions[here]. The
 .migration.xsd
 [source,xml,indent=0,tabsize=2]
 ----
-include::example$migration.xsd[]
+include::{examplesDir}/migration.xsd[]
 ----
 
 [[appendix_refactorings]]

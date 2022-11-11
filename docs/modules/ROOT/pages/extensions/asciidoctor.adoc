@@ -67,7 +67,7 @@ This we do with a separate document, `V1.2__Create_id_constraints.xml` to be inc
 
 [source,xml,id=V1.2__Create_id_constraints,indent=0,tabsize=2]
 ----
-include::example$extensions/formats-adoc/V1.2__Create_id_constraints.xml[]
+include::{examplesDir}/extensions/formats-adoc/V1.2__Create_id_constraints.xml[]
 ----
 
 WARNING: Includes are *not* processed. To make the system process the above xml content respectively any included Cypher
@@ -83,7 +83,7 @@ but can still be referenced in this documentation:
 
 [source,cypher,id=V2.0__Add_likes]
 ----
-include::example$extensions/formats-adoc/V2.0__Add_likes.cypher[]
+include::{examplesDir}/extensions/formats-adoc/V2.0__Add_likes.cypher[]
 ----
 
 The checksum of AsciiDoctor based migrations is computed individually per Cypher block, not for the whole file. So one

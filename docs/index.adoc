@@ -1,0 +1,46 @@
+= Neo4j-Migrations
+Michael Simons <michael.simons@neo4j.com>
+// This is a fallback document to quickly generate a fallback documentation in plain-asciidoctor style to be
+// published on GH-Pages or similar.
+:toc:
+:doctype: book
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:sectlink: true
+:sectanchors: true
+:numbered: true
+:xrefstyle: short
+:imagesdir: img
+
+:examplesDir: ../examples
+
+ifndef::manualIncludeDir[]
+:manualIncludeDir: ..
+endif::[]
+
+ifndef::pagesDir[]
+:pagesDir: modules/ROOT/pages
+endif::[]
+
+include::{manualIncludeDir}/README.adoc[tags=properties]
+
+:copyright: Copyright 2020-2022 the original author or authors.
+
+(C) {copyright}
+
+[abstract]
+--
+This is the Neo4j-Migrations manual version {latest_version}.
+--
+
+include::{pagesDir}/introduction.adoc[leveloffset=+1]
+
+include::{pagesDir}/download.adoc[leveloffset=+1]
+
+include::{pagesDir}/concepts.adoc[leveloffset=+1]
+
+include::{pagesDir}/usage.adoc[leveloffset=+1]
+
+include::{pagesDir}/appendix.adoc[leveloffset=+1]

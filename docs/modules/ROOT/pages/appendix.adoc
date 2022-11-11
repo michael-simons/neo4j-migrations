@@ -41,12 +41,12 @@ We do support the following processing instructions:
 * `<?assert followed by a valid precondition ?>`
 * `<?assume followed by a valid precondition ?>`
 
-Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema for <<concepts_migrations_catalog-based, catalog-based migrations>> looks like this:
+Look up valid preconditions xref:concepts.adoc#concepts_preconditions[here]. The full XMl schema for xref:concepts.adoc#concepts_migrations_catalog-based[catalog-based migrations] looks like this:
 
 .migration.xsd
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/core/migration.xsd[]
+include::{examplesDir}/migration.xsd[]
 ----
 
 [[appendix_refactorings]]
@@ -384,7 +384,7 @@ The annotation processor is available under the following coordinates:
 <dependency>
     <groupId>{groupId}</groupId>
     <artifactId>neo4j-migrations-annotation-processor</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -401,11 +401,11 @@ It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4
             <annotationProcessorPath>
                 <groupId>{groupId}</groupId>
                 <artifactId>neo4j-migrations-annotation-processor</artifactId>
-                <version>{latest_version}</version>
+                <version>{version}</version>
             </annotationProcessorPath>
         </annotationProcessorPaths>
         <compilerArgs>
-            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R${next-migration-version}__Create_sdn_constraints.xml</arg>
+            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R$\{next-migration-version}__Create_sdn_constraints.xml</arg>
             <arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
         </compilerArgs>
     </configuration>
@@ -474,9 +474,9 @@ TIP: Our recommended approach is to use `javac` directly and script it's invocat
 
 The annotation processor itself is made of 3 artifacts:
 
-`neo4j-migrations-{latest_version}.jar`:: Needed to generate the catalogs
-`neo4j-migrations-annotation-processor-api-{latest_version}.jar`:: Contains the API and built-in annotations
-`neo4j-migrations-annotation-processor-{latest_version}.jar` :: The processor itself
+`neo4j-migrations-{version}.jar`:: Needed to generate the catalogs
+`neo4j-migrations-annotation-processor-api-{version}.jar`:: Contains the API and built-in annotations
+`neo4j-migrations-annotation-processor-{version}.jar` :: The processor itself
 
 You need to make sure to include all of them in the processor path, otherwise you will most likely read something like `error: Bad service configuration file, or exception thrown while constructing Processor object: javax.annotation.processing.Processor: ac.simons.neo4j.migrations.annotations.proc.impl.CatalogGeneratingProcessor Unable to get public no-arg constructor`, which is a bit misleading.
 
@@ -488,7 +488,7 @@ You need at least `neo4j-ogm-core` as dependency for processing Neo4j-OGM entiti
 [source,bash,subs="verbatim,attributes"]
 ----
 javac -proc:only \
--processorpath neo4j-migrations-{latest_version}.jar:neo4j-migrations-annotation-processor-api-{latest_version}.jar:neo4j-migrations-annotation-processor-{latest_version}.jar \
+-processorpath neo4j-migrations-{version}.jar:neo4j-migrations-annotation-processor-api-{version}.jar:neo4j-migrations-annotation-processor-{version}.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
 -cp neo4j-ogm-core-3.2.37.jar \
@@ -503,7 +503,7 @@ The only difference here is that you must use SDN 6.0+ and its dependencies as a
 [source,bash,subs="verbatim,attributes"]
 ----
 javac -proc:only \
--processorpath neo4j-migrations-{latest_version}.jar:neo4j-migrations-annotation-processor-api-{latest_version}.jar:neo4j-migrations-annotation-processor-{latest_version}.jar \
+-processorpath neo4j-migrations-{version}.jar:neo4j-migrations-annotation-processor-api-{version}.jar:neo4j-migrations-annotation-processor-{version}.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
@@ -515,8 +515,8 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 
 === AsciiDoctor Support (Experimental)
 
-include::../extensions/neo4j-migrations-formats-adoc/README.adoc[leveloffset=+2,tag=content]
+include::extensions/asciidoctor.adoc[leveloffset=+2,tag=content]
 
 === Markdown Support (Experimental)
 
-include::../extensions/neo4j-migrations-formats-markdown/README.adoc[leveloffset=+2,tag=content]
+include::extensions/markdown.adoc[leveloffset=+2,tag=content]

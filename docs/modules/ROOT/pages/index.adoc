@@ -1,0 +1,13 @@
+= Neo4j Migrations
+Michael Simons <michael.simons@neo4j.com>
+
+:examplesDir: example$
+
+:copyright: Copyright 2020-2022 the original author or authors.
+
+(C) {copyright}
+
+[abstract]
+--
+This is the Neo4j-Migrations manual version {version}.
+--

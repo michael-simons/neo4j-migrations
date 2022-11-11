@@ -7,7 +7,7 @@
 [[usage_common_clean]]
 === Clean
 
-`clean` applies by default to the <<concepts_separate-databases, schema database>>.
+`clean` applies by default to the xref:concepts.adoc#concepts_separate-databases[schema database].
 It will remove Neo4j-Migrations related nodes and relationships.
 If there is no schema database selected, it works on the optional target database.
 If this isn't configured either, the users home database will be used.
@@ -23,7 +23,7 @@ This is a *destructive* operation, so make sure not to apply it to your producti
 It cannot be undone via Neo4j-Migrations.
 
 The operation takes in a boolean parameter.
-When set to `false`, only the <<concepts_chain,migration chain>> for the currently configured target database will be deleted.
+When set to `false`, only the xref:concepts.adoc#concepts_chain[migration chain] for the currently configured target database will be deleted.
 When set to `true`, all objects created by Neo4j-Migrations will be deleted.
 
 [[usage_common_info]]
@@ -35,7 +35,7 @@ The `info` operations returns information about the context, the database, all a
 === Migrate / apply
 
 The `migrate` command (or its underlying method `apply` in the Migrations Core API) does exactly that:
-It applies all locally resolved migrations to the target database and stores the <<concepts_chain,chain of applied migrations>> in the schema database.
+It applies all locally resolved migrations to the target database and stores the xref:concepts.adoc#concepts_chain[chain of applied migrations] in the schema database.
 
 It returns the last applied version.
 
@@ -49,11 +49,11 @@ where migrations are missing, have not been applied, applied in a different orde
 
 The validation result provides an additional operation `needsRepair()`.
 In case the result is invalid you might check if it needs repair.
-If not, you can just call the <<usage_common_migrate, apply operation>> to turn the database into a valid state.
+If not, you can just call the xref:usage.adoc#usage_common_migrate[apply operation] to turn the database into a valid state.
 
 == CLI
 
-Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in <<download_cli>>.
+Please choose the version of Neo4j-Migrations-CLI fitting your operating system or target system as described in xref:download.adoc#download_cli[download].
 In the following we assume you downloaded and unzipped the architecture independent version.
 For that version to work, you need to have JDK 8 or higher installed:
 
@@ -61,16 +61,16 @@ For that version to work, you need to have JDK 8 or higher installed:
 [source,console,subs="verbatim,attributes"]
 ----
 java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
-unzip neo4j-migrations-{latest_version}.zip
-cd neo4j-migrations-{latest_version}
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}.zip
+unzip neo4j-migrations-{version}.zip
+cd neo4j-migrations-{version}
 ./bin/neo4j-migrations -V
 ----
 
 Those commands should first print out your Java version, then download, extract and run Neo4j-Migrations-CLI to give you its version.
 
-TIP: If you only deal with <<concepts_migrations_cypher-based, Cypher-based migrations>> and
-      don't have the need for any <<concepts_migrations_java-based,programmatic migrations>>,
+TIP: If you only deal with xref:concepts.adoc#concepts_migrations_cypher-based[Cypher-based migrations] and
+      don't have the need for any xref:concepts.adoc#concepts_migrations_java-based[programmatic migrations],
       we provide a native binary for your platform, make sure to choose that.
       Its startup time is faster, and you don't need to have a JVM installed.
 
@@ -229,7 +229,7 @@ If you want to have autocompletion for Neo4j-Migrations just in your current she
 source <(./bin/neo4j-migrations generate-completion)
 ----
 
-NOTE: Autocompletion for macOS is automatically installed when you use <<download_cli_brew,Homebrew>>.
+NOTE: Autocompletion for macOS is automatically installed when you use xref:download.adoc#download_cli_brew[Homebrew].
 
 === Full example
 
@@ -363,9 +363,9 @@ Follow those steps:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-wget https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
-unzip neo4j-migrations-{latest_version}.zip
-cd neo4j-migrations-{latest_version}
+curl -LO {url-gh-releases}/download/{version}/neo4j-migrations-{version}.zip
+unzip neo4j-migrations-{version}.zip
+cd neo4j-migrations-{version}
 mkdir -p my-migrations/some/migrations
 cat <<EOT >> my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -396,8 +396,8 @@ NOTE: We do add this here for completeness, but we do think that Java-based migr
 [[usage_core]]
 == Core API
 
-We publish the Java-API-Docs here: link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {latest_version} API].
-Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <<download_core>>.
+We publish the Java-API-Docs here: link:{url-apidocs}/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {version} API].
+Follow the instructions for your favorite dependency management tool to get hold of the core API as described in xref:download.adoc#download_core[download].
 
 The classes you will be working with are `ac.simons.neo4j.migrations.core.MigrationsConfig` and its related builder and
 `ac.simons.neo4j.migrations.core.Migrations` and maybe `ac.simons.neo4j.migrations.core.JavaBasedMigration` in case you
@@ -406,7 +406,7 @@ want to do programmatic refactorings.
 === Configuration and usage
 
 Configuration is basically made up of two parts:
-Creating a driver instance that points to your database or cluster as described in <<concepts_connectivity>> and an instance of `MigrationsConfig`.
+Creating a driver instance that points to your database or cluster as described in the xref:concepts.adoc#concepts_connectivity[Connectivity section] and an instance of `MigrationsConfig`.
 An instance of `MigrationsConfig` is created via a fluent-builder API.
 Putting everything together looks like this:
 
@@ -451,7 +451,7 @@ The same operations are available in the CLI and Maven-Plugin. The corresponding
 === Running on the Java module-path
 
 Neo4j-Migrations can be used on the Java module path. Make sure you require them in your module and export packages with Java-based migrations in case you're using the latter.
-Resoruces on the classpath should be picked up automatically:
+Resources on the classpath should be picked up automatically:
 
 .Using Neo4j-Migrations on the module path
 [source,java]
@@ -475,11 +475,11 @@ Declare the following dependency in your Spring Boot application:
 <dependency>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>{artifactIdSpringBoot}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
-Or follow the instructions for Gradle in <<download_springboot>>.
+Or follow the instructions for Gradle in xref:download.adoc#download_springboot[download].
 
 That starter itself depends on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver].
 The driver is managed by Spring Boot since 2.4, and you can enjoy configuration support directly through Spring Boot.
@@ -564,73 +564,82 @@ public class UsingDataNeo4jTest {
 
 The following configuration properties in the `org.neo4j.migrations` namespace are supported:
 
-[cols="40a,5m,5m,50a",options=header]
-|===
-|Name
-|Type
-|Default
-|Description
+`org.neo4j.migrations.check-location`::
+Whether to check that migration scripts location exists.
 
-| `org.neo4j.migrations.check-location`
-| java.lang.Boolean
-| true
-| Whether to check that migration scripts location exists.
+- Type: `java.lang.Boolean`
+- Default: `true`
 
-| `org.neo4j.migrations.database`
-| java.lang.String
-| null
-| The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+`org.neo4j.migrations.database`::
+The database that should be migrated (Neo4j EE 4.0+ only).
+Leave `null` for using the default database.
 
-| `org.neo4j.migrations.schema-database`
-| java.lang.String
-| null
-| The database that should be used for storing information about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+- Type: `java.lang.String`
+- Default: `null`
 
-| `org.neo4j.migrations.impersonated-user`
-| java.lang.String
-| null
-| An alternative user to impersonate during migration. Might have higher privileges than the user connected, which  will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+`org.neo4j.migrations.schema-database`::
+The database that should be used for storing information about migrations (Neo4j EE 4.0+ only).
+Leave `null` for using the default database.
 
-| `org.neo4j.migrations.enabled`
-| java.lang.Boolean
-| true
-| Whether to enable Neo4j-Migrations or not.
+- Type: `java.lang.String`
+- Default: `null`
 
-| `org.neo4j.migrations.encoding`
-| java.nio.charset.Charset
-| UTF-8
-| Encoding of Cypher migrations.
+`org.neo4j.migrations.impersonated-user`::
+An alternative user to impersonate during migration.
+Might have higher privileges than the user connected, which  will be dropped again after migration.
+Requires Neo4j EE 4.4+.
+Leave `null` for using the connected user.
 
-| `org.neo4j.migrations.installed-by`
-| java.lang.String
-| System user
-| Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+- Type: `java.lang.String`
+- Default: `null`
 
-| `org.neo4j.migrations.locations-to-scan`
-| java.lang.String[]
-| `classpath:neo4j/migrations`
-| Locations of migrations scripts.
+`org.neo4j.migrations.enabled`::
+Whether to enable Neo4j-Migrations or not.
 
-| `org.neo4j.migrations.packages-to-scan`
-| java.lang.String[]
-| An empty array
-| List of packages to scan for Java migrations.
+- Type: `java.lang.Boolean`
+- Default: `true`
 
-| `org.neo4j.migrations.transaction-mode`
-| TransactionMode
-| `PER_MIGRATION`
-| The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+`org.neo4j.migrations.encoding`::
+Encoding of Cypher migrations.
 
-| `org.neo4j.migrations.validate-on-migrate`
-| boolean
-| `true`
-| Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+- Type: `java.nio.charset.Charset`
+- Default: `UTF-8`
 
-| `org.neo4j.migrations.autocrlf`
-| boolean
-| `false`
-| Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.
-|===
+`org.neo4j.migrations.installed-by`::
+Username recorded as property `by` on the `MIGRATED_TO` relationship.
+
+- Type: `java.lang.String`
+- Default: `System user`
+
+`org.neo4j.migrations.locations-to-scan`::
+Locations of migrations scripts.
+
+- Type: `java.lang.String[]`
+- Default: `[classpath:neo4j/migrations]`
+
+`org.neo4j.migrations.packages-to-scan`::
+List of packages to scan for Java migrations.
+
+- Type: `java.lang.String[]`
+- Default: `[]` (an empty array)
+
+`org.neo4j.migrations.transaction-mode`::
+The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+
+- Type: `TransactionMode`
+- Default: `PER_MIGRATION`
+
+`org.neo4j.migrations.validate-on-migrate`::
+Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+
+- Type: `java.lang.Boolean`
+- Default: `true`
+
+`org.neo4j.migrations.autocrlf`::
+Automatically convert Windows line-endings (CRLF) to LF when reading resource based migrations, pretty much what the same Git option does during checkin.
+
+- Type: `java.lang.Boolean`
+- Default: `false`
 
 NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
 
@@ -646,7 +655,7 @@ Declare the following dependency in your Quarkus application:
 <dependency>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>{artifactIdQuarkus}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -700,10 +709,16 @@ It provides a http://localhost:8080/q/dev/eu.michael-simons.neo4j.neo4j-migratio
 which can be used to clean the database or apply all migrations.
 The latter is handy when migrate at start is disabled or in case there are callbacks that might reset or recreate testdata.
 
+// webm video are currently unsupported by Antora
+// https://gitlab.com/antora/antora/-/issues/319
 ++++
-<video controls>
-  <source src="videos/quarkus-dev-ui.webm" type="video/webm">
+<div class="videoblock">
+<div class="content">
+<video controls style="width: 100%;">
+  <source src="_images/quarkus-dev-ui.webm" type="video/webm">
 </video>
+</div>
+</div>
 ++++
 
 
@@ -711,7 +726,7 @@ The latter is handy when migrate at start is disabled or in case there are callb
 == Maven-Plugin
 
 You can trigger Neo4j-Migrations from your build a Maven-Plugin.
-Please refer to the dedicated link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Maven-Plugin page] for
+Please refer to the dedicated link:{url-projectinfo}/neo4j-migrations-maven-plugin/plugin-info.html[Maven-Plugin page] for
 a detailed list of all goals and configuration option as well as the default lifecycle mapping of the plugin.
 
 === Configuration
@@ -724,13 +739,13 @@ Most of the time you will configure the following properties for the plugin:
 <plugin>
     <groupId>eu.michael-simons.neo4j</groupId>
     <artifactId>neo4j-migrations-maven-plugin</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
     <executions>
         <execution>
             <configuration>
                 <user>neo4j</user>
                 <password>secret</password>
-                <address>bolt://localhost:${it-database-port}</address>
+                <address>bolt://localhost:$\{it-database-port}</address>
                 <verbose>true</verbose>
             </configuration>
         </execution>
@@ -739,7 +754,7 @@ Most of the time you will configure the following properties for the plugin:
 ----
 
 All goals provide those properties.
-By default, the plugin will look in `neo4j/migrations` for <<concepts_migrations_cypher-based, Cypher-based migrations>>.
+By default, the plugin will look in `neo4j/migrations` for xref:concepts.adoc#concepts_migrations_cypher-based[Cypher-based migrations].
 You can change that via `locationsToScan` inside the `configuration` element like this:
 
 .Changing the locations to scan for the Maven-Plugin
@@ -756,18 +771,18 @@ Add multiple `locationToScan` elements for multiple locations to scan.
 
 All goals as described in <<usage_common>> are supported.
 
-* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/clean-mojo.html[clean], see <<usage_common_clean>>
-* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/help-mojo.html[help]
-* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/info-mojo.html[info], see <<usage_common_info>>
-* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/migrate-mojo.html[migrate], see <<usage_common_migrate>>
-* link:{siteBaseUrl}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
+* link:{url-projectinfo}/neo4j-migrations-maven-plugin/clean-mojo.html[clean], see <<usage_common_clean>>
+* link:{url-projectinfo}/neo4j-migrations-maven-plugin/help-mojo.html[help]
+* link:{url-projectinfo}/neo4j-migrations-maven-plugin/info-mojo.html[info], see <<usage_common_info>>
+* link:{url-projectinfo}/neo4j-migrations-maven-plugin/migrate-mojo.html[migrate], see <<usage_common_migrate>>
+* link:{url-projectinfo}/neo4j-migrations-maven-plugin/validate-mojo.html[clean], see <<usage_common_validate>>
 
 The above list links to the corresponding Maven-Plugin page, please check those goals out for further details.
 
 [[usage_defining_asserting_applying_catalogs]]
 == Defining and using catalogs
 
-This chapter is more about conceptional usage or scenarios one can implement by using <<concepts_migrations_catalog-based, Catalog-based migrations>>.
+This chapter is more about conceptional usage or scenarios one can implement by using xref:concepts.adoc#concepts_migrations_catalog-based[Catalog-based migrations].
 All scenarios can be executed with any of the previously explained APIS, being it the CLI, the Core API or within  Spring Boot,
 Quarkus or Maven, except easily dumping a local or a remote catalog as XML or Cypher file.
 
@@ -804,7 +819,7 @@ In this example we assert toe remote catalog to be empty and we define our first
 .V010__Assert_empty_schema.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V010__Assert_empty_schema.xml[]
+include::{examplesDir}/catalogbased_changesets/V010__Assert_empty_schema.xml[]
 ----
 <.> `useCurrent` has been set to `true` to refer to the local catalog as defined in version 10, which is been empty,
     exactly what we expect
@@ -824,7 +839,7 @@ each catalog based migration:
 .V020__Create_person_name_unique.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V020__Create_person_name_unique.xml[]
+include::{examplesDir}/catalogbased_changesets/V020__Create_person_name_unique.xml[]
 ----
 
 Note that we didn't specify `useCurrent` here. This means verification should happen based on the local catalog prior to
@@ -847,7 +862,7 @@ for the next version:
 .V030__Fix_person_name_constraint_CE.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V030__Fix_person_name_constraint_CE.xml[]
+include::{examplesDir}/catalogbased_changesets/V030__Fix_person_name_constraint_CE.xml[]
 ----
 
 and for the enterprise edition, we can redefine the constraint like this:
@@ -856,7 +871,7 @@ and for the enterprise edition, we can redefine the constraint like this:
 .V030__Fix_person_name_constraint_EE.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V030__Fix_person_name_constraint_EE.xml[]
+include::{examplesDir}/catalogbased_changesets/V030__Fix_person_name_constraint_EE.xml[]
 ----
 
 Note how we *can* `refer` to the constraint by ref in <<V030Fix_person_name_constraint_EE>> and how we *must* use
@@ -884,7 +899,7 @@ Assuming you some other enterprise stuff related items in the following listing:
 .V040__Additional_stuff.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V040__Additional_stuff.xml[]
+include::{examplesDir}/catalogbased_changesets/V040__Additional_stuff.xml[]
 ----
 
 To get some information about your database, you can inspect the remote catalog:
@@ -964,7 +979,7 @@ Therefore, you need to reset the catalog as shown in the following listing:
 .V050__A_new_start.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V050__A_new_start.xml[]
+include::{examplesDir}/catalogbased_changesets/V050__A_new_start.xml[]
 ----
 
 followed by a final verification:
@@ -973,7 +988,7 @@ followed by a final verification:
 .V060__Assert_final_state.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::catalogbased_changesets/V060__Assert_final_state.xml[]
+include::{examplesDir}/catalogbased_changesets/V060__Assert_final_state.xml[]
 ----
 
 Run the following commands to see the outcome:

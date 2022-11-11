@@ -5,9 +5,11 @@ Michael Simons <michael.simons@neo4j.com>
 :listing-caption: Listing
 :source-highlighter: coderay
 :icons: font
-:artifactIdFormatAdoc: neo4j-migrations-formats-adoc
+:standalone: true
 
+ifndef::env-site[]
 include::../../README.adoc[tags=properties]
+endif::[]
 
 WARNING: This is an extension to the main project and independent of it.
          As of publishing and writing the first version (1.8.0), it is considered
@@ -15,6 +17,21 @@ WARNING: This is an extension to the main project and independent of it.
 
 // tag::content[]
 == What does it do?
+
+TIP: Please open this `README.adoc` not only in a rendered view, but have a look at the raw asciidoc version!
+
+ifdef::standalone[]
+:testDir: src/test/resources/neo4j/migrations-with-includes
+
+ifdef::env-site[]
+:testDir: example$extensions/formats-adoc
+endif::[]
+
+endif::[]
+
+ifndef::standalone[]
+:testDir: ../../examples/extensions/formats-adoc
+endif::[]
 
 When added to one of the supported use-case scenarios as an external library, it allows  Neo4j-Migrations to discover
 AsciiDoctor files and use them as sources of Cypher statements for defining refactorings.
@@ -75,7 +92,7 @@ This we do with a separate document, `V1.2__Create_id_constraints.xml` to be inc
 
 [source,xml,id=V1.2__Create_id_constraints,indent=0,tabsize=2]
 ----
-include::src/test/resources/neo4j/migrations-with-includes/V1.2__Create_id_constraints.xml[]
+include::{testDir}/V1.2__Create_id_constraints.xml[]
 ----
 
 WARNING: Includes are *not* processed. To make the system process the above xml content respectively any included Cypher
@@ -91,7 +108,7 @@ but can still be referenced in this documentation:
 
 [source,cypher,id=V2.0__Add_likes]
 ----
-include::src/test/resources/neo4j/migrations-with-includes/V2.0__Add_likes.cypher[]
+include::{testDir}/V2.0__Add_likes.cypher[]
 ----
 
 The checksum of AsciiDoctor based migrations is computed individually per Cypher block, not for the whole file. So one
@@ -108,7 +125,7 @@ dependency:
 <dependency>
     <groupId>{groupId}</groupId>
     <artifactId>{artifactIdFormatAdoc}</artifactId>
-    <version>{latest_version}</version>
+    <version>{version}</version>
 </dependency>
 ----
 
@@ -118,24 +135,24 @@ Or in case you fancy Gradle:
 .AsciiDoctor extension as Gradle dependency
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdFormatAdoc}:{latest_version}'
+    implementation '{groupId}:{artifactIdFormatAdoc}:{version}'
 }
 ----
 
 And that's all.
 
-For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{latest_version}/neo4j-migrations-formats-adoc-{latest_version}-all.jar[neo4j-migrations-formats-adoc-{latest_version}-all.jar]
-This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[here].
+For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{version}/neo4j-migrations-formats-adoc-{version}-all.jar[neo4j-migrations-formats-adoc-{version}-all.jar]
+This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{version}/neo4j-migrations-{version}.zip[here].
 
 A full example looks like this:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{latest_version}/neo4j-migrations-formats-adoc-{latest_version}-all.jar
-unzip neo4j-migrations-{latest_version}.zip
-cd neo4j-migrations-{latest_version}
-CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-{latest_version}-all.jar \
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{version}/neo4j-migrations-{version}.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{version}/neo4j-migrations-formats-adoc-{version}-all.jar
+unzip neo4j-migrations-{version}.zip
+cd neo4j-migrations-{version}
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-{version}-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/adoc-migrations \
   info

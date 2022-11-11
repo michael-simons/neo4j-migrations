@@ -3,9 +3,14 @@
 set -euo pipefail
 DIR="$(dirname "$(realpath "$0")")"
 
-sed -i .bak 's/\(:latest_version:\) \(.*\)/\1 '"${1}"'/g' $DIR/../README.adoc
-
+sed -i .bak 's/\(:version:\) \(.*\)/\1 '"${1}"'/g' $DIR/../README.adoc
 rm $DIR/../README.adoc.bak
+
+sed -i .bak 's/\(version: &the-version\) \(.*\)/\1 '"${1}"'/g' $DIR/../docs/antora.yml
+rm $DIR/../docs/antora.yml.bak
+
+sed -i .bak '/prerelease: "true"/d' $DIR/../docs/antora.yml
+rm $DIR/../docs/antora.yml.bak
 
 if test -n "${2-}"; then
   DRYRUN=$2

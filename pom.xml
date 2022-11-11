@@ -115,7 +115,7 @@
 		<guava.version>31.1-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.16.0</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.2</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -784,7 +784,7 @@
 								<requireJavaVersion>
 									<version>17</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -914,20 +914,22 @@
 				<configuration>
 					<backend>html</backend>
 					<doctype>book</doctype>
-					<sourceDirectory>${basedir}/docs</sourceDirectory>
-					<sourceDocumentName>index.adoc</sourceDocumentName>
+					<sourceDirectory>${basedir}/docs/modules/ROOT/pages</sourceDirectory>
+					<sourceDocumentName>../../../index.adoc</sourceDocumentName>
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
 						<source-highlighter>coderay</source-highlighter>
 						<branch>${project.build.docs.branch}</branch>
-						<latest_version>${project.version}</latest_version>
+						<version>${project.version}</version>
+						<manualIncludeDir>${project.basedir}</manualIncludeDir>
+						<pagesDir>.</pagesDir>
 					</attributes>
 					<requires>
 						<require>asciidoctor-diagram</require>

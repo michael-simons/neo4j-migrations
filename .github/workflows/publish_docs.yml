@@ -28,30 +28,32 @@ jobs:
         with:
           ref: gh-pages
           path: target/gh-pages
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+     
+     
+      - name: Use Node.js 14
+        uses: actions/setup-node@v1
         with:
-          ruby-version: '2.6'
-      - name: Set up JDK
-        uses: actions/setup-java@v1
+          node-version: '16'
+          
+      - name: Change Directory
+        run: cd etc/antora
+        
+      - name: NPM Install
+        run: npm install
+        
+      - name: Build Docs
+        run: npm run build
+        
+      
+      - name: Sync to Static
+        uses: jakejarvis/s3-sync-action@master
         with:
-          java-version: 17
-      - name: Run docs generation
-        run: ./bin/generate-site.sh target/gh-pages/${refName} ${refName}
-      - name: Create symlink
-        if: (github.event_name == 'create' && github.event.ref_type == 'tag')
-        working-directory: ./target/gh-pages
-        run: ln -sfn ${refName} current
-      - name: Commit to gh-pages
-        working-directory: ./target/gh-pages
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Update GH-Pages."
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          directory: target/gh-pages
-          branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          args: --acl public-read --follow-symlinks
+        env:
+          AWS_S3_BUCKET: ${{ secrets.NEO4J_DOCS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.NEO4J_DOCS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NEO4J_DOCS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.NEO4J_DOCS_S3_REGION }}
+          # Upload from build/site
+          SOURCE_DIR: etc/antora/build/site/migrations
+          DEST_DIR: labs/neo4j-migrations/

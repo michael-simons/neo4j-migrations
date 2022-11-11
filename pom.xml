@@ -115,7 +115,7 @@
 		<guava.version>31.1-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.16.0</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.2</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -919,9 +919,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>img</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

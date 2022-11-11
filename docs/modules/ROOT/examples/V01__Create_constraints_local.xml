@@ -1,1 +1,1 @@
-../../../../neo4j-migrations-core/src/test/resources/catalogbased/manual/V01__Create_constraints_local.xml
+../../../../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_constraints_local.xml

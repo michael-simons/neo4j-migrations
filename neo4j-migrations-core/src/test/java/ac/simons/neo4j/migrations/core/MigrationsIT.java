@@ -683,6 +683,14 @@ class MigrationsIT extends TestBase {
 			.withMessage("Duplicate version '001' (V001__Hallo.cypher, V001__Hello.cypher)");
 	}
 
+	@Test // GH-725
+	void shouldNotPreventDoubleVersionsCypherWithPreconditions() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:duplicate-w-preconditions").build(), driver);
+		assertThatNoException()
+			.isThrownBy(migrations::apply);
+	}
+
 	private static List<File> createMigrationFiles(int n, File dir) throws IOException {
 		return createMigrationFiles(n, 0, dir);
 	}

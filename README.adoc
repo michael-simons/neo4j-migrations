@@ -45,7 +45,7 @@ The history of migrations applied is stored as a subgraph in your database.
 
 The graph will look like this:
 
-image::docs/img/chain-of-migrations.png[]
+image::docs/modules/ROOT/images/chain-of-migrations.png[]
 
 == Downloads
 

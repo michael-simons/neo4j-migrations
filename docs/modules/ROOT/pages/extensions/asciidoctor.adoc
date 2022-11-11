@@ -1,0 +1,154 @@
+= Asciidoctor Support (Experimental)
+Michael Simons <michael.simons@neo4j.com>
+:artifactIdFormatAdoc: neo4j-migrations-formats-adoc
+
+WARNING: This is an extension to the main project and independent of it.
+As of publishing and writing the first version (1.8.0), it is considered
+experimental.
+
+== What does it do?
+
+When added to one of the supported use-case scenarios as an external library, it allows  Neo4j-Migrations to discover
+AsciiDoctor files and use them as sources of Cypher statements for defining refactorings.
+
+An AsciiDoctor based migration can have zero to many code blocks of type `cypher` with an id matching our versioning scheme
+and valid inline Cypher content. The block definition looks like this:
+
+[source,asciidoc]
+....
+[source,cypher,id=V1.0__Create_initial_data]
+----
+// Your Cypher based migration
+----
+....
+
+In fact, this `README.adoc` is a source of migrations on its own. It contains the following refactorings:
+
+[source,cypher,id=V1.0__Create_initial_data]
+----
+CREATE (a:Author {
+  id: randomUUID(),
+  name: 'Stephen King'
+})
+CREATE (b:Book {
+  id: randomUUID(),
+  name: 'The Dark Tower'
+})
+CREATE (a)-[:WROTE]->(b)
+----
+
+We can have as many migrations as we want.
+
+[source,cypher,id=V1.1__Add_more_data]
+----
+MATCH (a:Author {
+  name: 'Stephen King'
+})
+CREATE (b:Book  {
+  id: randomUUID(),
+  name: 'Atlantis'
+})
+CREATE (a)-[:WROTE]->(b);
+
+
+CREATE (a:Author {
+  id: randomUUID(),
+  name: 'Grace Blakeley'
+})
+CREATE (b:Book {
+  id: randomUUID(),
+  name: 'Stolen: How to Save the World From Financialisation'
+})
+CREATE (a)-[:WROTE]->(b);
+----
+
+And to make queries on peoples name perform fast, we should add some indexes and constraints.
+This we do with a separate document, `V1.2__Create_id_constraints.xml` to be included here:
+
+[source,xml,id=V1.2__Create_id_constraints,indent=0,tabsize=2]
+----
+include::example$extensions/formats-adoc/V1.2__Create_id_constraints.xml[]
+----
+
+WARNING: Includes are *not* processed. To make the system process the above xml content respectively any included Cypher
+file, these files must live in a configured location, as described in the manual.
++
+We opted against resolving includes for two reasons: It's easier to reason about the sources of migrations when just
+inline code is processed and also, inclusion of arbitrary URLs may expose a security risk.
++
+Please have a look at the source of *this* file itself to understand what works and what not.
+
+The following block is an example of an included Cypher file, that will be used from its own location when this changeset is applied,
+but can still be referenced in this documentation:
+
+[source,cypher,id=V2.0__Add_likes]
+----
+include::example$extensions/formats-adoc/V2.0__Add_likes.cypher[]
+----
+
+The checksum of AsciiDoctor based migrations is computed individually per Cypher block, not for the whole file. So one
+AsciiDoctor file basically behaves as a container for many migrations.
+
+== How to use it?
+
+The extension is loaded via service loader. In a standard Spring Boot or Quarkus application you just need to add one additional
+dependency:
+
+[source,xml,subs="verbatim,attributes"]
+.AsciiDoctor extension as Maven dependency
+----
+<dependency>
+    <groupId>{groupId}</groupId>
+    <artifactId>{artifactIdFormatAdoc}</artifactId>
+    <version>{latest_version}</version>
+</dependency>
+----
+
+Or in case you fancy Gradle:
+
+[source,groovy,subs="verbatim,attributes"]
+.AsciiDoctor extension as Gradle dependency
+----
+dependencies {
+    implementation '{groupId}:{artifactIdFormatAdoc}:{latest_version}'
+}
+----
+
+And that's all.
+
+For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{latest_version}/neo4j-migrations-formats-adoc-{latest_version}-all.jar[neo4j-migrations-formats-adoc-{latest_version}-all.jar]
+This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip[here].
+
+A full example looks like this:
+
+[source,console,subs="verbatim,attributes"]
+----
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/{latest_version}/neo4j-migrations-formats-adoc-{latest_version}-all.jar
+unzip neo4j-migrations-{latest_version}.zip
+cd neo4j-migrations-{latest_version}
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-{latest_version}-all.jar \
+  bin/neo4j-migrations --password secret \
+  --location file:///path/to/neo4j/adoc-migrations \
+  info
+----
+
+Which will result in:
+
+[source,console]
+----
+neo4j@localhost:7687 (Neo4j/4.4.4)
+Database: neo4j
+
++---------+---------------------------+---------+---------+----------------------------------------------+
+| Version | Description               | Type    | State   | Source                                       |
++---------+---------------------------+---------+---------+----------------------------------------------+
+| 1.0     | initial data              | CYPHER  | PENDING | initial_schema_draft.adoc#V1.0__initial_data |
+| 1.2     | more data                 | CYPHER  | PENDING | initial_schema_draft.adoc#V1.2__more_data    |
+| 2.0     | lets rock                 | CYPHER  | PENDING | more_content.adoc#V2.0__lets_rock            |
+| 3.0     | We forgot the constraints | CATALOG | PENDING | V3.0__We_forgot_the_constraints.xml          |
+| 4.0     | Plain cypher              | CYPHER  | PENDING | V4.0__Plain_cypher.cypher                    |
++---------+---------------------------+---------+---------+----------------------------------------------+
+----
+
+(Note: empty columns have been omitted for brevity.)

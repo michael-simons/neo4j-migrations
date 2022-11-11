@@ -1,0 +1,24 @@
+{
+  "name": "neo4j-migrations-docs",
+  "version": "1.0.0",
+  "description": "Neo4j Migrations Documentation Site",
+  "private": true,
+  "scripts": {
+    "build": "antora antora-playbook.yml",
+    "build-local": "antora local-antora-playbook.yml"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michael-simons/neo4j-migrations.git"
+  },
+  "keywords": [],
+  "author": "Michael Simons <michael.simons@neo4j.com>",
+  "license": "Apache License, Version 2.0",
+  "bugs": {
+    "url": "https://github.com/michael-simons/neo4j-migrations/issues"
+  },
+  "homepage": "https://github.com/michael-simons/neo4j-migrations#readme",
+  "devDependencies": {
+    "antora": "~3.1"
+  }
+}

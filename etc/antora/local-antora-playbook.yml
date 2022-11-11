@@ -1,0 +1,21 @@
+site:
+  title: Neo4j Migrations
+  start_page: migrations::index.adoc
+
+content:
+  sources:
+  - url: ../..
+    start_path: docs
+    branches: HEAD
+
+urls:
+  html_extension_style: default
+
+ui:
+  bundle:
+    #url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    url: https://s3-eu-west-1.amazonaws.com/static-content.neo4j.com/build/ui-bundle-v0.16.1.zip
+  #supplemental_files: ./supplemental-ui
+
+output:
+  dir: '../../target/antora'

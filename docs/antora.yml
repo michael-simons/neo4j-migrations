@@ -1,0 +1,32 @@
+name: migrations 
+version: ~
+title: Neo4j Migrations Docs
+start_page: ROOT:index.adoc
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    page-theme: labs
+    #lang: en
+    listing-caption: Listing
+    icons: font
+    sectlink: ''
+    sectanchors: ''
+    #numbered: ''
+    xrefstyle: short
+    version: 1.12.0
+    latest_version: 1.12.0
+    page-product: Migrations
+    page-type: Neo4j Migrations Manual
+    page-canonical-root: /labs
+    url-apidocs: https://michael-simons.github.io/neo4j-migrations/main/site
+    url-projectinfo: https://michael-simons.github.io/neo4j-migrations/main/site
+    url-gh-releases: https://github.com/michael-simons/neo4j-migrations/releases
+    url-release-zip: https://github.com/michael-simons/neo4j-migrations/releases/download/1.12.0/neo4j-migrations-1.12.0.zip
+    groupId: eu.michael-simons.neo4j
+    artifactIdMavenPlugin: neo4j-migrations-maven-plugin
+    artifactIdSpringBoot: neo4j-migrations-spring-boot-starter
+    artifactIdQuarkus: neo4j-migrations-quarkus
+    artifactIdCore: neo4j-migrations
+    branch: main

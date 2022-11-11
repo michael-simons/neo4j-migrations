@@ -2,7 +2,7 @@
 = Concepts
 
 This chapter deals with various concepts that are applicable for all modules offered.
-Especially checkout <<concepts_naming-conventions>> regarding naming conventions, for all Cypher and Java-based migrations and callbacks.
+Especially checkout the page regarding xref:concepts.adoc#concepts_naming-conventions[naming conventions], for all Cypher and Java-based migrations and callbacks.
 
 [[concepts_connectivity]]
 == Connectivity
@@ -73,7 +73,7 @@ class HowToCreateADriverInstance {
 
 This instance needs to be passed than to the Neo4j-Migrations Core API in case you aren't using one of our integrations.
 Mostly everything else than can be done via Cypher scripts alone.
-If you need more control about what happens in a migration, have a look at our Java-based migration support in <<concepts_migrations_java-based>>.
+If you need more control about what happens in a migration, have a look at our xref:concepts.adoc#concepts_migrations_java-based[Java-based migration support].
 
 [[concepts_migrations]]
 == Migrations
@@ -96,7 +96,7 @@ V1_2_3__Add_last_name_index.(cypher|xml|java)
 * Required description: Underscores or spaces might be used to separate words
 * Suffix: Depending on the given type.
 
-Exceptions are made for callbacks (see <<concepts_naming-conventions,naming conventions>>) and some <<appendix_extesions, extensions>> supported by Neo4j-Migrations.
+Exceptions are made for callbacks (see xref:concepts.adoc#concepts_naming-conventions[naming conventions]) and some xref:extensions/index.adoc[extensions] supported by Neo4j-Migrations.
 
 [[concepts_migrations_cypher-based]]
 === Cypher-based
@@ -178,7 +178,7 @@ The simplest way of defining a catalog based migrations looks like this:
 .V01__Create_unique_isbn.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_constraints_local.xml[]
+include::example$V01__Create_constraints_local.xml[]
 ----
 
 Here a unique constraint is defined for the property `isbn` of all nodes labelled `Book`. This constraint is known only locally
@@ -189,7 +189,7 @@ This can also be rewritten such as this:
 .V01__Create_unique_isbn.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_constraints_global.xml[]
+include::example$V01__Create_constraints_global.xml[]
 ----
 
 The constraint can be reused later, too:
@@ -197,7 +197,7 @@ The constraint can be reused later, too:
 .V23__Drop_old_constraint.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V23__Drop_old_constraint.xml[]
+include::example$V23__Drop_old_constraint.xml[]
 ----
 
 Indexes are supported, too:
@@ -205,15 +205,15 @@ Indexes are supported, too:
 .V01__Create_an_index_local.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V01__Create_an_index_local.xml[]
+include::example$V01__Create_an_index_local.xml[]
 ----
 
 NOTE: The XML schema supports types for indexes as well: `FULLTEXT` and `TEXT`. The former being the well known
       Lucene backed indexes, the latter the new `TEXT` index introduced in Neo4j.
 
 
-To learn more about the scheme, have a look at the <<appendix_xml_schemes_migration, XML schema explained>> and also make
-sure you follow the <<concepts_catalog, concepts about catalogs>> as well as the <<usage_defining_asserting_applying_catalogs, catalog examples>>.
+To learn more about the scheme, have a look at the xref:appendix.adoc#appendix_xml_schemes_migration[XML schema explained] and also make
+sure you follow the <<concepts_catalog, concepts about catalogs>> as well as the xref:usage.adoc#usage_defining_asserting_applying_catalogs[catalog examples].
 
 Last but not least, Neo4j-Migrations offers several built-in refactorings, modelled after https://neo4j.com/labs/apoc/4.4/overview/apoc.refactor/[APOC Refactor] but without requiring APOC to be installed inside the database or cluster.
 
@@ -222,12 +222,12 @@ The example given in the APOC docs above can be identically modelled with the fo
 .V42__Rename_labels.xml
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-test-resources/src/main/resources/catalogbased/manual/V42__Rename_labels.xml[]
+include::example$V42__Rename_labels.xml[]
 ----
 
 It will rename the label `Engineer` on all nodes matching the custom query to `DevRel`.
 
-All supported refactorings are described in <<appendix_refactorings>>.
+All supported refactorings are described in xref:appendix.adoc#appendix_refactorings[Refactorings].
 
 
 *What's the advantage of using XML instead of a Cypher-based migration for this purpose?*
@@ -378,14 +378,14 @@ to in Neo4j-Migrations as schema.
 
 NOTE: Why the heck XML? While XML has been badmouthed for a while now, it has a couple of advantages over JSON and YAML,
       especially in terms of schema: There are many options to validate a given document, Document Type Definition (DTD)
-      and XML Schema being two of them. Neo4j-Migrations opted for the latter, it is documented in the <<appendix_xml_schemes_migration, appendix>>.
+      and XML Schema being two of them. Neo4j-Migrations opted for the latter, it is documented in the xref:appendix.adoc#appendix_xml_schemes_migration[appendix].
       Most of your tooling should be able to load this and validate any migration for you and guide you to what is possible
       and what not.
       +
       Our benefit lies in the fact that XML support comes directly with the JVM, and we don't need to introduce any additional
       dependencies to parse and validate content.
 
-A catalog is also used to represent predefined or built-in <<appendix_refactorings,refactorings>>, such as renaming all occurrences of types or labels.
+A catalog is also used to represent predefined or built-in xref:appendix.adoc#appendix_refactorings[refactorings], such as renaming all occurrences of types or labels.
 
 === What is a catalog?
 
@@ -480,7 +480,7 @@ WARNING: The `apply` operation loads all supported item types from the database,
 ==== Executing refactorings
 
 `refactor` is used to run parameterized predefined refactorings. The `refactor` element can be used after the `verify` operation and before, after or in between `drop` or `create` operations. It will be executed in the order in which it was defined. It cannot be used together with `apply`.
-Have a look at the general <<concepts_migrations_catalog-based, catalog example>> or at the <<appendix_refactorings, appendix>> for some concrete examples of executing predefined refactorings.
+Have a look at the general <<concepts_migrations_catalog-based, catalog example>> or at the xref:appendix.adoc#appendix_refactorings[appendix] for some concrete examples of executing predefined refactorings.
 
 === Create a catalog from the actual database schema
 
@@ -594,7 +594,7 @@ labelled `++__Neo4jMigration++` will have an additional property name `migration
 
 The chain of applied migrations is stable, and you can of course query it (for example in <<concepts_callbacks,callbacks>>),
 but you should not modify it in any way or form.
-In case you want to get rid of it, please use the <<usage_common_clean,`clean`>> operation.
+In case you want to get rid of it, please use the xref:usage.adoc#usage_common_clean[`clean`] operation.
 
 [[concepts_separate-databases]]
 == Separate schema databases
@@ -780,7 +780,7 @@ your application originally and you might have invalid Cypher now in potentially
 * Add a precondition matching only older versions of Neo4j to one and keep the rest unaltered
 * Adapt the other one containing only "good" syntax and add a precondition for the newer Neo4j version
 
-Thus you support the following scenarios:
+Thus, you support the following scenarios:
 
 * On older database versions against which your application already ran, nothing will change; the migration with the fixed syntax will be skipped
 * Same for a clean slate on older database versions

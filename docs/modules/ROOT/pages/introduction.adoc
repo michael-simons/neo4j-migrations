@@ -4,7 +4,7 @@
 [[introduction-about]]
 == About
 
-include::{manualIncludeDir}/README.adoc[tags=introduction]
+include::example$README.adoc[tags=introduction]
 
 [[introduction-compatibility]]
 == Compatibility
@@ -16,7 +16,7 @@ Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4 and of course, Neo4j
 It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
 The tooling may or may not work with other databases using the Bolt protocol. We don't provide any support for those.
 
-include::{manualIncludeDir}/README.adoc[tags=compatibility]
+include::example$README.adoc[tags=compatibility]
 
 [[introduction-versions]]
 == Versions
@@ -34,7 +34,7 @@ The API includes builders for configuration.
 The core is released as a Multi-Release-Jar, so that it behaves nicely on the module-path on JDK 17.
 Be aware that we sealed all interfaces not intended to be implemented by you when running on JDK 17.
 +
-link:{siteBaseUrl}/neo4j-migrations/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations/index.html[Project info]
+link:{url-apidocs}/neo4j-migrations/apidocs/index.html[JavaDoc] and link:{url-projectinfo}/neo4j-migrations/index.html[Project info]
 CLI:: A command line tool that supports every interaction that the core module provides.
 Native binaries are available for Linux, macOS and Windows.
 If you want to use Java-based migrations in the CLI, you must use the JVM distribution.
@@ -43,20 +43,20 @@ Spring-Boot-Starter:: Provides all configuration options via the well-known Spri
 into a fully configured Migrations instance that will be applied on application start.
 Scripts will be searched sane default location.
 +
-link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-spring-boot-starter-parent/index.html[Project info]
+link:{url-apidocs}/neo4j-migrations-spring-boot-starter-parent/neo4j-migrations-spring-boot-autoconfigure/apidocs/index.html[JavaDoc] and link:{url-projectinfo}/neo4j-migrations-spring-boot-starter-parent/index.html[Project info]
 Quarkus:: An extension for Quarkus, providing full integration of all configuration option via Quarkus' configuration.
 Creates a startup observer that applies all resolved migrations at startup.
 +
-link:{siteBaseUrl}/neo4j-migrations-quarkus-parent/neo4j-migrations-quarkus/apidocs/ac/simons/neo4j/migrations/quarkus/runtime/package-summary.html[JavaDoc] and link:{siteBaseUrl}/neo4j-migrations-quarkus-parent/index.html[Project info]
+link:{url-apidocs}/neo4j-migrations-quarkus-parent/neo4j-migrations-quarkus/apidocs/ac/simons/neo4j/migrations/quarkus/runtime/package-summary.html[JavaDoc] and link:{url-projectinfo}/neo4j-migrations-quarkus-parent/index.html[Project info]
 Maven-Plugin:: A Maven-plugin that hooks clean, apply and verify operations into the appropriate Maven lifecycles.
 Use this to apply migrations during your build.
 +
-link:{siteBaseUrl}/neo4j-migrations-maven-plugin/plugin-info.html[Plugin info]
+link:{url-projectinfo}/neo4j-migrations-maven-plugin/plugin-info.html[Plugin info]
 
 [[introduction-changelog]]
 == Changelog
 
-We provide a full changelog on GitHub: https://github.com/michael-simons/neo4j-migrations/releases[Neo4j-Migrations].
+We provide a full changelog on GitHub: {url-gh-releases}[Neo4j-Migrations].
 Our commits follow https://www.conventionalcommits.org/en/v1.0.0/[conventional commits].
 The releases are created and published via https://jreleaser.org[JReleaser].
 

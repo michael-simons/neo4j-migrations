@@ -41,12 +41,12 @@ We do support the following processing instructions:
 * `<?assert followed by a valid precondition ?>`
 * `<?assume followed by a valid precondition ?>`
 
-Look up valid preconditions <<concepts_preconditions,here>>. The full XMl schema for <<concepts_migrations_catalog-based, catalog-based migrations>> looks like this:
+Look up valid preconditions xref:concepts.adoc#concepts_preconditions[here]. The full XMl schema for xref:concepts.adoc#concepts_migrations_catalog-based[catalog-based migrations] looks like this:
 
 .migration.xsd
 [source,xml,indent=0,tabsize=2]
 ----
-include::../neo4j-migrations-core/src/main/resources/ac/simons/neo4j/migrations/core/migration.xsd[]
+include::example$migration.xsd[]
 ----
 
 [[appendix_refactorings]]
@@ -405,7 +405,7 @@ It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4
             </annotationProcessorPath>
         </annotationProcessorPaths>
         <compilerArgs>
-            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R${next-migration-version}__Create_sdn_constraints.xml</arg>
+            <arg>-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R$\{next-migration-version}__Create_sdn_constraints.xml</arg>
             <arg>-Aorg.neo4j.migrations.catalog_generator.output_dir=my-generated-migrations</arg>
         </compilerArgs>
     </configuration>
@@ -509,14 +509,3 @@ javac -proc:only \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/*
 ----
-
-[[appendix_extesions]]
-== Extensions
-
-=== AsciiDoctor Support (Experimental)
-
-include::../extensions/neo4j-migrations-formats-adoc/README.adoc[leveloffset=+2,tag=content]
-
-=== Markdown Support (Experimental)
-
-include::../extensions/neo4j-migrations-formats-markdown/README.adoc[leveloffset=+2,tag=content]

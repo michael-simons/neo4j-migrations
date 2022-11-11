@@ -28,20 +28,20 @@ Autocompletion is automatically installed and available for bash and zsh when yo
 
 === Linux
 
-As download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
+As download from our {url-gh-releases}[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}-linux-x86_64.zip
+curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}-linux-x86_64.zip
 ----
 
 === Windows
 
-As download from our https://github.com/michael-simons/neo4j-migrations/releases[release page]:
+As download from our {url-gh-releases}[release page]:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}-windows-x86_64.zip
+curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}-windows-x86_64.zip
 ----
 
 === Architecture independent
@@ -52,7 +52,7 @@ Get this version here:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{latest_version}/neo4j-migrations-{latest_version}.zip
+curl -LO {url-gh-releases}/download/{latest_version}/neo4j-migrations-{latest_version}.zip
 ----
 
 TIP: The architecture independent version can be used via Neo4js official https://www.jbang.dev[JBang] catalog:
@@ -92,7 +92,7 @@ dependencies {
 
 Use your dependency management to include the https://start.spring.io[Spring-Boot]-Starter.
 The starter automatically triggers the dependency to the Neo4j-Java-Driver, which than can be configured via properties in the `spring.neo4j.*` namespace.
-This starter here has a custom namespace, please refer to <<usage_spring-boot-starter>> for more information.
+This starter here has a custom namespace, please refer to xref:usage.adoc#usage_spring-boot-starter[for more information].
 
 [source,xml,subs="verbatim,attributes"]
 .Neo4j-Migrations-Spring-Boot-Starter as Maven dependency
@@ -108,7 +108,7 @@ This starter here has a custom namespace, please refer to <<usage_spring-boot-st
 
 Or in case you fancy Gradle:
 
-[source,xml,subs="verbatim,attributes"]
+[source,gradle,subs="verbatim,attributes"]
 .Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency
 ----
 dependencies {
@@ -138,7 +138,7 @@ The namespace for this extension is also `++org.neo4j.migrations.*++`.
 
 == Maven-Plugin
 
-Include the Maven-Plugin like this in your build and configure it according to <<usage_maven-plugin>>:
+Include the Maven-Plugin like this in your build and configure it according to the xref:usage.adoc#usage_maven-plugin[usage section]:
 
 [source,xml,subs="verbatim,attributes"]
 ----
@@ -150,7 +150,7 @@ Include the Maven-Plugin like this in your build and configure it according to <
         <configuration>
             <user>neo4j</user>
             <password>secret</password>
-            <address>bolt://localhost:${it-database-port}</address>
+            <address>bolt://localhost:$\{it-database-port}</address>
             <verbose>true</verbose>
         </configuration>
         <executions>

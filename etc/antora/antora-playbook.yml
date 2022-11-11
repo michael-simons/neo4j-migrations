@@ -1,0 +1,18 @@
+site:
+  title: Neo4j Migrations
+  url: https://michael-simons.github.io/neo4j-migrations
+  start_page: migrations::index.adoc
+
+content:
+  sources:
+  - url: ../..
+    start_path: docs
+    branches: HEAD
+
+urls:
+  html_extension_style: indexify
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+  supplemental_files: ./supplemental-ui

@@ -1,4 +1,4 @@
-# # 1.14.0
+# 1.14.0
 
 With 1.14.0 we created the 1.x maintenance branch. All new development will happen in the main branch and require JDK 17 from now on. We will backport dependency upgrades as far as possible and if we can bring features over from main without pulling a leg and an arm, we might do so as well.
 
@@ -10,7 +10,7 @@ With 1.14.0 we created the 1.x maintenance branch. All new development will happ
 - 11fc794 Deprecate public `isRepeatable` on `MigrationVersion`. (#722)
 
 ## 📝 Documentation
-- 9a3306b Update local changelog.
+- dea9ae5 Update local changelog.
 
 ## 🧹 Housekeeping
 - ec816e4 Bump os-maven-plugin from 1.7.0 to 1.7.1 (#734)

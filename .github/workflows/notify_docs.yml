@@ -1,0 +1,20 @@
+name: Trigger Publish
+
+on:
+  push:
+    paths:
+      - 'docs'
+    branches:
+      - 'main'
+
+jobs:
+  trigger_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Developer Event
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.BUILD_ACCESS_TOKEN }}
+          repository: neo4j-documentation/docs-refresh
+          event-type: neo4j-migrations

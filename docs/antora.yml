@@ -15,7 +15,7 @@
 #
 
 name: neo4j-migrations
-version: &the-version 1.12.1-SNAPSHOT
+version: &the-version 2.0-SNAPSHOT
 prerelease: "true"
 title: Neo4j Migrations Docs
 start_page: ROOT:index.adoc

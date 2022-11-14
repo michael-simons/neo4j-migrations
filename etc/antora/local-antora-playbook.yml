@@ -16,7 +16,7 @@
 
 site:
   title: Neo4j Migrations
-  start_page: migrations::index.adoc
+  start_page: neo4j-migrations::index.adoc
 
 content:
   sources:

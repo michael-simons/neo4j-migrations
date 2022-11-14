@@ -9,7 +9,7 @@ Michael Simons <michael.simons@neo4j.com>
 
 [abstract]
 --
-This is the Neo4j-Migrations manual version {version}.
+This is the Neo4j-Migrations manual version {fullVersion}.
 --
 
 include::{examplesDir}/README.adoc[tags=introduction]

@@ -6,7 +6,7 @@ Michael Simons <michael.simons@neo4j.com>
 :source-highlighter: coderay
 :icons: font
 // tag::properties[]
-:version: 1.13.3
+:fullVersion: 1.14.0
 :groupId: eu.michael-simons.neo4j
 :artifactIdMavenPlugin: neo4j-migrations-maven-plugin
 :artifactIdSpringBoot: neo4j-migrations-spring-boot-starter
@@ -57,10 +57,10 @@ Binary downloads for the CLI are available on our https://github.com/michael-sim
 for each version. Maven artifacts are available on https://search.maven.org/artifact/eu.michael-simons.neo4j/neo4j-migrations[central] under
 the following coordinates:
 
-* Core API: `{groupId}:{artifactIdCore}:{version}`
-* Spring-Boot-Starter: `{groupId}:{artifactIdSpringBoot}:{version}`
-* Quarkus extension: `{groupId}:{artifactIdQuarkus}:{version}`
-* Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{version}`
+* Core API: `{groupId}:{artifactIdCore}:{fullVersion}`
+* Spring-Boot-Starter: `{groupId}:{artifactIdSpringBoot}:{fullVersion}`
+* Quarkus extension: `{groupId}:{artifactIdQuarkus}:{fullVersion}`
+* Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{fullVersion}`
 
 The quickest way to use the CLI is https://www.jbang.dev[JBang]. With JBang installed, just enter `jbang neo4j-migrations@neo4j --help` to get started.
 Other options include Homebrew and Zip bundles. Please checkout the full list of https://michael-simons.github.io/neo4j-migrations/current/#download[download options].
@@ -89,7 +89,7 @@ If you want to be listed here too, please reach out and we can collaborate to en
 == Manual
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].
-The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {version} API].
+The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {fullVersion} API].
 
 == Contributors
 

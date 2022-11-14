@@ -15,7 +15,7 @@
 #
 
 name: neo4j-migrations
-version: &the-version "2.0"
+version: "2.0"
 prerelease: "SNAPSHOT"
 title: Neo4j Migrations Docs
 start_page: ROOT:index.adoc
@@ -30,7 +30,7 @@ asciidoc:
     sectlink: ''
     sectanchors: ''
     xrefstyle: short
-    version: *the-version
+    fullVersion: "1.14.0"
     page-product: Migrations
     page-type: Neo4j Migrations Manual
     page-canonical-root: /labs

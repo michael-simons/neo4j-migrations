@@ -2,10 +2,10 @@ name: refresh_neo4j_dot_com
 
 on:
   push:
-    paths:
-      - 'docs'
     branches:
-      - 'main'
+      - main
+    paths:
+      - 'docs/**'
 
 jobs:
   dispatch_to_docs_repo:

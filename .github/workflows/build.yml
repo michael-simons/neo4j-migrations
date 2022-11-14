@@ -8,11 +8,13 @@ on:
       - 'README.adoc'
       - '.all-contributorsrc'
       - 'CHANGELOG.md'
+      - 'docs/antora.yml'
   pull_request:
     paths-ignore:
       - 'README.adoc'
       - '.all-contributorsrc'
       - 'CHANGELOG.md'
+      - 'docs/antora.yml'
 
 jobs:
   build:

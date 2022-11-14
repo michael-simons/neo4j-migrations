@@ -40,7 +40,7 @@ dependency:
 <dependency>
     <groupId>{groupId}</groupId>
     <artifactId>{artifactIdFormatMarkdown}</artifactId>
-    <version>{version}</version>
+    <version>{fullVersion}</version>
 </dependency>
 ----
 
@@ -50,24 +50,24 @@ Or in case you fancy Gradle:
 .AsciiDoctor extension as Gradle dependency
 ----
 dependencies {
-    implementation '{groupId}:{artifactIdFormatMarkdown}:{version}'
+    implementation '{groupId}:{artifactIdFormatMarkdown}:{fullVersion}'
 }
 ----
 
 And that's all.
 
-For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{version}/neo4j-migrations-formats-markdown-{version}-all.jar[neo4j-migrations-formats-markdown-{version}-all.jar]
-This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{version}/neo4j-migrations-{version}.zip[here].
+For the CLI, you should download the `-all` artifact from Maven Central: https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{fullVersion}/neo4j-migrations-formats-markdown-{fullVersion}-all.jar[neo4j-migrations-formats-markdown-{fullVersion}-all.jar]
+This will work only with the JVM based CLI version, which is available https://github.com/michael-simons/neo4j-migrations/releases/download/{fullVersion}/neo4j-migrations-{fullVersion}.zip[here].
 
 A full example looks like this:
 
 [source,console,subs="verbatim,attributes"]
 ----
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{version}/neo4j-migrations-{version}.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{version}/neo4j-migrations-formats-markdown-{version}-all.jar
-unzip neo4j-migrations-{version}.zip
-cd neo4j-migrations-{version}
-CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-{version}-all.jar \
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/{fullVersion}/neo4j-migrations-{fullVersion}.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/{fullVersion}/neo4j-migrations-formats-markdown-{fullVersion}-all.jar
+unzip neo4j-migrations-{fullVersion}.zip
+cd neo4j-migrations-{fullVersion}
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-{fullVersion}-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/markdown-migrations \
   info

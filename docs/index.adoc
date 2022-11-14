@@ -32,7 +32,7 @@ include::{manualIncludeDir}/README.adoc[tags=properties]
 
 [abstract]
 --
-This is the Neo4j-Migrations manual version {version}.
+This is the Neo4j-Migrations manual version {fullVersion}.
 --
 
 include::{pagesDir}/introduction.adoc[leveloffset=+1]

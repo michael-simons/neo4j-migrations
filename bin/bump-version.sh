@@ -27,7 +27,7 @@ MINOR_VERSION=$(echo "${VERSION}" | sed 's/\.[^\.]*$//')
 # Replace version
 # ...in Antora playbook
 sed -i .bak \
-  -e 's/\(version: &the-version\) \(.*\)/\1 "'"${MINOR_VERSION}"'"/g' \
+  -e 's/^\(version:\) \(.*\)/\1 "'"${MINOR_VERSION}"'"/g' \
   -e 's/\(prerelease:\) .*/\1 "SNAPSHOT"/g' \
   "$DIR"/../docs/antora.yml
 rm "$DIR"/../docs/antora.yml.bak

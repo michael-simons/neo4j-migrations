@@ -6,7 +6,9 @@ DIR="$(dirname "$(realpath "$0")")"
 sed -i .bak 's/\(:version:\) \(.*\)/\1 '"${1}"'/g' $DIR/../README.adoc
 rm $DIR/../README.adoc.bak
 
-sed -i .bak 's/\(version: &the-version\) \(.*\)/\1 '"${1}"'/g' $DIR/../docs/antora.yml
+# shellcheck disable=SC2001
+MINOR_VERSION=$(echo "${1}" | sed 's/\.[^\.]*$//')
+sed -i .bak 's/\(version: &the-version\) \(.*\)/\1 '"${MINOR_VERSION}"'/g' $DIR/../docs/antora.yml
 rm $DIR/../docs/antora.yml.bak
 
 sed -i .bak '/prerelease: "true"/d' $DIR/../docs/antora.yml

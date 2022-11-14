@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-name: migrations 
+name: neo4j-migrations
 version: &the-version 1.12.1-SNAPSHOT
 prerelease: "true"
 title: Neo4j Migrations Docs

@@ -75,6 +75,17 @@ Releases will be created via standard Maven `release:prepare` / `release:perform
 ./mvnw release:perform
 ----
 
+==== Bumping minor or major versions
+
+Use the provided script to bump the minor or major version:
+
+[source,bash]
+----
+./bin/bump-version.sh 3.0
+----
+
+Version can be either a new major or minor version (such as 3, 3.0 etc) or a fully qualified snapshot version (such as 3.0.0-SNAPSHOT).
+
 === Building the documentation
 
 The documentation consists of three components:

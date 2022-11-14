@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 
-name: migrations 
-version: &the-version 1.12.1-SNAPSHOT
-prerelease: "true"
+name: neo4j-migrations
+version: &the-version "2.0"
+prerelease: "SNAPSHOT"
 title: Neo4j Migrations Docs
 start_page: ROOT:index.adoc
 nav:

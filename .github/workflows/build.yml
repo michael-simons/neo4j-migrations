@@ -12,6 +12,7 @@ on:
     paths-ignore:
       - 'README.adoc'
       - '.all-contributorsrc'
+      - 'CHANGELOG.md'
 
 jobs:
   build:

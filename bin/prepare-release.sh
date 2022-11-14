@@ -8,10 +8,10 @@ rm "$DIR"/../README.adoc.bak
 
 # shellcheck disable=SC2001
 MINOR_VERSION=$(echo "${1}" | sed 's/\.[^\.]*$//')
-sed -i .bak 's/\(version: &the-version\) \(.*\)/\1 '"${MINOR_VERSION}"'/g' "$DIR"/../docs/antora.yml
-rm "$DIR"/../docs/antora.yml.bak
-
-sed -i .bak '/prerelease: "true"/d' "$DIR"/../docs/antora.yml
+sed -i .bak \
+  -e 's/\(version: &the-version\) \(.*\)/\1 "'"${MINOR_VERSION}"'"/g' \
+  -e 's/\(prerelease:\) .*/\1 "false"/g' \
+  "$DIR"/../docs/antora.yml
 rm "$DIR"/../docs/antora.yml.bak
 
 if test -n "${2-}"; then

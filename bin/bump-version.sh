@@ -23,13 +23,13 @@ fi
 
 # shellcheck disable=SC2001
 MINOR_VERSION=$(echo "${VERSION}" | sed 's/\.[^\.]*$//')
-MINOR_VERSION="$MINOR_VERSION\nprerelease: \"true\""
-
-# Make sure there is only pre-release attribute
-sed -i .bak '/prerelease: "true"/d' "$DIR"/../docs/antora.yml
-rm "$DIR"/../docs/antora.yml.bak
 
 # Replace version
-sed -i .bak 's/\(version: &the-version\) \(.*\)/\1 '"${MINOR_VERSION}"'/g' "$DIR"/../docs/antora.yml
+# ...in Antora playbook
+sed -i .bak \
+  -e 's/\(version: &the-version\) \(.*\)/\1 "'"${MINOR_VERSION}"'"/g' \
+  -e 's/\(prerelease:\) .*/\1 "SNAPSHOT"/g' \
+  "$DIR"/../docs/antora.yml
 rm "$DIR"/../docs/antora.yml.bak
+# ...in Maven build descriptor
 ./mvnw -f "$DIR"/../pom.xml versions:set -DgenerateBackupPoms=false -DnewVersion="${VERSION}"

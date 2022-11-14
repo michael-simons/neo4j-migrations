@@ -1,3 +1,316 @@
+# 1.13.3
+
+New feature: *Repeatable migrations*
+
+@MaurizioCasciano brought up the idea of repeatable migrations / refactoring and we delivered: Migrations named `Rxzy__something.cypher` (`xml` catalogs and Java based migrations work too) will now be repeated when their checksum changed. The repetition will be recorded in the subgraph of migrations too so that you can check for it (with a self-referential relation type `REPEATED`, thanks to @meistermeier for the suggestion). 
+
+If you need something that always runs, consider a [callback](https://michael-simons.github.io/neo4j-migrations/current/#concepts_callbacks).
+
+⚠️ Heads up ⚠️
+
+This is most likely the last release containing new features. 2.0.0 will drop by the end of this year in which this project will be migrated fully to Java 17 and require Java 17.
+
+
+## 🚀 Features
+- 97819ad Add support for repeatable migrations.
+
+## 📝 Documentation
+- c6b0152 Include Neo4j 5 in readme.
+- f71145e add MaurizioCasciano as a contributor for ideas (#709)
+
+## 🧹 Housekeeping
+- 95afd45 Bump quarkus-neo4j.version from 1.6.0 to 1.6.1 (#710)
+- 60526b0 Bump native-maven-plugin from 0.9.16 to 0.9.17 (#712)
+- c428cd4 Bump jreleaser-maven-plugin from 1.2.0 to 1.3.1 (#713)
+- d9e1073 Bump ivy from 2.5.0 to 2.5.1 (#715)
+- 4009303 Bump picocli from 4.6.3 to 4.7.0 (#716)
+- 18206a1 Bump checkstyle from 10.3.4 to 10.4 (#714)
+- 147f803 Revert "Bump jreleaser-maven-plugin from 1.2.0 to 1.3.0 (#701)"
+- bf9a323 Bump maven-shade-plugin from 3.4.0 to 3.4.1 (#698)
+- 7e791e4 Bump jreleaser-maven-plugin from 1.2.0 to 1.3.0 (#701)
+- 491fbe4 Bump asciidoctorj from 2.5.6 to 2.5.7 (#700)
+- b0a0c5f Bump neo4j-ogm.version from 3.2.37 to 3.2.38 (#697)
+
+
+# 1.13.2
+
+⚠️ This is a breaking change ⚠️
+
+@SaschaPeukert notified us that 7e53e57 will break compatibility with older Spring Boot Versions (older than 2.7.0) as the new dedicated `@AutoConfiguration` was introduced in that release for the first time. It's debatable whether the compatibility of our tool with Spring Boot 2.6 was as promised or coincidentally, but this should not have happened and we are sorry for that. 
+
+## 🔄️ Refactorings
+- 7e53e57 Migrate to `@AutoConfiguration`. (#696)
+
+## 🧹 Housekeeping
+- 4e49df8 Bump mockito.version from 4.8.0 to 4.8.1 (#688)
+- 70015ae Bump quarkus.version from 2.13.2.Final to 2.13.3.Final (#687)
+- 7758897 Bump commonmark from 0.19.0 to 0.20.0 (#689)
+- cc9cb0a Bump native-maven-plugin from 0.9.14 to 0.9.16 (#691)
+- 5bb1283 Bump plexus-utils from 3.4.2 to 3.5.0 (#692)
+- 3ab929a Bump spring-boot.version from 2.7.4 to 2.7.5 (#693)
+- 660a6dc Bump neo4j-cypher-dsl-schema-name-support from 2022.7.2 to 2022.7.3 (#694)
+- d024823 Bump spring-data-neo4j from 6.3.3 to 6.3.5 (#685)
+- 64bf663 Bump error_prone_annotations from 2.15.0 to 2.16 (#684)
+- 69440fd Bump byte-buddy.version from 1.12.17 to 1.12.18 (#683)
+- 5f79a41 Bump neo4j-harness from 4.4.11 to 4.4.12 (#682)
+- 8a485c1 Bump quarkus.version from 2.13.1.Final to 2.13.2.Final (#680)
+
+## 🛠 Build
+- 8ffcea1 Use `inputEncoding` for checkstyle plugin.
+
+
+# 1.13.1
+
+## 🐛 Bug Fixes
+- aaa4c71 Escape String literals for old fulltext indexes. (#670)
+- 2a1e724 Sanitize all formattable objects.
+
+## 🔄️ Refactorings
+- d65e9f0 Delete unused, internal abstract `AbstractContext` class. (#671)
+- 0d81fa9 Log skipped resources if they are not dedicated Cypher callbacks. (#673)
+
+## 📝 Documentation
+- ea50f6d Add missing JavaDoc.
+- ebf0305 add SergeyPlatonov as a contributor for ideas
+
+## 🧹 Housekeeping
+- 1e80ea2 Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.1.1 to 2022.1.2 and testcontainers from 1.17.4 to 1.17.5
+- ce8d2fb Bump archunit from 0.23.1 to 1.0.0 (#675)
+- b2ac91c Bump checker-qual from 3.25.0 to 3.26.0 (#679)
+- e1b322a Bump quarkus.version from 2.13.0.Final to 2.13.1.Final (#676)
+- a3a4035 Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.1.0 to 2022.1.1 and testcontainers from 1.17.3 to 1.17.4
+
+
+# 1.13.0
+
+This exiting release - again **without** breaking changes - brings two important features:
+
+1.  Migrating `BTREE` indexes to "future" indexes
+Neo4j 5 will drop the support for `BTREE` indexes. Those indexes must be replaced by `RANGE`, `POINT` or `TEXT` before a store upgrade is attempted. Neo4j 4.4 already "supports" `RANGE` and `POINT` for creating indexes (albeit they are not used in planning right now). 
+Neo4j-Migrations offers two new refactorings for that: `migrate.createFutureIndexes` which will create future indexes in parallel to old ones and `migrate.replaceBTreeIndexes` to replace old indexes with new ones prior to upgrade
+2. Running refactorings or even whole migrations standalone without storing or requiring metadata
+  
+How does that look like? Users have 3 options:
+1. Define the new refactoring in a proper catalog based migrations (not going to reiterate that here)
+2. Build the refactoring via its api and use the new api on `Migrations` to apply it
+```java
+Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+
+// Create equivalent future indexes with the suffix `_new` in parallel
+Counters counters = migrations.apply(
+	MigrateBTreeIndexes.createFutureIndexes("_new")
+);
+
+// or drop the old ones and create new ones
+counters = migrations.apply(
+	MigrateBTreeIndexes.replaceBTreeIndexes()
+);
+```
+
+or
+
+3. Define a "fake" migration containing only the refactoring and run it via the CLI
+First store the following as `V000__Migrate_indexes.xml` (or any other conform name you prefer):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<refactor type="migrate.replaceBTreeIndexes">
+		<parameters>
+			<parameter name="typeMapping">
+				<mapping>
+					<name>index_on_location</name>
+					<type>POINT</type>
+				</mapping>
+			</parameter>
+		</parameters>
+	</refactor>
+</migration>
+```
+
+And run via: 
+
+```
+./bin/neo4j-migrations -uneo4j -psecret run --migration file:./V000__Migrate_indexes.xml
+```
+
+Of course all variants allow to specify the type of replacement index per index / constraint and also excluding or explicitly including indexes and constraints to be migrated.  The [documentation covers all the details](https://michael-simons.github.io/neo4j-migrations/main/#migratingbtreeindexestofutureindexes).
+
+Thanks to @SergeyPlatonov for the ideas to explicitly run single migrations from the CLI.
+
+## 🚀 Features
+- de0cc6f Provide refactorings for migrating BTREE indexes to future indexes. (#667)
+- 1609fa0 Add the ability to run migrations and refactorings directly without recording them. (#668)
+
+## 📝 Documentation
+- 62a6870 Add JavaDocs where missing.
+
+## 🧹 Housekeeping
+- eba3cda Bump quarkus-neo4j.version from 1.5.0 to 1.6.0
+- 430fbb6 Bump spring-boot.version from 2.7.3 to 2.7.4 (#658)
+- 322045b Bump byte-buddy.version from 1.12.16 to 1.12.17 (#659)
+- afe7a36 Bump quarkus.version from 2.12.2.Final to 2.13.0.Final (#660)
+- 0f2b47e Bump checkstyle from 10.3.3 to 10.3.4 (#661)
+- d0385a5 Bump native-maven-plugin from 0.9.13 to 0.9.14 (#662)
+- b59ea26 Bump spring-data-neo4j from 6.3.2 to 6.3.3 (#663)
+- 2dbe2c5 Bump asciidoctorj from 2.5.5 to 2.5.6 (#664)
+- a3f6497 Bump junit-bom from 5.9.0 to 5.9.1 (#665)
+
+## 🛠 Build
+- 5bd4483 Ignore files with literal `.extension` during license check.
+- a6dde98 Make sure constraints are really gone before running more tests.
+- bf56ba8 Improve testing performance.
+
+
+# 1.12.0
+
+There has been no breaking changes in this release, but we have added some methods and moved things around that haven't been public before to improve your life in case you should use this library on the module path.
+
+## 🚀 Features
+- ad76526 Log connection details during Spring and Quarkus startup. (#655)
+- f6f6ef9 Try to detect invalid use of enterprise constraints against community edition. (#654)
+
+## 🐛 Bug Fixes
+- 08ec086 Add braces to single property node key constraints statements for elder versions. (#653)
+- 7a949bd Add several missing JMS requirements and necessities to public API. (#646)
+
+## 📝 Documentation
+- 871c36b add SaschaPeukert as a contributor (#649)
+
+## 🧹 Housekeeping
+- a8e0586 Bump maven-jar-plugin from 3.2.2 to 3.3.0 (#651)
+- 637815a Bump maven-shade-plugin from 3.3.0 to 3.4.0 (#652)
+- 8758ae4 Bump quarkus.version from 2.12.1.Final to 2.12.2.Final (#650)
+
+
+# 1.11.0
+
+This release contains the second Java annotation processor I wrote and I am very excited about it: You can point this tool from within Javac to entities annotated with [Neo4j-OGM](https://github.com/neo4j/neo4j-ogm) OR [Spring Data Neo4j 6](https://github.com/spring-projects/spring-data-neo4j) annotations and it will produce catalog files containing the indexes and constraints that can be derived by the annotated classes.
+
+All indexes and constraints of the Neo4j-OGM auto index manager and all SDN6 annotations are supported. The annotation processor does not ship the dependencies itself, so one possible invocation looks like this:
+
+```
+javac -proc:only \
+-processorpath neo4j-migrations-1.11.0.jar:neo4j-migrations-annotation-processor-api-1.11.0.jar:neo4j-migrations-annotation-processor-1.11.0.jar \
+-Aorg.neo4j.migrations.catalog_generator.output_dir=output \
+-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
+-cp neo4j-ogm-core-3.2.37.jar \
+path/to/annotated/entities/*
+```
+
+Please have a look at ["Annotation processing"](https://michael-simons.github.io/neo4j-migrations/current/#appendix_annotation) in the manual how to run this for SDN6 and possible ways to integrate it into your build.
+
+One possible output - outlining just some of the constraints - will look like this
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+  <!-- This file was generated by Neo4j-Migrations at 2022-09-21T21:21:00+01:00. -->
+  <catalog>
+    <indexes>
+      <index name="my_entities_ogm_singleindexentity_login_property" type="property">
+        <label>Entity</label>
+        <properties>
+          <property>login</property>
+        </properties>
+      </index>
+      <index name="my_entities_ogm_relpropertyindextentity_description_property" type="property">
+        <type>RELPROPERTYINDEXTENTITY</type>
+        <properties>
+          <property>description</property>
+        </properties>
+      </index>
+      <index name="my_entities_ogm_compositeindexentity_name_age_property" type="property">
+        <label>EntityWithCompositeIndex</label>
+        <properties>
+          <property>name</property>
+          <property>age</property>
+        </properties>
+      </index>
+    </indexes>
+    <constraints>
+      <constraint name="my_entities_ogm_entitywithassignedid_id_unique" type="unique">
+        <label>EntityWithAssignedId</label>
+        <properties>
+          <property>id</property>
+        </properties>
+      </constraint>
+      <constraint name="my_entities_ogm_nodepropertyexistenceconstraintentity_login_exists" type="exists">
+        <label>Entity</label>
+        <properties>
+          <property>login</property>
+        </properties>
+      </constraint>
+      <constraint name="my_entities_ogm_relpropertyexistenceconstraintentity_description_exists" type="exists">
+        <type>REL</type>
+        <properties>
+          <property>description</property>
+        </properties>
+      </constraint>
+      <constraint name="my_entities_ogm_nodekeyconstraintentity_name_age_key" type="key">
+        <label>Entity</label>
+        <properties>
+          <property>name</property>
+          <property>age</property>
+        </properties>
+      </constraint>
+    </constraints>
+  </catalog>
+  <apply/>
+</migration>
+```
+
+This catalog can than be added to your CI/CD or application setup as described in the [manual](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog). We do not recommend regenerating it every time in the build as that will break the chain of migrations once you change entities. This might be seen as an inconvenience but we are convinced that a half-automated process here is better than the auto index manager of old that might surprises you with it's upgrade mechanism. 
+
+This also the first release that that will ship with Linux ARM64 ootb.
+
+While we did bump the minor version, there are **no** breaking changes.
+
+## 🚀 Features
+- 771124c Add annotation processor for Neo4j-OGM and SDN6 entities. (#618)
+
+## 🐛 Bug Fixes
+- f8b1da9 Improve quotation papttern. (#616)
+
+## 🔄️ Refactorings
+- 9c58ec5 Use Cypher-DSL schema name support for sanitizing names. (#620)
+
+## 📝 Documentation
+- fb4ca38 add fbiville as a contributor for ideas (#638)
+- e8a71cd add ali-ince as a contributor for userTesting (#637)
+- 59fea88 add atomfrede as a contributor for ideas (#636)
+- 1b52cf9 add katya-dovgalets as a contributor for code (#635)
+- 6791e62 add corneil as a contributor for bug (#634)
+- d141781 add marianozunino as a contributor for ideas (#633)
+- fd4b41c add aalmiray as a contributor for code, plugin, ideas, mentoring (#632)
+- a11f2fc add Dcanzano as a contributor for userTesting, bug (#631)
+- 3b02732 add Hosch250 as a contributor for userTesting, bug (#630)
+- 832f503 add injectives as a contributor for code, userTesting (#629)
+- 1807f29 add SeanKilleen as a contributor for doc (#628)
+- 22cf9b7 add ali-ince as a contributor for bug (#627)
+- 1fadb5d add michael-simons as a contributor for maintenance (#626)
+- 2062be5 add michael-simons as a contributor for code, doc (#625)
+- 4aebc75 add meistermeier as a contributor for doc (#624)
+- 99b9f60 add bsideup as a contributor for review (#623)
+- e5e89ce add meistermeier as a contributor for code (#622)
+- 897be21 Update local changelog.
+
+## 🧹 Housekeeping
+- 1a7b7b3 Bump neo4j-harness from 4.4.10 to 4.4.11 (#642)
+- 91266e4 Bump error_prone_annotations from 2.12.1 to 2.15.0 (#643)
+- 2af5eaa Bump byte-buddy.version from 1.12.14 to 1.12.16 (#644)
+- 4e1bf2f Bump checker-qual from 3.24.0 to 3.25.0 (#641)
+- 8ef853e Bump mockito.version from 4.7.0 to 4.8.0 (#639)
+- c2b6c6f Bump quarkus-neo4j.version from 1.4.1 to 1.5.0
+- a3ade49 Bump quarkus.version from 2.12.0.Final to 2.12.1.Final
+- e783d4d Bump japicmp-maven-plugin from 0.15.7 to 0.16.0 (#617)
+- dde32a3 Bump quarkus.version from 2.11.2.Final to 2.12.0.Final (#611)
+
+## 🛠 Build
+- 165bcb8 Add linux-aarch_64 to the release pipeline. (#645)
+- d8d1dfe Add all-contributors bot.
+
+
 # 1.10.1
 
 ## 📝 Documentation
@@ -185,7 +498,7 @@ We'd like to thank the following people for their contributions:
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @meistermeier
-- @bsideup 
+- @bsideup
 
 
 # 1.8.0
@@ -369,7 +682,7 @@ We'd like to thank the following people for their contributions:
 
 # 1.5.4
 
-This is a release to acknowledge the work done by @aalmiray with @jreleaser which just released itself over the weekend in version 1.0.0 and to which I just bumped this repository. 
+This is a release to acknowledge the work done by @aalmiray with @jreleaser which just released itself over the weekend in version 1.0.0 and to which I just bumped this repository.
 
 Thank you for making me rethink releasing my stuff a lot. I truly enjoyed our collaboration.
 
@@ -447,14 +760,14 @@ We'd like to thank the following people for their contributions:
 
 # 1.5.0
 
-*No breaking changes* but an exciting new feature: have preconditions asserted against your target database before we try to run your refactoring. This way you can make sure you’ll never end up in an invalid state just because Cypher syntax changed in between versions. 
+*No breaking changes* but an exciting new feature: have preconditions asserted against your target database before we try to run your refactoring. This way you can make sure you’ll never end up in an invalid state just because Cypher syntax changed in between versions.
 
 Preconditions we support out of the box:
 * Edition check (enterprise or community)
 * Version check (enumerated versions or ranges)
 * Custom queries returning a boolean value
 
-All preconditions can be asserted (refactoring will stop when unmet) or assumed (single migration will be skipped). 
+All preconditions can be asserted (refactoring will stop when unmet) or assumed (single migration will be skipped).
 
 Have a look at the docs and learn more about [Preconditions](https://michael-simons.github.io/neo4j-migrations/current/#concepts_preconditions).
 
@@ -624,7 +937,7 @@ We'd like to thank the following people for their contributions:
 
 Happy 2nd birthday, _neo4j-migrations_! 🥳 The first pre-release, 0.0.1 has been pushed out to central on January 9th, 2020. Since than, stuff has come a long way and I am super happy about it.
 
-1.3.0 is a big release coming only 4 days after the last one [(1.2.3](https://github.com/michael-simons/neo4j-migrations/releases/tag/1.2.3)) and bumping the minor number. Why is that? 
+1.3.0 is a big release coming only 4 days after the last one [(1.2.3](https://github.com/michael-simons/neo4j-migrations/releases/tag/1.2.3)) and bumping the minor number. Why is that?
 The API hasn't changed in an incompatible way, but there are 2 changes in behavior
 
 1. 2afaaa5 aligns the behavior of the `enabled` flag in the Spring Boot starter with the behavior in the Quarkus extension: A bean of type `Migrations` will be provided in the application context regardless of that setting. You are free to use it any way you want. You might want to make sure your application is on a valid database or not without us applying the migrations. Or you just want to use the `info` api to get the current version
@@ -910,7 +1223,7 @@ We'd like to thank the following people for their contributions:
 - GH-239 - Use transaction functions instead of auto commits where applicable.
 - Don't print full stacktrace on auth error.
 - Set pool size to 1 in CLI. [improvement]
- 
+
 Java and native binaries are now published with each GitHub-Release.
 
 
@@ -1028,7 +1341,7 @@ Neo4j-Migrations didn't work on instances with anonymous access due to the fact 
 
 ## 🚨Api changes
 
-* Renamed prefix `filesystem:` to `file:` to be consistent with most other tools out there. 
+* Renamed prefix `filesystem:` to `file:` to be consistent with most other tools out there.
 
 *NOTE:* There are 0.0.6 and 0.0.7 on central, but without the starter due to issues with Maven's release plugin, the Nexus plugin and submodules with a different parent. I'm sorry for that.
 

@@ -178,6 +178,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "adam-cowley",
+      "name": "Adam Cowley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1372869?v=4",
+      "profile": "http://www.adamcowley.co.uk",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,

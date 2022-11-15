@@ -150,7 +150,7 @@ final class MigrationsLock {
 
 		@Override
 		public boolean containsUpdates() {
-			return (nodesCreated | nodesDeleted | nodesCreated | nodesDeleted | relationshipsCreated | relationshipsDeleted | propertiesSet | labelsAdded | labelsRemoved | indexesAdded | indexesRemoved | constraintsAdded | constraintsRemoved) > 0;
+			return (nodesCreated | nodesDeleted | relationshipsCreated | relationshipsDeleted | propertiesSet | labelsAdded | labelsRemoved | indexesAdded | indexesRemoved | constraintsAdded | constraintsRemoved) > 0;
 		}
 
 		@Override

@@ -41,7 +41,8 @@ They provide a uniform way for applications, the command line and build tools al
 The project is inspired to a large extent by https://flywaydb.org[FlywayDB], which is an awesome tool for migration of relational databases.
 Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.
 
-Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver], supports Neo4j from 3.5 on through the whole 4.x series upto Neo4j 5, including enterprise features such as multidatabase support and impersonation.
+Neo4j-Migrations builds directly on top of the official https://github.com/neo4j/neo4j-java-driver[Neo4j Java driver], supports Neo4j 3.5, Neo4j 4.1 to 4.4 and Neo4j 5, including enterprise features such as multidatabase support and impersonation.
+
 The only dependencies are said driver and https://github.com/classgraph/classgraph[ClassGraph], the latter being used to find migrations on the classpath.
 
 The history of migrations applied is stored as a subgraph in your database.
@@ -67,14 +68,16 @@ Other options include Homebrew and Zip bundles. Please checkout the full list of
 
 == Compatibility
 
-Neo4j-Migrations can be used against Neo4j 3.5, all Neo4j 4.x versions upto 4.4 and Neo4j 5, including all current Neo4j-Aura versions.
+Neo4j-Migrations can be used against Neo4j 3.5, all Neo4j 4 versions from 4.1 upto 4.4 and Neo4j 5, including all current Neo4j-Aura versions.
+
+NOTE: Neo4j 4.0 is only partially supported since version 2.0 due to the fact that Neo4j Java Driver does not support it fully anymore since 5.x. If you need to use this library with Neo4j 4.0 (which you shouldn't, because 4.0 is out of support anyway), look at the latest 1.x version of Neo4j-Migrations.
 
 // tag::compatibility[]
 The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 17 or higher since version 2.0.
 Neo4j-Migrations can safely be used on both the class- and module-path.
 Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don't require a JVM to be installed.
 
-For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3)
+For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3). This is also the versions you should be using against Neo4j 4.0.
 
 The older releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8.
 The Core API is provided as a Multi-Release-Jar in the older releases, providing a `module-info.java` for JDK 11 and higher, making it a good citizen on the Java module path as well.

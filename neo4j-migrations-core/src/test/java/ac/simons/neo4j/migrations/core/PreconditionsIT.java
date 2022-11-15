@@ -80,6 +80,7 @@ class PreconditionsIT {
 	@Test
 	void assertionsShouldWork() {
 
+		@SuppressWarnings("resource")
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
@@ -105,6 +106,7 @@ class PreconditionsIT {
 	@DisabledIfSystemProperty(named = "os.arch", matches = "aarch64", disabledReason = "no aarch64 image available for 4.0")
 	void thingsShouldNotFailWhenAssumptionsChangeDueToVersionUpgrade() {
 
+		@SuppressWarnings("resource")
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
@@ -125,7 +127,7 @@ class PreconditionsIT {
 			assertStateBeforeAndAfterPreconditionChanged(driver);
 
 			try (Session session = driver.session()) {
-				session.writeTransaction(tx -> tx.run("CREATE(v:Version {name:'4.1'})").consume());
+				session.executeWrite(tx -> tx.run("CREATE(v:Version {name:'4.1'})").consume());
 			}
 
 			migrations = new Migrations(MigrationsConfig.builder()

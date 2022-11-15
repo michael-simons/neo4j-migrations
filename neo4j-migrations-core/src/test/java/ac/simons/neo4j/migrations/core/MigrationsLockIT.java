@@ -57,7 +57,7 @@ class MigrationsLockIT extends TestBase {
 	void shouldNotFailIfTheConstraintExistsAsUnnamedConstraint() {
 
 		try (Session session = driver.session()) {
-			int cnt = session.writeTransaction(
+			int cnt = session.executeWrite(
 				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
 					.consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();
@@ -76,7 +76,7 @@ class MigrationsLockIT extends TestBase {
 	void shouldNotFailIfTheConstraintExistsAsNamedConstraint() {
 
 		try (Session session = driver.session()) {
-			int cnt = session.writeTransaction(
+			int cnt = session.executeWrite(
 				t -> t.run("CREATE CONSTRAINT a_name ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
 					.consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();
@@ -121,7 +121,7 @@ class MigrationsLockIT extends TestBase {
 
 		try (Session session = context.getSession()) {
 
-			int cnt = session.writeTransaction(
+			int cnt = session.executeWrite(
 				t -> t.run("UNWIND range(1,2) AS i WITH i CREATE (:__Neo4jMigrationsLock {id: i, name: 'Foo'})")
 					.consume().counters().nodesCreated());
 			assertThat(cnt).isEqualTo(2);
@@ -138,7 +138,7 @@ class MigrationsLockIT extends TestBase {
 
 			try (Session session = context.getSession()) {
 
-				int cnt = session.writeTransaction(
+				int cnt = session.executeWrite(
 					t -> t.run("MATCH (lock:__Neo4jMigrationsLock) DELETE lock")
 						.consume().counters().nodesDeleted());
 				assertThat(cnt).isGreaterThanOrEqualTo(2);
@@ -173,11 +173,11 @@ class MigrationsLockIT extends TestBase {
 
 		// Create old-school constraints
 		try (Session session = driver.session()) {
-			int cnt = session.writeTransaction(
+			int cnt = session.executeWrite(
 				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
 					.consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();
-			cnt = session.writeTransaction(
+			cnt = session.executeWrite(
 				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE")
 					.consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();

@@ -85,9 +85,9 @@ class CatalogBasedMigrationIT {
 			Session session = driver.session()) {
 			Catalog catalog;
 			if (version.value == Neo4jVersion.V4_2) {
-				catalog = session.writeTransaction(tx -> DatabaseCatalog.of(version.value, tx, true));
+				catalog = session.executeWrite(tx -> DatabaseCatalog.of(version.value, tx, true));
 			} else {
-				catalog = session.readTransaction(tx -> DatabaseCatalog.of(version.value, tx, true));
+				catalog = session.executeRead(tx -> DatabaseCatalog.of(version.value, tx, true));
 			}
 			assertThat(catalog.getItems()).isNotEmpty();
 			assertThat(catalog.getItems()).allMatch(expectedCatalog::containsEquivalentItem);

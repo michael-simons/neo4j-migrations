@@ -78,14 +78,14 @@ class AsciiDoctorBasedMigrationProviderIT {
 	static void dropConstraint(Driver driver, String constraint) {
 		try (Session session = driver.session()) {
 			assertThat(
-				session.writeTransaction(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
+				session.executeWrite(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
 		} catch (Neo4jException ignored) {
 		}
 	}
 
 	static void dropIndex(Driver driver, String index) {
 		try (Session session = driver.session()) {
-			assertThat(session.writeTransaction(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
+			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
 		} catch (Neo4jException ignored) {
 		}
 	}

@@ -64,7 +64,7 @@ class DefaultMigrationContextTest {
 		Session session = mock(Session.class);
 		when(session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)"))
 			.thenThrow(new ClientException(Neo4jCodes.PROCEDURE_NOT_FOUND, "n/a"));
-		when(session.readTransaction(any())).thenReturn(extendedResultSummary);
+		when(session.executeRead(any())).thenReturn(extendedResultSummary);
 
 		Driver driver = mock(Driver.class);
 		when(driver.session()).thenReturn(session);

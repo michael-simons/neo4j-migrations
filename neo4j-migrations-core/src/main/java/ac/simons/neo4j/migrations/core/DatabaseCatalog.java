@@ -30,8 +30,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
@@ -102,15 +102,15 @@ final class DatabaseCatalog implements Catalog {
 		}
 	}
 
-	static Catalog full(Neo4jVersion version, QueryRunner queryRunner) {
+	static Catalog full(Neo4jVersion version, SimpleQueryRunner queryRunner) {
 		return of(version, queryRunner, true, false);
 	}
 
-	static Catalog of(Neo4jVersion version, QueryRunner queryRunner, boolean readOptions) {
+	static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions) {
 		return of(version, queryRunner, readOptions, true);
 	}
 
-	private static Catalog of(Neo4jVersion version, QueryRunner queryRunner, boolean readOptions, boolean filterInternalConstraints) {
+	private static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions, boolean filterInternalConstraints) {
 
 		Set<CatalogItem<?>> items = new LinkedHashSet<>();
 		Function<Record, MapAccessor> mapAccessorMapper = r -> readOptions ? r : new FilteredMapAccessor(r, Collections.singleton("options"));

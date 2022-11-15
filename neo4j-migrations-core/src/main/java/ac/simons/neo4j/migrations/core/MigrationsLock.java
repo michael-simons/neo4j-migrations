@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.Neo4jException;
-import org.neo4j.driver.internal.summary.InternalSummaryCounters;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
@@ -115,7 +114,7 @@ final class MigrationsLock {
 
 		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			SummaryCounters summaryCounters = session.writeTransaction(
+			SummaryCounters summaryCounters = session.executeWrite(
 				tx -> tx.run("MATCH (l:`__Neo4jMigrationsLock`) delete l").consume().counters());
 			nodesDeleted += summaryCounters.nodesDeleted();
 			relationshipsDeleted += summaryCounters.relationshipsDeleted();
@@ -133,7 +132,7 @@ final class MigrationsLock {
 			}
 		}
 
-		return new InternalSummaryCounters(
+		return new SummaryCountersImpl(
 			0, nodesDeleted,
 			0, relationshipsDeleted,
 			0,
@@ -141,6 +140,23 @@ final class MigrationsLock {
 			0, indexesRemoved,
 			0, constraintsRemoved, 0
 		);
+	}
+
+	record SummaryCountersImpl(int nodesCreated, int nodesDeleted, int relationshipsCreated,
+		int relationshipsDeleted, int propertiesSet, int labelsAdded, int labelsRemoved,
+		int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved,
+		int systemUpdates
+	) implements SummaryCounters {
+
+		@Override
+		public boolean containsUpdates() {
+			return (nodesCreated | nodesDeleted | nodesCreated | nodesDeleted | relationshipsCreated | relationshipsDeleted | propertiesSet | labelsAdded | labelsRemoved | indexesAdded | indexesRemoved | constraintsAdded | constraintsRemoved) > 0;
+		}
+
+		@Override
+		public boolean containsSystemUpdates() {
+			return systemUpdates > 0;
+		}
 	}
 
 	String lock() {
@@ -157,10 +173,10 @@ final class MigrationsLock {
 
 		try (Session session = context.getSchemaSession()) {
 			lockLockingLocks.writeLock().lock();
-			long internalId = session.writeTransaction(t ->
+			var internalId = session.executeWrite(t ->
 				t.run("CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l",
 					Values.parameters("id", id, "name", nameOfLock))
-					.single().get("l").asNode().id()
+					.single().get("l").asNode().elementId()
 			);
 			LOGGER.log(Level.FINE, "Acquired lock {0} with internal id {1}", new Object[] { id, internalId });
 			Runtime.getRuntime().addShutdownHook(cleanUpTask);
@@ -177,11 +193,10 @@ final class MigrationsLock {
 
 		try (Session session = context.getSchemaSession()) {
 			lockLockingLocks.readLock().lock();
-			long count = session.readTransaction(
+			return session.executeRead(
 				tx -> tx.run("MATCH (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN count(l)",
 						Values.parameters("id", id, "name", nameOfLock))
-					.single().get(0).asLong());
-			return count >= 1;
+					.single().get(0).asLong() > 0);
 		} finally {
 			lockLockingLocks.readLock().unlock();
 		}
@@ -200,7 +215,7 @@ final class MigrationsLock {
 
 		try (Session session = context.getSchemaSession()) {
 
-			ResultSummary resultSummary = session.writeTransaction(t ->
+			ResultSummary resultSummary = session.executeWrite(t ->
 				t.run("MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l", Values.parameters("id", id))
 					.consume());
 			LOGGER.log(Level.FINE, "Released lock {0} ({1} node(s) deleted)",

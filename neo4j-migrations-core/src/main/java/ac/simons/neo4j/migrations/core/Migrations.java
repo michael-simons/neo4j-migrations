@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.TransactionCallback;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -360,7 +360,7 @@ public final class Migrations {
 			ORDER BY migrationTarget ASC""";
 
 		try (Session session = context.getSchemaSession()) {
-			DeletedChainsWithCounters deletedChainsWithCounters = session.writeTransaction(tx -> {
+			DeletedChainsWithCounters deletedChainsWithCounters = session.executeWrite(tx -> {
 				Result result = tx.run(query, Values.parameters(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null), "all", all));
 				return new DeletedChainsWithCounters(
 					result.list(r -> r.get(PROPERTY_MIGRATION_TARGET).asString()),
@@ -524,7 +524,7 @@ public final class Migrations {
 	private Optional<MigrationVersion> getLastAppliedVersion() {
 
 		try (Session session = context.getSchemaSession()) {
-			Node lastMigration = session.readTransaction(tx ->
+			Node lastMigration = session.executeRead(tx ->
 				tx.run(
 					"MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN l",
 						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))
@@ -624,7 +624,7 @@ public final class Migrations {
 		parameters.put("executionTime", executionTime);
 		parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));
 
-		TransactionWork<ResultSummary> uow;
+		TransactionCallback<ResultSummary> uow;
 		if (repeated) {
 			uow = t -> t.run(
 				"MATCH (l:__Neo4jMigration) WHERE l.version = $appliedMigration['version'] AND coalesce(l.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') WITH l "
@@ -657,7 +657,7 @@ public final class Migrations {
 		}
 
 		try (Session session = context.getSchemaSession()) {
-			session.writeTransaction(uow);
+			session.executeWrite(uow);
 		}
 
 		return appliedMigration.getVersion();

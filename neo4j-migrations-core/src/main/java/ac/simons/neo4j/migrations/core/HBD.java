@@ -59,7 +59,7 @@ final class HBD {
 		finalStatement = statement.replace("$name ", replacement);
 
 		try {
-			return session.writeTransaction(tx -> tx.run(finalStatement).consume().counters().constraintsAdded());
+			return session.executeWrite(tx -> tx.run(finalStatement).consume().counters().constraintsAdded());
 		} catch (Neo4jException e) {
 
 			if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {
@@ -81,7 +81,7 @@ final class HBD {
 		}
 
 		try {
-			return session.writeTransaction(tx ->
+			return session.executeWrite(tx ->
 				tx.run(finalStatement).consume().counters().constraintsRemoved());
 		} catch (Neo4jException e) {
 			if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {

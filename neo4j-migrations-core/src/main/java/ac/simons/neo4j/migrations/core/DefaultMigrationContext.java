@@ -31,7 +31,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.TransactionCallback;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.DatabaseInfo;
 import org.neo4j.driver.summary.Notification;
@@ -190,7 +190,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	private ConnectionDetails getConnectionDetails0() {
 
-		TransactionWork<ExtendedResultSummary> extendedResultSummaryTransactionWork;
+		TransactionCallback<ExtendedResultSummary> extendedResultSummaryTransactionWork;
 		if (hasDbmsProcedures()) {
 			extendedResultSummaryTransactionWork = tx -> {
 				Result result = tx.run(""
@@ -224,13 +224,13 @@ final class DefaultMigrationContext implements MigrationContext {
 
 		try (Session session = this.getSchemaSession()) {
 
-			ExtendedResultSummary databaseInformation = session.readTransaction(extendedResultSummaryTransactionWork);
+			ExtendedResultSummary databaseInformation = session.executeRead(extendedResultSummaryTransactionWork);
 
 			// Auth maybe disabled. In such cases, we cannot get the current user. This is usually the case if the method
 			// used here does not exist.
 			String username = "anonymous";
 			if (databaseInformation.showCurrentUserExists) {
-				username = session.readTransaction(tx ->
+				username = session.executeRead(tx ->
 					tx.run("CALL dbms.showCurrentUser() YIELD username RETURN username").single().get("username").asString()
 				);
 			}
@@ -318,7 +318,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 			try {
 				if ("close".equals(method.getName())) {
-					bookmarkManager.updateBookmarks(usedBookmarks, target.lastBookmark());
+					bookmarkManager.updateBookmarks(usedBookmarks, target.lastBookmarks());
 					target.close();
 					return null;
 				}

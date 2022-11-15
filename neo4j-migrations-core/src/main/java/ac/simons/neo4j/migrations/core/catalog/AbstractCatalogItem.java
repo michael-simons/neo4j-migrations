@@ -30,9 +30,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Value;
-import org.neo4j.driver.internal.value.ListValue;
-import org.neo4j.driver.internal.value.MapValue;
 import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.TypeSystem;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -62,13 +61,13 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	}
 
 	private static String renderMap(Value value) {
-		if (value instanceof MapValue) {
+		if (TypeSystem.getDefault().MAP().isTypeOf(value)) {
 			Map<String, Value> map = value.asMap(Function.identity());
 			return map.entrySet()
 				.stream()
 				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
 				.collect(Collectors.joining(", ", "{", "}"));
-		} else if (value instanceof ListValue) {
+		} else if (TypeSystem.getDefault().LIST().isTypeOf(value)) {
 			List<Value> list = value.asList(Function.identity());
 			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
 		} else {

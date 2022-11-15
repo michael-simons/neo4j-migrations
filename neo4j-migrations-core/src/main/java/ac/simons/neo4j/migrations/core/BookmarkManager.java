@@ -50,13 +50,13 @@ final class BookmarkManager {
 		}
 	}
 
-	void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark) {
+	void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> lastBookmarks) {
 
 		try {
 			write.lock();
 			bookmarks.removeAll(usedBookmarks);
-			if (lastBookmark != null) {
-				bookmarks.add(lastBookmark);
+			if (!(lastBookmarks == null || lastBookmarks.isEmpty())) {
+				bookmarks.addAll(lastBookmarks);
 			}
 		} finally {
 			write.unlock();

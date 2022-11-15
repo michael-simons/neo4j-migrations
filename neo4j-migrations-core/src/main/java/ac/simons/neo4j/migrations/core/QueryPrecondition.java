@@ -91,7 +91,7 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 	public boolean isMet(MigrationContext migrationContext) {
 		try (Session session = database == Database.SCHEMA ? migrationContext.getSchemaSession() :
 			migrationContext.getSession()) {
-			return session.readTransaction(tx -> tx.run(query).single().get(0).asBoolean());
+			return session.executeRead(tx -> tx.run(query).single().get(0).asBoolean());
 		}
 	}
 

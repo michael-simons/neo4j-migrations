@@ -46,9 +46,9 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 			boolean testOnlyLatestNeo4j = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
 			if (testOnlyLatestNeo4j) {
-				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
+				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.LATEST, true)));
 			}
-			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.LATEST, Neo4jVersion.UNDEFINED, Neo4jVersion.V5_0);
+			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.UNDEFINED);
 			return Arrays.stream(Neo4jVersion.values())
 					.filter(version -> !unsupported.contains(version))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));
@@ -72,8 +72,8 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			return this.value.toString() + (enterprise ? " (enterprise)" : "");
 		}
 	}
-	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.1", "4.2", "4.3", "4.4", "LATEST"));
-	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = Collections.singletonList("4.4");
+	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.0", "4.1", "4.2", "4.3", "4.4", "LATEST"));
+	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = List.of("4.4", "LATEST");
 
 	@Override
 	public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {

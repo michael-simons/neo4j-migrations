@@ -1,1 +1,1 @@
-CREATE CONSTRAINT constraint_name ON ()-[like:LIKED]-() ASSERT exists(like.day);
+CREATE CONSTRAINT constraint_name FOR ()-[like:LIKED]-() REQUIRE like.day IS NOT NULL;

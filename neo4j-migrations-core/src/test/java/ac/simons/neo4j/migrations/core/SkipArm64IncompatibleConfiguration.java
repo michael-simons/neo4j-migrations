@@ -47,7 +47,9 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			if (testOnlyLatestNeo4j) {
 				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.LATEST, true)));
 			}
-			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.UNDEFINED);
+			// The exclusion of 4.0 and 4.1 here affects not every test ofc, only the ones
+			// that rely on the provider for matrix tests. 4.0 and 4.1 are EOL since July 2021 and December 2021 respectively.
+			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.V4_0, Neo4jVersion.V4_1, Neo4jVersion.UNDEFINED);
 			return Arrays.stream(Neo4jVersion.values())
 					.filter(version -> !(unsupported.contains(version) || version == Neo4jVersion.LATEST))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));

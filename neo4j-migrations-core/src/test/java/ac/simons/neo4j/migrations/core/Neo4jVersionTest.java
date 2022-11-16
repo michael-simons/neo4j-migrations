@@ -36,10 +36,16 @@ class Neo4jVersionTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "5.0.0", "Neo4j/5.0.0", "5.0.0-drop04.0", "5.0.0-aura"})
+	@ValueSource(strings = { "5.0.0", "Neo4j/5.0.0", "5.0.0-drop04.0", "5.0.0-aura", "5.1", "5.2"})
 	void shouldIdenfify5(String value) {
 		Neo4jVersion version = Neo4jVersion.of(value);
-		assertThat(version).isEqualTo(Neo4jVersion.V5_0);
+		assertThat(version).isEqualTo(Neo4jVersion.V5);
+	}
+
+	@Test
+	void shouldBeLatestOnAnythingHigherThanDefined() {
+		Neo4jVersion version = Neo4jVersion.of("Neo4j/4711");
+		assertThat(version).isEqualTo(Neo4jVersion.LATEST);
 	}
 
 	@Test
@@ -48,13 +54,13 @@ class Neo4jVersionTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5_0", "V5", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
 	void shouldIdentifyMajorVersion4(Neo4jVersion version) {
 		assertThat(version.getMajorVersion()).isEqualTo(4);
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V5_0", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V5", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
 	void shouldParseMinor(Neo4jVersion version) {
 
 		assertThat(version.getMinorVersion()).isNotNegative();

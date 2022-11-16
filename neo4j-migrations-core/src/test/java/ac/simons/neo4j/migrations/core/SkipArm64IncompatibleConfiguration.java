@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
@@ -46,11 +45,13 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 			boolean testOnlyLatestNeo4j = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
 			if (testOnlyLatestNeo4j) {
-				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
+				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.LATEST, true)));
 			}
-			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.LATEST, Neo4jVersion.UNDEFINED, Neo4jVersion.V5_0);
+			// The exclusion of 4.0 and 4.1 here affects not every test ofc, only the ones
+			// that rely on the provider for matrix tests. 4.0 and 4.1 are EOL since July 2021 and December 2021 respectively.
+			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.V4_0, Neo4jVersion.V4_1, Neo4jVersion.UNDEFINED);
 			return Arrays.stream(Neo4jVersion.values())
-					.filter(version -> !unsupported.contains(version))
+					.filter(version -> !(unsupported.contains(version) || version == Neo4jVersion.LATEST))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));
 		}
 	}
@@ -72,8 +73,8 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			return this.value.toString() + (enterprise ? " (enterprise)" : "");
 		}
 	}
-	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.1", "4.2", "4.3", "4.4", "LATEST"));
-	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = Collections.singletonList("4.4");
+	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = List.of("3.5", "4.0", "4.1", "4.2", "4.3", "4.4", "5", "LATEST");
+	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = List.of("4.4", "5", "LATEST");
 
 	@Override
 	public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {

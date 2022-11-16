@@ -60,9 +60,9 @@ public enum Neo4jVersion {
 	 */
 	V4_4,
 	/**
-	 * Constant for everything Neo4j 5.0
+	 * Constant for everything Neo4j 5
 	 */
-	V5_0,
+	V5,
 	/**
 	 * Constant when we assume the latest version.
 	 */
@@ -86,7 +86,7 @@ public enum Neo4jVersion {
 	private static final Set<Neo4jVersion> SERIES_4 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V4_")).collect(
 		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
 
-	private static final Set<Neo4jVersion> SERIES_5 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V5_")).collect(
+	private static final Set<Neo4jVersion> SERIES_5 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V5")).collect(
 		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
 
 	/**
@@ -112,8 +112,8 @@ public enum Neo4jVersion {
 			return V4_3;
 		} else if (value.startsWith("4.4")) {
 			return V4_4;
-		} else if (value.startsWith("5.0")) {
-			return V5_0;
+		} else if (value.startsWith("5.")) {
+			return V5;
 		} else {
 			return LATEST;
 		}

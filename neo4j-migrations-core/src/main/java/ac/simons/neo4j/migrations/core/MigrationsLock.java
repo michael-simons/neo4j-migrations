@@ -102,9 +102,8 @@ final class MigrationsLock {
 	}
 
 	private static boolean constraintWithNameAlreadyExistsAndIsEquivalent(ConnectionDetails cd, Session session, Constraint constraint, MigrationsException e) {
-		return e.getCause() instanceof Neo4jException && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
-			((Neo4jException) e.getCause()).code()) && DatabaseCatalog.full(Neo4jVersion.of(cd.getServerVersion()),
-			session).containsEquivalentItem(constraint);
+		return e.getCause() instanceof Neo4jException ne && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(ne.code()) &&
+			DatabaseCatalog.full(Neo4jVersion.of(cd.getServerVersion()), session).containsEquivalentItem(constraint);
 	}
 
 	SummaryCounters clean() {

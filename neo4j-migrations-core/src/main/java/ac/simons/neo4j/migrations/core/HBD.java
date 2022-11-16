@@ -93,8 +93,7 @@ final class HBD {
 	}
 
 	static boolean constraintWithNameAlreadyExists(MigrationsException e) {
-		return e != null && e.getCause() instanceof ClientException && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(
-			((ClientException) e.getCause()).code());
+		return e != null && e.getCause() instanceof ClientException ce && Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(ce.code());
 	}
 
 	/**
@@ -107,10 +106,10 @@ final class HBD {
 	static boolean constraintProbablyRequiredEnterpriseEdition(Exception rawException, ConnectionDetails connectionDetails) {
 
 		Neo4jException e;
-		if (rawException instanceof Neo4jException) {
-			e = (Neo4jException) rawException;
-		} else if (rawException.getCause() instanceof Neo4jException) {
-			e = (Neo4jException) rawException.getCause();
+		if (rawException instanceof Neo4jException ne) {
+			e = ne;
+		} else if (rawException.getCause() instanceof Neo4jException ne) {
+			e = ne;
 		} else {
 			return false;
 		}

@@ -74,9 +74,9 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
 
-	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*CALL\\s*\\{.*}\\s*IN\\s+TRANSACTIONS)(?!`)");
+	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*\\{.*}\\s*IN\\s+TRANSACTIONS)(?!`)");
 
-	private static final Pattern USING_PERIODIC_PATTERN = Pattern.compile("(?ims)(?<!`)(\\s*USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)");
+	private static final Pattern USING_PERIODIC_PATTERN = Pattern.compile("(?ims)(?<!`)(([^`\\s*]|^)\\s*+USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)");
 
 	/**
 	 * The identifier of this resource.

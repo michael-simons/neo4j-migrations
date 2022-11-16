@@ -48,6 +48,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
@@ -726,5 +727,21 @@ class MigrationsIT extends TestBase {
 				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "2581374719", "200310393",
 						"949907516", "949907516", "2884945437", "1491717096", "227047158");
 		}
+	}
+
+	@ParameterizedTest // GH-719
+	@ValueSource(strings = {"V000__Use_call_in_tx1", "V000__Use_call_in_tx2"})
+	void shouldAllowCallInTX(String script) {
+
+		try (Session session = driver.session()) {
+			session.run("with range(1,100) as r unwind r as i create (n:F) return n").consume();
+		}
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		int appliedMigrations = migrations.apply(
+			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/" + script + ".cypher"))
+		);
+
+		assertThat(appliedMigrations).isEqualTo(1);
 	}
 }

@@ -21,11 +21,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
 import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.AccessMode;
-import org.neo4j.driver.Bookmark;
+import org.neo4j.driver.BookmarkManager;
+import org.neo4j.driver.BookmarkManagerConfig;
+import org.neo4j.driver.BookmarkManagers;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -77,7 +78,7 @@ final class DefaultMigrationContext implements MigrationContext {
 		}
 
 		this.config = config;
-		this.bookmarkManager = new BookmarkManager();
+		this.bookmarkManager = BookmarkManagers.defaultManager(BookmarkManagerConfig.builder().build());
 		this.driver = (Driver) Proxy.newProxyInstance(this.getClass().getClassLoader(),
 			new Class<?>[] { Driver.class }, new DriverProxy(bookmarkManager, driver));
 		this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
@@ -105,7 +106,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 		SessionConfig.Builder builder = SessionConfig.builder()
 			.withDefaultAccessMode(AccessMode.WRITE)
-			.withBookmarks(bookmarkManager.getBookmarks());
+			.withBookmarkManager(bookmarkManager);
 		this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
 		this.config.getOptionalImpersonatedUser().ifPresent(user -> setWithImpersonatedUser(builder, user));
 
@@ -264,65 +265,23 @@ final class DefaultMigrationContext implements MigrationContext {
 			try {
 				if ("session".equals(method.getName())) {
 					SessionConfig sessionConfig;
-					Collection<Bookmark> existingBookmarks = bookmarkManager.getBookmarks();
 					if (args.length == 0) {
 						// There is no session config
-						sessionConfig = SessionConfig.builder().withBookmarks(existingBookmarks).build();
+						sessionConfig = SessionConfig.builder().withBookmarkManager(bookmarkManager).build();
 					} else {
 						SessionConfig existingConfig = (SessionConfig) args[0];
-						// {@literal null} is the default, so if there's something non-null in,
-						// probably someone had thought about already
-						if (existingConfig.bookmarks() != null) {
+						if (existingConfig.bookmarkManager().isPresent()) {
 							sessionConfig = existingConfig;
 						} else {
 							sessionConfig = copyIntoBuilder(existingConfig)
-								.withBookmarks(existingBookmarks)
+								.withBookmarkManager(bookmarkManager)
 								.build();
 						}
 					}
-					Session session = target.session(sessionConfig);
-					return Proxy.newProxyInstance(this.getClass().getClassLoader(),
-						new Class<?>[] { Session.class },
-						new SessionProxy(bookmarkManager, existingBookmarks, session));
+					return target.session(sessionConfig);
 				} else {
 					return method.invoke(target, args);
 				}
-			} catch (InvocationTargetException ite) {
-				throw ite.getCause();
-			}
-		}
-	}
-
-	/**
-	 * This proxy catches the {@link Session#close()} call on the blocking session, retrieving the latest bookmark
-	 * and stores it with the bookmark manager.
-	 */
-	static class SessionProxy implements InvocationHandler {
-
-		private final BookmarkManager bookmarkManager;
-		/**
-		 * The bookmarks used when the {@link #target target session} has been initialized. They need to
-		 * be kept around separately, as the session doesn't allow to retrieve the config back after creation.
-		 */
-		private final Collection<Bookmark> usedBookmarks;
-		private final Session target;
-
-		SessionProxy(BookmarkManager bookmarkManager, Collection<Bookmark> usedBookmarks, Session target) {
-			this.bookmarkManager = bookmarkManager;
-			this.usedBookmarks = usedBookmarks;
-			this.target = target;
-		}
-
-		@Override
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-
-			try {
-				if ("close".equals(method.getName())) {
-					bookmarkManager.updateBookmarks(usedBookmarks, target.lastBookmarks());
-					target.close();
-					return null;
-				}
-				return method.invoke(target, args);
 			} catch (InvocationTargetException ite) {
 				throw ite.getCause();
 			}

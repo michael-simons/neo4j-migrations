@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
@@ -72,8 +71,8 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			return this.value.toString() + (enterprise ? " (enterprise)" : "");
 		}
 	}
-	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = Collections.unmodifiableList(Arrays.asList("3.5", "4.0", "4.1", "4.2", "4.3", "4.4", "LATEST"));
-	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = List.of("4.4", "LATEST");
+	private static final List<String> SUPPORTED_VERSIONS_COMMUNITY = List.of("3.5", "4.0", "4.1", "4.2", "4.3", "4.4", "5", "LATEST");
+	private static final List<String> SUPPORTED_VERSIONS_ENTERPRISE = List.of("4.4", "5", "LATEST");
 
 	@Override
 	public void interceptTestMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {

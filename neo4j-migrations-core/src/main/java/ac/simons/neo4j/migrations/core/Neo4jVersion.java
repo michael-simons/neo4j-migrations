@@ -64,6 +64,7 @@ public enum Neo4jVersion {
 	 * each month), this is not sustainable to keep in the enum.
 	 * @deprecated please use {@link #V5}
 	 */
+	@SuppressWarnings({"DeprecatedIsStillUsed", "squid:S1133"})
 	@Deprecated
 	V5_0,
 	/**

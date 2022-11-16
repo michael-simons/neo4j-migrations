@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 /**
@@ -46,13 +47,14 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 			boolean testOnlyLatestNeo4j = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
 			if (testOnlyLatestNeo4j) {
-				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.LATEST, true)));
+				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
 			}
 			// The exclusion of 4.0 and 4.1 here affects not every test ofc, only the ones
 			// that rely on the provider for matrix tests. 4.0 and 4.1 are EOL since July 2021 and December 2021 respectively.
-			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.V4_0, Neo4jVersion.V4_1, Neo4jVersion.UNDEFINED);
+			@SuppressWarnings("deprecation")
+			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.V4_0, Neo4jVersion.V4_1, Neo4jVersion.V5_0, Neo4jVersion.LATEST, Neo4jVersion.UNDEFINED);
 			return Arrays.stream(Neo4jVersion.values())
-					.filter(version -> !(unsupported.contains(version) || version == Neo4jVersion.LATEST))
+					.filter(version -> !(unsupported.contains(version)))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));
 		}
 	}
@@ -105,23 +107,28 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 		for (Object argument : invocationContext.getArguments()) {
 			if (argument instanceof VersionUnderTest) {
 				skip = skipUnsupported((VersionUnderTest) argument);
-			}
-			if (argument instanceof String) {
+			} else if (argument instanceof String) {
 				skip = skipUnsupported((String) argument);
 			}
+			if (skip) {
+				invocation.skip();
+				return;
+			}
 		}
-		if (skip) {
-			invocation.skip();
-		} else {
-			invocation.proceed();
-		}
+
+		invocation.proceed();
 	}
 
 	private static boolean skipUnsupported(String argument) {
-		if (argument.contains("enterprise")) {
-			return !SUPPORTED_VERSIONS_ENTERPRISE.contains(argument.replace("-enterprise", ""));
+		if (!argument.toLowerCase(Locale.ROOT).startsWith("neo4j:")) {
+			return false;
 		}
-		return SUPPORTED_VERSIONS_COMMUNITY.stream().noneMatch(argument::contains);
+		String version = argument.substring(argument.indexOf(":") + 1);
+		if (argument.contains("enterprise")) {
+			return !SUPPORTED_VERSIONS_ENTERPRISE.contains(version.replace("-enterprise", ""));
+		}
+
+		return SUPPORTED_VERSIONS_COMMUNITY.stream().noneMatch(version::startsWith);
 	}
 
 	private static boolean skipUnsupported(VersionUnderTest argument) {

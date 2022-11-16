@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
 
 /**
  * @author Michael J. Simons
@@ -157,6 +158,11 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	List<CatalogItem<?>> findBTreeBasedItems(QueryRunner queryRunner) {
+
+		List<String> versions = queryRunner.run(new Query("CALL dbms.components() YIELD versions")).single().get("versions").asList(Value::asString);
+		if (versions.stream().anyMatch(v -> v.startsWith("5."))) {
+			return Collections.emptyList();
+		}
 
 		Map<Long, Index> indexes = findBTreeBasedIndexes(queryRunner);
 		Map<Long, Constraint> constraints = findBTreeBasedConstraints(queryRunner, indexes);

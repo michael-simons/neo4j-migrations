@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -274,27 +275,16 @@ final class DefaultCypherResource implements CypherResource {
 					.filter(statement -> getTransactionMode(statement) == TransactionMode.IMPLICIT)
 					.collect(Collectors.toSet());
 
-				int numberOfStatements = 0;
+				int numberOfStatements;
 				MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();
 				if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT || !statementsNeedingImplicitTransactions.isEmpty()) {
 
-					LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions",
-						cypherResource.getIdentifier());
-					for (String statement : executableStatements) {
-						if (statementsNeedingImplicitTransactions.contains(statement)) {
-							++numberOfStatements;
-							session.run(statement).consume();
-						} else {
-							numberOfStatements += session.writeTransaction(t -> {
-								run(t, statement);
-								return 1;
-							});
-						}
-					}
+					LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", cypherResource.getIdentifier());
+					numberOfStatements = executeInSeparateTransactions(session, executableStatements, statementsNeedingImplicitTransactions);
+
 				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
-					LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction",
-						cypherResource.getIdentifier());
+					LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", cypherResource.getIdentifier());
 					numberOfStatements = session.writeTransaction(t -> {
 						int cnt = 0;
 						for (String statement : executableStatements) {
@@ -303,7 +293,6 @@ final class DefaultCypherResource implements CypherResource {
 						}
 						return cnt;
 					});
-
 				} else {
 					throw new MigrationsException("Unknown transaction mode " + transactionMode);
 				}
@@ -311,6 +300,23 @@ final class DefaultCypherResource implements CypherResource {
 				LOGGER.log(Level.FINE, "Executed {0} statements", numberOfStatements);
 			}
 		});
+	}
+
+	private static int executeInSeparateTransactions(Session session, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
+
+		int numberOfStatements = 0;
+		for (String statement : executableStatements) {
+			if (statementsNeedingImplicitTransactions.contains(statement)) {
+				++numberOfStatements;
+				session.run(statement).consume();
+			} else {
+				numberOfStatements += session.writeTransaction(t -> {
+					run(t, statement);
+					return 1;
+				});
+			}
+		}
+		return numberOfStatements;
 	}
 
 	/**

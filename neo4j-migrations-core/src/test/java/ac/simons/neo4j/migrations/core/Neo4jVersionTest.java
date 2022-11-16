@@ -43,6 +43,12 @@ class Neo4jVersionTest {
 	}
 
 	@Test
+	void shouldBeLatestOnAnythingHigherThanDefined() {
+		Neo4jVersion version = Neo4jVersion.of("Neo4j/4711");
+		assertThat(version).isEqualTo(Neo4jVersion.LATEST);
+	}
+
+	@Test
 	void shouldIdentifyMajorVersion3() {
 		assertThat(Neo4jVersion.V3_5.getMajorVersion()).isEqualTo(3);
 	}

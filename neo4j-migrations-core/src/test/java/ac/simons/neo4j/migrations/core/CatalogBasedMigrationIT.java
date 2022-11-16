@@ -32,13 +32,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -113,6 +116,40 @@ class CatalogBasedMigrationIT {
 		} finally {
 			if (!TestcontainersConfiguration.getInstance().environmentSupportsReuse()) {
 				neo4j.stop();
+			}
+		}
+	}
+
+	static Stream<Arguments> shouldApplyResources() {
+		return Stream.of(
+			Arguments.of(new SkipArm64IncompatibleConfiguration.VersionUnderTest(Neo4jVersion.V4_4, true)),
+			Arguments.of(new SkipArm64IncompatibleConfiguration.VersionUnderTest(Neo4jVersion.V5, true))
+		);
+	}
+
+	@ParameterizedTest // GH-573
+	@MethodSource
+	void shouldApplyResources(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
+
+		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
+		Config config = Config.builder().withLogging(Logging.none()).build();
+
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+
+			int appliedMigrations = migrations.apply(
+				Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Create_graph.cypher")),
+				Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Refactor_graph.xml"))
+			);
+
+			assertThat(appliedMigrations).isEqualTo(2);
+
+			try (Session session = driver.session()) {
+				long cnt = session.run(
+						"MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
+					.single().get(0).asLong();
+				assertThat(cnt).isOne();
 			}
 		}
 	}

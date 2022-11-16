@@ -157,26 +157,6 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Test // GH-573
-	void shouldApplyResources() {
-
-		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
-
-		int appliedMigrations = migrations.apply(
-			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Create_graph.cypher")),
-			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Refactor_graph.xml"))
-		);
-
-		assertThat(appliedMigrations).isEqualTo(2);
-
-		try (Session session = driver.session()) {
-			long cnt = session.run(
-					"MATCH (m:Person {name:'Michael'}) -[:MAG]-> (n:Person {name:'Tina', klug: true}) RETURN count(m)")
-				.single().get(0).asLong();
-			assertThat(cnt).isOne();
-		}
-	}
-
-	@Test // GH-573
 	void shouldFailProperOnInvalidFileName() {
 
 		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);

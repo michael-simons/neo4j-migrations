@@ -49,7 +49,7 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			}
 			EnumSet<Neo4jVersion> unsupported = EnumSet.of(Neo4jVersion.UNDEFINED);
 			return Arrays.stream(Neo4jVersion.values())
-					.filter(version -> !unsupported.contains(version))
+					.filter(version -> !(unsupported.contains(version) || version == Neo4jVersion.LATEST))
 					.map(version -> Arguments.of(new VersionUnderTest(version, true)));
 		}
 	}

@@ -87,12 +87,16 @@ import javax.tools.StandardLocation;
  * @soundtrack Moonbootica - ...And Then We Started To Dance
  * @since 1.11.0
  */
-@SupportedAnnotationTypes({
+@SupportedAnnotationTypes( {
 	FullyQualifiedNames.SDN6_NODE,
 	FullyQualifiedNames.OGM_NODE,
-	FullyQualifiedNames.OGM_RELATIONSHIP
+	FullyQualifiedNames.OGM_RELATIONSHIP,
+	FullyQualifiedNames.CATALOG_REQUIRED,
+	FullyQualifiedNames.CATALOG_REQUIRED_PROPERTIES,
+	FullyQualifiedNames.CATALOG_UNIQUE,
+	FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
 })
-@SupportedOptions({
+@SupportedOptions( {
 	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CATALOG,
 	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CONSTRAINTS,
 	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_INDEXES,
@@ -164,6 +168,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private TypeElement ogmRequired;
 
+	private TypeElement catalogRequired;
+	private TypeElement catalogRequiredWrapper;
+
+	private TypeElement catalogUnique;
+	private TypeElement catalogUniqueWrapper;
+
 	private final List<CatalogItem<?>> catalogItems = new ArrayList<>();
 
 	private boolean addReset;
@@ -178,7 +188,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	CatalogGeneratingProcessor(CatalogNameGenerator catalogNameGenerator,
-		ConstraintNameGenerator constraintNameGenerator, IndexNameGenerator indexNameGenerator) {
+	                           ConstraintNameGenerator constraintNameGenerator, IndexNameGenerator indexNameGenerator) {
 		this.catalogNameGenerator = catalogNameGenerator;
 		this.constraintNameGenerator = constraintNameGenerator;
 		this.indexNameGenerator = indexNameGenerator;
@@ -190,7 +200,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	<T> T nameGenerator(String optionName, Class<T> expectedType, Supplier<T> defaultSupplier,
-		Map<String, String> options) {
+	                    Map<String, String> options) {
 
 		if (!options.containsKey(optionName)) {
 			return defaultSupplier.get();
@@ -210,7 +220,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			} else {
 				return expectedType.cast(Class.forName(fqn).getConstructor(Map.class).newInstance(generatorOptions));
 			}
-		} catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+		} catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException |
+		         NoSuchMethodException | ClassNotFoundException e) {
 			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "Could not load `" + fqn + "`, using default for " + optionName);
 			return defaultSupplier.get();
 		}
@@ -276,6 +287,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		this.ogmRequired = elementUtils.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);
 
+		this.catalogRequired = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);
+		this.catalogRequiredWrapper = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED_PROPERTIES);
+
+		this.catalogUnique = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
+		this.catalogUniqueWrapper = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
+
 		this.typeUtils = processingEnv.getTypeUtils();
 
 		this.addReset = Boolean.parseBoolean(options.getOrDefault(OPTION_ADD_RESET, "false"));
@@ -329,9 +346,99 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				processOGMIndexAnnotations(roundEnv, ogmRelationship);
 				processOGMCompositeIndexAnnotations(roundEnv);
 			}
+			if (catalogRequired != null) {
+				processCatalogAnnotations(roundEnv);
+			}
 		}
 
 		return true;
+	}
+
+	private void processCatalogAnnotations(RoundEnvironment roundEnv) {
+
+		roundEnv.getElementsAnnotatedWithAny(catalogUnique /*, catalogUniqueWrapper, catalogRequired, catalogRequiredWrapper*/)
+			.stream()
+			.forEach(t -> {
+				getSDN6Labels(t, catalogUnique);
+				if (t.getKind() == ElementKind.FIELD) {
+
+
+/*
+					Element enclosingElement = t.getEnclosingElement();
+					List<SchemaName> sdn6SchemaNames = getSDN6Labels(enclosingElement);
+					List<SchemaName> ogmSchemaNames = getOGMLabels(enclosingElement);
+					// TODO Target node or relationshios
+					List<SchemaName> schemaNames = List.of();
+					if (sdn6SchemaNames != null && ogmSchemaNames != null) {
+						messager.printMessage(Diagnostic.Kind.ERROR, "Cannot use both Neo4j-OGM and SDN6+ annotations to define nodes and relationships", enclosingElement);
+					} else if (sdn6SchemaNames != null) {
+						schemaNames = sdn6SchemaNames;
+					} else if (ogmSchemaNames != null) {
+						schemaNames = ogmSchemaNames;
+					} else {
+						schemaNames = List.of(DefaultSchemaName.of(enclosingElement.getSimpleName().toString()));
+					}
+					System.out.println(schemaNames);*/
+				}
+			});
+	}
+
+	private List<SchemaName> getOGMLabels(Element element) {
+		List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+		if (annotationMirrors.stream().noneMatch(am -> am.getAnnotationType().asElement().equals(ogmNode))) {
+			return null;
+		}
+
+
+		return computeLabelsOGM((TypeElement) element);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void getSDN6Labels(Element element, TypeElement annotation) {
+
+		Element enclosingElement;
+		boolean propertiesRequired = false;
+		if(element.getKind() == ElementKind.FIELD) {
+			enclosingElement = element.getEnclosingElement();
+		} else {
+			propertiesRequired = true;
+			enclosingElement = element;
+		}
+
+		List<? extends AnnotationMirror> annotationMirrors = enclosingElement.getAnnotationMirrors();
+		if (annotationMirrors.stream().noneMatch(am -> am.getAnnotationType().asElement().equals(sdn6Node))) {
+			return;
+		}
+
+		List<SchemaName> schemaNames = computeLabelsSDN6((TypeElement) enclosingElement);
+		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), schemaNames);
+
+		ExecutableElement propertiesAttribute = getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTIES);
+		AnnotationMirror annotationMirror = element.getAnnotationMirrors()
+			.stream().filter(am -> am.getAnnotationType().asElement().equals(annotation))
+			.findFirst().orElseThrow();
+
+		Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = annotationMirror.getElementValues();
+		List<AnnotationValue> values = new ArrayList<>();
+		if (attributes.containsKey(propertiesAttribute)) {
+			values.addAll((List<AnnotationValue>) attributes.get(ogmCompositeIndexProperties).getValue());
+		}
+
+		if (values.isEmpty() && propertiesRequired) {
+			messager.printMessage(Diagnostic.Kind.ERROR, "When using @Required or @Unique on a type at least one property must be configured.", enclosingElement);
+			return;
+		}
+
+
+		List<PropertyType<?>> properties = (values.isEmpty() ? Stream.of(element.getSimpleName().toString()) : values.stream()
+			.map(v -> (String)v.getValue()))
+			.map(node::addProperty)
+			.collect(Collectors.toList());
+		String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);
+
+		Arrays.stream(propertyNames).forEach(System.out::println);
+		System.out.println(attributes);
+		System.out.println(values);
 	}
 
 	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {
@@ -650,7 +757,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				Index.forNode(schemaNames.get(0).getValue()).named(name).onProperties(property.getName()));
 		}
 
-		@SuppressWarnings({"unchecked", "squid:S1452"})
+		@SuppressWarnings( {"unchecked", "squid:S1452"})
 		List<CatalogItem<?>> handleRelationship(PropertyType<E> property, boolean isRequired) {
 			if (isRequired) {
 				String name = constraintNameGenerator.generateName(Constraint.Type.EXISTS,

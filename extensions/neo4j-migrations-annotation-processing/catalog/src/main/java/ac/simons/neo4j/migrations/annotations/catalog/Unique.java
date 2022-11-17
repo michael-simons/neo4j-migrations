@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.annotations;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
+package ac.simons.neo4j.migrations.annotations.catalog;
 
 /**
- * Reassembles the {@code ac.simons.neo4j.migrations.core.catalog.Constraint} catalog item. This annotation can be
- * used on both a type and on fields. You will want to use it on a type for building composite constraints (constraints
- * spanning more than one field) and on single fields for single property constraints.
+ * Annotation to mark one or more fields of a class as unique properties for a given node or relationship.  You will want
+ * to use it on a type for building composite constraints (constraints spanning more than one field) and on single fields
+ * for single property constraints.
  * <p>
  * When is this annotation useful?
  * <ul>
@@ -41,7 +32,7 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
  * <i>Determining labels or types:</i> Depending on your approach and combination with other annotations (such as SDN6+ or
  * OGM annotations), the process is as following
  * <ul>
- *     <li>Explicitly use {@link #label()} or {@link #relationshipType()}</li>
+ *     <li>Explicitly use {@link #label()} or {@link #type()} ()}</li>
  *     <li>On a plain class: The simple class name is used as label (we default to targeting nodes)</li>
  *     <li>If combined any of the following SDN6+ annotations {@code org.springframework.data.neo4j.core.schema.Node} or
  *     {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}</li>, we default to the SDN6 approach</li>
@@ -52,13 +43,11 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
  * <p>
  * <i>Determining node or relationship:</i> We default to nodes and labels. If you want to generate constraints for
  * relationships, you must either combine this annotation with one of {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}
- * from SDN6+ or {@code org.neo4j.ogm.annotation.Relationship} or you can explicitly use the
+ * from SDN6+ or {@code org.neo4j.ogm.annotation.Relationship} or you can explicitly use the {@link #type()} attribute of this
+ * annotation.
  * <p>
- * This annotation can be used to derive catalogs that contain constraints that are only available in enterprise edition.
- * We don't check this during generation. Please make sure that your targeted database suits those constraints.
- * <p>
- * This annotation can also be repeated on a class. Again, if you decide to put contradicting information on a class, for
- * example targeting labels with one annotation and relationships with another, we won't stop you as long as we can resolve
+ * This annotation can also be repeated on a class. If you decide to put contradicting information on a class, for example
+ * targeting labels with one annotation and relationships with another, we won't stop you as long as we can resolve
  * both error free: You might end up with a catalog that defines several constraints coming from one type and aiming for
  * both nodes and relationship constraints.
  *
@@ -66,38 +55,28 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
  * @soundtrack Juse Ju - Shibuya Crossing
  * @since 1.15.0
  */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-@Documented
-@Repeatable(Constraints.class)
-public @interface Constraint {
+public @interface Unique {
 
 	/**
-	 * @return The type of this constraint.
-	 */
-	Type type();
-
-	/**
-	 * Please take note that not all types of constraints do support multiple properties and that not all versions of
-	 * Neo4j will support composite constraints for all types.
-	 *
-	 * @return One or more properties to be included in this constraint
-	 */
-	String[] properties() default {};
-
-	/**
-	 * If this use not {@literal null}, it has precedence over {@link #relationshipType()} and any other annotation
-	 * used on this class.
+	 * If this use not {@literal null}, it has precedence over {@link #type()} and any other annotation used on this class.
 	 *
 	 * @return The target label
 	 */
 	String label() default "";
 
 	/**
-	 * If this is not {@literal null} but {@link #type()} is, it has precedence over any other annotation used on this
-	 * class
+	 * If this is not {@literal null} but {@link #label()} is, it has precedence over any other annotation used on this
+	 * class.
 	 *
 	 * @return The target (relationship) type
 	 */
-	String relationshipType() default "";
+	String type() default "";
+
+	/**
+	 * Use this if you want to define composite, unique constraint when using {@link Unique} on the class level.
+	 * Leave it empty when using on field level, otherwise an exception will be thrown.
+	 *
+	 * @return The list of properties to include in the composite.
+	 */
+	String[] properties() default {};
 }

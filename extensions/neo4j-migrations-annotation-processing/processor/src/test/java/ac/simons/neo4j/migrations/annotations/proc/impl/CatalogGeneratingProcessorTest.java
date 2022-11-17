@@ -237,6 +237,18 @@ class CatalogGeneratingProcessorTest {
 			.isEqualTo(expectedCatalog);
 	}
 
+	@Test
+	void shouldGenerateCatalogCatalog() {
+
+		CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+		Compilation compilation = getCompiler()
+			.withProcessors(catalogGeneratingProcessor)
+			.withOptions("-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-11-17T21:21:00+01:00")
+			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/catalog/valid"));
+
+		CompilationSubject.assertThat(compilation).succeeded();
+	}
+
 	static class CollectingConstraintNameGenerator implements ConstraintNameGenerator {
 
 		Map<String, List<String>> labels = new HashMap<>();

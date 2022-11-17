@@ -305,4 +305,42 @@ class DefaultCypherResourceTest {
 				+ ":use something\n"
 				+ "DETACH DELETE n");
 	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"USING PERIODIC COMMIT 500 LOAD CSV FROM 'file:///artists.csv' AS line\n" +
+		"CREATE (:Artist {name: line[1], year: toInteger(line[2])})\n",
+		"   USING PERIODIC COMMIT 500 LOAD CSV FROM 'file:///artists.csv' AS line CREATE (:Artist {name: line[1], year: toInteger(line[2])})",
+		"LOAD CSV FROM 'file:///friends.csv' AS line\n" +
+		"CALL {\n" +
+		"  WITH line\n" +
+		"  CREATE (:PERSON {name: line[1], age: toInteger(line[2])})\n" +
+		"} IN TRANSACTIONS\n",
+		"WITH `n` as line CALL {\n" +
+		"  WITH line\n" +
+		"  CREATE (:`PERSON` {name: line[1], age: toInteger(line[2])})\n" +
+		"} IN TRANSACTIONS\n"
+	})
+	void shouldDetectImplicitTransactionNeeds(String query) {
+
+		assertThat(DefaultCypherResource.getTransactionMode(query)).isEqualTo(DefaultCypherResource.TransactionMode.IMPLICIT);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"UNWIND [0, 1, 2] AS x\n" +
+		"CALL {\n" +
+		"  WITH x\n" +
+		"  RETURN x * 10 AS y\n" +
+		"}\n" +
+		"RETURN x, y\n",
+		"CREATE (a:`USING PERIODIC COMMIT `) RETURN a",
+		"CREATE (a:`USING PERIODIC COMMIT `) RETURN a",
+		"CREATE (a:`CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a",
+		"CREATE (a: `  CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a"
+	})
+	void shouldDetectManagedTransactionNeeds(String query) {
+
+		assertThat(DefaultCypherResource.getTransactionMode(query)).isEqualTo(DefaultCypherResource.TransactionMode.MANAGED);
+	}
 }

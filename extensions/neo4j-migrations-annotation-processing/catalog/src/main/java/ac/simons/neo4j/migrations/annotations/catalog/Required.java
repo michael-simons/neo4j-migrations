@@ -59,4 +59,24 @@ package ac.simons.neo4j.migrations.annotations.catalog;
  * @since 1.15.0
  */
 public @interface Required {
+
+	/**
+	 * If this use not {@literal null}, it has precedence over {@link #type()} and any other annotation used on this class.
+	 *
+	 * @return The target label
+	 */
+	String label() default "";
+
+	/**
+	 * If this is not {@literal null} but {@link #label()} is, it has precedence over any other annotation used on this
+	 * class.
+	 *
+	 * @return The target (relationship) type
+	 */
+	String type() default "";
+
+	/**
+	 * @return The property required to exist on the given label or type
+	 */
+	String property() default "";
 }

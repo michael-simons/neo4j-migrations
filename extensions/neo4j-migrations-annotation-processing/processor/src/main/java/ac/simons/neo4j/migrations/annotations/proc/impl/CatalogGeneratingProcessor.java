@@ -127,6 +127,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private static final String ATTRIBUTE_LABELS = "labels";
 	private static final String ATTRIBUTE_PRIMARY_LABEL = "primaryLabel";
 	private static final String ATTRIBUTE_PROPERTIES = "properties";
+	private static final String ATTRIBUTE_PROPERTY = "property";
 	private static final String ATTRIBUTE_UNIQUE = "unique";
 
 	private CatalogNameGenerator catalogNameGenerator;
@@ -255,35 +256,35 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		Elements elementUtils = processingEnv.getElementUtils();
 		this.sdn6Node = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_NODE);
-		this.sdn6NodeValue = getAnnotationAttribute(sdn6Node, ATTRIBUTE_VALUE);
-		this.sdn6NodeLabels = getAnnotationAttribute(sdn6Node, ATTRIBUTE_LABELS);
-		this.sdn6NodePrimaryLabel = getAnnotationAttribute(sdn6Node, ATTRIBUTE_PRIMARY_LABEL);
+		this.sdn6NodeValue = getAnnotationAttribute(sdn6Node, ATTRIBUTE_VALUE).orElseThrow();
+		this.sdn6NodeLabels = getAnnotationAttribute(sdn6Node, ATTRIBUTE_LABELS).orElseThrow();
+		this.sdn6NodePrimaryLabel = getAnnotationAttribute(sdn6Node, ATTRIBUTE_PRIMARY_LABEL).orElseThrow();
 
 		this.sdn6Id = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_ID);
 		this.sdn6GeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
 		this.commonsId = elementUtils.getTypeElement(FullyQualifiedNames.COMMONS_ID);
 
 		this.ogmNode = elementUtils.getTypeElement(FullyQualifiedNames.OGM_NODE);
-		this.ogmNodeValue = getAnnotationAttribute(ogmNode, ATTRIBUTE_VALUE);
-		this.ogmNodeLabel = getAnnotationAttribute(ogmNode, ATTRIBUTE_LABEL);
+		this.ogmNodeValue = getAnnotationAttribute(ogmNode, ATTRIBUTE_VALUE).orElseThrow();
+		this.ogmNodeLabel = getAnnotationAttribute(ogmNode, ATTRIBUTE_LABEL).orElseThrow();
 
 		this.ogmRelationship = elementUtils.getTypeElement(FullyQualifiedNames.OGM_RELATIONSHIP);
-		this.ogmRelationshipValue = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_VALUE);
-		this.ogmRelationshipType = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_TYPE);
+		this.ogmRelationshipValue = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_VALUE).orElseThrow();
+		this.ogmRelationshipType = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_TYPE).orElseThrow();
 
 		this.ogmId = elementUtils.getTypeElement(FullyQualifiedNames.OGM_ID);
 		this.ogmGeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.OGM_GENERATED_VALUE);
 
 		this.ogmCompositeIndexes = elementUtils.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEXES);
-		this.ogmCompositeIndexesValue = getAnnotationAttribute(ogmCompositeIndexes, ATTRIBUTE_VALUE);
+		this.ogmCompositeIndexesValue = getAnnotationAttribute(ogmCompositeIndexes, ATTRIBUTE_VALUE).orElseThrow();
 
 		this.ogmCompositeIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEX);
-		this.ogmCompositeIndexValue = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_VALUE);
-		this.ogmCompositeIndexProperties = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_PROPERTIES);
-		this.ogmCompositeIndexUnique = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_UNIQUE);
+		this.ogmCompositeIndexValue = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_VALUE).orElseThrow();
+		this.ogmCompositeIndexProperties = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_PROPERTIES).orElseThrow();
+		this.ogmCompositeIndexUnique = getAnnotationAttribute(ogmCompositeIndex, ATTRIBUTE_UNIQUE).orElseThrow();
 
 		this.ogmIndex = elementUtils.getTypeElement(FullyQualifiedNames.OGM_INDEX);
-		this.ogmIndexUnique = getAnnotationAttribute(ogmIndex, ATTRIBUTE_UNIQUE);
+		this.ogmIndexUnique = getAnnotationAttribute(ogmIndex, ATTRIBUTE_UNIQUE).orElseThrow();
 
 		this.ogmRequired = elementUtils.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);
 
@@ -303,13 +304,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 	}
 
-	static ExecutableElement getAnnotationAttribute(TypeElement annotation, String name) {
+	static Optional<ExecutableElement> getAnnotationAttribute(TypeElement annotation, String name) {
 		if (annotation == null) {
-			return null;
+			return Optional.empty();
 		}
-		return (ExecutableElement) annotation.getEnclosedElements().stream()
-			.filter(e -> e.getSimpleName().contentEquals(name)).findFirst()
-			.orElseThrow(NoSuchElementException::new);
+		return annotation.getEnclosedElements().stream()
+			.filter(e -> e.getSimpleName().contentEquals(name)).map(ExecutableElement.class::cast).findFirst();
 	}
 
 	@Override
@@ -356,7 +356,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private void processCatalogAnnotations(RoundEnvironment roundEnv) {
 
-		roundEnv.getElementsAnnotatedWithAny(catalogUnique /*, catalogUniqueWrapper, catalogRequired, catalogRequiredWrapper*/)
+		roundEnv.getElementsAnnotatedWithAny(catalogUnique /*, catalogUniqueWrapper*/)
 			.stream()
 			.forEach(t -> {
 				getSDN6Labels(t, catalogUnique);
@@ -381,16 +381,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 					System.out.println(schemaNames);*/
 				}
 			});
-	}
-
-	private List<SchemaName> getOGMLabels(Element element) {
-		List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-		if (annotationMirrors.stream().noneMatch(am -> am.getAnnotationType().asElement().equals(ogmNode))) {
-			return null;
-		}
 
 
-		return computeLabelsOGM((TypeElement) element);
+		roundEnv.getElementsAnnotatedWithAny(catalogRequired/*, catalogRequiredWrapper*/)
+			.stream()
+			.forEach(t -> {
+				getSDN6Labels(t, catalogRequired);
+			});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -398,7 +395,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		Element enclosingElement;
 		boolean propertiesRequired = false;
-		if(element.getKind() == ElementKind.FIELD) {
+		if (element.getKind() == ElementKind.FIELD) {
 			enclosingElement = element.getEnclosingElement();
 		} else {
 			propertiesRequired = true;
@@ -410,10 +407,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return;
 		}
 
-		List<SchemaName> schemaNames = computeLabelsSDN6((TypeElement) enclosingElement);
-		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), schemaNames);
+		List<SchemaName> labels = computeLabelsSDN6((TypeElement) enclosingElement);
+		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labels);
 
-		ExecutableElement propertiesAttribute = getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTIES);
+
+		ExecutableElement propertiesAttribute = getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTIES)
+			.or(() -> getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTY)).orElseThrow();
 		AnnotationMirror annotationMirror = element.getAnnotationMirrors()
 			.stream().filter(am -> am.getAnnotationType().asElement().equals(annotation))
 			.findFirst().orElseThrow();
@@ -429,16 +428,20 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return;
 		}
 
-
 		List<PropertyType<?>> properties = (values.isEmpty() ? Stream.of(element.getSimpleName().toString()) : values.stream()
-			.map(v -> (String)v.getValue()))
+			.map(v -> (String) v.getValue()))
 			.map(node::addProperty)
 			.collect(Collectors.toList());
 		String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);
 
-		Arrays.stream(propertyNames).forEach(System.out::println);
-		System.out.println(attributes);
-		System.out.println(values);
+
+		if (annotation == catalogUnique) {
+			String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, properties);
+			catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name).unique(propertyNames));
+		} else if (annotation == catalogRequired) {
+			String name = this.constraintNameGenerator.generateName(Constraint.Type.EXISTS, properties);
+			catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name).exists(propertyNames[0]));
+		}
 	}
 
 	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {
@@ -503,7 +506,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.forEach(t -> catalogItems.addAll(computeOGMCompositeIndexes(t)));
 	}
 
-	@SuppressWarnings({"unchecked", "squid:S1452", "squid:S6204"})
+	@SuppressWarnings( {"unchecked", "squid:S1452", "squid:S6204"})
 	Collection<CatalogItem<?>> computeOGMCompositeIndexes(TypeElement typeElement) {
 
 		List<SchemaName> labels = computeLabelsOGM(typeElement);

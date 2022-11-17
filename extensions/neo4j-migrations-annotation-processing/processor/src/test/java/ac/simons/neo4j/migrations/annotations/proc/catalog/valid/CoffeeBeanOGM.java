@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
-import org.springframework.data.neo4j.core.schema.Node;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
@@ -25,7 +25,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Node
+@NodeEntity("CoffeeBean")
 public class CoffeeBeanOGM {
 
 	@Unique

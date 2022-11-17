@@ -25,7 +25,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Node
+@Node("CoffeeBean")
 public class CoffeeBeanSDN6 {
 
 	@Unique

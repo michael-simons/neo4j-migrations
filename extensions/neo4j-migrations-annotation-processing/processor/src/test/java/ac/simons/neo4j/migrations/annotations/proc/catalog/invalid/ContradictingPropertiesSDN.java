@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.catalog;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.UUID;
+
+import org.springframework.data.neo4j.core.schema.Property;
+
+import ac.simons.neo4j.migrations.annotations.catalog.Required;
+import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
- * Container for the repeatable {@link UniqueProperties} annotation. In modern Java you will probably never use this directly.
- *
  * @author Michael J. Simons
- * @soundtrack Bullet Train: Original Motion Picture Soundtrack
  */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-@Documented
-public @interface RequiredProperties {
+public class ContradictingPropertiesSDN {
 
-	/**
-	 * @return the actual values
-	 */
-	Required[] value();
+	@Unique
+	public UUID uuid;
+
+	@Required(property = "bar")
+	@Property("foo")
+	public String name;
 }

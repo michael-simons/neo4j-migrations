@@ -82,6 +82,8 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
+import org.neo4j.driver.GraphDatabase;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Moonbootica - ...And Then We Started To Dance
@@ -92,7 +94,6 @@ import javax.tools.StandardLocation;
 	FullyQualifiedNames.OGM_NODE,
 	FullyQualifiedNames.OGM_RELATIONSHIP,
 	FullyQualifiedNames.CATALOG_REQUIRED,
-	FullyQualifiedNames.CATALOG_REQUIRED_PROPERTIES,
 	FullyQualifiedNames.CATALOG_UNIQUE,
 	FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
 })
@@ -170,12 +171,11 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement ogmRequired;
 
 	private TypeElement catalogRequired;
-	private TypeElement catalogRequiredWrapper;
 
 	private TypeElement catalogUnique;
 	private TypeElement catalogUniqueWrapper;
 
-	private final List<CatalogItem<?>> catalogItems = new ArrayList<>();
+	private final Set<CatalogItem<?>> catalogItems = new LinkedHashSet<>();
 
 	private boolean addReset;
 
@@ -289,7 +289,6 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.ogmRequired = elementUtils.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);
 
 		this.catalogRequired = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);
-		this.catalogRequiredWrapper = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED_PROPERTIES);
 
 		this.catalogUnique = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
 		this.catalogUniqueWrapper = elementUtils.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
@@ -382,12 +381,13 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				}
 			});
 
-
-		roundEnv.getElementsAnnotatedWithAny(catalogRequired/*, catalogRequiredWrapper*/)
+/*
+		roundEnv.getElementsAnnotatedWithAny(catalogRequired)
 			.stream()
 			.forEach(t -> {
 				getSDN6Labels(t, catalogRequired);
 			});
+*/
 	}
 
 	@SuppressWarnings("unchecked")
@@ -403,13 +403,17 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 
 		List<? extends AnnotationMirror> annotationMirrors = enclosingElement.getAnnotationMirrors();
-		if (annotationMirrors.stream().noneMatch(am -> am.getAnnotationType().asElement().equals(sdn6Node))) {
-			return;
+		Predicate<Element> isAnnotated = declaredType -> declaredType.equals(sdn6Node) || declaredType.equals(ogmNode);
+		List<SchemaName> labels;
+		if (annotationMirrors.stream().map(am -> am.getAnnotationType().asElement()).noneMatch(isAnnotated)) {
+			labels = List.of(DefaultSchemaName.of(enclosingElement.getSimpleName().toString()));
+		} else if (annotationMirrors.stream().map(am -> am.getAnnotationType().asElement()).anyMatch(e -> element.equals(sdn6Node))) {
+			labels = computeLabelsSDN6((TypeElement) enclosingElement);
+		} else {
+			labels = computeLabelsOGM((TypeElement) enclosingElement);
 		}
 
-		List<SchemaName> labels = computeLabelsSDN6((TypeElement) enclosingElement);
 		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labels);
-
 
 		ExecutableElement propertiesAttribute = getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTIES)
 			.or(() -> getAnnotationAttribute(annotation, ATTRIBUTE_PROPERTY)).orElseThrow();
@@ -418,9 +422,18 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.findFirst().orElseThrow();
 
 		Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = annotationMirror.getElementValues();
-		List<AnnotationValue> values = new ArrayList<>();
+		List<String> values = new ArrayList<>();
 		if (attributes.containsKey(propertiesAttribute)) {
-			values.addAll((List<AnnotationValue>) attributes.get(ogmCompositeIndexProperties).getValue());
+			var value = attributes.get(propertiesAttribute).getValue();
+			if (value instanceof List<?> annotationValues) {
+				annotationValues.stream().map(AnnotationValue.class::cast)
+					.map(AnnotationValue::getValue)
+					.map(String.class::cast)
+					.forEach(values::add);
+			} else if (value instanceof String stringValue) {
+				values.add(stringValue);
+			}
+
 		}
 
 		if (values.isEmpty() && propertiesRequired) {
@@ -428,12 +441,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return;
 		}
 
-		List<PropertyType<?>> properties = (values.isEmpty() ? Stream.of(element.getSimpleName().toString()) : values.stream()
-			.map(v -> (String) v.getValue()))
+		List<PropertyType<?>> properties = (values.isEmpty() ? Stream.of(element.getSimpleName().toString()) : values.stream())
 			.map(node::addProperty)
 			.collect(Collectors.toList());
 		String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);
-
 
 		if (annotation == catalogUnique) {
 			String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, properties);

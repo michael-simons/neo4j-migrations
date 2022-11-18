@@ -42,7 +42,6 @@ final class FullyQualifiedNames {
 	static final String COMMONS_ID = "org.springframework.data.annotation.Id";
 
 	static final String CATALOG_REQUIRED = "ac.simons.neo4j.migrations.annotations.catalog.Required";
-	static final String CATALOG_REQUIRED_PROPERTIES = "ac.simons.neo4j.migrations.annotations.catalog.RequiredProperties";
 	static final String CATALOG_UNIQUE = "ac.simons.neo4j.migrations.annotations.catalog.Unique";
 	static final String CATALOG_UNIQUE_PROPERTIES = "ac.simons.neo4j.migrations.annotations.catalog.UniqueProperties";
 

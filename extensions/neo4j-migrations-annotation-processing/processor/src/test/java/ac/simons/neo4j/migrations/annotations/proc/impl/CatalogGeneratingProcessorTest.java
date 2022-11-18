@@ -254,16 +254,18 @@ class CatalogGeneratingProcessorTest {
 			    <catalog>
 			        <indexes/>
 			        <constraints>
-			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_uuid_unique" type="unique">
-			                <label>CoffeeBean</label>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_a_b_c_unique" type="unique">
+			                <label>CBOGM</label>
 			                <properties>
-			                    <property>uuid</property>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
 			                </properties>
 			            </constraint>
-			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_name_exists" type="exists">
-			                <label>CoffeeBean</label>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_uuid_unique" type="unique">
+			                <label>CBOGM</label>
 			                <properties>
-			                    <property>name</property>
+			                    <property>uuid</property>
 			                </properties>
 			            </constraint>
 			        </constraints>

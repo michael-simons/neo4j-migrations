@@ -17,24 +17,17 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.neo4j.ogm.annotation.Property;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
- * I did watch a Sebastian Daschner talk while writing this ;)
- *
  * @author Michael J. Simons
  */
-@Node
-@NodeEntity
-public class CoffeeBeanBroken {
+public class CompositeOnSingleField {
 
-	@Unique
+	@Unique(properties = {"a", "b"})
 	public UUID uuid;
 
-	@Required
-	public String name;
 }

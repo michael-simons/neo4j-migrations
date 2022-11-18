@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
+import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
-import org.springframework.data.neo4j.core.schema.Node;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
@@ -26,9 +26,9 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Node("CBSDN6")
+@NodeEntity("CBOGM")
 @Unique(properties = {"a", "b", "c"})
-public class CoffeeBeanSDN6 {
+public class CoffeeBeanOGM {
 
 	@Unique
 	public UUID uuid;

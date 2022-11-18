@@ -52,6 +52,11 @@ final class RunCommand extends ConnectedCommand {
 	}
 
 	@Override
+	boolean forceSilence() {
+		return true;
+	}
+
+	@Override
 	Integer withMigrations(Migrations migrations) {
 
 		int cnt = migrations.apply(migrationsToRun);

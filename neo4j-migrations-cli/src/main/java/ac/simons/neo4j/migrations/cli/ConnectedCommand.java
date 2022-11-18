@@ -48,6 +48,13 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	 */
 	abstract MigrationsCli getParent();
 
+	/**
+	 * @return {@literal true} to enforce silence (no complaining about missing locations.
+	 */
+	boolean forceSilence() {
+		return false;
+	}
+
 	@Override
 	public Integer call() {
 
@@ -56,7 +63,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 
 		MigrationsConfig config;
 		try {
-			config = migrationsCli.getConfig(this instanceof RunCommand);
+			config = migrationsCli.getConfig(forceSilence());
 		} catch (IllegalArgumentException e) {
 			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());
 			return CommandLine.ExitCode.USAGE;

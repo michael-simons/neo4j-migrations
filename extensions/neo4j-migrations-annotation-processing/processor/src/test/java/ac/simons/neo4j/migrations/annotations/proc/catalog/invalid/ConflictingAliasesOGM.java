@@ -17,18 +17,18 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
+import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
- * I did watch a Sebastian Daschner talk while writing this ;)
- *
  * @author Michael J. Simons
  */
+@NodeEntity("CBOGM")
 @Unique(properties = {"a", "b", "c"})
-public class CoffeeBeanPure {
+public class ConflictingAliasesOGM {
 
 	@Unique
 	public UUID uuid;
@@ -39,7 +39,7 @@ public class CoffeeBeanPure {
 	@Required(property = "theName")
 	public String nameA;
 
-	@Property(name = "theOtherName")
+	@Property(name = "theOtherName", value = "whatever")
 	@Required
 	public String nameB;
 
@@ -51,5 +51,4 @@ public class CoffeeBeanPure {
 	public String b;
 
 	public String d;
-
 }

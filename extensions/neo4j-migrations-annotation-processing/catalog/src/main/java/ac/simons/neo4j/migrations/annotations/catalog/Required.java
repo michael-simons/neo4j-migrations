@@ -15,6 +15,12 @@
  */
 package ac.simons.neo4j.migrations.annotations.catalog;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Annotation to mark one or more fields of a class as unique properties for a given node or relationship.  You will want
  * to use it on a type for building composite constraints (constraints spanning more than one field) and on single fields
@@ -58,6 +64,9 @@ package ac.simons.neo4j.migrations.annotations.catalog;
  * @soundtrack Juse Ju - Shibuya Crossing
  * @since 1.15.0
  */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.FIELD)
+@Documented
 public @interface Required {
 
 	/**

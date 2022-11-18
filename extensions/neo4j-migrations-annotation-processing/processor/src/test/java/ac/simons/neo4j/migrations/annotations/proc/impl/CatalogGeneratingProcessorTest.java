@@ -268,6 +268,88 @@ class CatalogGeneratingProcessorTest {
 			                    <property>uuid</property>
 			                </properties>
 			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_name_exists" type="exists">
+			                <label>CBOGM</label>
+			                <properties>
+			                    <property>name</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_theName_exists" type="exists">
+			                <label>CBOGM</label>
+			                <properties>
+			                    <property>theName</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_theOtherName_exists" type="exists">
+			                <label>CBOGM</label>
+			                <properties>
+			                    <property>theOtherName</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpure_a_b_c_unique" type="unique">
+			                <label>CoffeeBeanPure</label>
+			                <properties>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpure_uuid_unique" type="unique">
+			                <label>CoffeeBeanPure</label>
+			                <properties>
+			                    <property>uuid</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpure_name_exists" type="exists">
+			                <label>CoffeeBeanPure</label>
+			                <properties>
+			                    <property>name</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpure_theName_exists" type="exists">
+			                <label>CoffeeBeanPure</label>
+			                <properties>
+			                    <property>theName</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpure_nameB_exists" type="exists">
+			                <label>CoffeeBeanPure</label>
+			                <properties>
+			                    <property>nameB</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_a_b_c_unique" type="unique">
+			                <label>CBSDN6</label>
+			                <properties>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_uuid_unique" type="unique">
+			                <label>CBSDN6</label>
+			                <properties>
+			                    <property>uuid</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_name_exists" type="exists">
+			                <label>CBSDN6</label>
+			                <properties>
+			                    <property>name</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_theName_exists" type="exists">
+			                <label>CBSDN6</label>
+			                <properties>
+			                    <property>theName</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_theOtherName_exists" type="exists">
+			                <label>CBSDN6</label>
+			                <properties>
+			                    <property>theOtherName</property>
+			                </properties>
+			            </constraint>
 			        </constraints>
 			    </catalog>
 			    <apply/>

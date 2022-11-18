@@ -42,7 +42,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -124,6 +126,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private static final String ATTRIBUTE_TYPE = "type";
 	private static final String ATTRIBUTE_VALUE = "value";
+	private static final String ATTRIBUTE_NAME = "name";
 	private static final String ATTRIBUTE_LABEL = "label";
 	private static final String ATTRIBUTE_LABELS = "labels";
 	private static final String ATTRIBUTE_PRIMARY_LABEL = "primaryLabel";
@@ -147,6 +150,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement sdn6GeneratedValue;
 	private TypeElement commonsId;
 
+	private TypeElement sdn6Property;
+
 	private TypeElement ogmNode;
 	private ExecutableElement ogmNodeValue;
 	private ExecutableElement ogmNodeLabel;
@@ -154,6 +159,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	private TypeElement ogmRelationship;
 	private ExecutableElement ogmRelationshipType;
 	private ExecutableElement ogmRelationshipValue;
+
+	private TypeElement ogmProperty;
 
 	private TypeElement ogmId;
 	private TypeElement ogmGeneratedValue;
@@ -260,6 +267,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.sdn6NodeLabels = getAnnotationAttribute(sdn6Node, ATTRIBUTE_LABELS).orElseThrow();
 		this.sdn6NodePrimaryLabel = getAnnotationAttribute(sdn6Node, ATTRIBUTE_PRIMARY_LABEL).orElseThrow();
 
+		this.sdn6Property = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_PROPERTY);
+
 		this.sdn6Id = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_ID);
 		this.sdn6GeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
 		this.commonsId = elementUtils.getTypeElement(FullyQualifiedNames.COMMONS_ID);
@@ -271,6 +280,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		this.ogmRelationship = elementUtils.getTypeElement(FullyQualifiedNames.OGM_RELATIONSHIP);
 		this.ogmRelationshipValue = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_VALUE).orElseThrow();
 		this.ogmRelationshipType = getAnnotationAttribute(ogmRelationship, ATTRIBUTE_TYPE).orElseThrow();
+
+		this.ogmProperty = elementUtils.getTypeElement(FullyQualifiedNames.OGM_PROPERTY);
 
 		this.ogmId = elementUtils.getTypeElement(FullyQualifiedNames.OGM_ID);
 		this.ogmGeneratedValue = elementUtils.getTypeElement(FullyQualifiedNames.OGM_GENERATED_VALUE);
@@ -355,62 +366,50 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private void processCatalogAnnotations(RoundEnvironment roundEnv) {
 
-		roundEnv.getElementsAnnotatedWithAny(catalogUnique /*, catalogUniqueWrapper*/)
-			.stream()
-			.forEach(t -> {
-				getSDN6Labels(t, catalogUnique);
-				if (t.getKind() == ElementKind.FIELD) {
+		// Keep them ordered by element
+		Map<Element, Set<CatalogItem<?>>> items = new LinkedHashMap<>();
 
+		for (Element element : roundEnv.getElementsAnnotatedWithAny(catalogUnique /*, catalogUniqueWrapper*/)) {
+			getSDN6Labels(items, element, catalogUnique);
+		}
 
-/*
-					Element enclosingElement = t.getEnclosingElement();
-					List<SchemaName> sdn6SchemaNames = getSDN6Labels(enclosingElement);
-					List<SchemaName> ogmSchemaNames = getOGMLabels(enclosingElement);
-					// TODO Target node or relationshios
-					List<SchemaName> schemaNames = List.of();
-					if (sdn6SchemaNames != null && ogmSchemaNames != null) {
-						messager.printMessage(Diagnostic.Kind.ERROR, "Cannot use both Neo4j-OGM and SDN6+ annotations to define nodes and relationships", enclosingElement);
-					} else if (sdn6SchemaNames != null) {
-						schemaNames = sdn6SchemaNames;
-					} else if (ogmSchemaNames != null) {
-						schemaNames = ogmSchemaNames;
-					} else {
-						schemaNames = List.of(DefaultSchemaName.of(enclosingElement.getSimpleName().toString()));
-					}
-					System.out.println(schemaNames);*/
-				}
-			});
+		for (Element t : roundEnv.getElementsAnnotatedWith(catalogRequired)) {
+			getSDN6Labels(items, t, catalogRequired);
+		}
 
-/*
-		roundEnv.getElementsAnnotatedWithAny(catalogRequired)
-			.stream()
-			.forEach(t -> {
-				getSDN6Labels(t, catalogRequired);
-			});
-*/
+		items.values().forEach(catalogItems::addAll);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void getSDN6Labels(Element element, TypeElement annotation) {
+	private void getSDN6Labels(Map<Element, Set<CatalogItem<?>>> target, Element element, TypeElement annotation) {
 
 		Element enclosingElement;
-		boolean propertiesRequired = false;
+		String fieldName;
 		if (element.getKind() == ElementKind.FIELD) {
 			enclosingElement = element.getEnclosingElement();
+			fieldName = element.getSimpleName().toString();
 		} else {
-			propertiesRequired = true;
 			enclosingElement = element;
+			fieldName = null;
 		}
 
-		List<? extends AnnotationMirror> annotationMirrors = enclosingElement.getAnnotationMirrors();
+		enum Mode {PURE, SDN6, OGM};
+		Mode mode;
+
+		List<? extends AnnotationMirror> enclosingAnnotations = enclosingElement.getAnnotationMirrors();
 		Predicate<Element> isAnnotated = declaredType -> declaredType.equals(sdn6Node) || declaredType.equals(ogmNode);
 		List<SchemaName> labels;
-		if (annotationMirrors.stream().map(am -> am.getAnnotationType().asElement()).noneMatch(isAnnotated)) {
+		if ((ogmNode == null && sdn6Node == null) || enclosingAnnotations.stream().map(am -> am.getAnnotationType().asElement()).noneMatch(isAnnotated)) {
 			labels = List.of(DefaultSchemaName.of(enclosingElement.getSimpleName().toString()));
-		} else if (annotationMirrors.stream().map(am -> am.getAnnotationType().asElement()).anyMatch(e -> element.equals(sdn6Node))) {
+			mode = Mode.PURE;
+		} else if (sdn6Node != null && enclosingAnnotations.stream().map(am -> am.getAnnotationType().asElement()).anyMatch(e -> e.equals(sdn6Node))) {
 			labels = computeLabelsSDN6((TypeElement) enclosingElement);
-		} else {
+			mode = Mode.SDN6;
+		} else if (ogmNode != null) {
 			labels = computeLabelsOGM((TypeElement) enclosingElement);
+			mode = Mode.OGM;
+		} else {
+			return;
 		}
 
 		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labels);
@@ -421,38 +420,83 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.stream().filter(am -> am.getAnnotationType().asElement().equals(annotation))
 			.findFirst().orElseThrow();
 
+		// Extract the actual properties
 		Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = annotationMirror.getElementValues();
-		List<String> values = new ArrayList<>();
+		Set<String> propertyNames = new HashSet<>();
 		if (attributes.containsKey(propertiesAttribute)) {
 			var value = attributes.get(propertiesAttribute).getValue();
 			if (value instanceof List<?> annotationValues) {
 				annotationValues.stream().map(AnnotationValue.class::cast)
 					.map(AnnotationValue::getValue)
 					.map(String.class::cast)
-					.forEach(values::add);
+					.forEach(propertyNames::add);
 			} else if (value instanceof String stringValue) {
-				values.add(stringValue);
+				propertyNames.add(stringValue);
 			}
-
 		}
 
-		if (values.isEmpty() && propertiesRequired) {
-			messager.printMessage(Diagnostic.Kind.ERROR, "When using @Required or @Unique on a type at least one property must be configured.", enclosingElement);
+		Optional<String> additionalName = switch (mode) {
+			case SDN6 -> extractPropertyName(element, sdn6Property);
+			case OGM -> extractPropertyName(element, ogmProperty);
+			case PURE -> Optional.empty();
+		};
+
+		if (propertyNames.isEmpty()) {
+			propertyNames.add(additionalName.orElse(fieldName));
+		} else if(additionalName.isPresent() && !propertyNames.contains(additionalName.get())) {
+			messager.printMessage(
+				Diagnostic.Kind.ERROR,
+				String.format("Contradicting properties: %s vs %s", propertyNames.stream().collect(Collectors.joining(",", "(", ")")), additionalName.get()),
+				element
+			);
 			return;
 		}
 
-		List<PropertyType<?>> properties = (values.isEmpty() ? Stream.of(element.getSimpleName().toString()) : values.stream())
+		List<PropertyType<?>> properties = propertyNames.stream()
 			.map(node::addProperty)
 			.collect(Collectors.toList());
-		String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);
+
+		Set<CatalogItem<?>> items = target.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>());
 
 		if (annotation == catalogUnique) {
 			String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, properties);
-			catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name).unique(propertyNames));
+			items.add(Constraint.forNode(labels.get(0).getValue()).named(name).unique(propertyNames.toArray(String[]::new)));
 		} else if (annotation == catalogRequired) {
 			String name = this.constraintNameGenerator.generateName(Constraint.Type.EXISTS, properties);
-			catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name).exists(propertyNames[0]));
+			items.add(Constraint.forNode(labels.get(0).getValue()).named(name).exists(propertyNames.stream().findFirst().orElseThrow()));
 		}
+	}
+
+	Optional<String> extractPropertyName(Element annotatedElement, TypeElement annotation) {
+		List<? extends AnnotationMirror> annotations = annotatedElement.getAnnotationMirrors();
+
+		return annotations.stream()
+			.filter(am -> am.getAnnotationType().asElement().equals(annotation))
+			.findFirst()
+			.flatMap(p -> {
+					Map<String, ? extends AnnotationValue> values = p
+						.getElementValues().entrySet().stream()
+						.collect(Collectors.toMap(entry -> entry.getKey().getSimpleName().toString(), Map.Entry::getValue));
+
+					String nameValue = values.containsKey(ATTRIBUTE_NAME) ?
+						(String) values.get(ATTRIBUTE_NAME).getValue() : null;
+					String valueValue = values.containsKey(ATTRIBUTE_VALUE) ?
+						(String) values.get(ATTRIBUTE_VALUE).getValue() : null;
+
+					if (nameValue != null && valueValue != null && !nameValue.equals(valueValue)) {
+						messager.printMessage(
+							Diagnostic.Kind.ERROR,
+							String.format("Different @AliasFor or @ValueFor mirror values for annotation [%s]!", p.getAnnotationType()),
+							annotatedElement
+						);
+					} else if (nameValue != null) {
+						return Optional.of(nameValue);
+					} else if (valueValue != null) {
+						return Optional.of(valueValue);
+					}
+					return Optional.empty();
+				}
+			);
 	}
 
 	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {

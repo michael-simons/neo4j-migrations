@@ -17,18 +17,16 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
+ * I did watch a Sebastian Daschner talk while writing this ;)
+ *
  * @author Michael J. Simons
  */
-@Node("CBSDN6")
 @Unique(properties = {"a", "b", "c"})
-public class CoffeeBeanSDN6 {
+public class CoffeeBeanPure {
 
 	@Unique
 	public UUID uuid;
@@ -39,7 +37,6 @@ public class CoffeeBeanSDN6 {
 	@Required(property = "theName")
 	public String nameA;
 
-	@Property(name = "theOtherName")
 	@Required
 	public String nameB;
 
@@ -51,4 +48,5 @@ public class CoffeeBeanSDN6 {
 	public String b;
 
 	public String d;
+
 }

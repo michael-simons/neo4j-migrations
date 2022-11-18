@@ -87,7 +87,7 @@ public class MigrateBTreeIndexesCommand extends ConnectedCommand {
 					case TEXT -> Index.Type.TEXT;
 				}));
 			String readableMappings = mappings.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(System.lineSeparator()));
-			MigrationsCli.LOGGER.log(Level.INFO, "Using the following mapping:" + System.lineSeparator() + "{0}", readableMappings);
+			MigrationsCli.LOGGER.log(Level.INFO, "Using the following mapping:{0}{1}", new Object[] {System.lineSeparator(), readableMappings});
 		}
 
 		MigrateBTreeIndexes refactoring;
@@ -99,9 +99,9 @@ public class MigrateBTreeIndexesCommand extends ConnectedCommand {
 		refactoring = refactoring.withTypeMapping(typeMapping).withIncludes(includes).withExcludes(excludes);
 		Counters counters = migrations.apply(refactoring);
 		if (replace) {
-			MigrationsCli.LOGGER.log(Level.INFO, "Deleted {0} BTree based indexes and {0} constraints and replaced them with {0} new indexes and {0} constraints.", new Object[] {counters.indexesRemoved(), counters.constraintsRemoved(), counters.indexesAdded(), counters.constraintsAdded()});
+			MigrationsCli.LOGGER.log(Level.INFO, "Deleted {0} BTree based indexes and {1} constraints and replaced them with {2} new indexes and {3} constraints.", new Object[] {counters.indexesRemoved(), counters.constraintsRemoved(), counters.indexesAdded(), counters.constraintsAdded()});
 		} else {
-			MigrationsCli.LOGGER.log(Level.INFO, "Added {0} new indexes and {0} constraints.", new Object[] {counters.indexesAdded(), counters.constraintsAdded()});
+			MigrationsCli.LOGGER.log(Level.INFO, "Added {0} new indexes and {1} constraints.", new Object[] {counters.indexesAdded(), counters.constraintsAdded()});
 		}
 		return 0;
 	}

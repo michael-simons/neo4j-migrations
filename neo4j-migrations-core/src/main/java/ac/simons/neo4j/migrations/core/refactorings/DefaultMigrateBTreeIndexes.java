@@ -246,7 +246,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 				counters = counters.add(new DefaultCounters(tx.run(new Query(renderer.render(migratedItem, config))).consume().counters()));
 			}
 
-			if (!dropOldIndexes && LOGGER.isLoggable(Level.INFO)) {
+			if (!dropOldIndexes && LOGGER.isLoggable(Level.INFO) && (counters.indexesAdded() + counters.constraintsAdded()) > 0) {
 				LOGGER.log(Level.INFO, "Future indexes have been created. Use the following statements to drop all BTREE based constraints and indexes:{0}", dropStatements);
 			}
 		}

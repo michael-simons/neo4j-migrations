@@ -91,7 +91,7 @@ public interface MigrateBTreeIndexes extends Refactoring {
 	MigrateBTreeIndexes withExcludes(Collection<String> excludes);
 
 	/**
-	 * Configures an include list. An empty or {@literal null} value disables the include-list checking. A non empty
+	 * Configures an include list. An empty or {@literal null} value disables the include-list checking. A non-empty
 	 * list will configure the refactoring in such a way that only items that are on the list are migrated.
 	 *
 	 * @param newIncludes New includes

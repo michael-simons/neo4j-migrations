@@ -49,7 +49,7 @@ final class DefaultSchemaName implements SchemaName {
 	}
 
 	@Override public String toString() {
-		return "DefaultLabel{" +
+		return "DefaultSchemaName{" +
 			"value='" + value + '\'' +
 			'}';
 	}

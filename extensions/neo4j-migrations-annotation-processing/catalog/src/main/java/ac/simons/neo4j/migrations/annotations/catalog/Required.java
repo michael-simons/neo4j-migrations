@@ -71,7 +71,7 @@ public @interface Required {
 
 	/**
 	 * If this is not {@literal null}, it has precedence over {@link #type()} and the simple class name, but not over
-	 * dedicated OGM or SDN6 annotations to specify the label or type. It's use must be consistent throughout the class.
+	 * dedicated OGM or SDN6 annotations specifying the label or type explicitly. It's use must be consistent throughout the class.
 	 *
 	 * @return The target label
 	 */
@@ -79,7 +79,7 @@ public @interface Required {
 
 	/**
 	 * Can be used to specify the type (and therefor a relationship target), has no precedence over dedicated OGM or SDN6
-	 * annotations.
+	 * annotations with explicit label or type values.
 	 *
 	 * @return The target (relationship) type
 	 */

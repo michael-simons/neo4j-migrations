@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
@@ -24,8 +24,8 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@NodeEntity(label = "foo")
-public class NonUniqueLabelsOGM {
+@NodeEntity
+public class OverwritingDefaultOGM {
 
 	@Unique(label = "whatever")
 	public UUID uuid;

@@ -24,7 +24,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Node
+@Node("foo")
 public class NonUniqueLabelsSDN {
 
 	@Unique(label = "whatever")

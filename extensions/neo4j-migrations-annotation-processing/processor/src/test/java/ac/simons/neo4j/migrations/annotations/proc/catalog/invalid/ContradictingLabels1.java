@@ -24,7 +24,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
  * @author Michael J. Simons
  */
 @Unique(label = "foo", properties = {"a", "b", "c"})
-public class ContraDictingLabels1 {
+public class ContradictingLabels1 {
 
 	@Unique(label = "foo")
 	public UUID uuid;

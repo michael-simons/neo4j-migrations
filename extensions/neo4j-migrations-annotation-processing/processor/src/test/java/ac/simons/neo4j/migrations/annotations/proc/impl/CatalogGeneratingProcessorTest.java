@@ -28,8 +28,6 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,7 +46,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.google.testing.compile.Compilation;
-import com.google.testing.compile.CompilationSubject;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
 
@@ -270,6 +267,20 @@ class CatalogGeneratingProcessorTest {
 				.hadErrorContaining("Different @AliasFor or @ValueFor mirror values for annotation [org.neo4j.ogm.annotation.Property]");
 		}
 
+		@ParameterizedTest
+		@ValueSource(strings = {"ContradictingLabels1.java", "ContradictingLabels2.java"})
+		void shouldPreventContradictingLabels(String src) throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/" + src)[0].getURL()));
+
+			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Contradicting labels found: ");
+		}
+
 		@Test
 		void shouldPreventContradictingPropertiesOGM() throws IOException {
 
@@ -304,6 +315,8 @@ class CatalogGeneratingProcessorTest {
 				.withProcessors(catalogGeneratingProcessor)
 				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/MixingSDNAndOgm.java")[0].getURL()));
 			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Mixing SDN and OGM annotations on the same class is not supported");
 		}
 
 		@Test
@@ -314,6 +327,20 @@ class CatalogGeneratingProcessorTest {
 				.withProcessors(catalogGeneratingProcessor)
 				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/NonUniqueLabelsOGM.java")[0].getURL()));
 			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Explicit identifier `foo` on class contradicts identifier on annotation: `whatever`");
+		}
+
+		@Test
+		void shouldPreventNonUniqueLabelsSDN() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/NonUniqueLabelsSDN.java")[0].getURL()));
+			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Explicit identifier `foo` on class contradicts identifier on annotation: `whatever`");
 		}
 	}
 
@@ -482,6 +509,18 @@ class CatalogGeneratingProcessorTest {
 			                <label>CBSDN6</label>
 			                <properties>
 			                    <property>theOtherName</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_overwritingdefaultogm_uuid_unique" type="unique">
+			                <label>whatever</label>
+			                <properties>
+			                    <property>uuid</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_overwritingdefaultsdn6_uuid_unique" type="unique">
+			                <label>whatever</label>
+			                <properties>
+			                    <property>uuid</property>
 			                </properties>
 			            </constraint>
 			        </constraints>

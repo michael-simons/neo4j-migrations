@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  *     <li>Explicitly use {@link #label()} or {@link #type()} ()}</li>
  *     <li>On a plain class: The simple class name is used as label (we default to targeting nodes)</li>
  *     <li>If combined any of the following SDN6+ annotations {@code org.springframework.data.neo4j.core.schema.Node} or
- *     {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}</li>, we default to the SDN6 approach</li>
+ *     {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}, we default to the SDN6 approach</li>
  *     <li>If combined with an Neo4j-OGM annotation, we default to the Neo4j-OGM approach</li>
  * </ul>
  * <i>Note:</i> We follow the above algorithm strictly, and we don't try to resolve conflicts. If in doubt, the processor
@@ -71,7 +71,8 @@ public @interface Required {
 
 	/**
 	 * If this is not {@literal null}, it has precedence over {@link #type()} and the simple class name, but not over
-	 * dedicated OGM or SDN6 annotations specifying the label or type explicitly. It's use must be consistent throughout the class.
+	 * dedicated OGM or SDN6 annotations explicitly specifying the label or type explicitly.
+	 * Its use must be consistent throughout the class.
 	 *
 	 * @return The target label
 	 */

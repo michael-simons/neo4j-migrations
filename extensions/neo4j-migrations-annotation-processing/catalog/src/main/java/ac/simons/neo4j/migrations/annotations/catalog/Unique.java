@@ -39,19 +39,16 @@ import java.lang.annotation.Target;
  * <i>Determining labels or types:</i> Depending on your approach and combination with other annotations (such as SDN6+ or
  * OGM annotations), the process is as following
  * <ul>
- *     <li>Explicitly use {@link #label()} or {@link #type()} ()}</li>
+ *     <li>Explicitly use {@link #label()}</li>
  *     <li>On a plain class: The simple class name is used as label (we default to targeting nodes)</li>
  *     <li>If combined any of the following SDN6+ annotations {@code org.springframework.data.neo4j.core.schema.Node} or
- *     {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}</li>, we default to the SDN6 approach</li>
+ *     {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}, we default to the SDN6 approach</li>
  *     <li>If combined with an Neo4j-OGM annotation, we default to the Neo4j-OGM approach</li>
  * </ul>
  * <i>Note:</i> We follow the above algorithm strictly, and we don't try to resolve conflicts. If in doubt, the processor
  * will fail hard
  * <p>
- * <i>Determining node or relationship:</i> We default to nodes and labels. If you want to generate constraints for
- * relationships, you must either combine this annotation with one of {@code org.springframework.data.neo4j.core.schema.RelationshipProperties}
- * from SDN6+ or {@code org.neo4j.ogm.annotation.Relationship} or you can explicitly use the {@link #type()} attribute of this
- * annotation.
+ * Unique constraints are only supported for Nodes / Labels, not for Relationships / Types.
  * <p>
  * This annotation can also be repeated on a class. If you decide to put contradicting information on a class, for example
  * targeting labels with one annotation and relationships with another, we won't stop you as long as we can resolve
@@ -69,8 +66,9 @@ import java.lang.annotation.Target;
 public @interface Unique {
 
 	/**
-	 * If this is not {@literal null}, it has precedence over {@link #type()} and the simple class name, but not over
-	 * dedicated OGM or SDN6 annotations specifying the label or type explicitly. It's use must be consistent throughout the class.
+	 * If this is not {@literal null} it has precedence over an implicit label (either no class annotations or one without
+	 * a dedicated label) but not over OGM or SDN6 annotations specifying the label or type explicitly.
+	 * Its use must be consistent throughout the class.
 	 *
 	 * @return The target label
 	 */

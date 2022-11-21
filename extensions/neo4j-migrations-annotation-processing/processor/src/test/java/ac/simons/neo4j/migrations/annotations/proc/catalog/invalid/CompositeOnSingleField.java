@@ -17,9 +17,6 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.Property;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**

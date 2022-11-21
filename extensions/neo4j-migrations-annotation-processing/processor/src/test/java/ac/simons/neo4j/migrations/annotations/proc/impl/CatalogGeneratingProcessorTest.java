@@ -254,6 +254,34 @@ class CatalogGeneratingProcessorTest {
 			    <catalog>
 			        <indexes/>
 			        <constraints>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultiple1_unique_unique" type="unique">
+			                <label>CoffeeBeanMultiple1</label>
+			                <properties>
+			                    <property>unique</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultiple1_a_b_c_unique" type="unique">
+			                <label>CoffeeBeanMultiple1</label>
+			                <properties>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultiple2_unique_unique" type="unique">
+			                <label>CoffeeBeanMultiple2</label>
+			                <properties>
+			                    <property>unique</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultiple2_a_b_c_unique" type="unique">
+			                <label>CoffeeBeanMultiple2</label>
+			                <properties>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
+			                </properties>
+			            </constraint>
 			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanogm_a_b_c_unique" type="unique">
 			                <label>CBOGM</label>
 			                <properties>
@@ -355,6 +383,7 @@ class CatalogGeneratingProcessorTest {
 			    <apply/>
 			</migration>
 			""";
+
 		CompilationSubject.assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)

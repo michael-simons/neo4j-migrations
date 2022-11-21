@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+import ac.simons.neo4j.migrations.annotations.catalog.UniqueProperties;
 
 /**
  * @author Michael J. Simons
  */
-@NodeEntity
-public class NonUniqueLabelsOGM {
+@UniqueProperties({
+	@Unique(properties = {"unique"}),
+	@Unique(properties = {"a", "b", "c"})
+})
+public class CoffeeBeanMultiple1 {
 
-	@Unique(label = "whatever")
 	public UUID uuid;
+
+	public String a;
+
+	public String b;
+
+	public String d;
 }

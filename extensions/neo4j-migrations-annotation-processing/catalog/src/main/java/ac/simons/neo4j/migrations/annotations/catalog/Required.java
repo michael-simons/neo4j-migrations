@@ -70,15 +70,16 @@ import java.lang.annotation.Target;
 public @interface Required {
 
 	/**
-	 * If this use not {@literal null}, it has precedence over {@link #type()} and any other annotation used on this class.
+	 * If this is not {@literal null}, it has precedence over {@link #type()} and the simple class name, but not over
+	 * dedicated OGM or SDN6 annotations to specify the label or type. It's use must be consistent throughout the class.
 	 *
 	 * @return The target label
 	 */
 	String label() default "";
 
 	/**
-	 * If this is not {@literal null} but {@link #label()} is, it has precedence over any other annotation used on this
-	 * class.
+	 * Can be used to specify the type (and therefor a relationship target), has no precedence over dedicated OGM or SDN6
+	 * annotations.
 	 *
 	 * @return The target (relationship) type
 	 */

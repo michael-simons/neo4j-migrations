@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
+import static com.google.testing.compile.CompilationSubject.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
@@ -27,6 +28,8 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,6 +40,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -99,10 +103,10 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-09-21T21:21:00+01:00")
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/ogm_invalid"));
 
-		CompilationSubject.assertThat(compilation).failed();
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation).failed();
+		assertThat(compilation)
 			.hadErrorContaining("Cannot use org.neo4j.ogm.annotation.CompositeIndex without any properties");
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.hadErrorContaining("Unique constraints defined at ac.simons.neo4j.migrations.annotations.proc.ogm_invalid.RelPropertyExistenceConstraintEntity are not allowed on relationships");
 	}
 
@@ -114,7 +118,7 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-09-21T21:21:00+01:00")
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/ogm"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		var expectedCatalog = """
 			<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 			<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
@@ -198,7 +202,7 @@ class CatalogGeneratingProcessorTest {
 			    <apply/>
 			</migration>
 			""";
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)
 			.isEqualTo(expectedCatalog);
@@ -212,7 +216,7 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-09-21T21:21:00+01:00")
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/movies"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		var expectedCatalog = """
 			<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 			<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
@@ -231,10 +235,86 @@ class CatalogGeneratingProcessorTest {
 			    <apply/>
 			</migration>
 			""";
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)
 			.isEqualTo(expectedCatalog);
+	}
+
+	@Nested
+	class InvalidStandAloneAnnotations {
+
+		public static final String BASE = "ac/simons/neo4j/migrations/annotations/proc/catalog/invalid";
+
+		@Test
+		void shouldNotAllowCompositeOnSingleField() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/CompositeOnSingleField.java")[0].getURL()));
+
+			assertThat(compilation).failed();
+		}
+
+		@Test
+		void shouldPreventConflictingAliasesOGM() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/ConflictingAliasesOGM.java")[0].getURL()));
+
+			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Different @AliasFor or @ValueFor mirror values for annotation [org.neo4j.ogm.annotation.Property]");
+		}
+
+		@Test
+		void shouldPreventContradictingPropertiesOGM() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/ContradictingPropertiesOGM.java")[0].getURL()));
+
+			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Contradicting properties: (bar) vs foo");
+		}
+
+		@Test
+		void shouldPreventContradictingPropertiesSDN() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/ContradictingPropertiesSDN.java")[0].getURL()));
+
+			assertThat(compilation).failed();
+			assertThat(compilation)
+				.hadErrorContaining("Contradicting properties: (bar) vs foo");
+		}
+
+		@Test
+		void shouldPreventMixingSDNAndOgm() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/MixingSDNAndOgm.java")[0].getURL()));
+			assertThat(compilation).failed();
+		}
+
+		@Test
+		void shouldPreventNonUniqueLabelsOGM() throws IOException {
+
+			CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+			Compilation compilation = getCompiler()
+				.withProcessors(catalogGeneratingProcessor)
+				.compile(JavaFileObjects.forResource(resourceResolver.getResources(BASE + "/NonUniqueLabelsOGM.java")[0].getURL()));
+			assertThat(compilation).failed();
+		}
 	}
 
 	@Test
@@ -246,7 +326,7 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-11-17T21:21:00+01:00")
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/catalog/valid"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		var expectedCatalog = """
 			<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 			<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
@@ -346,6 +426,32 @@ class CatalogGeneratingProcessorTest {
 			                    <property>nameB</property>
 			                </properties>
 			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpureexplicitlabel_a_b_c_unique" type="unique">
+			                <label>foo</label>
+			                <properties>
+			                    <property>a</property>
+			                    <property>b</property>
+			                    <property>c</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpureexplicitlabel_uuid_unique" type="unique">
+			                <label>foo</label>
+			                <properties>
+			                    <property>uuid</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpureexplicitlabel_name_exists" type="exists">
+			                <label>foo</label>
+			                <properties>
+			                    <property>name</property>
+			                </properties>
+			            </constraint>
+			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanpureexplicitlabel_theName_exists" type="exists">
+			                <label>foo</label>
+			                <properties>
+			                    <property>theName</property>
+			                </properties>
+			            </constraint>
 			            <constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeansdn6_a_b_c_unique" type="unique">
 			                <label>CBSDN6</label>
 			                <properties>
@@ -384,7 +490,7 @@ class CatalogGeneratingProcessorTest {
 			</migration>
 			""";
 
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
 			.contentsAsString(StandardCharsets.UTF_8)
 			.isEqualTo(expectedCatalog);
@@ -417,7 +523,7 @@ class CatalogGeneratingProcessorTest {
 			.withProcessors(new CatalogGeneratingProcessor(() -> "foo.txt", generator, null))
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/labels"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		assertThat(generator.labels)
 			.hasSize(7)
 			.containsEntry("SingleImplicitLabel",
@@ -442,7 +548,7 @@ class CatalogGeneratingProcessorTest {
 			.withProcessors(new CatalogGeneratingProcessor(() -> "foo.txt", generator, null))
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		assertThat(generator.labels).isEmpty();
 	}
 
@@ -455,7 +561,7 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.add_reset=true", "-Aorg.neo4j.migrations.catalog_generator.timestamp=2022-09-21T21:21:00+01:00")
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
 
-		CompilationSubject.assertThat(compilation).succeeded();
+		assertThat(compilation).succeeded();
 		assertThat(generator.labels).isEmpty();
 
 		var expectedCatalog = """
@@ -468,7 +574,7 @@ class CatalogGeneratingProcessorTest {
 			    </catalog>
 			    <apply/>
 			</migration>""";
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations/foo.txt")
 			.contentsAsString(StandardCharsets.UTF_8)
 			.contains(expectedCatalog);
@@ -490,10 +596,8 @@ class CatalogGeneratingProcessorTest {
 			.withOptions("-Aorg.neo4j.migrations.catalog_generator.catalog_name_generator=" + fqn)
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
 
-		CompilationSubject
-			.assertThat(compilation).succeeded();
-		CompilationSubject
-			.assertThat(compilation).hadWarningContaining(String.format("Could not load `%s`, using default for", fqn));
+		assertThat(compilation).succeeded();
+		assertThat(compilation).hadWarningContaining(String.format("Could not load `%s`, using default for", fqn));
 	}
 
 	@Test
@@ -507,8 +611,7 @@ class CatalogGeneratingProcessorTest {
 			)
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
 
-		CompilationSubject
-			.assertThat(compilation).succeededWithoutWarnings();
+		assertThat(compilation).succeededWithoutWarnings();
 	}
 
 	@Test
@@ -522,10 +625,9 @@ class CatalogGeneratingProcessorTest {
 			)
 			.compile(getJavaResources("ac/simons/neo4j/migrations/annotations/proc/sdn6/ignored"));
 
-		CompilationSubject
-			.assertThat(compilation).succeededWithoutWarnings();
+		assertThat(compilation).succeededWithoutWarnings();
 
-		CompilationSubject.assertThat(compilation)
+		assertThat(compilation)
 			.generatedFile(StandardLocation.SOURCE_OUTPUT, "bazbar", "foobar.txt");
 	}
 

@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
@@ -25,6 +26,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
+@Node
 public class ContradictingPropertiesSDN {
 
 	@Unique

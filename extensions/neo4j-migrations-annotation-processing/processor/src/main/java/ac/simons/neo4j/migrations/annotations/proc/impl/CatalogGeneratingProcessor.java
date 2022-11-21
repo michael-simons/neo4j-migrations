@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -270,18 +271,19 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		// Keep them ordered by element
 		Map<Element, Set<CatalogItem<?>>> items = new LinkedHashMap<>();
+		Map<Element, Set<SchemaName>> labelsAndTypes = new HashMap<>();
 
 		UnaryOperator<Element> enclosingOrSelf = element -> element.getKind() == ElementKind.FIELD ? element.getEnclosingElement() : element;
 		for (Element element : roundEnv.getElementsAnnotatedWithAny(catalog.unique(), catalog.uniqueWrapper())) {
 			Element enclosingElement = enclosingOrSelf.apply(element);
 			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
-					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.unique(), catalog.uniqueWrapper()));
+					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.unique(), catalog.uniqueWrapper(), labelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
 		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.required())) {
 			Element enclosingElement = enclosingOrSelf.apply(element);
 			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
-				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null));
+				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null, labelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
 		items.values().forEach(catalogItems::addAll);
@@ -295,17 +297,37 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		PURE, SDN6, OGM
 	}
 
-	private Collection<CatalogItem<?>> processCatalogAnnotation(Element enclosingElement, Element element, TypeElement annotation, TypeElement wrapperAnnnotation) {
+	/**
+	 * @param enclosingElement
+	 * @param element
+	 * @param existingLabelsAndTypes Labels and types that have been previously discovered for the enclosing element
+	 * @param annotation
+	 * @param wrapperAnnnotation
+	 * @return
+	 */
+	private Collection<CatalogItem<?>> processCatalogAnnotation(Element enclosingElement, Element element, TypeElement annotation, TypeElement wrapperAnnnotation, Set<SchemaName> existingLabelsAndTypes) {
 
 		Mode mode;
 
 		List<? extends AnnotationMirror> enclosingAnnotations = enclosingElement.getAnnotationMirrors();
-		Predicate<Element> isAnnotated = declaredType -> declaredType.equals(sdn6.node()) || declaredType.equals(ogm.node());
+		Predicate<Element> isSDNAnnotated = declaredType -> declaredType.equals(sdn6.node());
+		Predicate<Element> isOGMAnnotated = declaredType -> declaredType.equals(ogm.node());
+		Predicate<Element> isAnnotated = isSDNAnnotated.or(isOGMAnnotated);
+
+		Set<Element> annotationsPresent = enclosingAnnotations.stream().map(am -> am.getAnnotationType().asElement()).collect(Collectors.toSet());
 		List<SchemaName> labels;
-		if ((ogm == null || sdn6 == null) || enclosingAnnotations.stream().map(am -> am.getAnnotationType().asElement()).noneMatch(isAnnotated)) {
+		if ((ogm == null && sdn6 == null) || annotationsPresent.stream().noneMatch(isAnnotated)) {
 			labels = List.of(DefaultSchemaName.of(enclosingElement.getSimpleName().toString()));
 			mode = Mode.PURE;
-		} else if (sdn6.node() != null && enclosingAnnotations.stream().map(am -> am.getAnnotationType().asElement()).anyMatch(e -> e.equals(sdn6.node()))) {
+		} else if(ogm != null && sdn6 != null && annotationsPresent.containsAll(Set.of(sdn6.node(), ogm.node()))) {
+			messager.printMessage(
+				Diagnostic.Kind.ERROR,
+				"Mixing SDN and OGM annotations on the same class is not supported",
+				element
+			);
+			return Collections.emptyList();
+		}
+		else if (sdn6 != null && annotationsPresent.stream().anyMatch(isSDNAnnotated)) {
 			labels = computeLabelsSDN6((TypeElement) enclosingElement);
 			mode = Mode.SDN6;
 		} else  {
@@ -330,14 +352,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				}
 				return Stream.empty();
 			})
-			.map(annotationMirror -> processCatalogAnnotation0(mode, labels, enclosingElement, element, annotation, annotationMirror))
+			.map(annotationMirror -> processCatalogAnnotation0(enclosingElement, element, annotation, annotationMirror, mode, labels, existingLabelsAndTypes))
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 	}
 
-	CatalogItem<?> processCatalogAnnotation0(Mode mode, List<SchemaName> labels, Element enclosingElement, Element annotatedElement, TypeElement annotationType, AnnotationMirror annotationMirror) {
-
-		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labels);
+	CatalogItem<?> processCatalogAnnotation0(Element enclosingElement, Element annotatedElement, TypeElement annotationType, AnnotationMirror annotationMirror, Mode mode, List<SchemaName> labelsOfEnclosingElement, Set<SchemaName> existingLabelsAndTypes) {
 
 		ExecutableElement propertiesAttribute = Attributes.get(annotationType, Attributes.PROPERTIES)
 			.or(() -> Attributes.get(annotationType, Attributes.PROPERTY)).orElseThrow();
@@ -374,7 +394,38 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				annotatedElement
 			);
 			return null;
+		} else if(annotatedElement.getKind() == ElementKind.FIELD && propertyNames.size() > 1) {
+			messager.printMessage(
+				Diagnostic.Kind.ERROR,
+				"Please annotate the class and not a field for composite constraints.",
+				annotatedElement
+			);
+			return null;
 		}
+
+		AnnotationValue annotationValue = Attributes.get(annotationType, Attributes.LABEL).map(attributes::get).orElse(null);
+
+		List<SchemaName> labelsUsed;
+		if (mode == Mode.PURE && annotationValue != null) {
+			labelsUsed = List.of(DefaultSchemaName.of((String) annotationValue.getValue()));
+		} else  {
+			labelsUsed = labelsOfEnclosingElement;
+		}
+
+		if(!existingLabelsAndTypes.stream().allMatch(v -> labelsUsed.contains(v))) {
+			String val1 = existingLabelsAndTypes.stream().map(SchemaName::getValue).collect(Collectors.joining(", "));
+			String val2 = labelsUsed.stream().map(SchemaName::getValue).collect(Collectors.joining(", "));
+			messager.printMessage(
+				Diagnostic.Kind.ERROR,
+				String.format("Contradicting labels found %s vs %s", val1, val2),
+				enclosingElement
+			);
+			return null;
+		} else {
+			existingLabelsAndTypes.addAll(labelsUsed);
+		}
+
+		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labelsUsed);
 
 		List<PropertyType<?>> properties = propertyNames.stream()
 			.map(node::addProperty)
@@ -382,10 +433,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		if (annotationType == catalog.unique()) {
 			String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, properties);
-			return Constraint.forNode(labels.get(0).getValue()).named(name).unique(propertyNames.toArray(String[]::new));
+			return Constraint.forNode(labelsUsed.get(0).getValue()).named(name).unique(propertyNames.toArray(String[]::new));
 		} else if (annotationType == catalog.required()) {
 			String name = this.constraintNameGenerator.generateName(Constraint.Type.EXISTS, properties);
-			return Constraint.forNode(labels.get(0).getValue()).named(name).exists(propertyNames.stream().findFirst().orElseThrow());
+			return Constraint.forNode(labelsUsed.get(0).getValue()).named(name).exists(propertyNames.stream().findFirst().orElseThrow());
 		}
 
 		return null;

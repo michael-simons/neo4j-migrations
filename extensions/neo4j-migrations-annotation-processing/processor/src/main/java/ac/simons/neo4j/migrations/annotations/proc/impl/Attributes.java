@@ -31,7 +31,6 @@ final class Attributes {
 
 	static final String TYPE = "type";
 	static final String VALUE = "value";
-	static final String VALUES = "values";
 	static final String NAME = "name";
 	static final String LABEL = "label";
 	static final String LABELS = "labels";

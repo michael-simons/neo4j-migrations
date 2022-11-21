@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
-
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
@@ -26,13 +23,15 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@NodeEntity
-public class ContradictingPropertiesOGM {
+@Unique(label = "foo", properties = {"a", "b", "c"})
+public class CoffeeBeanPureExplicitLabel {
 
-	@Unique
+	@Unique(label = "foo")
 	public UUID uuid;
 
-	@Required(property = "bar")
-	@Property("foo")
+	@Required(label = "foo")
 	public String name;
+
+	@Required(label = "foo", property = "theName")
+	public String nameA;
 }

@@ -470,6 +470,41 @@ Options can be passed to name generators via `-Aorg.neo4j.migrations.catalog_gen
 TIP: Our recommended approach is to use `javac` directly and script it's invocation in your CI/CD system
      as shown in the following paragraph!
 
+=== Additional annotations
+
+We offer a set of additional annotations - `@Unique` and `@Required` that can be used standalone or together with SDN6 _or_ OGM to specify constraints on classes. Please check the JavaDoc of those annotations about their usage. The module as shown below has no dependencies, neither on Neo4j-Migrations, nor SDN6 nor OGM. While it works excellent with SDN6 for specifying additional information, all annotations offer a way to define labels and relationship types.
+
+[source,xml,subs="verbatim,attributes"]
+.Annotation processor as Maven dependency
+----
+<dependency>
+    <groupId>{groupId}</groupId>
+    <artifactId>neo4j-migrations-annotation-catalog</artifactId>
+    <version>{fullVersion}</version>
+</dependency>
+----
+
+Combined with SDN6, a valid definition would look like this:
+
+[source,java]
+----
+import java.util.UUID;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+
+import ac.simons.neo4j.migrations.annotations.catalog.Required;
+import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+
+@Node
+public record Organization(
+	@Id @GeneratedValue @Unique UUID id, // <.>
+	@Required String name) {
+}
+----
+<.> Technically, the `@Unique` annotation isn't necessary here and the processor will generate a constraint for that field out of the box, but we think it reads better that way.
+
 === Using Javac and our annotation processor
 
 The annotation processor itself is made of 3 artifacts:
@@ -508,6 +543,21 @@ javac -proc:only \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/*
+----
+
+==== For classes annotated with catalog annotations
+
+No additional jars apart from the dedicated annotations are necessary
+
+.Generating a catalog from plain annotated classes
+[source,bash,subs="verbatim,attributes"]
+----
+javac -proc:only \
+-processorpath neo4j-migrations-{fullVersion}.jar:neo4j-migrations-annotation-processor-api-{fullVersion}.jar:neo4j-migrations-annotation-processor-{fullVersion}.jar \
+-Aorg.neo4j.migrations.catalog_generator.output_dir=output \
+-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R01__Create_annotated_schema.xml \
+-cp neo4j-migrations-annotation-catalog-{fullVersion} \
+extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/catalog/valid/CoffeeBeanPure*
 ----
 
 [[appendix_extesions]]

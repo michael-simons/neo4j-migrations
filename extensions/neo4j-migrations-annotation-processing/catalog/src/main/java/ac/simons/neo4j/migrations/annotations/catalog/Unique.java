@@ -77,14 +77,6 @@ public @interface Unique {
 	String label() default "";
 
 	/**
-	 * Can be used to specify the type (and therefor a relationship target), has no precedence over dedicated OGM or SDN6
-	 * annotations with explicit label or type values.
-	 *
-	 * @return The target (relationship) type
-	 */
-	String type() default "";
-
-	/**
 	 * Use this if you want to define composite, unique constraint when using {@link Unique} on the class level.
 	 * Leave it empty when using on field level, otherwise an exception will be thrown.
 	 *

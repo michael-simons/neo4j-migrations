@@ -472,7 +472,7 @@ TIP: Our recommended approach is to use `javac` directly and script it's invocat
 
 === Additional annotations
 
-We offer a set of additional annotations - `@Unique` and `@Required` that can be used standalone or together with SDN6 _or_ OGM to specify constraints on classes. Please check the JavaDoc of those annotations about their usage. The module as shown below has no dependencies, neither on Neo4j-Migrations, nor SDN6 nor OGM. While it works excellent with SDN6 for specifying additional information, all annotations offer a way to define labels and relationship types.
+We offer a set of additional annotations - `@Unique` and `@Required` that can be used standalone or together with SDN6 _or_ OGM to specify constraints on classes. Please check the JavaDoc of those annotations about their usage. The module as shown below has no dependencies, neither on Neo4j-Migrations, nor SDN6 or OGM. While it works excellent with SDN6 for specifying additional information, all annotations offer a way to define labels and relationship types.
 
 [source,xml,subs="verbatim,attributes"]
 .Annotation processor as Maven dependency

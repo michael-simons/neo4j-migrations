@@ -285,7 +285,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		Map<Element, Set<SchemaName>> existingLabelsAndTypes = new HashMap<>();
 
 		UnaryOperator<Element> enclosingOrSelf = element -> element.getKind() == ElementKind.FIELD ? element.getEnclosingElement() : element;
-		for (TypeElement annotationType : new TypeElement[] {catalog.unique(), catalog.uniqueWrapper()}) {
+		for (TypeElement annotationType : new TypeElement[] {catalog.uniqueWrapper(), catalog.unique()}) {
 			for (Element element : roundEnv.getElementsAnnotatedWith(annotationType)) {
 				Element enclosingElement = enclosingOrSelf.apply(element);
 				items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())

@@ -21,20 +21,16 @@
 
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
-		<artifactId>neo4j-migrations-parent</artifactId>
+		<artifactId>neo4j-migrations-annotation-processing</artifactId>
 		<version>2.0.0-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>neo4j-migrations-annotation-processing</artifactId>
-	<packaging>pom</packaging>
+	<artifactId>neo4j-migrations-annotation-catalog</artifactId>
 
-	<name>Neo4j Migrations (Annotation Processing)</name>
-	<description>Parent project for the annotation processing efforts.</description>
+	<name>Neo4j Migrations (Catalog Annotations)</name>
+	<description>A set of annotations reassembling what is possible within a migrations catalog.</description>
 
-	<modules>
-		<module>catalog</module>
-		<module>processor-api</module>
-		<module>processor</module>
-	</modules>
+	<properties>
+		<java-module-name>ac.simons.neo4j.migrations.annotations.catalog</java-module-name>
+	</properties>
 </project>

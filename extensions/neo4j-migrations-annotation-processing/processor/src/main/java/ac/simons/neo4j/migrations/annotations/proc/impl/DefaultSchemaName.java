@@ -21,12 +21,18 @@ import java.util.Objects;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
+ * @soundtrack Ralf "Ralle" Petersen - Album wird aus Hack gemacht 2016
  * @since 1.11.0
  */
 final class DefaultSchemaName implements SchemaName {
 
+	enum Target {
+		NODE, REL, UNDEFINED
+	}
+
 	private final String value;
+
+	private final Target target;
 
 	/**
 	 * Creates a label with the given value.
@@ -34,13 +40,25 @@ final class DefaultSchemaName implements SchemaName {
 	 * @param value The value of this label, must not be null.
 	 * @return A label with the given value.
 	 */
-	static SchemaName of(String value) {
+	static SchemaName label(String value) {
 
-		return new DefaultSchemaName(value);
+		return new DefaultSchemaName(value, Target.NODE);
 	}
 
-	private DefaultSchemaName(String value) {
+	/**
+	 * Creates a type with the given value.
+	 *
+	 * @param value The value of this label, must not be null.
+	 * @return A type with the given value.
+	 */
+	static SchemaName type(String value) {
+
+		return new DefaultSchemaName(value, Target.REL);
+	}
+
+	private DefaultSchemaName(String value, Target target) {
 		this.value = value;
+		this.target = target;
 	}
 
 	@Override
@@ -48,10 +66,12 @@ final class DefaultSchemaName implements SchemaName {
 		return value;
 	}
 
-	@Override public String toString() {
-		return "DefaultLabel{" +
+	@Override
+	public String toString() {
+		return "DefaultSchemaName{" +
 			"value='" + value + '\'' +
-			'}';
+			", target=" + target +
+		'}';
 	}
 
 	@Override
@@ -63,11 +83,11 @@ final class DefaultSchemaName implements SchemaName {
 			return false;
 		}
 		DefaultSchemaName that = (DefaultSchemaName) o;
-		return value.equals(that.value);
+		return value.equals(that.value) && target == that.target;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value);
+		return Objects.hash(value, target);
 	}
 }

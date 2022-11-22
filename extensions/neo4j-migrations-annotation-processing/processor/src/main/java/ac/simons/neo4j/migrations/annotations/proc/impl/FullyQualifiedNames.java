@@ -33,12 +33,19 @@ final class FullyQualifiedNames {
 	static final String OGM_COMPOSITE_INDEXES = "org.neo4j.ogm.annotation.CompositeIndexes";
 	static final String OGM_REQUIRED = "org.neo4j.ogm.annotation.Required";
 	static final String OGM_GENERATED_VALUE = "org.neo4j.ogm.annotation.GeneratedValue";
+	static final String OGM_PROPERTY = "org.neo4j.ogm.annotation.Property";
 
 	static final String SDN6_NODE = "org.springframework.data.neo4j.core.schema.Node";
 	static final String SDN6_ID = "org.springframework.data.neo4j.core.schema.Id";
 	static final String SDN6_GENERATED_VALUE = "org.springframework.data.neo4j.core.schema.GeneratedValue";
+	static final String SDN6_RELATIONSHIP = "org.springframework.data.neo4j.core.schema.RelationshipProperties";
+	static final String SDN6_PROPERTY = "org.springframework.data.neo4j.core.schema.Property";
 
 	static final String COMMONS_ID = "org.springframework.data.annotation.Id";
+
+	static final String CATALOG_REQUIRED = "ac.simons.neo4j.migrations.annotations.catalog.Required";
+	static final String CATALOG_UNIQUE = "ac.simons.neo4j.migrations.annotations.catalog.Unique";
+	static final String CATALOG_UNIQUE_PROPERTIES = "ac.simons.neo4j.migrations.annotations.catalog.UniqueProperties";
 
 	private FullyQualifiedNames() {
 	}

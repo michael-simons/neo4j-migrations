@@ -4512,6 +4512,51 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 </table>
 </div>
 <div class="sect3">
+<h4 id="additionalannotations"><a class="anchor" href="#additionalannotations"></a>Additional annotations</h4>
+<div class="paragraph">
+<p>We offer a set of additional annotations - <code>@Unique</code> and <code>@Required</code> that can be used standalone or together with SDN6 <em>or</em> OGM to specify constraints on classes. Please check the JavaDoc of those annotations about their usage. The module as shown below has no dependencies, neither on Neo4j-Migrations, nor SDN6 or OGM. While it works excellent with SDN6 for specifying additional information, all annotations offer a way to define labels and relationship types.</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 47. Annotation processor as Maven dependency</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-catalog<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.0.0-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Combined with SDN6, a valid definition would look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">java.util.UUID</span>;
+
+<span class="keyword">import</span> <span class="include">org.springframework.data.neo4j.core.schema.GeneratedValue</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.data.neo4j.core.schema.Id</span>;
+<span class="keyword">import</span> <span class="include">org.springframework.data.neo4j.core.schema.Node</span>;
+
+<span class="keyword">import</span> <span class="include">ac.simons.neo4j.migrations.annotations.catalog.Required</span>;
+<span class="keyword">import</span> <span class="include">ac.simons.neo4j.migrations.annotations.catalog.Unique</span>;
+
+<span class="annotation">@Node</span>
+<span class="directive">public</span> record Organization(
+        <span class="annotation">@Id</span> <span class="annotation">@GeneratedValue</span> <span class="annotation">@Unique</span> <span class="predefined-type">UUID</span> id, <i class="conum" data-value="1"></i><b>(1)</b>
+        <span class="annotation">@Required</span> <span class="predefined-type">String</span> name) {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Technically, the <code>@Unique</code> annotation isn&#8217;t necessary here and the processor will generate a constraint for that field out of the box, but we think it reads better that way.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
 <h4 id="usingjavacandourannotationprocessor"><a class="anchor" href="#usingjavacandourannotationprocessor"></a>Using Javac and our annotation processor</h4>
 <div class="paragraph">
 <p>The annotation processor itself is made of 3 artifacts:</p>
@@ -4541,7 +4586,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <p>You need at least <code>neo4j-ogm-core</code> as dependency for processing Neo4j-OGM entities and most likely all libraries that you are used in addition to OGM annotations in those entities. The following statement generates <code>V01__Create_OGM_schema.xml</code> in a directory <code>output</code>. It only does annotation processing:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 47. Generating a catalog from Neo4j-OGM entities</div>
+<div class="title">Listing 48. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
 -processorpath neo4j-migrations-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.0.0-SNAPSHOT.jar \
@@ -4558,7 +4603,7 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <p>The only difference here is that you must use SDN 6.0+ and its dependencies as a dependencies to JavaC:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 48. Generating a catalog from Neo4j-OGM entities</div>
+<div class="title">Listing 49. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
 -processorpath neo4j-migrations-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.0.0-SNAPSHOT.jar \
@@ -4566,6 +4611,23 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/sdn6/movies/*</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="forclassesannotatedwithcatalogannotations"><a class="anchor" href="#forclassesannotatedwithcatalogannotations"></a>For classes annotated with catalog annotations</h5>
+<div class="paragraph">
+<p>No additional jars apart from the dedicated annotations are necessary</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 50. Generating a catalog from plain annotated classes</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
+-processorpath neo4j-migrations-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.0.0-SNAPSHOT.jar \
+-Aorg.neo4j.migrations.catalog_generator.output_dir=output \
+-Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R01__Create_annotated_schema.xml \
+-cp neo4j-migrations-annotation-catalog-2.0.0-SNAPSHOT \
+extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/catalog/valid/CoffeeBeanPure*</code></pre>
 </div>
 </div>
 </div>
@@ -4740,7 +4802,7 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 49. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 51. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4753,7 +4815,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 50. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 52. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4832,7 +4894,7 @@ and valid inline Cypher content. The block definition looks like this:</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 51. Markdown extension as Maven dependency</div>
+<div class="title">Listing 53. Markdown extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4845,7 +4907,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 52. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 54. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4902,7 +4964,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-18 16:17:59 UTC
+Last updated 2022-11-22 16:17:04 UTC
 </div>
 </div>
 </body>

@@ -276,8 +276,6 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		PURE, SDN6, OGM
 	}
 
-
-
 	private void processCatalogAnnotations(RoundEnvironment roundEnv) {
 
 		// Keep them ordered by element
@@ -300,6 +298,15 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		items.values().forEach(catalogItems::addAll);
 	}
 
+	private boolean isSDNOrOGMAnnotated(Element annotationType) {
+		return annotationType.equals(sdn6.node()) || annotationType.equals(sdn6.relationship()) ||
+			annotationType.equals(ogm.node()) || annotationType.equals(ogm.relationship());
+	}
+
+	private boolean isCatalogAnnotated(Element annotationType) {
+		return annotationType.equals(catalog.unique()) || annotationType.equals(catalog.uniqueWrapper()) || annotationType.equals(catalog.required());
+	}
+
 	/**
 	 * @param enclosingElement       The enclosing element of the annotated element
 	 * @param element                The element on which the annotation was found
@@ -319,10 +326,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		Target target;
 
 		List<? extends AnnotationMirror> enclosingAnnotations = enclosingElement.getAnnotationMirrors();
-		Predicate<Element> isSDNAnnotated = declaredType -> declaredType.equals(sdn6.node()) || declaredType.equals(sdn6.relationship());
-		Predicate<Element> isOGMAnnotated = declaredType -> declaredType.equals(ogm.node()) || declaredType.equals(ogm.relationship());
-		Predicate<Element> isAnnotated = isSDNAnnotated.or(isOGMAnnotated);
-		Predicate<Element> isCatalog = at -> at.equals(catalog.unique()) || at.equals(catalog.uniqueWrapper()) || at.equals(catalog.required());
+		Predicate<Element> isCatalog = this::isCatalogAnnotated;
 
 		Set<Element> annotationsPresent = enclosingAnnotations.stream()
 			.map(am -> am.getAnnotationType().asElement())
@@ -330,7 +334,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.collect(Collectors.toSet());
 		List<SchemaName> labels;
 
-		if ((ogm == null && sdn6 == null) || annotationsPresent.stream().noneMatch(isAnnotated)) {
+		if ((ogm == null && sdn6 == null) || annotationsPresent.stream().noneMatch(this::isSDNOrOGMAnnotated)) {
 			labels = List.of(DefaultSchemaName.label(enclosingElement.getSimpleName().toString()));
 			mode = Mode.PURE;
 			target = Target.UNDEFINED;

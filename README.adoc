@@ -77,7 +77,7 @@ The Core API and the JVM based version of the CLI module of Neo4j-Migrations req
 Neo4j-Migrations can safely be used on both the class- and module-path.
 Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don't require a JVM to be installed.
 
-For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3). This is also the versions you should be using against Neo4j 4.0.
+For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3). These are also the versions you should be using against Neo4j 4.0.
 
 The older releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8.
 The Core API is provided as a Multi-Release-Jar in the older releases, providing a `module-info.java` for JDK 11 and higher, making it a good citizen on the Java module path as well.

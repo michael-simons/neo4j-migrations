@@ -61,6 +61,7 @@ final class ElementsSDN6 {
 
 	private final TypeElement property;
 
+	@SuppressWarnings("squid:S107") // That's what you get for back-porting a record to JDK 8
 	private ElementsSDN6(
 		TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels, TypeElement relationship,
 		ExecutableElement nodePrimaryLabel, TypeElement id, TypeElement generatedValue,

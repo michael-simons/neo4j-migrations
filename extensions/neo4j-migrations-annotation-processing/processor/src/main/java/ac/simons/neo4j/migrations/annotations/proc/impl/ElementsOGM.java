@@ -84,6 +84,7 @@ final class ElementsOGM {
 
 	private final TypeElement required;
 
+	@SuppressWarnings("squid:S107") // That's what you get for back-porting a record to JDK 8
 	private ElementsOGM(TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabel,
 		TypeElement relationship, ExecutableElement relationshipType,
 		ExecutableElement relationshipValue, TypeElement property, TypeElement id,

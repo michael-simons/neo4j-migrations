@@ -36,6 +36,10 @@
 		<module>neo4j-migrations-spring-boot-starter</module>
 	</modules>
 
+	<properties>
+		<slf4j.version>${slf4jv2.version}</slf4j.version>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

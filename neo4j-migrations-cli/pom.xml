@@ -298,6 +298,7 @@
 						<version>${native.maven.plugin.version}</version>
 						<extensions>true</extensions>
 						<configuration>
+							<requiredVersion>22.3</requiredVersion>
 							<mainClass>${name-of-main-class}</mainClass>
 							<imageName>neo4j-migrations</imageName>
 							<buildArgs>
@@ -308,7 +309,7 @@
 							<execution>
 								<id>create-native-image</id>
 								<goals>
-									<goal>build</goal>
+									<goal>compile-no-fork</goal>
 								</goals>
 								<phase>package</phase>
 							</execution>

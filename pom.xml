@@ -406,7 +406,6 @@
 					<version>${maven-invoker-plugin.version}</version>
 				</plugin>
 				<plugin>
-
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin.version}</version>
@@ -784,7 +783,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>17</version>
+									<version>${java.version}</version>
 								</requireJavaVersion>
 								<DependencyConvergence/>
 								<requireMavenVersion>

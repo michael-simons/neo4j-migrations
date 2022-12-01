@@ -619,8 +619,10 @@ The project is inspired to a large extent by <a href="https://flywaydb.org">Flyw
 Most things evolve around Cypher scripts, however the Core API of Neo4j-Migrations allows defining Java classes as migrations as well.</p>
 </div>
 <div class="paragraph">
-<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>, supports Neo4j from 3.5 on through the whole 4.x series upto Neo4j 5, including enterprise features such as multidatabase support and impersonation.
-The only dependencies are said driver and <a href="https://github.com/classgraph/classgraph">ClassGraph</a>, the latter being used to find migrations on the classpath.</p>
+<p>Neo4j-Migrations builds directly on top of the official <a href="https://github.com/neo4j/neo4j-java-driver">Neo4j Java driver</a>, supports Neo4j 3.5, Neo4j 4.1 to 4.4 and Neo4j 5, including enterprise features such as multidatabase support and impersonation.</p>
+</div>
+<div class="paragraph">
+<p>The only dependencies are said driver and <a href="https://github.com/classgraph/classgraph">ClassGraph</a>, the latter being used to find migrations on the classpath.</p>
 </div>
 <div class="paragraph">
 <p>The history of migrations applied is stored as a subgraph in your database.</p>
@@ -630,9 +632,8 @@ The only dependencies are said driver and <a href="https://github.com/classgraph
 <h3 id="introduction-compatibility"><a class="anchor" href="#introduction-compatibility"></a>1.2. Compatibility</h3>
 <div class="paragraph">
 <p>Neo4j-Migrations is tested only against <a href="https://neo4j.com">Neo4j</a>, the world&#8217;s leading Graph database.
-Neo4j-Migrations requires a 4.x version of Neo4j Java Driver.
-The project is build and tested with the latest 4.4 version, however previous versions 4.3, 4.2 and 4.1 are supported as well and can be used as drop-in-replacement.
-Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.0 - 4.4, 5 and of course, Neo4j-Aura.
+Neo4j-Migrations requires a 5.2+ version of Neo4j Java Driver.
+Therefore, Neo4j-Migrations works with Neo4j 3.5, 4.1 - 4.4, 5 and of course, Neo4j-Aura.
 It also can be used with an embedded instance, as long as the embedded instances provides the Bolt-Connector, too.
 The tooling may or may not work with other databases using the Bolt protocol. We don&#8217;t provide any support for those.</p>
 </div>
@@ -642,7 +643,7 @@ Neo4j-Migrations can safely be used on both the class- and module-path.
 Native binaries are provided for 64bit versions of macOS, Linux and Windows. The native binaries don&#8217;t require a JVM to be installed.</p>
 </div>
 <div class="paragraph">
-<p>For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3)</p>
+<p>For a version compatible with JDK 8, check the 1.x releases. We still do maintain the latest minor, including support for older versions of Spring Boot (prio to Spring Boot 3). These are also the versions you should be using against Neo4j 4.0.</p>
 </div>
 <div class="paragraph">
 <p>The older releases of Neo4j-Migrations are compiled with JDK 17 while targeting JDK 8.
@@ -4592,7 +4593,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 -processorpath neo4j-migrations-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.0.0-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
--cp neo4j-ogm-core-3.2.37.jar \
+-cp neo4j-ogm-core-4.0.0.jar \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/*</code></pre>
 </div>
 </div>
@@ -4964,7 +4965,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-01 09:50:00 UTC
+Last updated 2022-12-01 14:32:05 UTC
 </div>
 </div>
 </body>

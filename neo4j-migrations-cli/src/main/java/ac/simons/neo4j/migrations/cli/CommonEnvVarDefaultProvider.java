@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
- * Neo4j seems to have settled on a common set of env variables accross docs. This value provider
+ * Neo4j seems to have settled on a common set of env variables across docs. This value provider
  * uses them if present for defaults.
  *
  * @author Michael J. Simons

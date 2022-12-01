@@ -850,7 +850,6 @@
 						</manifest>
 						<manifestEntries>
 							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
-							<Multi-Release>true</Multi-Release>
 						</manifestEntries>
 					</archive>
 				</configuration>

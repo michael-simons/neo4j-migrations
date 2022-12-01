@@ -526,7 +526,7 @@ javac -proc:only \
 -processorpath neo4j-migrations-{fullVersion}.jar:neo4j-migrations-annotation-processor-api-{fullVersion}.jar:neo4j-migrations-annotation-processor-{fullVersion}.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
--cp neo4j-ogm-core-3.2.37.jar \
+-cp neo4j-ogm-core-4.0.0.jar \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/ogm/*
 ----
 

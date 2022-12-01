@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.DatabaseInfo;
 
 /**
@@ -253,9 +254,13 @@ public final class MigrationsConfig {
 		if (optionalDatabase.isEmpty()) {
 			// We need to connect to get this information
 			try (Session session = context.getSession()) {
-				optionalDatabase =
-					Optional.ofNullable(session.readTransaction(tx -> tx.run("MATCH (n) RETURN count(n)").consume()).database())
-						.map(DatabaseInfo::name);
+				try {
+					optionalDatabase = Optional.of(session.executeRead(tx -> tx.run("CALL db.info() YIELD name").single().get("name").asString()));
+				} catch (ClientException e) {
+					optionalDatabase =
+						Optional.ofNullable(session.executeRead(tx -> tx.run("MATCH (n) RETURN count(n)").consume()).database())
+							.map(DatabaseInfo::name);
+				}
 			}
 		}
 

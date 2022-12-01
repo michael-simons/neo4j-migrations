@@ -43,7 +43,7 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 		Map<String, Object> properties = targetMigration.asMap();
 
 		Relationship migrationProperties = repetitions.stream()
-			.filter(relationship -> relationship.endNodeId() == targetMigration.id())
+			.filter(relationship -> relationship.endNodeElementId().equals(targetMigration.elementId()))
 			.max(Comparator.comparing((Relationship r) -> r.get("at").asZonedDateTime()))
 			.orElse(appliedMigration.relationship());
 

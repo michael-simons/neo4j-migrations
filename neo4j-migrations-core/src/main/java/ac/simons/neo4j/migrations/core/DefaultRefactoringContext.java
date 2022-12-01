@@ -83,7 +83,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 				availableVersion = this.version;
 				if (availableVersion == null) {
 					String value = sessionSupplier.get()
-						.readTransaction(tx -> tx.run(new Query("CALL dbms.components() YIELD versions RETURN versions[0] AS version")).single())
+						.executeRead(tx -> tx.run(new Query("CALL dbms.components() YIELD versions RETURN versions[0] AS version")).single())
 						.get("version").asString();
 					this.version = Neo4jVersion.of(value);
 					availableVersion = this.version;
@@ -126,7 +126,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 	public Optional<String> findSingleResultIdentifier(String query) {
 
 		try (Session session = sessionSupplier.get()) {
-			ResultSummary resultSummary = session.readTransaction(tx -> tx.run(new Query("EXPLAIN " + query))).consume();
+			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query))).consume();
 			Plan root = resultSummary.plan();
 			if (isProduceResultOperator(root) && hasSingleElement(root)) {
 				return Optional.of(root.arguments().get(KEY_DETAILS).asString());

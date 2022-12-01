@@ -38,9 +38,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.CRC32;
 
-import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
@@ -285,7 +285,7 @@ final class DefaultCypherResource implements CypherResource {
 				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
 					LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", cypherResource.getIdentifier());
-					numberOfStatements = session.writeTransaction(t -> {
+					numberOfStatements = session.executeWrite(t -> {
 						int cnt = 0;
 						for (String statement : executableStatements) {
 							run(t, statement);
@@ -310,7 +310,7 @@ final class DefaultCypherResource implements CypherResource {
 				++numberOfStatements;
 				session.run(statement).consume();
 			} else {
-				numberOfStatements += session.writeTransaction(t -> {
+				numberOfStatements += session.executeWrite(t -> {
 					run(t, statement);
 					return 1;
 				});
@@ -382,7 +382,7 @@ final class DefaultCypherResource implements CypherResource {
 		return result;
 	}
 
-	static void run(QueryRunner runner, String statement) {
+	static void run(SimpleQueryRunner runner, String statement) {
 
 		LOGGER.log(Level.FINE, "Running {0}", statement);
 		ResultSummary resultSummary = runner.run(statement).consume();

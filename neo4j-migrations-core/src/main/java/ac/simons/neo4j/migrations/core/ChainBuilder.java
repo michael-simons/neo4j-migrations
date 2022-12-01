@@ -147,7 +147,7 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
 		var query = """
-			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)\s
+			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)
 			WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
 			WITH p
 			OPTIONAL MATCH () - [r:REPEATED] -> ()
@@ -156,7 +156,7 @@ final class ChainBuilder {
 			""";
 
 		try (Session session = context.getSchemaSession()) {
-			return session.readTransaction(tx -> {
+			return session.executeRead(tx -> {
 				Map<MigrationVersion, Element> chain = new LinkedHashMap<>();
 				String migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);
 				Result result = tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget));

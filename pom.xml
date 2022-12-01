@@ -149,9 +149,9 @@
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>4.9.0</mockito.version>
 		<native.maven.plugin.version>0.9.18</native.maven.plugin.version>
-		<neo4j-java-driver.version>4.4.9</neo4j-java-driver.version>
+		<neo4j-java-driver.version>5.3.0</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>1.13.3</neo4j-migrations.previous.version>
-		<neo4j-ogm.version>3.2.38</neo4j-ogm.version>
+		<neo4j-ogm.version>4.0.0</neo4j-ogm.version>
 		<neo4j.image>neo4j:4.4</neo4j.image>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 		<objenesis.version>3.3</objenesis.version>
@@ -161,12 +161,17 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>1.7.0</quarkus-neo4j.version>
+		<quarkus-neo4j.version>2.0.0</quarkus-neo4j.version>
 		<quarkus.version>2.14.2.Final</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
+		<!--
+		 I am not in the mood for _yet_ another player in the Neo4j-Java-Driver 5.x, Spring Boot 3, Quarkus Future battle of version fu
+		 and just keep the trusted 1.7.x version managed above and overwrite where necessary.
+		-->
+		<slf4jv2.version>2.0.4</slf4jv2.version>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.2.0</sortpom-maven-plugin.version>
-		<spring-boot.version>2.7.5</spring-boot.version>
+		<spring-boot.version>3.0.0</spring-boot.version>
 		<spring-data-neo4j.version>7.0.0</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.17.6</testcontainers.version>
@@ -271,11 +276,6 @@
 			<dependency>
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j-ogm-bolt-driver</artifactId>
-				<version>${neo4j-ogm.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-ogm-bolt-native-types</artifactId>
 				<version>${neo4j-ogm.version}</version>
 			</dependency>
 			<dependency>

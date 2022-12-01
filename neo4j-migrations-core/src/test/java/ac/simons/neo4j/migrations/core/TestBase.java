@@ -53,6 +53,7 @@ abstract class TestBase {
 		SLF4JBridgeHandler.install();
 	}
 
+	@SuppressWarnings("resource") // On purpose to reuse this
 	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(DEFAULT_NEO4J_IMAGE)
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 		.withReuse(true);
@@ -131,7 +132,7 @@ abstract class TestBase {
 		SessionConfig sessionConfig = getSessionConfig(database);
 
 		try (Session session = driver.session(sessionConfig)) {
-			assertThat(session.writeTransaction(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
+			assertThat(session.executeWrite(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
 		} catch (Neo4jException e) {
 		}
 	}
@@ -140,7 +141,7 @@ abstract class TestBase {
 		SessionConfig sessionConfig = getSessionConfig(database);
 
 		try (Session session = driver.session(sessionConfig)) {
-			assertThat(session.writeTransaction(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
+			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
 		} catch (Neo4jException e) {
 		}
 	}

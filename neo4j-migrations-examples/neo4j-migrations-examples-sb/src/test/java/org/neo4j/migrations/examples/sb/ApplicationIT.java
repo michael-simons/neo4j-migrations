@@ -52,7 +52,7 @@ class ApplicationIT {
 	Logger logger = LoggerFactory.getLogger(ApplicationIT.class);
 
 	@Container
-	private static Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"));
+	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"));
 
 	/**
 	 * I didn't find any better way to make sure failsafe actually is able to run Spring Boot's fat jar.
@@ -82,7 +82,7 @@ class ApplicationIT {
 			Config.builder().withLogging(Logging.console(Level.OFF)).build());
 			Session session = driver.session()
 		) {
-			long cnt = session.readTransaction(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
+			long cnt = session.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(1L);
 
 			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);

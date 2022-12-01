@@ -76,10 +76,10 @@ class UsingDataNeo4jTest {
 
 		try (Session session = driver.session()) {
 			long cnt = session
-				.readTransaction(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
+				.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(1L);
 
-			String version = session.readTransaction(
+			String version = session.executeRead(
 				tx -> tx.run("MATCH (n:`__Neo4jMigration`) WHERE NOT ((n)-[:MIGRATED_TO]->()) return n.version")
 					.single().get(0).asString());
 			assertThat(version).isEqualTo("0002");

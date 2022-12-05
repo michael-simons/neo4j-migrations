@@ -1,8 +1,198 @@
+# 2.0.0
+
+After a bit more than year after the [1.0 release](https://github.com/michael-simons/neo4j-migrations/releases/tag/1.0.0), welcome Neo4j-Migrations 2.0. This release includes all the features that have been released in more than 15 releases since 1.0, including the latest changes in 1.15.1, released today as well.
+
+The biggest change is going forward with Java 17, the current LTS release of Java. This enables us to use
+
+* The latest and greatest version of GraalVM
+* The current Neo4j-Java-Driver 5.3
+* Move to Spring Boot 3.0
+
+All the areas above are intertwined. GraalVM dropped support for Java 8 a while back and will drop support for Java 11 soon. There is no way for us to keep separate versions updated for all of these.
+The same applies for being available in Spring Boot 3, which does require Java 17, too.
+
+As we had building Multi-Release-Jars before to be able to provide proper modules on the module path and already seal some interfaces, our codebase actually shrank with the move.
+
+The biggest visible change is that our documentations is now on [Neo4j-Labs: Neo4j-Migrations](https://neo4j.com/labs/neo4j-migrations/2.0/introduction/), beautifully rendered with [Antora](https://antora.org) thanks to the fantastic support by @Mogztter and @adam-cowley.
+
+Moving forward we will mainly bring new features to the main branch, aka into 2.x. If possible without too much hassle, we will backport them into 1.x as well. The 1.x branch will be maintained with dependency upgrades for at least as long as Spring Boot 2.7, Quarkus 2.13 and especially the Neo4j-Java-Driver 4.4 are supported. With regards to the latter, a big thank you goes out to my friend and colleague @injectives who always openly listens to my rambling and makes the Neo4j-Java-Driver the great product which it is today.
+
+To give you an idea about the size and complexity of the project but also the change in it over the course of a year, have a look at the [scc metrics](https://github.com/boyter/scc) from 1.0:
+
+```
+───────────────────────────────────────────────────────────────────────────────
+                         Files     Lines   Blanks  Comments     Code Complexity
+───────────────────────────────────────────────────────────────────────────────
+Total                      113     11186     1522      2000     7664        220
+───────────────────────────────────────────────────────────────────────────────
+Estimated Cost to Develop (organic) $229.231
+Estimated Schedule Effort (organic) 7,86 months
+Estimated People Required (organic) 2,59
+```
+
+and about 13 months later, 2.0:
+
+```
+───────────────────────────────────────────────────────────────────────────────
+                         Files     Lines   Blanks  Comments     Code Complexity
+───────────────────────────────────────────────────────────────────────────────
+Total                      536     58795     7882     11628    39285       1616
+───────────────────────────────────────────────────────────────────────────────
+Estimated Cost to Develop (organic) $1.275.068
+Estimated Schedule Effort (organic) 15,08 months
+Estimated People Required (organic) 7,51
+```
+
+And now, up to the next cool things ahead :)
+
+## 🚀 Features
+- b1a4a5f Try to detect `CALL {} IN TRANSACTIONS` and skip managed transactions. (#743)
+- d86b14e Upgrade the project to utilize JDK17 full and proper.
+- 5f8aa39 Provide a limited set of annotations to define constraints. (#755)
+- fca152a Allow programmatic control over repeatable Java based migrations. (#726)
+
+## 🐛 Bug Fixes
+- 819e8d8 Fix prepare-release.sh.
+- 9edf488 Fix jbang distribution.
+- dad1cd4 Manually check for duplicate versions and don’t rely on the constraint. (#727)
+- 0e41ee1 Add `migrateBTreeIndexes` cmd to CLI. (#744)
+
+## 🔄️ Refactorings
+- bff7e67 Sort duplicate versions by source name.
+- dd6d1f0, 10fb84e and 45cf83d More JDK 17 related polishing.
+- 67c9f33 Add additional tests
+- c1a5538 Include reasons in CLI log when being able to render catalog items. (#723)
+- d861a9c Remove `Formattable` trait from catalog items.
+
+## 📝 Documentation
+- e3c770a Correct spelling errors.
+- 6165e60 add adam-cowley as a contributor for infra (#740)
+- 96c9c3c add adriens as a contributor for ideas (#766)
+- 34c7c6b add michael-simons as a contributor for talk (#767)
+- d053800 add Mogztter as a contributor for code, and doc (#731)
+- 2ad8ebd Add links to articles and presentations about the project.
+- 1afe134 Update local changelog.
+- 49260d2 Clarify Java version requirements.
+- f865b5d migrate documentation to Antora (#657)
+
+## 🧹 Housekeeping
+- 3a21108 Bump native-maven-plugin from 0.9.18 to 0.9.19 (#771)
+- a7869b2 Bump compile-testing from 0.19 to 0.20 (#770)
+- 432ac7a Bump checker-qual from 3.27.0 to 3.28.0 (#769)
+- 6039680 Bump neo4j-harness from 5.1.0 to 5.2.0 (#772)
+- 4ca45d7 Upgrade driver to 5.3, Spring Boot to 3.0 and Quarkus (Extension) to 2.0.
+- d20e174 Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.1.2 to 2022.1.3 and testcontainers from 1.17.5 to 1.17.6
+- ccdcdbc Bump classgraph from 4.8.149 to 4.8.151 (#763)
+- a71776c Bump archunit from 1.0.0 to 1.0.1 (#764)
+- bec24d4 Bump native-maven-plugin from 0.9.17 to 0.9.18 (#761)
+- d8e2e6b Bump neo4j-cypher-dsl-schema-name-support from 2022.7.3 to 2022.8.0 (#760)
+- 71302a7 Bump quarkus.version from 2.14.0.Final to 2.14.2.Final (#759)
+- ddd6ac0 Bump checkstyle from 10.4 to 10.5.0 (#758)
+- 9ef9d8f Bump spring-data-neo4j from 6.3.5 to 7.0.0 (#754)
+- 6237a64 Bump plexus-classworlds from 2.6.0 to 2.7.0 (#753)
+- 270e596 Bump byte-buddy.version from 1.12.18 to 1.12.19 (#751)
+- 8e4a4d9 Bump maven-install-plugin from 3.0.1 to 3.1.0 (#750)
+- 6c934b5 Bump japicmp-maven-plugin from 0.16.0 to 0.17.1 (#749)
+- 14dafc4 Bump commonmark from 0.20.0 to 0.21.0 (#747)
+- bd72f7d Bump mockito.version from 4.8.1 to 4.9.0 (#746)
+- 332f1a3 Bump neo4j-harness from 4.4.12 to 5.1.0 (#690)
+- 1a4f6d4 Bump os-maven-plugin from 1.7.0 to 1.7.1 (#734)
+- 0ae21b9 Bump maven-plugin-plugin from 3.6.4 to 3.7.0 (#735)
+- 3393102 Bump maven-plugin-annotations from 3.6.4 to 3.7.0 (#733)
+- 9f360ad Bump checker-qual from 3.26.0 to 3.27.0 (#736)
+- f2e1ca8 Bump quarkus-neo4j.version from 1.6.1 to 1.7.0 (#721)
+- 77fc359 Bump quarkus.version from 2.13.3.Final to 2.14.0.Final (#711)
+- 5d3814b Bump graal-sdk from 21.3.2 to 22.3.0
+
+## 🛠 Build
+- cc349ec Set previous version to latest 1.x version.
+- 33af669 Polish native config.
+- a741a81 Remove multi-release leftovers.
+- 8cb7229 Don’t skip tests based on checking string arguments blindly.
+- 9b4368f Improve Antora includes and build
+- b6af149 Notify neo4j.com playbooks repository. (#737)
+- 13d7d45 Improve Antora version approach and module name. (#738)
+- c8e4580 Add full testing support for Neo4j 5. (#741)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @adam-cowley
+- @meistermeier
+- @Mogztter
+
+
+# 1.15.1
+
+## 📝 Documentation
+- ad63660 Correct spelling errors.
+
+## 🧹 Housekeeping
+- a297bfc Bump native-maven-plugin from 0.9.18 to 0.9.19 (#771)
+- 81abd64 Bump compile-testing from 0.19 to 0.20 (#770)
+- 23fecb0 Bump checker-qual from 3.27.0 to 3.28.0 (#769)
+
+
+# 1.15.0
+
+## 🚀 Features
+- aca8e6a Try to detect `CALL {} IN TRANSACTIONS` and skip managed transactions. (#743)
+- 2efc143 Provide a limited set of annotations to define constraints. (#756)
+- 9e4d233 Add `migrateBTreeIndexes` cmd to CLI. (#744) (#745)
+
+## 🐛 Bug Fixes
+- 45dab75 Fix typos.
+
+## 🔄️ Refactorings
+- 8c11780 Add full testing support for Neo4j 5. (#742)
+
+## 🧹 Housekeeping
+- 9a3c02c Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.1.2 to 2022.1.3 and testcontainers from 1.17.5 to 1.17.6
+- 3c44944 Bump classgraph from 4.8.149 to 4.8.151 (#763)
+- b749578 Bump archunit from 1.0.0 to 1.0.1 (#764)
+- d3305f3 Bump native-maven-plugin from 0.9.17 to 0.9.18 (#761)
+- b14861d Bump neo4j-cypher-dsl-schema-name-support from 2022.7.3 to 2022.8.0 (#760)
+- 29c622b Bump quarkus.version from 2.13.3.Final to 2.13.5.Final
+- cf894af Bump checkstyle from 10.4 to 10.5.0 (#758)
+- 7161a4e Bump plexus-classworlds from 2.6.0 to 2.7.0 (#753)
+- ba2c7d0 Bump byte-buddy.version from 1.12.18 to 1.12.19 (#751)
+- a994396 Bump maven-install-plugin from 3.0.1 to 3.1.0 (#750)
+- f7fc11f Bump japicmp-maven-plugin from 0.16.0 to 0.17.1 (#749)
+- 263cc3c Bump commonmark from 0.20.0 to 0.21.0 (#747)
+- 44e792c Bump mockito.version from 4.8.1 to 4.9.0 (#746)
+
+## 🛠 Build
+- 843c19d Don’t skip tests based on checking string arguments blindly.
+
+
+# 1.14.0
+
+With 1.14.0 we created the 1.x maintenance branch. All new development will happen in the main branch and require JDK 17 from now on. We will backport dependency upgrades as far as possible and if we can bring features over from main without pulling a leg and an arm, we might do so as well.
+
+## 🐛 Bug Fixes
+- c61ec51 Manually check for duplicate versions and don’t rely on the constraint. (#728)
+
+## 🔄️ Refactorings
+- c9a5be4 Include reasons in CLI log when being able to render catalog items. (#723) (#724)
+- 11fc794 Deprecate public `isRepeatable` on `MigrationVersion`. (#722)
+
+## 📝 Documentation
+- dea9ae5 Update local changelog.
+
+## 🧹 Housekeeping
+- ec816e4 Bump os-maven-plugin from 1.7.0 to 1.7.1 (#734)
+- 486f310 Bump maven-plugin-plugin from 3.6.4 to 3.7.0 (#735)
+- b597615 Bump maven-plugin-annotations from 3.6.4 to 3.7.0 (#733)
+- 92f5b33 Bump checker-qual from 3.26.0 to 3.27.0 (#736)
+
+## 🛠 Build
+- d4584f2 Prepare 1.x branch.
+
+
 # 1.13.3
 
 New feature: *Repeatable migrations*
 
-@MaurizioCasciano brought up the idea of repeatable migrations / refactoring and we delivered: Migrations named `Rxzy__something.cypher` (`xml` catalogs and Java based migrations work too) will now be repeated when their checksum changed. The repetition will be recorded in the subgraph of migrations too so that you can check for it (with a self-referential relation type `REPEATED`, thanks to @meistermeier for the suggestion). 
+@MaurizioCasciano brought up the idea of repeatable migrations / refactoring and we delivered: Migrations named `Rxzy__something.cypher` (`xml` catalogs and Java based migrations work too) will now be repeated when their checksum changed. The repetition will be recorded in the subgraph of migrations too so that you can check for it (with a self-referential relation type `REPEATED`, thanks to @meistermeier for the suggestion).
 
 If you need something that always runs, consider a [callback](https://michael-simons.github.io/neo4j-migrations/current/#concepts_callbacks).
 
@@ -36,7 +226,7 @@ This is most likely the last release containing new features. 2.0.0 will drop by
 
 ⚠️ This is a breaking change ⚠️
 
-@SaschaPeukert notified us that 7e53e57 will break compatibility with older Spring Boot Versions (older than 2.7.0) as the new dedicated `@AutoConfiguration` was introduced in that release for the first time. It's debatable whether the compatibility of our tool with Spring Boot 2.6 was as promised or coincidentally, but this should not have happened and we are sorry for that. 
+@SaschaPeukert notified us that 7e53e57 will break compatibility with older Spring Boot Versions (older than 2.7.0) as the new dedicated `@AutoConfiguration` was introduced in that release for the first time. It's debatable whether the compatibility of our tool with Spring Boot 2.6 was as promised or coincidentally, but this should not have happened and we are sorry for that.
 
 ## 🔄️ Refactorings
 - 7e53e57 Migrate to `@AutoConfiguration`. (#696)
@@ -86,10 +276,10 @@ This is most likely the last release containing new features. 2.0.0 will drop by
 This exiting release - again **without** breaking changes - brings two important features:
 
 1.  Migrating `BTREE` indexes to "future" indexes
-Neo4j 5 will drop the support for `BTREE` indexes. Those indexes must be replaced by `RANGE`, `POINT` or `TEXT` before a store upgrade is attempted. Neo4j 4.4 already "supports" `RANGE` and `POINT` for creating indexes (albeit they are not used in planning right now). 
-Neo4j-Migrations offers two new refactorings for that: `migrate.createFutureIndexes` which will create future indexes in parallel to old ones and `migrate.replaceBTreeIndexes` to replace old indexes with new ones prior to upgrade
+    Neo4j 5 will drop the support for `BTREE` indexes. Those indexes must be replaced by `RANGE`, `POINT` or `TEXT` before a store upgrade is attempted. Neo4j 4.4 already "supports" `RANGE` and `POINT` for creating indexes (albeit they are not used in planning right now).
+    Neo4j-Migrations offers two new refactorings for that: `migrate.createFutureIndexes` which will create future indexes in parallel to old ones and `migrate.replaceBTreeIndexes` to replace old indexes with new ones prior to upgrade
 2. Running refactorings or even whole migrations standalone without storing or requiring metadata
-  
+
 How does that look like? Users have 3 options:
 1. Define the new refactoring in a proper catalog based migrations (not going to reiterate that here)
 2. Build the refactoring via its api and use the new api on `Migrations` to apply it
@@ -110,7 +300,7 @@ counters = migrations.apply(
 or
 
 3. Define a "fake" migration containing only the refactoring and run it via the CLI
-First store the following as `V000__Migrate_indexes.xml` (or any other conform name you prefer):
+   First store the following as `V000__Migrate_indexes.xml` (or any other conform name you prefer):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -128,7 +318,7 @@ First store the following as `V000__Migrate_indexes.xml` (or any other conform n
 </migration>
 ```
 
-And run via: 
+And run via:
 
 ```
 ./bin/neo4j-migrations -uneo4j -psecret run --migration file:./V000__Migrate_indexes.xml
@@ -260,7 +450,7 @@ One possible output - outlining just some of the constraints - will look like th
 </migration>
 ```
 
-This catalog can than be added to your CI/CD or application setup as described in the [manual](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog). We do not recommend regenerating it every time in the build as that will break the chain of migrations once you change entities. This might be seen as an inconvenience but we are convinced that a half-automated process here is better than the auto index manager of old that might surprises you with it's upgrade mechanism. 
+This catalog can than be added to your CI/CD or application setup as described in the [manual](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog). We do not recommend regenerating it every time in the build as that will break the chain of migrations once you change entities. This might be seen as an inconvenience but we are convinced that a half-automated process here is better than the auto index manager of old that might surprises you with it's upgrade mechanism.
 
 This also the first release that that will ship with Linux ARM64 ootb.
 

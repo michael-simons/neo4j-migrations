@@ -1,3 +1,46 @@
+# 1.15.1
+
+## 📝 Documentation
+- ad63660 Correct spelling errors.
+
+## 🧹 Housekeeping
+- a297bfc Bump native-maven-plugin from 0.9.18 to 0.9.19 (#771)
+- 81abd64 Bump compile-testing from 0.19 to 0.20 (#770)
+- 23fecb0 Bump checker-qual from 3.27.0 to 3.28.0 (#769)
+
+
+# 1.15.0
+
+## 🚀 Features
+- aca8e6a Try to detect `CALL {} IN TRANSACTIONS` and skip managed transactions. (#743)
+- 2efc143 Provide a limited set of annotations to define constraints. (#756)
+- 9e4d233 Add `migrateBTreeIndexes` cmd to CLI. (#744) (#745)
+
+## 🐛 Bug Fixes
+- 45dab75 Fix typos.
+
+## 🔄️ Refactorings
+- 8c11780 Add full testing support for Neo4j 5. (#742)
+
+## 🧹 Housekeeping
+- 9a3c02c Bump junit-jupiter-causal-cluster-testcontainer-extension from 2022.1.2 to 2022.1.3 and testcontainers from 1.17.5 to 1.17.6
+- 3c44944 Bump classgraph from 4.8.149 to 4.8.151 (#763)
+- b749578 Bump archunit from 1.0.0 to 1.0.1 (#764)
+- d3305f3 Bump native-maven-plugin from 0.9.17 to 0.9.18 (#761)
+- b14861d Bump neo4j-cypher-dsl-schema-name-support from 2022.7.3 to 2022.8.0 (#760)
+- 29c622b Bump quarkus.version from 2.13.3.Final to 2.13.5.Final
+- cf894af Bump checkstyle from 10.4 to 10.5.0 (#758)
+- 7161a4e Bump plexus-classworlds from 2.6.0 to 2.7.0 (#753)
+- ba2c7d0 Bump byte-buddy.version from 1.12.18 to 1.12.19 (#751)
+- a994396 Bump maven-install-plugin from 3.0.1 to 3.1.0 (#750)
+- f7fc11f Bump japicmp-maven-plugin from 0.16.0 to 0.17.1 (#749)
+- 263cc3c Bump commonmark from 0.20.0 to 0.21.0 (#747)
+- 44e792c Bump mockito.version from 4.8.1 to 4.9.0 (#746)
+
+## 🛠 Build
+- 843c19d Don’t skip tests based on checking string arguments blindly.
+
+
 # 1.14.0
 
 With 1.14.0 we created the 1.x maintenance branch. All new development will happen in the main branch and require JDK 17 from now on. We will backport dependency upgrades as far as possible and if we can bring features over from main without pulling a leg and an arm, we might do so as well.
@@ -26,7 +69,7 @@ With 1.14.0 we created the 1.x maintenance branch. All new development will happ
 
 New feature: *Repeatable migrations*
 
-@MaurizioCasciano brought up the idea of repeatable migrations / refactoring and we delivered: Migrations named `Rxzy__something.cypher` (`xml` catalogs and Java based migrations work too) will now be repeated when their checksum changed. The repetition will be recorded in the subgraph of migrations too so that you can check for it (with a self-referential relation type `REPEATED`, thanks to @meistermeier for the suggestion). 
+@MaurizioCasciano brought up the idea of repeatable migrations / refactoring and we delivered: Migrations named `Rxzy__something.cypher` (`xml` catalogs and Java based migrations work too) will now be repeated when their checksum changed. The repetition will be recorded in the subgraph of migrations too so that you can check for it (with a self-referential relation type `REPEATED`, thanks to @meistermeier for the suggestion).
 
 If you need something that always runs, consider a [callback](https://michael-simons.github.io/neo4j-migrations/current/#concepts_callbacks).
 
@@ -60,7 +103,7 @@ This is most likely the last release containing new features. 2.0.0 will drop by
 
 ⚠️ This is a breaking change ⚠️
 
-@SaschaPeukert notified us that 7e53e57 will break compatibility with older Spring Boot Versions (older than 2.7.0) as the new dedicated `@AutoConfiguration` was introduced in that release for the first time. It's debatable whether the compatibility of our tool with Spring Boot 2.6 was as promised or coincidentally, but this should not have happened and we are sorry for that. 
+@SaschaPeukert notified us that 7e53e57 will break compatibility with older Spring Boot Versions (older than 2.7.0) as the new dedicated `@AutoConfiguration` was introduced in that release for the first time. It's debatable whether the compatibility of our tool with Spring Boot 2.6 was as promised or coincidentally, but this should not have happened and we are sorry for that.
 
 ## 🔄️ Refactorings
 - 7e53e57 Migrate to `@AutoConfiguration`. (#696)
@@ -110,10 +153,10 @@ This is most likely the last release containing new features. 2.0.0 will drop by
 This exiting release - again **without** breaking changes - brings two important features:
 
 1.  Migrating `BTREE` indexes to "future" indexes
-Neo4j 5 will drop the support for `BTREE` indexes. Those indexes must be replaced by `RANGE`, `POINT` or `TEXT` before a store upgrade is attempted. Neo4j 4.4 already "supports" `RANGE` and `POINT` for creating indexes (albeit they are not used in planning right now). 
-Neo4j-Migrations offers two new refactorings for that: `migrate.createFutureIndexes` which will create future indexes in parallel to old ones and `migrate.replaceBTreeIndexes` to replace old indexes with new ones prior to upgrade
+    Neo4j 5 will drop the support for `BTREE` indexes. Those indexes must be replaced by `RANGE`, `POINT` or `TEXT` before a store upgrade is attempted. Neo4j 4.4 already "supports" `RANGE` and `POINT` for creating indexes (albeit they are not used in planning right now).
+    Neo4j-Migrations offers two new refactorings for that: `migrate.createFutureIndexes` which will create future indexes in parallel to old ones and `migrate.replaceBTreeIndexes` to replace old indexes with new ones prior to upgrade
 2. Running refactorings or even whole migrations standalone without storing or requiring metadata
-  
+
 How does that look like? Users have 3 options:
 1. Define the new refactoring in a proper catalog based migrations (not going to reiterate that here)
 2. Build the refactoring via its api and use the new api on `Migrations` to apply it
@@ -134,7 +177,7 @@ counters = migrations.apply(
 or
 
 3. Define a "fake" migration containing only the refactoring and run it via the CLI
-First store the following as `V000__Migrate_indexes.xml` (or any other conform name you prefer):
+   First store the following as `V000__Migrate_indexes.xml` (or any other conform name you prefer):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -152,7 +195,7 @@ First store the following as `V000__Migrate_indexes.xml` (or any other conform n
 </migration>
 ```
 
-And run via: 
+And run via:
 
 ```
 ./bin/neo4j-migrations -uneo4j -psecret run --migration file:./V000__Migrate_indexes.xml
@@ -284,7 +327,7 @@ One possible output - outlining just some of the constraints - will look like th
 </migration>
 ```
 
-This catalog can than be added to your CI/CD or application setup as described in the [manual](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog). We do not recommend regenerating it every time in the build as that will break the chain of migrations once you change entities. This might be seen as an inconvenience but we are convinced that a half-automated process here is better than the auto index manager of old that might surprises you with it's upgrade mechanism. 
+This catalog can than be added to your CI/CD or application setup as described in the [manual](https://michael-simons.github.io/neo4j-migrations/current/#concepts_catalog). We do not recommend regenerating it every time in the build as that will break the chain of migrations once you change entities. This might be seen as an inconvenience but we are convinced that a half-automated process here is better than the auto index manager of old that might surprises you with it's upgrade mechanism.
 
 This also the first release that that will ship with Linux ARM64 ootb.
 

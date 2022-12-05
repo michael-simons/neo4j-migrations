@@ -3,7 +3,7 @@
 set -euo pipefail
 DIR="$(dirname "$(realpath "$0")")"
 
-sed -i .bak 's/\(:version:\) \(.*\)/\1 '"${1}"'/g' "$DIR"/../README.adoc
+sed -i .bak 's/\(:fullVersion:\) \(.*\)/\1 '"${1}"'/g' "$DIR"/../README.adoc
 rm "$DIR"/../README.adoc.bak
 
 # shellcheck disable=SC2001
@@ -22,6 +22,6 @@ else
 fi
 
 if [ "$DRYRUN" != "true" ]; then
-  git add "$DIR"/../README.adoc
+  git add "$DIR"/../README.adoc "$DIR"/../docs/antora.yml
   git commit -m "[maven-release-plugin] update README.adoc"
 fi

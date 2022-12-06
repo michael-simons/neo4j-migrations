@@ -850,6 +850,7 @@
 				<configuration>
 					<archive>
 						<manifest>
+							<addDefaultEntries>true</addDefaultEntries>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
 						</manifest>

@@ -30,7 +30,6 @@
 	<description>The Core API of Neo4j-Migrations.</description>
 
 	<properties>
-		<java-module-name>ac.simons.neo4j.migrations.core</java-module-name>
 		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
@@ -212,6 +211,20 @@
 						<phase>verify</phase>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<!-- This module has a proper module, we must not add the automatic module entry to the jar -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
+				<configuration combine.self="override">
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+						</manifest>
+					</archive>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

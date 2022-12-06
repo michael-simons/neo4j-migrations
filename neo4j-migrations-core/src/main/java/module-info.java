@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 
 /**
  * Neo4j-Migrations core module.
@@ -38,6 +35,8 @@ module ac.simons.neo4j.migrations.core {
 	exports ac.simons.neo4j.migrations.core.catalog;
 	exports ac.simons.neo4j.migrations.core.refactorings;
 
-	provides ResourceBasedMigrationProvider with CypherResourceBasedMigrationProvider, DefaultCatalogBasedMigrationProvider;
-	uses ResourceBasedMigrationProvider;
+	provides ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider with
+		ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider,
+		ac.simons.neo4j.migrations.core.DefaultCatalogBasedMigrationProvider;
+	uses ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 }

@@ -30,7 +30,7 @@ module ac.simons.neo4j.migrations.core {
 	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
-	requires java.net.http;
+	requires transitive java.net.http;
 
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;

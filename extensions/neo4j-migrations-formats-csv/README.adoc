@@ -1,0 +1,52 @@
+= CSV Support
+Michael Simons <michael.simons@neo4j.com>
+:doctype: article
+:lang: en
+:listing-caption: Listing
+:source-highlighter: coderay
+:icons: font
+:standalone: true
+
+ifndef::env-site[]
+include::../../README.adoc[tags=properties]
+endif::[]
+
+WARNING: This is an extension to the main project and independent of it.
+         As of publishing and writing the first version (2.0.1), it is considered
+         experimental.
+
+// tag::content[]
+== What does it do?
+
+
+ifdef::standalone[]
+:testDir: src/test/java/ac/simons/neo4j/migrations/formats/csv/test_migrations
+
+ifdef::env-site[]
+:testDir: example$extensions/formats-csv
+endif::[]
+
+endif::[]
+
+ifndef::standalone[]
+:testDir: ../../examples/extensions/formats-csv
+endif::[]
+
+This module consists of some abstract bases classes that helps you to use data in CSV files during migration. The idea is that you have some CSV data you want to use `LOAD CSV`. Depending on whether the data has been changed or not, you need want to repeat the migration or not.
+
+We have basically everything in place:
+
+* Java based migrations that can be repeated or not
+* Check-summing based on whatever.
+
+What we can do for you is check-summing CSV data on HTTP urls for you. What you need to do is make them available to both Neo4j and this tool and provide a query to deal with them. Our tooling brings it together. Essentially, you want to inherit from `ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration` like this:
+
+.R050__LoadBookData.java
+[source,java,indent=0,tabsize=4]
+----
+include::{testDir}/R050__LoadBookData.java[tag=content]
+----
+
+In the above example, we decide that the CSV data might change and therefor we indicate this migration being repeatable in the constructor call. If this is the case, we suggest using a class name reflecting that. If you use `false` during construction, migrations will fail if the data changes. The Cypher being used here does a merge and therefor, we added constraints to the title and person names beforehand. You may choose to omit the `%s` in the query template, but we suggest to use for the URI.
+
+// end::content[]

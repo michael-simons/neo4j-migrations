@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -46,6 +47,7 @@ final class JavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigratio
 			return scanResult
 					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(JavaBasedMigration.class)
 					.stream()
+					.filter(c -> !Modifier.isAbstract(c.getModifiers()))
 					.map(c -> {
 						try {
 							return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();

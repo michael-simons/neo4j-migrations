@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes>
+			<index name="idx_author_name">
+				<label>Author</label>
+				<properties>
+					<property>name</property>
+				</properties>
+			</index>
+			<index name="idx_book_name">
+				<label>Book</label>
+				<properties>
+					<property>name</property>
+				</properties>
+			</index>
+		</indexes>
+		<constraints>
+			<constraint name="unique_id_author" type="unique">
+				<label>Author</label>
+				<properties>
+					<property>id</property>
+				</properties>
+			</constraint>
+			<constraint name="unique_id_book" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>id</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+
+	<apply/>
+</migration>

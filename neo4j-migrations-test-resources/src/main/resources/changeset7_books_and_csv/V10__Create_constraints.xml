@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<constraints>
+			<constraint name="unique_title" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>title</property>
+				</properties>
+			</constraint>
+		</constraints>
+		<indexes>
+			<index name="person_name_index">
+				<label>Person</label>
+				<properties>
+					<property>index</property>
+				</properties>
+			</index>
+		</indexes>
+	</catalog>
+</migration>

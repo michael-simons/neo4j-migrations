@@ -55,13 +55,11 @@
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -86,6 +84,18 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration combine.self="append">
 					<argLine>@{argLine} -Xverify:all --add-exports ac.simons.neo4j.migrations.formats.csv/ac.simons.neo4j.migrations.formats.csv.test_migrations=ac.simons.neo4j.migrations.core</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration combine.self="override">
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

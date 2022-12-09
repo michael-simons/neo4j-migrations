@@ -4637,9 +4637,73 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <div class="sect2">
 <h3 id="appendix_extesions"><a class="anchor" href="#appendix_extesions"></a>Extensions</h3>
 <div class="sect3">
-<h4 id="asciidoctorsupportexperimental"><a class="anchor" href="#asciidoctorsupportexperimental"></a>AsciiDoctor Support (Experimental)</h4>
+<h4 id="csvsupportexperimental"><a class="anchor" href="#csvsupportexperimental"></a>CSV Support (Experimental)</h4>
 <div class="sect4">
 <h5 id="whatdoesitdo"><a class="anchor" href="#whatdoesitdo"></a>What does it do?</h5>
+<div class="paragraph">
+<p>This module consists of some abstract bases classes that helps you to use data in CSV files during migration. The idea is that you have some CSV data you want to use <code>LOAD CSV</code>. Depending on whether the data has been changed or not, you need want to repeat the migration or not.</p>
+</div>
+<div class="paragraph">
+<p>We have basically everything in place:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Java based migrations that can be repeated or not</p>
+</li>
+<li>
+<p>Check-summing based on whatever.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>What we can do for you is check-summing CSV data on HTTP urls for you. What you need to do is make them available to both Neo4j and this tool and provide a query to deal with them. Our tooling brings it together. Essentially, you want to inherit from <code>ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration</code> like this:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 51. R050__LoadBookData.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">java.net.URI</span>;
+
+<span class="keyword">import</span> <span class="include">org.neo4j.driver.Query</span>;
+
+<span class="keyword">import</span> <span class="include">ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">R050__LoadBookData</span> <span class="directive">extends</span> AbstractLoadCSVMigration {
+
+    <span class="directive">public</span> R050__LoadBookData() {
+        <span class="local-variable">super</span>(<span class="predefined-type">URI</span>.create(<span class="string"><span class="delimiter">&quot;</span><span class="content">https://raw.githubusercontent.com/michael-simons/goodreads/master/all.csv</span><span class="delimiter">&quot;</span></span>), <span class="predefined-constant">true</span>);
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="predefined-type">Query</span> getQuery() {
+        <span class="comment">// language=cypher</span>
+        <span class="keyword">return</span> <span class="keyword">new</span> <span class="predefined-type">Query</span>(<span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="content">
+            LOAD CSV FROM '%s' AS row FIELDTERMINATOR ';'
+            MERGE (b:Book {title: trim(row[1])})
+            SET b.type = row[2], b.state = row[3]
+            WITH b, row
+            UNWIND split(row[0], '&amp;') AS author
+            WITH b, split(author, ',') AS author
+            WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
+            MERGE (a:Person {name: trim(author)})
+            MERGE (a)-[r:WROTE]-&gt;(b)
+            WITH b, a
+            WITH b, collect(a) AS authors
+            RETURN b.title, b.state, authors
+            </span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span>);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above example, we decide that the CSV data might change and therefor we indicate this migration being repeatable in the constructor call. If this is the case, we suggest using a class name reflecting that. If you use <code>false</code> during construction, migrations will fail if the data changes. The Cypher being used here does a merge and therefor, we added constraints to the title and person names beforehand. You may choose to omit the <code>%s</code> in the query template, but we suggest to use for the URI.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="asciidoctorsupportexperimental"><a class="anchor" href="#asciidoctorsupportexperimental"></a>AsciiDoctor Support (Experimental)</h4>
+<div class="sect4">
+<h5 id="whatdoesitdo2"><a class="anchor" href="#whatdoesitdo2"></a>What does it do?</h5>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -4803,7 +4867,7 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 51. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 52. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4816,7 +4880,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 52. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 53. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.0.1-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4872,7 +4936,7 @@ Database: neo4j
 <div class="sect3">
 <h4 id="markdownsupportexperimental"><a class="anchor" href="#markdownsupportexperimental"></a>Markdown Support (Experimental)</h4>
 <div class="sect4">
-<h5 id="whatdoesitdo2"><a class="anchor" href="#whatdoesitdo2"></a>What does it do?</h5>
+<h5 id="whatdoesitdo3"><a class="anchor" href="#whatdoesitdo3"></a>What does it do?</h5>
 <div class="paragraph">
 <p>When added to one of the supported use-case scenarios as an external library, it allows Neo4j-Migrations to discover
 Markdown files and use them as sources of Cypher statements for defining refactorings.</p>
@@ -4895,7 +4959,7 @@ and valid inline Cypher content. The block definition looks like this:</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 53. Markdown extension as Maven dependency</div>
+<div class="title">Listing 54. Markdown extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4908,7 +4972,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 54. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 55. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.0.1-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -4965,7 +5029,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-06 09:17:32 UTC
+Last updated 2022-12-09 15:44:36 UTC
 </div>
 </div>
 </body>

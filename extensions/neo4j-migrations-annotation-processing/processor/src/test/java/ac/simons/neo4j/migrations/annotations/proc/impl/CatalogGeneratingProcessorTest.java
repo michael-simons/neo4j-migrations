@@ -174,6 +174,28 @@ class CatalogGeneratingProcessorTest {
 			.isEqualTo(expectedCatalog);
 	}
 
+	@ParameterizedTest // GH-774
+	@ValueSource(strings = {"OrganizationClass", "OrganizationRecord"})
+	void shouldDealWithClassesAndRecords(String classFile) throws IOException {
+
+		CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+		Compilation compilation = getCompiler()
+			.withProcessors(catalogGeneratingProcessor)
+			.withOptions(String.format("-Aorg.neo4j.migrations.catalog_generator.timestamp=%s", "2022-12-09T21:21:00+01:00"))
+			.compile(JavaFileObjects.forResource(resourceResolver.getResources(String.format("ac/simons/neo4j/migrations/annotations/proc/catalog/issues/%s.java", classFile))[0].getURL()));
+
+		String expectedCatalog;
+		try (var in = this.getClass().getResourceAsStream(String.format("/expected_catalog_%s.xml", classFile))) {
+			expectedCatalog = new String(in.readAllBytes(), StandardCharsets.UTF_8)
+				.replace("\t", "    ");
+		}
+
+		assertThat(compilation)
+			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
+			.contentsAsString(StandardCharsets.UTF_8)
+			.isEqualTo(expectedCatalog);
+	}
+
 	static class CollectingConstraintNameGenerator implements ConstraintNameGenerator {
 
 		Map<String, List<String>> labels = new HashMap<>();

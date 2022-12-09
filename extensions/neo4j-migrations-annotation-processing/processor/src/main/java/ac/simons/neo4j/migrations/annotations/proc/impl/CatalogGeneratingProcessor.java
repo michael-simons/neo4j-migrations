@@ -73,6 +73,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.RecordComponentElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
@@ -1066,6 +1067,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			if (!isNonAbstractClass && Boolean.FALSE.equals(includeAbstractClasses)) {
 				return false;
 			}
+
 			if (e.getEnclosedElements().stream().noneMatch(ee -> ee.accept(this, false))) {
 				return findSuperclassOfInterest(e).map(superclass -> superclass.accept(this, true)).orElse(false);
 			}
@@ -1073,7 +1075,18 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 
 		@Override
+		public Boolean visitRecordComponent(RecordComponentElement e, Boolean defaultValue) {
+
+			return checkFieldOrRecordComponent(e, defaultValue);
+		}
+
+		@Override
 		public Boolean visitVariableAsField(VariableElement e, Boolean defaultValue) {
+
+			return checkFieldOrRecordComponent(e, defaultValue);
+		}
+
+		private boolean checkFieldOrRecordComponent(Element e, Boolean defaultValue) {
 
 			Set<Element> fieldAnnotations = e.getAnnotationMirrors().stream()
 				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());
@@ -1085,7 +1098,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				.noneMatch(generatedValue -> isUsingInternalIdGenerator(e, generatedValue));
 		}
 
-		private boolean isUsingInternalIdGenerator(VariableElement e, AnnotationMirror generatedValue) {
+		private boolean isUsingInternalIdGenerator(Element e, AnnotationMirror generatedValue) {
 
 			Map<String, ? extends AnnotationValue> values = generatedValue
 				.getElementValues().entrySet().stream()

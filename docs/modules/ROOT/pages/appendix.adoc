@@ -563,6 +563,10 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 [[appendix_extesions]]
 == Extensions
 
+=== CSV Support (Experimental)
+
+include::extensions/csv.adoc[leveloffset=+2,tag=content]
+
 === AsciiDoctor Support (Experimental)
 
 include::extensions/asciidoctor.adoc[leveloffset=+2,tag=content]

@@ -744,20 +744,4 @@ class MigrationsIT extends TestBase {
 
 		assertThat(appliedMigrations).isEqualTo(1);
 	}
-
-	@Test
-	void loadCSVShouldWork() {
-
-		Migrations migrations = new Migrations(MigrationsConfig.builder()
-			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset7_books_and_csv")
-			.withLocationsToScan("classpath:changeset7_books_and_csv")
-			.build(), driver);
-		migrations.apply();
-
-		try (var session = driver.session()) {
-			var author = session.run("MATCH (a)-[r:WROTE]->(b:Book {title: 'Designing Data-Intensive Applications'}) RETURN a")
-				.single().get("a").get("name").asString();
-			assertThat(author).isEqualTo("Martin Kleppmann");
-		}
-	}
 }

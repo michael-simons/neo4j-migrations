@@ -30,12 +30,10 @@ module ac.simons.neo4j.migrations.core {
 	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
-	requires transitive java.net.http;
 
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;
 	exports ac.simons.neo4j.migrations.core.refactorings;
-	exports ac.simons.neo4j.migrations.core.templates;
 
 	provides ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider with
 		ac.simons.neo4j.migrations.core.CypherResourceBasedMigrationProvider,

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.templates;
+package ac.simons.neo4j.migrations.formats.csv;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,19 +41,30 @@ import ac.simons.neo4j.migrations.core.Migrations;
  * @author Michael J. Simons
  * @since 2.0.1
  */
-@SuppressWarnings("missing-explicit-ctor")
-public abstract class RepeatableLoadCSVMigration implements JavaBasedMigration {
+public abstract class AbstractLoadCSVMigration implements JavaBasedMigration {
 
-	static final Logger LOGGER = Logger.getLogger(RepeatableLoadCSVMigration.class.getName());
+	static final Logger LOGGER = Logger.getLogger(AbstractLoadCSVMigration.class.getName());
 
 	private final HttpClient httpClient = HttpClient.newBuilder()
 		.followRedirects(HttpClient.Redirect.NORMAL)
 		.build();
 
+	private final URI csvSource;
+
+	private final boolean repeatable;
+
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	private volatile Optional<String> checksum;
 
-	public RepeatableLoadCSVMigration() {
+	/**
+	 * You need to call this constructor, but your implementation must have a default, no-arg constructor to be loadable
+	 * like any other Java based migration.
+	 * @param csvSource The source to load data from
+	 * @param repeatable Whether this is repeatable or not
+	 */
+	protected AbstractLoadCSVMigration(URI csvSource, boolean repeatable) {
+		this.csvSource = csvSource;
+		this.repeatable = repeatable;
 	}
 
 	@Override
@@ -62,20 +73,15 @@ public abstract class RepeatableLoadCSVMigration implements JavaBasedMigration {
 		var originalQuery = getQuery();
 		try (Session session = context.getSession()) {
 			var summary = session
-				.run(new Query(originalQuery.text().formatted(getCSVSource()), originalQuery.parameters()))
+				.run(new Query(originalQuery.text().formatted(csvSource), originalQuery.parameters()))
 				.consume();
-			LOGGER.log(Level.FINE, () -> String.format("Loaded CSV from %s resulting in %s", getCSVSource(), summary.counters()));
+			LOGGER.log(Level.FINE, () -> String.format("Loaded CSV from %s resulting in %s", csvSource, summary.counters()));
 		}
 	}
 
 	/**
-	 * @return The URI pointing to the source of the CSV file.
-	 */
-	public abstract URI getCSVSource();
-
-	/**
 	 * The statement returned by this method should have exactly one Java format specifier {@code %s} which will be used
-	 * by us to insert the result of {@link #getCSVSource()}. Any other parameters included with the query object will just
+	 * by us to insert the result of {@link #csvSource}. Any other parameters included with the query object will just
 	 * be used as is.
 	 *
 	 * @return The Cypher statement to be used to load the CSV file.
@@ -95,7 +101,7 @@ public abstract class RepeatableLoadCSVMigration implements JavaBasedMigration {
 
 	@Override
 	public final boolean isRepeatable() {
-		return true;
+		return repeatable;
 	}
 
 	@SuppressWarnings("OptionalAssignedToNull")
@@ -118,13 +124,13 @@ public abstract class RepeatableLoadCSVMigration implements JavaBasedMigration {
 		try {
 			var crc32 = new CRC32();
 			var request = customizeRequest(HttpRequest
-				.newBuilder(getCSVSource())
+				.newBuilder(csvSource)
 				.header("User-Agent", Migrations.getUserAgent())
 				.GET());
 			httpClient.send(request, HttpResponse.BodyHandlers.ofByteArrayConsumer(optionalBytes -> optionalBytes.ifPresent(crc32::update)));
 			return Long.toString(crc32.getValue());
 		} catch (IOException | InterruptedException e) {
-			LOGGER.log(Level.WARNING, e, () -> String.format("Could not retrieve %s, checksum won't be available until next migration attempt.", getCSVSource()));
+			LOGGER.log(Level.WARNING, e, () -> String.format("Could not retrieve %s, checksum won't be available until next migration attempt.", csvSource));
 			return null;
 		}
 	}

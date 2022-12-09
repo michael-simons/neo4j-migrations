@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core.test_migrations.changeset7_books_and_csv;
+package ac.simons.neo4j.migrations.formats.csv.test_migrations;
 
+// tag::content[]
 import java.net.URI;
 
 import org.neo4j.driver.Query;
 
-import ac.simons.neo4j.migrations.core.templates.RepeatableLoadCSVMigration;
+import ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration;
 
+// end::content[]
 /**
  * @author Michael J. Simons
  */
-public class R050__LoadBookData extends RepeatableLoadCSVMigration {
-
-	private final URI csvSource;
+// tag::content[]
+public class R050__LoadBookData extends AbstractLoadCSVMigration {
 
 	public R050__LoadBookData() {
-		csvSource = URI.create("https://raw.githubusercontent.com/michael-simons/goodreads/master/all.csv");
-	}
-
-	@Override
-	public URI getCSVSource() {
-		return csvSource;
+		super(URI.create("https://raw.githubusercontent.com/michael-simons/goodreads/master/all.csv"), true);
 	}
 
 	@Override
@@ -56,4 +52,4 @@ public class R050__LoadBookData extends RepeatableLoadCSVMigration {
 			""");
 	}
 }
-
+// end::content[]

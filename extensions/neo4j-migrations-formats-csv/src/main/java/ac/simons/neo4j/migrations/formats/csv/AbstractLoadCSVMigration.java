@@ -53,7 +53,7 @@ public abstract class AbstractLoadCSVMigration implements JavaBasedMigration {
 
 	private final boolean repeatable;
 
-	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+	@SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "squid:S3077"})
 	private volatile Optional<String> checksum;
 
 	/**
@@ -104,7 +104,8 @@ public abstract class AbstractLoadCSVMigration implements JavaBasedMigration {
 		return repeatable;
 	}
 
-	@SuppressWarnings("OptionalAssignedToNull")
+	// Having the value in a lazily initialized optional is the point here.
+	@SuppressWarnings({"OptionalAssignedToNull", "squid:S2789"})
 	@Override
 	public final Optional<String> getChecksum() {
 		Optional<String> availableChecksum = this.checksum;
@@ -131,6 +132,10 @@ public abstract class AbstractLoadCSVMigration implements JavaBasedMigration {
 			return Long.toString(crc32.getValue());
 		} catch (IOException | InterruptedException e) {
 			LOGGER.log(Level.WARNING, e, () -> String.format("Could not retrieve %s, checksum won't be available until next migration attempt.", csvSource));
+			if (e instanceof InterruptedException) {
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
+			}
 			return null;
 		}
 	}

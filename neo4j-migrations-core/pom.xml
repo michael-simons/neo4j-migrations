@@ -254,4 +254,22 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>skipCoreTests</id>
+			<activation>
+				<property>
+					<name>skipCoreTests</name>
+				</property>
+			</activation>
+			<properties>
+				<jacoco.skip>true</jacoco.skip>
+				<japicmp.skip>true</japicmp.skip>
+				<skipITs>true</skipITs>
+				<skipNativeBuild>true</skipNativeBuild>
+				<skipTests>true</skipTests>
+			</properties>
+		</profile>
+	</profiles>
 </project>

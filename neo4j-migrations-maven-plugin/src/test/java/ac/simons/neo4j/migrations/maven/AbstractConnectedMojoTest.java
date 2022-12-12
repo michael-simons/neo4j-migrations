@@ -17,11 +17,10 @@ package ac.simons.neo4j.migrations.maven;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ac.simons.neo4j.migrations.core.MigrationsConfig;
-import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
-
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -30,8 +29,15 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
 import org.neo4j.driver.internal.logging.ConsoleLogging;
+
+import ac.simons.neo4j.migrations.core.Migration;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 /**
  * @author Michael J. Simons
@@ -80,7 +86,7 @@ public class AbstractConnectedMojoTest {
 		assertThat(packagesToScan).isEqualTo(new String[0]);
 
 		String[] locationsToScan = (String[]) rule.getVariableValueFromObject(infoMojo, "locationsToScan");
-		Pattern expectedLocationsToScan = Pattern.compile("file://.*/neo4j/migrations");
+		Pattern expectedLocationsToScan = Pattern.compile("file:///?.*[\\\\/]target[\\\\/]classes/neo4j/migrations/?");
 		assertThat(expectedLocationsToScan.matcher(locationsToScan[0]).matches()).isTrue();
 
 		TransactionMode transactionMode = (TransactionMode) rule
@@ -100,7 +106,14 @@ public class AbstractConnectedMojoTest {
 		assertThat(config.getLocationsToScan()).hasSize(1);
 		assertThat(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches()).isTrue();
 		assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_MIGRATION);
+
+		Method getMigrations = Migrations.class.getDeclaredMethod("getMigrations");
+		getMigrations.setAccessible(true);
+		Migrations migrations = new Migrations(config, Mockito.mock(Driver.class));
+		@SuppressWarnings("unchecked") List<Migration> migrationsList = (List<Migration>) getMigrations.invoke(migrations);
+		assertThat(migrationsList).hasSize(1).element(0).extracting(Migration::getSource).isEqualTo("V010__Foo.cypher");
 	}
+
 
 	@Test
 	public void shouldConfigureImpersonatedUser() throws Exception {
@@ -113,6 +126,7 @@ public class AbstractConnectedMojoTest {
 		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
 		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getOptionalImpersonatedUser()).isEqualTo(Optional.of("someoneElse"));
+		assertThat(infoMojo.getConfig().getLocationsToScan()[0]).isEqualTo("classpath:/wontwork");
 	}
 
 	@Test

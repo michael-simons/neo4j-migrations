@@ -16,14 +16,19 @@
 package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.net.URI;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -44,6 +49,8 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
  * @since 0.0.11
  */
 abstract class AbstractConnectedMojo extends AbstractMojo {
+
+	private static final Pattern FILE_PREFIX_PATTERN = Pattern.compile("^" + Location.LocationType.FILESYSTEM.getPrefix() + ":/{0,2}(.*)");
 
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
@@ -139,8 +146,18 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	 */
 	MigrationsConfig getConfig() {
 
+		String[] resolvedLocationsToScan = Arrays.stream(locationsToScan)
+			.map(l -> {
+				Matcher matcher = FILE_PREFIX_PATTERN.matcher(l);
+				if (matcher.matches()) {
+					return Paths.get(matcher.group(1)).toAbsolutePath().toUri().toString();
+				}
+				return l;
+			})
+			.toArray(String[]::new);
+
 		MigrationsConfig config = MigrationsConfig.builder()
-			.withLocationsToScan(locationsToScan)
+			.withLocationsToScan(resolvedLocationsToScan)
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
 			.withDatabase(database)

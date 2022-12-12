@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 
 /**
@@ -70,17 +71,18 @@ public final class Location {
 		String prefix = uri.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();
 		String name = uri.substring(indexOfFirstColon + 1).trim();
 
-		if (name.length() == 0) {
-			throw new MigrationsException("Invalid name.");
-		}
-
 		LocationType type;
 		if (LocationType.CLASSPATH.getPrefix().equals(prefix)) {
 			type = LocationType.CLASSPATH;
 		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {
 			type = LocationType.FILESYSTEM;
+			name = URI.create(uri).getPath();
 		} else {
 			throw new MigrationsException("Invalid resource prefix: '" + prefix + "'");
+		}
+
+		if (name == null || name.length() == 0) {
+			throw new MigrationsException("Invalid name; a valid file URI must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
 		}
 
 		return new Location(type, name);
@@ -91,7 +93,7 @@ public final class Location {
 
 	private Location(LocationType type, String name) {
 		this.type = type;
-		this.name = name;
+		this.name = (name.startsWith("/") ? name : "/" + name).replace('\\', '/');
 	}
 
 	/**
@@ -109,6 +111,10 @@ public final class Location {
 	}
 
 	URI toUri() {
-		return URI.create(type.getPrefix() + ":" + name.replace('\\', '/'));
+		try {
+			return new URI(type.getPrefix(), "", name, null);
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
 	}
 }

@@ -70,15 +70,25 @@ jobs:
     runs-on: windows-latest
     needs: build
     steps:
+      - name: 'Prepare git'
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: zulu
           java-version: 17
-      - name: Set up JBang
+      - name: 'Restore Maven packages'
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: 'Ensure Maven-Plugin can deal with windows paths'
+        run: ./mvnw -DskipCoreTests --no-transfer-progress test -pl neo4j-migrations-maven-plugin -am
+      - name: 'Set up JBang'
         run: choco install jbang
-      - name: Start Neo4j in Background
+      - name: 'Start Neo4j in Background'
         env:
           EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
         if: "${{ env.EXTERNAL_TEST_DB_URL == 'bolt://localhost:7687' }}"
@@ -88,17 +98,17 @@ jobs:
         with:
           name: assembly
           path: assembly
-      - name: Check availability
+      - name: 'Check availability'
         id: check-availability
         env:
           EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}
           EXTERNAL_TEST_DB_PWD: ${{ secrets.EXTERNAL_TEST_DB_PWD }}
         run: jbang bin/check_availability.java EXTERNAL_TEST_DB_URL EXTERNAL_TEST_DB_PWD 20
         continue-on-error: true
-      - name: External DB not available
+      - name: 'External DB not available'
         if: steps.check-availability.outcome == 'failure'
         run: echo "External DB not available, skipping Windows tests."
-      - name: Run migrations
+      - name: 'Ensure CLI can deal with windows paths'
         if: steps.check-availability.outcome == 'success'
         env:
           EXTERNAL_TEST_DB_URL: ${{ secrets.EXTERNAL_TEST_DB_URL }}

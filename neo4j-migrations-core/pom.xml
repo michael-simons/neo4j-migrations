@@ -131,7 +131,7 @@
 							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
 						</manifest>
 						<manifestEntries>
-							<Artifact-Id>${artifactId}</Artifact-Id>
+							<Artifact-Id>${project.artifactId}</Artifact-Id>
 						</manifestEntries>
 					</archive>
 				</configuration>

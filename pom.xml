@@ -648,6 +648,7 @@
 					</includes>
 					<excludes>
 						<exclude>**/*.adoc</exclude>
+						<exclude>**/*.csv</exclude>
 						<exclude>**/*.cypher</exclude>
 						<exclude>**/*.sh</exclude>
 						<exclude>**/*.tpl</exclude>

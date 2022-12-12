@@ -126,9 +126,13 @@
 				<configuration combine.self="override">
 					<archive>
 						<manifest>
+							<addDefaultEntries>true</addDefaultEntries>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
 						</manifest>
+						<manifestEntries>
+							<Artifact-Id>${artifactId}</Artifact-Id>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>

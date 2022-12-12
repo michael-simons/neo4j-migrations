@@ -66,8 +66,7 @@ final class ProductVersion {
 
 	private static boolean isApplicableManifest(Manifest manifest) {
 		Attributes attributes = manifest.getMainAttributes();
-		return ProductVersion.class.getPackage().getName()
-			.equals(get(attributes, "Automatic-Module-Name"));
+		return "neo4j-migrations".equals(get(attributes, "Artifact-Id"));
 	}
 
 	private static Object get(Attributes attributes, String key) {

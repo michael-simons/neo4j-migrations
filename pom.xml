@@ -107,7 +107,7 @@
 		<compile-testing.version>0.20</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
-		<cypher-dsl.version>2022.8.0</cypher-dsl.version>
+		<cypher-dsl.version>2022.8.1</cypher-dsl.version>
 		<docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
 		<error_prone_annotations.version>2.16</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>

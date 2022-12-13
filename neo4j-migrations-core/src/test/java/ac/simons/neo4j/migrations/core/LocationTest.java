@@ -52,25 +52,27 @@ class LocationTest {
 	}
 
 	@Test
-	void withInvalidName() {
+	void withInvalidLocation() {
 
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":"))
-			.withMessage("Invalid resource name: ':'");
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":c"))
-			.withMessage("Invalid resource name: ':c'");
+			.withMessage("Invalid location: ':'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("c:"))
-			.withMessage("Invalid resource name: 'c:'");
+			.withMessage("Invalid location: 'c:'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("classpath:"))
-			.withMessage("Invalid name; a valid file URI must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+			.withMessage("Invalid location: 'classpath:'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("file:asd"))
-			.withMessage("Invalid name; a valid file URI must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+			.withMessage("Invalid path; a valid file location must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("file:"))
+			.withMessage("Invalid location: 'file:'");
 	}
 
 	@Test
-	void withInvalidPrefix() {
+	void withInvalidScheme() {
 
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":c"))
+				.withMessage("Invalid scheme: '', supported schemes are 'classpath:', 'file:'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("some:thing"))
-			.withMessage("Invalid resource prefix: 'some'");
+			.withMessage("Invalid scheme: 'some', supported schemes are 'classpath:', 'file:'");
 	}
 
 	@Test

@@ -17,7 +17,9 @@ package ac.simons.neo4j.migrations.core;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * @author Michael J. Simons
@@ -64,25 +66,29 @@ public final class Location {
 		if (indexOfFirstColon < 0) {
 			return new Location(LocationType.CLASSPATH, uri);
 		}
-		if (uri.length() < 3) {
-			throw new MigrationsException("Invalid resource name: '" + uri + "'");
-		}
 
 		String prefix = uri.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();
-		String name = uri.substring(indexOfFirstColon + 1).trim();
+		String name = uri.substring(indexOfFirstColon + 1).trim().replace('\\', '/');
+
+		if (name.isEmpty()) {
+			throw new MigrationsException("Invalid location: '" + uri + "'");
+		}
 
 		LocationType type;
 		if (LocationType.CLASSPATH.getPrefix().equals(prefix)) {
 			type = LocationType.CLASSPATH;
 		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {
 			type = LocationType.FILESYSTEM;
-			name = URI.create(uri).getPath();
+			name = URI.create(String.format("%s:%s", prefix, name)).getPath();
 		} else {
-			throw new MigrationsException("Invalid resource prefix: '" + prefix + "'");
+			String supportedSchemes = Arrays.stream(LocationType.values()).map(LocationType::getPrefix)
+				.map(s -> String.format("'%s:'", s))
+				.collect(Collectors.joining(", "));
+			throw new MigrationsException("Invalid scheme: '" + prefix + "', supported schemes are " + supportedSchemes);
 		}
 
 		if (name == null || name.length() == 0) {
-			throw new MigrationsException("Invalid name; a valid file URI must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+			throw new MigrationsException("Invalid path; a valid file location must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
 		}
 
 		return new Location(type, name);
@@ -93,7 +99,7 @@ public final class Location {
 
 	private Location(LocationType type, String name) {
 		this.type = type;
-		this.name = (name.startsWith("/") ? name : "/" + name).replace('\\', '/');
+		this.name = (name.startsWith("/") ? name : "/" + name);
 	}
 
 	/**

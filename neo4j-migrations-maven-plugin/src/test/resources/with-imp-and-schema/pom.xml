@@ -36,6 +36,7 @@
 					<impersonatedUser>someoneElse</impersonatedUser>
 					<password>secret</password>
 					<schemaDatabase>anotherDatabase</schemaDatabase>
+					<locationsToScan>classpath:/wontwork</locationsToScan>
 				</configuration>
 			</plugin>
 		</plugins>

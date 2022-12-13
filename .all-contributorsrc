@@ -198,6 +198,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "Raf23",
+      "name": "Raf23",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6950771?v=4",
+      "profile": "https://github.com/Raf23",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

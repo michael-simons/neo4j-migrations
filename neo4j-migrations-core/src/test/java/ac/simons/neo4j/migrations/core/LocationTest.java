@@ -17,6 +17,9 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
+import java.lang.reflect.Field;
 
 import ac.simons.neo4j.migrations.core.Location.LocationType;
 
@@ -33,38 +36,51 @@ class LocationTest {
 		Location description;
 		description = Location.of("classpath:foobar");
 		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
-		assertThat(description.getName()).isEqualTo("foobar");
+		assertThat(description.getName()).isEqualTo("/foobar");
 
 		description = Location.of("classPath:foobar");
 		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
-		assertThat(description.getName()).isEqualTo("foobar");
+		assertThat(description.getName()).isEqualTo("/foobar");
 
 		description = Location.of(" classPath : foobar ");
 		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
-		assertThat(description.getName()).isEqualTo("foobar");
+		assertThat(description.getName()).isEqualTo("/foobar");
 
-		description = Location.of("file:foobar");
+		description = Location.of("file:/./foobar");
 		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
-		assertThat(description.getName()).isEqualTo("foobar");
+		assertThat(description.getName()).isEqualTo("/./foobar");
 	}
 
 	@Test
-	void withInvalidName() {
+	void withInvalidLocation() {
 
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":"))
-			.withMessage("Invalid resource name: ':'");
-		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":c"))
-			.withMessage("Invalid resource name: ':c'");
+			.withMessage("Invalid location: ':'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("c:"))
-			.withMessage("Invalid resource name: 'c:'");
+			.withMessage("Invalid location: 'c:'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("classpath:"))
-			.withMessage("Invalid name.");
+			.withMessage("Invalid location: 'classpath:'");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("file:asd"))
+			.withMessage("Invalid path; a valid file location must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("file:"))
+			.withMessage("Invalid location: 'file:'");
 	}
 
 	@Test
-	void withInvalidPrefix() {
+	void withInvalidScheme() {
 
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of(":c"))
+				.withMessage("Invalid scheme: '', supported schemes are 'classpath:', 'file:'");
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> Location.of("some:thing"))
-			.withMessage("Invalid resource prefix: 'some'");
+			.withMessage("Invalid scheme: 'some', supported schemes are 'classpath:', 'file:'");
+	}
+
+	@Test
+	void makeSonarHappy() throws NoSuchFieldException, IllegalAccessException {
+		Location relativeFileLocation = Location.of("file:/egal");
+		Field field = Location.class.getDeclaredField("name");
+		field.setAccessible(true);
+		field.set(relativeFileLocation, "egal");
+		assertThatIllegalArgumentException().isThrownBy(relativeFileLocation::toUri).withMessage("Relative path in absolute URI: file://egal");
 	}
 }

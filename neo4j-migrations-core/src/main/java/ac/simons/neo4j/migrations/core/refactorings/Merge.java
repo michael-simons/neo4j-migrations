@@ -91,16 +91,11 @@ public interface Merge extends Refactoring {
 			if (values.isEmpty()) {
 				return null;
 			}
-			switch (this.strategy) {
-				case KEEP_ALL:
-					return values;
-				case KEEP_FIRST:
-					return values.get(0);
-				case KEEP_LAST:
-					return values.get(values.size() - 1);
-			}
-			throw new IllegalStateException(
-				String.format("Unknown enum value for %s class: %s", this.getClass(), this));
+			return switch (this.strategy) {
+				case KEEP_ALL -> values;
+				case KEEP_FIRST -> values.get(0);
+				case KEEP_LAST -> values.get(values.size() - 1);
+			};
 		}
 
 		@Override

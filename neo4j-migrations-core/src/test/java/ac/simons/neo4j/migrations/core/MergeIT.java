@@ -120,10 +120,10 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.labelsRemoved()).isZero();
 			assertThat(counters.typesAdded()).isZero();
 			assertThat(counters.typesRemoved()).isZero();
-			List<String> labels = session.run(""
-				+ "MATCH (n) UNWIND labels(n) AS label\n"
-				+ "WITH label ORDER BY label ASC\n"
-				+ "RETURN collect(label) AS labels"
+			List<String> labels = session.run("""
+				MATCH (n) UNWIND labels(n) AS label
+				WITH label ORDER BY label ASC
+				RETURN collect(label) AS labels"""
 			).single().get("labels").asList(Value::asString);
 			assertThat(labels).containsExactly("Label Oops", "Label1", "Label2", "Label3");
 		}
@@ -213,12 +213,13 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.labelsAdded()).isZero();
 			assertThat(counters.typesAdded()).isEqualTo(1);
 			assertThat(counters.typesRemoved()).isEqualTo(1);
-			Record row = session.run("MATCH (p:Person)\n"
-				+ "WITH p, [ (p)<-[incoming]-() | incoming ] AS allIncoming\n"
-				+ "UNWIND allIncoming AS incoming\n"
-				+ "WITH p, incoming\n"
-				+ "ORDER BY type(incoming) ASC\n"
-				+ "RETURN p, collect(incoming) AS allIncoming").single();
+			Record row = session.run("""
+				MATCH (p:Person)
+				WITH p, [ (p)<-[incoming]-() | incoming ] AS allIncoming
+				UNWIND allIncoming AS incoming
+				WITH p, incoming
+				ORDER BY type(incoming) ASC
+				RETURN p, collect(incoming) AS allIncoming""").single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Zouheir");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(22);
 			assertThat(row.get("allIncoming").asList(Value::asRelationship))
@@ -251,13 +252,13 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.typesAdded()).isEqualTo(3);
 			assertThat(counters.typesRemoved()).isEqualTo(3);
 
-			Record row = session.run(""
-				+ "MATCH (p:Person)\n"
-				+ "WITH p, [ (p)-[rel]-() | rel ] AS rels\n"
-				+ "UNWIND rels AS rel\n"
-				+ "WITH p, rel\n"
-				+ "ORDER BY type(rel) ASC\n"
-				+ "RETURN p, collect(rel) AS rels"
+			Record row = session.run("""
+				MATCH (p:Person)
+				WITH p, [ (p)-[rel]-() | rel ] AS rels
+				UNWIND rels AS rel
+				WITH p, rel
+				ORDER BY type(rel) ASC
+				RETURN p, collect(rel) AS rels"""
 			).single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Michael");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(42);
@@ -287,13 +288,13 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			merge.apply(refactoringContext);
 
-			Record row = session.run(""
-				+ "MATCH (p:Person)\n"
-				+ "WITH p, [ (p)-[outgoing]->() | outgoing ] AS allOutgoing\n"
-				+ "UNWIND allOutgoing AS outgoing\n"
-				+ "WITH p, outgoing\n"
-				+ "ORDER BY type(outgoing) ASC\n"
-				+ "RETURN p, collect(outgoing) AS allOutgoing"
+			Record row = session.run("""
+				MATCH (p:Person)
+				WITH p, [ (p)-[outgoing]->() | outgoing ] AS allOutgoing
+				UNWIND allOutgoing AS outgoing
+				WITH p, outgoing
+				ORDER BY type(outgoing) ASC
+				RETURN p, collect(outgoing) AS allOutgoing"""
 			).single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Zouheir");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(22);
@@ -322,11 +323,11 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			merge.apply(refactoringContext);
 
-			Record row = session.run(""
-				+ "MATCH (p:Person)-[r]->(p)\n"
-				+ "WITH r \n"
-				+ "ORDER BY type(r) ASC\n"
-				+ "RETURN collect(r) AS rels"
+			Record row = session.run("""
+				MATCH (p:Person)-[r]->(p)
+				WITH r\s
+				ORDER BY type(r) ASC
+				RETURN collect(r) AS rels"""
 			).single();
 			assertThat(row.get("rels").asList(Value::asRelationship))
 				.satisfies(relationship ->  {
@@ -359,11 +360,11 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			merge.apply(refactoringContext);
 
-			Record row = session.run(""
-				+ "MATCH (p:Person)-[r]->(p)\n"
-				+ "WITH r\n"
-				+ "ORDER BY type(r) ASC\n"
-				+ "RETURN collect(r) AS rels"
+			Record row = session.run("""
+				MATCH (p:Person)-[r]->(p)
+				WITH r
+				ORDER BY type(r) ASC
+				RETURN collect(r) AS rels"""
 			).single();
 			assertThat(row.get("rels").asList(Value::asRelationship))
 				.map(r -> r.type() + " " + r.get("direction").asString())

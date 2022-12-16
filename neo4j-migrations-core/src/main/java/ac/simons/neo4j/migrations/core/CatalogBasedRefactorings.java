@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
 import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
 import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
@@ -30,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.w3c.dom.Node;
@@ -59,9 +62,53 @@ final class CatalogBasedRefactorings {
 			return createRename(node, type);
 		} else if (type.equals("normalize.asBoolean")) {
 			return createNormalizeAsBoolean(node, type);
+		} else if (type.startsWith("addSurrogateKeyTo.")) {
+			return addSurrogateKey(node, type);
 		}
 
 		throw createException(node, type, null);
+	}
+
+	private static AddSurrogateKey addSurrogateKey(Node node, String type) {
+		String op = type.split("\\.")[1];
+
+		NodeList parameterList = findParameterList(node).orElseThrow(() ->
+			createException(node, type, "The addSurrogateKey refactoring requires several parameters")
+		);
+
+		Optional<String> optionalCustomQuery = findParameter(node, "customQuery", parameterList);
+		AtomicReference<AddSurrogateKey> refactoring = new AtomicReference<>();
+		if ("nodes".equals(op)) {
+			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty)).ifPresentOrElse(
+				labels -> refactoring.set(AddSurrogateKey.toNodes(labels.get(0), labels.subList(1, labels.size()).toArray(String[]::new))),
+				() -> {
+					if (optionalCustomQuery.isPresent()) {
+						refactoring.set(AddSurrogateKey.toNodesMatching(optionalCustomQuery.get().trim()));
+					} else {
+						throw createException(node, type, "No labels specified");
+					}
+				}
+			);
+		} else if ("relationships".equals(op)) {
+			findParameter(node, "type", parameterList).ifPresentOrElse(
+				relationshipType -> refactoring.set(AddSurrogateKey.toRelationships(relationshipType)),
+				() -> {
+					if (optionalCustomQuery.isPresent()) {
+						refactoring.set(AddSurrogateKey.toRelationshipsMatching(optionalCustomQuery.get().trim()));
+					} else {
+						throw createException(node, type, "No `type` parameter");
+					}
+				});
+		} else {
+			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
+		}
+
+		refactoring.set(findParameter(node, "property", parameterList)
+			.map(p -> refactoring.get().withProperty(p.trim())).orElse(refactoring.get()));
+		refactoring.set(findParameter(node, "generatorFunction", parameterList)
+			.map(p -> refactoring.get().withGeneratorFunction(p.trim())).orElse(refactoring.get()));
+
+		return customize(refactoring.get(), node, type, parameterList);
 	}
 
 	private static Refactoring createMigrateBtreeIndexes(Node node, boolean drop) {
@@ -73,7 +120,7 @@ final class CatalogBasedRefactorings {
 				.replaceBTreeIndexes();
 		} else {
 			String suffix = optionalParameters.flatMap(parameters -> findParameter(node, "suffix", parameters)).orElse(null);
-			migrateBTreeIndexes =  MigrateBTreeIndexes
+			migrateBTreeIndexes = MigrateBTreeIndexes
 				.createFutureIndexes(suffix);
 		}
 
@@ -99,18 +146,18 @@ final class CatalogBasedRefactorings {
 	private static Normalize createNormalizeAsBoolean(Node node, String type) {
 
 		NodeList parameterList = findParameterList(node).orElseThrow(() ->
-				createException(node, type, "The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters")
+			createException(node, type, "The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters")
 		);
 
 		String property = findParameter(node, "property", parameterList).orElseThrow(
-				() -> createException(node, type, "No `property` parameter")
+			() -> createException(node, type, "No `property` parameter")
 		);
 
 		Collection<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
-				.orElseThrow(() -> createException(node, type, "No `trueValues` parameter"));
+			.orElseThrow(() -> createException(node, type, "No `trueValues` parameter"));
 
 		Collection<String> rawFalseValues = findParameterValues(parameterList, "falseValues")
-				.orElseThrow(() -> createException(node, type, "No `falseValues` parameter"));
+			.orElseThrow(() -> createException(node, type, "No `falseValues` parameter"));
 
 		Function<String, Object> mapToType = value -> {
 			try {
@@ -136,7 +183,7 @@ final class CatalogBasedRefactorings {
 			try {
 				result = result.inBatchesOf(Integer.parseInt(batchSize.get()));
 			} catch (NumberFormatException nfe) {
-				throw createException(node, type, "Invalid value `" + batchSize.get() + "` for parameter `batchSize",
+				throw createException(node, type, "Invalid value `" + batchSize.get() + "` for parameter `batchSize`",
 					nfe);
 			}
 		}
@@ -184,11 +231,11 @@ final class CatalogBasedRefactorings {
 		if ("type".equals(op)) {
 			rename = Rename.type(from, to);
 		} else if ("label".equals(op)) {
-			rename =  Rename.label(from, to);
+			rename = Rename.label(from, to);
 		} else if ("nodeProperty".equals(op)) {
-			rename =  Rename.nodeProperty(from, to);
+			rename = Rename.nodeProperty(from, to);
 		} else if ("relationshipProperty".equals(op)) {
-			rename =  Rename.relationshipProperty(from, to);
+			rename = Rename.relationshipProperty(from, to);
 		} else {
 			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
 		}

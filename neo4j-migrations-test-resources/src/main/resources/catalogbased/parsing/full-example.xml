@@ -111,6 +111,54 @@
 		</parameters>
 	</refactor>
 
+	<refactor type="addSurrogateKeyTo.nodes">
+		<parameters>
+			<parameter name="labels">
+				<value>Movie</value>
+				<value>Person</value>
+			</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.nodes">
+		<parameters>
+			<parameter name="labels">
+				<value>Movie</value>
+				<value>Person</value>
+			</parameter>
+			<parameter name="batchSize">23</parameter>
+			<parameter name="property">theId</parameter>
+			<parameter name="generatorFunction">elementId(%s)</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.nodes">
+		<parameters>
+			<parameter name="customQuery">MATCH (n:Film) return n</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.relationships">
+		<parameters>
+			<parameter name="type">LIKED</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.relationships">
+		<parameters>
+			<parameter name="type">LIKED</parameter>
+			<parameter name="batchSize">42</parameter>
+			<parameter name="property">myId</parameter>
+			<parameter name="generatorFunction">id(%s)</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.relationships">
+		<parameters>
+			<parameter name="customQuery">MATCH (n:Movie) &lt;-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n</parameter>
+		</parameters>
+	</refactor>
+
 	<refactor type="normalize.asBoolean">
 		<parameters>
 			<parameter name="customQuery">MATCH (n:Movie) return n</parameter>

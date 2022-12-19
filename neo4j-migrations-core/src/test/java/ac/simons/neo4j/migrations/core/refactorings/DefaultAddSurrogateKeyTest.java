@@ -405,4 +405,22 @@ class DefaultAddSurrogateKeyTest {
 	void shouldNotMatchNames(String value) {
 		assertThat(DefaultAddSurrogateKey.isReadyMadeFunctionCall(value)).isFalse();
 	}
+
+	@Test
+	void shouldSanitizeInputForNodes() {
+		DefaultAddSurrogateKey refactoring = (DefaultAddSurrogateKey) AddSurrogateKey
+			.toNodes("Les Node")
+			.withProperty("Le` property");
+		Query query = refactoring.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
+		assertThat(query.text()).isEqualTo("MATCH (n:`Les Node`) WHERE n.`Le`` property` IS NULL SET n.`Le`` property` = randomUUID()");
+	}
+
+	@Test
+	void shouldSanitizeInputForRelationships() {
+		DefaultAddSurrogateKey refactoring = (DefaultAddSurrogateKey) AddSurrogateKey
+			.toRelationships("ACTED IN")
+			.withProperty("Le` property");
+		Query query = refactoring.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, s -> Optional.of("n"));
+		assertThat(query.text()).isEqualTo("MATCH ()-[r:`ACTED IN`]->() WHERE r.`Le`` property` IS NULL SET r.`Le`` property` = randomUUID()");
+	}
 }

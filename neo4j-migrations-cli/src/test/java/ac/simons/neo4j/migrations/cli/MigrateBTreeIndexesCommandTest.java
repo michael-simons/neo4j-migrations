@@ -47,7 +47,7 @@ class MigrateBTreeIndexesCommandTest {
 	void shouldDefaultToNotReplace() throws Exception {
 
 		Migrations migrations = mock(Migrations.class);
-		when(migrations.apply(any(Refactoring.class))).thenReturn(mock(Counters.empty()));
+		when(migrations.apply(any(Refactoring.class))).thenReturn(Counters.empty());
 
 		MigrateBTreeIndexesCommand cmd = new MigrateBTreeIndexesCommand();
 		cmd.withMigrations(migrations);
@@ -66,7 +66,7 @@ class MigrateBTreeIndexesCommandTest {
 	void shouldConfigureSuffix() throws Exception {
 
 		Migrations migrations = mock(Migrations.class);
-		when(migrations.apply(any(Refactoring.class))).thenReturn(mock(Counters.empty()));
+		when(migrations.apply(any(Refactoring.class))).thenReturn(Counters.empty());
 
 		MigrateBTreeIndexesCommand cmd = new MigrateBTreeIndexesCommand();
 		setValue(cmd, "suffix", "bar");
@@ -87,7 +87,7 @@ class MigrateBTreeIndexesCommandTest {
 	void shouldApplyOptions() throws Exception {
 
 		Migrations migrations = mock(Migrations.class);
-		when(migrations.apply(any(Refactoring.class))).thenReturn(mock(Counters.empty()));
+		when(migrations.apply(any(Refactoring.class))).thenReturn(Counters.empty());
 
 		MigrateBTreeIndexesCommand cmd = new MigrateBTreeIndexesCommand();
 		setValue(cmd, "replace", true);

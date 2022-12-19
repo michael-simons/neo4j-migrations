@@ -71,36 +71,16 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 			"CALL { WITH r SET r.%2$s = r.%1$s REMOVE r.%1$s } IN TRANSACTIONS OF %3$d ROWS"
 		);
 
-		private final String sourceFragment;
-		private final String sourceFragmentWithCustomQuery;
-		private final String actionFragment;
-		private final String actionFragmentWithBatchSize;
+		private final Fragments fragments;
 
 		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment, String actionFragmentWithBatchSize) {
-			this.sourceFragment = sourceFragment;
-			this.sourceFragmentWithCustomQuery = sourceFragmentWithCustomQuery;
-			this.actionFragment = actionFragment;
-			this.actionFragmentWithBatchSize = actionFragmentWithBatchSize;
+
+			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment, actionFragmentWithBatchSize);
 		}
 
 		@Override
-		public String getSourceFragment() {
-			return sourceFragment;
-		}
-
-		@Override
-		public String getSourceFragmentWithCustomQuery() {
-			return sourceFragmentWithCustomQuery;
-		}
-
-		@Override
-		public String getActionFragment() {
-			return actionFragment;
-		}
-
-		@Override
-		public String getActionFragmentWithBatchSize() {
-			return actionFragmentWithBatchSize;
+		public Fragments getFragments() {
+			return fragments;
 		}
 	}
 

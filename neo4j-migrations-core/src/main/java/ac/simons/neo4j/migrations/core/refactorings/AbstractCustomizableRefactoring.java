@@ -18,9 +18,10 @@ package ac.simons.neo4j.migrations.core.refactorings;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
- * Abstract base class to hold state that many refactorings have, such as custom queries or a batchsize.
+ * Abstract base class to hold state that many refactorings have, such as custom queries or a batch-size.
  *
  * @author Michael J. Simons
  * @soundtrack Black Sabbath - Black Sabbath
@@ -52,7 +53,7 @@ abstract class AbstractCustomizableRefactoring {
 	}
 
 	protected final <T extends CustomizableRefactoring<?>> T inBatchesOf0(
-		Integer newBatchSize, Class<T> type, Function<Integer, ? extends T> newInstanceSupplier
+		Integer newBatchSize, Class<T> type, IntFunction<? extends T> newInstanceSupplier
 	) {
 		if (newBatchSize != null && newBatchSize < 1) {
 			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");

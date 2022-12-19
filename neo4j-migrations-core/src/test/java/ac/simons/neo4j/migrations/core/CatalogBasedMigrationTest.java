@@ -38,6 +38,7 @@ import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerifyOperation;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
+import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
 import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
@@ -229,6 +230,18 @@ class CatalogBasedMigrationTest {
 						.withCustomQuery(
 							"MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n")
 						.inBatchesOf(23),
+					AddSurrogateKey.toNodes("Movie", "Person"),
+					AddSurrogateKey.toNodes("Movie", "Person")
+						.withGeneratorFunction("elementId(%s)")
+						.inBatchesOf(23)
+						.withProperty("theId"),
+					AddSurrogateKey.toNodesMatching("MATCH (n:Film) return n"),
+					AddSurrogateKey.toRelationships("LIKED"),
+					AddSurrogateKey.toRelationships("LIKED")
+						.withGeneratorFunction("id(%s)")
+						.inBatchesOf(42)
+						.withProperty("myId"),
+					AddSurrogateKey.toRelationshipsMatching("MATCH (n:Movie) &lt;-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n"),
 					Normalize.asBoolean("title",
 							Arrays.asList("The Matrix"),
 							Arrays.asList("Das deutsche Kettensägenmassaker", null, null))
@@ -267,6 +280,21 @@ class CatalogBasedMigrationTest {
 				}
 			}
 			throw new NoSuchElementException(id);
+		}
+
+		@ParameterizedTest
+		@CsvSource(nullValues = "n/a", textBlock = """
+			surrogate-node-no-label, Cannot parse <refactor type="addSurrogateKeyTo.nodes" /> into a supported refactoring: No labels specified
+			surrogate-broken-batch, Cannot parse <refactor type="addSurrogateKeyTo.nodes" /> into a supported refactoring: Invalid value `wurstalat` for parameter `batchSize`
+			surrogate-rel-no-type, Cannot parse <refactor type="addSurrogateKeyTo.relationships" /> into a supported refactoring: No `type` parameter
+			surrogate-invalid, Cannot parse <refactor type="addSurrogateKeyTo.invalid" /> into a supported refactoring: `invalid` is not a valid rename operation
+			surrogate-no-args, Cannot parse <refactor type="addSurrogateKeyTo.nodes" /> into a supported refactoring: The addSurrogateKey refactoring requires several parameters
+			""")
+		void brokenSurrogates(String id, String message) {
+
+			Node refactoring = getElementById(id);
+			assertThatIllegalArgumentException().isThrownBy(() -> CatalogBasedRefactorings.fromNode(refactoring))
+				.withMessage(message);
 		}
 
 		@ParameterizedTest
@@ -312,7 +340,7 @@ class CatalogBasedMigrationTest {
 			no-to,: No `to` parameter
 			no-anything-1,: The rename refactoring requires `from` and `to` parameters
 			no-anything-2,: No `from` parameter
-			invalid-batch-size,: Invalid value `foobar` for parameter `batchSize
+			invalid-batch-size,: Invalid value `foobar` for parameter `batchSize`
 			""")
 		void brokenRenames(String id, String message) {
 			Node refactoring = getElementById("rename-" + id);

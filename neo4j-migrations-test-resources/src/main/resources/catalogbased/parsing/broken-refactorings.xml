@@ -148,4 +148,27 @@
 		</parameters>
 	</refactor>
 
+	<refactor type="addSurrogateKeyTo.nodes" id="surrogate-node-no-label">
+		<parameters />
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.nodes" id="surrogate-broken-batch">
+		<parameters>
+			<parameter name="labels">
+				<value>Movie</value>
+			</parameter>
+			<parameter name="batchSize">wurstalat</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.relationships" id="surrogate-rel-no-type">
+		<parameters />
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.invalid" id="surrogate-invalid">
+		<parameters />
+	</refactor>
+
+	<refactor type="addSurrogateKeyTo.nodes" id="surrogate-no-args" />
+
 </migration>

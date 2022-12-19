@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core.refactorings;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 
 /**
  * Abstract base class to hold state that many refactorings have, such as custom queries or a batch-size.
@@ -53,7 +52,9 @@ abstract class AbstractCustomizableRefactoring {
 	}
 
 	protected final <T extends CustomizableRefactoring<?>> T inBatchesOf0(
-		Integer newBatchSize, Class<T> type, IntFunction<? extends T> newInstanceSupplier
+		Integer newBatchSize, Class<T> type,
+		@SuppressWarnings("squid:S4276") // The new batchsize might as well be null
+		Function<Integer, ? extends T> newInstanceSupplier
 	) {
 		if (newBatchSize != null && newBatchSize < 1) {
 			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");

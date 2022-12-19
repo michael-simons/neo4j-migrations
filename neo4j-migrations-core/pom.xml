@@ -201,6 +201,9 @@
 
 							<!-- 1.12.0: The underlying API was public before, but missing interfaces. Cannot have been used before proper -->
 							<exclude>ac.simons.neo4j.migrations.core.catalog.RenderConfig$Builder#forVersionAndEdition(ac.simons.neo4j.migrations.core.internal.Neo4jVersion,ac.simons.neo4j.migrations.core.internal.Neo4jEdition)</exclude>
+
+							<!-- 2.0.2: Sealed anyway -->
+							<exclude>ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey</exclude>
 						</excludes>
 					</parameter>
 				</configuration>

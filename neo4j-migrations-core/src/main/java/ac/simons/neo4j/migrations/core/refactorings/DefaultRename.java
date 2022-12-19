@@ -32,7 +32,7 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 	/**
 	 * Target of the renaming
 	 */
-	enum Target {
+	enum Target implements FormatStringGenerator {
 
 		/**
 		 * Targets labels.
@@ -71,16 +71,16 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 			"CALL { WITH r SET r.%2$s = r.%1$s REMOVE r.%1$s } IN TRANSACTIONS OF %3$d ROWS"
 		);
 
-		final String sourceFragment;
-		final String sourceFragmentWithCustomQuery;
-		final String actionFragment;
-		final String actionFragmentWithBatchSize;
+		private final Fragments fragments;
 
 		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment, String actionFragmentWithBatchSize) {
-			this.sourceFragment = sourceFragment;
-			this.sourceFragmentWithCustomQuery = sourceFragmentWithCustomQuery;
-			this.actionFragment = actionFragment;
-			this.actionFragmentWithBatchSize = actionFragmentWithBatchSize;
+
+			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment, actionFragmentWithBatchSize);
+		}
+
+		@Override
+		public Fragments getFragments() {
+			return fragments;
 		}
 	}
 
@@ -138,41 +138,12 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 
 	@Override
 	public Rename inBatchesOf(Integer newBatchSize) {
-		if (newBatchSize != null && newBatchSize < 1) {
-			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");
-		}
-
-		return Objects.equals(this.batchSize, newBatchSize) ?
-			this :
-			new DefaultRename(this.target, this.oldValue, this.newValue, this.customQuery, newBatchSize);
+		return inBatchesOf0(newBatchSize, Rename.class, v -> new DefaultRename(this.target, this.oldValue, this.newValue, this.customQuery, v));
 	}
 
 	@Override
 	public Rename withCustomQuery(String newCustomQuery) {
-		String value = filterCustomQuery(newCustomQuery);
-
-		return Objects.equals(this.customQuery, value) ?
-			this :
-			new DefaultRename(this.target, this.oldValue, this.newValue, value, this.batchSize);
-	}
-
-	private String generateFormatString() {
-		String ptSource;
-		String ptAction;
-
-		if (customQuery == null) {
-			ptSource = target.sourceFragment;
-		} else {
-			ptSource = target.sourceFragmentWithCustomQuery;
-		}
-
-		if (batchSize == null) {
-			ptAction = target.actionFragment;
-		} else {
-			ptAction = target.actionFragmentWithBatchSize;
-		}
-
-		return ptSource + " " + ptAction;
+		return withCustomQuery0(newCustomQuery, Rename.class, v -> new DefaultRename(this.target, this.oldValue, this.newValue, v, this.batchSize));
 	}
 
 	Query generateQuery(UnaryOperator<String> sanitizer, Function<String, Optional<String>> elementExtractor) {
@@ -184,7 +155,7 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);
 		}
 
-		return new Query(String.format(generateFormatString(), sanitizer.apply(oldValue),
+		return new Query(String.format(target.generateFormatString(customQuery, batchSize), sanitizer.apply(oldValue),
 			sanitizer.apply(newValue), batchSize, customQuery, varName));
 	}
 

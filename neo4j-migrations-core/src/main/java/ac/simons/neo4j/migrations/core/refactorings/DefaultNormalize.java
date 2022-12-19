@@ -87,22 +87,17 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 
 	@Override
 	public Normalize inBatchesOf(Integer newBatchSize) {
-		if (newBatchSize != null && newBatchSize < 1) {
-			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");
-		}
 
-		return Objects.equals(this.batchSize, newBatchSize) ?
-			this :
-			new DefaultNormalize(this.property, this.trueValues, this.falseValues, this.customQuery, newBatchSize);
+		return inBatchesOf0(
+			newBatchSize, DefaultNormalize.class, v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, this.customQuery, v));
 	}
 
 	@Override
 	public Normalize withCustomQuery(String newCustomQuery) {
-		String value = filterCustomQuery(newCustomQuery);
 
-		return Objects.equals(this.customQuery, value) ?
-			this :
-			new DefaultNormalize(this.property, this.trueValues, this.falseValues, value, this.batchSize);
+		return withCustomQuery0(newCustomQuery,
+			Normalize.class,
+			v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, v, this.batchSize));
 	}
 
 	@Override

@@ -15,10 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
- * Abstract base class to hold state that many refactorings have, such as custom queries or a batchsize.
+ * Abstract base class to hold state that many refactorings have, such as custom queries or a batch-size.
  *
  * @author Michael J. Simons
  * @soundtrack Black Sabbath - Black Sabbath
@@ -47,5 +49,27 @@ abstract class AbstractCustomizableRefactoring {
 		return Optional.ofNullable(newCustomQuery).map(String::trim)
 			.filter(s -> !s.isEmpty())
 			.orElse(null);
+	}
+
+	protected final <T extends CustomizableRefactoring<?>> T inBatchesOf0(
+		Integer newBatchSize, Class<T> type,
+		@SuppressWarnings("squid:S4276") // The new batchsize might as well be null
+		Function<Integer, ? extends T> newInstanceSupplier
+	) {
+		if (newBatchSize != null && newBatchSize < 1) {
+			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");
+		}
+
+		return Objects.equals(this.batchSize, newBatchSize) ?
+			type.cast(this) : newInstanceSupplier.apply(newBatchSize);
+	}
+
+	protected final <T extends CustomizableRefactoring<?>> T withCustomQuery0(
+		String newCustomQuery, Class<T> type, Function<String, ? extends T> newInstanceSupplier
+	) {
+		String value = filterCustomQuery(newCustomQuery);
+
+		return Objects.equals(this.customQuery, value) ?
+			type.cast(this) : newInstanceSupplier.apply(newCustomQuery);
 	}
 }

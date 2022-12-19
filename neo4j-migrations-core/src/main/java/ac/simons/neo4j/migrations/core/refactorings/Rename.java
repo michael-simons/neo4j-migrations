@@ -24,7 +24,7 @@ import java.util.Objects;
  * @author Michael J. Simons
  * @since 1.10.0
  */
-public interface Rename extends CustomizableRefactoring<Rename> {
+public sealed interface Rename extends CustomizableRefactoring<Rename> permits DefaultRename {
 
 	/**
 	 * Provides a refactoring renaming a given node label. Any customization can be done directly on the {@link Rename} instance.

@@ -27,7 +27,7 @@ import java.util.Objects;
  * @soundtrack Black Sabbath - Black Sabbath
  * @since 1.10.0
  */
-public interface Normalize extends CustomizableRefactoring<Normalize> {
+public sealed interface Normalize extends CustomizableRefactoring<Normalize> permits DefaultNormalize {
 
 	/**
 	 * Normalizes respectively converts the property to a boolean or deletes it in case it is not in the lists of true or

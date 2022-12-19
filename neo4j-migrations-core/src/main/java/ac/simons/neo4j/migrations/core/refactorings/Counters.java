@@ -24,7 +24,7 @@ import java.util.Map;
  * @soundtrack Antilopen Gang - Adrenochrom
  * @since 1.10.0
  */
-public interface Counters {
+public sealed interface Counters permits DefaultCounters, Counters.Empty {
 
 	/**
 	 * @return An empty instance

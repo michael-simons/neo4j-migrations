@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * @author Michael J. Simons
  * @since 1.10.0
  */
-public interface Merge extends Refactoring {
+public sealed interface Merge extends Refactoring permits DefaultMerge {
 
 	/**
 	 * A {@link PropertyMergePolicy property merge policy} defines how properties with the same name defined on several

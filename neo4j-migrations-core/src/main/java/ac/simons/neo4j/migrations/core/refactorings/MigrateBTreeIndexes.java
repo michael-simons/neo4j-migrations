@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  * @soundtrack Bobby Fletcher &amp; Koljah - Vielleicht ist es besser so
  * @since 1.13.0
  */
-public interface MigrateBTreeIndexes extends Refactoring {
+public sealed interface MigrateBTreeIndexes extends Refactoring permits DefaultMigrateBTreeIndexes {
 
 	/**
 	 * Items that are not dropped will be logged through this logger.

@@ -30,7 +30,7 @@ import java.util.Set;
  * @soundtrack Max Herre - MTV Unplugged Kahedi Radio Show
  * @since 1.15.2
  */
-public interface AddSurrogateKey extends CustomizableRefactoring<AddSurrogateKey> {
+public sealed interface AddSurrogateKey extends CustomizableRefactoring<AddSurrogateKey> permits DefaultAddSurrogateKey {
 
 	/**
 	 * The default property name to store the surrogate key.

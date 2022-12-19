@@ -305,6 +305,74 @@ As catalog item:
 </refactor>
 ----
 
+=== Adding surrogate keys
+
+You can use Neo4j-Migrations to add https://en.wikipedia.org/wiki/Surrogate_key[Surrogate Keys] aka technical keys to your Nodes and Relationships. This is especially helpful to migrate away from internal Neo4j ids, such as `id()` (Neo4j 4.4 and earlier) or `elementId()`. While these functions are useful and several Object-Graph-Mappers can use them right out of the box, they are often not what you want:
+
+* You expose database internals as proxy for your own technical keys
+* Your business now is dependent on the way the database generates them
+* They might get reused (inside Neo4j), leaving you with no good guarantees for an identifier
+
+Our build-in refactorings use `randomUUID()` to assign a https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID] to a property named `id` for Nodes with a given set of labels or Relationships with a matching type for which such a property does not exist. Both the generator and the name of the property can be individually configured. Also, both type of entities can be matched with a custom query.
+
+.Adding random UUIDs as ids to `Movie` Nodes (XML)
+[source,xml]
+----
+<refactor type="addSurrogateKeyTo.nodes">
+  <parameters>
+    <parameter name="labels">
+      <value>Movie</value>
+    </parameter>
+  </parameters>
+</refactor>
+----
+
+.Adding random UUIDs as ids to `Movie` Nodes (Java)
+[source,java]
+----
+var addSurrogateKey = AddSurrogateKey.toNodes("Movie");
+----
+
+.Adding random UUIDs as ids to `ACTED_IN` relationships (XML)
+[source,xml]
+----
+<refactor type="addSurrogateKeyTo.relationships">
+  <parameters>
+    <parameter name="type">ACTED_IN</parameter>
+  </parameters>
+</refactor>
+----
+
+.Adding random UUIDs as ids to `ACTED_IN` relationships (Java)
+[source,java]
+----
+var addSurrogateKey = AddSurrogateKey.toRelationships("ACTED_IN");
+----
+
+The following examples use a different target property and hard-copy the internal id into a property. Of course, you can use your own user-defined functions for generating keys. A single `%s` will be replaced with a variable holding the matched entity. The syntax for relationships is the same (as demonstrated above):
+
+.Using a different property and generator function (XML)
+[source,xml]
+----
+<refactor type="addSurrogateKeyTo.nodes">
+  <parameters>
+    <parameter name="labels">
+      <value>Movie</value>
+    </parameter>
+    <parameter name="property">movie_pk</parameter>
+    <parameter name="generatorFunction">id(%s)</parameter>
+  </parameters>
+</refactor>
+----
+
+.Using a different property and generator function (Java)
+[source,java]
+----
+var addSurrogateKey = AddSurrogateKey.toNodes("Movie")
+  .withProperty("movie_pk")
+  .withGeneratorFunction("id(%s)");
+----
+
 === Migrating BTREE indexes to "future" indexes
 
 Neo4j 4.4 introduces https://neo4j.com/docs/cypher-manual/current/indexes-for-search-performance/#indexes-future-indexes[future indexes], `RANGE` and `POINT` which replace the well known `BTREE` indexes of Neo4j 4.x. These new indexes are available from Neo4j 4.4 onwards but will not participate in any query planing in Neo4j 4.4. They exist merely for migration purposes in Neo4j 4.4: Neo4j 5.0 does not support `BTREE` indexes at all. This means a database that contains `BTREE` indexes _cannot_ be upgraded to Neo4j 5.0. Existing `BTREE` indexes need to be dropped prior to attempting the upgrade. The class `ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes` has been created for this purpose. It allows creation of matching new indexes and optionally dropping the indexes that are no longer supported in Neo4j 5.0 and higher prior to upgrading the store.

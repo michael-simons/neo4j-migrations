@@ -145,7 +145,7 @@
 		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<maven.version>3.8.6</maven.version>
+		<maven.version>3.8.7</maven.version>
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>4.11.0</mockito.version>

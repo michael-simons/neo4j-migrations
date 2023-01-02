@@ -34,6 +34,17 @@
 		<java-module-name>ac.simons.neo4j.migrations.annotations.proc.impl</java-module-name>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- OGM is on an older version and I don't have the nerves to investigate why the hell it started to export a test dependency. -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.13.2</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>

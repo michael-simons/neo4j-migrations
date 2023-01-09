@@ -1233,7 +1233,7 @@
 								</release>
 								<distributions>
 									<neo4j-migrations>
-										<type>NATIVE_IMAGE</type>
+										<type>BINARY</type>
 										<artifacts>
 											<artifact>
 												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-linux-x86_64.zip</path>

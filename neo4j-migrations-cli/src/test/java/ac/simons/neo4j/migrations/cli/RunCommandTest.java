@@ -54,7 +54,7 @@ class RunCommandTest {
 
 	private static void setMigrations(RunCommand cmd, URL url) {
 		ReflectionSupport
-			.findFields(RunCommand.class, f -> f.getName().equals("migrations"), HierarchyTraversalMode.TOP_DOWN)
+			.findFields(RunCommand.class, f -> f.getName().equals("migrationsToRun"), HierarchyTraversalMode.TOP_DOWN)
 			.forEach(f -> {
 				f.setAccessible(true);
 				try {

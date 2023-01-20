@@ -32,6 +32,18 @@ import org.neo4j.driver.SessionConfig;
 public interface MigrationContext {
 
 	/**
+	 * This creates a {@link MigrationContext migration context} outside of an otherwise configured {@link Migrations migration instance}.
+	 * It will behave exactly as the context handed out by migrations to {@link JavaBasedMigration class based migrations},
+	 * @param config The configuration to use
+	 * @param driver The instance of the driver to use, might as well be a mock
+	 * @return A new context, independent of any other migration instance or configuration
+	 * @since 1.15.4
+	 */
+	static MigrationContext of(MigrationsConfig config, Driver driver) {
+		return new DefaultMigrationContext(config, driver);
+	}
+
+	/**
 	 * @return The configuration of this migration instance.
 	 */
 	MigrationsConfig getConfig();

@@ -37,7 +37,7 @@ public interface MigrationContext {
 	 * @param config The configuration to use
 	 * @param driver The instance of the driver to use, might as well be a mock
 	 * @return A new context, independent of any other migration instance or configuration
-	 * @since 1.15.4
+	 * @since 1.16.0
 	 */
 	static MigrationContext of(MigrationsConfig config, Driver driver) {
 		return new DefaultMigrationContext(config, driver);

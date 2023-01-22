@@ -57,7 +57,6 @@ public final class MigrationsConfig {
 	 * @return The entry point for creating a new configuration.
 	 * @since 0.0.1
 	 */
-	@SuppressWarnings("squid:S1874") // Remove it as soon as the constructor is made private and no longer marked as deprecated.
 	public static Builder builder() {
 
 		return new Builder();

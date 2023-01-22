@@ -100,7 +100,7 @@ public final class Migrations {
 		this.discoveryService = new DiscoveryService(this.config.getMigrationClassesDiscoverer(), this.config.getResourceScanner());
 		this.chainBuilder = new ChainBuilder();
 
-		this.context = new DefaultMigrationContext(this.config, this.driver);
+		this.context = MigrationContext.of(this.config, this.driver);
 	}
 
 	private List<Migration> getMigrations() {

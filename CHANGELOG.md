@@ -1,3 +1,130 @@
+# 2.1.1
+
+## 📝 Documentation
+- c9e66f2 docs: add sibethencourt as a contributor for ideas (#840)
+
+## 🧹 Housekeeping
+- e4c321e Bump checkstyle from 10.6.0 to 10.7.0 (#853)
+- 7048612 Bump asciidoctorj-diagram from 2.2.3 to 2.2.4 (#848)
+- 877bf43 Bump byte-buddy.version from 1.12.22 to 1.12.23 (#852)
+- 2ce23f6 build(deps-dev): Bump checker-qual from 3.29.0 to 3.30.0 (#851)
+- dcffb9a Bump picocli from 4.7.0 to 4.7.1 (#847)
+- bc842b6 Bump mockito.version from 5.0.0 to 5.1.0 (#846)
+- 01c9ad7 Bump sortpom-maven-plugin from 3.2.0 to 3.2.1 (#843)
+- 428a91d Bump quarkus.version from 2.16.0.Final to 2.16.1.Final (#850)
+- bb82c8b Bump neo4j-ogm.version from 4.0.1 to 4.0.2 (#849)
+- c05ef3f Bump neo4j-cypher-dsl-schema-name-support from 2023.0.1 to 2023.0.2 (#845)
+- dbdb81f Bump neo4j-java-driver from 5.4.0 to 5.5.0 (#844)
+- a6d72be Bump neo4j-harness from 5.3.0 to 5.4.0 (#842)
+
+
+# 2.1.0
+
+## 🚀 Features
+- 6e9e6f4 feat: Provide a factory method for `MigrationContext`. (#830)
+
+## 🔄️ Refactorings
+- 57ad31c refactor: Remove unnessary suppressions.
+
+## 🧹 Housekeeping
+- 7d32f07 Bump neo4j-cypher-dsl-schema-name-support from 2023.0.0 to 2023.0.1 (#838)
+- aeb8d5d Bump quarkus.version from 2.15.3.Final to 2.16.0.Final (#836)
+- c3b9e00 Bump spring-boot.version from 3.0.1 to 3.0.2 (#834)
+- 57d13ed Bump maven-surefire-plugin from 3.0.0-M7 to 3.0.0-M8 (#832)
+- 7d8ed42 Bump maven-plugin-annotations from 3.7.0 to 3.7.1 (#839)
+- be4188e Bump assertj-core from 3.24.1 to 3.24.2 (#837)
+- c4ffb0b Bump maven-plugin-plugin from 3.7.0 to 3.7.1 (#835)
+- 403f31e Bump graal-sdk from 22.3.0 to 22.3.1 (#833)
+- ca31532 Bump maven-failsafe-plugin from 3.0.0-M7 to 3.0.0-M8 (#831)
+- 9bdc174 Bump byte-buddy.version from 1.12.21 to 1.12.22 (#826)
+- 0fd51e4 Bump maven-project-info-reports-plugin from 3.4.1 to 3.4.2 (#824)
+- 62a3347 Bump jna from 5.12.1 to 5.13.0 (#823)
+- 9c0d9d4 Bump maven-checkstyle-plugin from 3.2.0 to 3.2.1 (#822)
+- ba17dc3 build(deps-dev): Bump error_prone_annotations from 2.17.0 to 2.18.0 (#821)
+- da8f60a Bump junit-bom from 5.9.1 to 5.9.2 (#819)
+- c8f4849 Bump mockito.version from 4.11.0 to 5.0.0 (#817)
+- aa537e2 Bump neo4j-java-driver from 5.3.1 to 5.4.0 (#825)
+- 21978a5 Bump quarkus.version from 2.15.2.Final to 2.15.3.Final (#820)
+- 6d1cc31 build(deps-dev): Bump spring-data-neo4j from 7.0.0 to 7.0.1 (#818)
+- e616458 Bump convict from 6.2.3 to 6.2.4 in /etc/antora (#816)
+
+
+# 2.0.3
+
+## 🧰 Tasks
+- 5fe2942 chore: Extend license header to 2023.
+
+## 🧹 Housekeeping
+- ec9292e Bump neo4j-cypher-dsl-schema-name-support from 2022.8.2 to 2023.0.0
+- 54f4ac2 Bump quarkus.version from 2.14.2.Final to 2.15.2.Final (#811)
+- a457fdb Bump byte-buddy.version from 1.12.20 to 1.12.21 (#814)
+- c341f6b Bump classgraph from 4.8.153 to 4.8.154 (#815)
+- 0a01df4 build(deps-dev): Bump checker-qual from 3.28.0 to 3.29.0 (#813)
+- 030f635 Bump assertj-core from 3.23.1 to 3.24.1 (#812)
+- dbab22e Bump json5 from 2.2.1 to 2.2.3 in /etc/antora (#809)
+- 83d7d54 Bump neo4j-ogm.version from 4.0.0 to 4.0.1 (#801)
+- 5cd8781 Bump checkstyle from 10.5.0 to 10.6.0 (#804)
+- 9146a1f Bump maven.version from 3.8.6 to 3.8.7 (#806)
+- fb1072f build(deps-dev): Bump error_prone_annotations from 2.16 to 2.17.0 (#808)
+- 34cf949 Bump mockito.version from 4.10.0 to 4.11.0 (#807)
+- 41b6830 Bump jreleaser-maven-plugin from 1.3.1 to 1.4.0 (#805)
+- ca3d5c1 Bump classgraph from 4.8.152 to 4.8.153 (#802)
+- 6e804ca Bump neo4j-cypher-dsl-schema-name-support from 2022.8.1 to 2022.8.2 (#800)
+- c630222 Bump neo4j-java-driver from 5.3.0 to 5.3.1 (#803)
+- 3c01172 Bump spring-boot.version from 3.0.0 to 3.0.1 (#798)
+
+## 🛠 Build
+- 6a9b92c build: Remove usage of deprecated JReleaser features.
+
+
+# 2.0.2
+
+Thanks go out to @Raf23 for using the Maven-Plugin under Windows and creating an excellent bug report.
+
+## 🚀 Features
+- 30fe952 Add refactoring `AddSurrogateKey`.
+
+## 🐛 Bug Fixes
+- 43eb56d Ensure Maven-Plugin can deal with windows paths. (#784)
+- 3ed5f9e `ProductVersion` broke due to removal auf automatic module name in 21be999.
+
+## 🔄️ Refactorings
+- 228aa13 Seal concrete refactoring interfaces (#797)
+- b816cde Use more JDK17 idioms. (#788)
+
+## 🧹 Housekeeping
+- 6915623 Bump neo4j-harness from 5.2.0 to 5.3.0 (#794)
+- ff9e878 Bump docker-maven-plugin from 0.40.2 to 0.40.3 (#791)
+- 652af2f Bump maven-invoker-plugin from 3.3.0 to 3.4.0 (#793)
+- 89bd73a Bump compile-testing from 0.20 to 0.21.0 (#792)
+- ef69ba3 Bump mockito.version from 4.9.0 to 4.10.0 (#790)
+- ae9eff4 Bump byte-buddy.version from 1.12.19 to 1.12.20 (#789)
+
+## 🛠 Build
+- d36f493 Exclude csv from header check, use `project.artifactId`. (#785)
+
+
+# 2.0.1
+
+## 🚀 Features
+- 1910fa4 Add a templated Java based migration that helps loading CSV data. (#777)
+
+## 🐛 Bug Fixes
+- 5a7acc8 Process record components proper (thanks to @MaurizioCasciano for the report). (#780)
+- 21be999 Remove automatic automatic-module name insertion for core module. (#773)
+
+## 📝 Documentation
+- 4fcfbf1 Add demo-in-a-gif.
+- f40b777 Update local changelog.
+
+## 🧹 Housekeeping
+- c66018f Bump classgraph from 4.8.151 to 4.8.152 (#783)
+- ac9251f Bump neo4j-cypher-dsl-schema-name-support from 2022.8.0 to 2022.8.1 (#782)
+
+## 🛠 Build
+- a6e932e Upgrade deprecated actions (checkout, cache, setup-java). (#778)
+
+
 # 2.0.0
 
 After a bit more than year after the [1.0 release](https://github.com/michael-simons/neo4j-migrations/releases/tag/1.0.0), welcome Neo4j-Migrations 2.0. This release includes all the features that have been released in more than 15 releases since 1.0, including the latest changes in 1.15.1, released today as well.
@@ -119,6 +246,88 @@ We'd like to thank the following people for their contributions:
 - @adam-cowley
 - @meistermeier
 - @Mogztter
+
+
+# 1.16.1
+
+## 🧹 Housekeeping
+- c727dfd Bump checkstyle from 10.6.0 to 10.7.0 (#853)
+- 051027e Bump asciidoctorj-diagram from 2.2.3 to 2.2.4 (#848)
+- 8cd37a9 Bump byte-buddy.version from 1.12.22 to 1.12.23 (#852)
+- 8d7e2db build(deps-dev): Bump checker-qual from 3.29.0 to 3.30.0 (#851)
+- 2bdb8f4 Bump picocli from 4.7.0 to 4.7.1 (#847)
+- 955e05b Bump mockito.version from 5.0.0 to 5.1.0 (#846)
+- fc497dc Bump sortpom-maven-plugin from 3.2.0 to 3.2.1 (#843)
+
+
+# 1.16.0
+
+Thanks to @sibethencourt for your input on #829.
+
+## 🚀 Features
+- e2f9978 feat: Provide a factory method for `MigrationContext`. (#830)
+
+## 🧹 Housekeeping
+- 6a82165 Bump quarkus.version from 2.13.5.Final to 2.13.7.Final
+- cf1fde8 build(deps-dev): Bump spring-data-neo4j from 6.3.5 to 6.3.7
+- 23fcbb9 Bump spring-boot.version from 2.7.5 to 2.7.8
+- 59ce4d1 Bump byte-buddy.version from 1.12.21 to 1.12.22 (#826)
+- abd5de2 Bump maven-project-info-reports-plugin from 3.4.1 to 3.4.2 (#824)
+- 4de87cc Bump jna from 5.12.1 to 5.13.0 (#823)
+- db472f8 Bump maven-checkstyle-plugin from 3.2.0 to 3.2.1 (#822)
+- fe00ee9 build(deps-dev): Bump error_prone_annotations from 2.17.0 to 2.18.0 (#821)
+- c6b2059 Bump mockito.version from 4.11.0 to 5.0.0 (#817)
+
+
+# 1.15.3
+
+## 🧰 Tasks
+- f25102d chore: Extend license header to 2023.
+
+## 🧹 Housekeeping
+- fae4037 Bump neo4j-cypher-dsl-schema-name-support from 2022.8.2 to 2022.8.3
+- 9c9d277 Bump byte-buddy.version from 1.12.20 to 1.12.21 (#814)
+- 9664a76 Bump classgraph from 4.8.153 to 4.8.154 (#815)
+- 5982fdb build(deps-dev): Bump checker-qual from 3.28.0 to 3.29.0 (#813)
+- 86461be Bump assertj-core from 3.23.1 to 3.24.1 (#812)
+- 927bab9 Bump neo4j-ogm.version from 3.2.38 to 3.2.39
+- a93e50b Bump neo4j-java-driver from 4.4.9 to 4.4.11
+- bb2b8b5 Bump checkstyle from 10.5.0 to 10.6.0 (#804)
+- 0e50ee0 Bump maven.version from 3.8.6 to 3.8.7 (#806)
+- 3ee9c60 build(deps-dev): Bump error_prone_annotations from 2.16 to 2.17.0 (#808)
+- 3bf73da Bump mockito.version from 4.10.0 to 4.11.0 (#807)
+- 785559f Bump jreleaser-maven-plugin from 1.3.1 to 1.4.0 (#805)
+- 2e498f5 Bump classgraph from 4.8.152 to 4.8.153 (#802)
+- 8185369 Bump neo4j-cypher-dsl-schema-name-support from 2022.8.1 to 2022.8.2 (#800)
+
+## 🛠 Build
+- fdda6e6 build: Remove usage of deprecated JReleaser features.
+
+
+# 1.15.2
+
+## 🚀 Features
+- 7ddb8d1 Add refactoring `AddSurrogateKey`.
+
+## 🐛 Bug Fixes
+- eca5f3d Ensure Maven-Plugin can deal with windows paths. (#784)
+- 3259e4c Filter abstract migration classes from scan result.
+
+## 📝 Documentation
+- 92aec8b Update local changelog.
+
+## 🧹 Housekeeping
+- 7f2ca00 Bump docker-maven-plugin from 0.40.2 to 0.40.3 (#791)
+- ccd031a Bump maven-invoker-plugin from 3.3.0 to 3.4.0 (#793)
+- dcc7bb9 Bump compile-testing from 0.20 to 0.21.0 (#792)
+- 8c4029b Bump mockito.version from 4.9.0 to 4.10.0 (#790)
+- 1ac8fed Bump byte-buddy.version from 1.12.19 to 1.12.20 (#789)
+- 49171ff Bump classgraph from 4.8.151 to 4.8.152 (#783)
+- 5fa19ce Bump neo4j-cypher-dsl-schema-name-support from 2022.8.0 to 2022.8.1 (#782)
+
+## 🛠 Build
+- e363de7 Allow native build on GraalVM 22.2.0.
+- 4167c81 Upgrade deprecated actions (checkout, cache, setup-java). (#778)
 
 
 # 1.15.1

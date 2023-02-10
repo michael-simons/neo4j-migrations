@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
+import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,6 +80,11 @@ final class StringsTest {
 
 		String newQuery = Strings.replaceElementIdCalls(query);
 		assertThat(newQuery).isEqualTo(expected);
+	}
+
+	@Test
+	void base64EncodeShouldWork() {
+		assertThat(Strings.BASE64_ENCODING.apply("Hallo".getBytes(StandardCharsets.UTF_8))).isEqualTo("48616C6C6F");
 	}
 
 	@Nested

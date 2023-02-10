@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -62,18 +63,12 @@ public final class Strings {
 	 */
 	public static final String VALID_DATABASE_NAME = "([a-z][a-z\\d.\\-]{2,62})";
 
-	private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+	private static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
 
 	/**
 	 * A Base64 encoder.
 	 */
-	public static final Function<byte[], String> BASE64_ENCODING = bytes -> {
-		final StringBuilder sb = new StringBuilder(2 * bytes.length);
-		for (byte b : bytes) {
-			sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
-		}
-		return sb.toString();
-	};
+	public static final Function<byte[], String> BASE64_ENCODING = HEX_FORMAT::formatHex;
 
 	/**
 	 * Capitalizes a string

@@ -145,7 +145,7 @@
 		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<maven.version>3.8.7</maven.version>
+		<maven.version>3.9.0</maven.version>
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.1.0</mockito.version>
@@ -635,41 +635,45 @@
 				<artifactId>license-maven-plugin</artifactId>
 				<version>${license-maven-plugin.version}</version>
 				<configuration>
-					<header>etc/license.tpl</header>
 					<strictCheck>true</strictCheck>
 					<mapping>
 						<factories>SCRIPT_STYLE</factories>
 					</mapping>
-					<properties>
-						<year>2023</year>
-					</properties>
-					<includes>
-						<include>**</include>
-					</includes>
-					<excludes>
-						<exclude>**/*.adoc</exclude>
-						<exclude>**/*.csv</exclude>
-						<exclude>**/*.cypher</exclude>
-						<exclude>**/*.sh</exclude>
-						<exclude>**/*.tpl</exclude>
-						<exclude>**/*.txt</exclude>
-						<exclude>**/*.webm</exclude>
-						<exclude>**/*.yaml</exclude>
-						<exclude>**/*.extension</exclude>
-						<exclude>**/org.mockito.plugins.MockMaker</exclude>
-						<exclude>bin/check_availability.java</exclude>
-						<exclude>bin/start_neo4j.java</exclude>
-						<exclude>bin/test_native_cli.java</exclude>
-						<exclude>**/package-info.java</exclude>
-						<exclude>**/assembly/README</exclude>
-						<!-- XM based migrations -->
-						<exclude>**/catalogbased*/**/*.xml</exclude>
-						<exclude>**/V*.xml</exclude>
-						<exclude>**/.all-contributorsrc</exclude>
-						<exclude>**/org.springframework.boot.autoconfigure.AutoConfiguration.imports</exclude>
-						<!-- Annotation processor test resources -->
-						<exclude>**/src/test/resources/expected_catalog*.xml</exclude>
-					</excludes>
+					<licenseSets>
+						<licenseSet>
+							<header>etc/license.tpl</header>
+							<properties>
+								<year>2023</year>
+							</properties>
+							<includes>
+								<include>**</include>
+							</includes>
+							<excludes>
+								<exclude>**/*.adoc</exclude>
+								<exclude>**/*.csv</exclude>
+								<exclude>**/*.cypher</exclude>
+								<exclude>**/*.sh</exclude>
+								<exclude>**/*.tpl</exclude>
+								<exclude>**/*.txt</exclude>
+								<exclude>**/*.webm</exclude>
+								<exclude>**/*.yaml</exclude>
+								<exclude>**/*.extension</exclude>
+								<exclude>**/org.mockito.plugins.MockMaker</exclude>
+								<exclude>bin/check_availability.java</exclude>
+								<exclude>bin/start_neo4j.java</exclude>
+								<exclude>bin/test_native_cli.java</exclude>
+								<exclude>**/package-info.java</exclude>
+								<exclude>**/assembly/README</exclude>
+								<!-- XM based migrations -->
+								<exclude>**/catalogbased*/**/*.xml</exclude>
+								<exclude>**/V*.xml</exclude>
+								<exclude>**/.all-contributorsrc</exclude>
+								<exclude>**/org.springframework.boot.autoconfigure.AutoConfiguration.imports</exclude>
+								<!-- Annotation processor test resources -->
+								<exclude>**/src/test/resources/expected_catalog*.xml</exclude>
+							</excludes>
+						</licenseSet>
+					</licenseSets>
 					<dependencyEnforce>true</dependencyEnforce>
 					<dependencyExceptionMessage>One or more dependencies are licensed under a non-approved license.</dependencyExceptionMessage>
 					<dependencyPolicies>

@@ -935,7 +935,7 @@
 						<setanchors />
 						<idprefix />
 						<idseparator />
-						<imagesdir>img</imagesdir>
+						<imagesdir>${basedir}/docs/modules/ROOT/images</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
 						<source-highlighter>coderay</source-highlighter>

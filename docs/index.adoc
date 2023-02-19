@@ -12,7 +12,7 @@ Michael Simons <michael.simons@neo4j.com>
 :sectanchors: true
 :numbered: true
 :xrefstyle: short
-:imagesdir: img
+:imagesdir: modules/ROOT/images
 
 :examplesDir: ../examples
 

@@ -70,7 +70,7 @@ Other options include Homebrew and Zip bundles. Please checkout the full list of
 
 Neo4j-Migrations can be used against Neo4j 3.5, all Neo4j 4 versions from 4.1 up to 4.4 and Neo4j 5, including all current Neo4j-Aura versions.
 
-NOTE: Neo4j 4.0 is only partially supported since version 2.0 due to the fact that Neo4j Java Driver does not support it fully anymore since 5.x. If you need to use this library with Neo4j 4.0 (which you shouldn't, because 4.0 is out of support anyway), look at the latest 1.x version of Neo4j-Migrations.
+NOTE: Neo4j 4.0 is only partially supported since version 2.0 due to the fact that Neo4j Java Driver does not support it fully anymore since 5.x. If you need to use this library with Neo4j 4.0 (which you shouldn't, because 4.0 is out of support anyway), look at the latest 1.x version of Neo4j-Migrations. *This does not affect new versions of the 4.x series, such as Neo4j 4.4, which is fully supported by this project!*
 
 // tag::compatibility[]
 The Core API and the JVM based version of the CLI module of Neo4j-Migrations requires at least Java 17 or higher since version 2.0.

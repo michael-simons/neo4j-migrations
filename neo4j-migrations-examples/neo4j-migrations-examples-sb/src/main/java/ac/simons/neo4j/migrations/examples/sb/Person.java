@@ -13,18 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.neo4j.migrations.examples.sb;
+package ac.simons.neo4j.migrations.examples.sb;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
+ * Straight from the SDN6 readme.
+ *
  * @author Michael J. Simons
  */
-@SpringBootApplication
-public class Application {
+@Node
+public class Person {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+	@Id @GeneratedValue(UUIDStringGenerator.class)
+	private String id;
+
+	private final String name;
+
+	public Person(String name) {
+		this.name = name;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

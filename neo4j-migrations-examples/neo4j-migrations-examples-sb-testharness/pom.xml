@@ -31,7 +31,7 @@
 	<description>Example using an embedded Database as target for migrations.</description>
 
 	<properties>
-		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
+		<java-module-name>ac.simons.neo4j.migrations.examples.sb_testharness</java-module-name>
 		<neo4j.version>5.5.0</neo4j.version>
 		<!-- As Spring Boot uses 2.x these days and Neo4j is on 1.7. raising the bar to 2 will effectively disable Neo4j logging, no impl will be found -->
 		<slf4j.version>${slf4jv2.version}</slf4j.version>
@@ -87,7 +87,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${spring-boot.version}</version>
 				<configuration>
-					<mainClass>org.neo4j.migrations.examples.sb.Application</mainClass>
+					<mainClass>ac.simons.neo4j.migrations.examples.sb_testharness.Application</mainClass>
 				</configuration>
 				<executions>
 					<execution>
@@ -149,4 +149,17 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<reportSets/>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

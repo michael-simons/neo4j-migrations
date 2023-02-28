@@ -83,7 +83,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${spring-boot.version}</version>
 				<configuration>
-					<mainClass>org.neo4j.migrations.examples.sb.Application</mainClass>
+					<mainClass>ac.simons.neo4j.migrations.examples.sb.Application</mainClass>
 				</configuration>
 				<executions>
 					<execution>
@@ -187,4 +187,17 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<reportSets/>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

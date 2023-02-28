@@ -774,7 +774,7 @@ not to do anything in a given context. The migration will be dutifully recorded 
 Given that your application needs to support multiple versions of Neo4j, including versions that didn't exist when you created
 your application originally and you might have invalid Cypher now in potentially already applied migrations you can do the following
 
-* Create subfolders in your migration locations or configure additional locations
+* Create sub-folders in your migration locations or configure additional locations
 * Duplicate the migrations that contain Cypher that is problematic in newer Neo4j versions
 * Keep the names of the migrations identical and distribute them accordingly in these folders
 * Add a precondition matching only older versions of Neo4j to one and keep the rest unaltered
@@ -785,3 +785,16 @@ Thus, you support the following scenarios:
 * On older database versions against which your application already ran, nothing will change; the migration with the fixed syntax will be skipped
 * Same for a clean slate on older database versions
 * On the newer database version, only the fixed syntax migration will be applied.
+
+[[concepts_repairing_broken_chains]]
+== Repairing migrations
+
+Sometimes things will break, either on purpose or by accident. When a migration chain is broken, it will fail to validate. This can happen for various reasons:
+
+* You change a Cypher script file after it has been applied and its application has been successfully recorded
+* You migrate your database as part of your application startup and not with a CI process and used different versions of your application with a different set of migration scripts and classes
+* You delete individual script files or classes
+
+In all those cases, the chain of applied migrations won't validate with the current set of migrations discovered. Apart from using the xref:usage.adoc#usage_common_clean[`clean` operation] which would remove the whole chain from your database and inevitable leading to all migrations to be re-applied, you several options to repair your database:
+
+* Delete the offending migrations - those are all for which no script or class can be resolved anymore - individually from the database with the xref:usage.adoc#usage_common_delete[`delete` operation].

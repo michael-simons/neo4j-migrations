@@ -191,7 +191,7 @@ public final class Migrations {
 	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
 	 * or Cypher script migrations that are on the classpath or filesystem.
 	 * <p>
-	 * The startup will be logged to {@code ac.simons.neo4j.migrations.core.Migrations.Startup} and can be individiually
+	 * The startup will be logged to  {@code ac.simons.neo4j.migrations.core.Migrations.Startup} and can be individually
 	 * disabled through that logger.
 	 *
 	 * @param log set to {@literal true} to log connection details prior to applying the migrations
@@ -241,7 +241,7 @@ public final class Migrations {
 	}
 
 	/**
-	 * Applies one or more migrations to the target (not the schema) database without recording any metadata and also
+	 * Applies one or  more migrations to the target (not  the schema) database without recording any  metadata and also
 	 * without acquiring the lock.
 	 *
 	 * @param resources One or more resources pointing to parsable migration data
@@ -287,16 +287,17 @@ public final class Migrations {
 	}
 
 	/**
-	 * Cleans the {@link MigrationsConfig#getOptionalSchemaDatabase() selected schema database}. If there is no schema
-	 * database selected, looks in the {@link MigrationsConfig#getOptionalDatabase() target database.} If this isn't
-	 * configured as well, the users home database will be searched for
+	 * Cleans the {@link  MigrationsConfig#getOptionalSchemaDatabase() selected schema database}. If there  is no schema
+	 * database selected, the operation uses the {@link MigrationsConfig#getOptionalDatabase() target database.} If this
+	 * isn't configured as either, the users home database will be used. Items te be removed include:
 	 * <ol>
 	 * <li>Migration chains (those are the nodes containing information about the applied migrations</li>
 	 * <li>Any log from this tool</li>
 	 * <li>Any constraints created by this tool</li>
 	 * </ol>
-	 * and will delete and drop them in that order. This is a <strong>destructive</strong> operation, so make sure not
-	 * to apply it to your production database without thinking at least twice. It cannot be undone via Neo4j-Migrations.
+	 * and will  delete and  drop them in  that order. This  is a  <strong>destructive</strong> operation, so  make sure
+	 * not  to  apply it  to  your  production database  without  thinking  at least  twice.  It  cannot be  undone  via
+	 * Neo4j-Migrations.
 	 *
 	 * @param all Set to {@literal true} to remove all constructs created by Neo4j-Migrations, set to {@literal false} to
 	 *            remove all the migration chain for the selected or automatically determined target database.
@@ -333,7 +334,6 @@ public final class Migrations {
 		final List<String> chainsDeleted;
 		final SummaryCounters counter;
 		final long additionalConstraintsRemoved;
-
 		DeletedChainsWithCounters(List<String> chainsDeleted, SummaryCounters counter) {
 			this.chainsDeleted = chainsDeleted;
 			this.counter = counter;
@@ -345,8 +345,8 @@ public final class Migrations {
 			this.counter = source.counter;
 			this.additionalConstraintsRemoved = additionalConstraintsRemoved;
 		}
-	}
 
+	}
 	private DeletedChainsWithCounters clean0(
 		@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<String> migrationTarget,
 		boolean all
@@ -358,7 +358,8 @@ public final class Migrations {
 			WHERE (migrationTarget = coalesce($migrationTarget,'<default>') OR $all)
 			DETACH DELETE n
 			RETURN DISTINCT migrationTarget
-			ORDER BY migrationTarget ASC""";
+			ORDER BY migrationTarget ASC
+			""";
 
 		try (Session session = context.getSchemaSession()) {
 			DeletedChainsWithCounters deletedChainsWithCounters = session.executeWrite(tx -> {
@@ -385,14 +386,64 @@ public final class Migrations {
 	}
 
 	/**
-	 * Validates the database against the resolved migrations. A database is considered to be in a valid state when all
-	 * resolved migrations have been applied (there are no more pending migrations). If a database is not yet fully migrated,
-	 * it won't identify as {@link ValidationResult.Outcome#VALID} but it will indicate via {@link ValidationResult#needsRepair()} that
-	 * it doesn't need repair. Applying the pending migrations via {@link #apply()} will bring the database into a valid state.
-	 * Most other outcomes not valid need to be manually fix. One radical fix is calling {@link Migrations#clean(boolean)}
-	 * with the same configuration.
+	 * Deletes the specific version from  {@link MigrationsConfig#getOptionalSchemaDatabase() selected schema database}.
+	 * If there  is no schema  database selected, the  operation uses the  {@link MigrationsConfig#getOptionalDatabase()
+	 * target database.}. If this isn't  configured as either, the users home database will  be used. The migration will
+	 * be removed from the migration chain without being prior resolved from the filesystem or classpath. This operation
+	 * is useful for all scenarios  in which you would like to delete specific migrations  from your scripts which would
+	 * otherwise lead to  a {@link MigrationsException} indicating  that more migrations have been  applied than locally
+	 * resolved.
 	 *
-	 * @return a validation result, with an outcome, a possible list of warnings and indicators if the database is in a valid state
+	 * @param version the version that should be deleted, must not be null.
+	 * @since TBA
+	 */
+	public DeleteResult delete(MigrationVersion version) {
+
+		if (version == null) {
+			throw new IllegalArgumentException(Messages.INSTANCE.get("errors.version_required"));
+		}
+
+		String query = """
+			MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
+			OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
+			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
+			WITH p, l, m, r, n
+			FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
+			  CREATE (p)-[nl:MIGRATED_TO]->(n)
+			  SET nl = properties(l)
+			)
+			WITH l, m, r, properties(m) as p
+			DELETE l, m, r
+			RETURN p
+			""";
+
+		return executeWithinLock(() -> {
+			try (Session session = context.getSchemaSession()) {
+				return session.executeWrite(tx -> {
+					var parameters = Values.parameters(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null), PROPERTY_MIGRATION_VERSION, version.getValue());
+					var result = tx.run(query, parameters);
+					MigrationVersion deletedVersion = null;
+					if (result.hasNext()) {
+						var properties = result.single().get("p");
+						deletedVersion = MigrationVersion.parse(properties.get("source").asString());
+					}
+					var counters = result.consume().counters();
+					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null), deletedVersion, counters.nodesDeleted(), counters.relationshipsDeleted(), counters.relationshipsCreated());
+				});
+			}
+		}, null, null);
+	}
+
+	/**
+	 * Validates the database against the resolved migrations. A database  is considered to be in a valid state when all
+	 * resolved migrations  have been applied (there  are no more  pending migrations). If  a database is not  yet fully
+	 * migrated,  it  won't  identify  as  {@link  ValidationResult.Outcome#VALID}  but  it  will  indicate  via  {@link
+	 * ValidationResult#needsRepair()} that it doesn't need repair. Applying the pending migrations via {@link #apply()}
+	 * will bring the database  into a valid state. Most other  outcomes not valid need to be  manually fix. One radical
+	 * fix is calling {@link Migrations#clean(boolean)} with the same configuration.
+	 *
+	 * @return a validation result, with an outcome, a possible list  of warnings and indicators if the database is in a
+	 *         valid state
 	 * @since 1.2.0
 	 */
 	public ValidationResult validate() {

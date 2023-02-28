@@ -22,9 +22,10 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-import picocli.AutoComplete;
+import picocli.AutoComplete.GenerateCompletion;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.HelpCommand;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
@@ -68,7 +69,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = { CleanCommand.class, AutoComplete.GenerateCompletion.class, CommandLine.HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateBTreeIndexesCommand.class, MigrateCommand.class, RunCommand.class, ShowCatalogCommand.class, ValidateCommand.class },
+	subcommands = {CleanCommand.class, DeleteCommand.class, GenerateCompletion.class, HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateBTreeIndexesCommand.class, MigrateCommand.class, RunCommand.class, ShowCatalogCommand.class, ValidateCommand.class},
 	versionProvider = ManifestVersionProvider.class,
 	defaultValueProvider = CommonEnvVarDefaultProvider.class
 )

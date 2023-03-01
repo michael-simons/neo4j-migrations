@@ -55,6 +55,7 @@ import org.springframework.core.io.ResourceLoader;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings({"squid:S2187"}) // Sonar doesn't realize that there are tests
 class MigrationsAutoConfigurationTest {
 
 	private static final Driver MOCKED_DRIVER = Mockito.mock(Driver.class);

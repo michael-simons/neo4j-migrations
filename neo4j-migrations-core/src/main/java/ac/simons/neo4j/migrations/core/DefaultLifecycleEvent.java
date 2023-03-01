@@ -19,6 +19,7 @@ package ac.simons.neo4j.migrations.core;
  * @author Michael J. Simons
  * @since 1.2.2
  */
+@SuppressWarnings({"squid:S6206", "ClassCanBeRecord"}) // No, but thanks
 final class DefaultLifecycleEvent implements LifecycleEvent {
 
 	private final LifecyclePhase phase;

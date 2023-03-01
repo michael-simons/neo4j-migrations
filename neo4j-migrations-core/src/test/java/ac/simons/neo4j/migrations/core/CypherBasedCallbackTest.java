@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings({"squid:S2187"}) // Sonar doesn't realize that there are tests
 class CypherBasedCallbackTest {
 
 	@Nested

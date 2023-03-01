@@ -86,6 +86,7 @@ final class ChainBuilder {
 			return Collections.unmodifiableMap(appliedMigrations);
 		}
 
+		final String incompleteMigrationsMessage = "More migrations have been applied to the database than locally resolved.";
 		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(
 			discoveredMigrations.size() + appliedMigrations.size());
 		int i = 0;
@@ -97,14 +98,16 @@ final class ChainBuilder {
 			try {
 				newMigration = discoveredMigrations.get(i);
 			} catch (IndexOutOfBoundsException e) {
-				String message = "More migrations have been applied to the database than locally resolved.";
 				if (detailedCauses) {
-					throw new MigrationsException(message, e);
+					throw new MigrationsException(incompleteMigrationsMessage, e);
 				}
-				throw new MigrationsException(message);
+				throw new MigrationsException(incompleteMigrationsMessage);
 			}
 
 			if (!newMigration.getVersion().equals(expectedVersion)) {
+				if (getNumberOfAppliedMigrations(context) > discoveredMigrations.size()) {
+					throw new MigrationsException(incompleteMigrationsMessage, new IndexOutOfBoundsException());
+				}
 				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
 			}
 
@@ -142,6 +145,21 @@ final class ChainBuilder {
 		}
 
 		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
+	}
+
+	private int getNumberOfAppliedMigrations(MigrationContext context) {
+		var query = """
+			MATCH (n:__Neo4jMigration)
+			WHERE n.version <> 'BASELINE' AND coalesce(n.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>')
+			RETURN count(n)
+			""";
+
+		try (Session session = context.getSchemaSession()) {
+			return session.executeRead(tx -> {
+				var migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);
+				return tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget)).single().get(0).asInt();
+			});
+		}
 	}
 
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {

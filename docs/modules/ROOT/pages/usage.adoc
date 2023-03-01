@@ -4,28 +4,6 @@
 [[usage_common]]
 == Common operations
 
-[[usage_common_clean]]
-=== Clean
-
-`clean` applies by default to the xref:concepts.adoc#concepts_separate-databases[schema database].
-It will remove Neo4j-Migrations related nodes and relationships.
-If there is no schema database selected, it works on the optional target database.
-If this isn't configured either, the users home database will be used.
-
-The clean operation will search for
-
-* Migration chains (those are the nodes containing information about the applied migrations)
-* Any log from this Neo4j-Migrations
-* Any constraints created by Neo4j-Migrations
-
-and will delete and drop them in that order.
-This is a *destructive* operation, so make sure not to apply it to your production database without thinking at least twice.
-It cannot be undone via Neo4j-Migrations.
-
-The operation takes in a boolean parameter.
-When set to `false`, only the xref:concepts.adoc#concepts_chain[migration chain] for the currently configured target database will be deleted.
-When set to `true`, all objects created by Neo4j-Migrations will be deleted.
-
 [[usage_common_info]]
 === Info
 
@@ -50,6 +28,35 @@ where migrations are missing, have not been applied, applied in a different orde
 The validation result provides an additional operation `needsRepair()`.
 In case the result is invalid you might check if it needs repair.
 If not, you can just call the xref:usage.adoc#usage_common_migrate[apply operation] to turn the database into a valid state.
+
+[[usage_common_clean]]
+=== Clean
+
+`clean` applies by default to the xref:concepts.adoc#concepts_separate-databases[schema database].
+It will remove Neo4j-Migrations related nodes and relationships.
+If there is no schema database selected, it works on the optional target database.
+If this isn't configured either, the users home database will be used.
+
+The clean operation will search for
+
+* Migration chains (those are the nodes containing information about the applied migrations)
+* Any log from this Neo4j-Migrations
+* Any constraints created by Neo4j-Migrations
+
+and will delete and drop them in that order.
+This is a *destructive* operation, so make sure not to apply it to your production database without thinking at least twice.
+It cannot be undone via Neo4j-Migrations.
+
+The operation takes in a boolean parameter.
+When set to `false`, only the xref:concepts.adoc#concepts_chain[migration chain] for the currently configured target database will be deleted.
+When set to `true`, all objects created by Neo4j-Migrations will be deleted.
+
+[[usage_common_delete]]
+=== Delete
+
+The `delete` operation comes in handy when the migrations fail to <<usage_common_validate, validate>>. This might be the case when you accidentally or on purpose deleted script files or refactored Java based migrations away. The `delete` operation takes in the unique version or the name of a Cypher script file or a Java class, looks for a migration in the migration chain fitting that description and deletes it. If it was the last migration in the chain, the previous one will be the new last, otherwise the previous migration will point to the next one.
+
+Using the `delete` operation is one way of xref:concepts.adoc#concepts_repairing_broken_chains[repairing broken migration chains].
 
 == CLI
 
@@ -122,6 +129,7 @@ Migrates Neo4j databases.
 Commands:
   clean           Removes Neo4j-Migration specific data from the selected
                     schema database
+  delete          Deletes a migration from the chain of applied migrations
   help            Displays help information about the specified command
   info            Retrieves all applied and pending information, prints them
                     and exits.
@@ -340,7 +348,7 @@ All resolved migrations have been applied to the default database.
 
 === Using the CLI as a script runner
 
-The CLI can be used as a simple runner for migrations scripts as well. The only necessity is that all scripts have well-defined names according to the format described <<concepts_migrations, here>>:
+The CLI can be used as a simple runner for migrations scripts as well. The only necessity is that all scripts have well-defined names according to the format described xref:concepts.adoc#concepts_migrations[here]:
 
 [source,console,subs="verbatim,attributes"]
 ----
@@ -437,8 +445,10 @@ info:: Returns information about the context, the database, all applied and all 
 apply:: Applies all discovered migrations
 validate:: Validates the database against the resolved migrations
 clean:: Cleans the selected schema database from every metadata created by this tool
+delete:: Removes a single migration from the chain of applied migrations
 
-The same operations are available in the CLI and Maven-Plugin. The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run `apply`.
+All operations are available in the CLI and Maven-Plugin, except for the `delete` operation, which is only in the Core-API and the CLI.
+The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run `apply`.
 
 `apply` comes in a couple of overloads:
 
@@ -446,7 +456,7 @@ The same operations are available in the CLI and Maven-Plugin. The corresponding
 * It will try to resolve URLS to supported migrations and apply them as is, without writing metadata when called with
   one or more URLs as argument. This method can also be ce called through the CLI (via the `run` command).
 * It will apply all refactorings in order when called with one or more instances of `Refactoring`.
-  This method is only available in the Core API. Please read more about it here:  <<applying-refactorings-programmatically>>.
+  This method is only available in the Core API. Please read more about it here: xref:appendix.adoc#applying-refactorings-programmatically[Applying refactorings programmatically].
 
 === Running on the Java module-path
 

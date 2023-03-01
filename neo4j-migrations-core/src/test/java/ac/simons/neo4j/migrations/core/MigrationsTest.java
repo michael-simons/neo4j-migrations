@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Driver;
 
 /**
  * @author Michael J. Simons
@@ -48,5 +50,12 @@ class MigrationsTest {
 
 		Supplier<String> logMessageSupplier = Migrations.logMessageSupplier(callback, LifecyclePhase.BEFORE_CLEAN);
 		assertThat(logMessageSupplier.get()).isEqualTo("Invoked \"Hallo, Welt.\" before clean.");
+	}
+
+	@Test
+	void deletingAVersionShouldRequireAVersion() {
+
+		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), mock(Driver.class));
+		assertThatIllegalArgumentException().isThrownBy(() -> migrations.delete(null)).withMessage("A valid version must be passed to the delete operation");
 	}
 }

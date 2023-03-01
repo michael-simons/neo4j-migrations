@@ -318,6 +318,64 @@ class MigrationsIT extends TestBase {
 		}
 	}
 
+	@ParameterizedTest
+	@ValueSource(ints = {0, 1, 2, 3})
+	void deleteMigrationsShouldWork(int fileNumber) throws IOException {
+
+		File dir = Files.createTempDirectory("neo4j-migrations").toFile();
+		List<File> files = createMigrationFiles(4, dir);
+
+		try {
+			String location = "file:" + dir.getAbsolutePath();
+			MigrationsConfig configuration = MigrationsConfig.builder().withLocationsToScan(location).build();
+			Migrations migrations = new Migrations(configuration, driver);
+			assertThatNoException().isThrownBy(migrations::apply);
+
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(4);
+
+			files.get(fileNumber).delete();
+
+			// Make sure we fail consistently
+			var failingMigrations = new Migrations(configuration, driver);
+			var validationResult = failingMigrations.validate();
+			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.INCOMPLETE_MIGRATIONS);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(failingMigrations::apply)
+				.withMessage("More migrations have been applied to the database than locally resolved.");
+
+			var versionValue = Integer.toString(fileNumber + 1);
+			var result = failingMigrations.delete(MigrationVersion.withValue(versionValue));
+			assertThat(result.isDatabaseChanged()).isTrue();
+			assertThat(result.getVersion())
+				.hasValueSatisfying(v -> assertThat(v.getValue()).isEqualTo(versionValue));
+			assertThat(result.getNodesDeleted()).isEqualTo(1L);
+			if (fileNumber == files.size() - 1) {
+				assertThat(result.getRelationshipsDeleted()).isEqualTo(1L);
+				assertThat(result.getRelationshipsCreated()).isZero();
+			} else {
+				assertThat(result.getRelationshipsDeleted()).isEqualTo(2L);
+				assertThat(result.getRelationshipsCreated()).isEqualTo(1L);
+			}
+
+			validationResult = failingMigrations.validate();
+			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.VALID);
+			assertThatNoException().isThrownBy(failingMigrations::apply);
+			assertThat(lengthOfMigrations(driver, null)).isEqualTo(3);
+		} finally {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
+	void shouldNotFailWhenDeletingNonExistingVersion() {
+
+		var migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		var result = migrations.delete(MigrationVersion.withValue("whatever"));
+		assertThat(result.isDatabaseChanged()).isFalse();
+		assertThat(result.getVersion()).isEmpty();
+	}
+
 	@Test // GH-702
 	void shouldNotAllowChangingRepeatableType1() throws IOException {
 

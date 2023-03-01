@@ -15,14 +15,11 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import ac.simons.neo4j.migrations.core.CleanResult;
-import ac.simons.neo4j.migrations.core.Migrations;
 
 import java.util.Collections;
 
@@ -31,28 +28,33 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
 
+import ac.simons.neo4j.migrations.core.DeleteResult;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
+
 /**
  * @author Michael J. Simons
  */
-class CleanCommandTest {
+class DeleteCommandTest {
 
 	@ParameterizedTest
-	@ValueSource(booleans = { true, false })
-	void shouldInvokeClean(boolean all) {
+	@ValueSource(strings = {"4711", "V5000__WithCommentAtEnd.cypher"})
+	void shouldInvokeCorrectApi(String versionOrName) {
 
 		Migrations migrations = mock(Migrations.class);
-		CleanResult result = mock(CleanResult.class);
-		when(result.prettyPrint()).thenReturn("cleaned");
-		when(result.getWarnings()).thenReturn(Collections.singletonList("a warning"));
-		when(migrations.clean(anyBoolean())).thenReturn(result);
+		DeleteResult result = mock(DeleteResult.class);
 
-		CleanCommand cmd = new CleanCommand();
-		ReflectionSupport.findFields(CleanCommand.class, f -> f.getName().equals("all"),
+		when(result.prettyPrint()).thenReturn("deleted");
+		when(result.getWarnings()).thenReturn(Collections.singletonList("a warning"));
+		when(migrations.delete(any(MigrationVersion.class))).thenReturn(result);
+
+		DeleteCommand cmd = new DeleteCommand();
+		ReflectionSupport.findFields(DeleteCommand.class, f -> f.getName().equals("versionValue"),
 				HierarchyTraversalMode.TOP_DOWN)
 			.forEach(f -> {
 				f.setAccessible(true);
 				try {
-					f.set(cmd, all);
+					f.set(cmd, versionOrName);
 				} catch (IllegalAccessException e) {
 					throw new RuntimeException(e);
 				}
@@ -60,7 +62,7 @@ class CleanCommandTest {
 
 		cmd.withMigrations(migrations);
 
-		verify(migrations).clean(all);
+		verify(migrations).delete(any(MigrationVersion.class));
 		verify(result).prettyPrint();
 		verify(result).getWarnings();
 

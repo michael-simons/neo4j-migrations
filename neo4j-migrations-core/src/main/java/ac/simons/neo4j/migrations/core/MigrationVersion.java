@@ -54,18 +54,34 @@ public final class MigrationVersion {
 		return parse(clazz.getSimpleName());
 	}
 
-	static MigrationVersion parse(String simpleName) {
+	/**
+	 * Creates a {@link MigrationVersion} from the given class or file name
+	 *
+	 * @param name A class or file name
+	 * @return A {@link MigrationVersion}
+	 * @throws MigrationsException if the  name cannot be parsed.  You might check {{@link  #canParse(String)}} prior to
+	 *                             using this method
+	 * @since TBA
+	 */
+	public static MigrationVersion parse(String name) {
 
-		Matcher matcher = VERSION_PATTERN.matcher(simpleName);
+		Matcher matcher = VERSION_PATTERN.matcher(name);
 		if (!matcher.matches()) {
-			throw new MigrationsException("Invalid class name for a migration: " + simpleName);
+			throw new MigrationsException("Invalid class name for a migration: " + name);
 		}
 
 		boolean repeatable = "R".equalsIgnoreCase(matcher.group("type"));
 		return new MigrationVersion(matcher.group("version").replace("_", "."), matcher.group("name").replace("_", " "), repeatable);
 	}
 
-	static MigrationVersion withValue(String value) {
+	/**
+	 * Creates a {@link MigrationVersion} with a given value (the unique version identifier).
+	 *
+	 * @param value The unique version identifier
+	 * @return A {@link MigrationVersion}
+	 * @since TBA
+	 */
+	public static MigrationVersion withValue(String value) {
 
 		return withValue(value, false);
 	}

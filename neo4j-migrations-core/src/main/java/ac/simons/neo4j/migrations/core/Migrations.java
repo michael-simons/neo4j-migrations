@@ -212,7 +212,8 @@ public final class Migrations {
 	}
 
 	/**
-	 * Applies one or more refactorings to the target (not the schema) database.
+	 * Applies one or more refactorings to the target (not the schema) database  without recording any metadata and also
+ 	 * without acquiring the lock.
 	 *
 	 * @param refactorings the refactorings to apply
 	 * @return summarized counters

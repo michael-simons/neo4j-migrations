@@ -34,6 +34,7 @@
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb</java-module-name>
 		<next-migration-version>020</next-migration-version>
 		<slf4j.version>${slf4jv2.version}</slf4j.version>
+		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<dependencyManagement>

@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.examples.sb;
+package ac.simons.neo4j.migrations.examples.sb_testharness;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author Michael J. Simons
  */
-@SpringBootApplication
-public class Application {
+@SpringBootTest(properties = {"org.neo4j.migrations.enabled=false", "spring.main.banner-mode=off"})
+class ApplicationTest {
 
-	public static void main(String... args) {
-		SpringApplication.run(Application.class, args);
+	@Test
+	void contextLoads() {
 	}
 }

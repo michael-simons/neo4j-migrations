@@ -21,7 +21,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
- * Straight from the SDN6 readme.
+ * Straight from the SDN6 readme, used for testing the constraint generating catalog.
  *
  * @author Michael J. Simons
  */

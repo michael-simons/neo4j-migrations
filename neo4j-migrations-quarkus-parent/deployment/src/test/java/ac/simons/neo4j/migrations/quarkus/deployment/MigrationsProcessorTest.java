@@ -21,6 +21,7 @@ import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
+import io.quarkus.deployment.builditem.FeatureBuildItem;
 
 import java.io.IOException;
 import java.util.List;
@@ -139,6 +140,14 @@ class MigrationsProcessorTest {
 			assertThat(scanner.scan(List.of("/static", "also"))).hasSize(2);
 			assertThat(scanner.scan(List.of())).isEmpty();
 		}
+	}
+
+	@Test
+	void featureShouldBeCorrect() {
+		// FFS Sonar, that wasn't a new method.
+		assertThat(new MigrationsProcessor().createFeature())
+			.extracting(FeatureBuildItem::getName)
+			.isEqualTo(MigrationsProcessor.FEATURE_NAME);
 	}
 
 	static class SomeMigration implements JavaBasedMigration {

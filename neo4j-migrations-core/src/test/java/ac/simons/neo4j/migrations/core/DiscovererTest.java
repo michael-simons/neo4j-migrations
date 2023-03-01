@@ -36,6 +36,7 @@ import org.neo4j.driver.Driver;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings({"squid:S2187"}) // Sonar doesn't realize that there are tests
 class DiscovererTest {
 
 	@Nested

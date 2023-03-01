@@ -20,17 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
-import ac.simons.neo4j.migrations.core.catalog.Catalog;
-import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
-import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
-import ac.simons.neo4j.migrations.core.catalog.Name;
-import ac.simons.neo4j.migrations.core.refactorings.Counters;
-import ac.simons.neo4j.migrations.core.refactorings.Normalize;
-import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
-import ac.simons.neo4j.migrations.core.refactorings.Rename;
-import ac.simons.neo4j.migrations.core.test_migrations.changeset5.V003__Repeatable;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -45,7 +34,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -54,6 +45,17 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.containers.Neo4jContainer;
+
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Rename;
+import ac.simons.neo4j.migrations.core.test_migrations.changeset5.V003__Repeatable;
 
 /**
  * @author Michael J. Simons
@@ -802,4 +804,97 @@ class MigrationsIT extends TestBase {
 
 		assertThat(appliedMigrations).isEqualTo(1);
 	}
+
+	@Nested
+	class Repairing {
+
+		@Test
+		void repairingWithoutLocalMigrationsMustFail(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir);
+
+			var migrations = new Migrations(locationAndConfig.config(), driver);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::repair)
+				.withMessage("Zero migrations have been discovered and repairing the database would lead to the deletion of all migrations recorded; if you want that, use the clean operation");
+		}
+
+		@Test
+		void repairingWithoutRemoteMigrationsShouldNotDoAnything(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir, 2);
+
+			var migrations = new Migrations(locationAndConfig.config(), driver);
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+		}
+
+		@Test
+		void shouldNotRepairAnythingWhenMigrationsAreAppended(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir, 2);
+			var migrations = new Migrations(locationAndConfig.config, driver);
+
+			migrations.apply();
+			createMigrationFiles(1, locationAndConfig.generatedFiles().size(), dir);
+			migrations.clearCache();
+
+			var validationResult = migrations.validate();
+			assertThat(validationResult.isValid()).isFalse();
+			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.INCOMPLETE_DATABASE);
+
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+		}
+
+		@Test
+		void shouldFixChangedChecksums(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir, 2);
+			var migrations = new Migrations(locationAndConfig.config, driver);
+
+			migrations.apply();
+
+			Files.write(locationAndConfig.generatedFiles().get(1).toPath(),
+				List.of("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+
+			migrations.clearCache();
+			migrations.apply();
+			migrations.repair();
+		}
+
+		@Test
+		void shouldFailWhenMigrationsAreInserted(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir);
+			var migrations = new Migrations(locationAndConfig.config, driver);
+
+			var files = createMigrationFiles(2, 10, dir);
+
+			migrations.apply();
+			createMigrationFiles(1, 0, dir);
+			migrations.clearCache();
+
+			var validationResult = migrations.validate();
+			assertThat(validationResult.isValid()).isFalse();
+			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.DIFFERENT_CONTENT);
+
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+		}
+
+		record LocationAndConfig(String location, MigrationsConfig config, List<File> generatedFiles) {
+
+			static LocationAndConfig of(File dir) throws IOException {
+				return of(dir, 0);
+			}
+
+			static LocationAndConfig of(File dir, int numFiles) throws IOException {
+				var location = "file:" + dir.getAbsolutePath();
+				var configuration = MigrationsConfig.builder()
+					.withLocationsToScan(location).build();
+				return new LocationAndConfig(location, configuration, numFiles == 0 ? List.of() : createMigrationFiles(numFiles, dir));
+			}
+		}
+	}
+
 }

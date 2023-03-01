@@ -134,6 +134,21 @@ public final class Migrations {
 	}
 
 	/**
+	 * Clears the internal cache (discovered migrations and callbacks) which can be useful in certain testing scenarios.
+	 *
+	 * @since TBA
+	 */
+	public void clearCache() {
+
+		if (resolvedMigrations != null || resolvedCallbacks != null) {
+			synchronized (this) {
+				this.resolvedMigrations = null;
+				this.resolvedCallbacks = null;
+			}
+		}
+	}
+
+	/**
 	 * @return Information about the connection when migrations are applied, validated and so on.
 	 * @see MigrationContext#getConnectionDetails()
 	 * @since 1.4.0
@@ -434,6 +449,29 @@ public final class Migrations {
 		}, null, null);
 	}
 
+	public RepairmentResult repair() {
+
+		return executeWithinLock(() -> {
+			List<Migration> migrations = this.getMigrations();
+			if (migrations.isEmpty()) {
+				throw new MigrationsException("Zero migrations have been discovered and repairing the database would lead to the deletion of all migrations recorded; if you want that, use the clean operation");
+			}
+			var nonVerifyingChainBuilder = new ChainBuilder(false);
+			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
+			if (remoteChain.getElements().isEmpty()) {
+				return new RepairmentResult(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+			}
+
+			var validationResult = validate0();
+			if (validationResult.getOutcome().equals(Outcome.INCOMPLETE_DATABASE)) {
+				return new RepairmentResult(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+			}
+
+			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);
+			return null;
+		}, null, null);
+	}
+
 	/**
 	 * Validates the database against the resolved migrations. A database  is considered to be in a valid state when all
 	 * resolved migrations  have been applied (there  are no more  pending migrations). If  a database is not  yet fully
@@ -448,30 +486,33 @@ public final class Migrations {
 	 */
 	public ValidationResult validate() {
 
-		return executeWithinLock(() -> {
-			List<Migration> migrations = this.getMigrations();
-			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
-			try {
-				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);
-				int numberOfAppliedMigrations = (int) migrationChain.getElements()
-					.stream().filter(m -> m.getState() == MigrationState.APPLIED)
-					.count();
-				if (migrations.size() == numberOfAppliedMigrations) {
-					return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?
-						Collections.singletonList("No migrations resolved.") :
-						Collections.emptyList());
-				} else if (migrations.size() > numberOfAppliedMigrations) {
-					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());
-				}
-				return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
-			} catch (MigrationsException e) {
-				List<String> warnings = Collections.singletonList(e.getMessage());
-				if (e.getCause() instanceof IndexOutOfBoundsException) {
-					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
-				}
-				return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
+		return executeWithinLock(this::validate0, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
+	}
+
+	private ValidationResult validate0() {
+
+		List<Migration> migrations = this.getMigrations();
+		Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
+		try {
+			MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);
+			int numberOfAppliedMigrations = (int) migrationChain.getElements()
+				.stream().filter(m -> m.getState() == MigrationState.APPLIED)
+				.count();
+			if (migrations.size() == numberOfAppliedMigrations) {
+				return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?
+					Collections.singletonList("No migrations resolved.") :
+					Collections.emptyList());
+			} else if (migrations.size() > numberOfAppliedMigrations) {
+				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());
 			}
-		}, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
+			return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
+		} catch (MigrationsException e) {
+			List<String> warnings = Collections.singletonList(e.getMessage());
+			if (e.getCause() instanceof IndexOutOfBoundsException) {
+				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
+			}
+			return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
+		}
 	}
 
 	/**

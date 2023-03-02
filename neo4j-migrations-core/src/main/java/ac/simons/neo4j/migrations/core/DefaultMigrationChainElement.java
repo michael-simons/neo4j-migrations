@@ -135,4 +135,13 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 	public Optional<Duration> getExecutionTime() {
 		return Optional.ofNullable(installationInfo).map(InstallationInfo::executionTime);
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultMigrationChainElement{" +
+			"type=" + type +
+			", checksum='" + checksum + '\'' +
+			", version='" + version + '\'' +
+			'}';
+	}
 }

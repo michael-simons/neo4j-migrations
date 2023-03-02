@@ -42,9 +42,11 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionCallback;
+import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -63,9 +65,9 @@ public final class Migrations {
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 	static final Logger STARTUP_LOGGER = Logger.getLogger(Migrations.class.getName() + ".Startup");
 
-	private static final String PROPERTY_MIGRATION_VERSION = "version";
-	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
-	private static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
+	static final String PROPERTY_MIGRATION_VERSION = "version";
+	static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+	static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
 
 	static final Constraint UNIQUE_VERSION =
 		Constraint.forNode("__Neo4jMigration")
@@ -443,7 +445,9 @@ public final class Migrations {
 						deletedVersion = MigrationVersion.parse(properties.get("source").asString());
 					}
 					var counters = result.consume().counters();
-					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null), deletedVersion, counters.nodesDeleted(), counters.relationshipsDeleted(), counters.relationshipsCreated());
+					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null),
+						counters.nodesDeleted(), counters.relationshipsDeleted(), counters.relationshipsCreated(), counters.propertiesSet(),
+						deletedVersion);
 				});
 			}
 		}, null, null);
@@ -452,23 +456,43 @@ public final class Migrations {
 	public RepairmentResult repair() {
 
 		return executeWithinLock(() -> {
+
+			var affectedDatabase = config.getOptionalSchemaDatabase().orElse(null);
+
 			List<Migration> migrations = this.getMigrations();
 			if (migrations.isEmpty()) {
 				throw new MigrationsException("Zero migrations have been discovered and repairing the database would lead to the deletion of all migrations recorded; if you want that, use the clean operation");
 			}
-			var nonVerifyingChainBuilder = new ChainBuilder(false);
-			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
-			if (remoteChain.getElements().isEmpty()) {
-				return new RepairmentResult(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
-			}
 
 			var validationResult = validate0();
-			if (validationResult.getOutcome().equals(Outcome.INCOMPLETE_DATABASE)) {
-				return new RepairmentResult(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+			if (validationResult.isValid() || validationResult.getOutcome() == Outcome.INCOMPLETE_DATABASE) {
+				return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
 			}
 
+			var nonVerifyingChainBuilder = new ChainBuilder(false);
+			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
 			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);
-			return null;
+
+			var chainTool = new ChainTool(localChain, remoteChain);
+			var nodesDeleted = 0L;
+			var relationshipsDeleted = 0L;
+			var relationshipsCreated = 0L;
+			var propertiesSet = 0L;
+			try (
+				var session = context.getSchemaSession();
+				var tx = session.beginTransaction(TransactionConfig.builder().build())
+			) {
+				for (Query query : chainTool.repair(config, context)) {
+					var counters = tx.run(query).consume().counters();
+					nodesDeleted += counters.nodesDeleted();
+					relationshipsDeleted += counters.relationshipsDeleted();
+					relationshipsCreated += counters.relationshipsCreated();
+					propertiesSet += counters.propertiesSet();
+				}
+				tx.commit();
+			}
+
+			return new RepairmentResult(affectedDatabase, nodesDeleted, relationshipsDeleted, relationshipsCreated, propertiesSet, RepairmentResult.Outcome.REPAIRED);
 		}, null, null);
 	}
 

@@ -858,8 +858,19 @@ class MigrationsIT extends TestBase {
 				List.of("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
 
 			migrations.clearCache();
-			migrations.apply();
-			migrations.repair();
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(migrations::apply);
+
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.REPAIRED);
+			assertThat(result.getNodesDeleted()).isZero();
+			assertThat(result.getRelationshipsCreated()).isZero();
+			assertThat(result.getRelationshipsDeleted()).isZero();
+			assertThat(result.getPropertiesSet()).isOne();
+
+			assertThatNoException()
+				.isThrownBy(migrations::apply);
+
 		}
 
 		@Test

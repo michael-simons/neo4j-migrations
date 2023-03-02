@@ -24,7 +24,7 @@ package ac.simons.neo4j.migrations.core;
  * @soundtrack Deichkind - Neues vom Dauerzustand
  * @since TBA
  */
-public final class RepairmentResult {
+public final class RepairmentResult extends AbstractRepairmentResult {
 
 	/**
 	 * The outcome of an attempt of repairing a {@link MigrationChain migration chain}.
@@ -35,12 +35,18 @@ public final class RepairmentResult {
 		 * This outcome indicates that no repairment was necessary. This is the case for example when no migrations have
 		 * been applied yet to the target database.
 		 */
-		NO_REPAIRMENT_NECESSARY;
+		NO_REPAIRMENT_NECESSARY,
+
+		/**
+		 * This outcome indicates the database has been repaired and changes have been made. Check the additional data.
+		 */
+		REPAIRED
 	}
 
 	private final Outcome outcome;
 
-	RepairmentResult(Outcome outcome) {
+	RepairmentResult(String affectedDatabase, long nodesDeleted, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
+		super(affectedDatabase, nodesDeleted, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.outcome = outcome;
 	}
 
@@ -50,4 +56,10 @@ public final class RepairmentResult {
 	public Outcome getOutcome() {
 		return outcome;
 	}
+
+	@Override
+	public String prettyPrint() {
+		throw new UnsupportedOperationException("TODO");
+	}
+
 }

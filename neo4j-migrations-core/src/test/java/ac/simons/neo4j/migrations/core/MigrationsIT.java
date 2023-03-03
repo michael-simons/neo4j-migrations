@@ -738,9 +738,16 @@ class MigrationsIT extends TestBase {
 	}
 
 	private static List<File> createMigrationFiles(int n, int offset, File dir) throws IOException {
+		return createMigrationFiles(n, offset, dir, false);
+	}
+
+	private static List<File> createMigrationFiles(int n, int offset, File dir, boolean leadingZeros) throws IOException {
 		List<File> files = new ArrayList<>();
+
+		String format = leadingZeros ? "V%02d__Some.cypher" : "V%d__Some.cypher";
+
 		for (int i = 1; i <= n; ++i) {
-			File aFile = new File(dir, "V" + (i + offset) + "__Some.cypher");
+			File aFile = new File(dir, String.format(format, i + offset));
 			aFile.createNewFile();
 			files.add(aFile);
 			Files.write(aFile.toPath(), Collections.singletonList("MATCH (n) RETURN n"));
@@ -810,6 +817,60 @@ class MigrationsIT extends TestBase {
 	class Repairing {
 
 		@Test
+		void shouldCreateAProperChain(@TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir);
+
+			List<File> files = new ArrayList<>();
+			files.addAll(createMigrationFiles(1, 9,  dir, true));
+			files.addAll(createMigrationFiles(1, 19, dir, true));
+			files.addAll(createMigrationFiles(1, 29, dir, true));
+			files.addAll(createMigrationFiles(1, 39, dir, true));
+
+			var migrations = new Migrations(locationAndConfig.config, driver);
+
+			migrations.apply();
+
+			var chain = migrations.info();
+			assertThat(chain.getElements())
+				.map(MigrationChain.Element::getVersion)
+				.containsExactly("10", "20", "30", "40");
+			assertThat(chain.getElements())
+				.map(MigrationChain.Element::getChecksum)
+				.map(Optional::get)
+				.containsExactly("2648307716", "2648307716", "2648307716", "2648307716");
+
+			Files.write(files.get(0).toPath(),
+				List.of("MATCH (n) RETURN n;", "CREATE (m:SomeNode) RETURN m;"));
+			assertThat(files.get(1).delete()).isTrue();
+			assertThat(files.get(3).delete()).isTrue();
+
+			files.addAll(createMigrationFiles(1, 4, dir, true));
+			files.addAll(createMigrationFiles(1, 24, dir, true));
+			var new40 = createMigrationFiles(1, 39, dir, true);
+			files.addAll(new40);
+			Files.write(new40.get(0).toPath(), List.of("MATCH (n) RETURN n;", "CREATE (m:Another) RETURN m;"));
+			files.addAll(createMigrationFiles(1, 49, dir, true));
+			migrations.clearCache();
+
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(migrations::apply);
+			migrations.repair();
+
+			chain = migrations.info();
+			assertThat(chain.getElements())
+				.filteredOn(e -> e.getState() == MigrationState.APPLIED)
+				.map(MigrationChain.Element::getVersion)
+				.containsExactly("05", "10", "25", "30", "40");
+
+			assertThat(chain.getElements())
+				.filteredOn(e -> e.getState() == MigrationState.APPLIED)
+				.map(MigrationChain.Element::getChecksum)
+				.map(Optional::get)
+				.containsExactly("2648307716", "1179729683", "2648307716", "2648307716", "1543575674");
+		}
+
+		@Test
 		void repairingWithoutLocalMigrationsMustFail(@TempDir File dir) throws IOException {
 
 			var locationAndConfig = LocationAndConfig.of(dir);
@@ -827,6 +888,8 @@ class MigrationsIT extends TestBase {
 			var migrations = new Migrations(locationAndConfig.config(), driver);
 			var result = migrations.repair();
 			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+			assertThat(migrations.validate().isValid()).isFalse();
+			assertThat(migrations.validate().getOutcome()).isEqualTo(ValidationResult.Outcome.INCOMPLETE_DATABASE);
 		}
 
 		@Test
@@ -871,6 +934,7 @@ class MigrationsIT extends TestBase {
 
 			assertThatNoException()
 				.isThrownBy(migrations::apply);
+			assertThat(migrations.validate().isValid()).isTrue();
 		}
 
 		@SuppressWarnings("JUnitMalformedDeclaration") // Not true
@@ -910,30 +974,41 @@ class MigrationsIT extends TestBase {
 				.containsExactlyElementsOf(expectedVersions);
 			assertThatNoException()
 				.isThrownBy(migrations::apply);
+			assertThat(migrations.validate().isValid()).isTrue();
 		}
 
 		@Test
-		void shouldFailWhenMigrationsAreInserted(@TempDir File dir) throws IOException {
+		void shouldInsertElements(@TempDir File dir) throws IOException {
 
-			/*
 			var locationAndConfig = LocationAndConfig.of(dir);
 			var migrations = new Migrations(locationAndConfig.config, driver);
 
-			var files = createMigrationFiles(2, 10, dir);
+			createMigrationFiles(4, 10, dir);
 
 			migrations.apply();
-			createMigrationFiles(1, 0, dir);
-			migrations.clearCache();
 
-			var validationResult = migrations.validate();
-			assertThat(validationResult.isValid()).isFalse();
-			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.DIFFERENT_CONTENT);
+			createMigrationFiles(1, 0, dir);
+
+			migrations.clearCache();
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(migrations::apply);
 
 			var result = migrations.repair();
-			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.REPAIRED);
+			assertThat(result.getNodesDeleted()).isZero();
+			assertThat(result.getNodesCreated()).isOne();
+			assertThat(result.getRelationshipsDeleted()).isOne();
+			assertThat(result.getRelationshipsCreated()).isEqualTo(2L);
+			assertThat(result.getPropertiesSet()).isEqualTo(15L);
 
-			 */
-			Assertions.fail("oops");
+			assertThatNoException()
+				.isThrownBy(migrations::apply);
+			assertThat(migrations.validate().isValid()).isTrue();
+
+			var newChain = new Migrations(locationAndConfig.config, driver).info();
+			assertThat(newChain.getElements())
+				.map(MigrationChain.Element::getVersion)
+				.containsExactly("1", "11", "12", "13", "14");
 		}
 
 		record LocationAndConfig(String location, MigrationsConfig config, List<File> generatedFiles) {
@@ -950,5 +1025,4 @@ class MigrationsIT extends TestBase {
 			}
 		}
 	}
-
 }

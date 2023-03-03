@@ -16,23 +16,28 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
 
+import ac.simons.neo4j.migrations.core.MigrationVersion.VersionComparator;
+
 /**
  * This class is responsible for create a diff of two {@link MigrationChain migration chain instances}. The diff is then
  * used to make one chain identical to the other.
- * <p>
- * The chains are not labeled left and right but source and  target on purpose: The ultimate goal is to make target look
- * like source, so the outcome of the diff gives also an information if the desired state is possible to achieve.
  *
  * @author Michael J. Simons
  * @since TBA
@@ -50,37 +55,50 @@ final class ChainTool {
 		}
 	}
 
-	private final MigrationChain source;
+	/**
+	 * The actual locally underlying migrations, not only the chain.
+	 */
+	private final Map<MigrationVersion, Migration> discoveredMigrations;
 
-	private final Map<String, MigrationChain.Element> sourceElements;
+	private final MigrationChain newChain;
 
-	private final MigrationChain target;
+	private final Map<MigrationVersion, MigrationChain.Element> newElements;
 
-	private final Map<String, MigrationChain.Element> targetElements;
+	private final Map<MigrationVersion, MigrationChain.Element> currentElements;
 
-	ChainTool(MigrationChain source, MigrationChain target) {
-		this.source = source;
-		this.target = target;
+	ChainTool(Collection<Migration> discoveredMigrations, MigrationChain newChain, MigrationChain currentChain) {
+		this.newChain = newChain;
+		this.discoveredMigrations = discoveredMigrations
+			.stream().collect(Collectors.toMap(Migration::getVersion, Function.identity()));
 
-		this.sourceElements = source.getElements().stream()
-			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
-		this.targetElements = target.getElements().stream()
-			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
+		Collector<MigrationChain.Element, ?, TreeMap<MigrationVersion, MigrationChain.Element>> collector = Collectors
+			.toMap(
+				e -> MigrationVersion.withValue(e.getVersion()),
+				Function.identity(),
+				throwingMerger(MigrationChain.Element.class),
+				() -> new TreeMap<>(new VersionComparator()));
+
+		this.newElements = newChain.getElements().stream().collect(collector);
+		this.currentElements = currentChain.getElements().stream().collect(collector);
 	}
 
 	List<Query> repair(MigrationsConfig config, MigrationContext context) {
 
-		var pairs = findPairs();
+		if (currentElements.isEmpty()) {
+			return List.of();
+		}
+
 		var migrationTarget = config.getMigrationTargetIn(context).orElse(null);
 
-		List<Query> result = new ArrayList<>(fixChecksums(migrationTarget, pairs));
-		result.addAll(deleteMigration(migrationTarget));
+		List<Query> result = new ArrayList<>(fixChecksums(migrationTarget));
+		result.addAll(deleteLocallyMissingMigrations(migrationTarget));
+		result.addAll(insertRemoteMissingMigrations(migrationTarget, config.getOptionalInstalledBy()));
 		return result;
 	}
 
-	static Query generateMigrationDeletionQuery(String migrationTarget, String version) {
+	static Query generateMigrationDeletionQuery(String migrationTarget, MigrationVersion version) {
 
-		String cypher = """
+		var cypher = """
 			MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
 			OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
 			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
@@ -96,38 +114,38 @@ final class ChainTool {
 
 		return new Query(cypher,
 			Values.parameters(
-				Migrations.PROPERTY_MIGRATION_VERSION, version,
+				Migrations.PROPERTY_MIGRATION_VERSION, version.getValue(),
 				Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget
 			)
 		);
 	}
 
-	private List<Query> fixChecksums(String migrationTarget, Map<String, Pair> pairs) {
+	private List<Query> fixChecksums(String migrationTarget) {
 
-		String cypher = """        
-				MATCH (m:__Neo4jMigration {version: $version, checksum: $oldChecksum})
-				WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
-				SET m.checksum = $newChecksum
+		var cypher = """        
+			MATCH (m:__Neo4jMigration {version: $version, checksum: $oldChecksum})
+			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
+			SET m.checksum = $newChecksum
 			""";
 
 		Predicate<Pair> withChecksumFilter = Pair::checksumDiffers;
 		withChecksumFilter = withChecksumFilter.and(Pair::hasChecksums);
 
-		return pairs.values().stream()
+		return findPairs().values().stream()
 			.filter(withChecksumFilter)
 			.map(p -> new Query(cypher,
 					Values.parameters(
+						Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
 						Migrations.PROPERTY_MIGRATION_VERSION, p.e1.getVersion(),
 						"oldChecksum", p.e2.getChecksum().orElseThrow(),
-						"newChecksum", p.e1.getChecksum().orElseThrow(),
-						Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget
+						"newChecksum", p.e1.getChecksum().orElseThrow()
 					)
 				)
 			)
 			.toList();
 	}
 
-	private List<Query> deleteMigration(String migrationTarget) {
+	private List<Query> deleteLocallyMissingMigrations(String migrationTarget) {
 
 		return findMissingSourceElements()
 			.stream()
@@ -135,24 +153,91 @@ final class ChainTool {
 			.toList();
 	}
 
-	Map<String, Pair> findPairs() {
+	private List<Query> insertRemoteMissingMigrations(
+		String migrationTarget, Optional<String> installedBy
+	) {
 
-		var sharedKeys = new HashSet<>(sourceElements.keySet());
-		sharedKeys.retainAll(targetElements.keySet());
+		MigrationVersion previousVersion = MigrationVersion.baseline();
+
+		var cypher = """
+			MATCH (pm:__Neo4jMigration {version: $previousVersion}) - [pr:MIGRATED_TO] -> (nm:__Neo4jMigration)
+			WHERE coalesce(pm.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
+			AND coalesce(pm.migrationTarget, '<default>') = coalesce(nm.migrationTarget, '<default>')
+			CREATE (im:__Neo4jMigration {version: $version})
+			CREATE (pm)-[nl:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: 0} ), by: $installedBy, connectedAs: $neo4jUser}]-> (im)
+			CREATE (im)-[nr:MIGRATED_TO]->(nm)
+			SET im = $insertedMigration,  nr = properties(pr)
+			DELETE pr
+			RETURN *
+			""";
+
+		var lastKnownVersion = currentElements.keySet().stream().skip(currentElements.size() - 1).findFirst().orElseThrow();
+		var comparator = new VersionComparator();
+
+		var allVersions = new TreeSet<>(comparator);
+		allVersions.add(MigrationVersion.baseline());
+		allVersions.addAll(newElements.keySet());
+		allVersions.addAll(currentElements.keySet());
+		allVersions.removeAll(findMissingSourceElements());
+
+		var sortedVersions = new ArrayList<>(allVersions);
+
+		var result = new ArrayList<Query>();
+
+		for (Map.Entry<MigrationVersion, MigrationChain.Element> entry : newElements.entrySet()) {
+
+			if (comparator.compare(entry.getKey(), lastKnownVersion) >= 0) {
+				break;
+			}
+
+			if (currentElements.containsKey(entry.getKey())) {
+				continue;
+			}
+
+			var migration = entry.getValue();
+			var properties = new HashMap<String, Object>();
+
+			properties.put(Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue());
+			migration.getOptionalDescription().ifPresent(v -> properties.put(Migrations.PROPERTY_MIGRATION_DESCRIPTION, v));
+			properties.put("type", migration.getType().name());
+			properties.put("repeatable", Optional.ofNullable(discoveredMigrations.get(entry.getKey())).map(Migration::isRepeatable).orElse(false));
+			properties.put("source", migration.getSource());
+			migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
+
+			result.add(new Query(cypher, Values.parameters(
+				Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
+				Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue(),
+				"previousVersion", sortedVersions.get(sortedVersions.indexOf(entry.getKey()) - 1).getValue(),
+				"installedBy", installedBy.map(Values::value).orElse(Values.NULL),
+				"neo4jUser", newChain.getUsername(),
+				"insertedMigration", properties
+			)));
+		}
+		return result;
+	}
+
+	private Map<MigrationVersion, Pair> findPairs() {
+
+		var sharedKeys = new HashSet<>(newElements.keySet());
+		sharedKeys.retainAll(currentElements.keySet());
 		return sharedKeys.stream()
 			.collect(Collectors.toMap(
 				Function.identity(),
-				k -> new Pair(sourceElements.get(k), targetElements.get(k)),
-				(o, n) -> {
-					throw new IllegalStateException("Must not contain duplicate keys");
-				},
-				TreeMap::new
+				k -> new Pair(newElements.get(k), currentElements.get(k)),
+				throwingMerger(Pair.class),
+				() -> new TreeMap<>(new VersionComparator())
 			));
 	}
 
-	List<String> findMissingSourceElements() {
+	private List<MigrationVersion> findMissingSourceElements() {
 
-		return targetElements.keySet().stream().filter(element -> !sourceElements.containsKey(element))
+		return currentElements.keySet().stream().filter(element -> !newElements.containsKey(element))
 			.toList();
+	}
+
+	private static <T> BinaryOperator<T> throwingMerger(Class<?> type) {
+		return (k, v) -> {
+			throw new IllegalStateException("Must not contain duplicate keys");
+		};
 	}
 }

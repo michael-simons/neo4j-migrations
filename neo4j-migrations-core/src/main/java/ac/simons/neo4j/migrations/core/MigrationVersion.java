@@ -158,8 +158,12 @@ public final class MigrationVersion {
 
 		@Override
 		public int compare(MigrationVersion o1, MigrationVersion o2) {
-			if (o1 == MigrationVersion.baseline()) {
-				return -1;
+			if (o1 == MigrationVersion.baseline() && o2 == MigrationVersion.baseline()) {
+				return 0;
+			}
+
+			if (o1 == MigrationVersion.baseline() || o2 == MigrationVersion.baseline()) {
+				return 1;
 			}
 
 			return o1.getValue().compareTo(o2.getValue());

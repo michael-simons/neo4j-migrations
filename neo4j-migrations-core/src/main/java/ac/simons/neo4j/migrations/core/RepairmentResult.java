@@ -45,8 +45,8 @@ public final class RepairmentResult extends AbstractRepairmentResult {
 
 	private final Outcome outcome;
 
-	RepairmentResult(String affectedDatabase, long nodesDeleted, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
-		super(affectedDatabase, nodesDeleted, relationshipsDeleted, relationshipsCreated, propertiesSet);
+	RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
+		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.outcome = outcome;
 	}
 

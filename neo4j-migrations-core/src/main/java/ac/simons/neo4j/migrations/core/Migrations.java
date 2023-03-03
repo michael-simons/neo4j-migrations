@@ -423,7 +423,7 @@ public final class Migrations {
 		return executeWithinLock(() -> {
 			try (Session session = context.getSchemaSession()) {
 				return session.executeWrite(tx -> {
-					var result = tx.run(ChainTool.generateMigrationDeletionQuery(config.getMigrationTargetIn(context).orElse(null), version.getValue()));
+					var result = tx.run(ChainTool.generateMigrationDeletionQuery(config.getMigrationTargetIn(context).orElse(null), version));
 					MigrationVersion deletedVersion = null;
 					if (result.hasNext()) {
 						var properties = result.single().get("p");
@@ -431,7 +431,8 @@ public final class Migrations {
 					}
 					var counters = result.consume().counters();
 					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null),
-						counters.nodesDeleted(), counters.relationshipsDeleted(), counters.relationshipsCreated(), counters.propertiesSet(),
+						counters.nodesDeleted(), counters.nodesCreated(),
+						counters.relationshipsDeleted(), counters.relationshipsCreated(), counters.propertiesSet(),
 						deletedVersion);
 				});
 			}
@@ -477,15 +478,16 @@ public final class Migrations {
 
 			var validationResult = validate0();
 			if (validationResult.isValid() || validationResult.getOutcome() == Outcome.INCOMPLETE_DATABASE) {
-				return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+				return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
 			}
 
 			var nonVerifyingChainBuilder = new ChainBuilder(false);
 			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
 			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);
 
-			var chainTool = new ChainTool(localChain, remoteChain);
+			var chainTool = new ChainTool(migrations, localChain, remoteChain);
 			var nodesDeleted = 0L;
+			var nodesCreated = 0L;
 			var relationshipsDeleted = 0L;
 			var relationshipsCreated = 0L;
 			var propertiesSet = 0L;
@@ -496,6 +498,7 @@ public final class Migrations {
 				for (Query query : chainTool.repair(config, context)) {
 					var counters = tx.run(query).consume().counters();
 					nodesDeleted += counters.nodesDeleted();
+					nodesCreated += counters.nodesCreated();
 					relationshipsDeleted += counters.relationshipsDeleted();
 					relationshipsCreated += counters.relationshipsCreated();
 					propertiesSet += counters.propertiesSet();
@@ -503,7 +506,8 @@ public final class Migrations {
 				tx.commit();
 			}
 
-			return new RepairmentResult(affectedDatabase, nodesDeleted, relationshipsDeleted, relationshipsCreated, propertiesSet, RepairmentResult.Outcome.REPAIRED);
+			return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated,
+				relationshipsDeleted, relationshipsCreated, propertiesSet, RepairmentResult.Outcome.REPAIRED);
 		}, null, null);
 	}
 

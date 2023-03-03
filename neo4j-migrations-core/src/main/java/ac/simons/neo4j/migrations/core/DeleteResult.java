@@ -29,8 +29,8 @@ public final class DeleteResult extends AbstractRepairmentResult {
 
 	private final MigrationVersion version;
 
-	DeleteResult(String affectedDatabase, long nodesDeleted, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, MigrationVersion version) {
-		super(affectedDatabase, nodesDeleted, relationshipsDeleted, relationshipsCreated, propertiesSet);
+	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, MigrationVersion version) {
+		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.version = version;
 	}
 

@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,12 +40,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.platform.commons.util.ReflectionUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
 
+import ac.simons.neo4j.migrations.core.ChainTool.Pair;
 import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 
 /**
@@ -57,72 +62,90 @@ class ChainToolTest {
 	private static final Element A_2 = appliedMigration("02", "y");
 	private static final Element A_3 = appliedMigration("03", "x");
 	private static final ConnectionDetails DEFAULT_CONNECTION_DETAILS = new DefaultConnectionDetails("n/a", "n/a", "n/a", "n/a", "n/a", "n/a");
+	public static final Collector<Element, ?, Map<MigrationVersion, Element>> ELEMENT_COLLECTOR = Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity());
 
+	@SuppressWarnings("unchecked")
 	@Nested
 	class Comparisons {
+
+		private final Method findMissingSourceElements;
+
+		Comparisons() {
+			findMissingSourceElements = ReflectionUtils.getRequiredMethod(ChainTool.class, "findMissingSourceElements");
+			findMissingSourceElements.setAccessible(true);
+		}
+
 		static Stream<Arguments> shouldFindMissingInTarget() {
 			return Stream.of(P_1, P_2, P_3).map(Arguments::of);
 		}
 
 		@ParameterizedTest
 		@MethodSource
-		void shouldFindMissingInTarget(Element toRemove) {
+		void shouldFindMissingInTarget(Element toRemove) throws InvocationTargetException, IllegalAccessException {
 
 			var sources = new ArrayList<>(List.of(P_1, P_2, P_3));
 			sources.remove(toRemove);
 
-			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, sources.stream().collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
-			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, sources.stream().collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var missing = new ChainTool(source, target).findMissingSourceElements();
+			var missing = (List<MigrationVersion>) findMissingSourceElements.invoke(new ChainTool(List.of(), source, target));
 			assertThat(missing)
-				.containsExactly(toRemove.getVersion());
+				.containsExactly(MigrationVersion.withValue(toRemove.getVersion()));
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Nested
 	class ShouldBuildCorrectPairs {
 
+		private final Method findPairs;
+
+		ShouldBuildCorrectPairs() {
+			findPairs = ReflectionUtils.getRequiredMethod(ChainTool.class, "findPairs");
+			findPairs.setAccessible(true);
+		}
+
 		@Test
-		void fromSameChains() {
+		void fromSameChains() throws InvocationTargetException, IllegalAccessException {
 
-			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
-			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var pairs = new ChainTool(source, target).findPairs();
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
 			assertThat(pairs)
 				.hasSize(3)
 				.containsExactly(
-					Map.entry("01", new ChainTool.Pair(P_1, A_1)),
-					Map.entry("02", new ChainTool.Pair(P_2, A_2)),
-					Map.entry("03", new ChainTool.Pair(P_3, A_3))
+					Map.entry(MigrationVersion.withValue("01"), new Pair(P_1, A_1)),
+					Map.entry(MigrationVersion.withValue("02"), new Pair(P_2, A_2)),
+					Map.entry(MigrationVersion.withValue("03"), new Pair(P_3, A_3))
 				);
 		}
 
 		@Test
-		void fromDifferentSource() {
+		void fromDifferentSource() throws InvocationTargetException, IllegalAccessException {
 
-			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
-			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var pairs = new ChainTool(source, target).findPairs();
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
 			assertThat(pairs)
 				.hasSize(2)
 				.containsExactly(
-					Map.entry("01", new ChainTool.Pair(P_1, A_1)),
-					Map.entry("03", new ChainTool.Pair(P_3, A_3))
+					Map.entry(MigrationVersion.withValue("01"), new Pair(P_1, A_1)),
+					Map.entry(MigrationVersion.withValue("03"), new Pair(P_3, A_3))
 				);
 		}
 
 		@Test
-		void fromDifferentTarget() {
+		void fromDifferentTarget() throws InvocationTargetException, IllegalAccessException {
 
-			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
-			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1).collect(ELEMENT_COLLECTOR));
 
-			var pairs = new ChainTool(source, target).findPairs();
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
 			assertThat(pairs)
-				.containsExactly(Map.entry("01", new ChainTool.Pair(P_1, A_1)));
+				.containsExactly(Map.entry(MigrationVersion.withValue("01"), new Pair(P_1, A_1)));
 		}
 	}
 
@@ -133,7 +156,7 @@ class ChainToolTest {
 		void shouldDetectSameChecksumsPresent() {
 			var e1 = pendingMigration("32", "ABC");
 			var e2 = appliedMigration("32", "ABC");
-			var pair = new ChainTool.Pair(e1, e2);
+			var pair = new Pair(e1, e2);
 			assertThat(pair.checksumDiffers()).isFalse();
 		}
 
@@ -141,7 +164,7 @@ class ChainToolTest {
 		void shouldDetectSameChecksumsAbsent() {
 			var e1 = pendingMigration("32", null);
 			var e2 = appliedMigration("32", null);
-			var pair = new ChainTool.Pair(e1, e2);
+			var pair = new Pair(e1, e2);
 			assertThat(pair.checksumDiffers()).isFalse();
 		}
 
@@ -154,7 +177,7 @@ class ChainToolTest {
 		void shouldDetectDifferentChecksums(String source, String target) {
 			var e1 = pendingMigration("32", source);
 			var e2 = appliedMigration("32", target);
-			var pair = new ChainTool.Pair(e1, e2);
+			var pair = new Pair(e1, e2);
 			assertThat(pair.checksumDiffers()).isTrue();
 		}
 	}
@@ -164,10 +187,10 @@ class ChainToolTest {
 
 		@Test
 		void shouldGenerateChecksumFixingQueries() {
-			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
-			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(source, target);
+			var chainTool = new ChainTool(List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 			assertThat(queries).hasSize(2)
@@ -177,7 +200,107 @@ class ChainToolTest {
 					assertThat(q.parameters().get("oldChecksum").asString()).isEqualTo("E_1vOld");
 				}, Index.atIndex(0))
 			;
+		}
+	}
 
+	@Nested
+	class Missing {
+
+		@Test
+		void shouldGenerateDeleteQueries() {
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_2).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(appliedMigration("02", "x"), A_3).collect(ELEMENT_COLLECTOR));
+
+			var chainTool = new ChainTool(List.of(), source, target);
+			var config = MigrationsConfig.defaultConfig();
+			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			assertThat(queries).hasSize(1)
+				.first()
+				.satisfies(q -> {
+					assertThat(q.parameters().get("version").asString()).isEqualTo("03");
+				});
+		}
+	}
+
+	@Nested
+	class Additionals {
+
+		@Test
+		void shouldInsertAtTheBeginning() {
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(
+				P_1,
+				pendingMigration("01.1", "a"),
+				P_2).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(
+				appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow())
+			).collect(ELEMENT_COLLECTOR));
+
+			var chainTool = new ChainTool(List.of(), source, target);
+			var config = MigrationsConfig.defaultConfig();
+			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+
+			assertThat(queries)
+				.hasSize(2)
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("01"), Index.atIndex(0))
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("01.1"), Index.atIndex(1))
+			;
+		}
+
+		@Test
+		void shouldInsertInTheMiddle() {
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, pendingMigration("02.1", "c"), P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(
+					appliedMigration(P_1.getVersion(), P_1.getChecksum().orElseThrow()),
+					appliedMigration(P_3.getVersion(), P_3.getChecksum().orElseThrow()))
+				.collect(ELEMENT_COLLECTOR));
+
+			var chainTool = new ChainTool(List.of(), source, target);
+			var config = MigrationsConfig.defaultConfig();
+			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+
+			assertThat(queries)
+				.hasSize(2)
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("02"), Index.atIndex(0))
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("02.1"), Index.atIndex(1))
+			;
+		}
+
+		@Test
+		void shouldNotAppendV1() {
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(
+					appliedMigration(P_1.getVersion(), P_1.getChecksum().orElseThrow()),
+					appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow()))
+				.collect(ELEMENT_COLLECTOR));
+
+			var chainTool = new ChainTool(List.of(), source, target);
+			var config = MigrationsConfig.defaultConfig();
+			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+
+			assertThat(queries).isEmpty();
+		}
+
+		@Test
+		void shouldNotAppendV2() {
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, pendingMigration("01.1", "c"), P_2, P_3).collect(ELEMENT_COLLECTOR));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(
+					appliedMigration(P_1.getVersion(), P_1.getChecksum().orElseThrow()),
+					appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow()))
+				.collect(ELEMENT_COLLECTOR));
+
+			var chainTool = new ChainTool(List.of(), source, target);
+			var config = MigrationsConfig.defaultConfig();
+			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+
+			assertThat(queries)
+				.hasSize(1).first()
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("01.1"))
+			;
 		}
 	}
 

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.cli;
+package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.RepairmentResult;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import java.util.Collections;
-
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -29,19 +29,22 @@ import static org.mockito.Mockito.when;
 /**
  * @author Gerrit Meier
  */
-class RepairCommandTest {
+public class RepairMojoTest {
 
 	@Test
-	void shouldInvokeRepair() {
+	public void shouldInvokeRepair() throws Exception {
 
 		Migrations migrations = mock(Migrations.class);
 		RepairmentResult result = mock(RepairmentResult.class);
-		when(result.prettyPrint()).thenReturn("success");
-		when(result.getWarnings()).thenReturn(Collections.singletonList("a warning"));
+		when(result.prettyPrint()).thenReturn("repaired things");
 		when(migrations.repair()).thenReturn(result);
 
-		RepairCommand cmd = new RepairCommand();
-		cmd.withMigrations(migrations);
+		String log = tapSystemErr(() -> {
+			RepairMojo mojo = new RepairMojo();
+			mojo.withMigrations(migrations);
+		});
+
+		assertThat(log).contains("repaired things");
 
 		verify(migrations).repair();
 		verify(result).prettyPrint();
@@ -49,4 +52,5 @@ class RepairCommandTest {
 
 		verifyNoMoreInteractions(migrations, result);
 	}
+
 }

@@ -26,6 +26,7 @@ import picocli.CommandLine.ParentCommand;
  * @author Gerrit Meier
  * @since TBA
  */
+// TODO needs a proper description
 @Command(name = "repair", description = "Repairs the database....text needed")
 final class RepairCommand extends ConnectedCommand {
 

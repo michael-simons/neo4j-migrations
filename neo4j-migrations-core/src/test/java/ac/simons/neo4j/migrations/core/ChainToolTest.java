@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -89,7 +90,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, sources.stream().collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var missing = (List<MigrationVersion>) findMissingSourceElements.invoke(new ChainTool(List.of(), source, target));
+			var missing = (Set<MigrationVersion>) findMissingSourceElements.invoke(new ChainTool(List.of(), source, target));
 			assertThat(missing)
 				.containsExactly(MigrationVersion.withValue(toRemove.getVersion()));
 		}

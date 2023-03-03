@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BinaryOperator;
@@ -153,9 +154,7 @@ final class ChainTool {
 			.toList();
 	}
 
-	private List<Query> insertRemoteMissingMigrations(
-		String migrationTarget, Optional<String> installedBy
-	) {
+	private List<Query> insertRemoteMissingMigrations(String migrationTarget, Optional<String> installedBy) {
 
 		MigrationVersion previousVersion = MigrationVersion.baseline();
 
@@ -229,10 +228,10 @@ final class ChainTool {
 			));
 	}
 
-	private List<MigrationVersion> findMissingSourceElements() {
+	private Set<MigrationVersion> findMissingSourceElements() {
 
 		return currentElements.keySet().stream().filter(element -> !newElements.containsKey(element))
-			.toList();
+			.collect(Collectors.toSet());
 	}
 
 	private static <T> BinaryOperator<T> throwingMerger(Class<?> type) {

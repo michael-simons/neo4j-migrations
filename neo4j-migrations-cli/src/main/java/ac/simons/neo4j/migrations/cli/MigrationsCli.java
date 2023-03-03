@@ -69,7 +69,7 @@ import org.neo4j.driver.Logging;
 	name = "neo4j-migrations",
 	mixinStandardHelpOptions = true,
 	description = "Migrates Neo4j databases.",
-	subcommands = {CleanCommand.class, DeleteCommand.class, GenerateCompletion.class, HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateBTreeIndexesCommand.class, MigrateCommand.class, RunCommand.class, ShowCatalogCommand.class, ValidateCommand.class},
+	subcommands = {CleanCommand.class, DeleteCommand.class, GenerateCompletion.class, HelpCommand.class, InfoCommand.class, InitCommand.class, MigrateBTreeIndexesCommand.class, MigrateCommand.class, RunCommand.class, ShowCatalogCommand.class, ValidateCommand.class, RepairCommand.class},
 	versionProvider = ManifestVersionProvider.class,
 	defaultValueProvider = CommonEnvVarDefaultProvider.class
 )

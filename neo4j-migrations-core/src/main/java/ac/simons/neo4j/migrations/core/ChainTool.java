@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +39,6 @@ import org.neo4j.driver.Values;
  */
 final class ChainTool {
 
-	private final MigrationChain source;
-
-	private final MigrationChain target;
-
-
 	record Pair(MigrationChain.Element e1, MigrationChain.Element e2) {
 
 		boolean checksumDiffers() {
@@ -54,23 +50,61 @@ final class ChainTool {
 		}
 	}
 
+	private final MigrationChain source;
+
+	private final Map<String, MigrationChain.Element> sourceElements;
+
+	private final MigrationChain target;
+
+	private final Map<String, MigrationChain.Element> targetElements;
+
 	ChainTool(MigrationChain source, MigrationChain target) {
 		this.source = source;
 		this.target = target;
+
+		this.sourceElements = source.getElements().stream()
+			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
+		this.targetElements = target.getElements().stream()
+			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
 	}
 
 	List<Query> repair(MigrationsConfig config, MigrationContext context) {
-		var pairs = findPairs(source, target);
+
+		var pairs = findPairs();
 		var migrationTarget = config.getMigrationTargetIn(context).orElse(null);
-		if (pairs.size() == source.length() && source.length() == target.length()) {
-			return fixChecksums(migrationTarget, pairs);
-		}
-		return List.of();
+
+		List<Query> result = new ArrayList<>(fixChecksums(migrationTarget, pairs));
+		result.addAll(deleteMigration(migrationTarget));
+		return result;
+	}
+
+	static Query generateMigrationDeletionQuery(String migrationTarget, String version) {
+
+		String cypher = """
+			MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
+			OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
+			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
+			WITH p, l, m, r, n
+			FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
+			  CREATE (p)-[nl:MIGRATED_TO]->(n)
+			  SET nl = properties(l)
+			)
+			WITH l, m, r, properties(m) as p
+			DELETE l, m, r
+			RETURN p
+			""";
+
+		return new Query(cypher,
+			Values.parameters(
+				Migrations.PROPERTY_MIGRATION_VERSION, version,
+				Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget
+			)
+		);
 	}
 
 	private List<Query> fixChecksums(String migrationTarget, Map<String, Pair> pairs) {
 
-		String query = """        
+		String cypher = """        
 				MATCH (m:__Neo4jMigration {version: $version, checksum: $oldChecksum})
 				WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
 				SET m.checksum = $newChecksum
@@ -81,7 +115,7 @@ final class ChainTool {
 
 		return pairs.values().stream()
 			.filter(withChecksumFilter)
-			.map(p -> new Query(query,
+			.map(p -> new Query(cypher,
 					Values.parameters(
 						Migrations.PROPERTY_MIGRATION_VERSION, p.e1.getVersion(),
 						"oldChecksum", p.e2.getChecksum().orElseThrow(),
@@ -93,12 +127,15 @@ final class ChainTool {
 			.toList();
 	}
 
-	static Map<String, Pair> findPairs(MigrationChain source, MigrationChain target) {
+	private List<Query> deleteMigration(String migrationTarget) {
 
-		var sourceElements = source.getElements().stream()
-			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
-		var targetElements = target.getElements().stream()
-			.collect(Collectors.toMap(MigrationChain.Element::getVersion, Function.identity()));
+		return findMissingSourceElements()
+			.stream()
+			.map(version -> generateMigrationDeletionQuery(migrationTarget, version))
+			.toList();
+	}
+
+	Map<String, Pair> findPairs() {
 
 		var sharedKeys = new HashSet<>(sourceElements.keySet());
 		sharedKeys.retainAll(targetElements.keySet());
@@ -111,5 +148,11 @@ final class ChainTool {
 				},
 				TreeMap::new
 			));
+	}
+
+	List<String> findMissingSourceElements() {
+
+		return targetElements.keySet().stream().filter(element -> !sourceElements.containsKey(element))
+			.toList();
 	}
 }

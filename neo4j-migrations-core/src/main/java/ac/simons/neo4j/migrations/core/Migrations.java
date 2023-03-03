@@ -420,25 +420,10 @@ public final class Migrations {
 			throw new IllegalArgumentException(Messages.INSTANCE.get("errors.version_required"));
 		}
 
-		String query = """
-			MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
-			OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
-			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
-			WITH p, l, m, r, n
-			FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
-			  CREATE (p)-[nl:MIGRATED_TO]->(n)
-			  SET nl = properties(l)
-			)
-			WITH l, m, r, properties(m) as p
-			DELETE l, m, r
-			RETURN p
-			""";
-
 		return executeWithinLock(() -> {
 			try (Session session = context.getSchemaSession()) {
 				return session.executeWrite(tx -> {
-					var parameters = Values.parameters(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null), PROPERTY_MIGRATION_VERSION, version.getValue());
-					var result = tx.run(query, parameters);
+					var result = tx.run(ChainTool.generateMigrationDeletionQuery(config.getMigrationTargetIn(context).orElse(null), version.getValue()));
 					MigrationVersion deletedVersion = null;
 					if (result.hasNext()) {
 						var properties = result.single().get("p");
@@ -453,6 +438,32 @@ public final class Migrations {
 		}, null, null);
 	}
 
+	/**
+	 * This command repairs databases  containing Neo4j-Migration chains. Those schema databases need  to be repaired if
+	 * the locally  discovered migrations have  diverged from the  ones applied to the  database. This can  have several
+	 * reasons: Local Cypher scripts have been edited after they  have been recorded with this tool, thus their checksum
+	 * doesn't match anymore, local scripts or classes have been deleted or scripts or classes have been inserted.
+	 * <p>
+	 * The repairment will  take the locally discovered set of  migrations (both Cypher files and classes)  as truth and
+	 * proceed as follows:
+	 *
+	 * <ol>
+	 *     <li>Check all the checksums (pairwise by migration version) and fix the recorded chain if necessary</li>
+	 *     <li>Check for missing local migrations and delete the missing ones in the database</li>
+	 *     <li>Check for inserted local migrations and create new chain entries with current time stamp</li>
+	 * </ol>
+	 *
+	 * The process  does never run  migrations, as there  is no proper way  of telling any  newly found script  has been
+	 * manually run or not.
+	 * <p>
+	 * This command will  throw a {@link MigrationsException}  if no local scripts  or classes are discovered  at all as
+	 * that would lead to the deletion of all applied migrations. In case that is the desired outcome, please use {@link
+	 * #clean(boolean)} and optionally specify whether Neo4j-Migration required infrastructure (read constraints etc).
+	 *
+	 * @return The result  of the  repair process,  containing detailed information  about the  outcome and  the changed
+	 *         database content
+	 * @since TBA
+	 */
 	public RepairmentResult repair() {
 
 		return executeWithinLock(() -> {

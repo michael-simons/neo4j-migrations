@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -870,12 +871,51 @@ class MigrationsIT extends TestBase {
 
 			assertThatNoException()
 				.isThrownBy(migrations::apply);
+		}
 
+		@SuppressWarnings("JUnitMalformedDeclaration") // Not true
+		@ParameterizedTest
+		@ValueSource(ints = {0, 1, 2, 3})
+		void shouldFixMissingLocalMigrations(int position, @TempDir File dir) throws IOException {
+
+			var locationAndConfig = LocationAndConfig.of(dir, 4);
+			var migrations = new Migrations(locationAndConfig.config, driver);
+
+			migrations.apply();
+
+			assertThat(locationAndConfig.generatedFiles().get(position).delete()).isTrue();
+
+			migrations.clearCache();
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(migrations::apply);
+
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.REPAIRED);
+			assertThat(result.getNodesDeleted()).isOne();
+			if (position != 3) {
+				assertThat(result.getRelationshipsDeleted()).isEqualTo(2L);
+				assertThat(result.getRelationshipsCreated()).isOne();
+				assertThat(result.getPropertiesSet()).isEqualTo(4);
+			} else {
+				assertThat(result.getRelationshipsDeleted()).isOne();
+				assertThat(result.getRelationshipsCreated()).isZero();
+				assertThat(result.getPropertiesSet()).isZero();
+			}
+
+			var expectedVersions = IntStream.rangeClosed(1, 4)
+				.filter(i -> i != position + 1)
+				.mapToObj(Integer::toString).toList();
+			assertThat(migrations.info().getElements())
+				.map(MigrationChain.Element::getVersion)
+				.containsExactlyElementsOf(expectedVersions);
+			assertThatNoException()
+				.isThrownBy(migrations::apply);
 		}
 
 		@Test
 		void shouldFailWhenMigrationsAreInserted(@TempDir File dir) throws IOException {
 
+			/*
 			var locationAndConfig = LocationAndConfig.of(dir);
 			var migrations = new Migrations(locationAndConfig.config, driver);
 
@@ -891,6 +931,9 @@ class MigrationsIT extends TestBase {
 
 			var result = migrations.repair();
 			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+
+			 */
+			Assertions.fail("oops");
 		}
 
 		record LocationAndConfig(String location, MigrationsConfig config, List<File> generatedFiles) {

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,9 @@ import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
@@ -56,6 +59,28 @@ class ChainToolTest {
 	private static final ConnectionDetails DEFAULT_CONNECTION_DETAILS = new DefaultConnectionDetails("n/a", "n/a", "n/a", "n/a", "n/a", "n/a");
 
 	@Nested
+	class Comparisons {
+		static Stream<Arguments> shouldFindMissingInTarget() {
+			return Stream.of(P_1, P_2, P_3).map(Arguments::of);
+		}
+
+		@ParameterizedTest
+		@MethodSource
+		void shouldFindMissingInTarget(Element toRemove) {
+
+			var sources = new ArrayList<>(List.of(P_1, P_2, P_3));
+			sources.remove(toRemove);
+
+			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, sources.stream().collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
+
+			var missing = new ChainTool(source, target).findMissingSourceElements();
+			assertThat(missing)
+				.containsExactly(toRemove.getVersion());
+		}
+	}
+
+	@Nested
 	class ShouldBuildCorrectPairs {
 
 		@Test
@@ -64,7 +89,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 
-			var pairs = ChainTool.findPairs(source, target);
+			var pairs = new ChainTool(source, target).findPairs();
 			assertThat(pairs)
 				.hasSize(3)
 				.containsExactly(
@@ -80,7 +105,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 
-			var pairs = ChainTool.findPairs(source, target);
+			var pairs = new ChainTool(source, target).findPairs();
 			assertThat(pairs)
 				.hasSize(2)
 				.containsExactly(
@@ -95,7 +120,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1).collect(Collectors.toMap(e -> MigrationVersion.withValue(e.getVersion()), Function.identity())));
 
-			var pairs = ChainTool.findPairs(source, target);
+			var pairs = new ChainTool(source, target).findPairs();
 			assertThat(pairs)
 				.containsExactly(Map.entry("01", new ChainTool.Pair(P_1, A_1)));
 		}

@@ -104,7 +104,7 @@
 		<byte-buddy.version>1.14.0</byte-buddy.version>
 		<checker-qual.version>3.31.0</checker-qual.version>
 		<checkstyle.version>10.8.0</checkstyle.version>
-		<classgraph.version>4.8.154</classgraph.version>
+		<classgraph.version>4.8.156</classgraph.version>
 		<compile-testing.version>0.21.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>

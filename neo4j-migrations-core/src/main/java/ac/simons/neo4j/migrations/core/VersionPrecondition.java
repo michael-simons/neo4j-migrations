@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
 	private static final String MMP_PATTERN = "\\d+(\\.\\d+)?(\\.\\d+)?";
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is *(?<versions>\\d[\\w\\s.,]++)?.*$");
-	private static final Pattern CONDITION_RANGE_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is (lt|ge) (?<versions>" + MMP_PATTERN + ").*$");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is *+(?<versions>\\d[\\w\\s.,]++)?.*+$");
+	private static final Pattern CONDITION_RANGE_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is (lt|ge) (?<versions>" + MMP_PATTERN + ").*+$");
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile(MMP_PATTERN);
 
 	/**

@@ -18,8 +18,9 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -33,13 +34,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class DefaultMigrationContextIT {
 
 	@ParameterizedTest
-	@ValueSource(strings = { "neo4j:3.5", "neo4j:4.3", "neo4j:4.4" })
-	void shouldUseShowProceduresIfNecessary(String tag) {
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldUseShowProceduresIfNecessary(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		try (Neo4jContainer<?> neo4j = getNeo4j(tag)) {
+		try (Neo4jContainer<?> neo4j = getNeo4j(version.asTag())) {
 
 			Config config = Config.builder().withLogging(Logging.none()).build();
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),

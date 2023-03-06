@@ -42,9 +42,11 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionCallback;
+import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -63,9 +65,9 @@ public final class Migrations {
 	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());
 	static final Logger STARTUP_LOGGER = Logger.getLogger(Migrations.class.getName() + ".Startup");
 
-	private static final String PROPERTY_MIGRATION_VERSION = "version";
-	private static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
-	private static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
+	static final String PROPERTY_MIGRATION_VERSION = "version";
+	static final String PROPERTY_MIGRATION_TARGET = "migrationTarget";
+	static final String PROPERTY_MIGRATION_DESCRIPTION = "description";
 
 	static final Constraint UNIQUE_VERSION =
 		Constraint.forNode("__Neo4jMigration")
@@ -131,6 +133,21 @@ public final class Migrations {
 			}
 		}
 		return availableCallbacks;
+	}
+
+	/**
+	 * Clears the internal cache (discovered migrations and callbacks) which can be useful in certain testing scenarios.
+	 *
+	 * @since 2.2.0
+	 */
+	public void clearCache() {
+
+		if (resolvedMigrations != null || resolvedCallbacks != null) {
+			synchronized (this) {
+				this.resolvedMigrations = null;
+				this.resolvedCallbacks = null;
+			}
+		}
 	}
 
 	/**
@@ -395,7 +412,7 @@ public final class Migrations {
 	 * resolved.
 	 *
 	 * @param version the version that should be deleted, must not be null.
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public DeleteResult delete(MigrationVersion version) {
 
@@ -403,34 +420,94 @@ public final class Migrations {
 			throw new IllegalArgumentException(Messages.INSTANCE.get("errors.version_required"));
 		}
 
-		String query = """
-			MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
-			OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
-			WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
-			WITH p, l, m, r, n
-			FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
-			  CREATE (p)-[nl:MIGRATED_TO]->(n)
-			  SET nl = properties(l)
-			)
-			WITH l, m, r, properties(m) as p
-			DELETE l, m, r
-			RETURN p
-			""";
-
 		return executeWithinLock(() -> {
 			try (Session session = context.getSchemaSession()) {
 				return session.executeWrite(tx -> {
-					var parameters = Values.parameters(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null), PROPERTY_MIGRATION_VERSION, version.getValue());
-					var result = tx.run(query, parameters);
+					var result = tx.run(ChainTool.generateMigrationDeletionQuery(config.getMigrationTargetIn(context).orElse(null), version));
 					MigrationVersion deletedVersion = null;
 					if (result.hasNext()) {
 						var properties = result.single().get("p");
 						deletedVersion = MigrationVersion.parse(properties.get("source").asString());
 					}
 					var counters = result.consume().counters();
-					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null), deletedVersion, counters.nodesDeleted(), counters.relationshipsDeleted(), counters.relationshipsCreated());
+					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null),
+						counters.nodesDeleted(), counters.nodesCreated(),
+						counters.relationshipsDeleted(), counters.relationshipsCreated(), counters.propertiesSet(),
+						deletedVersion);
 				});
 			}
+		}, null, null);
+	}
+
+	/**
+	 * This command repairs databases  containing Neo4j-Migration chains. Those schema databases need  to be repaired if
+	 * the locally  discovered migrations have  diverged from the  ones applied to the  database. This can  have several
+	 * reasons: Local Cypher scripts have been edited after they  have been recorded with this tool, thus their checksum
+	 * doesn't match anymore, local scripts or classes have been deleted or scripts or classes have been inserted.
+	 * <p>
+	 * The repairment will  take the locally discovered set of  migrations (both Cypher files and classes)  as truth and
+	 * proceed as follows:
+	 *
+	 * <ol>
+	 *     <li>Check all the checksums (pairwise by migration version) and fix the recorded chain if necessary</li>
+	 *     <li>Check for missing local migrations and delete the missing ones in the database</li>
+	 *     <li>Check for inserted local migrations and create new chain entries with current time stamp</li>
+	 * </ol>
+	 *
+	 * The process  does never run  migrations, as there  is no proper way  of telling any  newly found script  has been
+	 * manually run or not.
+	 * <p>
+	 * This command will  throw a {@link MigrationsException}  if no local scripts  or classes are discovered  at all as
+	 * that would lead to the deletion of all applied migrations. In case that is the desired outcome, please use {@link
+	 * #clean(boolean)} and optionally specify whether Neo4j-Migration required infrastructure (read constraints etc).
+	 *
+	 * @return The result  of the  repair process,  containing detailed information  about the  outcome and  the changed
+	 *         database content
+	 * @since 2.2.0
+	 */
+	public RepairmentResult repair() {
+
+		return executeWithinLock(() -> {
+
+			var affectedDatabase = config.getOptionalSchemaDatabase().orElse(null);
+
+			List<Migration> migrations = this.getMigrations();
+			if (migrations.isEmpty()) {
+				throw new MigrationsException("Zero migrations have been discovered and repairing the database would lead to the deletion of all migrations recorded; if you want that, use the clean operation");
+			}
+
+			var validationResult = validate0();
+			if (validationResult.isValid() || validationResult.getOutcome() == Outcome.INCOMPLETE_DATABASE) {
+				return RepairmentResult.unnecessary(affectedDatabase);
+			}
+
+			var nonVerifyingChainBuilder = new ChainBuilder(false);
+			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
+			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);
+
+			var chainTool = new ChainTool(migrations, localChain, remoteChain);
+			var nodesDeleted = 0L;
+			var nodesCreated = 0L;
+			var relationshipsDeleted = 0L;
+			var relationshipsCreated = 0L;
+			var propertiesSet = 0L;
+			try (
+				var session = context.getSchemaSession();
+				var tx = session.beginTransaction(TransactionConfig.builder().build())
+			) {
+				for (Query query : chainTool.repair(config, context)) {
+					var counters = tx.run(query).consume().counters();
+					nodesDeleted += counters.nodesDeleted();
+					nodesCreated += counters.nodesCreated();
+					relationshipsDeleted += counters.relationshipsDeleted();
+					relationshipsCreated += counters.relationshipsCreated();
+					propertiesSet += counters.propertiesSet();
+				}
+				tx.commit();
+			}
+
+			return RepairmentResult.repaired(affectedDatabase, nodesDeleted, nodesCreated,
+				relationshipsDeleted, relationshipsCreated, propertiesSet);
 		}, null, null);
 	}
 
@@ -448,30 +525,33 @@ public final class Migrations {
 	 */
 	public ValidationResult validate() {
 
-		return executeWithinLock(() -> {
-			List<Migration> migrations = this.getMigrations();
-			Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
-			try {
-				MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);
-				int numberOfAppliedMigrations = (int) migrationChain.getElements()
-					.stream().filter(m -> m.getState() == MigrationState.APPLIED)
-					.count();
-				if (migrations.size() == numberOfAppliedMigrations) {
-					return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?
-						Collections.singletonList("No migrations resolved.") :
-						Collections.emptyList());
-				} else if (migrations.size() > numberOfAppliedMigrations) {
-					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());
-				}
-				return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
-			} catch (MigrationsException e) {
-				List<String> warnings = Collections.singletonList(e.getMessage());
-				if (e.getCause() instanceof IndexOutOfBoundsException) {
-					return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
-				}
-				return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
+		return executeWithinLock(this::validate0, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
+	}
+
+	private ValidationResult validate0() {
+
+		List<Migration> migrations = this.getMigrations();
+		Optional<String> targetDatabase = config.getOptionalSchemaDatabase();
+		try {
+			MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);
+			int numberOfAppliedMigrations = (int) migrationChain.getElements()
+				.stream().filter(m -> m.getState() == MigrationState.APPLIED)
+				.count();
+			if (migrations.size() == numberOfAppliedMigrations) {
+				return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?
+					Collections.singletonList("No migrations resolved.") :
+					Collections.emptyList());
+			} else if (migrations.size() > numberOfAppliedMigrations) {
+				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());
 			}
-		}, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
+			return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
+		} catch (MigrationsException e) {
+			List<String> warnings = Collections.singletonList(e.getMessage());
+			if (e.getCause() instanceof IndexOutOfBoundsException) {
+				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
+			}
+			return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);
+		}
 	}
 
 	/**

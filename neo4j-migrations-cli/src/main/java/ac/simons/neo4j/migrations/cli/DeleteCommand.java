@@ -29,9 +29,9 @@ import picocli.CommandLine.ParentCommand;
  *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Anarchie und Alltag
- * @since TBA
+ * @since 2.2.0
  */
-@Command(name = "delete", description = "Deletes a migration from the chain of applied migrations")
+@Command(name = "delete", description = "Deletes a migration from the chain of applied migrations.")
 public class DeleteCommand extends ConnectedCommand {
 
 	@ParentCommand

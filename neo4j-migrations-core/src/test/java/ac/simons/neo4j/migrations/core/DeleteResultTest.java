@@ -26,35 +26,35 @@ class DeleteResultTest {
 
 	@Test
 	void shouldCheckMigrationVersion() {
-		var result = new DeleteResult(null, null, 423, 0, 0);
+		var result = new DeleteResult(null, 423, 0, 0, 0, 0, null);
 		assertThat(result.prettyPrint()).isEqualTo(
 			"Database is unchanged, no version has been deleted.");
 	}
 
 	@Test
 	void shouldCheckMigrationNodeCount() {
-		var result = new DeleteResult(null, MigrationVersion.withValue("23"), 0, 0, 0);
+		var result = new DeleteResult(null, 0, 0, 0, 0, 0, MigrationVersion.withValue("23"));
 		assertThat(result.prettyPrint()).isEqualTo(
 			"Database is unchanged, no version has been deleted.");
 	}
 
 	@Test
 	void shouldPrettyPrint() {
-		var result = new DeleteResult(null, MigrationVersion.withValue("23"), 42, 0, 0);
+		var result = new DeleteResult(null, 42, 0, 0, 0, 0, MigrationVersion.withValue("23"));
 		assertThat(result.prettyPrint()).isEqualTo(
 			"Migration 23 has been removed (deleted 42 nodes and 0 relationships from the default database).");
 	}
 
 	@Test
 	void shouldPrettyPrintFullDescription() {
-		var result = new DeleteResult("x", MigrationVersion.withValueAndDescription("23", "Nichts ist wie es scheint", false), 42, 0, 0);
+		var result = new DeleteResult("x", 42, 0, 0, 0, 0, MigrationVersion.withValueAndDescription("23", "Nichts ist wie es scheint", false));
 		assertThat(result.prettyPrint()).isEqualTo(
 			"Migration 23 (\"Nichts ist wie es scheint\") has been removed (deleted 42 nodes and 0 relationships from `x`).");
 	}
 
 	@Test
 	void shouldBeNullSafe() {
-		var result = new DeleteResult(null, null, 423, 0, 0);
+		var result = new DeleteResult(null, 423, 0, 0, 0, 0, null);
 		assertThat(result.getAffectedDatabase()).isNotPresent();
 		assertThat(result.getVersion()).isNotPresent();
 	}

@@ -23,38 +23,22 @@ import java.util.Optional;
  * relationships.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 2.2.0
  */
-public final class DeleteResult implements DatabaseOperationResult {
-
-	private final String affectedDatabase;
+public final class DeleteResult extends AbstractRepairmentResult {
 
 	private final MigrationVersion version;
 
-	private final long nodesDeleted;
-
-	private final long relationshipsDeleted;
-
-	private final long relationshipsCreated;
-
-	DeleteResult(String affectedDatabase, MigrationVersion version, long nodesDeleted, long relationshipsDeleted, long relationshipsCreated) {
-		this.affectedDatabase = affectedDatabase;
+	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, MigrationVersion version) {
+		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.version = version;
-		this.nodesDeleted = nodesDeleted;
-		this.relationshipsDeleted = relationshipsDeleted;
-		this.relationshipsCreated = relationshipsCreated;
-	}
-
-	@Override
-	public Optional<String> getAffectedDatabase() {
-		return Optional.ofNullable(affectedDatabase);
 	}
 
 	/**
 	 * @return {@literal true} if the database has been changed
 	 */
 	public boolean isDatabaseChanged() {
-		return version != null && nodesDeleted > 0;
+		return version != null && getNodesDeleted() > 0;
 	}
 
 	/**
@@ -62,27 +46,6 @@ public final class DeleteResult implements DatabaseOperationResult {
 	 */
 	public Optional<MigrationVersion> getVersion() {
 		return Optional.ofNullable(version);
-	}
-
-	/**
-	 * @return how many nodes have been deleted.
-	 */
-	public long getNodesDeleted() {
-		return nodesDeleted;
-	}
-
-	/**
-	 * @return how many relationships have been deleted
-	 */
-	public long getRelationshipsDeleted() {
-		return relationshipsDeleted;
-	}
-
-	/**
-	 * @return how many relationships have been created
-	 */
-	public long getRelationshipsCreated() {
-		return relationshipsCreated;
 	}
 
 	@Override
@@ -98,11 +61,5 @@ public final class DeleteResult implements DatabaseOperationResult {
 			this.getRelationshipsDeleted(),
 			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
 		);
-	}
-
-	static String toString(MigrationVersion version) {
-
-		return version.getValue()
-			+ version.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
 	}
 }

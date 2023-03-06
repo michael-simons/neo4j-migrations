@@ -35,7 +35,9 @@ import java.util.Set;
 public final class ValidationResult implements DatabaseOperationResult {
 
 	/**
-	 * The outcome of the validation. The outcome itself is agnostic to the validity, this is up to the result to decide.
+	 * While {@link ValidationResult#isValid()} returns whether a database is in a valid state regarding migrations, the
+	 * outcome gives the actual details.
+	 *
 	 */
 	public enum Outcome {
 

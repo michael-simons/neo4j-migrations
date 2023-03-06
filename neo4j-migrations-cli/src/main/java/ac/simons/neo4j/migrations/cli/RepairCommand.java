@@ -15,31 +15,26 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import ac.simons.neo4j.migrations.core.CleanResult;
 import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.RepairmentResult;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
 /**
- * The clean command.
+ * The repair command.
  *
- * @author Michael J. Simons
- * @since 1.1.0
+ * @author Gerrit Meier
+ * @since 2.2.0
  */
-@Command(name = "clean", description = "Removes Neo4j-Migration specific data from the selected schema database.")
-final class CleanCommand extends ConnectedCommand {
+@Command(name = "repair", description = "" +
+	"Compares locally discovered migrations with the remote chain and repairs the remote chain if necessary; " +
+	"no migrations will be applied during this process, only the migration chain will be manipulated. " +
+	"This command requires at least one local migration."
+)
+final class RepairCommand extends ConnectedCommand {
 
 	@ParentCommand
 	private MigrationsCli parent;
-
-	@Option(names = "all",
-		defaultValue = "false",
-		description = ""
-			+ "Set to true to delete all migration chains as well as all Neo4j-Migration "
-			+ "constraints and not only the chain for the target database"
-	)
-	private boolean all;
 
 	@Override
 	public MigrationsCli getParent() {
@@ -49,7 +44,7 @@ final class CleanCommand extends ConnectedCommand {
 	@Override
 	Integer withMigrations(Migrations migrations) {
 
-		CleanResult result = migrations.clean(all);
+		RepairmentResult result = migrations.repair();
 		MigrationsCli.LOGGER.info(result::prettyPrint);
 		result.getWarnings().forEach(MigrationsCli.LOGGER::warning);
 		return 0;

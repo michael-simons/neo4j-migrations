@@ -61,7 +61,7 @@ public final class MigrationVersion {
 	 * @return A {@link MigrationVersion}
 	 * @throws MigrationsException if the  name cannot be parsed.  You might check {{@link  #canParse(String)}} prior to
 	 *                             using this method
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public static MigrationVersion parse(String name) {
 
@@ -79,7 +79,7 @@ public final class MigrationVersion {
 	 *
 	 * @param value The unique version identifier
 	 * @return A {@link MigrationVersion}
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public static MigrationVersion withValue(String value) {
 
@@ -158,8 +158,12 @@ public final class MigrationVersion {
 
 		@Override
 		public int compare(MigrationVersion o1, MigrationVersion o2) {
-			if (o1 == MigrationVersion.baseline()) {
-				return -1;
+			if (o1 == MigrationVersion.baseline() && o2 == MigrationVersion.baseline()) {
+				return 0;
+			}
+
+			if (o1 == MigrationVersion.baseline() || o2 == MigrationVersion.baseline()) {
+				return 1;
 			}
 
 			return o1.getValue().compareTo(o2.getValue());

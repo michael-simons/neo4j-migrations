@@ -798,3 +798,99 @@ Sometimes things will break, either on purpose or by accident. When a migration 
 In all those cases, the chain of applied migrations won't validate with the current set of migrations discovered. Apart from using the xref:usage.adoc#usage_common_clean[`clean` operation] which would remove the whole chain from your database and inevitable leading to all migrations to be re-applied, you several options to repair your database:
 
 * Delete the offending migrations - those are all for which no script or class can be resolved anymore - individually from the database with the xref:usage.adoc#usage_common_delete[`delete` operation].
+* Use the xref:usage.adoc#usage_common_repair[`repair` operation]
+
+The `repair` operation behaves as follows:
+
+* Check all the checksums (pairwise by migration version) and fix the recorded chain if necessary
+* Check for missing local migrations and delete the missing ones in the database
+* Check for inserted local migrations and create new chain entries with current time stamp
+
+Especially the second step has consequences: If there aren't any local migrations all recorded migrations would be deleted. As misconfigurations can happen (for example during a typo in a path), the `repair` operation will abort if it doesn't find any local migrations. If you want to clean up the database, use the xref:usage.adoc#usage_common_clean[`clean` operation] explicitly.
+
+IMPORTANT: The `repair` operation will *never* apply any migration. Everything it does is fixing the chain of recorded application. Basically it pretends that everything that has been discovered locally has been applied to the database so that you can start on a clean slate.
+
+As the `repair` command won't apply migrations itself, it will stop after the last applied migration. An example: You have 3 local migrations, v1*, v3 and v4. The chain recorded however is  `(v1) -> (v2) -> (v3)`. This means, v1 has changed, it's checksum doesn't match, v2 has been deleted and v4 is new. The repair command will now fix the checksum, delete v2 and then stop, so that the chain now is this: `(v1*) -> (v3)`. v4 can be applied now with the standard `apply` operation.
+
+=== Example
+
+Given the following scenario:
+
+[source,console]
+----
+neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS info
+
+neo4j@localhost:7687 (Neo4j/5.4.0 Community Edition)
+Database: neo4j
+
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| Version | Description                | Type    | Installed on                  | by            | Execution time | State   | Source                                      |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| 007     | BondTheNameIsBond          | CYPHER  | 2023-03-06T10:55:07.971Z[UTC] | msimons/neo4j | PT0.041S       | APPLIED | V007__BondTheNameIsBond.cypher              |
+| 007.1   | BondTheNameIsBondNew       | CYPHER  | 2023-03-06T10:55:08.059Z[UTC] | msimons/neo4j | PT0.018S       | APPLIED | V007_1__BondTheNameIsBondNew.cypher         |
+| 007.1.1 | BondTheNameIsBondNewNew    | CYPHER  | 2023-03-06T10:55:08.144Z[UTC] | msimons/neo4j | PT0.034S       | APPLIED | V007_1_1__BondTheNameIsBondNewNew.cypher    |
+| 008     | Create constraints         | CATALOG | 2023-03-06T10:55:08.186Z[UTC] | msimons/neo4j | PT0.02S        | APPLIED | V008__Create_constraints.xml                |
+| 021     | Die halbe Wahrheit         | CYPHER  | 2023-03-06T10:55:08.253Z[UTC] | msimons/neo4j | PT0.035S       | APPLIED | V021__Die halbe Wahrheit.cypher             |
+| 021.1   | Die halbe Wahrheit neu     | CYPHER  | 2023-03-06T10:55:08.304Z[UTC] | msimons/neo4j | PT0.011S       | APPLIED | V021.1__Die halbe Wahrheit neu.cypher       |
+| 021.1.1 | Die halbe Wahrheit neu neu | CYPHER  | 2023-03-06T10:55:08.320Z[UTC] | msimons/neo4j | PT0.005S       | APPLIED | V021.1.1__Die halbe Wahrheit neu neu.cypher |
+| 4711    | MirFallenKeineNamenEin     | CYPHER  | 2023-03-06T10:55:08.346Z[UTC] | msimons/neo4j | PT0.016S       | APPLIED | V4711__MirFallenKeineNamenEin.cypher        |
+| 5000    | WithCommentAtEnd           | CYPHER  | 2023-03-06T10:55:08.372Z[UTC] | msimons/neo4j | PT0.015S       | APPLIED | V5000__WithCommentAtEnd.cypher              |
+| 5002    | AMigration                 | CATALOG | 2023-03-06T10:55:08.382Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5002__AMigration.xml                       |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+----
+
+And the following local changes:
+
+[source,console]
+----
+rm $MIGRATIONS/moreStuff/V007__BondTheNameIsBond.cypher
+echo "CREATE (n:IWasHere)" >> $MIGRATIONS/V021__Die\ halbe\ Wahrheit.cypher
+echo "CREATE (n:IWasHere)" >> $MIGRATIONS/V5001__ANewMigration.cypher
+echo "CREATE (n:IWasHere)" >> $MIGRATIONS/V5003__AnotherNewMigration.cypher
+----
+
+Now, trying to re-apply all migrations will fail:
+
+[source,console]
+----
+neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS apply
+[2023-03-06T11:59:23.780439000] Invoked beforeMigrate callback.
+[2023-03-06T11:59:23.807065000] Invoked afterMigrate callback.
+Unexpected migration at index 0: 007.1 ("BondTheNameIsBondNew").
+----
+
+The `info` command will fail with the same error. The chain can be repaired like this:
+
+[source,console]
+----
+neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS repair
+The migration chain in the default database has been repaired: 1 nodes and 3 relationships have been deleted, 1 nodes and 3 relationships have been recreated.
+----
+
+The result looks like this
+
+[source,console]
+----
+neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS info
+
+neo4j@localhost:7687 (Neo4j/5.4.0 Community Edition)
+Database: neo4j
+
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| Version | Description                | Type    | Installed on                  | by            | Execution time | State   | Source                                      |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| 007.1   | BondTheNameIsBondNew       | CYPHER  | 2023-03-06T10:55:07.971Z[UTC] | msimons/neo4j | PT0.041S       | APPLIED | V007_1__BondTheNameIsBondNew.cypher         |
+| 007.1.1 | BondTheNameIsBondNewNew    | CYPHER  | 2023-03-06T10:55:08.144Z[UTC] | msimons/neo4j | PT0.034S       | APPLIED | V007_1_1__BondTheNameIsBondNewNew.cypher    |
+| 008     | Create constraints         | CATALOG | 2023-03-06T10:55:08.186Z[UTC] | msimons/neo4j | PT0.02S        | APPLIED | V008__Create_constraints.xml                |
+| 021     | Die halbe Wahrheit         | CYPHER  | 2023-03-06T10:55:08.253Z[UTC] | msimons/neo4j | PT0.035S       | APPLIED | V021__Die halbe Wahrheit.cypher             |
+| 021.1   | Die halbe Wahrheit neu     | CYPHER  | 2023-03-06T10:55:08.304Z[UTC] | msimons/neo4j | PT0.011S       | APPLIED | V021.1__Die halbe Wahrheit neu.cypher       |
+| 021.1.1 | Die halbe Wahrheit neu neu | CYPHER  | 2023-03-06T10:55:08.320Z[UTC] | msimons/neo4j | PT0.005S       | APPLIED | V021.1.1__Die halbe Wahrheit neu neu.cypher |
+| 4711    | MirFallenKeineNamenEin     | CYPHER  | 2023-03-06T10:55:08.346Z[UTC] | msimons/neo4j | PT0.016S       | APPLIED | V4711__MirFallenKeineNamenEin.cypher        |
+| 5000    | WithCommentAtEnd           | CYPHER  | 2023-03-06T10:55:08.372Z[UTC] | msimons/neo4j | PT0.015S       | APPLIED | V5000__WithCommentAtEnd.cypher              |
+| 5001    | ANewMigration              | CYPHER  | 2023-03-06T11:00:39.311Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5001__ANewMigration.cypher                 |
+| 5002    | AMigration                 | CATALOG | 2023-03-06T10:55:08.382Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5002__AMigration.xml                       |
+| 5003    | AnotherNewMigration        | CYPHER  |                               |               |                | PENDING | V5003__AnotherNewMigration.cypher           |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+----
+
+`007` has been deleted, checksum of `021` has been fixed, `5001` has been inserted and `5003` is still pending.

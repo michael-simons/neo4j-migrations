@@ -29,8 +29,8 @@ import org.assertj.core.data.Index;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -123,19 +123,15 @@ class ConstraintsIT {
 		}
 	}
 
-	static boolean is35(String tag) {
-		return "neo4j:3.5".equals(tag);
-	}
-
 	@ParameterizedTest
-	@ValueSource(strings = { "neo4j:3.5", "neo4j:4.0", "neo4j:4.4" })
-	void shouldCreateConstraints(String tag) {
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldCreateConstraints(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
 		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
 		final String s1 = "CREATE CONSTRAINT ON ( person:Person ) ASSERT person.name IS UNIQUE";
 		final String s2 = "CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -151,7 +147,7 @@ class ConstraintsIT {
 				assertThat(HBD.silentCreateConstraint(cd, session, s2, null, errorMessage)).isOne();
 			}
 
-			boolean is35 = is35(tag);
+			boolean is35 = Neo4jVersion.V3_5 == version.value;
 			String[] descriptions = Stream.of(s0, s1, s2).map(s -> {
 					String result = s
 						.replace("CREATE ", "")
@@ -180,12 +176,12 @@ class ConstraintsIT {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "neo4j:3.5", "neo4j:4.0", "neo4j:4.4" })
-	void shouldDropConstraints(String tag) {
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldDropConstraints(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
 		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -202,7 +198,7 @@ class ConstraintsIT {
 
 			int dropped;
 			try (Session session = ctx.getSession()) {
-				if (is35(tag)) {
+				if (Neo4jVersion.V3_5 == version.value) {
 					dropped = HBD.silentDropConstraint(cd, session,
 						"DROP CONSTRAINT ON ( n:Book ) ASSERT n.isbn IS UNIQUE", "AAA");
 				} else {
@@ -214,10 +210,10 @@ class ConstraintsIT {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "neo4j:4.3", "neo4j:4.4" })
-	void shouldThrowExceptionWhenConstraintsWithSameNameExists(String tag) {
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldThrowExceptionWhenConstraintsWithSameNameExists(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -246,10 +242,10 @@ class ConstraintsIT {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "neo4j:4.3", "neo4j:4.4", "neo4j:4.4-enterprise" })
-	void shouldPreventDuplicateVersionsWithTarget(String tag) {
+	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
+	void shouldPreventDuplicateVersionsWithTarget(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(tag);
+		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), NO_DRIVER_LOGGING_CONFIG)) {
 
@@ -262,7 +258,7 @@ class ConstraintsIT {
 			try (Session session = new DefaultMigrationContext(migrationsConfig, driver).getSchemaSession()) {
 
 				session.run("CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})");
-				if ("neo4j:4.3".equals(tag)) {
+				if (Neo4jVersion.V4_3 == version.value) {
 					assertThat(executeAndConsume(session,
 						"CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})").nodesCreated()).isOne();
 
@@ -289,6 +285,7 @@ class ConstraintsIT {
 	}
 
 	private Neo4jContainer<?> getNeo4j(String tag) {
+
 		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);

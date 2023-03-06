@@ -30,12 +30,14 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.testcontainers.DockerClientFactory;
 
 /**
- * Skips the tests if it is running on an aarch64 (Apple silicon / M1) architecture and no suitable image is available.
+ * Skips the tests if it is running on an aarch64 (Apple Silicon / M1) architecture and no suitable image is available.
  * It does *not* skip the tests on general arm64 architectures.
  *
  * @author Gerrit Meier
  */
 final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor {
+
+	public static final boolean TEST_ONLY_LATEST_NEO_4_J = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
 
 	/**
 	 * Version provider to iterate over all versions provided in {@link Neo4jVersion}.
@@ -44,8 +46,7 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 
 		@Override
 		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-			boolean testOnlyLatestNeo4j = Boolean.parseBoolean(System.getProperty("migrations.test-only-latest-neo4j", "false"));
-			if (testOnlyLatestNeo4j) {
+			if (TEST_ONLY_LATEST_NEO_4_J) {
 				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
 			}
 			// The exclusion of 4.0 and 4.1 here affects not every test ofc, only the ones
@@ -67,6 +68,10 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 		VersionUnderTest(Neo4jVersion value, boolean enterprise) {
 			this.value = value;
 			this.enterprise = enterprise;
+		}
+
+		public String asTag() {
+			return String.format("neo4j:%s%s", value.toString(), enterprise ? "-enterprise" : "");
 		}
 
 		@Override

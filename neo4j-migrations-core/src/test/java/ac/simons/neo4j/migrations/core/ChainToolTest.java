@@ -54,6 +54,7 @@ import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings({"squid:S2187"}) // Sonar doesn't realize that there are tests
 class ChainToolTest {
 
 	private static final Element P_1 = pendingMigration("01", "E_1vNew");

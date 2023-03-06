@@ -76,7 +76,7 @@ final class ChainTool {
 			.toMap(
 				e -> MigrationVersion.withValue(e.getVersion()),
 				Function.identity(),
-				throwingMerger(MigrationChain.Element.class),
+				throwingMerger(),
 				() -> new TreeMap<>(new VersionComparator()));
 
 		this.newElements = newChain.getElements().stream().collect(collector);
@@ -156,8 +156,6 @@ final class ChainTool {
 
 	private List<Query> insertRemoteMissingMigrations(String migrationTarget, Optional<String> installedBy) {
 
-		MigrationVersion previousVersion = MigrationVersion.baseline();
-
 		var cypher = """
 			MATCH (pm:__Neo4jMigration {version: $previousVersion}) - [pr:MIGRATED_TO] -> (nm:__Neo4jMigration)
 			WHERE coalesce(pm.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
@@ -170,7 +168,7 @@ final class ChainTool {
 			RETURN *
 			""";
 
-		var lastKnownVersion = currentElements.keySet().stream().skip(currentElements.size() - 1).findFirst().orElseThrow();
+		var lastKnownVersion = currentElements.keySet().stream().skip(currentElements.size() - 1L).findFirst().orElseThrow();
 		var comparator = new VersionComparator();
 
 		var allVersions = new TreeSet<>(comparator);
@@ -181,38 +179,29 @@ final class ChainTool {
 
 		var sortedVersions = new ArrayList<>(allVersions);
 
-		var result = new ArrayList<Query>();
+		return newElements.entrySet().stream()
+			.takeWhile(entry -> comparator.compare(entry.getKey(), lastKnownVersion) < 0)
+			.filter(entry -> !currentElements.containsKey(entry.getKey()))
+			.map(entry -> {
+				var migration = entry.getValue();
+				var properties = new HashMap<String, Object>();
 
-		for (Map.Entry<MigrationVersion, MigrationChain.Element> entry : newElements.entrySet()) {
+				properties.put(Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue());
+				migration.getOptionalDescription().ifPresent(v -> properties.put(Migrations.PROPERTY_MIGRATION_DESCRIPTION, v));
+				properties.put("type", migration.getType().name());
+				properties.put("repeatable", Optional.ofNullable(discoveredMigrations.get(entry.getKey())).map(Migration::isRepeatable).orElse(false));
+				properties.put("source", migration.getSource());
+				migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
 
-			if (comparator.compare(entry.getKey(), lastKnownVersion) >= 0) {
-				break;
-			}
-
-			if (currentElements.containsKey(entry.getKey())) {
-				continue;
-			}
-
-			var migration = entry.getValue();
-			var properties = new HashMap<String, Object>();
-
-			properties.put(Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue());
-			migration.getOptionalDescription().ifPresent(v -> properties.put(Migrations.PROPERTY_MIGRATION_DESCRIPTION, v));
-			properties.put("type", migration.getType().name());
-			properties.put("repeatable", Optional.ofNullable(discoveredMigrations.get(entry.getKey())).map(Migration::isRepeatable).orElse(false));
-			properties.put("source", migration.getSource());
-			migration.getChecksum().ifPresent(v -> properties.put("checksum", v));
-
-			result.add(new Query(cypher, Values.parameters(
-				Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
-				Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue(),
-				"previousVersion", sortedVersions.get(sortedVersions.indexOf(entry.getKey()) - 1).getValue(),
-				"installedBy", installedBy.map(Values::value).orElse(Values.NULL),
-				"neo4jUser", newChain.getUsername(),
-				"insertedMigration", properties
-			)));
-		}
-		return result;
+				return new Query(cypher, Values.parameters(
+					Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
+					Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue(),
+					"previousVersion", sortedVersions.get(sortedVersions.indexOf(entry.getKey()) - 1).getValue(),
+					"installedBy", installedBy.map(Values::value).orElse(Values.NULL),
+					"neo4jUser", newChain.getUsername(),
+					"insertedMigration", properties
+				));
+		}).toList();
 	}
 
 	private Map<MigrationVersion, Pair> findPairs() {
@@ -223,7 +212,7 @@ final class ChainTool {
 			.collect(Collectors.toMap(
 				Function.identity(),
 				k -> new Pair(newElements.get(k), currentElements.get(k)),
-				throwingMerger(Pair.class),
+				throwingMerger(),
 				() -> new TreeMap<>(new VersionComparator())
 			));
 	}
@@ -234,7 +223,7 @@ final class ChainTool {
 			.collect(Collectors.toSet());
 	}
 
-	private static <T> BinaryOperator<T> throwingMerger(Class<?> type) {
+	private static <T> BinaryOperator<T> throwingMerger() {
 		return (k, v) -> {
 			throw new IllegalStateException("Must not contain duplicate keys");
 		};

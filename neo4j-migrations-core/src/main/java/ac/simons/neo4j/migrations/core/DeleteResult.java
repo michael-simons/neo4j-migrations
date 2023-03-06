@@ -23,7 +23,7 @@ import java.util.Optional;
  * relationships.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 2.2.0
  */
 public final class DeleteResult extends AbstractRepairmentResult {
 
@@ -61,10 +61,5 @@ public final class DeleteResult extends AbstractRepairmentResult {
 			this.getRelationshipsDeleted(),
 			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
 		);
-	}
-
-	static String toString(MigrationVersion version) {
-
-		return version.getValue() + version.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
 	}
 }

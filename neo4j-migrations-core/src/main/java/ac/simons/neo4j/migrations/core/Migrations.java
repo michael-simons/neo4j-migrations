@@ -138,7 +138,7 @@ public final class Migrations {
 	/**
 	 * Clears the internal cache (discovered migrations and callbacks) which can be useful in certain testing scenarios.
 	 *
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public void clearCache() {
 
@@ -412,7 +412,7 @@ public final class Migrations {
 	 * resolved.
 	 *
 	 * @param version the version that should be deleted, must not be null.
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public DeleteResult delete(MigrationVersion version) {
 
@@ -463,7 +463,7 @@ public final class Migrations {
 	 *
 	 * @return The result  of the  repair process,  containing detailed information  about the  outcome and  the changed
 	 *         database content
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	public RepairmentResult repair() {
 
@@ -478,7 +478,7 @@ public final class Migrations {
 
 			var validationResult = validate0();
 			if (validationResult.isValid() || validationResult.getOutcome() == Outcome.INCOMPLETE_DATABASE) {
-				return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, RepairmentResult.Outcome.NO_REPAIRMENT_NECESSARY);
+				return RepairmentResult.unnecessary(affectedDatabase);
 			}
 
 			var nonVerifyingChainBuilder = new ChainBuilder(false);
@@ -506,8 +506,8 @@ public final class Migrations {
 				tx.commit();
 			}
 
-			return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated,
-				relationshipsDeleted, relationshipsCreated, propertiesSet, RepairmentResult.Outcome.REPAIRED);
+			return RepairmentResult.repaired(affectedDatabase, nodesDeleted, nodesCreated,
+				relationshipsDeleted, relationshipsCreated, propertiesSet);
 		}, null, null);
 	}
 

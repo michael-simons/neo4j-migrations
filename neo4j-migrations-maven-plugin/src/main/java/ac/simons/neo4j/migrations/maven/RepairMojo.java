@@ -25,7 +25,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Goal that repairs the configured database.
  *
  * @author Gerrit Meier
- * @since TBA
+ * @since 2.2.0
  */
 @Mojo(name = "repair",
 	requiresDependencyResolution = ResolutionScope.TEST,

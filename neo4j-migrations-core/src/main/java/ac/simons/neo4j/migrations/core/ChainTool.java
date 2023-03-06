@@ -41,7 +41,7 @@ import ac.simons.neo4j.migrations.core.MigrationVersion.VersionComparator;
  * used to make one chain identical to the other.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 2.2.0
  */
 final class ChainTool {
 

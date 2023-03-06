@@ -21,7 +21,7 @@ import java.util.Optional;
  * Contains shared state for repair results (deleting migrations is considered a repairing attempt as well).
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 2.2.0
  */
 abstract sealed class AbstractRepairmentResult implements DatabaseOperationResult
 	permits DeleteResult, RepairmentResult {
@@ -85,5 +85,10 @@ abstract sealed class AbstractRepairmentResult implements DatabaseOperationResul
 	 */
 	public long getPropertiesSet() {
 		return propertiesSet;
+	}
+
+	static String toString(MigrationVersion version) {
+
+		return version.getValue() + version.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
 	}
 }

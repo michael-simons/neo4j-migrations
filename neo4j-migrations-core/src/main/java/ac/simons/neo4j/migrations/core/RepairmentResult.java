@@ -22,7 +22,7 @@ package ac.simons.neo4j.migrations.core;
  *
  * @author Michael J. Simons
  * @soundtrack Deichkind - Neues vom Dauerzustand
- * @since TBA
+ * @since 2.2.0
  */
 public final class RepairmentResult extends AbstractRepairmentResult {
 
@@ -43,9 +43,17 @@ public final class RepairmentResult extends AbstractRepairmentResult {
 		REPAIRED
 	}
 
+	static RepairmentResult unnecessary(String affectedDatabase) {
+		return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, Outcome.NO_REPAIRMENT_NECESSARY);
+	}
+
+	static RepairmentResult repaired(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
+		return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet, Outcome.REPAIRED);
+	}
+
 	private final Outcome outcome;
 
-	RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
+	private RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
 		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.outcome = outcome;
 	}
@@ -59,7 +67,19 @@ public final class RepairmentResult extends AbstractRepairmentResult {
 
 	@Override
 	public String prettyPrint() {
-		throw new UnsupportedOperationException("TODO");
-	}
 
+		if (outcome == Outcome.NO_REPAIRMENT_NECESSARY) {
+			return String.format("%s is in a valid state, missing or new migrations can be applied",
+				this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("The default database"));
+		}
+
+		return String.format(
+			"The migration chain in %s has been repaired: %d nodes and %d relationships have been deleted, %d nodes and %d relationships have been recreated.",
+			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database"),
+			this.getNodesDeleted(),
+			this.getRelationshipsDeleted(),
+			this.getNodesCreated(),
+			this.getRelationshipsCreated()
+		);
+	}
 }

@@ -24,10 +24,13 @@ import picocli.CommandLine.ParentCommand;
  * The repair command.
  *
  * @author Gerrit Meier
- * @since TBA
+ * @since 2.2.0
  */
-// TODO needs a proper description
-@Command(name = "repair", description = "Repairs the database....text needed")
+@Command(name = "repair", description = "" +
+	"Compares locally discovered migrations with the remote chain and repairs the remote chain if necessary; " +
+	"no migrations will be applied during this process, only the migration chain will be manipulated. " +
+	"This command requires at least one local migration."
+)
 final class RepairCommand extends ConnectedCommand {
 
 	@ParentCommand

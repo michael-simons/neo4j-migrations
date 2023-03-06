@@ -89,7 +89,7 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 
 	/**
 	 * @return The length of this chain.
-	 * @since TBA
+	 * @since 2.2.0
 	 */
 	default int length() {
 		return getElements().size();

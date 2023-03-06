@@ -27,7 +27,7 @@ import picocli.CommandLine.ParentCommand;
  * @author Michael J. Simons
  * @since 1.1.0
  */
-@Command(name = "clean", description = "Removes Neo4j-Migration specific data from the selected schema database")
+@Command(name = "clean", description = "Removes Neo4j-Migration specific data from the selected schema database.")
 final class CleanCommand extends ConnectedCommand {
 
 	@ParentCommand

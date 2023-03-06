@@ -4,31 +4,6 @@
 [[usage_common]]
 == Common operations
 
-[[usage_common_info]]
-=== Info
-
-The `info` operations returns information about the context, the database, all applied and all pending applications.
-
-[[usage_common_migrate]]
-=== Migrate / apply
-
-The `migrate` command (or its underlying method `apply` in the Migrations Core API) does exactly that:
-It applies all locally resolved migrations to the target database and stores the xref:concepts.adoc#concepts_chain[chain of applied migrations] in the schema database.
-
-It returns the last applied version.
-
-[[usage_common_validate]]
-=== Validate
-
-The `validate` operations resolves all local migrations and checks whether all have applied in the same order and in the
-same version to the configured database.
-A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
-where migrations are missing, have not been applied, applied in a different order or with a different checksum.
-
-The validation result provides an additional operation `needsRepair()`.
-In case the result is invalid you might check if it needs repair.
-If not, you can just call the xref:usage.adoc#usage_common_migrate[apply operation] to turn the database into a valid state.
-
 [[usage_common_clean]]
 === Clean
 
@@ -57,6 +32,42 @@ When set to `true`, all objects created by Neo4j-Migrations will be deleted.
 The `delete` operation comes in handy when the migrations fail to <<usage_common_validate, validate>>. This might be the case when you accidentally or on purpose deleted script files or refactored Java based migrations away. The `delete` operation takes in the unique version or the name of a Cypher script file or a Java class, looks for a migration in the migration chain fitting that description and deletes it. If it was the last migration in the chain, the previous one will be the new last, otherwise the previous migration will point to the next one.
 
 Using the `delete` operation is one way of xref:concepts.adoc#concepts_repairing_broken_chains[repairing broken migration chains].
+
+[[usage_common_info]]
+=== Info
+
+The `info` operations returns information about the context, the database, all applied and all pending applications.
+
+[[usage_common_migrate]]
+=== Migrate / apply
+
+The `migrate` command (or its underlying method `apply` in the Migrations Core API) does exactly that:
+It applies all locally resolved migrations to the target database and stores the xref:concepts.adoc#concepts_chain[chain of applied migrations] in the schema database.
+
+It returns the last applied version.
+
+[[usage_common_repair]]
+=== Repair
+
+The `repair` operation is an emergency operation for all those cases in which
+
+* Local migrations have been changed (incidentally or on purpose) so that their checksums now mismatch
+* Local migrations are deleted
+* Applying migrations failed for whatever reasons
+
+so that the chain of applied migrations does not fit with the discovered migrations anymore. This operation will fix checksums, automatically <<usage_common_delete, delete>> locally missing migrations from the chain and insert placeholder migrations into the chain if necessary. It does stop at the end of the chain (all migrations discovered after that can be applied with <<usage_common_migrate, apply>> in the regular way), *does not* apply migrations itself after the fact and will fail hard in case no local migrations can be found (if this is the case, use <<usage_common_clean, clean>> to remove all recorded migrations.)
+
+[[usage_common_validate]]
+=== Validate
+
+The `validate` operations resolves all local migrations and checks whether all have applied in the same order and in the
+same version to the configured database.
+A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
+where migrations are missing, have not been applied, applied in a different order or with a different checksum.
+
+The validation result provides an additional operation `needsRepair()`.
+In case the result is invalid you might check if it needs repair.
+If not, you can just call the xref:usage.adoc#usage_common_migrate[apply operation] to turn the database into a valid state.
 
 == CLI
 
@@ -128,13 +139,18 @@ Migrates Neo4j databases.
                               locally and is on by default.
 Commands:
   clean           Removes Neo4j-Migration specific data from the selected
-                    schema database
-  delete          Deletes a migration from the chain of applied migrations
-  help            Displays help information about the specified command
+                    schema database.
+  delete          Deletes a migration from the chain of applied migrations.
+  help            Display help information about the specified command.
   info            Retrieves all applied and pending information, prints them
                     and exits.
   init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
+  repair          Compares locally discovered migrations with the remote chain
+                    and repairs the remote chain if necessary; no migrations
+                    will be applied during this process, only the migration
+                    chain will be manipulated. This command requires at least
+                    one local migration.
   run             Resolves the specified migrations and applies them. Does not
                     record any metadata.
   show-catalog    Gets the local or remote catalog and prints it to standard
@@ -441,13 +457,15 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 
 The following operations are available:
 
-info:: Returns information about the context, the database, all applied and all pending applications
-apply:: Applies all discovered migrations
-validate:: Validates the database against the resolved migrations
 clean:: Cleans the selected schema database from every metadata created by this tool
 delete:: Removes a single migration from the chain of applied migrations
+info:: Returns information about the context, the database, all applied and all pending applications
+apply:: Applies all discovered migrations
+repair:: Repairs the chain of applied migrations without applying pending or reapplying local migrations
+run:: Runs a single script without recording it as a migration in the chain of applied migrations
+validate:: Validates the database against the resolved migrations
 
-All operations are available in the CLI and Maven-Plugin, except for the `delete` operation, which is only in the Core-API and the CLI.
+All operations are available in the CLI and Maven-Plugin, except for the `delete` and `run` operations, which are only in the Core-API and the CLI.
 The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run `apply`.
 
 `apply` comes in a couple of overloads:

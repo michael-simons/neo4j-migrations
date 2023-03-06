@@ -743,7 +743,7 @@ The latter is handy when migrate at start is disabled or in case there are callb
 <div class="videoblock">
 <div class="content">
 <video controls style="width: 100%;">
-  <source src="_images/quarkus-dev-ui.webm" type="video/webm">
+  <source src="img/quarkus-dev-ui.webm" type="video/webm">
 </video>
 </div>
 </div>

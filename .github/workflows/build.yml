@@ -5,16 +5,22 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'README.adoc'
       - '.all-contributorsrc'
+      - '.github/workflows/publish_docs.yml'
+      - 'README.adoc'
       - 'CHANGELOG.md'
+      - 'bin/generate-site.sh'
       - 'docs/antora.yml'
+      - 'etc/index.tpl'
   pull_request:
     paths-ignore:
-      - 'README.adoc'
       - '.all-contributorsrc'
+      - '.github/workflows/publish_docs.yml'
+      - 'README.adoc'
       - 'CHANGELOG.md'
+      - 'bin/generate-site.sh'
       - 'docs/antora.yml'
+      - 'etc/index.tpl'
 
 jobs:
   build:

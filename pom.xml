@@ -110,6 +110,7 @@
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<cypher-dsl.version>2023.0.3</cypher-dsl.version>
 		<docker-maven-plugin.version>0.41.0</docker-maven-plugin.version>
+		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.18.0</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
 		<graalvm.version>22.3.1</graalvm.version>
@@ -934,7 +935,7 @@
 						<setanchors/>
 						<idprefix/>
 						<idseparator/>
-						<imagesdir>${basedir}/docs/modules/ROOT/images</imagesdir>
+						<imagesdir>${docsImagesDir}</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>
 						<source-highlighter>coderay</source-highlighter>

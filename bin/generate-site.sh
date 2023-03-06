@@ -10,7 +10,10 @@ SOURCE_BRANCH=$2
 cd "$DIR"/..
 
 # Generate the documentation
-./mvnw --no-transfer-progress asciidoctor:process-asciidoc@generate-docs -pl :neo4j-migrations-parent -Dproject.build.docs="$TARGET_FOLDER" -Dproject.build.docs.branch="$SOURCE_BRANCH"
+mkdir -p $TARGET_FOLDER/img
+cp -pr docs/modules/ROOT/images/* $TARGET_FOLDER/img
+./mvnw --no-transfer-progress asciidoctor:process-asciidoc@generate-docs -pl :neo4j-migrations-parent -Dproject.build.docs="$TARGET_FOLDER" -Dproject.build.docs.branch="$SOURCE_BRANCH" -DdocsImagesDir=img
+
 # Generate the site
 # The asciidoc extensions fails for some weird Ruby / JRuby errors on GitHub; test results modified as they depend on that module as well.
 sed -i.bak -e '/<module>extensions\/neo4j-migrations-formats-adoc<\/module>/d' -e '/<module>neo4j-migrations-test-results<\/module>/d' pom.xml

@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,8 @@ class MigrationChainTest {
 		assertThat(chain.prettyPrint()).contains("Database: a");
 	}
 
-	@Test // GH-648
+	@Test
+		// GH-648
 	void shouldPrintEdition() {
 
 		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null), Collections.emptyMap());
@@ -77,5 +79,24 @@ class MigrationChainTest {
 		assertThat(chain.prettyPrint())
 			.contains("Database: a")
 			.doesNotContain("Schema database: a");
+	}
+
+	@SuppressWarnings("TextBlockMigration")
+	@Test
+	void shouldPrettyPrintElements() {
+
+		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS,
+			Map.of(MigrationVersion.withValue("1"), ChainToolTest.pendingMigration("1", "C1")));
+		assertThat(chain.prettyPrint())
+			.isEqualTo(
+				"\n" +
+				"j@aura (hidden)\n" +
+				"\n" +
+				"+---------+---------------+--------+--------------+----+----------------+---------+----------+\n" +
+				"| Version | Description   | Type   | Installed on | by | Execution time | State   | Source   |\n" +
+				"+---------+---------------+--------+--------------+----+----------------+---------+----------+\n" +
+				"| 1       | a description | CYPHER |              |    |                | PENDING | 1.cypher |\n" +
+				"+---------+---------------+--------+--------------+----+----------------+---------+----------+\n"
+			);
 	}
 }

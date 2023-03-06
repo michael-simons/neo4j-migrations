@@ -310,6 +310,8 @@ class ChainToolTest {
 		var migration = mock(AbstractCypherBasedMigration.class);
 		when(migration.getVersion()).thenReturn(MigrationVersion.withValue(version));
 		when(migration.getChecksum()).thenReturn(Optional.ofNullable(checksum));
+		when(migration.getSource()).thenReturn(version + ".cypher");
+		when(migration.getOptionalDescription()).thenReturn(Optional.of("a description"));
 		return DefaultMigrationChainElement.pendingElement(migration);
 	}
 

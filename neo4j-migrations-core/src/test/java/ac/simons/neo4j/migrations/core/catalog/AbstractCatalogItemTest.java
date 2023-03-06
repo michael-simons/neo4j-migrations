@@ -16,12 +16,14 @@
 package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,8 @@ import org.neo4j.driver.types.MapAccessor;
  */
 class AbstractCatalogItemTest {
 
-	@Test // GH-656
+	@Test
+		// GH-656
 	void shouldHandleAbsentOptions() {
 
 		MapAccessor row = Mockito.mock(MapAccessor.class);
@@ -45,7 +48,8 @@ class AbstractCatalogItemTest {
 		verifyNoMoreInteractions(row);
 	}
 
-	@Test // GH-656
+	@Test
+		// GH-656
 	void shouldHandleEmptyOptions() {
 
 		MapAccessor row = Mockito.mock(MapAccessor.class);
@@ -57,7 +61,8 @@ class AbstractCatalogItemTest {
 		verifyNoMoreInteractions(row);
 	}
 
-	@Test // GH-656
+	@Test
+		// GH-656
 	void shouldRenderHalfWayDecentMaps() {
 
 		Map<String, Value> options = new HashMap<>();
@@ -75,5 +80,17 @@ class AbstractCatalogItemTest {
 		verify(row).containsKey("options");
 		verify(row).get("options");
 		verifyNoMoreInteractions(row);
+	}
+
+	@Test
+	void defaultMethodsShouldThrow() {
+
+		var item = new AbstractCatalogItem<>("x", Constraint.Type.EXISTS, TargetEntityType.NODE, "x", List.of("x"), null) {
+		};
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+			.isThrownBy(() -> item.withName("x"));
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+			.isThrownBy(() -> item.isEquivalentTo(null));
 	}
 }

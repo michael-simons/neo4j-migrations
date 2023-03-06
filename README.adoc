@@ -101,6 +101,7 @@ We try to promote this project as good as we can internally and externally while
 * https://www.infoq.com/news/2021/12/neo4j-migrations/[InfoQ: Migrating Neo4j Graph Schemas with Neo4j Migrations (2021-12-28)] by https://www.infoq.com/profile/Johan-Janssen/[Johan Janssen]
 * https://jreleaser.org/guide/latest/index.html#_who_is_using_it[JReleaser: Who is using it] by https://twitter.com/aalmiray[Andres Almiray]
 * https://speakerdeck.com/michaelsimons/neo4j-migrations-the-lean-way-of-applying-database-refactorings-to-neo4j-efa52ac1-85e1-4688-97f3-566fc78de6cd[Nodes 22: Neo4j-Migrations - The lean way of refactoring Neo4j content] by https://twitter.com/rotnroll666[Michael Simons] (https://github.com/michael-simons/nodes2022[Demo repository] and the https://www.youtube.com/watch?v=5-j0xiVAeoM[recording of the presentation])
+* The first major upgrade, Neo4j-Migrations 2.0.0 was included in the https://github.blog/2023-02-08-release-radar-dec-2022-jan-2023/[GitHub Release Radar, Festive Edition · December 2022 – January 2023]
 
 == CLI in a nutshell
 

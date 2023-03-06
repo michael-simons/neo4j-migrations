@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^.*?edition is *(?<edition>\\w++)?$");
+	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that edition is *(?<edition>\\w++)?$");
 
 	/**
 	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for

@@ -2210,7 +2210,134 @@ your application originally and you might have invalid Cypher now in potentially
 <li>
 <p>Delete the offending migrations - those are all for which no script or class can be resolved anymore - individually from the database with the <a href="#usage_common_delete"><code>delete</code> operation</a>.</p>
 </li>
+<li>
+<p>Use the <a href="#usage_common_repair"><code>repair</code> operation</a></p>
+</li>
 </ul>
+</div>
+<div class="paragraph">
+<p>The <code>repair</code> operation behaves as follows:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Check all the checksums (pairwise by migration version) and fix the recorded chain if necessary</p>
+</li>
+<li>
+<p>Check for missing local migrations and delete the missing ones in the database</p>
+</li>
+<li>
+<p>Check for inserted local migrations and create new chain entries with current time stamp</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Especially the second step has consequences: If there aren&#8217;t any local migrations all recorded migrations would be deleted. As misconfigurations can happen (for example during a typo in a path), the <code>repair</code> operation will abort if it doesn&#8217;t find any local migrations. If you want to clean up the database, use the <a href="#usage_common_clean"><code>clean</code> operation</a> explicitly.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The <code>repair</code> operation will <strong>never</strong> apply any migration. Everything it does is fixing the chain of recorded application. Basically it pretends that everything that has been discovered locally has been applied to the database so that you can start on a clean slate.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As the <code>repair</code> command won&#8217;t apply migrations itself, it will stop after the last applied migration. An example: You have 3 local migrations, v1*, v3 and v4. The chain recorded however is  <code>(v1) &#8594; (v2) &#8594; (v3)</code>. This means, v1 has changed, it&#8217;s checksum doesn&#8217;t match, v2 has been deleted and v4 is new. The repair command will now fix the checksum, delete v2 and then stop, so that the chain now is this: <code>(v1*) &#8594; (v3)</code>. v4 can be applied now with the standard <code>apply</code> operation.</p>
+</div>
+<div class="sect3">
+<h4 id="example"><a class="anchor" href="#example"></a>3.10.1. Example</h4>
+<div class="paragraph">
+<p>Given the following scenario:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS info
+
+neo4j@localhost:7687 (Neo4j/5.4.0 Community Edition)
+Database: neo4j
+
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| Version | Description                | Type    | Installed on                  | by            | Execution time | State   | Source                                      |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| 007     | BondTheNameIsBond          | CYPHER  | 2023-03-06T10:55:07.971Z[UTC] | msimons/neo4j | PT0.041S       | APPLIED | V007__BondTheNameIsBond.cypher              |
+| 007.1   | BondTheNameIsBondNew       | CYPHER  | 2023-03-06T10:55:08.059Z[UTC] | msimons/neo4j | PT0.018S       | APPLIED | V007_1__BondTheNameIsBondNew.cypher         |
+| 007.1.1 | BondTheNameIsBondNewNew    | CYPHER  | 2023-03-06T10:55:08.144Z[UTC] | msimons/neo4j | PT0.034S       | APPLIED | V007_1_1__BondTheNameIsBondNewNew.cypher    |
+| 008     | Create constraints         | CATALOG | 2023-03-06T10:55:08.186Z[UTC] | msimons/neo4j | PT0.02S        | APPLIED | V008__Create_constraints.xml                |
+| 021     | Die halbe Wahrheit         | CYPHER  | 2023-03-06T10:55:08.253Z[UTC] | msimons/neo4j | PT0.035S       | APPLIED | V021__Die halbe Wahrheit.cypher             |
+| 021.1   | Die halbe Wahrheit neu     | CYPHER  | 2023-03-06T10:55:08.304Z[UTC] | msimons/neo4j | PT0.011S       | APPLIED | V021.1__Die halbe Wahrheit neu.cypher       |
+| 021.1.1 | Die halbe Wahrheit neu neu | CYPHER  | 2023-03-06T10:55:08.320Z[UTC] | msimons/neo4j | PT0.005S       | APPLIED | V021.1.1__Die halbe Wahrheit neu neu.cypher |
+| 4711    | MirFallenKeineNamenEin     | CYPHER  | 2023-03-06T10:55:08.346Z[UTC] | msimons/neo4j | PT0.016S       | APPLIED | V4711__MirFallenKeineNamenEin.cypher        |
+| 5000    | WithCommentAtEnd           | CYPHER  | 2023-03-06T10:55:08.372Z[UTC] | msimons/neo4j | PT0.015S       | APPLIED | V5000__WithCommentAtEnd.cypher              |
+| 5002    | AMigration                 | CATALOG | 2023-03-06T10:55:08.382Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5002__AMigration.xml                       |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And the following local changes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">rm $MIGRATIONS/moreStuff/V007__BondTheNameIsBond.cypher
+echo &quot;CREATE (n:IWasHere)&quot; &gt;&gt; $MIGRATIONS/V021__Die\ halbe\ Wahrheit.cypher
+echo &quot;CREATE (n:IWasHere)&quot; &gt;&gt; $MIGRATIONS/V5001__ANewMigration.cypher
+echo &quot;CREATE (n:IWasHere)&quot; &gt;&gt; $MIGRATIONS/V5003__AnotherNewMigration.cypher</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, trying to re-apply all migrations will fail:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS apply
+[2023-03-06T11:59:23.780439000] Invoked beforeMigrate callback.
+[2023-03-06T11:59:23.807065000] Invoked afterMigrate callback.
+Unexpected migration at index 0: 007.1 (&quot;BondTheNameIsBondNew&quot;).</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>info</code> command will fail with the same error. The chain can be repaired like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS repair
+The migration chain in the default database has been repaired: 1 nodes and 3 relationships have been deleted, 1 nodes and 3 relationships have been recreated.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result looks like this</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="console">neo4j-migrations -uneo4j -pverysecret --location=file:$MIGRATIONS info
+
+neo4j@localhost:7687 (Neo4j/5.4.0 Community Edition)
+Database: neo4j
+
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| Version | Description                | Type    | Installed on                  | by            | Execution time | State   | Source                                      |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+
+| 007.1   | BondTheNameIsBondNew       | CYPHER  | 2023-03-06T10:55:07.971Z[UTC] | msimons/neo4j | PT0.041S       | APPLIED | V007_1__BondTheNameIsBondNew.cypher         |
+| 007.1.1 | BondTheNameIsBondNewNew    | CYPHER  | 2023-03-06T10:55:08.144Z[UTC] | msimons/neo4j | PT0.034S       | APPLIED | V007_1_1__BondTheNameIsBondNewNew.cypher    |
+| 008     | Create constraints         | CATALOG | 2023-03-06T10:55:08.186Z[UTC] | msimons/neo4j | PT0.02S        | APPLIED | V008__Create_constraints.xml                |
+| 021     | Die halbe Wahrheit         | CYPHER  | 2023-03-06T10:55:08.253Z[UTC] | msimons/neo4j | PT0.035S       | APPLIED | V021__Die halbe Wahrheit.cypher             |
+| 021.1   | Die halbe Wahrheit neu     | CYPHER  | 2023-03-06T10:55:08.304Z[UTC] | msimons/neo4j | PT0.011S       | APPLIED | V021.1__Die halbe Wahrheit neu.cypher       |
+| 021.1.1 | Die halbe Wahrheit neu neu | CYPHER  | 2023-03-06T10:55:08.320Z[UTC] | msimons/neo4j | PT0.005S       | APPLIED | V021.1.1__Die halbe Wahrheit neu neu.cypher |
+| 4711    | MirFallenKeineNamenEin     | CYPHER  | 2023-03-06T10:55:08.346Z[UTC] | msimons/neo4j | PT0.016S       | APPLIED | V4711__MirFallenKeineNamenEin.cypher        |
+| 5000    | WithCommentAtEnd           | CYPHER  | 2023-03-06T10:55:08.372Z[UTC] | msimons/neo4j | PT0.015S       | APPLIED | V5000__WithCommentAtEnd.cypher              |
+| 5001    | ANewMigration              | CYPHER  | 2023-03-06T11:00:39.311Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5001__ANewMigration.cypher                 |
+| 5002    | AMigration                 | CATALOG | 2023-03-06T10:55:08.382Z[UTC] | msimons/neo4j | PT0S           | APPLIED | V5002__AMigration.xml                       |
+| 5003    | AnotherNewMigration        | CYPHER  |                               |               |                | PENDING | V5003__AnotherNewMigration.cypher           |
++---------+----------------------------+---------+-------------------------------+---------------+----------------+---------+---------------------------------------------+</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>007</code> has been deleted, checksum of <code>021</code> has been fixed, <code>5001</code> has been inserted and <code>5003</code> is still pending.</p>
+</div>
 </div>
 </div>
 </div>
@@ -2221,37 +2348,7 @@ your application originally and you might have invalid Cypher now in potentially
 <div class="sect2">
 <h3 id="usage_common"><a class="anchor" href="#usage_common"></a>4.1. Common operations</h3>
 <div class="sect3">
-<h4 id="usage_common_info"><a class="anchor" href="#usage_common_info"></a>4.1.1. Info</h4>
-<div class="paragraph">
-<p>The <code>info</code> operations returns information about the context, the database, all applied and all pending applications.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="usage_common_migrate"><a class="anchor" href="#usage_common_migrate"></a>4.1.2. Migrate / apply</h4>
-<div class="paragraph">
-<p>The <code>migrate</code> command (or its underlying method <code>apply</code> in the Migrations Core API) does exactly that:
-It applies all locally resolved migrations to the target database and stores the <a href="#concepts_chain">chain of applied migrations</a> in the schema database.</p>
-</div>
-<div class="paragraph">
-<p>It returns the last applied version.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="usage_common_validate"><a class="anchor" href="#usage_common_validate"></a>4.1.3. Validate</h4>
-<div class="paragraph">
-<p>The <code>validate</code> operations resolves all local migrations and checks whether all have applied in the same order and in the
-same version to the configured database.
-A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
-where migrations are missing, have not been applied, applied in a different order or with a different checksum.</p>
-</div>
-<div class="paragraph">
-<p>The validation result provides an additional operation <code>needsRepair()</code>.
-In case the result is invalid you might check if it needs repair.
-If not, you can just call the <a href="#usage_common_migrate">apply operation</a> to turn the database into a valid state.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="usage_common_clean"><a class="anchor" href="#usage_common_clean"></a>4.1.4. Clean</h4>
+<h4 id="usage_common_clean"><a class="anchor" href="#usage_common_clean"></a>4.1.1. Clean</h4>
 <div class="paragraph">
 <p><code>clean</code> applies by default to the <a href="#concepts_separate-databases">schema database</a>.
 It will remove Neo4j-Migrations related nodes and relationships.
@@ -2286,12 +2383,64 @@ When set to <code>true</code>, all objects created by Neo4j-Migrations will be d
 </div>
 </div>
 <div class="sect3">
-<h4 id="usage_common_delete"><a class="anchor" href="#usage_common_delete"></a>4.1.5. Delete</h4>
+<h4 id="usage_common_delete"><a class="anchor" href="#usage_common_delete"></a>4.1.2. Delete</h4>
 <div class="paragraph">
 <p>The <code>delete</code> operation comes in handy when the migrations fail to <a href="#usage_common_validate">validate</a>. This might be the case when you accidentally or on purpose deleted script files or refactored Java based migrations away. The <code>delete</code> operation takes in the unique version or the name of a Cypher script file or a Java class, looks for a migration in the migration chain fitting that description and deletes it. If it was the last migration in the chain, the previous one will be the new last, otherwise the previous migration will point to the next one.</p>
 </div>
 <div class="paragraph">
 <p>Using the <code>delete</code> operation is one way of <a href="#concepts_repairing_broken_chains">repairing broken migration chains</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="usage_common_info"><a class="anchor" href="#usage_common_info"></a>4.1.3. Info</h4>
+<div class="paragraph">
+<p>The <code>info</code> operations returns information about the context, the database, all applied and all pending applications.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="usage_common_migrate"><a class="anchor" href="#usage_common_migrate"></a>4.1.4. Migrate / apply</h4>
+<div class="paragraph">
+<p>The <code>migrate</code> command (or its underlying method <code>apply</code> in the Migrations Core API) does exactly that:
+It applies all locally resolved migrations to the target database and stores the <a href="#concepts_chain">chain of applied migrations</a> in the schema database.</p>
+</div>
+<div class="paragraph">
+<p>It returns the last applied version.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="usage_common_repair"><a class="anchor" href="#usage_common_repair"></a>4.1.5. Repair</h4>
+<div class="paragraph">
+<p>The <code>repair</code> operation is an emergency operation for all those cases in which</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Local migrations have been changed (incidentally or on purpose) so that their checksums now mismatch</p>
+</li>
+<li>
+<p>Local migrations are deleted</p>
+</li>
+<li>
+<p>Applying migrations failed for whatever reasons</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>so that the chain of applied migrations does not fit with the discovered migrations anymore. This operation will fix checksums, automatically <a href="#usage_common_delete">delete</a> locally missing migrations from the chain and insert placeholder migrations into the chain if necessary. It does stop at the end of the chain (all migrations discovered after that can be applied with <a href="#usage_common_migrate">apply</a> in the regular way), <strong>does not</strong> apply migrations itself after the fact and will fail hard in case no local migrations can be found (if this is the case, use <a href="#usage_common_clean">clean</a> to remove all recorded migrations.)</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="usage_common_validate"><a class="anchor" href="#usage_common_validate"></a>4.1.6. Validate</h4>
+<div class="paragraph">
+<p>The <code>validate</code> operations resolves all local migrations and checks whether all have applied in the same order and in the
+same version to the configured database.
+A target database will validate as valid when all migrations have been applied in the right order and invalid in any cases
+where migrations are missing, have not been applied, applied in a different order or with a different checksum.</p>
+</div>
+<div class="paragraph">
+<p>The validation result provides an additional operation <code>needsRepair()</code>.
+In case the result is invalid you might check if it needs repair.
+If not, you can just call the <a href="#usage_common_migrate">apply operation</a> to turn the database into a valid state.</p>
 </div>
 </div>
 </div>
@@ -2378,13 +2527,18 @@ Migrates Neo4j databases.
                               locally and is on by default.
 Commands:
   clean           Removes Neo4j-Migration specific data from the selected
-                    schema database
-  delete          Deletes a migration from the chain of applied migrations
-  help            Displays help information about the specified command
+                    schema database.
+  delete          Deletes a migration from the chain of applied migrations.
+  help            Display help information about the specified command.
   info            Retrieves all applied and pending information, prints them
                     and exits.
   init            Creates a migration project inside the current folder.
   migrate, apply  Retrieves all pending migrations, verify and applies them.
+  repair          Compares locally discovered migrations with the remote chain
+                    and repairs the remote chain if necessary; no migrations
+                    will be applied during this process, only the migration
+                    chain will be manipulated. This command requires at least
+                    one local migration.
   run             Resolves the specified migrations and applies them. Does not
                     record any metadata.
   show-catalog    Gets the local or remote catalog and prints it to standard
@@ -2792,18 +2946,6 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 </div>
 <div class="dlist">
 <dl>
-<dt class="hdlist1">info</dt>
-<dd>
-<p>Returns information about the context, the database, all applied and all pending applications</p>
-</dd>
-<dt class="hdlist1">apply</dt>
-<dd>
-<p>Applies all discovered migrations</p>
-</dd>
-<dt class="hdlist1">validate</dt>
-<dd>
-<p>Validates the database against the resolved migrations</p>
-</dd>
 <dt class="hdlist1">clean</dt>
 <dd>
 <p>Cleans the selected schema database from every metadata created by this tool</p>
@@ -2812,10 +2954,30 @@ Of course your migrations will be recorded as a chain of applied migrations (as 
 <dd>
 <p>Removes a single migration from the chain of applied migrations</p>
 </dd>
+<dt class="hdlist1">info</dt>
+<dd>
+<p>Returns information about the context, the database, all applied and all pending applications</p>
+</dd>
+<dt class="hdlist1">apply</dt>
+<dd>
+<p>Applies all discovered migrations</p>
+</dd>
+<dt class="hdlist1">repair</dt>
+<dd>
+<p>Repairs the chain of applied migrations without applying pending or reapplying local migrations</p>
+</dd>
+<dt class="hdlist1">run</dt>
+<dd>
+<p>Runs a single script without recording it as a migration in the chain of applied migrations</p>
+</dd>
+<dt class="hdlist1">validate</dt>
+<dd>
+<p>Validates the database against the resolved migrations</p>
+</dd>
 </dl>
 </div>
 <div class="paragraph">
-<p>All operations are available in the CLI and Maven-Plugin, except for the <code>delete</code> operation, which is only in the Core-API and the CLI.
+<p>All operations are available in the CLI and Maven-Plugin, except for the <code>delete</code> and <code>run</code> operations, which are only in the Core-API and the CLI.
 The corresponding starter for Spring Boot respectively the Quarkus extension will automatically run <code>apply</code>.</p>
 </div>
 <div class="paragraph">
@@ -3336,19 +3498,19 @@ You can change that via <code>locationsToScan</code> inside the <code>configurat
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/clean-mojo.html">clean</a>, see <a href="#usage_common_clean">Section 4.1.4</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/clean-mojo.html">clean</a>, see <a href="#usage_common_clean">Section 4.1.1</a></p>
 </li>
 <li>
 <p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/help-mojo.html">help</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/info-mojo.html">info</a>, see <a href="#usage_common_info">Section 4.1.1</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/info-mojo.html">info</a>, see <a href="#usage_common_info">Section 4.1.3</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/migrate-mojo.html">migrate</a>, see <a href="#usage_common_migrate">Section 4.1.2</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/migrate-mojo.html">migrate</a>, see <a href="#usage_common_migrate">Section 4.1.4</a></p>
 </li>
 <li>
-<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/validate-mojo.html">clean</a>, see <a href="#usage_common_validate">Section 4.1.3</a></p>
+<p><a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations-maven-plugin/validate-mojo.html">clean</a>, see <a href="#usage_common_validate">Section 4.1.6</a></p>
 </li>
 </ul>
 </div>
@@ -5157,7 +5319,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-03-01 13:44:05 UTC
+Last updated 2023-03-06 14:44:34 UTC
 </div>
 </div>
 </body>

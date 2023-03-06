@@ -110,6 +110,8 @@ public final class MigrationsCli implements Runnable {
 		CommandLine generateCompletionCmd = commandLine.getSubcommands().get("generate-completion");
 		generateCompletionCmd.getCommandSpec().usageMessage().hidden(true);
 
+		commandLine.setHelpFactory(OrderedCommandLineHelp::new);
+
 		loadProperties(MIGRATIONS_PROPERTIES_FILENAME)
 			.map(CommonEnvVarDefaultProvider::new)
 			.ifPresent(commandLine.getCommandSpec()::defaultValueProvider);

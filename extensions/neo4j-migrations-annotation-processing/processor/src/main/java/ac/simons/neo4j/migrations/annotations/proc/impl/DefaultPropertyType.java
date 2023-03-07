@@ -24,6 +24,7 @@ import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
  * @param <T> The type of the property
  * @since 1.11.0
  */
+@SuppressWarnings({"squid:S6206", "ClassCanBeRecord"}) // No, but thanks
 final class DefaultPropertyType<T extends ElementType<T>> implements PropertyType<T> {
 
 	private final T owner;

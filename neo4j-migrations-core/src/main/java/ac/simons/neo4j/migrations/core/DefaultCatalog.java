@@ -102,6 +102,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
+	@SuppressWarnings({"squid:S6204"}) // toList vs Collectors.collect
 	public Collection<CatalogItem<?>> getItems() {
 
 		return withReadLockGet(() -> items.values().stream().map(NavigableMap::lastEntry)
@@ -110,6 +111,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
+	@SuppressWarnings({"squid:S6204"}) // toList vs Collectors.collect
 	public Collection<CatalogItem<?>> getItemsPriorTo(MigrationVersion version) {
 
 		return withReadLockGet(() -> {
@@ -140,6 +142,7 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
+	@SuppressWarnings({"squid:S6204"}) // toList vs Collectors.collect
 	public Collection<CatalogItem<?>> getItems(MigrationVersion version) {
 
 		return withReadLockGet(() -> {

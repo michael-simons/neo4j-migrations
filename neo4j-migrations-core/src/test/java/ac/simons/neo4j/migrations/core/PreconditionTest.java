@@ -56,6 +56,8 @@ class PreconditionTest {
 		"//assert that version is lt 4.0; ASSERTION; 4.0",
 		"//assert that version is ge 4.0; ASSERTION; 4.0",
 		"//assert that version is ge 4.0.0; ASSERTION; 4.0.0",
+		"//assert that version is lt 4.0.1.1; ASSERTION; 4.0.1.1",
+		"// assert that version is 3; ASSERTION; 3"
 	})
 	void shouldParseVersionPreconditions(String value, Precondition.Type expectedType, String expectedVersions) {
 

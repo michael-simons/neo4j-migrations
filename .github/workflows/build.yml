@@ -59,6 +59,8 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+      - name: Download dependencies upfront
+        run: ./mvnw -Dfast --no-transfer-progress clean package dependency:go-offline
       - name: Clean and verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

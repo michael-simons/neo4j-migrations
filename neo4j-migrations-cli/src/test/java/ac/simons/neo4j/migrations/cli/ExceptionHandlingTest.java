@@ -27,6 +27,7 @@ import ac.simons.neo4j.migrations.core.MigrationsException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ClientException;
 
@@ -40,7 +41,7 @@ class ExceptionHandlingTest {
 
 		String result = tapSystemOut(() -> {
 			MigrationsCli cli = mock(MigrationsCli.class);
-			when(cli.getAuthToken()).thenReturn(mock(AuthToken.class));
+			when(cli.getAuthToken()).thenReturn(AuthTokens.basic("foo", "bar"));
 			when(cli.getConfig(false)).thenReturn(MigrationsConfig.builder().build());
 			when(cli.openConnection(Mockito.any(AuthToken.class))).thenReturn(mock(Driver.class));
 

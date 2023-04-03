@@ -108,7 +108,7 @@
 		<compile-testing.version>0.21.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
-		<cypher-dsl.version>2023.2.0</cypher-dsl.version>
+		<cypher-dsl.version>2023.2.1</cypher-dsl.version>
 		<docker-maven-plugin.version>0.42.0</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.18.0</error_prone_annotations.version>

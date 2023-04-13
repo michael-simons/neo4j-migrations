@@ -87,6 +87,10 @@ jobs:
         run: >
           ./mvnw --no-transfer-progress -Pnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
 
+      - name: 'Smoke test'
+        run: >
+          ./neo4j-migrations-cli/target/neo4j-migrations -V
+
       - name: 'Upload build artifact'
         uses: actions/upload-artifact@v2
         with:
@@ -128,7 +132,11 @@ jobs:
 
       - name: 'Create distribution'
         run: >
-          ./mvnw --no-transfer-progress -Pnative -DskipCompress -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
+          ./mvnw --no-transfer-progress -Pnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
+
+      - name: 'Smoke test'
+        run: >
+          ./neo4j-migrations-cli/target/neo4j-migrations -V
 
       - name: 'Upload build artifact'
         uses: actions/upload-artifact@v2

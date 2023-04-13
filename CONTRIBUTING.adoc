@@ -42,21 +42,21 @@ Run it with:
 
 [source,console,subs="verbatim,attributes"]
 ----
-./mvnw -Dnative -DskipCompress clean package
+./mvnw -Dnative clean package
 ----
 
 The resulting migration tool can only be used to load Cypher script based migrations in file locations.
 It won't find classes, as those are instantiated dynamically via reflection, which is not supported in full in a native image.
 
-NOTE: The binaries are compressed by default via https://upx.github.io[upx]. While it has some downsides on the RSS memory
+NOTE: You can try to use https://upx.github.io[upx] to compress your binaries. While it has some downsides on the RSS memory
       usage as explained by the folks over at https://quarkus.io/blog/upx/[the Quarkus team], the advantages of having a 2/3
-      smaller binary are bigger. Especially due to the fact that the CLI isn't a permanent memory guest.
+      smaller binary are bigger.
       +
-      If you want to enable the compression in your build, remove the above `-DskipCompress` argument.
+      If you want to enable the compression in your build, add `-DskipCompress=false` to the build.
 
 === Fast build
 
-NOTE: This is useful if you want to just have an install of a snapshot version. No tests are run, no verification is done.
+NOTE: This is useful if you want to just have an installation of a snapshot version. No tests are run, no verification is done.
 
 [source,console,subs="verbatim,attributes"]
 [[build-default-bash]]

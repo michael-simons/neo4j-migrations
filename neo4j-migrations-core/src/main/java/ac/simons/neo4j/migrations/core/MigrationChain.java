@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -29,6 +30,16 @@ import java.util.Optional;
  * @since 0.0.4
  */
 public sealed interface MigrationChain extends ConnectionDetails permits DefaultMigrationChain {
+
+	/**
+	 * Creates an empty instance of a {@link MigrationChain}. Can be useful for testing.
+	 *
+	 * @return An empty migration chain
+	 * @since 2.3.0
+	 */
+	static MigrationChain empty() {
+		return new DefaultMigrationChain(ConnectionDetails.of(null, null, null, null, null, null), Map.of());
+	}
 
 	/**
 	 * Used for selecting how the {@link MigrationChain} should be computed.

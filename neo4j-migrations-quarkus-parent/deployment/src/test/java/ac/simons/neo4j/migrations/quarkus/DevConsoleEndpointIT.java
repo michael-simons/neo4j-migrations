@@ -18,9 +18,9 @@ package ac.simons.neo4j.migrations.quarkus;
 import io.quarkus.test.QuarkusDevModeTest;
 import io.restassured.RestAssured;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class DevConsoleEndpointIT {
 
 	private static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded; charset=utf-8";
-	public static final String DEV_TOOLS_ENDPOINT = "/q/dev/eu.michael-simons.neo4j.neo4j-migrations-quarkus/migrations";
+	public static final String DEV_TOOLS_ENDPOINT = "/q/dev-v1/eu.michael-simons.neo4j.neo4j-migrations-quarkus/migrations";
 
 	/**
 	 * Helper resource returning the number of migrations applied.
@@ -64,6 +64,25 @@ public class DevConsoleEndpointIT {
 		);
 
 	@Test
+	void devUIV1handlerShouldWork() {
+
+		RestAssured
+			.when().get("/cnt")
+			.then().statusCode(200).body(Matchers.is("2"));
+
+		RestAssured
+			.given()
+			.contentType(FORM_CONTENT_TYPE)
+			.formParam("operation", "clean")
+			.when().post(DEV_TOOLS_ENDPOINT)
+			.then().statusCode(200);
+
+		RestAssured
+			.when().get("/cnt")
+			.then().statusCode(200).body(Matchers.is("0"));
+	}
+
+	@Test
 	void handlerShouldWork() {
 
 		RestAssured
@@ -81,6 +100,7 @@ public class DevConsoleEndpointIT {
 			.when().get("/cnt")
 			.then().statusCode(200).body(Matchers.is("0"));
 	}
+
 
 	@Test
 	void shouldFailOnInvalidOperation() {

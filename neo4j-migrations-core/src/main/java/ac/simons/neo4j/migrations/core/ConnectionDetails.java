@@ -27,6 +27,22 @@ import java.util.Optional;
 public sealed interface ConnectionDetails permits MigrationChain, DefaultConnectionDetails {
 
 	/**
+	 * Creates an instance of {@link ConnectionDetails}. Can be useful for testing.
+	 *
+	 * @param serverAddress              the address of the server used
+	 * @param serverVersion              the Neo4j version the server is running
+	 * @param serverEdition              the Neo4j edition the server is running
+	 * @param userName                   the Neo4j user that ran the migrations
+	 * @param optionalDatabaseName       the database if applicable (Neo4j 4.0 and up)
+	 * @param optionalSchemaDatabaseName the database if applicable (Neo4j 4.0 and up)
+	 * @return A new, unmodifiable instance
+	 * @since 2.3.0
+	 */
+	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName, String optionalDatabaseName, String optionalSchemaDatabaseName) {
+		return new DefaultConnectionDetails(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName, optionalSchemaDatabaseName);
+	}
+
+	/**
 	 * {@return the address of the server used}
 	 */
 	String getServerAddress();
@@ -38,6 +54,7 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 
 	/**
 	 * {@return the Neo4j edition the server is running}
+	 *
 	 * @since 1.5.0
 	 */
 	String getServerEdition();

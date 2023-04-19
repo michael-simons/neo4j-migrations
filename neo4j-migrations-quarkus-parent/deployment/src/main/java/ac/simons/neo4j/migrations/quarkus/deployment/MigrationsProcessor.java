@@ -110,8 +110,11 @@ public class MigrationsProcessor {
 	@SuppressWarnings("unused")
 	ReflectiveClassBuildItem registerMigrationsForReflections(DiscovererBuildItem discovererBuildItem) {
 
-		return new ReflectiveClassBuildItem(true, true, true,
-			discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class<?>[0]));
+		return ReflectiveClassBuildItem.builder(discovererBuildItem.getDiscoverer().getMigrationClasses().toArray(new Class<?>[0]))
+			.constructors()
+			.methods()
+			.fields()
+			.build();
 	}
 
 	static Set<ResourceWrapper> findResourceBasedMigrations(Collection<ResourceBasedMigrationProvider> providers, Collection<String> locationsToScan) throws IOException {

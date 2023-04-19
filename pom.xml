@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>2.2.4-SNAPSHOT</version>
+	<version>2.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -117,7 +117,7 @@
 		<guava.version>31.1-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.9</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.17.2</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.4</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -164,8 +164,8 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>2.2.6</quarkus-neo4j.version>
-		<quarkus.version>2.16.6.Final</quarkus.version>
+		<quarkus-neo4j.version>3.0.0</quarkus-neo4j.version>
+		<quarkus.version>3.0.0.Final</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<!--
 		 I am not in the mood for _yet_ another player in the Neo4j-Java-Driver 5.x, Spring Boot 3, Quarkus Future battle of version fu
@@ -797,7 +797,7 @@
 								<requireJavaVersion>
 									<version>${java.version}</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -932,9 +932,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>${docsImagesDir}</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

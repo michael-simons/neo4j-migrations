@@ -321,6 +321,8 @@ class ChainToolTest {
 		properties.put("type", "CYPHER");
 		properties.put("checksum", checksum);
 		properties.put("version", version);
+		properties.put("source", "foobar.cypher");
+		properties.put("description", "a description");
 		when(targetMigration.asMap()).thenReturn(properties);
 
 		var relationship = mock(Relationship.class);

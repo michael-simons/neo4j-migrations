@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -29,6 +30,16 @@ import java.util.Optional;
  * @since 0.0.4
  */
 public sealed interface MigrationChain extends ConnectionDetails permits DefaultMigrationChain {
+
+	/**
+	 * Creates an empty instance of a {@link MigrationChain}. Can be useful for testing.
+	 *
+	 * @return An empty migration chain
+	 * @since 2.3.0
+	 */
+	static MigrationChain empty(ConnectionDetails connectionDetails) {
+		return new DefaultMigrationChain(connectionDetails, Map.of());
+	}
 
 	/**
 	 * Used for selecting how the {@link MigrationChain} should be computed.
@@ -153,5 +164,24 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 		 * @return The execution time of this migration. (Only for applied migrations)
 		 */
 		Optional<Duration> getExecutionTime();
+
+		/**
+		 * Creates a map representation of this element. Non-present elements will be represented as empty strings.
+		 *
+		 * @return A map containing all present information in this element
+		 * @since 2.3.0
+		 */
+		default Map<String, String> asMap() {
+
+			return Map.of(
+				"version", this.getVersion(),
+				"description", this.getOptionalDescription().orElse(""),
+				"type", this.getType().name(),
+				"installedOn", this.getInstalledOn().map(ZonedDateTime::toString).orElse(""),
+				"installedBy", this.getInstalledBy().orElse(""),
+				"executionTime", this.getExecutionTime().map(Duration::toString).orElse(""),
+				"state", this.getState().name(),
+				"source", this.getSource());
+		}
 	}
 }

@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
+import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRPCService;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsDevConsoleRecorder;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -23,6 +24,9 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.devconsole.spi.DevConsoleRouteBuildItem;
 import io.quarkus.devconsole.spi.DevConsoleRuntimeTemplateInfoBuildItem;
+import io.quarkus.devui.spi.JsonRPCProvidersBuildItem;
+import io.quarkus.devui.spi.page.CardPageBuildItem;
+import io.quarkus.devui.spi.page.Page;
 
 /**
  * @author Michael J. Simons
@@ -53,5 +57,27 @@ public class MigrationsDevConsoleProcessor {
 	) {
 		return new DevConsoleRouteBuildItem("migrations", "POST",
 			recorder.recordHandler(migrationsBuildItem.getValue()));
+	}
+
+	@BuildStep(onlyIf = IsDevelopment.class)
+	@SuppressWarnings("unused")
+	CardPageBuildItem createMigrationsCard(MigrationsBuildItem migrationsBuildItem) {
+
+		var card = new CardPageBuildItem();
+		card.addPage(
+			Page.webComponentPageBuilder()
+				.title("All migrations")
+				.componentLink("qwc-neo4j-migrations.js")
+				.icon("font-awesome-solid:database")
+				.dynamicLabelJsonRPCMethodName("getLabel")
+		);
+
+		return card;
+	}
+
+	@BuildStep(onlyIf = IsDevelopment.class)
+	@SuppressWarnings("unused")
+	JsonRPCProvidersBuildItem createMigrationsRPCService() {
+		return new JsonRPCProvidersBuildItem(MigrationsRPCService.class);
 	}
 }

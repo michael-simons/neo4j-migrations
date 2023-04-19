@@ -15,8 +15,7 @@
  */
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
+import java.util.Map;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
@@ -55,19 +54,11 @@ public final class MigrationsRPCService {
 	}
 
 	public JsonArray getAll() {
+
 		var result = new JsonArray();
 		var elements = migrations.info().getElements();
 		for (MigrationChain.Element element : elements) {
-			var o = new JsonObject();
-			o.put("version", element.getVersion());
-			o.put("description", element.getOptionalDescription().orElse(null));
-			o.put("type", element.getType().name());
-			o.put("installedOn", element.getInstalledOn().map(ZonedDateTime::toString).orElse(""));
-			o.put("installedBy", element.getInstalledBy().orElse(""));
-			o.put("executionTime", element.getExecutionTime().map(Duration::toString).orElse(""));
-			o.put("state", element.getState().name());
-			o.put("source", element.getSource());
-			result.add(o);
+			result.add(new JsonObject(Map.copyOf(element.asMap())));
 		}
 		return result;
 	}

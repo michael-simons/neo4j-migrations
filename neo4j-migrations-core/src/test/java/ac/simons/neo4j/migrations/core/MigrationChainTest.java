@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collections;
 import java.util.Map;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,7 +33,7 @@ class MigrationChainTest {
 	@Test
 	void shouldIncludeConnectionInfo() {
 
-		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
+		MigrationChain chain = MigrationChain.empty(CONNECTION_DETAILS);
 		assertThat(chain.prettyPrint())
 			.contains("j@aura (hidden)");
 	}
@@ -40,7 +41,7 @@ class MigrationChainTest {
 	@Test
 	void shouldNotPrintEmptyDatabase() {
 
-		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS, Collections.emptyMap());
+		MigrationChain chain = MigrationChain.empty(CONNECTION_DETAILS);
 		assertThat(chain.prettyPrint())
 			.doesNotContain("Database:")
 			.doesNotContain("Schema database: ")
@@ -98,5 +99,34 @@ class MigrationChainTest {
 				"| 1       | a description | CYPHER |              |    |                | PENDING | 1.cypher |\n" +
 				"+---------+---------------+--------+--------------+----+----------------+---------+----------+\n"
 			);
+	}
+
+	@Nested
+	class Elements {
+		@Test
+		void toMapShouldWork() {
+			var element = ChainToolTest.appliedMigration("1", "C1").asMap();
+			assertThat(element)
+				.contains(
+					Map.entry("version", "1"),
+					Map.entry("description", "a description"),
+					Map.entry("type", "CYPHER"),
+					Map.entry("installedBy", "Der Mann Panik Panzer/Danger Dan"),
+					Map.entry("executionTime", "PT1H18M31S"),
+					Map.entry("source", "foobar.cypher"),
+					Map.entry("state", "APPLIED")
+				);
+			assertThat(element)
+				.containsOnlyKeys(
+					"version",
+					"description",
+					"type",
+					"installedOn",
+					"installedBy",
+					"executionTime",
+					"state",
+					"source"
+				);
+		}
 	}
 }

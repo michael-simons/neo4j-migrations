@@ -63,9 +63,45 @@ class MigrationsRPCServiceTest {
 	}
 
 	@Test
+	void getConnectionDetailsWithDbsShouldWork() {
+		var migrations = mock(Migrations.class);
+		var connectionDetails = ConnectionDetails.of("theAddress", "4711", "USS Stargazer", "Picard", "a", "b");
+		when(migrations.getConnectionDetails()).thenReturn(connectionDetails);
+
+		var service = new MigrationsRPCService(migrations);
+		var result = service.getConnectionDetails();
+		assertThat(result.getString("serverAddress")).isEqualTo(connectionDetails.getServerAddress());
+		assertThat(result.getString("serverVersion")).isEqualTo(connectionDetails.getServerVersion());
+		assertThat(result.getString("username")).isEqualTo(connectionDetails.getUsername());
+		assertThat(result.getString("database")).isEqualTo("a");
+		assertThat(result.getString("schemaDatabase")).isEqualTo("b");
+
+		verify(migrations).getConnectionDetails();
+		verifyNoMoreInteractions(migrations);
+	}
+
+	@Test
+	void getConnectionDetailsWithoutDbsShouldWork() {
+		var migrations = mock(Migrations.class);
+		var connectionDetails = ConnectionDetails.of("theAddress", "4711", "USS Stargazer", "Picard", null, null);
+		when(migrations.getConnectionDetails()).thenReturn(connectionDetails);
+
+		var service = new MigrationsRPCService(migrations);
+		var result = service.getConnectionDetails();
+		assertThat(result.getString("serverAddress")).isEqualTo(connectionDetails.getServerAddress());
+		assertThat(result.getString("serverVersion")).isEqualTo(connectionDetails.getServerVersion());
+		assertThat(result.getString("username")).isEqualTo(connectionDetails.getUsername());
+		assertThat(result.containsKey("database")).isFalse();
+		assertThat(result.containsKey("schemaDatabase")).isFalse();
+
+		verify(migrations).getConnectionDetails();
+		verifyNoMoreInteractions(migrations);
+	}
+
+	@Test
 	void migrateShouldWork() {
 		var migrations = mock(Migrations.class);
-		when(migrations.info()).thenReturn(MigrationChain.empty());
+		when(migrations.info()).thenReturn(MigrationChain.empty(ConnectionDetails.of("theAddress", "4711", "USS Stargazer", "Picard", null, null)));
 
 		var service = new MigrationsRPCService(migrations);
 		assertThatNoException().isThrownBy(service::migrate);
@@ -78,7 +114,7 @@ class MigrationsRPCServiceTest {
 	@Test
 	void cleanShouldWork() {
 		var migrations = mock(Migrations.class);
-		when(migrations.info()).thenReturn(MigrationChain.empty());
+		when(migrations.info()).thenReturn(MigrationChain.empty(ConnectionDetails.of("theAddress", "4711", "USS Stargazer", "Picard", null, null)));
 		var cleanResult = mock(CleanResult.class);
 		when(cleanResult.prettyPrint()).thenReturn("Irrelevant");
 		when(migrations.clean(anyBoolean())).thenReturn(cleanResult);

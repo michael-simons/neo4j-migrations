@@ -320,7 +320,7 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
-				<reportSets />
+				<reportSets/>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

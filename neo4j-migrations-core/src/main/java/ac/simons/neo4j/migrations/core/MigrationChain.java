@@ -37,8 +37,8 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	 * @return An empty migration chain
 	 * @since 2.3.0
 	 */
-	static MigrationChain empty() {
-		return new DefaultMigrationChain(ConnectionDetails.of(null, null, null, null, null, null), Map.of());
+	static MigrationChain empty(ConnectionDetails connectionDetails) {
+		return new DefaultMigrationChain(connectionDetails, Map.of());
 	}
 
 	/**
@@ -164,5 +164,24 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 		 * @return The execution time of this migration. (Only for applied migrations)
 		 */
 		Optional<Duration> getExecutionTime();
+
+		/**
+		 * Creates a map representation of this element. Non-present elements will be represented as empty strings.
+		 *
+		 * @return A map containing all present information in this element
+		 * @since 2.3.0
+		 */
+		default Map<String, String> asMap() {
+
+			return Map.of(
+				"version", this.getVersion(),
+				"description", this.getOptionalDescription().orElse(""),
+				"type", this.getType().name(),
+				"installedOn", this.getInstalledOn().map(ZonedDateTime::toString).orElse(""),
+				"installedBy", this.getInstalledBy().orElse(""),
+				"executionTime", this.getExecutionTime().map(Duration::toString).orElse(""),
+				"state", this.getState().name(),
+				"source", this.getSource());
+		}
 	}
 }

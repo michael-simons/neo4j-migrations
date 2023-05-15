@@ -177,7 +177,7 @@
 		<spring-boot.version>3.0.6</spring-boot.version>
 		<spring-data-neo4j.version>7.0.5</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
-		<testcontainers.version>1.18.0</testcontainers.version>
+		<testcontainers.version>1.18.1</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>

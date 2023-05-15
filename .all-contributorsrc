@@ -225,6 +225,15 @@
       "contributions": [
         "userTesting"
       ]
+    },
+    {
+      "login": "szabopeter",
+      "name": "szabopeter",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1254135?v=4",
+      "profile": "https://github.com/szabopeter",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

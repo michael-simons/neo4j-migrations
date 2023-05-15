@@ -241,7 +241,7 @@ Furthermore, some structured form is necessary for creating a representation of 
 
 *What's the advantage of using Catalog-based migrations for the purpose of creating constraints and indexes for specific
 versions of Neo4j compared to Cypher-based migrations with <<concepts_preconditions,preconditions>>?* When using preconditions
-it us up to you to take care of newer versions of Neo4j as the come available as well as making sure you get the syntax right.
+it is up to you to take care of newer versions of Neo4j as they come available as well as making sure you get the syntax right.
 Using a Catalog-based migration frees you from this duty. Preconditions have been available earlier than the
 <<concepts_catalog,concept of a catalog>> and can be used for many purposes (i.e. making sure actual data exists).
 In contrast to that, Catalog-based migrations have a very strong focus on actual schema items.
@@ -295,8 +295,8 @@ public class V001__MyFirstMigration implements JavaBasedMigration {
 ----
 <.> The `MigrationContext` provides both `getSession()` or `getSessionConfig()` to be used in combination with `getDriver()`.
     The latter is helpful when you want to have access to a reactive or asynchronous session.
-    It is important that you use the convenient method `getSession()` or create a session with the provided config as only
-    those guarantee hat your database session will be connected to the configured target database with the configured user.
+    It is important that you use the convenience method `getSession()` or create a session with the provided config as only
+    those guarantee that your database session will be connected to the configured target database with the configured user.
     In addition, our context will take care of managing Neo4j causal cluster bookmarks.
     However, if you feel like it is necessary to switch to a different database, you can use the driver instance any way you want.
     The transaction handling inside Java-based migrations is completely up to you.
@@ -368,7 +368,7 @@ afterInfo:: After getting information about the target database.
 [[concepts_catalog]]
 == Using a catalog of items
 
-Neo4j is a schema free or a database with little schema. There are labels for nodes, types for relationships and both can
+Neo4j is schema free or a database with little schema. There are labels for nodes, types for relationships and both can
 have properties. Hence, property graph. But there's no "hard" schema determining that all nodes have all the same properties
 with the same type.
 
@@ -404,13 +404,13 @@ The catalog comes in two flavors, the remote and the local catalog. The remote c
 the databases' schema - is the easier one to understand: It is a read-only view on all items contained in the database schema
 that Neo4j-Migrations supports, such as constraints and indexes. It can be retrieved on demand any time.
 
-The local catalog is a bit more complex: It is build in an iterative way when discovering migrations. Catalog-based migrations
+The local catalog is a bit more complex: It is built in an iterative way when discovering migrations. Catalog-based migrations
 are read in versioning order. Items in their `<catalog />` definition are required to have a unique id (name) per migration.
 All items are added in a versioned manner to the local catalog. If an item named `a` is defined in both version `n` and `n+x`,
 it will be accessible in the catalog in both variants. Thus, Neo4j-Migrations can for example support dropping of unnamed
 items and recreating them in a new fashion. The approach of a versioned, local catalog also allows executing advanced operations
 like `verify`: The verification of the remote catalog against the local catalog triggered in migration `n+1` can refer to
-the local catalog in version `n` (the default) to assert to ground for all following operations, or for the current version
+the local catalog in version `n` (the default) to assert the ground for all following operations, or for the current version
 to make sure everything exists in a given point in time without executing further operations.
 
 Last but not least: Sometimes it is required to start fresh in a given migration. For this purpose the catalog element supports
@@ -422,11 +422,11 @@ Resetting means either being replaced with an empty catalog (`<catalog reset="tr
 
 Operations available to catalog based migrations are
 
-`create`:: Creates an item
-`drop`:: Drops an item
+`create`:: Create an item
+`drop`:: Drop an item
 `verify`:: Verify the locally defined catalog against the remote schema
-`apply`:: Drops all supported types from the remote schema and creates all elements of the local catalog.
-`refactor`:: Executes one of several predefined refactorings
+`apply`:: Drop all supported types from the remote schema and create all elements of the local catalog.
+`refactor`:: Execute one of several predefined refactorings
 
 While `create` and `drop` work on single item,  `verify` and `apply` work on the whole, known catalog  in a defined version range.
 
@@ -795,7 +795,7 @@ Sometimes things will break, either on purpose or by accident. When a migration 
 * You migrate your database as part of your application startup and not with a CI process and used different versions of your application with a different set of migration scripts and classes
 * You delete individual script files or classes
 
-In all those cases, the chain of applied migrations won't validate with the current set of migrations discovered. Apart from using the xref:usage.adoc#usage_common_clean[`clean` operation] which would remove the whole chain from your database and inevitable leading to all migrations to be re-applied, you several options to repair your database:
+In all those cases, the chain of applied migrations won't validate with the current set of migrations discovered. Apart from using the xref:usage.adoc#usage_common_clean[`clean` operation] which would remove the whole chain from your database inevitably leading to all migrations to be re-applied, you have several options to repair your database:
 
 * Delete the offending migrations - those are all for which no script or class can be resolved anymore - individually from the database with the xref:usage.adoc#usage_common_delete[`delete` operation].
 * Use the xref:usage.adoc#usage_common_repair[`repair` operation]

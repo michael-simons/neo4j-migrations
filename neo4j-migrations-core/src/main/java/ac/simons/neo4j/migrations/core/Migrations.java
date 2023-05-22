@@ -258,7 +258,7 @@ public final class Migrations {
 	}
 
 	/**
-	 * Applies one or  more migrations to the target (not  the schema) database without recording any  metadata and also
+	 * Applies one or  more migrations to the target (not  the schema) database without recording any metadata and also
 	 * without acquiring the lock.
 	 *
 	 * @param resources One or more resources pointing to parsable migration data
@@ -294,7 +294,7 @@ public final class Migrations {
 			migrations.addAll(provider.handle(ResourceContext.of(resource, config)));
 		}
 
-		for (Migration migration : migrations) {
+		for (Migration migration : new IterableMigrations(config, migrations)) {
 			migration.apply(context);
 			LOGGER.info(() -> "Applied " + toString(migration));
 			++cnt;
@@ -711,7 +711,7 @@ public final class Migrations {
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);
 
 		StopWatch stopWatch = new StopWatch();
-		for (Migration migration : migrations) {
+		for (Migration migration : new IterableMigrations(config, migrations)) {
 
 			boolean repeated = false;
 			Supplier<String> logMessage = () -> String.format("Applied migration %s.", toString(migration));

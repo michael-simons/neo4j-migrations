@@ -75,6 +75,7 @@ public class MigrationsRecorder {
 			.withAutocrlf(runtimeProperties.autocrlf)
 			.withMigrationClassesDiscoverer(discoverer)
 			.withResourceScanner(resourceScanner)
+			.withDelayBetweenMigrations(runtimeProperties.delayBetweenMigrations.orElse(null))
 			.build();
 
 		return new RuntimeValue<>(config);

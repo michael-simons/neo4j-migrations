@@ -21,6 +21,7 @@ import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,4 +97,10 @@ public class MigrationsProperties {
 	 */
 	@ConfigItem(defaultValue = Defaults.AUTOCRLF_VALUE)
 	public boolean autocrlf;
+
+	/**
+	 * A configurable delay that will be applied in between applying two migrations.
+	 */
+	@ConfigItem
+	public Optional<Duration> delayBetweenMigrations;
 }

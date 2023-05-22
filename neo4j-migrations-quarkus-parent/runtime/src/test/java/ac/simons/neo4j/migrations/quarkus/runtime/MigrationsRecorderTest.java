@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,7 @@ class MigrationsRecorderTest {
 		properties.transactionMode = MigrationsConfig.TransactionMode.PER_STATEMENT;
 		properties.validateOnMigrate = false;
 		properties.externalLocations = Optional.of(List.of("file:///bazbar", "dropped"));
+		properties.delayBetweenMigrations = Optional.empty();
 
 		var buildTimeProperties = new MigrationsBuildTimeProperties();
 		buildTimeProperties.packagesToScan = Optional.of(List.of("foo"));
@@ -57,8 +59,30 @@ class MigrationsRecorderTest {
 		assertThat(config.getOptionalSchemaDatabase()).hasValue("db2");
 		assertThat(config.getTransactionMode()).isEqualTo(MigrationsConfig.TransactionMode.PER_STATEMENT);
 		assertThat(config.isValidateOnMigrate()).isFalse();
+		assertThat(config.getOptionalDelayBetweenMigrations()).isEmpty();
 
 		assertThat(config.getMigrationClassesDiscoverer()).isNotNull();
 		assertThat(config.getResourceScanner()).isNotNull();
+	}
+
+	@Test
+	void delayShallBeConfigurable() {
+
+		var properties = new MigrationsProperties();
+		properties.autocrlf = true;
+		properties.database = Optional.empty();
+		properties.installedBy = Optional.empty();
+		properties.impersonatedUser = Optional.empty();
+		properties.schemaDatabase = Optional.empty();
+		properties.transactionMode = MigrationsConfig.TransactionMode.PER_STATEMENT;
+		properties.externalLocations = Optional.empty();
+		properties.delayBetweenMigrations = Optional.of(Duration.ofSeconds(1));
+
+		var buildTimeProperties = new MigrationsBuildTimeProperties();
+		buildTimeProperties.packagesToScan = Optional.empty();
+		buildTimeProperties.locationsToScan = List.of("bar");
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofSeconds(1));
 	}
 }

@@ -73,6 +73,7 @@ public class MigrationsAutoConfiguration {
 			.withInstalledBy(migrationsProperties.getInstalledBy())
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.withAutocrlf(migrationsProperties.isAutocrlf())
+			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
 			.build();
 	}
 

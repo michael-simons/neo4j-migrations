@@ -64,7 +64,7 @@ final class IterableMigrations implements Iterable<Migration> {
 			try {
 				Thread.sleep(delay.toMillis());
 			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
+				Thread.currentThread().interrupt();
 			}
 			return delegate.next();
 		}

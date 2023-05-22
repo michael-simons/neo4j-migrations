@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -216,6 +217,9 @@ public final class MigrationsCli implements Runnable {
 	)
 	private int maxConnectionPoolSize;
 
+	@Option(names = {"--delay-between-migrations"}, description = "A configurable delay that will be applied in between applying two migrations.")
+	private Duration delayBetweenMigrations;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -267,6 +271,7 @@ public final class MigrationsCli implements Runnable {
 			.withImpersonatedUser(impersonatedUser)
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
+			.withDelayBetweenMigrations(delayBetweenMigrations)
 			.build();
 
 		if (!forceSilence) {

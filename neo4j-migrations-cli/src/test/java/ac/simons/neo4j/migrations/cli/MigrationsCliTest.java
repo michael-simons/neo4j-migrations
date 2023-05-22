@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
@@ -67,7 +68,7 @@ class MigrationsCliTest {
 	}
 
 	@Test
-	void shouldNotFailToScanPackageInJVM() throws IllegalAccessException {
+	void shouldNotFailToScanPackageInJVM() {
 
 		MigrationsCli cli = new MigrationsCli();
 		setPackagesToScan(cli, new String[] { "foo.bar" });
@@ -83,6 +84,26 @@ class MigrationsCliTest {
 		commandLine.parseArgs("--impersonate", "someoneElse");
 
 		assertThat(cli.getConfig().getOptionalImpersonatedUser()).hasValue("someoneElse");
+	}
+
+	@Test
+	void delayShallBeConfigurable() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--delay-between-migrations", Duration.ofMinutes(23).toString());
+
+		assertThat(cli.getConfig().getOptionalDelayBetweenMigrations()).hasValue(Duration.ofMinutes(23));
+	}
+
+
+	@Test
+	void defaultDelayShallBeNull() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+
+		assertThat(cli.getConfig().getOptionalDelayBetweenMigrations()).isEmpty();
 	}
 
 	@Test
@@ -279,7 +300,7 @@ class MigrationsCliTest {
 	class PasswordOptions {
 
 		@Test
-		void shouldUsePasswordFirst() throws Exception {
+		void shouldUsePasswordFirst() {
 
 			MigrationsCli cli = new MigrationsCli();
 			setUserName(cli);

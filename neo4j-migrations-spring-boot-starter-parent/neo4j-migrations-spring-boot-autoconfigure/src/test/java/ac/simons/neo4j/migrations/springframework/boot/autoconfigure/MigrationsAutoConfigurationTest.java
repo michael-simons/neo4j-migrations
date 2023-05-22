@@ -28,6 +28,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.read.ListAppender;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -228,6 +229,28 @@ class MigrationsAutoConfigurationTest {
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
 			assertThat(config.isAutocrlf()).isTrue();
 		}
+
+		@Test
+		void delayShouldBeNullByDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.getOptionalDelayBetweenMigrations()).isEmpty();
+		}
+
+		@Test
+		void delayShouldBeApplied() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setDelayBetweenMigrations(Duration.ofMillis(667));
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties);
+			assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofMillis(667));
+		}
+
 
 		@Test
 		void shouldConfigureImpersonatedUser() {

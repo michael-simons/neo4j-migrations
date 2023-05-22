@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -99,6 +100,11 @@ public final class MigrationsConfig {
 
 	private final ClasspathResourceScanner resourceScanner;
 
+	/**
+	 * A configurable delay that will be applied in between applying two migrations.
+	 */
+	private final Duration delayBetweenMigrations;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -116,6 +122,7 @@ public final class MigrationsConfig {
 		this.migrationClassesDiscoverer = builder.migrationClassesDiscoverer == null ? new JavaBasedMigrationDiscoverer() : builder.migrationClassesDiscoverer;
 		this.resourceScanner = builder.resourceScanner == null ? new DefaultClasspathResourceScanner() : builder.resourceScanner;
 		this.schemaDatabase = builder.schemaDatabase;
+		this.delayBetweenMigrations = builder.delayBetweenMigrations;
 	}
 
 	/**
@@ -199,6 +206,14 @@ public final class MigrationsConfig {
 	 */
 	public ClasspathResourceScanner getResourceScanner() {
 		return resourceScanner;
+	}
+
+	/**
+	 * @return The delay to apply between migrations
+	 * @since 2.3.2
+	 */
+	public Optional<Duration> getOptionalDelayBetweenMigrations() {
+		return Optional.ofNullable(delayBetweenMigrations);
 	}
 
 	/**
@@ -295,6 +310,8 @@ public final class MigrationsConfig {
 		private Discoverer<JavaBasedMigration> migrationClassesDiscoverer;
 
 		private ClasspathResourceScanner resourceScanner;
+
+		private Duration delayBetweenMigrations;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -450,6 +467,21 @@ public final class MigrationsConfig {
 		public Builder withResourceScanner(ClasspathResourceScanner newResourceScanner) {
 
 			this.resourceScanner = newResourceScanner;
+			return this;
+		}
+
+		/**
+		 * Some migrations, for example creating large indexes followed by large updates can cause an exception boiling down to
+		 * {code Could not compile query due to insanely frequent schema changes}. To prevent this, you can configure a static
+		 * delay between migrations.
+		 *
+		 * @param newDelayBetweenMigrations The delay to use. Use {@literal null} to disable delay (which is the default)
+		 * @return The builder for further customization
+		 * @since 2.3.2
+		 */
+		public Builder withDelayBetweenMigrations(Duration newDelayBetweenMigrations) {
+
+			this.delayBetweenMigrations = newDelayBetweenMigrations;
 			return this;
 		}
 

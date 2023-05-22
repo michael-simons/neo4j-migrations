@@ -669,6 +669,12 @@ Automatically convert Windows line-endings (CRLF) to LF when reading resource ba
 - Type: `java.lang.Boolean`
 - Default: `false`
 
+`org.neo4j.migrations.delay-between-migrations`::
+A configurable delay that will be applied in between applying two migrations.
+
+- Type: `java.time.Duration`
+- Default: `false`
+
 NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
 
 

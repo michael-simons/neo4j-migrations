@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -98,6 +99,13 @@ public class MigrationsProperties {
 	 * Cypher-based migration or applying it.
 	 */
 	private boolean autocrlf = Defaults.AUTOCRLF;
+
+	/**
+	 * A configurable delay that will be applied in between applying two migrations.
+	 *
+	 * @since 2.3.2
+	 */
+	private Duration delayBetweenMigrations;
 
 	/**
 	 * @return see {@link #enabled}
@@ -265,5 +273,19 @@ public class MigrationsProperties {
 	 */
 	public void setAutocrlf(boolean autocrlf) {
 		this.autocrlf = autocrlf;
+	}
+
+	/**
+	 * @return see {@link #delayBetweenMigrations}
+	 */
+	public Duration getDelayBetweenMigrations() {
+		return delayBetweenMigrations;
+	}
+
+	/**
+	 * @param delayBetweenMigrations A new value for {@link #delayBetweenMigrations}
+	 */
+	public void setDelayBetweenMigrations(Duration delayBetweenMigrations) {
+		this.delayBetweenMigrations = delayBetweenMigrations;
 	}
 }

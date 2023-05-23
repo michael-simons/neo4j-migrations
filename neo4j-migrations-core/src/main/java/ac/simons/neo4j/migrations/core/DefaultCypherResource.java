@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +41,9 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
 
 /**
  * An executable Cypher-based resources as a basis for migrations and callbacks
@@ -285,14 +286,16 @@ final class DefaultCypherResource implements CypherResource {
 				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
 					LOGGER.log(Level.FINE, "Executing statements in script \"{0}\" in one transaction", cypherResource.getIdentifier());
+					Counters c = Counters.empty();
 					numberOfStatements = session.executeWrite(t -> {
 						int cnt = 0;
 						for (String statement : executableStatements) {
-							run(t, statement);
+							c.add(run(t, statement));
 							++cnt;
 						}
 						return cnt;
 					});
+					VladimirAndEstragon.mayWait(session, c);
 				} else {
 					throw new MigrationsException("Unknown transaction mode " + transactionMode);
 				}
@@ -305,10 +308,11 @@ final class DefaultCypherResource implements CypherResource {
 	private static int executeInSeparateTransactions(Session session, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
 
 		int numberOfStatements = 0;
+		Counters counters = Counters.empty();
 		for (String statement : executableStatements) {
 			if (statementsNeedingImplicitTransactions.contains(statement)) {
 				++numberOfStatements;
-				session.run(statement).consume();
+				run(session, statement);
 			} else {
 				numberOfStatements += session.executeWrite(t -> {
 					run(t, statement);
@@ -316,6 +320,7 @@ final class DefaultCypherResource implements CypherResource {
 				});
 			}
 		}
+		VladimirAndEstragon.mayWait(session, counters);
 		return numberOfStatements;
 	}
 
@@ -382,7 +387,7 @@ final class DefaultCypherResource implements CypherResource {
 		return result;
 	}
 
-	static void run(SimpleQueryRunner runner, String statement) {
+	static Counters run(SimpleQueryRunner runner, String statement) {
 
 		LOGGER.log(Level.FINE, "Running {0}", statement);
 		ResultSummary resultSummary = runner.run(statement).consume();
@@ -396,5 +401,7 @@ final class DefaultCypherResource implements CypherResource {
 					c.labelsAdded(), c.labelsRemoved(), c.indexesAdded(), c.indexesRemoved(), c.constraintsAdded(),
 					c.constraintsRemoved() });
 		}
+
+		return Counters.of(c);
 	}
 }

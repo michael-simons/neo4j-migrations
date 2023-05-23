@@ -29,26 +29,26 @@ import ac.simons.neo4j.migrations.core.refactorings.Counters;
 /**
  * @author Michael J. Simons
  */
-class VladimirAndEstragonTest {
+class GodotTest {
 
 	@Test
 	void shouldNotWaitIfNoIndexesAreCreate() {
 		Session runner = mock(Session.class);
-		VladimirAndEstragon.mayWait(runner, Counters.empty());
+		HBD.vladimirAndEstragonMayWait(runner, Counters.empty());
 		Mockito.verifyNoInteractions(runner);
 	}
 
 	@Test
 	void shouldWaitIfIndexesAreCreate() {
 		Session runner = mock(Session.class);
-		VladimirAndEstragon.mayWait(runner, Counters.of(Map.of("indexesAdded", 23)));
+		HBD.vladimirAndEstragonMayWait(runner, Counters.of(Map.of("indexesAdded", 23)));
 		verify(runner).run("CALL db.awaitIndexes()");
 	}
 
 	@Test
 	void shouldWaitIfConstraintsAreCreate() {
 		Session runner = mock(Session.class);
-		VladimirAndEstragon.mayWait(runner, Counters.of(Map.of("constraintsAdded", 23)));
+		HBD.vladimirAndEstragonMayWait(runner, Counters.of(Map.of("constraintsAdded", 23)));
 		verify(runner).run("CALL db.awaitIndexes()");
 	}
 }

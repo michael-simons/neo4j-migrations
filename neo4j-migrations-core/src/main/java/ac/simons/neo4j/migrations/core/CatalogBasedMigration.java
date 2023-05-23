@@ -404,7 +404,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 					counters.labelsRemoved(), counters.typesRemoved(), counters.labelsAdded(), counters.typesAdded(), counters.propertiesSet()));
 
 			try (Session session = operationContext.sessionSupplier().get()) {
-				VladimirAndEstragon.mayWait(session, counters);
+				HBD.vladimirAndEstragonMayWait(session, counters);
 			}
 
 		} catch (VerificationFailedException e) {

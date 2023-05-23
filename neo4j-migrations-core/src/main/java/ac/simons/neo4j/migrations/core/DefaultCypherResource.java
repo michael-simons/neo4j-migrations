@@ -295,7 +295,7 @@ final class DefaultCypherResource implements CypherResource {
 						}
 						return cnt;
 					});
-					VladimirAndEstragon.mayWait(session, c);
+					HBD.vladimirAndEstragonMayWait(session, c);
 				} else {
 					throw new MigrationsException("Unknown transaction mode " + transactionMode);
 				}
@@ -320,7 +320,7 @@ final class DefaultCypherResource implements CypherResource {
 				});
 			}
 		}
-		VladimirAndEstragon.mayWait(session, counters);
+		HBD.vladimirAndEstragonMayWait(session, counters);
 		return numberOfStatements;
 	}
 

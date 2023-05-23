@@ -15,13 +15,16 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
@@ -41,6 +44,7 @@ class GodotTest {
 	@Test
 	void shouldWaitIfIndexesAreCreate() {
 		Session runner = mock(Session.class);
+		when(runner.run(any(String.class))).thenReturn(mock(Result.class));
 		HBD.vladimirAndEstragonMayWait(runner, Counters.of(Map.of("indexesAdded", 23)));
 		verify(runner).run("CALL db.awaitIndexes()");
 	}
@@ -48,6 +52,7 @@ class GodotTest {
 	@Test
 	void shouldWaitIfConstraintsAreCreate() {
 		Session runner = mock(Session.class);
+		when(runner.run(any(String.class))).thenReturn(mock(Result.class));
 		HBD.vladimirAndEstragonMayWait(runner, Counters.of(Map.of("constraintsAdded", 23)));
 		verify(runner).run("CALL db.awaitIndexes()");
 	}

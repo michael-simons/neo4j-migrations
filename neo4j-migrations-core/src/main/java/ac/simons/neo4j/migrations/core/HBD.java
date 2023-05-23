@@ -142,7 +142,7 @@ final class HBD {
 		}
 
 		Migrations.LOGGER.log(Level.FINE, "Waiting for new indexes to come online.");
-		session.run("CALL db.awaitIndexes()");
+		session.run("CALL db.awaitIndexes()").consume();
 		Migrations.LOGGER.log(Level.FINE, "Done.");
 	}
 

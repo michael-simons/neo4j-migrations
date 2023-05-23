@@ -16,9 +16,11 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
 
 import java.util.Locale;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
@@ -124,6 +126,24 @@ final class HBD {
 
 		return e.getMessage().toLowerCase(Locale.ROOT)
 			.contains("constraint requires Neo4j Enterprise Edition".toLowerCase(Locale.ROOT));
+	}
+
+	/**
+	 * This will call {@code db.awaitIndexes()} if the result summary from any previous statement indicates that indexes
+	 * or constraints have been added.
+	 *
+	 * @param session  the session to wait in
+	 * @param counters relevant counters from one or more queries
+	 */
+	static void vladimirAndEstragonMayWait(Session session, Counters counters) {
+
+		if (counters.indexesAdded() == 0 && counters.constraintsAdded() == 0) {
+			return;
+		}
+
+		Migrations.LOGGER.log(Level.FINE, "Waiting for new indexes to come online.");
+		session.run("CALL db.awaitIndexes()").consume();
+		Migrations.LOGGER.log(Level.FINE, "Done.");
 	}
 
 	private HBD() {

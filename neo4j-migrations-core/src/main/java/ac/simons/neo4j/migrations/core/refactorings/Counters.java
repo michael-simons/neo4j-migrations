@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core.refactorings;
 
 import java.util.Map;
 
+import org.neo4j.driver.summary.SummaryCounters;
+
 /**
  * Represents the available changes to the Graph done by a refactoring.
  *
@@ -25,6 +27,17 @@ import java.util.Map;
  * @since 1.10.0
  */
 public sealed interface Counters permits DefaultCounters, Counters.Empty {
+
+	/**
+	 * Turns drivers {@link  SummaryCounters} into a standardized counters facade.
+	 *
+	 * @param summaryCounters The drivers counter
+	 * @return A new facade
+	 * @since 2.4.0
+	 */
+	static Counters of(SummaryCounters summaryCounters) {
+		return new DefaultCounters(summaryCounters);
+	}
 
 	/**
 	 * @return An empty instance

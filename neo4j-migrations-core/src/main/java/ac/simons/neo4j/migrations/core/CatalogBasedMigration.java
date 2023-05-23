@@ -402,6 +402,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 			LOGGER.fine(() ->
 				String.format("Removed %d labels and %d types, added %d labels and %d types and modified %d properties in total.",
 					counters.labelsRemoved(), counters.typesRemoved(), counters.labelsAdded(), counters.typesAdded(), counters.propertiesSet()));
+
+			try (Session session = operationContext.sessionSupplier().get()) {
+				HBD.vladimirAndEstragonMayWait(session, counters);
+			}
+
 		} catch (VerificationFailedException e) {
 			throw new MigrationsException("Could not apply migration " + Migrations.toString(this) + " verification failed: " + e.getMessage());
 		}

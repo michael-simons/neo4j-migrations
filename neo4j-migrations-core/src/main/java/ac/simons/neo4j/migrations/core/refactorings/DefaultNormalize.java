@@ -135,6 +135,7 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			<BATCH>SET e.%1$s = CASE
 			  WHEN e.%1$s IN $trueValues THEN true
 			  WHEN e.%1$s IN $falseValues THEN false
+			  WHEN e.%1$s IN [true, false] THEN e.%1$s
 			  ELSE $nullValue
 			END</BATCH>""";
 

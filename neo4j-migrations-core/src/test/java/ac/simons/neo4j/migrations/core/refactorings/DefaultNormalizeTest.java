@@ -43,6 +43,7 @@ class DefaultNormalizeTest {
 			+ "SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END";
 
@@ -63,6 +64,7 @@ class DefaultNormalizeTest {
 			+ "CALL { WITH e SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END } IN TRANSACTIONS OF 15 ROWS";
 
@@ -85,6 +87,7 @@ class DefaultNormalizeTest {
 			+ "SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END";
 
@@ -107,6 +110,7 @@ class DefaultNormalizeTest {
 			+ "CALL { WITH e SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END } IN TRANSACTIONS OF 15 ROWS";
 
@@ -141,6 +145,7 @@ class DefaultNormalizeTest {
 			+ "SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END";
 
@@ -169,6 +174,7 @@ class DefaultNormalizeTest {
 			+ "SET e.`a property` = CASE\n"
 			+ "  WHEN e.`a property` IN $trueValues THEN true\n"
 			+ "  WHEN e.`a property` IN $falseValues THEN false\n"
+			+ "  WHEN e.`a property` IN [true, false] THEN e.`a property`\n"
 			+ "  ELSE $nullValue\n"
 			+ "END";
 

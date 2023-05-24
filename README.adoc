@@ -92,7 +92,7 @@ If you want to be listed here too, please reach out, and we can collaborate to e
 == Manual
 
 The complete manual is available here: https://michael-simons.github.io/neo4j-migrations[michael-simons.github.io/neo4j-migrations].
-The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {fullVersion} API].
+The API documentation for the core module is available here: https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html[Neo4j Migrations (Core) {fullVersion} API]. The comprehensive set of system diagrams including https://sourcespy.com/github/michaelsimonsneo4jmigrations/[build, module and class diagrams] is automatically generated weekly.
 
 == Presentations and features
 

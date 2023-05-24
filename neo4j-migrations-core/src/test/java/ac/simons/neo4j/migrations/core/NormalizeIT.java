@@ -48,6 +48,7 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 			session.run("MATCH (n:Movie {title:'The Matrix'}) SET n.watched = 'ja'").consume();
 			session.run("MATCH (n:Movie {title:'The Matrix Reloaded'}) SET n.watched = 'n'").consume();
 			session.run("MATCH (n:Movie {title:'The Matrix Revolutions'}) SET n.watched = 'jo'").consume();
+			session.run("create (m:Movie {title:'The Matrix Resurrections'}) set m.watched = false").consume();
 			session.run(
 					"MATCH (m:Movie {title:'The Matrix'}) <-[a:ACTED_IN]- (:Person {name: 'Emil Eifrem'}) SET a.watched = 'Y'")
 				.consume();
@@ -66,7 +67,7 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			Counters counters = normalize.apply(refactoringContext);
 
-			assertThat(counters.propertiesSet()).isEqualTo(38);
+			assertThat(counters.propertiesSet()).isEqualTo(39);
 			List<Boolean> watched = session.run("MATCH (m:Movie) RETURN DISTINCT m.watched")
 				.list(r -> r.get(0).asBoolean());
 			assertThat(watched).containsExactly(false);
@@ -84,7 +85,7 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
 			Counters counters = normalize.apply(refactoringContext);
 
-			assertThat(counters.propertiesSet()).isEqualTo(4);
+			assertThat(counters.propertiesSet()).isEqualTo(5);
 			List<Boolean> watched = session.run(
 				"MATCH (m:Movie) WHERE m.title =~ 'The Matrix.*' RETURN m.watched AS v UNION ALL MATCH (:Person {name: 'Emil Eifrem'}) -[r:ACTED_IN]->() RETURN r.watched AS v"
 			).list(r -> {
@@ -95,8 +96,11 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 				return value.asBoolean();
 			});
 			assertThat(watched)
-				.hasSize(4)
+				.hasSize(5)
 				.containsOnly(false, true, null);
+
+			assertThat(session.run("MATCH (m:Movie {title: 'The Matrix Resurrections'}) RETURN m.watched").single().get(0)
+					.asBoolean()).isFalse();
 		}
 	}
 }

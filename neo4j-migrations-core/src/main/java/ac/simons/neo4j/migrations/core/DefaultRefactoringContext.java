@@ -126,7 +126,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 	public Optional<String> findSingleResultIdentifier(String query) {
 
 		try (Session session = sessionSupplier.get()) {
-			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query))).consume();
+			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query)).consume());
 			Plan root = resultSummary.plan();
 			if (isProduceResultOperator(root) && hasSingleElement(root)) {
 				return Optional.of(root.arguments().get(KEY_DETAILS).asString());

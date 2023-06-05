@@ -159,7 +159,7 @@
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
 		<objenesis.version>3.3</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
-		<picocli.version>4.7.3</picocli.version>
+		<picocli.version>4.7.4</picocli.version>
 		<powermock.version>2.0.9</powermock.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>

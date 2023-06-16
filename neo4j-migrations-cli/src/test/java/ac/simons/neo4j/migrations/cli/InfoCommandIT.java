@@ -60,7 +60,7 @@ class InfoCommandIT {
 				System.out.flush();
 			});
 			assertThat(result)
-				.contains("Neo4j/4")
+				.containsPattern(".+Neo4j/[3-5].+")
 				.contains("No migrations found");
 		}
 	}

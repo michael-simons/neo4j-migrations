@@ -20,7 +20,7 @@ import org.neo4j.driver.Driver
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.Session
 
-Driver driver = GraphDatabase.driver(address, AuthTokens.basic("neo4j", "secret"))
+Driver driver = GraphDatabase.driver(address, AuthTokens.basic("neo4j", "one-does-not-simply-use-a-6-digit-password-for-an-enterprise-app"))
 driver.verifyConnectivity()
 Session session = driver.session()
 

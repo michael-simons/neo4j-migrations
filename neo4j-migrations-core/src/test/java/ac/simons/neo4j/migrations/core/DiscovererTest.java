@@ -95,7 +95,7 @@ class DiscovererTest {
 			assertThat(migrations)
 				.extracting(Migration::getOptionalDescription)
 				.filteredOn(Optional::isPresent)
-				.hasSize(12)
+				.hasSize(13)
 				.extracting(Optional::get)
 				.contains("delete old data", "create new data",
 					"BondTheNameIsBond",

@@ -232,7 +232,7 @@
 							<name>${neo4j.image}</name>
 							<run>
 								<env>
-									<NEO4J_AUTH>neo4j/secret</NEO4J_AUTH>
+									<NEO4J_AUTH>neo4j/one-does-not-simply-use-a-6-digit-password-for-an-enterprise-app</NEO4J_AUTH>
 								</env>
 								<wait>
 									<log>http://localhost:7474/</log>

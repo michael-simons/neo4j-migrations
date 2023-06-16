@@ -783,17 +783,19 @@ class MigrationsIT extends TestBase {
 
 		try (Session session = driver.session()) {
 			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();
-			String value = "\n"
-				+ "this is a nice string with\n"
-				+ "// a comment\n"
-				+ "  // in it!\n";
+			String value = """
+
+				this is a nice string with
+				// a comment
+				  // in it!
+				""";
 			assertThat(prop).isEqualTo(value);
 
 			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
 				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "2581374719", "200310393",
-						"949907516", "949907516", "2884945437", "1491717096", "227047158");
+						"949907516", "949907516", "2884945437", "1491717096", migrations.getConnectionDetails().getServerVersion().startsWith("Neo4j/5") ? "454777450" : "227047158");
 		}
 	}
 

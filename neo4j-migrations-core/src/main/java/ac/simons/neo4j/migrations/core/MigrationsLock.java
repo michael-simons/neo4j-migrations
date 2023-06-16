@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -121,14 +122,9 @@ final class MigrationsLock {
 
 			RenderConfig dropConfig = RenderConfig.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
-				String cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig);
-				Integer singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
-				if (singleConstraint == 0) {
-					// Enforce unnamed
-					cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig.ignoreName());
-					singleConstraint = HBD.silentDropConstraint(cd, session, cypher, null);
+				if (dropSingleConstraint(cd, session, dropConfig, constraint)) {
+					++constraintsRemoved;
 				}
-				constraintsRemoved += singleConstraint;
 			}
 		}
 
@@ -140,6 +136,32 @@ final class MigrationsLock {
 			0, indexesRemoved,
 			0, constraintsRemoved, 0
 		);
+	}
+
+	private static boolean dropSingleConstraint(ConnectionDetails cd, Session session, RenderConfig dropConfig, Constraint constraint) {
+		var translation = Map.of(
+			Constraint.Type.UNIQUE, "UNIQUENESS",
+			Constraint.Type.KEY, "NODE_KEY"
+		);
+
+		String cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig);
+		Integer constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);
+		if (constraintsDropped == 0) {
+			// Enforce unnamed
+			cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig.ignoreName());
+			try {
+				constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);
+			} catch (MigrationsException e) {
+				// While you might be able to create unnamed constraints on 5.x, you cannot drop them without
+				// the generated name anymore, so here's to that…
+				if (e.getCause() instanceof Neo4jException n && "Neo.ClientError.Statement.SyntaxError".equals(n.code())) {
+					var name = session.executeRead(tx -> tx.run("SHOW CONSTRAINTS YIELD * WHERE type = $type AND entityType = $entityType AND properties = $properties RETURN name", Map.of("type", translation.get(constraint.getType()), "entityType", constraint.getTargetEntityType().name(), "properties", constraint.getProperties())).single().get(0).asString());
+					cypher = CONSTRAINT_RENDERER.render(constraint.withName(name), dropConfig);
+					constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);
+				}
+			}
+		}
+		return constraintsDropped > 0;
 	}
 
 	record SummaryCountersImpl(int nodesCreated, int nodesDeleted, int relationshipsCreated,

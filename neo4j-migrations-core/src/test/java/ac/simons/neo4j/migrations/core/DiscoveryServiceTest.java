@@ -16,6 +16,9 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +29,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
 
 /**
@@ -37,13 +39,15 @@ class DiscoveryServiceTest {
 	@Test
 	void shouldDiscoverMigrationsInCorrectOrder() {
 
-		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
+		MigrationContext context = spy(new DefaultMigrationContext(MigrationsConfig.builder()
 			.withPackagesToScan(
 				"ac.simons.neo4j.migrations.core.test_migrations.changeset3",
 				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
 				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
 			.withLocationsToScan("classpath:/my/awesome/migrations")
-			.build(), Mockito.mock(Driver.class));
+			.build(), mock(Driver.class)));
+
+		doReturn(new DefaultConnectionDetails(null, "5.9", null, null, null, null)).when(context).getConnectionDetails();
 
 		List<Migration> migrations = new DiscoveryService().findMigrations(context);
 		assertThat(migrations)
@@ -62,7 +66,7 @@ class DiscoveryServiceTest {
 
 		MigrationContext context = new DefaultMigrationContext(MigrationsConfig.builder()
 			.withLocationsToScan("classpath:/my/awesome/migrations")
-			.build(), Mockito.mock(Driver.class));
+			.build(), mock(Driver.class));
 
 		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
 		assertThat(callbacks)
@@ -88,7 +92,7 @@ class DiscoveryServiceTest {
 				"classpath:/my/awesome/callbacks",
 				"file:" + dir.getAbsolutePath()
 			)
-			.build(), Mockito.mock(Driver.class));
+			.build(), mock(Driver.class));
 
 		Map<LifecyclePhase, List<Callback>> callbacks = new DiscoveryService().findCallbacks(context);
 		assertThat(callbacks)

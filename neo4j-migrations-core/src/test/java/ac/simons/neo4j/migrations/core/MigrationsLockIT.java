@@ -56,14 +56,15 @@ class MigrationsLockIT extends TestBase {
 	@Test
 	void shouldNotFailIfTheConstraintExistsAsUnnamedConstraint() {
 
+		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
+		var query = context.getConnectionDetails().getServerVersion().startsWith("Neo4j/5") ?
+			"CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE" :
+			"CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE";
 		try (Session session = driver.session()) {
-			int cnt = session.executeWrite(
-				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
-					.consume().counters().constraintsAdded());
+			int cnt = session.executeWrite(t -> t.run(query).consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();
 		}
 
-		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
 		MigrationsLock lock1 = new MigrationsLock(context);
 		try {
 			assertThatNoException().isThrownBy(lock1::lock);
@@ -75,20 +76,27 @@ class MigrationsLockIT extends TestBase {
 	@Test
 	void shouldNotFailIfTheConstraintExistsAsNamedConstraint() {
 
+		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
+		String query;
+		String validationQuery;
+		if (context.getConnectionDetails().getServerVersion().startsWith("Neo4j/5")) {
+			query = "CREATE CONSTRAINT a_name FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
+			validationQuery = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
+		} else {
+			query = "CREATE CONSTRAINT a_name ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE";
+			validationQuery = "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE";
+		}
 		try (Session session = driver.session()) {
 			int cnt = session.executeWrite(
-				t -> t.run("CREATE CONSTRAINT a_name ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
-					.consume().counters().constraintsAdded());
+				t -> t.run(query).consume().counters().constraintsAdded());
 			assertThat(cnt).isOne();
 
 			// Assert that the exception we want to catch is actually thrown
 			assertThatExceptionOfType(Neo4jException.class).isThrownBy(
-					() -> session.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
-						.consume())
+					() -> session.run(validationQuery).consume())
 				.matches(e -> "Neo.ClientError.Schema.ConstraintAlreadyExists".equals(e.code()));
 		}
 
-		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
 		MigrationsLock lock1 = new MigrationsLock(context);
 		try {
 			assertThatNoException().isThrownBy(lock1::lock);
@@ -171,22 +179,27 @@ class MigrationsLockIT extends TestBase {
 	@Test
 	void cleanCleansAlsoUnnamedConstraints() {
 
-		// Create old-school constraints
-		try (Session session = driver.session()) {
-			int cnt = session.executeWrite(
-				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE")
-					.consume().counters().constraintsAdded());
-			assertThat(cnt).isOne();
-			cnt = session.executeWrite(
-				t -> t.run("CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE")
-					.consume().counters().constraintsAdded());
-			assertThat(cnt).isOne();
-		}
-
-		Migrations migrations;
-		migrations = new Migrations(MigrationsConfig.builder()
+		Migrations migrations = new Migrations(MigrationsConfig.builder()
 			.withSchemaDatabase("neo4j")
 			.build(), driver);
+
+		String idConstraint;
+		String nameConstraint;
+		if (migrations.getConnectionDetails().getServerVersion().startsWith("Neo4j/5")) {
+			idConstraint = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
+			nameConstraint = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.name IS UNIQUE";
+		} else {
+			idConstraint = "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE";
+			nameConstraint = "CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.name IS UNIQUE";
+		}
+
+		// Create old-school constraints
+		try (Session session = driver.session()) {
+			int cnt = session.executeWrite(t -> t.run(idConstraint).consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+			cnt = session.executeWrite(t -> t.run(nameConstraint).consume().counters().constraintsAdded());
+			assertThat(cnt).isOne();
+		}
 
 		CleanResult cleanResult = migrations.clean(true);
 

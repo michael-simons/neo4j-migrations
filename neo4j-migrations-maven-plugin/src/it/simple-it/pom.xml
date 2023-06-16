@@ -39,7 +39,7 @@
 				<version>${neo4j-migrations-maven-plugin.version}</version>
 				<configuration>
 					<user>neo4j</user>
-					<password>secret</password>
+					<password>one-does-not-simply-use-a-6-digit-password-for-an-enterprise-app</password>
 					<address>bolt://localhost:${it-database-port}</address>
 					<verbose>true</verbose>
 				</configuration>

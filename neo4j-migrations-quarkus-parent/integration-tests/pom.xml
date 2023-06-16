@@ -32,7 +32,7 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.quarkus.tests</java-module-name>
-		<neo4j.password>secret</neo4j.password>
+		<neo4j.password>one-does-not-simply-use-a-4-digit-password-for-an-enterprise-app</neo4j.password>
 		<neo4j.username>neo4j</neo4j.username>
 		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>

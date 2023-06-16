@@ -271,15 +271,26 @@ class MigrationsEEIT {
 		// Assert that the lock had been created in the correct database
 		try (Session session = driver.session(TestBase.getSessionConfig(actualSchemaDatabase))) {
 
-			List<String> constraints = session.run(
-				"CALL db.constraints() YIELD description "
-				+ "WITH description WHERE description =~'.+:__Neo4jMigrationsLock\\\\s?\\\\).*' "
-				+ "RETURN description"
-			).list(r -> r.get("description").asString());
-			assertThat(constraints).containsExactlyInAnyOrder(
-				"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.name) IS UNIQUE",
-				"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.id) IS UNIQUE"
-			);
+			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD versions RETURN versions[0]").single().get(0).asString());
+
+			if(version.getMajorVersion() < 5) {
+				List<String> constraints = session.run(
+					"CALL db.constraints() YIELD description "
+					+ "WITH description WHERE description =~'.+:__Neo4jMigrationsLock\\\\s?\\\\).*' "
+					+ "RETURN description"
+				).list(r -> r.get("description").asString());
+				assertThat(constraints).containsExactlyInAnyOrder(
+					"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.name) IS UNIQUE",
+					"CONSTRAINT ON ( __neo4jmigrationslock:__Neo4jMigrationsLock ) ASSERT (__neo4jmigrationslock.id) IS UNIQUE"
+				);
+			} else {
+				List<String> constraints = session.run("""
+					SHOW CONSTRAINTS YIELD name
+					WHERE name =~'__Neo4jMigrationsLock__.*'
+					RETURN name"""
+				).list(r -> r.get("name").asString());
+				assertThat(constraints).containsExactlyInAnyOrder("__Neo4jMigrationsLock__has_unique_id" , "__Neo4jMigrationsLock__has_unique_name");
+			}
 		}
 	}
 

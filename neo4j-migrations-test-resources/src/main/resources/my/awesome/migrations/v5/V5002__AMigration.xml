@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?assume that version is ge 5.0 ?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<indexes />
+		<constraints>
+			<constraint name="unique_isbn" type="unique">
+				<label>Book</label>
+				<properties>
+					<property>isbn</property>
+				</properties>
+				<options>{`indexConfig`: {}, `indexProvider`: "range-1.0"}</options>
+			</constraint>
+			<constraint       type="unique" name="constraint_with_options">
+				<label>Label</label>
+				<properties>
+					<property>prop1</property>
+					<!--	<property>prop2</property>-->
+				</properties>
+				<options>
+					indexProvider: 'lucene+native-3.0',
+					indexConfig: {`spatial.wgs-84.min`: [-100.0, -80.0], `spatial.wgs-84.max`: [100.0, 80.0]}
+				</options>
+			</constraint>
+		</constraints>
+	</catalog>
+</migration>

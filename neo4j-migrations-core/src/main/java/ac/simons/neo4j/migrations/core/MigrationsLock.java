@@ -110,8 +110,7 @@ final class MigrationsLock {
 
 		int nodesDeleted = 0;
 		int relationshipsDeleted = 0;
-		int constraintsRemoved = 0;
-		int indexesRemoved = 0;
+		int constraintsDropped = 0;
 
 		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
@@ -122,9 +121,7 @@ final class MigrationsLock {
 
 			RenderConfig dropConfig = RenderConfig.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
-				if (dropSingleConstraint(cd, session, dropConfig, constraint)) {
-					++constraintsRemoved;
-				}
+				constraintsDropped += dropConstraint(cd, session, dropConfig, constraint);
 			}
 		}
 
@@ -133,12 +130,12 @@ final class MigrationsLock {
 			0, relationshipsDeleted,
 			0,
 			0, 0,
-			0, indexesRemoved,
-			0, constraintsRemoved, 0
+			0, 0,
+			0, constraintsDropped, 0
 		);
 	}
 
-	private static boolean dropSingleConstraint(ConnectionDetails cd, Session session, RenderConfig dropConfig, Constraint constraint) {
+	private static int dropConstraint(ConnectionDetails cd, Session session, RenderConfig dropConfig, Constraint constraint) {
 		var translation = Map.of(
 			Constraint.Type.UNIQUE, "UNIQUENESS",
 			Constraint.Type.KEY, "NODE_KEY"
@@ -161,7 +158,7 @@ final class MigrationsLock {
 				}
 			}
 		}
-		return constraintsDropped > 0;
+		return constraintsDropped;
 	}
 
 	record SummaryCountersImpl(int nodesCreated, int nodesDeleted, int relationshipsCreated,

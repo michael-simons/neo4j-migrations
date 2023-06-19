@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<?assume that edition is enterprise ?>
+	<catalog>
+		<indexes/>
+		<constraints>
+			<constraint name="multiple_props" type="property_type">
+				<type>LIKED</type>
+				<properties>
+					<property type="BOOLEAN">day</property>
+					<property type="STRING">day</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+</migration>

@@ -24,6 +24,7 @@ import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -70,7 +71,7 @@ class ConstraintToCypherRendererTest {
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.COMMUNITY, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
-			Arrays.asList("a", "b"));
+			Arrays.asList("a", "b"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		if (shouldFail) {
@@ -83,12 +84,12 @@ class ConstraintToCypherRendererTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY" }, mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY", "PROPERTY_TYPE" }, mode = EnumSource.Mode.EXCLUDE)
 	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Type type) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", type, TargetEntityType.NODE, "Book",
-			Arrays.asList("a", "b"));
+			List.of("a", "b"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatIllegalArgumentException()
@@ -135,7 +136,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
-				Collections.singleton("isbn"));
+				Collections.singleton("isbn"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
@@ -148,7 +149,7 @@ class ConstraintToCypherRendererTest {
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(version), Neo4jEdition.COMMUNITY, Operator.CREATE, true);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
-			Collections.singleton("isbn"));
+			Collections.singleton("isbn"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatIllegalArgumentException()
@@ -162,7 +163,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V3_5, edition, Operator.CREATE, false);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.EXISTS, TargetEntityType.NODE, "Book",
-				Collections.singleton("isbn"));
+				Collections.singleton("isbn"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThatExceptionOfType(IllegalStateException.class)
@@ -175,7 +176,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
 		Constraint constraint = new Constraint("unique_isbn", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
-			Collections.singleton("isbn"), "{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
+			Collections.singleton("isbn"), "{`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}", null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo("CREATE CONSTRAINT unique_isbn FOR (n:Book) REQUIRE n.isbn IS UNIQUE");
@@ -194,7 +195,7 @@ class ConstraintToCypherRendererTest {
 
 		Constraint constraint = new Constraint(Constraint.Type.UNIQUE, TargetEntityType.NODE,
 			"Book",
-			Collections.singleton("isbn"));
+			Collections.singleton("isbn"), null);
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of("4.4.4"), Neo4jEdition.COMMUNITY, operator, true);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
@@ -247,7 +248,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntityType.NODE, "Book",
-				Collections.singleton("isbn"));
+				Collections.singleton("isbn"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
@@ -292,7 +293,7 @@ class ConstraintToCypherRendererTest {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator, idempotent);
 		Constraint constraint = new Constraint(named ? "constraint_name" : null, Constraint.Type.EXISTS, TargetEntityType.RELATIONSHIP, "LIKED",
-				Collections.singleton("day"));
+				Collections.singleton("day"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
@@ -333,7 +334,7 @@ class ConstraintToCypherRendererTest {
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
 			idempotent);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
-			Arrays.asList("firstname", "surname"));
+			Arrays.asList("firstname", "surname"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
@@ -374,10 +375,51 @@ class ConstraintToCypherRendererTest {
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), Neo4jEdition.ENTERPRISE, operator,
 			idempotent);
 		Constraint constraint = new Constraint("constraint_name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
-			Arrays.asList("firstname"));
+			List.of("firstname"), null);
 
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
+	}
+
+	static Stream<Arguments> shouldRenderPropertyTypeConstraints() {
+		var constraintOnNode = Constraint.forNode("Movie").named("movie_title").type("title", PropertyType.STRING);
+		var constraintOnRel = Constraint.forRelationship("HAD_ROLE").named("whatever").type("xyz", PropertyType.LOCAL_DATETIME);
+		return Stream.of(
+			Arguments.of(Operator.CREATE, false, constraintOnNode, "CREATE CONSTRAINT movie_title FOR (n:Movie) REQUIRE n.title IS :: STRING"),
+			Arguments.of(Operator.CREATE, true, constraintOnNode, "CREATE CONSTRAINT movie_title IF NOT EXISTS FOR (n:Movie) REQUIRE n.title IS :: STRING"),
+			Arguments.of(Operator.DROP, false, constraintOnNode, "DROP CONSTRAINT movie_title"),
+			Arguments.of(Operator.DROP, true, constraintOnNode, "DROP CONSTRAINT movie_title IF EXISTS"),
+			Arguments.of(Operator.CREATE, false, constraintOnRel, "CREATE CONSTRAINT whatever FOR ()-[r:HAD_ROLE]-() REQUIRE r.xyz IS :: LOCAL DATETIME"),
+			Arguments.of(Operator.CREATE, true, constraintOnRel, "CREATE CONSTRAINT whatever IF NOT EXISTS FOR ()-[r:HAD_ROLE]-() REQUIRE r.xyz IS :: LOCAL DATETIME"),
+			Arguments.of(Operator.DROP, false, constraintOnRel, "DROP CONSTRAINT whatever"),
+			Arguments.of(Operator.DROP, true, constraintOnRel, "DROP CONSTRAINT whatever IF EXISTS")
+		);
+	}
+
+	@ParameterizedTest // GH-1011
+	@MethodSource
+	void shouldRenderPropertyTypeConstraints(Operator operator, boolean idempotent, Constraint constraint, String expected) {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE, operator,
+			idempotent);
+
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldNotRenderPropertyTypeConstraintsWithoutAName() {
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE, Operator.DROP, false);
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+
+		var constraint1 = new Constraint(null, Constraint.Type.PROPERTY_TYPE, TargetEntityType.NODE, "Movie", List.of("whatever"), PropertyType.DURATION);
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(constraint1, renderConfig))
+			.withMessage("Property type constraints can only be dropped via name.");
+
+		var constraint2 = Constraint.forNode("Movie").named("movie_title").type("title", PropertyType.STRING);
+		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(constraint2, renderConfig.ignoreName()))
+			.withMessage("Property type constraints can only be dropped via name.");
 	}
 
 	@SuppressWarnings("unused")

@@ -91,7 +91,18 @@ class XMLParsingTest {
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
 			.map(Constraint.class::cast))
 			.extracting(Constraint::getName)
-			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"));
+			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"), Name.of("xyz"));
+
+		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
+			.map(Constraint.class::cast))
+			.extracting(Constraint::getType)
+			.containsExactlyInAnyOrder(Constraint.Type.UNIQUE, Constraint.Type.EXISTS, Constraint.Type.PROPERTY_TYPE);
+
+		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance)
+			.map(Constraint.class::cast)
+			.filter(c -> c.getType() == Constraint.Type.PROPERTY_TYPE))
+			.map(Constraint::getPropertyType)
+			.contains(PropertyType.LOCAL_DATETIME);
 
 		assertThat(catalog.getItems().stream().filter(Index.class::isInstance)
 			.map(Index.class::cast))
@@ -105,11 +116,38 @@ class XMLParsingTest {
 	}
 
 	@Test
-	void shouldNotCreateInvalidConstaints() {
+	void shouldNotCreateInvalidConstraints() {
 
 		URL resource = TestResources.class.getResource("/catalogbased/parsing/invalid_constraint.xml");
 		Objects.requireNonNull(resource);
 		assertThatIllegalArgumentException().isThrownBy(() -> load(resource, false));
+	}
+
+	@Test // GH-1011
+	void shouldNotCreateInvalidPropertyTypeConstraintsWithMultipleProps() {
+
+		URL resource = TestResources.class.getResource("/catalogbased/parsing/invalid_constraint2.xml");
+		Objects.requireNonNull(resource);
+		assertThatIllegalArgumentException().isThrownBy(() -> load(resource, false))
+			.withMessage("Only one property allowed on property type constraints.");
+	}
+
+	@Test // GH-1011
+	void shouldNotCreateInvalidPropertyTypeConstraintsWithoutType() {
+
+		URL resource = TestResources.class.getResource("/catalogbased/parsing/invalid_constraint3.xml");
+		Objects.requireNonNull(resource);
+		assertThatIllegalArgumentException().isThrownBy(() -> load(resource, false))
+			.withMessage("The type attribute for properties is required on property type constraints.");
+	}
+
+	@Test // GH-1011
+	void shouldNotCreateInvalidPropertyTypeConstraintsWithBlankType() {
+
+		URL resource = TestResources.class.getResource("/catalogbased/parsing/invalid_constraint4.xml");
+		Objects.requireNonNull(resource);
+		assertThatIllegalArgumentException().isThrownBy(() -> load(resource, false))
+			.withMessage("The type attribute for properties is required on property type constraints.");
 	}
 
 	@Test

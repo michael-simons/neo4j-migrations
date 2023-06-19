@@ -42,7 +42,7 @@ class CypherRenderingUtilsTest {
 
 		try (StringWriter writer = new StringWriter()) {
 			Constraint constraint = new Constraint("isbn_unique", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
-				Collections.singleton("isbn"), options);
+				Collections.singleton("isbn"), options, null);
 			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
 			assertThat(writer).hasToString(" OPTIONS {" + options + "}");
@@ -55,7 +55,7 @@ class CypherRenderingUtilsTest {
 
 		try (StringWriter writer = new StringWriter()) {
 			Constraint constraint = new Constraint("isbn_unique", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book",
-				Collections.singleton("isbn"), options);
+				Collections.singleton("isbn"), options, null);
 			CypherRenderingUtils.renderOptions(constraint, RENDER_CONFIG, writer);
 			writer.flush();
 			assertThat(writer).hasToString(" OPTIONS " + options.trim());

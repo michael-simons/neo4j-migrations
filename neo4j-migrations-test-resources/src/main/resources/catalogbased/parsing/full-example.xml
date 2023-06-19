@@ -38,6 +38,12 @@
 					<property>isbn</property>
 				</properties>
 			</constraint>
+			<constraint name="xyz" type="property_type">
+				<label>Book</label>
+				<properties>
+					<property type="LOCAL DATETIME">xyz</property>
+				</properties>
+			</constraint>
 		</constraints>
 	</catalog>
 

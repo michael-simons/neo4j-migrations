@@ -270,6 +270,9 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		for (String propertyValue : getProperties()) {
 			Element newElement = document.createElement(XMLSchemaConstants.PROPERTY);
 			newElement.setTextContent(propertyValue);
+			if (this instanceof Constraint constraint && constraint.getType() == Constraint.Type.PROPERTY_TYPE) {
+				newElement.setAttribute("type", constraint.getPropertyType().getName());
+			}
 			propertiesParentElement.appendChild(newElement);
 		}
 		element.appendChild(propertiesParentElement);

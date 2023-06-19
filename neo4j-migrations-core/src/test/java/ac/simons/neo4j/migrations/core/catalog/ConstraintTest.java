@@ -18,15 +18,12 @@ package ac.simons.neo4j.migrations.core.catalog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import ac.simons.neo4j.migrations.core.MapAccessorAndRecordImpl;
-
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
@@ -39,6 +36,8 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 
+import ac.simons.neo4j.migrations.core.MapAccessorAndRecordImpl;
+
 /**
  * @author Michael J. Simons
  */
@@ -47,21 +46,22 @@ class ConstraintTest {
 	@SuppressWarnings("unused")
 	static Stream<Arguments> shouldParseUniqueNode() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),
-			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
-			Arguments.of("4.0", "stupid_stuff",
+			Arguments.of(null, "CONSTRAINT ON ( book:Book ) ASSERT book.isbn IS UNIQUE"),
+			Arguments.of("a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE"),
+			Arguments.of("stupid_stuff",
 				"CONSTRAINT ON ( book:Book ) ASSERT (book.fünny things are fünny \uD83D\uDE31. Wow.) IS UNIQUE"),
-			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
+			Arguments.of("a_name", "CONSTRAINT ON ( book:Book ) ASSERT (book.isbn) IS UNIQUE")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldParseUniqueNode(String version, String name, String description) {
+	void shouldParseUniqueNode(String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))));
+			new MapAccessorAndRecordImpl(Map.of(
+				"name", name == null ? Values.NULL : Values.value(name),
+				"description", Values.value(description))));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE);
 		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -80,21 +80,23 @@ class ConstraintTest {
 
 	static Stream<Arguments> shouldParseSimpleNodePropertyExistenceConstraint() {
 		return Stream.of(
-			Arguments.of("3.5", null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
-			Arguments.of("4.0", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
-			Arguments.of("4.0", "stupid_stuff",
+			Arguments.of(null, "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
+			Arguments.of("a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)"),
+			Arguments.of("stupid_stuff",
 				"CONSTRAINT ON ( book:Book ) ASSERT exists(book.fünny things are fünny and why not, add more fun. Wow \uD83D\uDE31)"),
-			Arguments.of("4.1", "a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)")
+			Arguments.of("a_name", "CONSTRAINT ON ( book:Book ) ASSERT exists(book.isbn)")
 		);
 	}
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldParseSimpleNodePropertyExistenceConstraint(String version, String name, String description) {
+	void shouldParseSimpleNodePropertyExistenceConstraint(String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))));
+			new MapAccessorAndRecordImpl(Map.of(
+				"name", name == null ? Values.NULL : Values.value(name),
+				"description", Values.value(description))
+			));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -111,6 +113,52 @@ class ConstraintTest {
 		}
 	}
 
+	@Test // GH-1011
+	void shouldParseNodePropertyTypeConstraint() {
+
+		var constraint = Constraint.parse(
+			new MapAccessorAndRecordImpl(Map.of(
+				"entityType", Values.value("NODE"),
+				"name", Values.value("movie_title"),
+				"labelsOrTypes", Values.value(List.of("Movie")),
+				"type", Values.value("NODE_PROPERTY_TYPE"),
+				"properties", Values.value(List.of("release_date")),
+				"propertyType", Values.value("LOCAL DATETiME"),
+				"createStatement", Values.value("CREATE CONSTRAINT `movie_title` FOR (n:`Movie`) REQUIRE (n.`title`) IS :: STRING")
+			))
+		);
+
+		assertThat(constraint.getName()).extracting(Name::getValue).isEqualTo("movie_title");
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.PROPERTY_TYPE);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
+		assertThat(constraint.getIdentifier()).isEqualTo("Movie");
+		assertThat(constraint.getProperties()).containsExactly("release_date");
+		assertThat(constraint.getPropertyType()).isEqualTo(PropertyType.LOCAL_DATETIME);
+	}
+
+	@Test // GH-1011
+	void shouldParseRelPropertyTypeConstraint() {
+
+		var constraint = Constraint.parse(
+			new MapAccessorAndRecordImpl(Map.of(
+				"entityType", Values.value("RELATIONSHIP"),
+				"name", Values.value("part_of"),
+				"labelsOrTypes", Values.value(List.of("PART_OF")),
+				"type", Values.value("RELATIONSHIP_PROPERTY_TYPE"),
+				"properties", Values.value(List.of("order")),
+				"propertyType", Values.value("INTEGER"),
+				"createStatement", Values.value("CREATE CONSTRAINT `part_of` FOR ()-[r:`PART_OF`]-() REQUIRE (r.`order`) IS :: INTEGER")
+			))
+		);
+
+		assertThat(constraint.getName()).extracting(Name::getValue).isEqualTo("part_of");
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.PROPERTY_TYPE);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
+		assertThat(constraint.getIdentifier()).isEqualTo("PART_OF");
+		assertThat(constraint.getProperties()).containsExactly("order");
+		assertThat(constraint.getPropertyType()).isEqualTo(PropertyType.INTEGER);
+	}
+
 	static Stream<Arguments> shouldParseNodeKeyConstraint() {
 		return Stream.of(
 			Arguments.of(null, "CONSTRAINT ON ( person:Person ) ASSERT (person.firstname, person.surname) IS NODE KEY"),
@@ -125,8 +173,10 @@ class ConstraintTest {
 	void shouldParseNodeKeyConstraint(String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))));
+			new MapAccessorAndRecordImpl(Map.of(
+				"name", name == null ? Values.NULL : Values.value(name),
+				"description", Values.value(description))
+			));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.KEY);
 		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
 		assertThat(constraint.getIdentifier()).isEqualTo("Person");
@@ -157,8 +207,10 @@ class ConstraintTest {
 	void shouldParseSimpleRelPropertyExistenceConstraint(String version, String name, String description) {
 
 		Constraint constraint = Constraint.parse(
-			new MapAccessorAndRecordImpl(makeMap(new SimpleEntry<>("name", name == null ? Values.NULL : Values.value(name)),
-				new SimpleEntry<>("description", Values.value(description)))));
+			new MapAccessorAndRecordImpl(Map.of(
+				"name", name == null ? Values.NULL : Values.value(name),
+				"description", Values.value(description))
+			));
 		assertThat(constraint.getType()).isEqualTo(Constraint.Type.EXISTS);
 		assertThat(constraint.getIdentifier()).isEqualTo("LIKED");
 		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
@@ -174,15 +226,6 @@ class ConstraintTest {
 		}
 	}
 
-	@SafeVarargs
-	static Map<String, Value> makeMap(SimpleEntry<String, Value>... entries) {
-		Map<String, Value> result = new HashMap<>(entries.length);
-		for (SimpleEntry<String, Value> entry : entries) {
-			result.put(entry.getKey(), entry.getValue());
-		}
-		return result;
-	}
-
 	static Stream<Arguments> showConstraints44() {
 		String v = "4.4";
 
@@ -193,12 +236,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Collections.singletonList("title"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("title")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("UNIQUENESS"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Collections.singletonList("title"))
 				)
 			),
 			Arguments.of(
@@ -207,12 +250,12 @@ class ConstraintTest {
 				"Person",
 				TargetEntityType.NODE,
 				Arrays.asList("firstname", "surname"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("NODE_KEY")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Person"))),
-					new SimpleEntry<>("properties", Values.value(Arrays.asList("firstname", "surname")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("NODE_KEY"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Person")),
+					"properties", Values.value(Arrays.asList("firstname", "surname"))
 				)
 			),
 			Arguments.of(
@@ -221,12 +264,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Arrays.asList("a", "b"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Arrays.asList("a", "b")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("UNIQUENESS"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Arrays.asList("a", "b"))
 				)
 			),
 			Arguments.of(
@@ -235,12 +278,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("NODE_PROPERTY_EXISTENCE")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("NODE_PROPERTY_EXISTENCE"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Collections.singletonList("isbn"))
 				)
 			),
 			Arguments.of(
@@ -249,12 +292,12 @@ class ConstraintTest {
 				"LIKED",
 				TargetEntityType.RELATIONSHIP,
 				Collections.singletonList("day"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE")),
-					new SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("LIKED"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("day")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE"),
+					"entityType", Values.value("RELATIONSHIP"),
+					"labelsOrTypes", Values.value(Collections.singletonList("LIKED")),
+					"properties", Values.value(Collections.singletonList("day"))
 				)
 			),
 			Arguments.of(
@@ -263,12 +306,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("UNIQUENESS"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Collections.singletonList("isbn"))
 				)
 			)
 		);
@@ -283,12 +326,12 @@ class ConstraintTest {
 				"Person",
 				TargetEntityType.NODE,
 				Arrays.asList("firstname", "surname"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("NODE_KEY")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Person"))),
-					new SimpleEntry<>("properties", Values.value(Arrays.asList("firstname", "surname")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("NODE_KEY"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Person")),
+					"properties", Values.value(Arrays.asList("firstname", "surname"))
 				)
 			),
 			Arguments.of(
@@ -297,12 +340,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("NODE_PROPERTY_EXISTENCE")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("NODE_PROPERTY_EXISTENCE"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Collections.singletonList("isbn"))
 				)
 			),
 			Arguments.of(
@@ -311,12 +354,12 @@ class ConstraintTest {
 				"LIKED",
 				TargetEntityType.RELATIONSHIP,
 				Collections.singletonList("day"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE")),
-					new SimpleEntry<>("entityType", Values.value("RELATIONSHIP")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("LIKED"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("day")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("RELATIONSHIP_PROPERTY_EXISTENCE"),
+					"entityType", Values.value("RELATIONSHIP"),
+					"labelsOrTypes", Values.value(Collections.singletonList("LIKED")),
+					"properties", Values.value(Collections.singletonList("day"))
 				)
 			),
 			Arguments.of(
@@ -325,12 +368,12 @@ class ConstraintTest {
 				"Book",
 				TargetEntityType.NODE,
 				Collections.singletonList("isbn"),
-				makeMap(
-					new SimpleEntry<>("name", Values.value("constraint_name")),
-					new SimpleEntry<>("type", Values.value("UNIQUENESS")),
-					new SimpleEntry<>("entityType", Values.value("NODE")),
-					new SimpleEntry<>("labelsOrTypes", Values.value(Collections.singletonList("Book"))),
-					new SimpleEntry<>("properties", Values.value(Collections.singletonList("isbn")))
+				Map.of(
+					"name", Values.value("constraint_name"),
+					"type", Values.value("UNIQUENESS"),
+					"entityType", Values.value("NODE"),
+					"labelsOrTypes", Values.value(Collections.singletonList("Book")),
+					"properties", Values.value(Collections.singletonList("isbn"))
 				)
 			)
 		)), showConstraints44());
@@ -373,7 +416,7 @@ class ConstraintTest {
 		void generatedNameShouldBeIdentifiable() {
 
 			Constraint constraint = new Constraint(Constraint.Type.KEY, TargetEntityType.NODE, "Person",
-					Arrays.asList("firstname", "surname"));
+					Arrays.asList("firstname", "surname"), null);
 			assertThat(constraint.hasGeneratedName()).isTrue();
 		}
 	}
@@ -389,6 +432,7 @@ class ConstraintTest {
 				case UNIQUE -> Constraint.forNode("Book").named("foo").unique("bar");
 				case EXISTS -> Constraint.forNode("Book").named("foo").exists("bar");
 				case KEY -> Constraint.forNode("Book").named("foo").key("bar");
+				case PROPERTY_TYPE -> Constraint.forNode("Book").named("foo").type("bar", PropertyType.INTEGER);
 			};
 
 			assertThat(constraint.getIdentifier()).isEqualTo("Book");
@@ -396,17 +440,44 @@ class ConstraintTest {
 			assertThat(constraint.getProperties()).containsExactly("bar");
 			assertThat(constraint.getType()).isEqualTo(type);
 			assertThat(constraint.getName()).isEqualTo(Name.of("foo"));
+			if (type == Constraint.Type.PROPERTY_TYPE) {
+				assertThat(constraint.getPropertyType()).isEqualTo(PropertyType.INTEGER);
+			}
 		}
 	}
 
 	@Nested
 	class Invalid {
 
+		@Test // GH-1011
+		void shouldCheckTypeCombo1() {
+
+			var properties = Collections.singleton("x");
+			assertThatIllegalArgumentException().isThrownBy(() -> new Constraint("foo", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Movie", properties, PropertyType.DATE))
+				.withMessage("A property type can only be used with a property type constraint.");
+		}
+
+		@Test // GH-1011
+		void shouldCheckTypeCombo2() {
+
+			var properties = Collections.singleton("x");
+			assertThatIllegalArgumentException().isThrownBy(() -> new Constraint("foo", Constraint.Type.PROPERTY_TYPE, TargetEntityType.NODE, "Movie", properties, null))
+				.withMessage("A property type constraint requires a property type.");
+		}
+
+		@Test // GH-1011
+		void shouldCheckTypeCombo3() {
+
+			var properties = Set.of("x", "y");
+			assertThatIllegalArgumentException().isThrownBy(() -> new Constraint("foo", Constraint.Type.PROPERTY_TYPE, TargetEntityType.NODE, "Movie", properties, PropertyType.DATE))
+				.withMessage("A property type constraint can only be applied to a single property.");
+		}
+
 		@Test
 		void keyConstraintsShouldNotBeSupportedOnRelationships() {
 			List<String> properties = Collections.singletonList("x");
 			assertThatIllegalArgumentException().isThrownBy(
-				() -> new Constraint(Constraint.Type.KEY, TargetEntityType.RELATIONSHIP, "LIKES", properties)
+				() -> new Constraint(Constraint.Type.KEY, TargetEntityType.RELATIONSHIP, "LIKES", properties, null)
 			).withMessage("Key constraints are only supported for nodes, not for relationships.");
 		}
 	}
@@ -476,14 +547,14 @@ class ConstraintTest {
 		@Test // GH-656
 		void sameOptionsAreNotRequired() {
 
-			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), "foo");
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), "foo", null);
 			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
 		}
 
 		@Test
 		void nullOptionsShouldBeSame() {
 
-			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), " ");
+			Constraint other = new Constraint(null, Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("id"), " ", null);
 			assertThat(uniqueBookIdV1.isEquivalentTo(other)).isTrue();
 		}
 

@@ -17,8 +17,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Named;
@@ -31,52 +30,80 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 class ConstraintToXMLRendererTest {
 
+	@SuppressWarnings("checkstyle:RegexpSinglelineJava")
 	static Stream<Arguments> shouldRenderConstraintsToXML() {
 		return Stream.of(
 			Arguments.of(Named.of("node property exists",
-					new Constraint("name", Constraint.Type.EXISTS, TargetEntityType.NODE, "Book", Collections.singleton("isbn"),
-						"")),
-				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint name=\"name\" type=\"exists\">\n"
-				+ "    <label>Book</label>\n"
-				+ "    <properties>\n"
-				+ "        <property>isbn</property>\n"
-				+ "    </properties>\n"
-				+ "</constraint>"
+					new Constraint("name", Constraint.Type.EXISTS, TargetEntityType.NODE, "Book", List.of("isbn"), "", null)),
+					"""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<constraint name="name" type="exists">
+					    <label>Book</label>
+					    <properties>
+					        <property>isbn</property>
+					    </properties>
+					</constraint>"""
 			),
 			Arguments.of(Named.of("relationship property exists",
 					new Constraint("name", Constraint.Type.EXISTS, TargetEntityType.RELATIONSHIP, "LIKED",
-						Collections.singleton("day"), "")),
-				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint name=\"name\" type=\"exists\">\n"
-				+ "    <type>LIKED</type>\n"
-				+ "    <properties>\n"
-				+ "        <property>day</property>\n"
-				+ "    </properties>\n"
-				+ "</constraint>"
+						List.of("day"), "", null)),
+					"""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<constraint name="name" type="exists">
+					    <type>LIKED</type>
+					    <properties>
+					        <property>day</property>
+					    </properties>
+					</constraint>"""
 			),
 			Arguments.of(Named.of("node property is unique",
-					new Constraint("name", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", Collections.singleton("isbn"),
-						"")),
-				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint name=\"name\" type=\"unique\">\n"
-				+ "    <label>Book</label>\n"
-				+ "    <properties>\n"
-				+ "        <property>isbn</property>\n"
-				+ "    </properties>\n"
-				+ "</constraint>"
+					new Constraint("name", Constraint.Type.UNIQUE, TargetEntityType.NODE, "Book", List.of("isbn"),
+						"", null)),
+					"""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<constraint name="name" type="unique">
+					    <label>Book</label>
+					    <properties>
+					        <property>isbn</property>
+					    </properties>
+					</constraint>"""
 			),
 			Arguments.of(Named.of("node key",
 					new Constraint("name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
-						Arrays.asList("firstname", "surname"), "")),
-				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<constraint name=\"name\" type=\"key\">\n"
-				+ "    <label>Person</label>\n"
-				+ "    <properties>\n"
-				+ "        <property>firstname</property>\n"
-				+ "        <property>surname</property>\n"
-				+ "    </properties>\n"
-				+ "</constraint>"
+						List.of("firstname", "surname"), "", null)),
+					"""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<constraint name="name" type="key">
+					    <label>Person</label>
+					    <properties>
+					        <property>firstname</property>
+					        <property>surname</property>
+					    </properties>
+					</constraint>"""
+			),
+			Arguments.of(Named.of("node property type",
+					new Constraint("name", Constraint.Type.PROPERTY_TYPE, TargetEntityType.NODE, "Person",
+						List.of("name"), "", PropertyType.STRING)),
+				"""
+				<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+				<constraint name="name" type="property_type">
+				    <label>Person</label>
+				    <properties>
+				        <property type="STRING">name</property>
+				    </properties>
+				</constraint>"""
+			),
+			Arguments.of(Named.of("rel property type",
+					new Constraint("name", Constraint.Type.PROPERTY_TYPE, TargetEntityType.RELATIONSHIP, "LIKED",
+						List.of("name"), "", PropertyType.LOCAL_DATETIME)),
+				"""
+				<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+				<constraint name="name" type="property_type">
+				    <type>LIKED</type>
+				    <properties>
+				        <property type="LOCAL DATETIME">name</property>
+				    </properties>
+				</constraint>"""
 			)
 		);
 	}

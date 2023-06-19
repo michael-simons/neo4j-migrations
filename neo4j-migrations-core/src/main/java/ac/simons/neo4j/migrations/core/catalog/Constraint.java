@@ -448,4 +448,24 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			this.getIdentifier().equals(other.getIdentifier()) &&
 			this.getProperties().equals(other.getProperties());
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		Constraint that = (Constraint) o;
+		return propertyType == that.propertyType;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), propertyType);
+	}
 }

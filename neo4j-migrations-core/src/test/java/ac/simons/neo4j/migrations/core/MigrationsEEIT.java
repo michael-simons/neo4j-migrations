@@ -18,10 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
-import ac.simons.neo4j.migrations.core.catalog.Renderer;
-
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -55,6 +51,14 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
 
 /**
  * Tests that made only sense in Neo4j Enterprise Edition.
@@ -531,6 +535,48 @@ class MigrationsEEIT {
 			}
 		} finally {
 			lock1.unlock();
+		}
+	}
+
+	@Test
+	void shouldApplyResourceBasedMigrations() {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder()
+			.withLocationsToScan(
+				"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
+
+		Catalog localCatalog = migrations.getLocalCatalog();
+		assertThat(localCatalog.getItems()).hasSize(2);
+		Catalog databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).isEmpty();
+		CatalogDiff diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).containsAll(localCatalog.getItems());
+
+		migrations.apply();
+
+		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(13);
+
+		databaseCatalog = migrations.getDatabaseCatalog();
+		assertThat(databaseCatalog.getItems()).hasSize(2);
+		diff = CatalogDiff.between(databaseCatalog, localCatalog);
+		assertThat(diff.getItemsOnlyInRight()).map(CatalogItem::getName).containsExactly(Name.of("constraint_with_options"));
+
+		try (Session session = driver.session()) {
+			String prop = session.run("MATCH (s:Stuff) RETURN s.prop").single().get(0).asString();
+			String value = """
+
+				this is a nice string with
+				// a comment
+				  // in it!
+				""";
+			assertThat(prop).isEqualTo(value);
+
+			List<String> checksums = session.run("MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
+				.list(r -> r.get("checksum").asString(null));
+			assertThat(checksums)
+				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "2581374719", "200310393",
+					"949907516", "949907516", "2884945437", "1491717096", "454777450", "1584443618");
 		}
 	}
 }

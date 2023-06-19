@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?assume that version is ge 5.8 ?>
+<?assume that edition is enterprise ?>
+
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<create>
+		<constraint name="unique_isbn_type" type="property_type">
+			<label>Book</label>
+			<properties>
+				<property type="STRING">isbn</property>
+			</properties>
+		</constraint>
+	</create>
+</migration>

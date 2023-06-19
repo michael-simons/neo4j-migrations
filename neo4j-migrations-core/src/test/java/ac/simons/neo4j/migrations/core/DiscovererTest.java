@@ -95,7 +95,7 @@ class DiscovererTest {
 			assertThat(migrations)
 				.extracting(Migration::getOptionalDescription)
 				.filteredOn(Optional::isPresent)
-				.hasSize(13)
+				.hasSize(14)
 				.extracting(Optional::get)
 				.contains("delete old data", "create new data",
 					"BondTheNameIsBond",
@@ -106,7 +106,7 @@ class DiscovererTest {
 					"Die halbe Wahrheit neu",
 					"Die halbe Wahrheit neu neu",
 					"MirFallenKeineNamenEin",
-					"WithCommentAtEnd", "AMigration"
+					"WithCommentAtEnd", "AMigration", "TypeConstraints"
 				);
 		}
 

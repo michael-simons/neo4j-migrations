@@ -139,9 +139,33 @@
 		</xs:complexContent>
 	</xs:complexType>
 
+	<xs:complexType name="property">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="type">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="BOOLEAN"/>
+							<xs:enumeration value="STRING"/>
+							<xs:enumeration value="INTEGER"/>
+							<xs:enumeration value="FLOAT" />
+							<xs:enumeration value="DATE" />
+							<xs:enumeration value="LOCAL TIME" />
+							<xs:enumeration value="ZONED TIME" />
+							<xs:enumeration value="LOCAL DATETIME" />
+							<xs:enumeration value="ZONED DATETIME" />
+							<xs:enumeration value="DURATION" />
+							<xs:enumeration value="POINT" />
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
 	<xs:complexType name="properties">
 		<xs:sequence>
-			<xs:element type="xs:string" name="property" maxOccurs="unbounded"/>
+			<xs:element type="property" name="property" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
@@ -166,6 +190,7 @@
 							<xs:enumeration value="unique"/>
 							<xs:enumeration value="exists"/>
 							<xs:enumeration value="key"/>
+							<xs:enumeration value="property_type" />
 						</xs:restriction>
 					</xs:simpleType>
 				</xs:attribute>

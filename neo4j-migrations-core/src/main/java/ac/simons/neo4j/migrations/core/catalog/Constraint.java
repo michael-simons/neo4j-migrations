@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +32,8 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.w3c.dom.Element;
+
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 
 /**
  * A somewhat Neo4j version independent representation of a constraint.
@@ -60,7 +60,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		/**
 		 * Key constraints.
 		 */
-		KEY;
+		KEY,
+		/**
+		 * Property type constraints.
+		 * @since TBA
+		 */
+		PROPERTY_TYPE;
 
 		@Override
 		public String getName() {
@@ -108,6 +113,16 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		 * @return the new constraint
 		 */
 		Constraint exists(String property);
+
+		/**
+		 * Creates a new property type constraint.
+		 *
+		 * @param property the name of the property that should be constrained
+		 * @param type     the type required
+		 * @return the new constraint
+		 * @since TBA
+		 */
+		Constraint type(String property, PropertyType type);
 	}
 
 	/**
@@ -153,17 +168,22 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		@Override
 		public Constraint unique(String... properties) {
-			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Arrays.asList(properties));
+			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Arrays.asList(properties), null);
 		}
 
 		@Override
 		public Constraint exists(String property) {
-			return new Constraint(name, Type.EXISTS, targetEntityType, identifier, Collections.singleton(property));
+			return new Constraint(name, Type.EXISTS, targetEntityType, identifier, Collections.singleton(property), null);
 		}
 
 		@Override
 		public Constraint key(String... properties) {
-			return new Constraint(name, Type.KEY, targetEntityType, identifier, Arrays.asList(properties));
+			return new Constraint(name, Type.KEY, targetEntityType, identifier, Arrays.asList(properties), null);
+		}
+
+		@Override
+		public Constraint type(String property, PropertyType type) {
+			return new Constraint(name, Type.PROPERTY_TYPE, targetEntityType, identifier, Collections.singleton(property), type);
 		}
 	}
 
@@ -212,6 +232,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		Constraint.Type type = switch (row.get(XMLSchemaConstants.TYPE).asString()) {
 			case "NODE_KEY" -> Type.KEY;
 			case "NODE_PROPERTY_EXISTENCE", "RELATIONSHIP_PROPERTY_EXISTENCE" -> Type.EXISTS;
+			case "NODE_PROPERTY_TYPE", "RELATIONSHIP_PROPERTY_TYPE" -> Type.PROPERTY_TYPE;
 			case "UNIQUENESS" -> Type.UNIQUE;
 			default -> throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
 		};
@@ -220,8 +241,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		List<String> labelsOrTypes = row.get("labelsOrTypes").asList(Value::asString);
 		List<String> properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);
 		String options = resolveOptions(row).orElse(null);
+		PropertyType propertyType = null;
+		if (type == Type.PROPERTY_TYPE) {
+			propertyType = PropertyType.parse(row.get("propertyType").asString());
+		}
 
-		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties), options);
+		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet<>(properties), options, propertyType);
 	}
 
 	/**
@@ -233,16 +258,34 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	public static Constraint parse(Element constraintElement) {
 
 		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);
-		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE).toUpperCase(Locale.ROOT));
+		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE)
+			.toUpperCase(Locale.ROOT).replace(" ", "_"));
 		Target target = extractTarget(constraintElement);
 
-		Set<String> properties = extractProperties(constraintElement);
+		Set<String> properties;
+		PropertyType propertyType = null;
+		if (type == Type.PROPERTY_TYPE) {
+			var propertyNodes = ((Element) constraintElement
+				.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
+				XMLSchemaConstants.PROPERTY);
+			if (propertyNodes.getLength() > 1) {
+				throw new IllegalArgumentException("Only one property allowed on property type constraints.");
+			}
+			var typeAttribute = propertyNodes.item(0).getAttributes().getNamedItem("type");
+			if (typeAttribute == null || typeAttribute.getTextContent().isBlank()) {
+				throw new IllegalArgumentException("The type attribute for properties is required on property type constraints.");
+			}
+			propertyType = PropertyType.parse(typeAttribute.getTextContent());
+			properties = Set.of(propertyNodes.item(0).getTextContent());
+		} else {
+			properties = extractProperties(constraintElement);
+		}
 		String options = extractOptions(constraintElement);
 
 		if (target.targetEntityType() == TargetEntityType.RELATIONSHIP && type != Type.EXISTS) {
 			throw new IllegalArgumentException("Only existential constraints are supported for relationships");
 		}
-		return new Constraint(name, type, target.targetEntityType(), target.identifier(), properties, options);
+		return new Constraint(name, type, target.targetEntityType(), target.identifier(), properties, options, propertyType);
 	}
 
 	private static class PatternHolder {
@@ -313,27 +356,40 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 				Stream.of(propertiesGroup.trim());
 			String[] properties = propertiesStream.map(s -> s.replaceFirst(variable, "")).toArray(String[]::new);
 			return new Constraint(name, patternHolder.type, patternHolder.targetEntityType, identifier,
-				new LinkedHashSet<>(Arrays.asList(properties)));
+				new LinkedHashSet<>(Arrays.asList(properties)), null);
 		}
 
 		throw new IllegalArgumentException(
 			String.format("The description '%s' does not match any known pattern.", description));
 	}
 
-	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties) {
-		this(null, type, targetEntityType, identifier, properties, null);
+	private final PropertyType propertyType;
+
+	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, PropertyType propertyType) {
+		this(null, type, targetEntityType, identifier, properties, null, propertyType);
 	}
 
-	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties) {
-		this(name, type, targetEntityType, identifier, properties, null);
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, PropertyType propertyType) {
+		this(name, type, targetEntityType, identifier, properties, null, propertyType);
 	}
 
-	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options) {
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties, String options, PropertyType propertyType) {
 		super(name, type, targetEntityType, identifier, properties, options);
 
 		if (type == Type.KEY && getTargetEntityType() != TargetEntityType.NODE) {
 			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
 		}
+
+		if (propertyType != null && type != Type.PROPERTY_TYPE) {
+			throw new IllegalArgumentException("A property type can only be used with a property type constraint.");
+		}
+		if (type == Type.PROPERTY_TYPE && propertyType == null) {
+			throw new IllegalArgumentException("A property type constraint requires a property type.");
+		}
+		if (propertyType != null && properties.size() != 1) {
+			throw new IllegalArgumentException("A property type constraint can only be applied to a single property.");
+		}
+		this.propertyType = propertyType;
 	}
 
 	/**
@@ -352,7 +408,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 
 		return new Constraint(getName().getValue(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),
-			options);
+			options, propertyType);
 	}
 
 	@Override
@@ -363,7 +419,11 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			return this;
 		}
 
-		return new Constraint(name, getType(), getTargetEntityType(), getIdentifier(), getProperties(), options);
+		return new Constraint(name, getType(), getTargetEntityType(), getIdentifier(), getProperties(), options, propertyType);
+	}
+
+	public PropertyType getPropertyType() {
+		return propertyType;
 	}
 
 	/**
@@ -379,11 +439,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			return true;
 		}
 
-		if (!(that instanceof Constraint)) {
+		if (!(that instanceof Constraint other)) {
 			return false;
 		}
-
-		Constraint other = (Constraint) that;
 
 		return this.getType().equals(other.getType()) &&
 			this.getTargetEntityType().equals(other.getTargetEntityType()) &&

@@ -78,11 +78,14 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 		if (config.getOperator() == Operator.DROP && config.getVersion() != Neo4jVersion.V3_5 && constraint.hasName() && !config.isIgnoreName()) {
 			w.write(String.format("DROP %#s%s", new FormattableCatalogItem(constraint, config.getVersion()), config.ifNotExistsOrEmpty()));
+		} else if (config.getOperator() == Operator.DROP && constraint.getType() == Constraint.Type.PROPERTY_TYPE && (!constraint.hasName() || config.isIgnoreName())) {
+			throw new IllegalArgumentException("Property type constraints can only be dropped via name.");
 		} else {
 			switch (constraint.getType()) {
 				case UNIQUE -> w.write(renderUniqueConstraint(constraint, config));
 				case EXISTS -> w.write(renderPropertyExists(constraint, config));
 				case KEY -> w.write(renderNodeKey(constraint, config));
+				case PROPERTY_TYPE -> w.write(renderPropertyType(constraint, config));
 				default ->
 					throw new IllegalArgumentException("Unsupported type of constraint: " + constraint.getType());
 			}
@@ -169,6 +172,41 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 			String format = "%s %#s %s%s " + templateFragment + " %s %s";
 			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), adjective, variable, identifier, verb, object);
 		}
+	}
+
+	private String renderPropertyType(Constraint item, RenderConfig config) {
+
+		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
+			throw new IllegalStateException(
+				String.format("This constraint cannot be created with %s edition.", config.getEdition()));
+		}
+
+		if (item.getTargetEntityType() == TargetEntityType.NODE) {
+			return renderNodePropertyType(item, config);
+		}
+		return renderRelationshipPropertyType(item, config);
+	}
+
+	private String renderRelationshipPropertyType(Constraint constraint, RenderConfig config) {
+
+		return renderPropertyType(constraint, config, "r", "()-[%s:%s]-()");
+	}
+
+	private String renderNodePropertyType(Constraint constraint, RenderConfig config) {
+
+		return renderPropertyType(constraint, config, "n", "(%s:%s)");
+	}
+
+	private String renderPropertyType(Constraint constraint, RenderConfig config, String variable, String templateFragment) {
+
+		Neo4jVersion version = config.getVersion();
+
+		Formattable item = formattableItem(constraint, config);
+		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
+		String properties = renderProperties(version, variable, constraint);
+
+		return String.format("CREATE %#s %sFOR " + templateFragment + " REQUIRE %s IS :: %s", item,
+			config.ifNotExistsOrEmpty(), variable, identifier, properties, constraint.getPropertyType().getName());
 	}
 
 	private String renderUniqueConstraint(Constraint constraint, RenderConfig config) {

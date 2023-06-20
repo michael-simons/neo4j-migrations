@@ -63,7 +63,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		KEY,
 		/**
 		 * Property type constraints.
-		 * @since TBA
+		 * @since 2.5.0
 		 */
 		PROPERTY_TYPE;
 
@@ -120,7 +120,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		 * @param property the name of the property that should be constrained
 		 * @param type     the type required
 		 * @return the new constraint
-		 * @since TBA
+		 * @since 2.5.0
 		 */
 		Constraint type(String property, PropertyType type);
 	}

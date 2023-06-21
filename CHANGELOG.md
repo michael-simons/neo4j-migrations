@@ -1,3 +1,290 @@
+# 2.5.0
+
+Neo4j-Migrations now let's you not only define 5.9 property type constraints in its catalogs, but it also can generate them from OGM or SDN annotated classes. This means, you can take your `@Node` annotated classes and migrations will generate constraints that ensure your `LocalDateTime` is not only such a property in the domain class, but also in the database, for all those scenarios where someone or something bypassed your sweet SDN applications.
+
+Enjoy.
+
+## 🚀 Features
+- 27ac125 feat: Add additional processor option to generate Neo4j 5.9 property type constraints. (#1022)
+- adb2638 feat: Add support for Neo4j 5.9 type constraints. (#1020)
+
+## 🔄️ Refactorings
+- c97a19c refactor: Use Neo4j 5 by default in all tests.
+
+## 🧹 Housekeeping
+- a9ea72f Bump maven-shade-plugin from 3.4.1 to 3.5.0 (#1014)
+- 068cdd6 Bump quarkus.version from 3.1.1.Final to 3.1.2.Final (#1013)
+- cd2f693 build(deps-dev): Bump error_prone_annotations from 2.19.1 to 2.20.0 (#1012)
+- b7eaccc Bump graal-sdk from 22.3.2 to 23.0.0 (#1015)
+- 177079e Bump native-maven-plugin from 0.9.22 to 0.9.23 (#1016)
+- 9d99a02 build(deps-dev): Bump spring-data-neo4j from 7.1.0 to 7.1.1 (#1017)
+- 73a0995 Bump maven-invoker-plugin from 3.5.1 to 3.6.0 (#1018)
+- 5fe2e5c Bump neo4j-harness from 5.8.0 to 5.9.0 (#1019)
+- b3514b0 build(deps-dev): Bump guava from 32.0.0-jre to 32.0.1-jre (#1004)
+- 5666856 Bump asciidoctorj-diagram from 2.2.8 to 2.2.9 (#1010)
+- 2385a5a Bump maven-surefire-plugin from 3.1.0 to 3.1.2 (#1009)
+- a216d42 Bump commons-io from 2.12.0 to 2.13.0 (#1008)
+- 6d1d2d2 Bump maven-failsafe-plugin from 3.1.0 to 3.1.2 (#1007)
+- ca056d7 Bump maven-project-info-reports-plugin from 3.4.4 to 3.4.5 (#1006)
+- 2bf44a4 Bump quarkus.version from 3.1.0.Final to 3.1.1.Final (#1005)
+- cf2bab5 Bump testcontainers.version from 1.18.1 to 1.18.3 (#999)
+- 06bc8e0 Bump maven-release-plugin from 3.0.0 to 3.0.1 (#1002)
+- f567495 build(deps-dev): Bump checker-qual from 3.34.0 to 3.35.0 (#1001)
+- 09a3d03 Bump neo4j-cypher-dsl-schema-name-support from 2023.3.1 to 2023.3.2 (#1003)
+- f0c7c92 Bump picocli.version from 4.7.3 to 4.7.4 (#1000)
+- 8c09a85 Bump maven-project-info-reports-plugin from 3.4.3 to 3.4.4 (#998)
+- 31ea887 Bump byte-buddy.version from 1.14.4 to 1.14.5 (#997)
+- 20d9896 Bump asciidoctorj from 2.5.8 to 2.5.10 (#996)
+
+
+# 2.4.0
+
+## 🚀 Features
+- 44a6a4d feat: Wait for new indexes to get online. (#986)
+
+## 🐛 Bug Fixes
+- 812c86a fix: Don't delete properties that are already `boolean` when normalizing.
+
+## 📝 Documentation
+- 9091937 docs: Adding project diagrams link to README.adoc (#987)
+
+## 🧹 Housekeeping
+- 2a89c89 Bump quarkus.version from 3.0.3.Final to 3.1.0.Final
+- 13441f3 Bump classgraph from 4.8.158 to 4.8.160
+- 6833a30 Bump plexus-utils from 3.5.1 to 4.0.0
+- 975d596 Bump neo4j-java-driver from 5.8.0 to 5.9.0
+- dabef76 Bump asciidoctor-maven-plugin from 2.2.3 to 2.2.4 (#994)
+- 3dffcbc Bump maven-checkstyle-plugin from 3.2.2 to 3.3.0 (#995)
+- ba40ac3 Bump checkstyle from 10.11.0 to 10.12.0 (#992)
+- bede24b build(deps-dev): Bump guava from 31.1-jre to 32.0.0-jre (#990)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @alexkarezin
+
+
+# 2.3.2
+
+## 🚀 Features
+- 9e8d2dd feat: Add configurable delay. (#985)
+
+## 🧹 Housekeeping
+- 22dc59f Bump maven-source-plugin from 3.2.1 to 3.3.0 (#983)
+- 96b6796 Bump spring-boot.version from 3.0.6 to 3.1.0 (#982)
+- 61af20a Bump docker-maven-plugin from 0.42.1 to 0.43.0 (#981)
+- 3c255c8 Bump neo4j-harness from 5.7.0 to 5.8.0 (#980)
+- 62ae03b Bump maven-assembly-plugin from 3.5.0 to 3.6.0 (#979)
+- 1c17681 Bump commons-io from 2.11.0 to 2.12.0 (#978)
+- a0f33b6 Bump maven-plugin-annotations from 3.8.2 to 3.9.0 (#977)
+- 8190a16 Bump maven-plugin-plugin from 3.8.2 to 3.9.0 (#975)
+
+
+# 2.3.1
+
+Just a patch release containing a lot of dependency upgrades. Needed to redo the tag after releasing to central and include one more commit, reverting back to JReleaser 1.5.1 due to https://github.com/jreleaser/jreleaser/issues/1388, so the history changed in that regard.
+
+## 🐛 Bug Fixes
+- 86f862d fix: Improve concepts.adoc (#973)
+
+## 📝 Documentation
+- 8823001 docs: add szabopeter as a contributor for doc (#974)
+
+## 🧹 Housekeeping
+- c8f3df1 Revert "Bump jreleaser-maven-plugin from 1.5.1 to 1.6.0 (#952)"
+- aec916c Bump quarkus-neo4j.version from 3.0.0 to 3.0.3
+- da845fb Bump testcontainers.version from 1.18.0 to 1.18.1
+- 9d25d42 Bump quarkus.version from 3.0.2.Final to 3.0.3.Final (#965)
+- b26b4e8 Bump asciidoctorj-diagram from 2.2.7 to 2.2.8 (#969)
+- 61fb906 Bump checkstyle from 10.10.0 to 10.11.0 (#968)
+- c8998dc build(deps-dev): Bump spring-data-neo4j from 7.0.5 to 7.1.0 (#964)
+- 479e09b Bump build-helper-maven-plugin from 3.3.0 to 3.4.0 (#972)
+- e8e7247 build(deps-dev): Bump error_prone_annotations from 2.18.0 to 2.19.1 (#971)
+- 44cf1b3 Bump classgraph from 4.8.157 to 4.8.158 (#970)
+- 8692c5f Bump neo4j-cypher-dsl-schema-name-support from 2023.3.0 to 2023.3.1 (#967)
+- 0808771 Bump native-maven-plugin from 0.9.21 to 0.9.22 (#963)
+- 0be0518 Bump maven-failsafe-plugin from 3.0.0 to 3.1.0 (#960)
+- 1b37748 build(deps-dev): Bump checker-qual from 3.33.0 to 3.34.0 (#961)
+- 7975bd8 Bump maven-surefire-plugin from 3.0.0 to 3.1.0 (#959)
+- 14e851f Bump moditect-maven-plugin from 1.0.0.RC3 to 1.0.0.Final (#958)
+- a0fefa5 Bump maven-gpg-plugin from 3.0.1 to 3.1.0 (#957)
+- 6a4ee13 Bump quarkus.version from 3.0.1.Final to 3.0.2.Final (#956)
+- 7f5d043 Bump checkstyle from 10.9.3 to 10.10.0 (#954)
+- b55d20f Bump jreleaser-maven-plugin from 1.5.1 to 1.6.0 (#952)
+- f2a09a4 Bump jacoco-maven-plugin.version from 0.8.9 to 0.8.10 (#950)
+- 0921857 Bump quarkus.version from 3.0.0.Final to 3.0.1.Final (#951)
+- d3ca83d Bump junit-bom from 5.9.2 to 5.9.3 (#953)
+- 4438d8e Bump neo4j-java-driver from 5.7.0 to 5.8.0 (#955)
+- dbdd26d Bump spring-boot.version from 3.0.5 to 3.0.6 (#948)
+- 9120bbd Bump graal-sdk from 22.3.1 to 22.3.2 (#949)
+- ecc2a50 Bump neo4j-cypher-dsl-schema-name-support from 2023.2.1 to 2023.3.0 (#947)
+- e3214e9 Bump maven-plugin-annotations from 3.8.1 to 3.8.2 (#946)
+- 936c6b9 Bump maven-plugin-plugin from 3.8.1 to 3.8.2 (#945)
+- 5d712aa Bump picocli.version from 4.7.2 to 4.7.3 (#944)
+- 14fff24 Bump maven-project-info-reports-plugin from 3.4.2 to 3.4.3 (#943)
+- 1dd5036 Bump neo4j-harness from 5.6.0 to 5.7.0 (#942)
+- f3a562d Bump maven-checkstyle-plugin from 3.2.1 to 3.2.2 (#941)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @szabopeter
+
+
+# 2.3.0
+
+This is kind of a breaking change despite only a minor release: The Quarkus integration now requires Quarkus 3 (to be released end of April).
+
+I need to think a bit whether to split the modules into separate projects to cater for the frameworks I have integrated with.
+For now, I'm happy to back port fixes / patches to 2.2.x series if necessary.
+
+## 🧹 Housekeeping
+- fa7fed8 Bump quarkus.version from 2.16.6.Final to 3.0.0.Final (#938)
+- db80801 Bump native-maven-plugin from 0.9.20 to 0.9.21 (#940)
+- 48c0f53 Bump asciidoctorj from 2.5.7 to 2.5.8 (#939)
+- 86b135c build(deps-dev): Bump spring-data-neo4j from 7.0.4 to 7.0.5 (#937)
+
+
+# 2.2.3
+
+This is mainly a bug fix release: The CLI binaries for Windows have been non-functional. Although we have tests for the binary images and we ensure they work as expected, we did so only on Linux. The compression of the produced binaries broke them (the same way that happened on osx-aarch64; in short: Don't use `upx` with GraalVM binaries).
+
+## 📝 Documentation
+- 954d491 docs: add @amit-kumaryadav as a contributor for userTesting (#936)
+
+## 🧹 Housekeeping
+- 40500b0 Bump testcontainers.version from 1.17.6 to 1.18.0 (#929)
+- 55f5d21 Bump quarkus.version from 2.16.5.Final to 2.16.6.Final (#928)
+- 0c16938 build(deps-dev): Bump checker-qual from 3.32.0 to 3.33.0 (#925)
+- 893649b Bump asciidoctorj-diagram from 2.2.4 to 2.2.7 (#926)
+- e18cff2 Bump jacoco-maven-plugin.version from 0.8.8 to 0.8.9 (#927)
+- 46c6f5a Bump neo4j-ogm.version from 4.0.4 to 4.0.5 (#930)
+- c228608 Bump quarkus-neo4j.version from 2.2.5 to 2.2.6 (#931)
+- 8e7f0b4 Bump picocli.version from 4.7.1 to 4.7.2 (#932)
+- d381cc5 Bump docker-maven-plugin from 0.42.0 to 0.42.1 (#933)
+- 5d27201 Bump byte-buddy.version from 1.14.3 to 1.14.4 (#924)
+- 0450638 Bump neo4j-java-driver from 5.6.0 to 5.7.0 (#923)
+- 459a973 Bump neo4j-cypher-dsl-schema-name-support from 2023.2.0 to 2023.2.1 (#922)
+- d5cab03 Bump maven-invoker-plugin from 3.5.0 to 3.5.1 (#921)
+- 606f123 Bump byte-buddy.version from 1.14.2 to 1.14.3 (#920)
+- 9aa5fe8 Bump maven-release-plugin from 2.5.3 to 3.0.0 (#918)
+- 88d72ad Bump maven-install-plugin from 3.1.0 to 3.1.1 (#916)
+- e283cb6 Bump spring-boot.version from 3.0.4 to 3.0.5 (#911)
+- a7dbd37 build(deps-dev): Bump spring-data-neo4j from 7.0.3 to 7.0.4 (#914)
+- 83ace15 Bump checkstyle from 10.9.2 to 10.9.3 (#919)
+- 31af371 Bump neo4j-cypher-dsl-schema-name-support from 2023.0.3 to 2023.2.0 (#917)
+- 3520b37 Bump maven-deploy-plugin from 3.1.0 to 3.1.1 (#915)
+- 9c28e96 Bump asciidoctor-maven-plugin from 2.2.2 to 2.2.3 (#913)
+- 063d19c Bump neo4j-harness from 5.5.0 to 5.6.0 (#912)
+- c1eec64 Bump maven-resources-plugin from 3.3.0 to 3.3.1 (#910)
+
+## 🛠 Build
+- 888c87f build: Disable UPX by default. (#935)
+
+
+# 2.2.2
+
+## 🧹 Housekeeping
+- 8cdac19 Bump quarkus to 2.16.5 and quarkus-neo4j to 2.2.5.
+
+
+# 2.2.1
+
+## 🧹 Housekeeping
+- e2b24ff Bump moditect-maven-plugin from 1.0.0.RC2 to 1.0.0.RC3 (#903)
+- dabe133 Bump byte-buddy.version from 1.14.1 to 1.14.2 (#904)
+- c9505ef Bump maven-surefire-plugin from 3.0.0-M9 to 3.0.0 (#907)
+- d732935 Bump maven-failsafe-plugin from 3.0.0-M9 to 3.0.0 (#902)
+- a26b257 Bump neo4j-ogm.version from 4.0.3 to 4.0.4 (#908)
+- e2d764b Bump plexus-utils from 3.5.0 to 3.5.1 (#906)
+- 82c2e18 Bump maven-compiler-plugin from 3.10.1 to 3.11.0 (#905)
+- 5735ff1 Bump checkstyle from 10.8.0 to 10.9.2 (#909)
+- 89cab38 Bump classgraph from 4.8.156 to 4.8.157 (#898)
+- 9e79f2d Bump jreleaser-maven-plugin from 1.4.0 to 1.5.1 (#901)
+- 2c50e39 Bump maven-plugin-annotations from 3.7.1 to 3.8.1 (#900)
+- 6afa1a5 Bump maven-plugin-plugin from 3.7.1 to 3.8.1 (#899)
+- 4202568 Bump docker-maven-plugin from 0.41.0 to 0.42.0 (#897)
+- f391d22 Bump neo4j-java-driver from 5.5.0 to 5.6.0 (#896)
+- 8d2aab0 Bump byte-buddy.version from 1.14.0 to 1.14.1 (#894)
+- 0363ffe Bump mockito.version from 5.1.1 to 5.2.0 (#893)
+
+
+# 2.2.0
+
+## 🚀 Features
+- 993a8ee feat: Add `repair` operation.
+- 6f5ea92 feat: Add `delete` operation. (#879)
+
+## 🐛 Bug Fixes
+- 6f56a1a fix: Avoid potential catastrophic backtracking in regex for precondition parsing. (#892)
+- b8e0fae fix: Apidocs generation was not running since 2.0.0.
+
+## 🔄️ Refactorings
+- 070b596 refactor: suppress warnings wrt `Collectors.toList` vs `toList`.
+- 584920d refactor: Make version pattern more resilient.
+- 689b3f8 refactor: Add a bunch of additional tests.
+- 6b5d29a refactor: Order sub-commands alphabetically. (#891)
+
+## 📝 Documentation
+- 911084b docs: Add GitHub Release Radar feature to README.
+- 140e943 docs: Improve compatibility note on the `README.adoc`
+
+## 🧹 Housekeeping
+- 0769328 Bump spring-boot.version from 3.0.2 to 3.0.4 (#884)
+- 1614143 build(deps-dev): Bump spring-data-neo4j from 7.0.2 to 7.0.3 (#889)
+- a693b0e Bump classgraph from 4.8.154 to 4.8.156 (#882)
+- 19ad89e build(deps-dev): Bump checker-qual from 3.31.0 to 3.32.0 (#883)
+- 43f5405 Bump neo4j-ogm.version from 4.0.2 to 4.0.3 (#888)
+- 076e743 Bump maven-assembly-plugin from 3.4.2 to 3.5.0 (#887)
+- 12ecc42 Bump quarkus-neo4j.version from 2.2.2 to 2.2.3 (#885)
+- 428fd31 Bump checkstyle from 10.7.0 to 10.8.0 (#881)
+- eb99f61 Bump japicmp-maven-plugin from 0.17.1 to 0.17.2 (#880)
+
+## 🛠 Build
+- 6226e9c build: Upgrade GraalVM to 22.3.1.
+- 489f5c9 build: Try to avoid download timeouts.
+- 787e2d0 build: Improve github hosted docs generation.
+- 1f8c342 build: Include examples in test results. (#878)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @meistermeier
+
+
+# 2.1.2
+
+## 🐛 Bug Fixes
+- 5dd08b6 fix: Use `optionalDescription` in Quarkus Dev UI.
+- 28d1ac7 fix: Images have not been included in the local docs since Antorra migraiton.
+
+## 🔄️ Refactorings
+- 2a7a50c refactor: Use `java.util.HexFormat` for formatting hex. (#855)
+
+## 📝 Documentation
+- 83a4d4b docs: Update local changelog.
+
+## 🧹 Housekeeping
+- 5b75774 build(deps-dev): Bump checker-qual from 3.30.0 to 3.31.0 (#874)
+- 73ac81b Bump maven-failsafe-plugin from 3.0.0-M8 to 3.0.0-M9 (#875)
+- 408b271 Bump maven-surefire-plugin from 3.0.0-M8 to 3.0.0-M9 (#871)
+- a2bab20 Bump maven-invoker-plugin from 3.4.0 to 3.5.0 (#877)
+- f7f35ba Bump maven-javadoc-plugin from 3.4.1 to 3.5.0 (#876)
+- 404997d Bump native-maven-plugin from 0.9.19 to 0.9.20 (#872)
+- 8f2221f Bump byte-buddy.version from 1.13.0 to 1.14.0 (#869)
+- 7b0cb23 Bump quarkus.version from 2.16.2.Final to 2.16.3.Final (#873)
+- 19ddb7c Bump neo4j-harness from 5.4.0 to 5.5.0 (#870)
+- 60989c4 build(deps-dev): Bump spring-data-neo4j from 7.0.1 to 7.0.2 (#868)
+- e34727e Bump maven.version from 3.8.7 to 3.9.0 (#866)
+- b2050f9 Bump quarkus-neo4j.version from 2.2.0 to 2.2.2 (#865)
+- edd992e Bump neo4j-cypher-dsl-schema-name-support from 2023.0.2 to 2023.0.3 (#861)
+- d5976b7 Bump quarkus.version from 2.16.1.Final to 2.16.2.Final (#858)
+- 83170b7 Bump maven-deploy-plugin from 3.0.0 to 3.1.0 (#863)
+- fea5d88 Bump docker-maven-plugin from 0.40.3 to 0.41.0 (#862)
+- 3fc4509 Bump byte-buddy.version from 1.12.23 to 1.13.0 (#857)
+- 976689f Bump mockito.version from 5.1.0 to 5.1.1 (#856)
+
+## 🛠 Build
+- 63982e2 build: Reorder Quarkus modules so that site generation works reliable.
+
+
 # 2.1.1
 
 ## 📝 Documentation
@@ -246,6 +533,28 @@ We'd like to thank the following people for their contributions:
 - @adam-cowley
 - @meistermeier
 - @Mogztter
+
+
+# 1.16.2
+
+This is mainly a bug fix release: The CLI binaries for Windows have been non-functional. Although we have tests for the binary images and we ensure they work as expected, we did so only on Linux. The compression of the produced binaries broke them (the same way that happened on osx-aarch64; in short: Don't use `upx` with GraalVM binaries).
+
+## 🐛 Bug Fixes
+- b1bc2d6 fix: Avoid potential catastrophic backtracking in regex for precondition parsing. (#892)
+
+## 🔄️ Refactorings
+- 9c5da78 refactor: Make version pattern more resilient.
+
+## 🧹 Housekeeping
+- 4b5de9c build(deps-dev): Bump spring-data-neo4j from 6.3.7 to 6.3.10
+- 968b38c Bump spring-boot.version from 2.7.8 to 2.7.10
+- 575049f Bump maven-deploy-plugin from 3.0.0 to 3.1.0 (#863)
+- 11f055b Bump docker-maven-plugin from 0.40.3 to 0.41.0 (#862)
+- 56f24d2 Bump byte-buddy.version from 1.12.23 to 1.13.0 (#857)
+- a7ca649 Bump mockito.version from 5.1.0 to 5.1.1 (#856)
+
+## 🛠 Build
+- 09ac246 build: Disable UPX by default.
 
 
 # 1.16.1

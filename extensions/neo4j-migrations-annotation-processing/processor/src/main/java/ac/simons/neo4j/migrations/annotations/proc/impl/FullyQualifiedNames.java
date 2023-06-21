@@ -27,21 +27,23 @@ final class FullyQualifiedNames {
 
 	static final String OGM_ID = "org.neo4j.ogm.annotation.Id";
 	static final String OGM_NODE = "org.neo4j.ogm.annotation.NodeEntity";
-	static final String OGM_RELATIONSHIP = "org.neo4j.ogm.annotation.RelationshipEntity";
+	static final String OGM_RELATIONSHIP_ENTITY = "org.neo4j.ogm.annotation.RelationshipEntity";
 	static final String OGM_INDEX = "org.neo4j.ogm.annotation.Index";
 	static final String OGM_COMPOSITE_INDEX = "org.neo4j.ogm.annotation.CompositeIndex";
 	static final String OGM_COMPOSITE_INDEXES = "org.neo4j.ogm.annotation.CompositeIndexes";
 	static final String OGM_REQUIRED = "org.neo4j.ogm.annotation.Required";
 	static final String OGM_GENERATED_VALUE = "org.neo4j.ogm.annotation.GeneratedValue";
 	static final String OGM_PROPERTY = "org.neo4j.ogm.annotation.Property";
+	static final String OGM_TRANSIENT = "org.neo4j.ogm.annotation.Transient";
 
 	static final String SDN6_NODE = "org.springframework.data.neo4j.core.schema.Node";
 	static final String SDN6_ID = "org.springframework.data.neo4j.core.schema.Id";
 	static final String SDN6_GENERATED_VALUE = "org.springframework.data.neo4j.core.schema.GeneratedValue";
-	static final String SDN6_RELATIONSHIP = "org.springframework.data.neo4j.core.schema.RelationshipProperties";
+	static final String SDN6_RELATIONSHIP_PROPERTIES = "org.springframework.data.neo4j.core.schema.RelationshipProperties";
 	static final String SDN6_PROPERTY = "org.springframework.data.neo4j.core.schema.Property";
 
 	static final String COMMONS_ID = "org.springframework.data.annotation.Id";
+	static final String COMMONS_TRANSIENT = "org.springframework.data.annotation.Transient";
 
 	static final String CATALOG_REQUIRED = "ac.simons.neo4j.migrations.annotations.catalog.Required";
 	static final String CATALOG_UNIQUE = "ac.simons.neo4j.migrations.annotations.catalog.Unique";

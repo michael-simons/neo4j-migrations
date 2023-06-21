@@ -22,7 +22,7 @@ import java.util.Locale;
  * See <a href="https://neo4j.com/docs/cypher-manual/current/constraints/syntax/">Constraint Syntax</a>.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @since 2.5.0
  */
 public enum PropertyType {
 

@@ -280,6 +280,39 @@ class CatalogGeneratingProcessorTest {
 			.contains(expectedCatalog);
 	}
 
+	static Stream<Arguments> shouldGenerateTypeConstraints() {
+		return Stream.of(
+			Arguments.of("ac/simons/neo4j/migrations/annotations/proc/ogm", "2022-09-21T21:21:00+01:00", "/expected_catalog_ogm_movies_types.xml"),
+			Arguments.of("ac/simons/neo4j/migrations/annotations/proc/sdn6/movies", "2022-09-21T21:21:00+01:00", "/expected_catalog_sdn_movies_types.xml")
+		);
+	}
+
+	@ParameterizedTest // GH-1021
+	@MethodSource
+	void shouldGenerateTypeConstraints(String packageName, String ts, String expected) throws IOException {
+
+		String expectedCatalog;
+		try (var in = this.getClass().getResourceAsStream(expected)) {
+			expectedCatalog = new String(in.readAllBytes(), StandardCharsets.UTF_8)
+				.replace("\t", "    ");
+		}
+
+		CatalogGeneratingProcessor catalogGeneratingProcessor = new CatalogGeneratingProcessor();
+		Compilation compilation = getCompiler()
+			.withProcessors(catalogGeneratingProcessor)
+			.withOptions(
+				String.format("-Aorg.neo4j.migrations.catalog_generator.timestamp=%s", ts),
+				String.format("-Aorg.neo4j.migrations.catalog_generator.generate_type_constraints=%s", true)
+			)
+			.compile(getJavaResources(packageName));
+
+		assertThat(compilation)
+			.generatedFile(StandardLocation.SOURCE_OUTPUT, "neo4j-migrations", CatalogGeneratingProcessor.DEFAULT_MIGRATION_NAME)
+			.contentsAsString(StandardCharsets.UTF_8)
+			.isEqualTo(expectedCatalog);
+
+	}
+
 	@ParameterizedTest
 	@ValueSource(strings = {
 		"foo",

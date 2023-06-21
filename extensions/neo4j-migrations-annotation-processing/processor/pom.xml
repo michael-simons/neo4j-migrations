@@ -96,6 +96,7 @@
 					<include>ac/simons/neo4j/migrations/annotations/proc/catalog/**/*.java</include>
 					<include>ac/simons/neo4j/migrations/annotations/proc/ogm/**/*.java</include>
 					<include>ac/simons/neo4j/migrations/annotations/proc/ogm_invalid/**/*.java</include>
+					<include>ac/simons/neo4j/migrations/annotations/proc/ogm_movies/**/*.java</include>
 					<include>ac/simons/neo4j/migrations/annotations/proc/sdn6/**/*.java</include>
 				</includes>
 			</testResource>

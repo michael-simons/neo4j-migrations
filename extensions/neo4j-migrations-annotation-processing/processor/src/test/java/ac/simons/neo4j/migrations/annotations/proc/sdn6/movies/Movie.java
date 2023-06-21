@@ -15,12 +15,14 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.sdn6.movies;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -46,6 +48,13 @@ public final class Movie {
 	private final List<Person> directors;
 
 	private Integer released;
+
+	private boolean watched;
+
+	private LocalDateTime watchedOn;
+
+	@Transient
+	private Double iAmTrash;
 
 	public Movie(String title, String description) {
 		this.title = title;

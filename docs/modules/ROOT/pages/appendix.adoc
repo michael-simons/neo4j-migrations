@@ -628,6 +628,12 @@ javac -proc:only \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/catalog/valid/CoffeeBeanPure*
 ----
 
+==== Neo4j 5.9+ property type constraints
+
+The annotation processor can create property type constraints from OGM and SDN models.
+These constraints will ensure that the database schema enforces the datatypes declared in the models.
+To enable that feature, configure the processor with `-Aorg.neo4j.migrations.catalog_generator.generate_type_constraints=true``
+
 [[appendix_extesions]]
 == Extensions
 

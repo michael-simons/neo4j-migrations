@@ -29,16 +29,16 @@ import javax.lang.model.util.Elements;
  * @since 1.15.0
  */
 record ElementsSDN6(
-	TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels, TypeElement relationship,
+	TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels, TypeElement relationshipProperties,
 	ExecutableElement nodePrimaryLabel, TypeElement id, TypeElement generatedValue,
-	TypeElement commonsId, TypeElement property) {
+	TypeElement commonsId, TypeElement property, TypeElement transientProperty) {
 
 	static Optional<ElementsSDN6> of(Elements elements) {
 		TypeElement sdn6Node = elements.getTypeElement(FullyQualifiedNames.SDN6_NODE);
 		if (sdn6Node == null) {
 			return Optional.empty();
 		}
-		TypeElement sdn6Relationship = elements.getTypeElement(FullyQualifiedNames.SDN6_RELATIONSHIP);
+		TypeElement sdn6Relationship = elements.getTypeElement(FullyQualifiedNames.SDN6_RELATIONSHIP_PROPERTIES);
 		ExecutableElement sdn6NodeValue = Attributes.get(sdn6Node, Attributes.VALUE).orElseThrow();
 		ExecutableElement sdn6NodeLabels = Attributes.get(sdn6Node, Attributes.LABELS).orElseThrow();
 		ExecutableElement sdn6NodePrimaryLabel = Attributes.get(sdn6Node, Attributes.PRIMARY_LABEL).orElseThrow();
@@ -48,7 +48,8 @@ record ElementsSDN6(
 		TypeElement sdn6Id = elements.getTypeElement(FullyQualifiedNames.SDN6_ID);
 		TypeElement sdn6GeneratedValue = elements.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);
 		TypeElement commonsId = elements.getTypeElement(FullyQualifiedNames.COMMONS_ID);
+		TypeElement transientProperty = elements.getTypeElement(FullyQualifiedNames.COMMONS_TRANSIENT);
 
-		return Optional.of(new ElementsSDN6(sdn6Node, sdn6NodeValue, sdn6NodeLabels, sdn6Relationship, sdn6NodePrimaryLabel, sdn6Id, sdn6GeneratedValue, commonsId, sdn6Property));
+		return Optional.of(new ElementsSDN6(sdn6Node, sdn6NodeValue, sdn6NodeLabels, sdn6Relationship, sdn6NodePrimaryLabel, sdn6Id, sdn6GeneratedValue, commonsId, sdn6Property, transientProperty));
 	}
 }

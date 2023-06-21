@@ -4961,6 +4961,14 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 </div>
 </div>
 </div>
+<div class="sect4">
+<h5 id="neo4j5.9propertytypeconstraints"><a class="anchor" href="#neo4j5.9propertytypeconstraints"></a>Neo4j 5.9+ property type constraints</h5>
+<div class="paragraph">
+<p>The annotation processor can create property type constraints from OGM and SDN models.
+These constraints will ensure that the database schema enforces the datatypes declared in the models.
+To enable that feature, configure the processor with <code>-Aorg.neo4j.migrations.catalog_generator.generate_type_constraints=true`</code></p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -5358,7 +5366,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-06-19 21:03:28 UTC
+Last updated 2023-06-21 05:29:37 UTC
 </div>
 </div>
 </body>

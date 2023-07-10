@@ -102,7 +102,7 @@
 		<assertj.version>3.24.2</assertj.version>
 		<build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.14.5</byte-buddy.version>
-		<checker-qual.version>3.35.0</checker-qual.version>
+		<checker-qual.version>3.36.0</checker-qual.version>
 		<checkstyle.version>10.12.1</checkstyle.version>
 		<classgraph.version>4.8.160</classgraph.version>
 		<compile-testing.version>0.21.0</compile-testing.version>

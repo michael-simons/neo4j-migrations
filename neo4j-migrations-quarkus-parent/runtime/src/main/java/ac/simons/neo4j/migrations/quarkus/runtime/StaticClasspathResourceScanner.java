@@ -17,14 +17,13 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import ac.simons.neo4j.migrations.core.ClasspathResourceScanner;
 import ac.simons.neo4j.migrations.core.MigrationsException;
+import io.quarkus.bootstrap.graal.ImageInfo;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import org.graalvm.nativeimage.ImageInfo;
 
 /**
  * This resource scanner holds a list of {@link ResourceWrapper resource wrappers}, pointing to (Cypher) resources found

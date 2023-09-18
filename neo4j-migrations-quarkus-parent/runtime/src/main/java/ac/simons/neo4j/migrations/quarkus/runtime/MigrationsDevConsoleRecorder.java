@@ -18,8 +18,6 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
 
 import java.util.function.Supplier;
 
@@ -42,16 +40,5 @@ public class MigrationsDevConsoleRecorder {
 		var migrationDetailsSupplier = new MigrationDetailsSupplier();
 		migrationDetailsSupplier.setValue(migrationsRv.getValue());
 		return migrationDetailsSupplier;
-	}
-
-	/**
-	 * Creates the handler for executing migration commands.
-	 *
-	 * @param migrationsRv The runtime value containing the migrations
-	 * @return The handler
-	 */
-	public Handler<RoutingContext> recordHandler(RuntimeValue<Migrations> migrationsRv) {
-
-		return new MigrationsDevConsoleHandler(migrationsRv.getValue());
 	}
 }

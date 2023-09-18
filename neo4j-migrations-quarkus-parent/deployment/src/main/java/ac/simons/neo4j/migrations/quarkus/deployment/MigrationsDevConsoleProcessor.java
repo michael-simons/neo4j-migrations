@@ -16,14 +16,8 @@
 package ac.simons.neo4j.migrations.quarkus.deployment;
 
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRPCService;
-import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsDevConsoleRecorder;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.ExecutionTime;
-import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
-import io.quarkus.devconsole.spi.DevConsoleRouteBuildItem;
-import io.quarkus.devconsole.spi.DevConsoleRuntimeTemplateInfoBuildItem;
 import io.quarkus.devui.spi.JsonRPCProvidersBuildItem;
 import io.quarkus.devui.spi.page.CardPageBuildItem;
 import io.quarkus.devui.spi.page.Page;
@@ -34,30 +28,6 @@ import io.quarkus.devui.spi.page.Page;
  * @since 1.4.0
  */
 public class MigrationsDevConsoleProcessor {
-
-	@BuildStep(onlyIf = IsDevelopment.class)
-	@Record(ExecutionTime.RUNTIME_INIT)
-	@SuppressWarnings("unused")
-	DevConsoleRuntimeTemplateInfoBuildItem addMigrationsInfo(
-		MigrationsBuildItem migrationsBuildItem,
-		CurateOutcomeBuildItem curateOutcomeBuildItem,
-		MigrationsDevConsoleRecorder recorder
-	) {
-		return new DevConsoleRuntimeTemplateInfoBuildItem("migrations", recorder.recordMigrationsSupplier(
-			migrationsBuildItem.getValue()), this.getClass(),
-			curateOutcomeBuildItem);
-	}
-
-	@BuildStep
-	@Record(value = ExecutionTime.RUNTIME_INIT, optional = true)
-	@SuppressWarnings("unused")
-	DevConsoleRouteBuildItem addMigrationsRoute(
-		MigrationsBuildItem migrationsBuildItem,
-		MigrationsDevConsoleRecorder recorder
-	) {
-		return new DevConsoleRouteBuildItem("migrations", "POST",
-			recorder.recordHandler(migrationsBuildItem.getValue()));
-	}
 
 	@BuildStep(onlyIf = IsDevelopment.class)
 	@SuppressWarnings("unused")

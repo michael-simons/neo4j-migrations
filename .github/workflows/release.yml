@@ -80,7 +80,6 @@ jobs:
         with:
           distribution: 'graalvm-community'
           java-version: '21'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Create distribution'
@@ -127,7 +126,6 @@ jobs:
         with:
           distribution: 'graalvm-community'
           java-version: '21'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Create distribution'

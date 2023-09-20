@@ -160,7 +160,6 @@ jobs:
         with:
           distribution: 'graalvm-community'
           java-version: '21'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install upx
         run: sudo apt-get install upx
@@ -187,7 +186,6 @@ jobs:
         with:
           distribution: 'graalvm-community'
           java-version: '21'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
       - name: Restore Maven cache

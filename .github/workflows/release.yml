@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
 
       - name: 'Prepare branch name'
         run: >
@@ -78,8 +78,8 @@ jobs:
       - name: 'Set up Graal'
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.1'
-          java-version: '17'
+          distribution: 'graalvm-community'
+          java-version: '21'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -125,8 +125,8 @@ jobs:
       - name: 'Set up Graal'
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.1'
-          java-version: '17'
+          distribution: 'graalvm-community'
+          java-version: '21'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

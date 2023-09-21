@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
       - name: Prepare TC env
         run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
       - name: Enable Sonar for local PRs not from Dependabot
@@ -85,7 +85,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
       - name: 'Restore Maven packages'
         uses: actions/cache@v3
         with:
@@ -140,7 +140,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 17
+          java-version: 21
       - name: Download assembly
         uses: actions/download-artifact@v1
         with:
@@ -158,9 +158,8 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.1'
-          java-version: '17'
-          components: 'native-image'
+          distribution: 'graalvm-community'
+          java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install upx
         run: sudo apt-get install upx
@@ -185,9 +184,8 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.1'
-          java-version: '17'
-          components: 'native-image'
+          distribution: 'graalvm-community'
+          java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
       - name: Restore Maven cache

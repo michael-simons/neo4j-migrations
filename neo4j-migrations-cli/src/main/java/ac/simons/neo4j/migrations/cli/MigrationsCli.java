@@ -37,7 +37,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.graalvm.nativeimage.ImageInfo;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -45,6 +44,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 
+import ac.simons.neo4j.migrations.cli.internal.ImageInfo;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Location;
 import ac.simons.neo4j.migrations.core.Location.LocationType;

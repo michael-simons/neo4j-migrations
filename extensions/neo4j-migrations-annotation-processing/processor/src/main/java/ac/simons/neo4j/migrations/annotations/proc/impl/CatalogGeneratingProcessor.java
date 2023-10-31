@@ -776,7 +776,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 					new DefaultNodeType(t.getQualifiedName().toString(), labels));
 				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
 					Collections.singleton(idProperty));
-				catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name)
+				catalogItems.add(Constraint.forNode(labels.stream().map(SchemaName::getValue).findFirst().orElseGet(() -> t.getSimpleName().toString())).named(name)
 					.unique(idProperty.getName()));
 			});
 	}
@@ -1133,6 +1133,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		private final String internalIdGeneratorClass;
 
+		private final Set<TypeElement> processed = new HashSet<>();
+
 		RequiresPrimaryKeyConstraintPredicate(Collection<TypeElement> idAnnotations, TypeElement generatedValueAnnotation, String generatorAttributeName, String internalIdGeneratorClass) {
 			this.idAnnotations = idAnnotations;
 			this.generatedValueAnnotation = generatedValueAnnotation;
@@ -1147,6 +1149,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 		@Override
 		public Boolean visitType(TypeElement e, Boolean includeAbstractClasses) {
+			if (!processed.add(e)) {
+				return false;
+			}
+
 			boolean isNonAbstractClass = e.getKind().isClass() && !e.getModifiers().contains(Modifier.ABSTRACT);
 			if (!isNonAbstractClass && Boolean.FALSE.equals(includeAbstractClasses)) {
 				return false;

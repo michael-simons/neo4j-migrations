@@ -1240,10 +1240,6 @@
 												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-osx-x86_64.zip</path>
 												<platform>osx-x86_64</platform>
 											</artifact>
-											<artifact>
-												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-linux-aarch_64.zip</path>
-												<platform>linux-aarch_64</platform>
-											</artifact>
 										</artifacts>
 										<brew>
 											<active>ALWAYS</active>

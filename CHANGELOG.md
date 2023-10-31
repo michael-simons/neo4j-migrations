@@ -1,3 +1,130 @@
+# 2.7.0
+
+## 🧹 Housekeeping
+- e664ae5 Bump quarkus.version from 3.4.3 to 3.5.0 (#1112)
+- bfa5570 Bump neo4j-ogm.version from 4.0.7 to 4.0.8 (#1115)
+- d4a44bb Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.9.0 to 3.10.1 (#1114)
+- 1e94333 Bump org.graalvm.buildtools:native-maven-plugin from 0.9.24 to 0.9.28 (#1113)
+- cd515af Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.1 (#1111)
+- df9ec70 Bump commons-io:commons-io from 2.14.0 to 2.15.0 (#1110)
+- b17bed6 Bump org.apache.maven.plugins:maven-clean-plugin from 3.3.1 to 3.3.2 (#1109)
+- 5436f13 Bump org.apache.maven.plugins:maven-plugin-plugin from 3.9.0 to 3.10.1 (#1108)
+- 105e357 Bump org.apache.maven.plugins:maven-surefire-plugin from 3.1.2 to 3.2.1 (#1107)
+- 6e99a73 Bump org.neo4j:neo4j-cypher-dsl-schema-name-support from 2023.7.0 to 2023.7.1 (#1106)
+- 83dcdf4 Bump testcontainers.version from 1.19.0 to 1.19.1 (#1097)
+- 2da16c7 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.1.4 to 7.1.5 (#1104)
+- 38f7de3 build(deps-dev): Bump org.checkerframework:checker-qual from 3.38.0 to 3.39.0 (#1098)
+- 01ac3fd Bump neo4j-ogm.version from 4.0.6 to 4.0.7 (#1096)
+- aaf891f Bump org.neo4j.driver:neo4j-java-driver from 5.12.0 to 5.13.0 (#1099)
+- 76893d5 Bump quarkus.version from 3.4.1 to 3.4.3 (#1100)
+- a8d009c Bump io.github.classgraph:classgraph from 4.8.162 to 4.8.163 (#1101)
+- a0ec5aa Bump byte-buddy.version from 1.14.8 to 1.14.9 (#1102)
+- b87d5b7 build(deps-dev): Bump com.google.guava:guava from 32.1.2-jre to 32.1.3-jre (#1103)
+- 931eb24 Bump spring-boot.version from 3.1.4 to 3.1.5 (#1105)
+- 94ba244 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.18.0 to 0.18.1 (#1094)
+- 6a7a570 Bump commons-io:commons-io from 2.13.0 to 2.14.0 (#1093)
+- b2b0952 Bump com.puppycrawl.tools:checkstyle from 10.12.3 to 10.12.4 (#1092)
+- 9dec481 Bump com.mycila:license-maven-plugin from 4.2.rc2 to 4.3 (#1091)
+- 8547e22 Bump quarkus.version from 3.4.0 to 3.4.1
+- 84f5eae Bump com.github.siom79.japicmp:japicmp-maven-plugin
+- 97d5856 Bump spring-boot.version from 3.1.3 to 3.1.4 (#1090)
+- ab0dda8 Bump org.neo4j.test:neo4j-harness from 5.11.0 to 5.12.0 (#1086)
+- 8d8f42e build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.1.3 to 7.1.4 (#1089)
+- 5792a49 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.21.1 to 2.22.0 (#1087)
+- de13f2b Bump org.apache.maven.plugins:maven-shade-plugin from 3.5.0 to 3.5.1 (#1084)
+- 93334e6 Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.5.0 to 3.6.0 (#1083)
+- ff098a8 Bump org.asciidoctor:asciidoctorj-diagram from 2.2.11 to 2.2.13 (#1082)
+
+## 🛠 Build
+- 53443ae build: Remove linux-arm64 distribution.
+- b13d6a9 build: Upgrade Maven wrapper to ASF wrapper 3.2.0 and Maven 3.9.4
+- b9b5830 build: Build and release with Java 21 targeting Java 17. (#1080)
+
+
+# 2.6.0
+
+Minor bump due to incompatible changes in Quarkus (they dropped the dev-ui-v1 support completely, maybe your code depends on it, too).
+
+## 🧹 Housekeeping
+- 8d5d233 Revert "Bump org.graalvm.buildtools:native-maven-plugin"
+- 6e04976 Bump org.sonarsource.scanner.maven:sonar-maven-plugin
+- ec588f8 Bump org.graalvm.buildtools:native-maven-plugin
+- 356d887 Bump com.github.siom79.japicmp:japicmp-maven-plugin
+- 12b0d18 Bump testcontainers.version from 1.18.3 to 1.19.0 (#1065)
+- ee352dc Bump quarkus.version from 3.3.0 to 3.4.0 (#1077)
+- 96ef68e Bump byte-buddy.version from 1.14.7 to 1.14.8 (#1076)
+- 7c4e618 Bump org.neo4j:neo4j-cypher-dsl-schema-name-support from 2023.6.0 to 2023.7.0 (#1074)
+- 6a0c8d7 Bump quarkus-neo4j.version from 3.3.0 to 3.3.1 (#1073)
+- f874fd9 Bump org.neo4j.driver:neo4j-java-driver from 5.11.0 to 5.12.0 (#1071)
+- 544a71b build(deps-dev): Bump org.checkerframework:checker-qual from 3.37.0 to 3.38.0 (#1070)
+- 0ac148b Bump spring-boot.version from 3.1.2 to 3.1.3 (#1067)
+- 223fe1d Bump byte-buddy.version from 1.14.6 to 1.14.7 (#1066)
+- a537858 Bump picocli.version from 4.7.4 to 4.7.5 (#1063)
+- e63a629 Bump com.puppycrawl.tools:checkstyle from 10.12.2 to 10.12.3 (#1062)
+
+
+# 2.5.3
+
+## 🧹 Housekeeping
+- 7f3bd59 Bump quarkus.version from 3.2.4.Final to 3.3.0 (#1057)
+- 3bdf984 Bump org.neo4j.test:neo4j-harness from 5.10.0 to 5.11.0 (#1058)
+- 83efd49 Bump org.apache.ivy:ivy from 2.5.1 to 2.5.2 (#1061)
+- 1d770ce Bump io.fabric8:docker-maven-plugin from 0.43.3 to 0.43.4 (#1060)
+- 606eda6 Bump byte-buddy.version from 1.14.5 to 1.14.6 (#1059)
+- 8696a43 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.1.2 to 7.1.3 (#1056)
+- 15c190f Bump io.fabric8:docker-maven-plugin from 0.43.2 to 0.43.3 (#1053)
+- 68ab972 Bump org.graalvm.buildtools:native-maven-plugin from 0.9.23 to 0.9.24 (#1055)
+- 9c075e5 Bump io.github.classgraph:classgraph from 4.8.161 to 4.8.162 (#1054)
+- ce32461 Bump org.asciidoctor:asciidoctorj-diagram from 2.2.10 to 2.2.11 (#1052)
+- bae3c71 build(deps-dev): Bump com.tngtech.archunit:archunit from 1.0.1 to 1.1.0 (#1051)
+- e171240 Bump org.neo4j:neo4j-cypher-dsl-schema-name-support from 2023.5.0 to 2023.6.0 (#1050)
+- 8bef8ba Bump quarkus.version from 3.2.3.Final to 3.2.4.Final (#1049)
+
+
+# 2.5.2
+
+## 🧹 Housekeeping
+- b963913 Bump quarkus-neo4j.version from 3.2.0 to 3.2.1
+- 69a353c Bump org.apache.commons:commons-lang3 from 3.12.0 to 3.13.0
+- ef647d0 Bump io.fabric8:docker-maven-plugin from 0.43.0 to 0.43.2
+- bbcf481 build(deps-dev): Bump com.google.guava:guava from 32.1.1-jre to 32.1.2-jre (#1048)
+- 89bf556 build(deps-dev): Bump org.checkerframework:checker-qual from 3.36.0 to 3.37.0 (#1047)
+- c8e3f2b Bump quarkus.version from 3.2.2.Final to 3.2.3.Final (#1046)
+- 1cb007d build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.20.0 to 2.21.1 (#1045)
+- 4d219e2 Bump org.neo4j.driver:neo4j-java-driver from 5.10.0 to 5.11.0 (#1043)
+- 370caaf Bump com.puppycrawl.tools:checkstyle from 10.12.1 to 10.12.2 (#1041)
+- 0803228 Bump org.asciidoctor:asciidoctorj-diagram from 2.2.9 to 2.2.10 (#1040)
+- db3de1d Bump com.github.ekryd.sortpom:sortpom-maven-plugin from 3.2.1 to 3.3.0 (#1039)
+- b210c18 build(deps-dev): Bump spring-data-neo4j from 7.1.1 to 7.1.2 (#1032)
+- a2a1594 Bump classgraph from 4.8.160 to 4.8.161 (#1030)
+- 641e11f build(deps-dev): Bump checker-qual from 3.35.0 to 3.36.0 (#1031)
+- 7b94982 Bump neo4j-ogm.version from 4.0.5 to 4.0.6 (#1033)
+- 5a21a9e Bump org.junit:junit-bom from 5.9.3 to 5.10.0 (#1034)
+- 6b73012 Bump org.graalvm.sdk:graal-sdk from 23.0.0 to 23.0.1 (#1035)
+- f1a0e95 Bump quarkus.version from 3.2.0.Final to 3.2.2.Final (#1036)
+- 9b762ee Bump spring-boot.version from 3.1.1 to 3.1.2 (#1037)
+- 0333f28 Bump org.neo4j.test:neo4j-harness from 5.9.0 to 5.10.0 (#1038)
+
+## 🛠 Build
+- 78fd7d4 build: Use Neo4j 5.10 by default for testing.
+
+
+# 2.5.1
+
+## 📝 Documentation
+- c4581ef docs: Update local changelog.
+
+## 🧹 Housekeeping
+- 90fdbb0 Bump neo4j-cypher-dsl-schema-name-support from 2023.3.2 to 2023.5.0
+- ce13369 Bump quarkus-neo4j.version from 3.1.0 to 3.2.0
+- 7003de8 Bump neo4j-java-driver from 5.9.0 to 5.10.0 (#1029)
+- d4ce3a0 build(deps-dev): Bump guava from 32.0.1-jre to 32.1.1-jre (#1028)
+- e249c87 Bump quarkus.version from 3.1.2.Final to 3.2.0.Final (#1027)
+- fc1face Bump maven-clean-plugin from 3.2.0 to 3.3.1 (#1026)
+- 3f75f3d Bump spring-boot.version from 3.1.0 to 3.1.1 (#1025)
+- f3c6088 Bump checkstyle from 10.12.0 to 10.12.1 (#1023)
+
+
 # 2.5.0
 
 Neo4j-Migrations now let's you not only define 5.9 property type constraints in its catalogs, but it also can generate them from OGM or SDN annotated classes. This means, you can take your `@Node` annotated classes and migrations will generate constraints that ensure your `LocalDateTime` is not only such a property in the domain class, but also in the database, for all those scenarios where someone or something bypassed your sweet SDN applications.

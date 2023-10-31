@@ -117,7 +117,7 @@
 		<guava.version>32.1.3-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.18.1</japicmp-maven-plugin.version>
-		<java-module-name />
+		<java-module-name/>
 		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.8</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
@@ -792,7 +792,7 @@
 								<requireJavaVersion>
 									<version>${java.version}</version>
 								</requireJavaVersion>
-								<DependencyConvergence />
+								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>
@@ -927,9 +927,9 @@
 					<attributes>
 						<icons>font</icons>
 						<toc>left</toc>
-						<setanchors />
-						<idprefix />
-						<idseparator />
+						<setanchors/>
+						<idprefix/>
+						<idseparator/>
 						<imagesdir>${docsImagesDir}</imagesdir>
 						<neo4j-java-driver-version>${neo4j-java-driver.version}</neo4j-java-driver-version>
 						<neo4j-migrations.version>${project.version}</neo4j-migrations.version>

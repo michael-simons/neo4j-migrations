@@ -116,7 +116,7 @@
 		<graalvm.version>23.0.1</graalvm.version>
 		<guava.version>32.1.3-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
-		<japicmp-maven-plugin.version>0.18.1</japicmp-maven-plugin.version>
+		<japicmp-maven-plugin.version>0.18.3</japicmp-maven-plugin.version>
 		<java-module-name/>
 		<java.version>17</java.version>
 		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.8</junit-jupiter-causal-cluster-testcontainer-extension.version>

@@ -42,9 +42,13 @@ class InitCommandTest {
 		commandLine.parseArgs("--username", "bert");
 
 		Path propertiesPath = Paths.get(MigrationsCli.MIGRATIONS_PROPERTIES_FILENAME);
-		assertThat(Files.exists(propertiesPath)).isFalse();
+		if (Files.exists(propertiesPath)) {
+			Files.delete(propertiesPath);
+		}
 		Path dir = Paths.get(Defaults.LOCATIONS_TO_SCAN_WITHOUT_PREFIX);
-		assertThat(Files.exists(dir)).isFalse();
+		if (Files.exists(dir)) {
+			MigrationsCliTest.deltree(dir);
+		}
 
 		try {
 			CommandLine cmd = commandLine.getSubcommands().get("init");

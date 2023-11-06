@@ -790,7 +790,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<version>${java.version}</version>
+									<version>21</version>
 								</requireJavaVersion>
 								<DependencyConvergence/>
 								<requireMavenVersion>
@@ -818,7 +818,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>@{argLine} -Xverify:all</argLine>
+					<argLine>@{argLine} -Xverify:all -XX:+EnableDynamicAgentLoading</argLine>
 					<systemPropertyVariables>
 						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
 					</systemPropertyVariables>
@@ -829,7 +829,7 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
 				<configuration>
-					<argLine>@{argLine} -Xverify:all</argLine>
+					<argLine>@{argLine} -Xverify:all -XX:+EnableDynamicAgentLoading</argLine>
 					<systemPropertyVariables>
 						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
 						<migrations.test-only-latest-neo4j>${migrations.test-only-latest-neo4j}</migrations.test-only-latest-neo4j>

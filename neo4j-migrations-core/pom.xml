@@ -56,11 +56,6 @@
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-test-resources</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>

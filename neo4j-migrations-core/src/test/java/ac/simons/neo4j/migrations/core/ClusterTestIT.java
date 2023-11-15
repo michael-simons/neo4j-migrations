@@ -17,39 +17,40 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.URI;
+import java.io.File;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
-import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
-import org.neo4j.junit.jupiter.causal_cluster.NeedsCausalCluster;
+import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * @author Michael J. Simons
  */
-@EnabledIfEnvironmentVariable(named = "TEST_AGAINST_CC", matches = "true")
-@NeedsCausalCluster(password = ClusterTestIT.PASSWORD)
+@Testcontainers(disabledWithoutDocker = true)
 class ClusterTestIT {
 
 	static final String USERNAME = "neo4j";
-	static final String PASSWORD = "cc";
+	static final String PASSWORD = "verysecret";
 
-	@CausalCluster // (2)
-	private static URI neo4jUri;
+	@Container
+	protected static final DockerComposeContainer<?> environment =
+		new DockerComposeContainer<>(new File("src/test/resources/cc/docker-compose.yml"))
+			.withExposedService("server1", 7687);
 
 	private static Driver driver;
 
 	@BeforeAll
 	static void initDriver() {
 		Config config = Config.builder().withLogging(Logging.none()).build();
-		driver = GraphDatabase.driver(neo4jUri, AuthTokens.basic(USERNAME, PASSWORD), config);
+		driver = GraphDatabase.driver("neo4j://localhost:%d".formatted(environment.getServicePort("server1", 7687)), AuthTokens.basic(USERNAME, PASSWORD), config);
 	}
 
 	@AfterAll

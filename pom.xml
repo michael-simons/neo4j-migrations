@@ -119,7 +119,6 @@
 		<japicmp-maven-plugin.version>0.18.3</japicmp-maven-plugin.version>
 		<java-module-name/>
 		<java.version>17</java.version>
-		<junit-jupiter-causal-cluster-testcontainer-extension.version>2022.1.8</junit-jupiter-causal-cluster-testcontainer-extension.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.10.1</junit.jupiter.version>
 		<license-maven-plugin.version>4.3</license-maven-plugin.version>
@@ -198,11 +197,6 @@
 				<groupId>com.tngtech.archunit</groupId>
 				<artifactId>archunit</artifactId>
 				<version>${archunit.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>eu.michael-simons.neo4j</groupId>
-				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-				<version>${junit-jupiter-causal-cluster-testcontainer-extension.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>info.picocli</groupId>

@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.time.Duration;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +29,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -40,10 +42,11 @@ class ClusterTestIT {
 	static final String USERNAME = "neo4j";
 	static final String PASSWORD = "verysecret";
 
+	@SuppressWarnings("resource")
 	@Container
 	protected static final DockerComposeContainer<?> environment =
 		new DockerComposeContainer<>(new File("src/test/resources/cc/docker-compose.yml"))
-			.withExposedService("server1", 7687);
+			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
 
 	private static Driver driver;
 

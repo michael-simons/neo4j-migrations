@@ -29,6 +29,8 @@ jobs:
       TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+      - name: Ensure read permissions
+        run: chmod 640 neo4j-migrations-core/src/test/resources/cc/neo4j.conf
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -124,7 +126,7 @@ jobs:
         run: assembly/bin/neo4j-migrations.bat -a %EXTERNAL_TEST_DB_URL% --password:env EXTERNAL_TEST_DB_PWD --location file:///$pwd/neo4j-migrations-test-resources/src/main/resources/some/changeset info
 
   ensure_jdk_compat:
-    name: Ensure compatibilty with minimum required Java version
+    name: Ensure compatibility with minimum required Java version
     runs-on: ubuntu-latest
     services:
       neo4j:

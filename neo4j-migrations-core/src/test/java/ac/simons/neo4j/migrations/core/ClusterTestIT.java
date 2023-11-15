@@ -28,6 +28,7 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -44,9 +45,10 @@ class ClusterTestIT {
 
 	@SuppressWarnings("resource")
 	@Container
-	protected static final DockerComposeContainer<?> environment =
-		new DockerComposeContainer<>(new File("src/test/resources/cc/docker-compose.yml"))
-			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
+	protected static final ComposeContainer environment =
+		new ComposeContainer(new File("src/test/resources/cc/docker-compose.yml"))
+			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
+			.withLocalCompose(true);
 
 	private static Driver driver;
 

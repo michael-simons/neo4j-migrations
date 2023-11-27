@@ -55,7 +55,7 @@ class ClusterTestIT {
 	protected static final ComposeContainer environment =
 		new ComposeContainer(new File("src/test/resources/cc/docker-compose.yml"))
 			.withEnv(Map.of("USER_ID", Long.toString(unixSystem.getUid()), "GROUP_ID", Long.toString(unixSystem.getGid())))
-			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
+			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
 			.withLocalCompose(true);
 
 	private static Driver driver;

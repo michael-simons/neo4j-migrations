@@ -18,27 +18,49 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
-		<artifactId>neo4j-migrations-parent</artifactId>
+		<artifactId>neo4j-migrations-examples</artifactId>
 		<version>2.7.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>neo4j-migrations-examples</artifactId>
-	<packaging>pom</packaging>
-	<name>Neo4j Migrations (Examples)</name>
-	<description>A couple of example projects.</description>
+	<artifactId>neo4j-migrations-cluster-tests</artifactId>
 
-	<modules>
-		<module>neo4j-migrations-examples-sb</module>
-		<module>neo4j-migrations-examples-sb-testharness</module>
-		<module>neo4j-migrations-cluster-tests</module>
-	</modules>
+	<name>Examples (Tests against a Neo4j Cluster)</name>
+	<description>Tests that bring up a Neo4j Causal Cluster</description>
 
-	<properties>
-		<java-module-name>ac.simons.neo4j.migrations.examples</java-module-name>
-	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -68,6 +90,13 @@
 				<artifactId>nexus-staging-maven-plugin</artifactId>
 				<configuration>
 					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 		</plugins>

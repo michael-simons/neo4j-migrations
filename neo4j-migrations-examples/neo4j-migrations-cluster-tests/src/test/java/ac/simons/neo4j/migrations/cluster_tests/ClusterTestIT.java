@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.cluster_tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,8 +24,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -36,13 +34,16 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationState;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import com.sun.security.auth.module.UnixSystem;
 
 /**
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-@DisabledOnOs(OS.WINDOWS)
 class ClusterTestIT {
 
 	static final String USERNAME = "neo4j";
@@ -79,23 +80,23 @@ class ClusterTestIT {
 	void shouldWorkAgainstCC() {
 
 		Migrations migrations;
-		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-			"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), driver);
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1").build(), driver);
 		migrations.apply();
-
-		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(2);
-
-		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
-				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
-			.build(), driver);
-		migrations.apply();
-
-		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(5);
 
 		MigrationChain migrationChain = migrations.info();
+		assertThat(migrationChain.getElements()).hasSize(2);
+
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1", "/change2").build(), driver);
+		migrations.apply();
+
+		migrationChain = migrations.info();
 		assertThat(migrationChain.getElements())
-			.hasSizeGreaterThan(0)
+			.hasSize(5)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
+
+		try (var session = driver.session()) {
+			var cnt = session.executeRead(tx -> tx.run("MATCH (n:Node) WHERE n.name IN ['M1', 'M2', 'M3', 'M4', 'M5'] RETURN count(n)").single().get(0)).asLong();
+			assertThat(cnt).isEqualTo(5);
+		}
 	}
 }

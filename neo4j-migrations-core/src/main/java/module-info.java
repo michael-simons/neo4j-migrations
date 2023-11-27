@@ -30,8 +30,6 @@ module ac.simons.neo4j.migrations.core {
 
 	requires transitive org.neo4j.driver;
 
-	requires static jdk.security.auth;
-
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;
 	exports ac.simons.neo4j.migrations.core.refactorings;

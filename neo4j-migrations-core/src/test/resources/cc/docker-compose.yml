@@ -38,7 +38,7 @@ services:
 
     # Uncomment the volumes to be mounted to make them accessible from outside the container.
     volumes:
-      - ./neo4j.conf:/conf/conf/neo4j.conf # This is the main configuration file.
+      - ./neo4j.conf:/conf/neo4j.conf # This is the main configuration file.
 
     # Passes the following environment variables to the container
     environment:
@@ -53,9 +53,8 @@ services:
     # This status can be checked using the "docker ps" command.
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
-
     # Set up the user
-    
+    user: ${USER_ID}:${GROUP_ID}
 
   server2:
     image: "neo4j:5.13-enterprise"
@@ -65,7 +64,7 @@ services:
         aliases:
           - neo4j-network
     volumes:
-      - ./neo4j.conf:/conf/conf/neo4j.conf
+      - ./neo4j.conf:/conf/neo4j.conf
     environment:
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
       - NEO4J_AUTH=neo4j/verysecret
@@ -74,7 +73,7 @@ services:
       - NEO4J_initial_server_mode__constraint=PRIMARY
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
-    
+    user: ${USER_ID}:${GROUP_ID}
 
   server3:
     image: "neo4j:5.13-enterprise"
@@ -84,7 +83,7 @@ services:
         aliases:
           - neo4j-network
     volumes:
-      - ./neo4j.conf:/conf/conf/neo4j.conf
+      - ./neo4j.conf:/conf/neo4j.conf
     environment:
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
       - NEO4J_AUTH=neo4j/verysecret
@@ -93,7 +92,7 @@ services:
       - NEO4J_initial_server_mode__constraint=PRIMARY
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
-    
+    user: ${USER_ID}:${GROUP_ID}
 
   server4:
     image: "neo4j:5.13-enterprise"
@@ -103,7 +102,7 @@ services:
         aliases:
           - neo4j-network
     volumes:
-      - ./neo4j.conf:/conf/conf/neo4j.conf
+      - ./neo4j.conf:/conf/neo4j.conf
     environment:
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
       - NEO4J_AUTH=neo4j/verysecret
@@ -112,4 +111,5 @@ services:
       - NEO4J_initial_server_mode__constraint=SECONDARY
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+    user: ${USER_ID}:${GROUP_ID}
     

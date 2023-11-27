@@ -18,15 +18,13 @@ package ac.simons.neo4j.migrations.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -38,33 +36,29 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.sun.security.auth.module.UnixSystem;
+
 /**
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-@EnabledOnOs(OS.LINUX)
+@DisabledOnOs(OS.WINDOWS)
 class ClusterTestIT {
 
 	static final String USERNAME = "neo4j";
 	static final String PASSWORD = "verysecret";
 
+	protected static final UnixSystem unixSystem = new UnixSystem();
+
 	@SuppressWarnings("resource")
 	@Container
 	protected static final ComposeContainer environment =
 		new ComposeContainer(new File("src/test/resources/cc/docker-compose.yml"))
-			.withEnv(Map.of("USER_ID", userIdentity("u"), "GROUP_ID", userIdentity("g")))
+			.withEnv(Map.of("USER_ID", Long.toString(unixSystem.getUid()), "GROUP_ID", Long.toString(unixSystem.getGid())))
 			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
 			.withLocalCompose(true);
 
 	private static Driver driver;
-
-	private static String userIdentity(String what) {
-		try (var s = new ProcessBuilder().command("id", "-" + what).start().getInputStream()) {
-			return new String(s.readAllBytes());
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
 
 	@BeforeAll
 	static void initDriver() {

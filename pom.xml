@@ -823,7 +823,7 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${maven-failsafe-plugin.version}</version>
 				<configuration>
-					<argLine>@{argLine} -Xverify:all -XX:+EnableDynamicAgentLoading</argLine>
+					<argLine>@{argLine} -Xverify:all -XX:+EnableDynamicAgentLoading --add-reads ac.simons.neo4j.migrations.core=jdk.security.auth</argLine>
 					<systemPropertyVariables>
 						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
 						<migrations.test-only-latest-neo4j>${migrations.test-only-latest-neo4j}</migrations.test-only-latest-neo4j>

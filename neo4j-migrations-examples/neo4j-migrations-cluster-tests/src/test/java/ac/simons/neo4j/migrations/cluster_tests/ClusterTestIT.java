@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.core;
+package ac.simons.neo4j.migrations.cluster_tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,6 +34,12 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationState;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import com.sun.security.auth.module.UnixSystem;
+
 /**
  * @author Michael J. Simons
  */
@@ -42,11 +49,17 @@ class ClusterTestIT {
 	static final String USERNAME = "neo4j";
 	static final String PASSWORD = "verysecret";
 
+	protected static final UnixSystem unixSystem = new UnixSystem();
+
 	@SuppressWarnings("resource")
 	@Container
 	protected static final ComposeContainer environment =
 		new ComposeContainer(new File("src/test/resources/cc/docker-compose.yml"))
-			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
+			.withEnv(Map.of("USER_ID", Long.toString(unixSystem.getUid()), "GROUP_ID", Long.toString(unixSystem.getGid())))
+			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+			.withExposedService("server2", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+			.withExposedService("server3", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+			.withExposedService("server4", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
 			.withLocalCompose(true);
 
 	private static Driver driver;
@@ -67,23 +80,23 @@ class ClusterTestIT {
 	void shouldWorkAgainstCC() {
 
 		Migrations migrations;
-		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-			"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), driver);
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1").build(), driver);
 		migrations.apply();
-
-		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(2);
-
-		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
-				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
-			.build(), driver);
-		migrations.apply();
-
-		assertThat(TestBase.lengthOfMigrations(driver, null)).isEqualTo(5);
 
 		MigrationChain migrationChain = migrations.info();
+		assertThat(migrationChain.getElements()).hasSize(2);
+
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1", "/change2").build(), driver);
+		migrations.apply();
+
+		migrationChain = migrations.info();
 		assertThat(migrationChain.getElements())
-			.hasSizeGreaterThan(0)
+			.hasSize(5)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
+
+		try (var session = driver.session()) {
+			var cnt = session.executeRead(tx -> tx.run("MATCH (n:Node) WHERE n.name IN ['M1', 'M2', 'M3', 'M4', 'M5'] RETURN count(n)").single().get(0)).asLong();
+			assertThat(cnt).isEqualTo(5);
+		}
 	}
 }

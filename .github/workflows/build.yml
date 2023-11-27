@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Ensure read permissions
-        run: chmod 640 neo4j-migrations-core/src/test/resources/cc/neo4j.conf
+        run: chmod 640 neo4j-migrations-examples/neo4j-migrations-cluster-tests/src/test/resources/cc/neo4j.conf
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:

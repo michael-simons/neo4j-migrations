@@ -16,10 +16,13 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Abstraction over Cypher resources.
@@ -54,6 +57,16 @@ public sealed interface CypherResource permits DefaultCypherResource {
 				try {
 					return url.openStream();
 				} catch (IOException e) {
+					var oldUrl = url.toString();
+					if (e instanceof FileNotFoundException && oldUrl.contains("jar:file") && oldUrl.contains("!/BOOT-INF/")) {
+						var newUrl = oldUrl.replace("jar:file", "jar:nested").replace("!/BOOT-INF/", "/!BOOT-INF/");
+						Migrations.LOGGER.log(Level.FINE, "Probably on Spring Boot >= 3.2.0 with new Jar loader, replacing {0} with {1}", new Object[] {oldUrl, newUrl});
+						try {
+							return URI.create(newUrl).toURL().openStream();
+						} catch (IOException ex) {
+							throw new UncheckedIOException(e);
+						}
+					}
 					throw new UncheckedIOException(e);
 				}
 			});

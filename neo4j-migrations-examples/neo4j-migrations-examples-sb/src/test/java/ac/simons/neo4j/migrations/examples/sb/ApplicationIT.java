@@ -83,12 +83,12 @@ class ApplicationIT {
 			Session session = driver.session()
 		) {
 			long cnt = session.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
-			assertThat(cnt).isEqualTo(1L);
+			assertThat(cnt).isEqualTo(2L);
 
 			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
 			MigrationChain info = migrations.info(MigrationChain.ChainBuilderMode.REMOTE);
-			assertThat(info.getLastAppliedVersion().map(MigrationVersion::getValue)).hasValue("020");
-			assertThat(info.isApplied("020")).isTrue();
+			assertThat(info.getLastAppliedVersion().map(MigrationVersion::getValue)).hasValue("030");
+			assertThat(info.isApplied("030")).isTrue();
 		}
 	}
 }

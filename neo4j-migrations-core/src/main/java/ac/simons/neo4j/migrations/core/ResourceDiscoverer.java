@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.FileVisitOption;
@@ -49,27 +48,23 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 
 	static Discoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
 
-		List<Discoverer<Migration>> allDiscoveres = new ArrayList<>();
+		List<Discoverer<Migration>> allDiscovers = new ArrayList<>();
 		for (ResourceBasedMigrationProvider provider : ResourceBasedMigrationProvider.unique()) {
 			Predicate<String> filter = pathOrUrl -> {
-				try {
-					String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING.name());
-					if (provider.supportsArbitraryResourceNames()) {
-						return path.endsWith(provider.getExtension());
-					}
-					Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
-					boolean isValidResource = matcher.find();
-					if (!isValidResource && LOGGER.isLoggable(Level.FINE) && !LifecyclePhase.canParse(path)) {
-						LOGGER.log(Level.FINE, "Skipping resource {0}", path);
-					}
-					return isValidResource && provider.getExtension().equals(matcher.group("ext"));
-				} catch (UnsupportedEncodingException e) {
-					throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
+				String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING);
+				if (provider.supportsArbitraryResourceNames()) {
+					return path.endsWith(provider.getExtension());
 				}
+				Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);
+				boolean isValidResource = matcher.find();
+				if (!isValidResource && LOGGER.isLoggable(Level.FINE) && !LifecyclePhase.canParse(path)) {
+					LOGGER.log(Level.FINE, "Skipping resource {0}", path);
+				}
+				return isValidResource && provider.getExtension().equals(matcher.group("ext"));
 			};
-			allDiscoveres.add(new ResourceDiscoverer<>(resourceScanner, filter, provider::handle));
+			allDiscovers.add(new ResourceDiscoverer<>(resourceScanner, filter, provider::handle));
 		}
-		return new AggregatingMigrationDiscoverer(allDiscoveres);
+		return new AggregatingMigrationDiscoverer(allDiscovers);
 	}
 
 	static ResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
@@ -158,7 +153,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 				continue;
 			}
 			try {
-				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						String fullPath = file.toString();

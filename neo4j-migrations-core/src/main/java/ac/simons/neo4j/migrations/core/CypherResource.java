@@ -64,7 +64,7 @@ public sealed interface CypherResource permits DefaultCypherResource {
 						try {
 							return URI.create(newUrl).toURL().openStream();
 						} catch (IOException ex) {
-							throw new UncheckedIOException(e);
+							throw new UncheckedIOException(ex);
 						}
 					}
 					throw new UncheckedIOException(e);

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
@@ -60,5 +61,21 @@ class CypherResourceTest {
 		assertThatExceptionOfType(UncheckedIOException.class)
 			.isThrownBy(resource::getExecutableStatements)
 			.withCause(cause);
+	}
+
+	@Test
+	void checksForBoot32ClassLoaderShouldWork() throws IOException {
+
+		URL url = mock(URL.class);
+		IOException cause = new FileNotFoundException("Boom");
+		when(url.openStream()).thenThrow(cause);
+		when(url.toString()).thenReturn("jar:file:/target/UberjarWithNestedJar.jar!/BOOT-INF/classes/neo4j/migrations/V010__Test.cypher");
+		when(url.getPath()).thenReturn("V010__Test.cypher");
+
+		CypherResource resource = CypherResource.of(url);
+
+		assertThatExceptionOfType(UncheckedIOException.class)
+			.isThrownBy(resource::getExecutableStatements)
+			.withMessage("java.net.MalformedURLException: no !/ in spec"); // Due to the Boot handler not installed in Core tests.
 	}
 }

@@ -234,6 +234,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "alexanoid",
+      "name": "alexanoid",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110009335?v=4",
+      "profile": "https://github.com/alexanoid",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -242,5 +251,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }

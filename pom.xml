@@ -94,7 +94,7 @@
 		<aggregate.report.dir>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
-		<archunit.version>1.2.0</archunit.version>
+		<archunit.version>1.2.1</archunit.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
 		<asciidoctor-maven-plugin.version>2.2.4</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.2.13</asciidoctorj-diagram.version>

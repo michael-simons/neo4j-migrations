@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -44,6 +45,7 @@ import com.sun.security.auth.module.UnixSystem;
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
+@Disabled("Only run if needed")
 class ClusterTestIT {
 
 	static final String USERNAME = "neo4j";

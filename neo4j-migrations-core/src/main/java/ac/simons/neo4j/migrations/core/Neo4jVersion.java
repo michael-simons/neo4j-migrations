@@ -222,7 +222,7 @@ public enum Neo4jVersion {
 	 */
 	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
 
-		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.length() == 0) {
+		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.isEmpty()) {
 			return potentiallyNonIdentifier;
 		}
 

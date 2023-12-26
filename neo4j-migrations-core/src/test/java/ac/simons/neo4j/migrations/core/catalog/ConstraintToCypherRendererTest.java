@@ -189,6 +189,26 @@ class ConstraintToCypherRendererTest {
 			.isEqualTo("CREATE CONSTRAINT unique_isbn FOR (n:Book) REQUIRE n.isbn IS UNIQUE OPTIONS {`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
 	}
 
+	@Test // GH-1182
+	void indexOptionsShouldBeRendered() {
+
+		var renderConfig = RenderConfig.create().forVersionAndEdition("4.4", "ENTERPRISE");
+		var index = Index.forNode("MyNode")
+			.named("myFulltextIndex")
+			.onProperties("myFulltextSearchProperty")
+			.withType(Index.Type.FULLTEXT)
+			.withOptions(" indexConfig: +{ `fulltext.analyzer`:\"whitespace\" }");
+
+		var renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, renderConfig.withAdditionalOptions(
+			List.of(new RenderConfig.CypherRenderingOptions() {
+				@Override public boolean includingOptions() {
+					return true;
+				}
+			}))))
+			.isEqualTo("CREATE FULLTEXT INDEX myFulltextIndex FOR (n:MyNode) ON EACH [n.`myFulltextSearchProperty`] OPTIONS {indexConfig: +{ `fulltext.analyzer`:\"whitespace\" }}");
+	}
+
 	@ParameterizedTest
 	@CsvSource({ "CREATE, false", "DROP, true" })
 	void idempotencyShouldRequireName(Operator operator, boolean fails) {

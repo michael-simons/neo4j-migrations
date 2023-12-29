@@ -24,6 +24,7 @@ import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Driver;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -57,13 +58,14 @@ public class MigrationsAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean({ MigrationsConfig.class, Migrations.class, MigrationsInitializer.class })
-	MigrationsConfig neo4jMigrationsConfig(ResourceLoader resourceLoader, MigrationsProperties migrationsProperties) {
+	MigrationsConfig neo4jMigrationsConfig(ResourceLoader resourceLoader, MigrationsProperties migrationsProperties,
+		ObjectProvider<ConfigBuilderCustomizer> configBuilderCustomizers) {
 
 		if (migrationsProperties.isCheckLocation()) {
 			checkLocationExists(resourceLoader, migrationsProperties);
 		}
 
-		return MigrationsConfig.builder()
+		var builder = MigrationsConfig.builder()
 			.withLocationsToScan(migrationsProperties.getLocationsToScan())
 			.withPackagesToScan(migrationsProperties.getPackagesToScan())
 			.withTransactionMode(migrationsProperties.getTransactionMode())
@@ -73,8 +75,9 @@ public class MigrationsAutoConfiguration {
 			.withInstalledBy(migrationsProperties.getInstalledBy())
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.withAutocrlf(migrationsProperties.isAutocrlf())
-			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
-			.build();
+			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations());
+		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
+		return builder.build();
 	}
 
 	@Bean

@@ -247,7 +247,7 @@ public final class Migrations {
 
 		CatalogBasedMigration.OperationContext operationContext = new CatalogBasedMigration.OperationContext(
 			neo4jVersion, neo4jEdition,
-			(VersionedCatalog) context.getCatalog(), context::getSession);
+			(VersionedCatalog) context.getCatalog(), config, context::getSession);
 
 		return Arrays.stream(refactorings)
 			.filter(Objects::nonNull)

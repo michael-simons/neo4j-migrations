@@ -389,10 +389,10 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		try  {
 			OperationContext operationContext = new OperationContext(neo4jVersion, neo4jEdition,
-				(VersionedCatalog) globalCatalog, context::getSession);
+				(VersionedCatalog) globalCatalog, context.getConfig(), context::getSession);
 
 			Counters counters = this.operations
-				.stream().sequential()
+				.stream()
 				.map(op -> op.execute(operationContext))
 				.reduce(Counters.empty(), Counters::add);
 
@@ -422,7 +422,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		return Collections.unmodifiableList(preconditions);
 	}
 
-	record OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog, Supplier<Session> sessionSupplier) {
+	record OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog, MigrationsConfig config, Supplier<Session> sessionSupplier) {
 	}
 
 	private enum OperationType {
@@ -883,7 +883,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 				RenderConfig config = RenderConfig.create()
 					.idempotent(idempotent)
-					.forVersionAndEdition(context.version, context.edition);
+					.forVersionAndEdition(context.version, context.edition)
+					.withAdditionalOptions(context.config().getConstraintRenderingOptions());
 
 				if (idempotent && !context.version.hasIdempotentOperations()) {
 					config = config.ignoreName();
@@ -937,7 +938,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 				Renderer<CatalogItem<?>> renderer = Renderer.get(Renderer.Format.CYPHER, item);
 				RenderConfig config = RenderConfig.drop()
 					.idempotent(idempotent)
-					.forVersionAndEdition(context.version, context.edition);
+					.forVersionAndEdition(context.version, context.edition)
+					.withAdditionalOptions(context.config().getConstraintRenderingOptions());
 
 				if (idempotent && !context.version.hasIdempotentOperations()) {
 					config = config.ignoreName();
@@ -1103,7 +1105,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 				// Add the new ones
 				RenderConfig createConfig = RenderConfig.create()
-					.forVersionAndEdition(context.version, context.edition);
+					.forVersionAndEdition(context.version, context.edition)
+					.withAdditionalOptions(context.config().getConstraintRenderingOptions());
 				AtomicInteger constraintsAdded = new AtomicInteger(0);
 				AtomicInteger indexesAdded = new AtomicInteger(0);
 				context.catalog.getCatalogAt(definedAt).getItems().forEach(item -> {

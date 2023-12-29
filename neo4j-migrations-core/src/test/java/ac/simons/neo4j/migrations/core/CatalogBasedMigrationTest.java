@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,9 +36,11 @@ import ac.simons.neo4j.migrations.core.CatalogBasedMigration.Operation;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.OperationContext;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerificationFailedException;
 import ac.simons.neo4j.migrations.core.CatalogBasedMigration.VerifyOperation;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 import ac.simons.neo4j.migrations.core.catalog.Operator;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Merge;
@@ -514,7 +517,7 @@ class CatalogBasedMigrationTest {
 				.at(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), () -> session);
+				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
@@ -534,7 +537,7 @@ class CatalogBasedMigrationTest {
 				.allowEquivalent(true)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog, MigrationsConfig.defaultConfig(),
 				() -> session);
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
@@ -556,6 +559,7 @@ class CatalogBasedMigrationTest {
 				.at(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+				MigrationsConfig.defaultConfig(),
 				() -> session);
 
 			assertThatExceptionOfType(VerificationFailedException.class)
@@ -593,7 +597,7 @@ class CatalogBasedMigrationTest {
 				.allowEquivalent(false)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog, MigrationsConfig.defaultConfig(),
 				() -> session);
 
 			assertThatExceptionOfType(VerificationFailedException.class)
@@ -632,7 +636,7 @@ class CatalogBasedMigrationTest {
 				.allowEquivalent(true)
 				.at(MigrationVersion.withValue("1"));
 
-			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
+			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog, MigrationsConfig.defaultConfig(),
 				() -> session);
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
@@ -655,7 +659,7 @@ class CatalogBasedMigrationTest {
 			Operation operation = Operation.apply(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), () -> session);
+				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(session, times(2)).run(argumentCaptor.capture());
@@ -684,7 +688,7 @@ class CatalogBasedMigrationTest {
 			when(defaultResult.consume()).thenReturn(summary);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			operation.execute(context);
 
 			verify(session, times(5)).run(argumentCaptor.capture());
@@ -734,7 +738,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(dropIndex)).thenReturn(dropResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), () -> session);
+				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
 			operation.execute(context);
 
 			verify(session, times(4)).run(argumentCaptor.capture());
@@ -795,7 +799,7 @@ class CatalogBasedMigrationTest {
 			when(opResult.consume()).thenReturn(resultSummary);
 			when(session.run(expectedQuery)).thenReturn(opResult);
 
-			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE, catalog, () -> session);
+			OperationContext context = new OperationContext(version, Neo4jEdition.ENTERPRISE, catalog, MigrationsConfig.defaultConfig(), () -> session);
 			Counters counters = operation.execute(context);
 			if (operator == Operator.CREATE) {
 				assertThat(counters.constraintsAdded()).isEqualTo(1);
@@ -848,7 +852,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedQuery)).thenReturn(opResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			Counters counters = operation.execute(context);
 			if (operator == Operator.CREATE) {
 				assertThat(counters.constraintsAdded()).isEqualTo(1);
@@ -862,6 +866,41 @@ class CatalogBasedMigrationTest {
 			assertThat(query).isEqualTo(expectedQuery);
 			verify(opResult).consume();
 			verifyNoMoreInteractions(session, defaultResult, opResult);
+		}
+
+		@Test // GH-1182
+		void optionsShouldBeApply() {
+			URL url = TestResources.class.getResource("/catalogbased/actual-migrations-with-complete-verification/V20__Apply_complete_catalog.xml");
+			Objects.requireNonNull(url);
+			Document document = CatalogBasedMigration.parseDocument(url);
+
+			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
+				MigrationVersion.baseline());
+
+			Result opResult = mock(Result.class);
+			ResultSummary resultSummary = mock(ResultSummary.class);
+			SummaryCounters summaryCounters = mock(SummaryCounters.class);
+			when(summaryCounters.constraintsAdded()).thenReturn(1);
+			when(summaryCounters.constraintsRemoved()).thenReturn(2);
+			when(resultSummary.counters()).thenReturn(summaryCounters);
+			when(opResult.consume()).thenReturn(resultSummary);
+			when(session.run(anyString())).thenReturn(opResult);
+
+			var localCatalog = new DefaultCatalog();
+			localCatalog.addAll(MigrationVersion.baseline(), Catalog.of(document), false);
+			OperationContext context = new OperationContext(Neo4jVersion.V5, Neo4jEdition.ENTERPRISE, localCatalog,
+				MigrationsConfig.builder().withConstraintRenderingOptions(List.of(new RenderConfig.CypherRenderingOptions() {
+					@Override
+					public boolean includingOptions() {
+						return true;
+					}
+				})).build(), () -> session);
+			operations.get(0).execute(context);
+
+			verify(session, times(5)).run(argumentCaptor.capture());
+			verify(session).close();
+			assertThat(argumentCaptor.getAllValues())
+				.contains("CREATE CONSTRAINT unique_isbn FOR (n:Book) REQUIRE n.isbn IS UNIQUE OPTIONS {`indexConfig`: {`spatial.cartesian.min`: [-1000000.0, -1000000.0], `spatial.wgs-84.min`: [-180.0, -90.0], `spatial.wgs-84.max`: [180.0, 90.0], `spatial.cartesian.max`: [1000000.0, 1000000.0], `spatial.wgs-84-3d.max`: [180.0, 90.0, 1000000.0], `spatial.cartesian-3d.min`: [-1000000.0, -1000000.0, -1000000.0], `spatial.cartesian-3d.max`: [1000000.0, 1000000.0, 1000000.0], `spatial.wgs-84-3d.min`: [-180.0, -90.0, -1000000.0]}, `indexProvider`: \"native-btree-1.0\"}");
 		}
 
 		@ParameterizedTest
@@ -882,7 +921,7 @@ class CatalogBasedMigrationTest {
 			}
 
 			OperationContext context = new OperationContext(Neo4jVersion.LATEST, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			assertThatExceptionOfType(MigrationsException.class)
 				.isThrownBy(() -> op.execute(context))
 				.withMessage("An item named 'trololo' has not been defined as of version 1.");
@@ -924,7 +963,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedQuery)).thenReturn(opResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			Counters counters = op.execute(context);
 			if (operator == Operator.CREATE) {
 				assertThat(counters.constraintsAdded()).isEqualTo(1);
@@ -967,7 +1006,7 @@ class CatalogBasedMigrationTest {
 
 			when(session.run(expectedQuery)).thenThrow(new DatabaseException("Something else is broken", "Oh :("));
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			assertThatExceptionOfType(DatabaseException.class)
 				.isThrownBy(() -> op.execute(context))
 				.withMessage("Oh :(");
@@ -1021,7 +1060,7 @@ class CatalogBasedMigrationTest {
 				.thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			op.execute(context);
 
 			verify(session).run(expectedQuery);
@@ -1062,7 +1101,7 @@ class CatalogBasedMigrationTest {
 				.thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			op.execute(context);
 
 			verify(session).run(expectedDrop);
@@ -1090,7 +1129,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedCall)).thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			assertThatExceptionOfType(DatabaseException.class)
 				.isThrownBy(() -> op.execute(context))
 				.withMessage("Oh :(");
@@ -1129,7 +1168,7 @@ class CatalogBasedMigrationTest {
 				.thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			drop.execute(context);
 
 			verify(session).run(expectedDrop);
@@ -1160,7 +1199,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedConstraintCall)).thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			assertThatExceptionOfType(DatabaseException.class)
 				.isThrownBy(() -> drop.execute(context))
 				.withMessage("Oh :(");
@@ -1200,7 +1239,7 @@ class CatalogBasedMigrationTest {
 			when(session.run("DROP CONSTRAINT ON (n:Book) ASSERT n.id IS UNIQUE")).thenReturn(dropResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			Counters counters = drop.execute(context);
 			assertThat(counters.constraintsRemoved()).isEqualTo(1);
 
@@ -1240,7 +1279,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedCall)).thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			drop.execute(context);
 
 			verify(session, times(2)).run(argumentCaptor.capture());
@@ -1283,7 +1322,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(expectedCall)).thenReturn(result);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V3_5, Neo4jEdition.ENTERPRISE, catalog,
-				() -> session);
+				MigrationsConfig.defaultConfig(), () -> session);
 			drop.execute(context);
 
 			verify(session, times(4)).run(argumentCaptor.capture());

@@ -15,10 +15,14 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,6 +109,8 @@ public final class MigrationsConfig {
 	 */
 	private final Duration delayBetweenMigrations;
 
+	private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -123,6 +129,7 @@ public final class MigrationsConfig {
 		this.resourceScanner = builder.resourceScanner == null ? new DefaultClasspathResourceScanner() : builder.resourceScanner;
 		this.schemaDatabase = builder.schemaDatabase;
 		this.delayBetweenMigrations = builder.delayBetweenMigrations;
+		this.constraintOptions = builder.constraintOptions;
 	}
 
 	/**
@@ -214,6 +221,14 @@ public final class MigrationsConfig {
 	 */
 	public Optional<Duration> getOptionalDelayBetweenMigrations() {
 		return Optional.ofNullable(delayBetweenMigrations);
+	}
+
+	/**
+	 * {@return the list of additional options to use when rendering constraints}
+	 * @since 2.8.2
+	 */
+	public List<? extends RenderConfig.AdditionalRenderingOptions> getConstraintRenderingOptions() {
+		return List.copyOf(constraintOptions);
 	}
 
 	/**
@@ -312,6 +327,8 @@ public final class MigrationsConfig {
 		private ClasspathResourceScanner resourceScanner;
 
 		private Duration delayBetweenMigrations;
+
+		private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions = List.of();
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -482,6 +499,20 @@ public final class MigrationsConfig {
 		public Builder withDelayBetweenMigrations(Duration newDelayBetweenMigrations) {
 
 			this.delayBetweenMigrations = newDelayBetweenMigrations;
+			return this;
+		}
+
+		/**
+		 * Configures the rendering options for constraints defined by a catalog. Can be {@literal null} but must not
+		 * contain any {@literal null} items.
+		 * @param newRenderingOptions The rendering options to use, a {@literal null} argument resets the options.
+		 * @return The builder for further customization
+		 * @throws NullPointerException if {@code newRenderingOptions} contains {@literal null} values
+		 * @since 2.8.2
+		 */
+		public Builder withConstraintRenderingOptions(Collection<? extends RenderConfig.AdditionalRenderingOptions> newRenderingOptions) {
+
+			this.constraintOptions = List.copyOf(Objects.requireNonNullElseGet(newRenderingOptions, List::of));
 			return this;
 		}
 

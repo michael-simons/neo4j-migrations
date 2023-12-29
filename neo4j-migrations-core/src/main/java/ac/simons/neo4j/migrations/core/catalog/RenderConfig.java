@@ -104,19 +104,6 @@ public final class RenderConfig {
 	}
 
 	/**
-	 * {@return rendering options enabling the rendering of Cypher options}
-	 * @since 2.8.2
-	 */
-	AdditionalRenderingOptions includingOptions() {
-		return new CypherRenderingOptions() {
-			@Override
-			public boolean includingOptions() {
-				return true;
-			}
-		};
-	}
-
-	/**
 	 * Allows adding idempotency to the context.
 	 */
 	public interface IfNotExistsConfigBuilder extends Builder {

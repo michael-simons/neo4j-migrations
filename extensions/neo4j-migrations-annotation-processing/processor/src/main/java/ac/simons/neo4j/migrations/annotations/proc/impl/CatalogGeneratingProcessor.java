@@ -249,7 +249,6 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 					RenderConfig config = RenderConfig.create()
 						.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE)
 						.withAdditionalOptions(Collections.singletonList(o));
-
 					renderer.render(Catalog.of(catalogItems), config, out);
 				}
 			} catch (IOException e) {
@@ -324,6 +323,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			Element enclosingElement = enclosingOrSelf.apply(element);
 			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
 				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
+		}
+
+		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.fulltextIndex())) {
+			Element enclosingElement = enclosingOrSelf.apply(element);
+			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
+					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.fulltextIndex(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
 		items.values().forEach(catalogItems::addAll);
@@ -488,7 +493,21 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return target == Target.REL ?
 				Constraint.forRelationship(firstIdentifier).named(name).exists(propertyName) :
 				Constraint.forNode(firstIdentifier).named(name).exists(propertyName);
+		} else if (annotationType == catalog.fulltextIndex()) {
+			String name = this.indexNameGenerator.generateName(Index.Type.FULLTEXT, properties);
+			String propertyName = propertyNames.stream().findFirst().orElseThrow();
+			Index index = target == Target.REL ?
+					Index.forRelationship(firstIdentifier).named(name).fulltext(propertyName) :
+					Index.forNode(firstIdentifier).named(name).fulltext(propertyName);
+			AnnotationValue annotationAnalyzerType =
+					Attributes.get(annotationType, Attributes.ANALYZER).map(attributes::get).orElse(null);
+			if (annotationAnalyzerType!=null) {
+				String analyzer = (String) annotationAnalyzerType.getValue();
+				index = index.withOptions("indexConfig: +{ `fulltext.analyzer`:\""+analyzer+"\" }");
+			}
+			return index;
 		}
+
 
 		return null;
 	}

@@ -30,7 +30,8 @@ import javax.lang.model.util.Elements;
 record ElementsCatalog(
 	TypeElement required,
 	TypeElement unique,
-	TypeElement uniqueWrapper) {
+	TypeElement uniqueWrapper,
+	TypeElement fulltextIndex) {
 
 	static Optional<ElementsCatalog> of(Elements elements) {
 		TypeElement catalogRequired = elements.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);
@@ -39,7 +40,8 @@ record ElementsCatalog(
 		}
 		TypeElement catalogUnique = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
 		TypeElement catalogUniqueWrapper = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
+		TypeElement catalogFulltextIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_FULLTEXT_INDEX);
 
-		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper));
+		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper,catalogFulltextIndex));
 	}
 }

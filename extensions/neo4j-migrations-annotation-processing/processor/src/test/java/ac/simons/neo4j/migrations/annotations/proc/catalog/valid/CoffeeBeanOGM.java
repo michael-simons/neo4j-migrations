@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
+import ac.simons.neo4j.migrations.annotations.catalog.FulltextIndex;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Property;
 
@@ -30,25 +31,31 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 @Unique(properties = {"a", "b", "c"})
 public class CoffeeBeanOGM {
 
-	@Unique
-	public UUID uuid;
+    @Unique
+    public UUID uuid;
 
-	@Required
-	public String name;
+    @Required
+    public String name;
 
-	@Required(property = "theName")
-	public String nameA;
+    @FulltextIndex
+    public String text;
 
-	@Property(name = "theOtherName")
-	@Required
-	public String nameB;
+    @FulltextIndex(analyzer = "whitespace")
+    public String textB;
 
-	@Required(property = "name")
-	public String nameC;
+    @Required(property = "theName")
+    public String nameA;
 
-	public String a;
+    @Property(name = "theOtherName")
+    @Required
+    public String nameB;
 
-	public String b;
+    @Required(property = "name")
+    public String nameC;
 
-	public String d;
+    public String a;
+
+    public String b;
+
+    public String d;
 }

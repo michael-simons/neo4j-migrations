@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *	  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,31 +31,31 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 @Unique(properties = {"a", "b", "c"})
 public class CoffeeBeanOGM {
 
-    @Unique
-    public UUID uuid;
+	@Unique
+	public UUID uuid;
 
-    @Required
-    public String name;
+	@Required
+	public String name;
 
-    @FulltextIndex
-    public String text;
+	@FulltextIndex
+	public String text;
 
-    @FulltextIndex(analyzer = "whitespace")
-    public String textB;
+	@FulltextIndex(analyzer = "whitespace")
+	public String textB;
 
-    @Required(property = "theName")
-    public String nameA;
+	@Required(property = "theName")
+	public String nameA;
 
-    @Property(name = "theOtherName")
-    @Required
-    public String nameB;
+	@Property(name = "theOtherName")
+	@Required
+	public String nameB;
 
-    @Required(property = "name")
-    public String nameC;
+	@Required(property = "name")
+	public String nameC;
 
-    public String a;
+	public String a;
 
-    public String b;
+	public String b;
 
-    public String d;
+	public String d;
 }

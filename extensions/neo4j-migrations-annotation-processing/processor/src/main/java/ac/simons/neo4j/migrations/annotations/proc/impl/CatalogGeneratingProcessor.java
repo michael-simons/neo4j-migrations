@@ -249,6 +249,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 					RenderConfig config = RenderConfig.create()
 						.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE)
 						.withAdditionalOptions(Collections.singletonList(o));
+
 					renderer.render(Catalog.of(catalogItems), config, out);
 				}
 			} catch (IOException e) {

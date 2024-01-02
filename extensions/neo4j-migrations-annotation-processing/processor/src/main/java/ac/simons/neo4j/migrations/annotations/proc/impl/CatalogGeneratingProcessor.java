@@ -98,6 +98,7 @@ import javax.tools.StandardLocation;
 	FullyQualifiedNames.CATALOG_REQUIRED,
 	FullyQualifiedNames.CATALOG_UNIQUE,
 	FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
+	FullyQualifiedNames.CATALOG_FULLTEXT
 })
 @SupportedOptions({
 	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CATALOG,
@@ -326,6 +327,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
+		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.fulltextIndex())) {
+			Element enclosingElement = enclosingOrSelf.apply(element);
+			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
+					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.fulltextIndex(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
+		}
+
 		items.values().forEach(catalogItems::addAll);
 	}
 
@@ -488,6 +495,18 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return target == Target.REL ?
 				Constraint.forRelationship(firstIdentifier).named(name).exists(propertyName) :
 				Constraint.forNode(firstIdentifier).named(name).exists(propertyName);
+		} else if (annotationType == catalog.fulltextIndex()) {
+			String name = this.indexNameGenerator.generateName(Index.Type.FULLTEXT, properties);
+			Index index = target == Target.REL ?
+					Index.forRelationship(firstIdentifier).named(name).fulltext(propertyNames.toArray(String[]::new)) :
+					Index.forNode(firstIdentifier).named(name).fulltext(propertyNames.toArray(String[]::new));
+			AnnotationValue annotationAnalyzerType =
+					Attributes.get(annotationType, Attributes.ANALYZER).map(attributes::get).orElse(null);
+			if (annotationAnalyzerType != null) {
+				String analyzer = (String) annotationAnalyzerType.getValue();
+				index = index.withOptions("indexConfig: +{ `fulltext.analyzer`:\"" + analyzer + "\" }");
+			}
+			return index;
 		}
 
 		return null;

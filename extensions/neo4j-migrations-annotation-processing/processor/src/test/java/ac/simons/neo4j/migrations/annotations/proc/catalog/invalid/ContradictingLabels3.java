@@ -13,50 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
-
-import java.util.UUID;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Fulltext;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Required;
-import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
  * @author Michael J. Simons
  */
-@NodeEntity("CBOGM")
-@Unique(properties = {"a", "b", "c"})
-@Fulltext(properties = {"a", "b"})
-public class CoffeeBeanOGM {
+@Fulltext(properties = {"nameA"})
+public class ContradictingLabels3 {
 
-	@Unique
-	public UUID uuid;
-
-	@Required
+	@Fulltext(label = "foo")
 	public String name;
 
-	@Fulltext
-	public String text;
-
-	@Fulltext(analyzer = "whitespace")
-	public String textB;
-
-	@Required(property = "theName")
 	public String nameA;
-
-	@Property(name = "theOtherName")
-	@Required
-	public String nameB;
-
-	@Required(property = "name")
-	public String nameC;
-
-	public String a;
-
-	public String b;
-
-	public String d;
 }

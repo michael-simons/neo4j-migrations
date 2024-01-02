@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
+package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
-import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.annotations.catalog.Fulltext;
 
 /**
- * Callback interface that can be implemented by beans wishing to customize the
- * {@link MigrationsConfig} through a {@link MigrationsConfig.Builder} whilst retaining default
- * autoconfiguration.
- *
  * @author Michael J. Simons
- * @since 2.8.2
  */
-@FunctionalInterface
-public interface ConfigBuilderCustomizer {
+public class FulltextOnFieldWithProperties {
 
-	/**
-	 * Customize the {@link MigrationsConfig.Builder}.
-	 *
-	 * @param configBuilder the {@link MigrationsConfig.Builder} to customize
-	 */
-	void customize(MigrationsConfig.Builder configBuilder);
+	@Fulltext(properties = {"a", "b"})
+	public String name;
 }

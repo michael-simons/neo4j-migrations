@@ -38,6 +38,7 @@ final class Attributes {
 	static final String PROPERTIES = "properties";
 	static final String PROPERTY = "property";
 	static final String UNIQUE = "unique";
+	static final String ANALYZER = "analyzer";
 
 	static Optional<ExecutableElement> get(TypeElement annotation, String name) {
 		if (annotation == null) {

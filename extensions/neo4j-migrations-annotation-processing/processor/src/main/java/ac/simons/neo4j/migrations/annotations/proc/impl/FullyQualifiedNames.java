@@ -48,7 +48,7 @@ final class FullyQualifiedNames {
 	static final String CATALOG_REQUIRED = "ac.simons.neo4j.migrations.annotations.catalog.Required";
 	static final String CATALOG_UNIQUE = "ac.simons.neo4j.migrations.annotations.catalog.Unique";
 	static final String CATALOG_UNIQUE_PROPERTIES = "ac.simons.neo4j.migrations.annotations.catalog.UniqueProperties";
-	static final String CATALOG_FULLTEXT_INDEX ="ac.simons.neo4j.migrations.annotations.catalog.FulltextIndex";
+	static final String CATALOG_FULLTEXT = "ac.simons.neo4j.migrations.annotations.catalog.Fulltext";
 
 	private FullyQualifiedNames() {
 	}

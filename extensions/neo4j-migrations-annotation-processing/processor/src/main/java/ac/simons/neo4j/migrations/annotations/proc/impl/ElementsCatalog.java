@@ -40,8 +40,8 @@ record ElementsCatalog(
 		}
 		TypeElement catalogUnique = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
 		TypeElement catalogUniqueWrapper = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
-		TypeElement catalogFulltextIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_FULLTEXT_INDEX);
+		TypeElement catalogFulltextIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_FULLTEXT);
 
-		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper,catalogFulltextIndex));
+		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper, catalogFulltextIndex));
 	}
 }

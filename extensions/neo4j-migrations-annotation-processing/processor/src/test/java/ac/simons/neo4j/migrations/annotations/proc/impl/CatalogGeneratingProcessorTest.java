@@ -115,6 +115,7 @@ class CatalogGeneratingProcessorTest {
 			Arguments.of("ConflictingAliasesOGM", "Different @AliasFor or @ValueFor mirror values for annotation [org.neo4j.ogm.annotation.Property]"),
 			Arguments.of("ContradictingLabels1", "Contradicting labels found: `foo`, `ContradictingLabels1`"),
 			Arguments.of("ContradictingLabels2", "Contradicting labels found: `ContradictingLabels2`, `foo`"),
+			Arguments.of("ContradictingLabels3", "Contradicting labels found: `ContradictingLabels3`, `foo`"),
 			Arguments.of("ContradictingPropertiesOGM", "Contradicting properties: (bar) vs foo"),
 			Arguments.of("ContradictingPropertiesSDN", "Contradicting properties: (bar) vs foo"),
 			Arguments.of("MixingSDNAndOgm", "Mixing SDN and OGM annotations on the same class is not supported"),
@@ -125,7 +126,8 @@ class CatalogGeneratingProcessorTest {
 			Arguments.of("UniqueOnRelOGM", "Unique constraints on relationships are not supported"),
 			Arguments.of("UniqueOnRelSDN", "Unique constraints on relationships are not supported"),
 			Arguments.of("WrongOverwritingDefaultOGM1", "Overwriting explicit type with a label is not supported"),
-			Arguments.of("WrongOverwritingDefaultOGM2", "Overwriting explicit label with a type is not supported")
+			Arguments.of("WrongOverwritingDefaultOGM2", "Overwriting explicit label with a type is not supported"),
+			Arguments.of("FulltextOnFieldWithProperties", "Please annotate the class and not a field for composite constraints")
 		);
 	}
 

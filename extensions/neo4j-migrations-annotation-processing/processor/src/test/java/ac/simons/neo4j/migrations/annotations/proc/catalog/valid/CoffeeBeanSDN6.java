@@ -28,6 +28,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
  */
 @Node("CBSDN6")
 @Unique(properties = {"a", "b", "c"})
+@SuppressWarnings("unused")
 public class CoffeeBeanSDN6 {
 
 	@Unique

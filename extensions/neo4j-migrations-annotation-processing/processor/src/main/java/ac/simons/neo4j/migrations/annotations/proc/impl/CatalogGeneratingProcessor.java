@@ -383,15 +383,15 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				element
 			);
 			return Collections.emptyList();
-		} else if (sdn6 != null && annotationsPresent.equals(Collections.singleton(sdn6.node()))) {
+		} else if (sdn6 != null && annotationsPresent.contains(sdn6.node())) {
 			labels = computeLabelsSDN6((TypeElement) enclosingElement);
 			mode = Mode.SDN6;
 			target = Target.NODE;
-		} else if (sdn6 != null && annotationsPresent.equals(Collections.singleton(sdn6.relationshipProperties()))) {
+		} else if (sdn6 != null && annotationsPresent.contains(sdn6.relationshipProperties())) {
 			labels = List.of(DefaultSchemaName.type(Identifiers.deriveRelationshipType(enclosingElement.getSimpleName().toString())));
 			mode = Mode.SDN6;
 			target = Target.REL;
-		} else if (ogm != null && annotationsPresent.equals(Collections.singleton(ogm.relationshipEntity()))) {
+		} else if (ogm != null && annotationsPresent.contains(ogm.relationshipEntity())) {
 			labels = List.of(computeTypeOGM((TypeElement) enclosingElement));
 			mode = Mode.OGM;
 			target = Target.REL;

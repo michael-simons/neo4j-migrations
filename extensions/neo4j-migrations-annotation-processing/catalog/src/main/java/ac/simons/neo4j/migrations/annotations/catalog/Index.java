@@ -42,6 +42,10 @@ public @interface Index {
 	 */
 	String[] properties() default {};
 
+	/**
+	 * index type for the index.
+	 * @return indexType
+	 */
 	Type indexType() default Type.PROPERTY;
 
 	/**
@@ -70,8 +74,20 @@ public @interface Index {
 		TEXT;
 	}
 
+	/**
+	 * key value based option for index creation.
+	 */
 	@interface Option {
+		/**
+		 * key string for the option
+		 * @return key string
+		 */
 		String key() default "";
+
+		/**
+		 * value string for the option
+		 * @return value string
+		 */
 		String value() default "";
 	}
 }

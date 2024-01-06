@@ -502,22 +502,21 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			Index.NamedSingleIdentifierBuilder builder = target == Target.REL ?
 					Index.forRelationship(firstIdentifier).named(name) :
 					Index.forNode(firstIdentifier).named(name);
-			Index index;
-			switch(type){
-                case PROPERTY -> index = builder.onProperties(propertyNames.toArray(String[]::new));
-                case FULLTEXT -> index = builder.fulltext(propertyNames.toArray(String[]::new));
-                case TEXT -> index = builder.text(propertyNames.stream().findFirst().orElseThrow());
+			Index index = switch (type) {
+				case PROPERTY -> builder.onProperties(propertyNames.toArray(String[]::new));
+				case FULLTEXT -> builder.fulltext(propertyNames.toArray(String[]::new));
+				case TEXT -> builder.text(propertyNames.stream().findFirst().orElseThrow());
 				default -> throw new UnsupportedOperationException("Unknown index type");
-            }
+			};
 
 			AnnotationValue annotationOptionsType =
-					Attributes.get(annotationType, Attributes.OPTIONS).map(attributes::get).orElse(null);
+				Attributes.get(annotationType, Attributes.OPTIONS).map(attributes::get).orElse(null);
 			if (annotationOptionsType != null) {
 				List<?> options = (List<?>) annotationOptionsType.getValue();
 				String optionString = options.stream().map(AnnotationMirror.class::cast)
-						.map(this::extractOption)
-						.filter(Objects::nonNull)
-						.collect( Collectors.joining( ", " ) );
+					.map(this::extractOption)
+					.filter(Objects::nonNull)
+					.collect(Collectors.joining(", "));
 				index = index.withOptions(optionString);
 			}
 			return index;
@@ -527,7 +526,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	private String extractOption(AnnotationMirror annotation) {
- 		TypeElement annotationType = (TypeElement) annotation.getAnnotationType().asElement();
+		TypeElement annotationType = (TypeElement) annotation.getAnnotationType().asElement();
 		Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = annotation.getElementValues();
 		AnnotationValue annotationKeyType =
 				Attributes.get(annotationType, Attributes.KEY).map(attributes::get).orElse(null);
@@ -535,8 +534,9 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		AnnotationValue annotationValueType =
 				Attributes.get(annotationType, Attributes.VALUE).map(attributes::get).orElse(null);
 
-		if (annotationKeyType == null || annotationValueType == null)
+		if (annotationKeyType == null || annotationValueType == null) {
 			return null;
+		}
 		String key = (String) annotationKeyType.getValue();
 		String value = (String) annotationValueType.getValue();
 

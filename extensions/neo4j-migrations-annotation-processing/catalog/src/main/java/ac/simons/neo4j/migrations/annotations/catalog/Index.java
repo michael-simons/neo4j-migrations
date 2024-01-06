@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.annotations.catalog;
 
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -64,6 +63,9 @@ public @interface Index {
 	 */
 	Option[] options() default {};
 
+	/**
+	 * An enumeration of possible index types.
+	 */
 	enum Type {
 		/**
 		 * An index on properties. The actual type depends on the options.

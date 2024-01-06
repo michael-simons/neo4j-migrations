@@ -98,7 +98,7 @@ import javax.tools.StandardLocation;
 	FullyQualifiedNames.CATALOG_REQUIRED,
 	FullyQualifiedNames.CATALOG_UNIQUE,
 	FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
-	FullyQualifiedNames.CATALOG_FULLTEXT
+	FullyQualifiedNames.CATALOG_INDEX
 })
 @SupportedOptions({
 	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CATALOG,
@@ -327,10 +327,10 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
-		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.fulltextIndex())) {
+		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.index())) {
 			Element enclosingElement = enclosingOrSelf.apply(element);
 			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
-					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.fulltextIndex(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
+					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.index(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
 		items.values().forEach(catalogItems::addAll);
@@ -495,21 +495,52 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			return target == Target.REL ?
 				Constraint.forRelationship(firstIdentifier).named(name).exists(propertyName) :
 				Constraint.forNode(firstIdentifier).named(name).exists(propertyName);
-		} else if (annotationType == catalog.fulltextIndex()) {
-			String name = this.indexNameGenerator.generateName(Index.Type.FULLTEXT, properties);
-			Index index = target == Target.REL ?
-					Index.forRelationship(firstIdentifier).named(name).fulltext(propertyNames.toArray(String[]::new)) :
-					Index.forNode(firstIdentifier).named(name).fulltext(propertyNames.toArray(String[]::new));
-			AnnotationValue annotationAnalyzerType =
-					Attributes.get(annotationType, Attributes.ANALYZER).map(attributes::get).orElse(null);
-			if (annotationAnalyzerType != null) {
-				String analyzer = (String) annotationAnalyzerType.getValue();
-				index = index.withOptions("indexConfig: +{ `fulltext.analyzer`:\"" + analyzer + "\" }");
+		} else if (annotationType == catalog.index()) {
+			Index.Type type = Attributes.get(annotationType, Attributes.INDEX_TYPE).map(attributes::get)
+					.map(AnnotationValue::getValue).map(Object::toString).map(Index.Type::valueOf).orElse(Index.Type.PROPERTY);
+			String name = this.indexNameGenerator.generateName(type, properties);
+			Index.NamedSingleIdentifierBuilder builder = target == Target.REL ?
+					Index.forRelationship(firstIdentifier).named(name) :
+					Index.forNode(firstIdentifier).named(name);
+			Index index;
+			switch(type){
+                case PROPERTY -> index = builder.onProperties(propertyNames.toArray(String[]::new));
+                case FULLTEXT -> index = builder.fulltext(propertyNames.toArray(String[]::new));
+                case TEXT -> index = builder.text(propertyNames.stream().findFirst().orElseThrow());
+				default -> throw new UnsupportedOperationException("Unknown index type");
+            }
+
+			AnnotationValue annotationOptionsType =
+					Attributes.get(annotationType, Attributes.OPTIONS).map(attributes::get).orElse(null);
+			if (annotationOptionsType != null) {
+				List<?> options = (List<?>) annotationOptionsType.getValue();
+				String optionString = options.stream().map(AnnotationMirror.class::cast)
+						.map(this::extractOption)
+						.filter(Objects::nonNull)
+						.collect( Collectors.joining( ", " ) );
+				index = index.withOptions(optionString);
 			}
 			return index;
 		}
 
 		return null;
+	}
+
+	private String extractOption(AnnotationMirror annotation) {
+ 		TypeElement annotationType = (TypeElement) annotation.getAnnotationType().asElement();
+		Map<? extends ExecutableElement, ? extends AnnotationValue> attributes = annotation.getElementValues();
+		AnnotationValue annotationKeyType =
+				Attributes.get(annotationType, Attributes.KEY).map(attributes::get).orElse(null);
+
+		AnnotationValue annotationValueType =
+				Attributes.get(annotationType, Attributes.VALUE).map(attributes::get).orElse(null);
+
+		if (annotationKeyType == null || annotationValueType == null)
+			return null;
+		String key = (String) annotationKeyType.getValue();
+		String value = (String) annotationValueType.getValue();
+
+		return key + ": " + value;
 	}
 
 	private Set<String> extractPropertyNames(

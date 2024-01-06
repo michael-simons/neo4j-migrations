@@ -15,15 +15,15 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
-import ac.simons.neo4j.migrations.annotations.catalog.Fulltext;
+import ac.simons.neo4j.migrations.annotations.catalog.Index;
 
 /**
  * @author Michael J. Simons
  */
-@Fulltext(properties = {"nameA"})
+@Index(properties = {"nameA"})
 public class ContradictingLabels3 {
 
-	@Fulltext(label = "foo")
+	@Index(label = "foo")
 	public String name;
 
 	public String nameA;

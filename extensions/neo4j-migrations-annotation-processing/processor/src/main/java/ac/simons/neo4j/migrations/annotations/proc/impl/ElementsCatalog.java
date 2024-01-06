@@ -31,7 +31,7 @@ record ElementsCatalog(
 	TypeElement required,
 	TypeElement unique,
 	TypeElement uniqueWrapper,
-	TypeElement fulltextIndex) {
+	TypeElement index) {
 
 	static Optional<ElementsCatalog> of(Elements elements) {
 		TypeElement catalogRequired = elements.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);
@@ -40,8 +40,8 @@ record ElementsCatalog(
 		}
 		TypeElement catalogUnique = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
 		TypeElement catalogUniqueWrapper = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
-		TypeElement catalogFulltextIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_FULLTEXT);
+		TypeElement catalogIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_INDEX);
 
-		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper, catalogFulltextIndex));
+		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper, catalogIndex));
 	}
 }

@@ -15,13 +15,13 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
-import ac.simons.neo4j.migrations.annotations.catalog.Fulltext;
+import ac.simons.neo4j.migrations.annotations.catalog.Index;
 
 /**
  * @author Michael J. Simons
  */
 public class FulltextOnFieldWithProperties {
 
-	@Fulltext(properties = {"a", "b"})
+	@Index(properties = {"a", "b"})
 	public String name;
 }

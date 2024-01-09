@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Documented
-public @interface Fulltext {
+public @interface Index {
 	/**
 	 * If this is not {@literal null} it has precedence over an implicit label (either no class annotations or one without
 	 * a dedicated label) but not over OGM or SDN6 annotations specifying the label or type explicitly.
@@ -39,7 +39,7 @@ public @interface Fulltext {
 	String label() default "";
 
 	/**
-	 * Use this if you want to define composite, fulltext index when using {@link Fulltext} on the class level.
+	 * Use this if you want to define composite, Index when using {@link Index} on the class level.
 	 * Leave it empty when using on field level, otherwise an exception will be thrown.
 	 *
 	 * @return The list of properties to include in the composite.
@@ -47,10 +47,54 @@ public @interface Fulltext {
 	String[] properties() default {};
 
 	/**
-	 * Use this if you want to use a different fulltext analyzer for your index.
-	 * Be aware to activate the option to allow further options on index creation.
-	 *
-	 * @return name of the fulltext analyzer
+	 * index type for the index.
+	 * @return indexType
 	 */
-	String analyzer() default "";
+	Type indexType() default Type.PROPERTY;
+
+	/**
+	 * Use this if you want to have more configured options for your index.
+	 * Be aware to activate the option to allow further options on index creation.
+	 * Example:
+	 * "`fulltext.analyzer`:whitespace"
+	 * to set the fulltext analyzer for your index.
+	 *
+	 * @return array of options
+	 */
+	Option[] options() default {};
+
+	/**
+	 * An enumeration of possible index types.
+	 */
+	enum Type {
+		/**
+		 * An index on properties. The actual type depends on the options.
+		 */
+		PROPERTY,
+		/**
+		 * Fulltext indexes for long text properties.
+		 */
+		FULLTEXT,
+		/**
+		 * Text indexes for 4.4 and later.
+		 */
+		TEXT
+	}
+
+	/**
+	 * key value based option for index creation.
+	 */
+	@interface Option {
+		/**
+		 * key string for the option
+		 * @return key string
+		 */
+		String key() default "";
+
+		/**
+		 * value string for the option
+		 * @return value string
+		 */
+		String value() default "";
+	}
 }

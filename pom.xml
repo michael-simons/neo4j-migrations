@@ -173,7 +173,7 @@
 		<slf4jv2.version>2.0.4</slf4jv2.version>
 		<sonar-maven-plugin.version>3.10.0.2594</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>3.3.0</sortpom-maven-plugin.version>
-		<spring-boot.version>3.2.1</spring-boot.version>
+		<spring-boot.version>3.2.2</spring-boot.version>
 		<spring-data-neo4j.version>7.2.2</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.19.3</testcontainers.version>

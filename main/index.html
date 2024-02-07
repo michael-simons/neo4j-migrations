@@ -5012,11 +5012,11 @@ To enable that feature, configure the processor with <code>-Aorg.neo4j.migration
     <span class="directive">public</span> <span class="predefined-type">Query</span> getQuery() {
         <span class="comment">// language=cypher</span>
         <span class="keyword">return</span> <span class="keyword">new</span> <span class="predefined-type">Query</span>(<span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="content">
-            LOAD CSV FROM '%s' AS row FIELDTERMINATOR ';'
-            MERGE (b:Book {title: trim(row[1])})
-            SET b.type = row[2], b.state = row[3]
+            LOAD CSV WITH HEADERS FROM '%s' AS row FIELDTERMINATOR ','
+            MERGE (b:Book {title: trim(row.Title)})
+            SET b.type = row.Type, b.state = row.State
             WITH b, row
-            UNWIND split(row[0], '&amp;') AS author
+            UNWIND split(row.Author, '&amp;') AS author
             WITH b, split(author, ',') AS author
             WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
             MERGE (a:Person {name: trim(author)})
@@ -5363,7 +5363,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-22 09:15:06 UTC
+Last updated 2024-02-07 12:10:41 UTC
 </div>
 </div>
 </body>

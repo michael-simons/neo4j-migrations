@@ -112,7 +112,7 @@ public class MigrationsProperties {
 	 * Configures the sort order for migrations.
 	 *
 	 * @see VersionSortOrder
-	 * @since 2.8.3
+	 * @since 2.9.0
 	 */
 	private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 

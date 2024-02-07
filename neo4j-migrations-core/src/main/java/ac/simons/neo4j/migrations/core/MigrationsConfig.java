@@ -63,7 +63,7 @@ public final class MigrationsConfig {
 	 * This has been an oversight and most likely not what is expected. We cannot change the default in the 2.x series,
 	 * as that would be a possible hard breaking change, but 3.x will default to semantic ordering.
 	 *
-	 * @since 2.8.3
+	 * @since 2.9.0
 	 */
 	public enum VersionSortOrder {
 
@@ -559,7 +559,7 @@ public final class MigrationsConfig {
 		 * @param newVersionSortOrder the new order
 		 * @return The builder for further customization
 		 * @see VersionSortOrder
-		 * @since 2.8.3
+		 * @since 2.9.0
 		 */
 		public Builder withVersionSortOrder(VersionSortOrder newVersionSortOrder) {
 

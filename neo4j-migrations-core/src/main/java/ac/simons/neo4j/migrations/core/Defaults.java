@@ -106,7 +106,7 @@ public final class Defaults {
 	/**
 	 * The sort order used for version numbers. Please
 	 * @see VersionSortOrder
-	 * @since 2.8.3
+	 * @since 2.9.0
 	 */
 	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.LEXICOGRAPHIC;
 

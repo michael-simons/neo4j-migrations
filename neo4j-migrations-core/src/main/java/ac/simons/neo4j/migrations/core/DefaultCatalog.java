@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -41,14 +42,17 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	private final Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items;
 	private final ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
 
-	private final NavigableMap<MigrationVersion, VersionedCatalog> oldVersions = new TreeMap<>(
-		new MigrationVersion.VersionComparator());
+	private final Comparator<MigrationVersion> comparator;
 
-	DefaultCatalog() {
-		this(new HashMap<>());
+	private final NavigableMap<MigrationVersion, VersionedCatalog> oldVersions;
+
+	DefaultCatalog(Comparator<MigrationVersion> comparator) {
+		this(comparator, new HashMap<>());
 	}
 
-	private DefaultCatalog(Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items) {
+	private DefaultCatalog(Comparator<MigrationVersion> comparator, Map<Name, NavigableMap<MigrationVersion, CatalogItem<?>>> items) {
+		this.comparator = comparator;
+		this.oldVersions = new TreeMap<>(this.comparator);
 		this.items = items;
 	}
 
@@ -67,13 +71,13 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 					throw new IllegalArgumentException(
 						"Version " + version.getValue() + " has already been used in this catalog.");
 				}
-				oldVersions.put(version, new DefaultCatalog(new HashMap<>(items)));
+				oldVersions.put(version, new DefaultCatalog(this.comparator, new HashMap<>(items)));
 				items.clear();
 			}
 
 			for (CatalogItem<?> item : other.getItems()) {
 				NavigableMap<MigrationVersion, CatalogItem<?>> versionedItems = items.computeIfAbsent(
-					item.getName(), k -> new TreeMap<>(new MigrationVersion.VersionComparator()));
+					item.getName(), k -> new TreeMap<>(this.comparator));
 				if (versionedItems.containsKey(version)) {
 					throw new MigrationsException(String.format(
 						"A constraint with the name '%s' has already been added to this catalog under the version %s.",

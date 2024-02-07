@@ -485,7 +485,7 @@ public final class Migrations {
 			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);
 			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);
 
-			var chainTool = new ChainTool(migrations, localChain, remoteChain);
+			var chainTool = new ChainTool(config.getVersionComparator(), migrations, localChain, remoteChain);
 			var nodesDeleted = 0L;
 			var nodesCreated = 0L;
 			var relationshipsDeleted = 0L;

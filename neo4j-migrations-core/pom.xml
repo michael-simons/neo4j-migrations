@@ -238,6 +238,9 @@
 
 							<!-- 2.0.2: Sealed anyway -->
 							<exclude>ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey</exclude>
+
+							<!-- 2.8.3: A class has been added, not an interface to a class -->
+							<exclude>ac.simons.neo4j.migrations.core.MigrationsConfig$VersionSortOrder</exclude>
 						</excludes>
 					</parameter>
 				</configuration>

@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +34,6 @@ import java.util.stream.Collectors;
 
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
-
-import ac.simons.neo4j.migrations.core.MigrationVersion.VersionComparator;
 
 /**
  * This class is responsible for create a diff of two {@link MigrationChain migration chain instances}. The diff is then
@@ -56,6 +55,8 @@ final class ChainTool {
 		}
 	}
 
+	private final Comparator<MigrationVersion> versionComparator;
+
 	/**
 	 * The actual locally underlying migrations, not only the chain.
 	 */
@@ -67,7 +68,8 @@ final class ChainTool {
 
 	private final Map<MigrationVersion, MigrationChain.Element> currentElements;
 
-	ChainTool(Collection<Migration> discoveredMigrations, MigrationChain newChain, MigrationChain currentChain) {
+	ChainTool(Comparator<MigrationVersion> versionComparator, Collection<Migration> discoveredMigrations, MigrationChain newChain, MigrationChain currentChain) {
+		this.versionComparator = versionComparator;
 		this.newChain = newChain;
 		this.discoveredMigrations = discoveredMigrations
 			.stream().collect(Collectors.toMap(Migration::getVersion, Function.identity()));
@@ -77,7 +79,7 @@ final class ChainTool {
 				e -> MigrationVersion.withValue(e.getVersion()),
 				Function.identity(),
 				throwingMerger(),
-				() -> new TreeMap<>(new VersionComparator()));
+				() -> new TreeMap<>(this.versionComparator));
 
 		this.newElements = newChain.getElements().stream().collect(collector);
 		this.currentElements = currentChain.getElements().stream().collect(collector);
@@ -169,9 +171,8 @@ final class ChainTool {
 			""";
 
 		var lastKnownVersion = currentElements.keySet().stream().skip(currentElements.size() - 1L).findFirst().orElseThrow();
-		var comparator = new VersionComparator();
 
-		var allVersions = new TreeSet<>(comparator);
+		var allVersions = new TreeSet<>(this.versionComparator);
 		allVersions.add(MigrationVersion.baseline());
 		allVersions.addAll(newElements.keySet());
 		allVersions.addAll(currentElements.keySet());
@@ -180,7 +181,7 @@ final class ChainTool {
 		var sortedVersions = new ArrayList<>(allVersions);
 
 		return newElements.entrySet().stream()
-			.takeWhile(entry -> comparator.compare(entry.getKey(), lastKnownVersion) < 0)
+			.takeWhile(entry -> this.versionComparator.compare(entry.getKey(), lastKnownVersion) < 0)
 			.filter(entry -> !currentElements.containsKey(entry.getKey()))
 			.map(entry -> {
 				var migration = entry.getValue();
@@ -213,7 +214,7 @@ final class ChainTool {
 				Function.identity(),
 				k -> new Pair(newElements.get(k), currentElements.get(k)),
 				throwingMerger(),
-				() -> new TreeMap<>(new VersionComparator())
+				() -> new TreeMap<>(this.versionComparator)
 			));
 	}
 

@@ -91,7 +91,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, sources.stream().collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var missing = (Set<MigrationVersion>) findMissingSourceElements.invoke(new ChainTool(List.of(), source, target));
+			var missing = (Set<MigrationVersion>) findMissingSourceElements.invoke(new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target));
 			assertThat(missing)
 				.containsExactly(MigrationVersion.withValue(toRemove.getVersion()));
 		}
@@ -114,7 +114,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target));
 			assertThat(pairs)
 				.hasSize(3)
 				.containsExactly(
@@ -130,7 +130,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target));
 			assertThat(pairs)
 				.hasSize(2)
 				.containsExactly(
@@ -145,7 +145,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_3).collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1).collect(ELEMENT_COLLECTOR));
 
-			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(List.of(), source, target));
+			var pairs = (Map<MigrationVersion, Pair>) findPairs.invoke(new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target));
 			assertThat(pairs)
 				.containsExactly(Map.entry(MigrationVersion.withValue("01"), new Pair(P_1, A_1)));
 		}
@@ -192,7 +192,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_1, P_2, P_3).collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(A_1, A_2, A_3).collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 			assertThat(queries).hasSize(2)
@@ -214,7 +214,7 @@ class ChainToolTest {
 			var source = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(P_2).collect(ELEMENT_COLLECTOR));
 			var target = new DefaultMigrationChain(DEFAULT_CONNECTION_DETAILS, Stream.of(appliedMigration("02", "x"), A_3).collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 			assertThat(queries).hasSize(1)
@@ -239,7 +239,7 @@ class ChainToolTest {
 				appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow())
 			).collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 
@@ -259,7 +259,7 @@ class ChainToolTest {
 					appliedMigration(P_3.getVersion(), P_3.getChecksum().orElseThrow()))
 				.collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 
@@ -279,7 +279,7 @@ class ChainToolTest {
 					appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow()))
 				.collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 
@@ -295,7 +295,7 @@ class ChainToolTest {
 					appliedMigration(P_2.getVersion(), P_2.getChecksum().orElseThrow()))
 				.collect(ELEMENT_COLLECTOR));
 
-			var chainTool = new ChainTool(List.of(), source, target);
+			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source, target);
 			var config = MigrationsConfig.defaultConfig();
 			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
 

@@ -291,6 +291,16 @@ class MigrationsAutoConfigurationTest {
 			assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofMillis(667));
 		}
 
+		@Test // GH-237
+		void versionSortOrderShouldBeApplied() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setVersionSortOrder(MigrationsConfig.VersionSortOrder.SEMANTIC);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			assertThat(config.getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
+		}
 
 		@Test
 		void shouldConfigureImpersonatedUser() {

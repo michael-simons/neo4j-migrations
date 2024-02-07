@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
@@ -106,6 +107,14 @@ public class MigrationsProperties {
 	 * @since 2.3.2
 	 */
 	private Duration delayBetweenMigrations;
+
+	/**
+	 * Configures the sort order for migrations.
+	 *
+	 * @see VersionSortOrder
+	 * @since 2.8.3
+	 */
+	private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 
 	/**
 	 * @return see {@link #enabled}
@@ -287,5 +296,19 @@ public class MigrationsProperties {
 	 */
 	public void setDelayBetweenMigrations(Duration delayBetweenMigrations) {
 		this.delayBetweenMigrations = delayBetweenMigrations;
+	}
+
+	/**
+	 * @return see {@link #versionSortOrder}
+	 */
+	public VersionSortOrder getVersionSortOrder() {
+		return versionSortOrder;
+	}
+
+	/**
+	 * @param versionSortOrder A new value for {@link #versionSortOrder}
+	 */
+	public void setVersionSortOrder(VersionSortOrder versionSortOrder) {
+		this.versionSortOrder = versionSortOrder;
 	}
 }

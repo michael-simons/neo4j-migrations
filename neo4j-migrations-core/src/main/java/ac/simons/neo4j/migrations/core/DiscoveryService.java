@@ -69,7 +69,7 @@ final class DiscoveryService {
 		computeAlternativeChecksums(cypherBasedMigrations, migrationsAndPreconditions);
 
 		migrations.removeIf(migration -> hasUnmetPreconditions(migrationsAndPreconditions, migration, context));
-		migrations.sort(Comparator.comparing(Migration::getVersion, new MigrationVersion.VersionComparator()));
+		migrations.sort(Comparator.comparing(Migration::getVersion, context.getConfig().getVersionComparator()));
 		Catalog catalog = context.getCatalog();
 		if (catalog instanceof WriteableCatalog writeableSchema) {
 			migrations.stream().filter(CatalogBasedMigration.class::isInstance)

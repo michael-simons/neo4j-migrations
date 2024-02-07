@@ -75,7 +75,8 @@ public class MigrationsAutoConfiguration {
 			.withInstalledBy(migrationsProperties.getInstalledBy())
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.withAutocrlf(migrationsProperties.isAutocrlf())
-			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations());
+			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
+			.withVersionSortOrder(migrationsProperties.getVersionSortOrder());
 		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
 		return builder.build();
 	}

@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -96,6 +97,18 @@ public final class Defaults {
 	 * given as string.
 	 */
 	public static final String AUTOCRLF_VALUE = "false";
+
+	/**
+	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used in configuration that requires defaults given as string.
+	 */
+	public static final String VERSION_SORT_ORDER_VALUE = "LEXICOGRAPHIC";
+
+	/**
+	 * The sort order used for version numbers. Please
+	 * @see VersionSortOrder
+	 * @since 2.9.0
+	 */
+	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.LEXICOGRAPHIC;
 
 	private Defaults() {
 	}

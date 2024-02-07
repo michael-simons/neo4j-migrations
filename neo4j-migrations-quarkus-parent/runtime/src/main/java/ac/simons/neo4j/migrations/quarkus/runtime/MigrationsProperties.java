@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
@@ -103,4 +104,10 @@ public class MigrationsProperties {
 	 */
 	@ConfigItem
 	public Optional<Duration> delayBetweenMigrations;
+
+	/**
+	 * The sort order for migrations. Defaults to {@link VersionSortOrder#LEXICOGRAPHIC} until 3.x.
+	 */
+	@ConfigItem(defaultValue = Defaults.VERSION_SORT_ORDER_VALUE)
+	public VersionSortOrder versionSortOrder;
 }

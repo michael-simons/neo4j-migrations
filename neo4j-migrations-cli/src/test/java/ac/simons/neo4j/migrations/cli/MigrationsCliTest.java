@@ -117,6 +117,26 @@ class MigrationsCliTest {
 	}
 
 	@Test
+	void shouldDefaultToLexicographicOrder() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs();
+
+		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.LEXICOGRAPHIC);
+	}
+
+	@Test
+	void shouldParseVersionSortOrder() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--version-sort-order", "SEMANTIC");
+
+		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
+	}
+
+	@Test
 	void shouldRequire2Connections() {
 
 		MigrationsCli cli = new MigrationsCli();

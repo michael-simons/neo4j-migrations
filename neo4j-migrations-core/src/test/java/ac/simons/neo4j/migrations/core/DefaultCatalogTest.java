@@ -73,7 +73,7 @@ class DefaultCatalogTest {
 	@Test
 	void getAllItemsShouldWork() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
@@ -86,7 +86,7 @@ class DefaultCatalogTest {
 	@Test
 	void resetShouldPreventedAtUsedVersion() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		MigrationVersion v2 = MigrationVersion.withValue("2");
 		catalog.addAll(v2, catalog2, false);
@@ -98,7 +98,7 @@ class DefaultCatalogTest {
 	@Test
 	void resetShouldPreventDoubleReset() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 		MigrationVersion v3 = MigrationVersion.withValue("3");
@@ -116,7 +116,7 @@ class DefaultCatalogTest {
 		MigrationVersion v3 = MigrationVersion.withValue("3");
 		MigrationVersion v4 = MigrationVersion.withValue("4");
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(v1, catalog1, false);
 		catalog.addAll(v2, catalog2, false);
 
@@ -167,7 +167,7 @@ class DefaultCatalogTest {
 	@Test
 	void getAllItemsPriorToShouldWork() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
@@ -182,7 +182,7 @@ class DefaultCatalogTest {
 	@Test
 	void getItemPriorToShouldWork() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
@@ -202,7 +202,7 @@ class DefaultCatalogTest {
 	@Test
 	void getItemsShouldWork() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
@@ -220,7 +220,7 @@ class DefaultCatalogTest {
 	@Test
 	void getItemShouldWork() {
 
-		DefaultCatalog catalog = new DefaultCatalog();
+		DefaultCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		catalog.addAll(MigrationVersion.withValue("1"), catalog1, false);
 		catalog.addAll(MigrationVersion.withValue("2"), catalog2, false);
 
@@ -237,7 +237,7 @@ class DefaultCatalogTest {
 	@Test
 	void shouldThrowOnDuplicateVersion() {
 
-		WriteableCatalog catalog = new DefaultCatalog();
+		WriteableCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 
 		MigrationVersion v1 = MigrationVersion.withValue("1");
 		catalog.addAll(v1, catalog1, false);

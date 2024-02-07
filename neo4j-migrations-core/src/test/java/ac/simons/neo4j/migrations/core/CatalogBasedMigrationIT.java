@@ -66,7 +66,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void databaseCatalogsShouldWork(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		DefaultCatalog expectedCatalog = new DefaultCatalog();
+		DefaultCatalog expectedCatalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 		expectedCatalog.addAll(MigrationVersion.withValue("1"), () -> Arrays.asList(
 			Constraint.forNode("Person").named("c1").key("firstname", "surname"),
 			Constraint.forNode("Book").named("c2").exists("isbn"),

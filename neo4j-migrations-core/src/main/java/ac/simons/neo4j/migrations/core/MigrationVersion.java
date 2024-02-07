@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
@@ -154,7 +155,48 @@ public final class MigrationVersion {
 		return Objects.hash(value);
 	}
 
-	static class VersionComparator implements Comparator<MigrationVersion> {
+	static Comparator<MigrationVersion> getComparator(MigrationsConfig.VersionSortOrder versionSortOrder) {
+		return switch (versionSortOrder) {
+			case LEXICOGRAPHIC -> new VersionComparator();
+			case SEMANTIC -> new SemanticVersionComparator();
+		};
+	}
+
+	private static class SemanticVersionComparator implements Comparator<MigrationVersion> {
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+			if (o1 == MigrationVersion.baseline() && o2 == MigrationVersion.baseline()) {
+				return 0;
+			}
+
+			if (o1 == MigrationVersion.baseline() || o2 == MigrationVersion.baseline()) {
+				return 1;
+			}
+
+			var lhs = Arrays.stream(o1.value.split("\\.")).map(Long::parseLong).toArray(Long[]::new);
+			var rhs = Arrays.stream(o2.value.split("\\.")).map(Long::parseLong).toArray(Long[]::new);
+			var max = Math.min(lhs.length, rhs.length);
+
+			int i = 0;
+			while (i < max) {
+				int result = Long.compare(lhs[i], rhs[i]);
+				if (result != 0) {
+					return result;
+				}
+				++i;
+			}
+
+			if (lhs.length < rhs.length) {
+				return rhs[i] == 0 ? 0 : -1;
+			} else if (lhs.length > rhs.length) {
+				return lhs[i] == 0 ? 0 : 1;
+			}
+			return 0;
+		}
+	}
+
+	private static class VersionComparator implements Comparator<MigrationVersion> {
 
 		@Override
 		public int compare(MigrationVersion o1, MigrationVersion o2) {

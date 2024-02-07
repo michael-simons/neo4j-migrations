@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.internal.Strings;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -54,6 +55,27 @@ public final class MigrationsConfig {
 		 * one statement fails.
 		 */
 		PER_STATEMENT
+	}
+
+	/**
+	 * This class has been introduced in 2.8.3 to configure the way version numbers are sorted.
+	 * By default, they are sorted in lexicographic order ever since Neo4j-Migrations has been conceived.
+	 * This has been an oversight and most likely not what is expected. We cannot change the default in the 2.x series,
+	 * as that would be a possible hard breaking change, but 3.x will default to semantic ordering.
+	 *
+	 * @since 2.9.0
+	 */
+	public enum VersionSortOrder {
+
+		/**
+		 * Sort version numbers in lexicographic order (the default in 1.x and 2.x).
+		 */
+		LEXICOGRAPHIC,
+
+		/**
+		 * Sort version numbers in semantic order (will be the default in 3.x)
+		 */
+		SEMANTIC
 	}
 
 	/**
@@ -109,7 +131,9 @@ public final class MigrationsConfig {
 	 */
 	private final Duration delayBetweenMigrations;
 
-	private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions;
+	private final List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions;
+
+	private final VersionSortOrder versionSortOrder;
 
 	private MigrationsConfig(Builder builder) {
 
@@ -130,6 +154,7 @@ public final class MigrationsConfig {
 		this.schemaDatabase = builder.schemaDatabase;
 		this.delayBetweenMigrations = builder.delayBetweenMigrations;
 		this.constraintOptions = builder.constraintOptions;
+		this.versionSortOrder = builder.versionSortOrder;
 	}
 
 	/**
@@ -300,6 +325,17 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * {@return the configured version sort order}
+	 */
+	public VersionSortOrder getVersionSortOrder() {
+		return versionSortOrder;
+	}
+
+	Comparator<MigrationVersion> getVersionComparator() {
+		return MigrationVersion.getComparator(this.versionSortOrder);
+	}
+
+	/**
 	 * A builder to create new instances of {@link MigrationsConfig configurations}.
 	 */
 	public static class Builder {
@@ -329,6 +365,8 @@ public final class MigrationsConfig {
 		private Duration delayBetweenMigrations;
 
 		private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions = List.of();
+
+		private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -513,6 +551,19 @@ public final class MigrationsConfig {
 		public Builder withConstraintRenderingOptions(Collection<? extends RenderConfig.AdditionalRenderingOptions> newRenderingOptions) {
 
 			this.constraintOptions = List.copyOf(Objects.requireNonNullElseGet(newRenderingOptions, List::of));
+			return this;
+		}
+
+		/**
+		 * Configures how versions are sorted.
+		 * @param newVersionSortOrder the new order
+		 * @return The builder for further customization
+		 * @see VersionSortOrder
+		 * @since 2.9.0
+		 */
+		public Builder withVersionSortOrder(VersionSortOrder newVersionSortOrder) {
+
+			this.versionSortOrder = newVersionSortOrder;
 			return this;
 		}
 

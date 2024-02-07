@@ -175,7 +175,7 @@ class CatalogBasedMigrationTest {
 		final String indexQueryV1 = "CREATE INDEX index_name FOR (n:Book) ON (n.property1, n.property2)";
 		final String indexQueryV2 = "CREATE INDEX another_index_name FOR (n:Book) ON (n.property12, n.property22)";
 
-		final VersionedCatalog catalog = new DefaultCatalog();
+		final VersionedCatalog catalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 
 		ArgumentCaptor<String> argumentCaptor;
 
@@ -517,7 +517,7 @@ class CatalogBasedMigrationTest {
 				.at(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
+				new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator()), MigrationsConfig.defaultConfig(), () -> session);
 
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
@@ -659,7 +659,7 @@ class CatalogBasedMigrationTest {
 			Operation operation = Operation.apply(MigrationVersion.withValue("1"));
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
+				new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator()), MigrationsConfig.defaultConfig(), () -> session);
 			assertThatNoException().isThrownBy(() -> operation.execute(context));
 
 			verify(session, times(2)).run(argumentCaptor.capture());
@@ -738,7 +738,7 @@ class CatalogBasedMigrationTest {
 			when(session.run(dropIndex)).thenReturn(dropResult);
 
 			OperationContext context = new OperationContext(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE,
-				new DefaultCatalog(), MigrationsConfig.defaultConfig(), () -> session);
+				new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator()), MigrationsConfig.defaultConfig(), () -> session);
 			operation.execute(context);
 
 			verify(session, times(4)).run(argumentCaptor.capture());
@@ -886,7 +886,7 @@ class CatalogBasedMigrationTest {
 			when(opResult.consume()).thenReturn(resultSummary);
 			when(session.run(anyString())).thenReturn(opResult);
 
-			var localCatalog = new DefaultCatalog();
+			var localCatalog = new DefaultCatalog(MigrationsConfig.defaultConfig().getVersionComparator());
 			localCatalog.addAll(MigrationVersion.baseline(), Catalog.of(document), false);
 			OperationContext context = new OperationContext(Neo4jVersion.V5, Neo4jEdition.ENTERPRISE, localCatalog,
 				MigrationsConfig.builder().withConstraintRenderingOptions(List.of(new RenderConfig.CypherRenderingOptions() {

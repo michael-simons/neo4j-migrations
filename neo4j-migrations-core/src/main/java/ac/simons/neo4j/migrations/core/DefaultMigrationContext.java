@@ -68,7 +68,7 @@ final class DefaultMigrationContext implements MigrationContext {
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile ConnectionDetails connectionDetails;
 
-	private final VersionedCatalog catalog = new DefaultCatalog();
+	private final VersionedCatalog catalog;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
@@ -84,6 +84,7 @@ final class DefaultMigrationContext implements MigrationContext {
 		this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
 			(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
 		).orElseGet(UnaryOperator::identity);
+		this.catalog = new DefaultCatalog(config.getVersionComparator());
 	}
 
 	@Override

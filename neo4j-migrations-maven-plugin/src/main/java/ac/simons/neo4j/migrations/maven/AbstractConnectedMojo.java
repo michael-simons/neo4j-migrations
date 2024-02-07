@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.net.URI;
@@ -113,6 +114,12 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	@Parameter(defaultValue = "false")
 	private boolean verbose;
 
+	/**
+	 * The sort order  to use.
+	 */
+	@Parameter(defaultValue = Defaults.VERSION_SORT_ORDER_VALUE)
+	private VersionSortOrder versionSortOrder;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -146,6 +153,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withDatabase(database)
 			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)
+			.withVersionSortOrder(versionSortOrder)
 			.build();
 
 		config.logTo(LOGGER, verbose);

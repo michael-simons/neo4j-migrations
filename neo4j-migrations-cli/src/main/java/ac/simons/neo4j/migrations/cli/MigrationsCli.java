@@ -51,6 +51,7 @@ import ac.simons.neo4j.migrations.core.Location.LocationType;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import picocli.AutoComplete.GenerateCompletion;
 import picocli.CommandLine;
@@ -220,6 +221,13 @@ public final class MigrationsCli implements Runnable {
 	@Option(names = {"--delay-between-migrations"}, description = "A configurable delay that will be applied in between applying two migrations.")
 	private Duration delayBetweenMigrations;
 
+	@Option(
+		names = { "--version-sort-order" },
+		description = "How versions are supposed to be sorted (lexicographic or semantic)",
+		defaultValue = Defaults.VERSION_SORT_ORDER_VALUE
+	)
+	private VersionSortOrder versionSortOrder;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -272,6 +280,7 @@ public final class MigrationsCli implements Runnable {
 			.withValidateOnMigrate(validateOnMigrate)
 			.withAutocrlf(autocrlf)
 			.withDelayBetweenMigrations(delayBetweenMigrations)
+			.withVersionSortOrder(versionSortOrder)
 			.build();
 
 		if (!forceSilence) {

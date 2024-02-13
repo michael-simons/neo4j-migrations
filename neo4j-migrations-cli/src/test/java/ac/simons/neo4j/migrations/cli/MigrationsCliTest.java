@@ -35,6 +35,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -44,7 +45,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokenManager;
 import org.neo4j.driver.Config;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.security.InternalAuthToken;
 
@@ -218,6 +221,11 @@ class MigrationsCliTest {
 		commandLine.parseArgs("--password:file", file.getAbsolutePath());
 	}
 
+	private void setBearer(MigrationsCli cli) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--bearer", "thisisatoken.");
+	}
+
 	@Test
 	void createDriverConfigShouldSetCorrectValues() {
 
@@ -371,6 +379,16 @@ class MigrationsCliTest {
 		}
 
 		@Test
+		void shouldUseBearer() {
+			MigrationsCli cli = new MigrationsCli();
+			setUserName(cli);
+			setBearer(cli);
+
+			AuthToken authToken = cli.getAuthToken();
+			assertAuthToken(authToken, "thisisatoken.", true);
+		}
+
+		@Test
 		void shouldTrim() {
 
 			MigrationsCli cli = new MigrationsCli();
@@ -383,9 +401,14 @@ class MigrationsCliTest {
 		}
 
 		private void assertAuthToken(AuthToken authToken, String expectedCredentials) {
+			assertAuthToken(authToken, expectedCredentials, false);
+		}
+
+		private void assertAuthToken(AuthToken authToken, String expectedCredentials, boolean isBearer) {
 			assertThat(authToken).isInstanceOf(InternalAuthToken.class);
-			assertThat(((InternalAuthToken) authToken).toMap())
-				.containsEntry("credentials", Values.value(expectedCredentials));
+			var map = ((InternalAuthToken) authToken).toMap();
+			assertThat(map).containsEntry("credentials", Values.value(expectedCredentials));
+			assertThat(map).containsEntry("scheme", Values.value(isBearer ? "bearer" : "basic"));
 		}
 	}
 }

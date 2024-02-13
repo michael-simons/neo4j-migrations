@@ -330,7 +330,7 @@ public final class MigrationsCli implements Runnable {
 			.or(this::getOptionalBearerToken)
 			.orElseThrow(
 				() -> new CommandLine.ParameterException(commandSpec.commandLine(),
-					"Missing required option: '--password', '--password:env' or '--password:file'")
+					"Missing required option: '--password', '--password:env', '--password:file' or '--bearer'")
 			);
 	}
 

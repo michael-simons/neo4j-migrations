@@ -372,7 +372,7 @@ class MigrationsCliTest {
 			setPasswordFile(cli, new File("non-existing"));
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
 		}
 
 		@Test
@@ -394,7 +394,7 @@ class MigrationsCliTest {
 			setPasswordEnv(cli, "emptyPassword");
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
 		}
 
 		private void assertAuthToken(AuthToken authToken, String expectedCredentials) {

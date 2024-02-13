@@ -218,6 +218,11 @@ class MigrationsCliTest {
 		commandLine.parseArgs("--password:file", file.getAbsolutePath());
 	}
 
+	private void setBearer(MigrationsCli cli) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--bearer", "thisisatoken.");
+	}
+
 	@Test
 	void createDriverConfigShouldSetCorrectValues() {
 
@@ -367,7 +372,17 @@ class MigrationsCliTest {
 			setPasswordFile(cli, new File("non-existing"));
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
+		}
+
+		@Test
+		void shouldUseBearer() {
+			MigrationsCli cli = new MigrationsCli();
+			setUserName(cli);
+			setBearer(cli);
+
+			AuthToken authToken = cli.getAuthToken();
+			assertAuthToken(authToken, "thisisatoken.", true);
 		}
 
 		@Test
@@ -379,13 +394,18 @@ class MigrationsCliTest {
 			setPasswordEnv(cli, "emptyPassword");
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env' or '--password:file'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
 		}
 
 		private void assertAuthToken(AuthToken authToken, String expectedCredentials) {
+			assertAuthToken(authToken, expectedCredentials, false);
+		}
+
+		private void assertAuthToken(AuthToken authToken, String expectedCredentials, boolean isBearer) {
 			assertThat(authToken).isInstanceOf(InternalAuthToken.class);
-			assertThat(((InternalAuthToken) authToken).toMap())
-				.containsEntry("credentials", Values.value(expectedCredentials));
+			var map = ((InternalAuthToken) authToken).toMap();
+			assertThat(map).containsEntry("credentials", Values.value(expectedCredentials));
+			assertThat(map).containsEntry("scheme", Values.value(isBearer ? "bearer" : "basic"));
 		}
 	}
 }

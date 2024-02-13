@@ -151,6 +151,9 @@ public final class MigrationsCli implements Runnable {
 	)
 	private char[] password;
 
+	@Option(names = "--bearer", description = "A bearer token to be used as an alternative to a username/password token.")
+	String bearer;
+
 	@Option(
 		names = { "--package" },
 		description = "Package to scan. Repeat for multiple packages.",
@@ -324,10 +327,18 @@ public final class MigrationsCli implements Runnable {
 		return resolvedPassword
 			.filter(Predicate.not(String::isBlank))
 			.map(s -> AuthTokens.basic(user, s))
+			.or(this::getOptionalBearerToken)
 			.orElseThrow(
 				() -> new CommandLine.ParameterException(commandSpec.commandLine(),
-					"Missing required option: '--password', '--password:env' or '--password:file'")
+					"Missing required option: '--password', '--password:env', '--password:file' or '--bearer'")
 			);
+	}
+
+	Optional<AuthToken> getOptionalBearerToken() {
+		if (this.bearer == null || this.bearer.isBlank()) {
+			return Optional.empty();
+		}
+		return Optional.of(AuthTokens.bearer(this.bearer.trim()));
 	}
 
 	Driver openConnection(AuthToken authToken) {

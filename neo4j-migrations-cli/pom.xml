@@ -30,10 +30,10 @@
 	<description>CLI module, packaged as JVM and native assemblies.</description>
 
 	<properties>
-		<assembly-suffix />
+		<assembly-suffix/>
 		<covered-ratio-complexity>0.1</covered-ratio-complexity>
 		<covered-ratio-instructions>0.03</covered-ratio-instructions>
-		<executable-suffix />
+		<executable-suffix/>
 		<java-module-name>ac.simons.neo4j.migrations.cli</java-module-name>
 		<name-of-main-class>ac.simons.neo4j.migrations.cli.MigrationsCli</name-of-main-class>
 		<skipCompress>true</skipCompress>
@@ -118,7 +118,7 @@
 					<reuseForks>false</reuseForks>
 					<environmentVariables>
 						<superSecretSuperPassword>Geheim</superSecretSuperPassword>
-						<emptySecret />
+						<emptySecret/>
 					</environmentVariables>
 					<useModulePath>false</useModulePath>
 				</configuration>
@@ -164,7 +164,7 @@
 							<executable>java</executable>
 							<arguments>
 								<argument>-classpath</argument>
-								<classpath />
+								<classpath/>
 								<argument>${name-of-main-class}</argument>
 								<argument>generate-completion</argument>
 							</arguments>

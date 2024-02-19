@@ -17,11 +17,12 @@ package ac.simons.neo4j.migrations.examples.sb;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveDataAutoConfiguration;
 
 /**
  * @author Michael J. Simons
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = Neo4jReactiveDataAutoConfiguration.class)
 public class Application {
 
 	public static void main(String... args) {

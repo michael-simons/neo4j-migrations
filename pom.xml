@@ -101,7 +101,7 @@
 		<asciidoctorj.version>2.5.11</asciidoctorj.version>
 		<assertj.version>3.25.3</assertj.version>
 		<build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
-		<byte-buddy.version>1.14.11</byte-buddy.version>
+		<byte-buddy.version>1.14.12</byte-buddy.version>
 		<checker-qual.version>3.42.0</checker-qual.version>
 		<checkstyle.version>10.13.0</checkstyle.version>
 		<classgraph.version>4.8.165</classgraph.version>

@@ -35,7 +35,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -203,21 +202,22 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 	}
 
-	static Migration from(URL url) {
+	static Migration from(ResourceContext context) {
 
+		var url = context.getUrl();
 		String path = URLDecoder.decode(url.getPath(), Defaults.CYPHER_SCRIPT_ENCODING);
 		int lastIndexOf = path.lastIndexOf("/");
 		String fileName = lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 		MigrationVersion version = MigrationVersion.parse(fileName);
 
-		Document document = parseDocument(url);
+		Document document = parseDocument(context);
 		return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document),
 			parseOperations(document, version), getPreconditions(document), isResetCatalog(document));
 	}
 
-	static Document parseDocument(URL url) {
+	static Document parseDocument(ResourceContext context) {
 
-		try (InputStream source = url.openStream()) {
+		try (InputStream source = context.openStream()) {
 			DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
 			documentBuilder.setErrorHandler(new ThrowingErrorHandler());
 			Document document = documentBuilder.parse(source);

@@ -34,7 +34,7 @@ public final class CypherResourceBasedMigrationProvider implements ResourceBased
 
 	@Override
 	public Collection<Migration> handle(ResourceContext ctx) {
-		return Collections.singletonList(new CypherBasedMigration(ctx.getUrl(), ctx.getConfig().isAutocrlf()));
+		return Collections.singletonList(new CypherBasedMigration(ctx));
 	}
 
 	@Override

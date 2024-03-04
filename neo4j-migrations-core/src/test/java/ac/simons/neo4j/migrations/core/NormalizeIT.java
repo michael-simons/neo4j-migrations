@@ -43,7 +43,7 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			CypherResource.of(RenameIT.class.getResource("/moviegraph/movies.cypher")).getExecutableStatements()
+			CypherResource.of(ResourceContext.of(RenameIT.class.getResource("/moviegraph/movies.cypher"))).getExecutableStatements()
 				.forEach(session::run);
 			session.run("MATCH (n:Movie {title:'The Matrix'}) SET n.watched = 'ja'").consume();
 			session.run("MATCH (n:Movie {title:'The Matrix Reloaded'}) SET n.watched = 'n'").consume();

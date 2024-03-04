@@ -38,7 +38,7 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			CypherResource.of(AddSurrogateKeyIT.class.getResource("/moviegraph/movies.cypher")).getExecutableStatements()
+			CypherResource.of(ResourceContext.of(AddSurrogateKeyIT.class.getResource("/moviegraph/movies.cypher"))).getExecutableStatements()
 				.forEach(session::run);
 		}
 	}

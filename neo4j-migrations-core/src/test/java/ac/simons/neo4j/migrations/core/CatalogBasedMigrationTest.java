@@ -98,7 +98,7 @@ class CatalogBasedMigrationTest {
 	void checksumShouldBeCorrect(String in) {
 		URL url = TestResources.class.getResource("/catalogbased/identical-migrations/V01__" + in);
 		Objects.requireNonNull(url);
-		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(ResourceContext.of(url));
 		assertThat(schemaBasedMigration.getChecksum()).hasValue("2210671299");
 		assertThat(schemaBasedMigration.getCatalog().getItems()).hasSize(2);
 	}
@@ -107,7 +107,7 @@ class CatalogBasedMigrationTest {
 	void shouldParsePreconditions1() {
 		URL url = TestResources.class.getResource("/catalogbased/identical-migrations/V01__01.xml");
 		Objects.requireNonNull(url);
-		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(ResourceContext.of(url));
 		assertThat(schemaBasedMigration.getPreconditions()).hasSize(2);
 		assertThat(schemaBasedMigration.getPreconditions()).map(Precondition::getType)
 			.containsExactlyInAnyOrder(Precondition.Type.ASSERTION, Precondition.Type.ASSUMPTION);
@@ -120,7 +120,7 @@ class CatalogBasedMigrationTest {
 
 		URL url = Objects.requireNonNull(TestResources.class.getResource("/catalogbased/identical-migrations/V01__01.xml"));
 
-		Migration migration = CatalogBasedMigration.from(url);
+		Migration migration = CatalogBasedMigration.from(ResourceContext.of(url));
 		assertThat(migration.getOptionalDescription()).hasValue("01");
 	}
 
@@ -128,7 +128,7 @@ class CatalogBasedMigrationTest {
 	void shouldParsePreconditions2() {
 		URL url = TestResources.class.getResource("/preconditions/V0002__Create_node_keys.xml");
 		Objects.requireNonNull(url);
-		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(ResourceContext.of(url));
 		assertThat(schemaBasedMigration.isResetCatalog()).isFalse();
 		assertThat(schemaBasedMigration.getPreconditions()).hasSize(1);
 		assertThat(schemaBasedMigration.getPreconditions()).singleElement()
@@ -144,7 +144,7 @@ class CatalogBasedMigrationTest {
 	void shouldParseReset() {
 		URL url = TestResources.class.getResource("/catalogbased/parsing/V01__with_reset.xml");
 		Objects.requireNonNull(url);
-		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(url);
+		CatalogBasedMigration schemaBasedMigration = (CatalogBasedMigration) CatalogBasedMigration.from(ResourceContext.of(url));
 		assertThat(schemaBasedMigration.isResetCatalog()).isTrue();
 	}
 
@@ -214,7 +214,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/full-example.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.baseline()))
 				.filteredOn(op -> op instanceof DefaultRefactorOperation)
 				.map(DefaultRefactorOperation.class::cast)
@@ -375,7 +375,7 @@ class CatalogBasedMigrationTest {
 		void emptyDocumentShouldBeReadable() {
 			URL url = TestResources.class.getResource("/catalogbased/parsing/no-operations.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.withValue("1"))).isEmpty();
 		}
 
@@ -384,7 +384,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/apply.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
 				MigrationVersion.withValue("1"));
 			assertThat(operations).hasSize(1)
@@ -396,7 +396,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/verify-default.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
 				MigrationVersion.withValue("1"));
 			assertThat(operations).hasSize(1)
@@ -415,7 +415,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/verify-modified.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
 				MigrationVersion.withValue("1"));
 			assertThat(operations).hasSize(1)
@@ -443,7 +443,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file);
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
 				MigrationVersion.withValue("1"));
 			assertThat(operations).hasSize(4)
@@ -482,7 +482,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file + "-both-ref-and-item.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			MigrationVersion version = MigrationVersion.withValue("1");
 			assertThatIllegalArgumentException()
 				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
@@ -496,7 +496,7 @@ class CatalogBasedMigrationTest {
 
 			URL url = TestResources.class.getResource("/catalogbased/parsing/" + file + "-both-item-and-local.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			MigrationVersion version = MigrationVersion.withValue("1");
 			assertThatIllegalArgumentException()
 				.isThrownBy(() -> CatalogBasedMigration.parseOperations(document, version))
@@ -872,7 +872,7 @@ class CatalogBasedMigrationTest {
 		void optionsShouldBeApply() {
 			URL url = TestResources.class.getResource("/catalogbased/actual-migrations-with-complete-verification/V20__Apply_complete_catalog.xml");
 			Objects.requireNonNull(url);
-			Document document = CatalogBasedMigration.parseDocument(url);
+			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 
 			List<Operation> operations = CatalogBasedMigration.parseOperations(document,
 				MigrationVersion.baseline());

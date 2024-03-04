@@ -69,7 +69,7 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 		StringBuilder content = new StringBuilder();
 		CharBuffer buffer = CharBuffer.allocate(1024);
 		try (Asciidoctor asciidoctor = Asciidoctor.Factory.create(); BufferedReader in = new BufferedReader(
-			new InputStreamReader(ctx.getUrl().openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
+			new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
 			while (in.read(buffer) != -1) {
 				buffer.flip();
 				content.append(buffer);

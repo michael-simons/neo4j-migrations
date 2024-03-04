@@ -36,7 +36,7 @@ class CypherBasedCallbackTest {
 		@Test
 		void emptyDescriptionShouldBeHandled() throws MalformedURLException {
 
-			CypherBasedCallback callback = new CypherBasedCallback(new URL("file:./afterMigrate.cypher"), false);
+			CypherBasedCallback callback = new CypherBasedCallback(ResourceContext.of(new URL("file:./afterMigrate.cypher")));
 			assertThat(callback.getOptionalDescription()).isEmpty();
 		}
 
@@ -45,7 +45,7 @@ class CypherBasedCallbackTest {
 
 			URL url = new URL("file:./afterMigrate__.cypher");
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> new CypherBasedCallback(url, false))
+				.isThrownBy(() -> new CypherBasedCallback(ResourceContext.of(url)))
 				.withMessage("Invalid name for a callback script: afterMigrate__.cypher");
 		}
 
@@ -53,7 +53,7 @@ class CypherBasedCallbackTest {
 		void shouldReplaceUnderScores() throws MalformedURLException {
 
 			CypherBasedCallback callback = new CypherBasedCallback(
-				new URL("file:./afterMigrate__insert some_description here.cypher"), false);
+				ResourceContext.of(new URL("file:./afterMigrate__insert some_description here.cypher")));
 			assertThat(callback.getOptionalDescription()).hasValue("insert some description here");
 		}
 	}

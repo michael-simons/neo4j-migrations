@@ -24,6 +24,7 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 import org.junit.jupiter.api.Test;
@@ -69,8 +70,15 @@ class ApplicationIT {
 			"--spring.neo4j.authentication.password=" + neo4j.getAdminPassword()
 		);
 
+
 		pb.redirectErrorStream(true);
+		CountDownLatch latch = new CountDownLatch(1);
 		Process p = pb.start();
+		// Just asserting inside the future or calling a method does *not* work,
+		// Even a Assertions.fail("wtf?") is swallowed by "something", and I cannot be
+		// bothered atm to investigate that.
+		p.onExit().whenComplete((proc, e) -> latch.countDown());
+
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -78,6 +86,10 @@ class ApplicationIT {
 			}
 		}
 
+		p.destroy();
+		latch.await();
+
+		assertThat(p.exitValue()).isZero();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
 			Config.builder().withLogging(Logging.console(Level.OFF)).build());
 			Session session = driver.session()
@@ -87,6 +99,7 @@ class ApplicationIT {
 
 			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
 			MigrationChain info = migrations.info(MigrationChain.ChainBuilderMode.REMOTE);
+			assertThat(info.length()).isEqualTo(4);
 			assertThat(info.getLastAppliedVersion().map(MigrationVersion::getValue)).hasValue("030");
 			assertThat(info.isApplied("030")).isTrue();
 		}

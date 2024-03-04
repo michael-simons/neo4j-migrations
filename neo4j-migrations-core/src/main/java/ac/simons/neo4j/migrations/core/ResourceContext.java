@@ -15,9 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.logging.Level;
 
 /**
  * A context in which a resource with a given URL was discovered.
@@ -36,6 +42,10 @@ public final class ResourceContext {
 	 */
 	public static ResourceContext of(URL url, MigrationsConfig config) {
 		return new ResourceContext(url, config);
+	}
+
+	static ResourceContext of(URL url) {
+		return ResourceContext.of(url, MigrationsConfig.builder().withAutocrlf(Defaults.AUTOCRLF).build());
 	}
 
 	private final URL url;
@@ -84,5 +94,32 @@ public final class ResourceContext {
 	 */
 	public MigrationsConfig getConfig() {
 		return config;
+	}
+
+	/**
+	 * This method tries to get an {@link InputStream} from a {@link URL}. If this URL points to something on the classpath,
+	 * it tries to handle the changes introduced in Spring Boot 3.2.0 about how nested JARs are handle, see
+	 * <a href="https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support">Nested Jar Support</a>.
+	 * This affects Cypher as well as XML based resources.
+	 *
+	 * @return an {@link InputStream}. The caller is supposed to properly close the stream.
+	 * @since 2.9.2
+	 */
+	public InputStream openStream() {
+		try {
+			return url.openStream();
+		} catch (IOException e) {
+			var oldUrl = url.toString();
+			if (e instanceof FileNotFoundException && oldUrl.contains("jar:file") && oldUrl.contains("!/BOOT-INF/")) {
+				var newUrl = oldUrl.replace("jar:file", "jar:nested").replace("!/BOOT-INF/", "/!BOOT-INF/");
+				Migrations.LOGGER.log(Level.FINE, "Probably on Spring Boot >= 3.2.0 with new Jar loader, replacing {0} with {1}", new Object[] {oldUrl, newUrl});
+				try {
+					return URI.create(newUrl).toURL().openStream();
+				} catch (IOException ex) {
+					throw new UncheckedIOException(ex);
+				}
+			}
+			throw new UncheckedIOException(e);
+		}
 	}
 }

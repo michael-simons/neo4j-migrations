@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 /**
- * Abstract base class for implementing discoverer discovering resources.
+ * Factory providing different {@link Discoverer} implementations.
  *
  * @author Michael J. Simons
  * @param <T> The concrete type to be instantiated with a discovered resource
@@ -75,7 +75,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 				return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
 		});
 		return new ResourceDiscoverer<>(resourceScanner, filter,
-			ctx -> Collections.singletonList(new CypherBasedCallback(ctx.getUrl(), ctx.getConfig().isAutocrlf())));
+			ctx -> Collections.singletonList(new CypherBasedCallback(ctx)));
 	}
 
 	private static final Logger LOGGER = Logger.getLogger(ResourceDiscoverer.class.getName());

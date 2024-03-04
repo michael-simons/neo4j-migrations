@@ -16,13 +16,8 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Abstraction over Cypher resources.
@@ -38,38 +33,36 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	 *
 	 * @param url The url to create the resource from
 	 * @return a new Cypher resource
+	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
 	 */
+	@Deprecated(forRemoval = true)
 	static CypherResource of(URL url) {
 		return of(url, Defaults.AUTOCRLF);
 	}
 
 	/**
 	 * Creates a new resource for the given URL.
-	 *
-	 * @param url      The url to create the resource from
+	 * @param url The url to create the resource from
 	 * @param autocrlf Setting for autocrlf.
+	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
+	 */
+	@Deprecated(forRemoval = true)
+	static CypherResource of(URL url, boolean autocrlf) {
+		return of(ResourceContext.of(url, MigrationsConfig.builder().withAutocrlf(autocrlf).build()));
+	}
+
+	/**
+	 * Creates a new resource for the given URL.
+	 *
+	 * @param context the context in which this resource was discovered
 	 * @return a new Cypher resource
 	 */
-	static CypherResource of(URL url, boolean autocrlf) {
+	static CypherResource of(ResourceContext context) {
+		var url = context.getUrl();
+		var autocrlf = context.getConfig().isAutocrlf();
 
 		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf,
-			() -> {
-				try {
-					return url.openStream();
-				} catch (IOException e) {
-					var oldUrl = url.toString();
-					if (e instanceof FileNotFoundException && oldUrl.contains("jar:file") && oldUrl.contains("!/BOOT-INF/")) {
-						var newUrl = oldUrl.replace("jar:file", "jar:nested").replace("!/BOOT-INF/", "/!BOOT-INF/");
-						Migrations.LOGGER.log(Level.FINE, "Probably on Spring Boot >= 3.2.0 with new Jar loader, replacing {0} with {1}", new Object[] {oldUrl, newUrl});
-						try {
-							return URI.create(newUrl).toURL().openStream();
-						} catch (IOException ex) {
-							throw new UncheckedIOException(ex);
-						}
-					}
-					throw new UncheckedIOException(e);
-				}
-			});
+			context::openStream);
 	}
 
 	/**

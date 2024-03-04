@@ -78,6 +78,9 @@ class ApplicationIT {
 			}
 		}
 
+		p.destroy();
+		assertThat(p.exitValue()).isZero();
+
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
 			Config.builder().withLogging(Logging.console(Level.OFF)).build());
 			Session session = driver.session()
@@ -87,6 +90,7 @@ class ApplicationIT {
 
 			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
 			MigrationChain info = migrations.info(MigrationChain.ChainBuilderMode.REMOTE);
+			assertThat(info.length()).isEqualTo(4);
 			assertThat(info.getLastAppliedVersion().map(MigrationVersion::getValue)).hasValue("030");
 			assertThat(info.isApplied("030")).isTrue();
 		}

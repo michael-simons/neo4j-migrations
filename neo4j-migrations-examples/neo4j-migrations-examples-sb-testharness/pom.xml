@@ -163,7 +163,7 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
-				<reportSets />
+				<reportSets/>
 			</plugin>
 		</plugins>
 	</reporting>

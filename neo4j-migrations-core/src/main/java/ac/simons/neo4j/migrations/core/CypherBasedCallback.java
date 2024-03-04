@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.net.URL;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
@@ -41,9 +40,9 @@ final class CypherBasedCallback implements Callback {
 
 	private final String description;
 
-	CypherBasedCallback(URL url, boolean autocrlf) {
+	CypherBasedCallback(ResourceContext context) {
 
-		this.cypherResource = CypherResource.of(url, autocrlf);
+		this.cypherResource = CypherResource.of(context);
 
 		String script = this.cypherResource.getIdentifier();
 		Matcher matcher = LifecyclePhase.LIFECYCLE_PATTERN.matcher(script);

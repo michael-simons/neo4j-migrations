@@ -33,7 +33,7 @@ class ChainBuilderTest {
 	void shouldMatch() {
 
 		CypherBasedMigration cypherBasedMigration = new CypherBasedMigration(
-			TestResources.class.getResource("/my/awesome/migrations/V021__Die halbe Wahrheit.cypher"));
+			ResourceContext.of(TestResources.class.getResource("/my/awesome/migrations/V021__Die halbe Wahrheit.cypher")));
 		cypherBasedMigration.setAlternativeChecksums(Collections.singletonList("foobar"));
 
 		assertThat(ChainBuilder.matches(Optional.of("200310393"), cypherBasedMigration)).isTrue();

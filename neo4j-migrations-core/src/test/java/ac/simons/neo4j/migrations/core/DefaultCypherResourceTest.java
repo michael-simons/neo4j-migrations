@@ -39,7 +39,7 @@ class DefaultCypherResourceTest {
 	@ValueSource(strings = { "multiline_no_comments", "singleline_no_comments" })
 	void shouldGetAllStatements(String r) {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/" + r + ".cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/" + r + ".cypher")));
 
 		assertThat(cypherResource.getStatements()).hasSize(3);
 		assertThat(cypherResource.getSingleLineComments()).isEmpty();
@@ -52,7 +52,7 @@ class DefaultCypherResourceTest {
 		"comments_following_each_other1", "comments_following_each_other2" })
 	void shouldGetAllStatementsAndComments(String r) {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/" + r + ".cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/" + r + ".cypher")));
 
 		assertThat(cypherResource.getStatements()).hasSize(4);
 		assertThat(cypherResource.getExecutableStatements()).hasSize(3);
@@ -69,7 +69,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void onlyCommentsShouldBeTreatedAsSuch() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/onlycomments.cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/onlycomments.cypher")));
 
 		assertThat(cypherResource.getStatements()).hasSize(1);
 		assertThat(cypherResource.getExecutableStatements()).isEmpty();
@@ -79,7 +79,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void onlyCommentsShouldBeTreatedAsSuch2() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/multiple_comments_one_command.cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/multiple_comments_one_command.cypher")));
 
 		assertThat(cypherResource.getStatements()).hasSize(1);
 		assertThat(cypherResource.getExecutableStatements()).containsExactly(
@@ -93,7 +93,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void singleLineFollowingEachOther() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			TestResources.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher"));
+			ResourceContext.of(TestResources.class.getResource("/preconditions/44/V0001__Create_existence_constraint.cypher")));
 		assertThat(cypherResource.getStatements()).hasSize(1);
 		assertThat(cypherResource.getSingleLineComments()).hasSize(3);
 		List<Precondition> preconditions = Precondition.in(cypherResource);
@@ -104,7 +104,7 @@ class DefaultCypherResourceTest {
 	void shouldRetrievePreconditions() {
 
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/several_preconditions.cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/several_preconditions.cypher")));
 		List<Precondition> preconditions = Precondition.in(cypherResource);
 		assertThat(preconditions)
 			.hasSize(3)
@@ -131,7 +131,7 @@ class DefaultCypherResourceTest {
 
 		URL resource = DefaultCypherResourceTest.class.getResource("/V0001__" + type + ".cypher");
 
-		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(resource);
+		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(ResourceContext.of(resource));
 		List<String> statements = cypherResource.getStatements();
 
 		assertThat(statements).hasSize(3).containsOnly("MATCH (n) RETURN count(n) AS n");
@@ -144,7 +144,7 @@ class DefaultCypherResourceTest {
 
 		URL resource = TestResources.class.getResource("/ml/" + type + "/V0001__Just a couple of matches.cypher");
 
-		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(resource, true);
+		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(ResourceContext.of(resource, MigrationsConfig.builder().withAutocrlf(true).build()));
 		List<String> statements = cypherResource.getStatements();
 
 		assertThat(statements).hasSize(3).containsOnly("MATCH (n)\nRETURN count(n) AS n");
@@ -156,7 +156,7 @@ class DefaultCypherResourceTest {
 
 		// Those are in eu.michael-simons.neo4j.neo4j-migrations:test-migrations
 		URL resource = TestResources.class.getResource("/some/changeset/V0002__create_new_data.cypher");
-		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(resource);
+		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(ResourceContext.of(resource));
 
 		List<String> statements = migration.getStatements();
 		assertThat(statements).containsExactly("CREATE (n:FixedData) RETURN n", "MATCH (n) RETURN count(n) AS foobar");
@@ -166,7 +166,7 @@ class DefaultCypherResourceTest {
 	void shouldHandleMultilineStatements() {
 
 		URL resource = TestResources.class.getResource("/my/awesome/migrations/moreStuff/V007__BondTheNameIsBond.cypher");
-		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(resource);
+		DefaultCypherResource migration = (DefaultCypherResource) CypherResource.of(ResourceContext.of(resource));
 		List<String> statements = migration.getStatements();
 		assertThat(statements).hasSize(2);
 	}
@@ -176,7 +176,7 @@ class DefaultCypherResourceTest {
 
 		URL resource = TestResources.class.getResource("/some/changeset/V0001__delete_old_data.cypher");
 
-		CypherBasedMigration migration = new CypherBasedMigration(resource);
+		CypherBasedMigration migration = new CypherBasedMigration(ResourceContext.of(resource));
 
 		assertThat(migration.getChecksum()).hasValue("1100083332");
 	}
@@ -186,19 +186,19 @@ class DefaultCypherResourceTest {
 
 		URL script1 = DefaultCypherResourceTest.class.getResource("/parsing/V01__without_assumption.cypher");
 
-		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(script1, false);
+		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(ResourceContext.of(script1));
 		assertThat(cypherResource1.getChecksum()).isEqualTo("1995107586");
 
-		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(script1);
+		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(ResourceContext.of(script1));
 		assertThat(migrationWithoutAssumptions.getChecksum()).hasValue("1995107586");
 		assertThat(migrationWithoutAssumptions.getAlternativeChecksums()).isEmpty();
 
 		URL script2 = DefaultCypherResourceTest.class.getResource("/parsing/V01__with_assumption.cypher");
 
-		DefaultCypherResource cypherResource2 = (DefaultCypherResource) CypherResource.of(script2, false);
+		DefaultCypherResource cypherResource2 = (DefaultCypherResource) CypherResource.of(ResourceContext.of(script2));
 		assertThat(cypherResource2.getChecksum()).isEqualTo("2044432884");
 
-		CypherBasedMigration migrationWithAssumptions = new CypherBasedMigration(script2);
+		CypherBasedMigration migrationWithAssumptions = new CypherBasedMigration(ResourceContext.of(script2));
 		assertThat(migrationWithAssumptions.getChecksum()).hasValue("2044432884");
 		assertThat(migrationWithAssumptions.getAlternativeChecksums()).contains("1995107586");
 	}
@@ -209,7 +209,7 @@ class DefaultCypherResourceTest {
 
 		URL url = DefaultCypherResourceTest.class.getResource("/parsing/V01__without_assumption.cypher");
 
-		Migration migration = new CypherBasedMigration(url);
+		Migration migration = new CypherBasedMigration(ResourceContext.of(url));
 		assertThat(migration.getOptionalDescription()).hasValue("without assumption");
 	}
 
@@ -218,10 +218,10 @@ class DefaultCypherResourceTest {
 
 		URL script1 = DefaultCypherResourceTest.class.getResource("/parsing/V01__with_random_comments.cypher");
 
-		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(script1, false);
+		DefaultCypherResource cypherResource1 = (DefaultCypherResource) CypherResource.of(ResourceContext.of(script1));
 		assertThat(cypherResource1.getChecksum()).isNotEqualTo("2104077345");
 
-		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(script1);
+		CypherBasedMigration migrationWithoutAssumptions = new CypherBasedMigration(ResourceContext.of(script1));
 		assertThat(migrationWithoutAssumptions.getChecksum()).hasValueSatisfying(v -> assertThat(v).isNotEqualTo("2104077345"));
 		assertThat(migrationWithoutAssumptions.getAlternativeChecksums()).isEmpty();
 	}
@@ -258,7 +258,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void shouldHandleUseStatements() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements.cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements.cypher")));
 
 		assertThat(cypherResource.getExecutableStatements()).containsExactly(
 			"MATCH (n) RETURN count(n)",
@@ -304,7 +304,7 @@ class DefaultCypherResourceTest {
 	@Test
 	void shouldDetectWrongUseStatements() {
 		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(
-			DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements_wrong.cypher"));
+			ResourceContext.of(DefaultCypherResourceTest.class.getResource("/parsing/with_use_statements_wrong.cypher")));
 
 		assertThatExceptionOfType(MigrationsException.class)
 			.isThrownBy(cypherResource::getExecutableStatements)

@@ -56,7 +56,7 @@ class CypherResourceTest {
 		when(url.openStream()).thenThrow(cause);
 		when(url.getPath()).thenReturn("a.cypher");
 
-		CypherResource resource = CypherResource.of(url);
+		CypherResource resource = CypherResource.of(ResourceContext.of(url));
 
 		assertThatExceptionOfType(UncheckedIOException.class)
 			.isThrownBy(resource::getExecutableStatements)
@@ -72,7 +72,7 @@ class CypherResourceTest {
 		when(url.toString()).thenReturn("jar:file:/target/UberjarWithNestedJar.jar!/BOOT-INF/classes/neo4j/migrations/V010__Test.cypher");
 		when(url.getPath()).thenReturn("V010__Test.cypher");
 
-		CypherResource resource = CypherResource.of(url);
+		CypherResource resource = CypherResource.of(ResourceContext.of(url));
 
 		assertThatExceptionOfType(UncheckedIOException.class)
 			.isThrownBy(resource::getExecutableStatements)

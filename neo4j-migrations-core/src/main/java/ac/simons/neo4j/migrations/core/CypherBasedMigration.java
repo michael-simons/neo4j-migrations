@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,12 +41,8 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile Optional<String> checksumOfNonePreconditions;
 
-	CypherBasedMigration(URL url) {
-		this(url, Defaults.AUTOCRLF);
-	}
-
-	CypherBasedMigration(URL url, boolean autocrlf) {
-		super(CypherResource.of(url, autocrlf));
+	CypherBasedMigration(ResourceContext context) {
+		super(CypherResource.of(context));
 	}
 
 	// The whole point of the optional is in fact to deal with non-null

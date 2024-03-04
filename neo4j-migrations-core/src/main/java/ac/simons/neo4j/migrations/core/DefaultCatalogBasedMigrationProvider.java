@@ -39,6 +39,6 @@ public final class DefaultCatalogBasedMigrationProvider implements ResourceBased
 	@Override
 	public Collection<Migration> handle(ResourceContext ctx) {
 
-		return Collections.singletonList(CatalogBasedMigration.from(ctx.getUrl()));
+		return Collections.singletonList(CatalogBasedMigration.from(ctx));
 	}
 }

@@ -108,7 +108,7 @@
 		<compile-testing.version>0.21.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
-		<cypher-dsl.version>2023.9.4</cypher-dsl.version>
+		<cypher-dsl.version>2023.9.5</cypher-dsl.version>
 		<docker-maven-plugin.version>0.44.0</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.26.1</error_prone_annotations.version>
@@ -185,6 +185,13 @@
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
 				<version>${junit.jupiter.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl-bom</artifactId>
+				<version>${cypher-dsl.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -266,11 +273,6 @@
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-junit-jupiter</artifactId>
 				<version>${mockito.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
-				<version>${cypher-dsl.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j</groupId>

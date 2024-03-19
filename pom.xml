@@ -62,6 +62,7 @@
 		the test results). If this happens, the sonar-maven-plugin.version will skip the whole staging. This is a known
 		and unfixed issue.
 		-->
+		<module>neo4j-migrations-bom</module>
 		<module>neo4j-migrations-test-resources</module>
 		<module>neo4j-migrations-core</module>
 		<module>neo4j-migrations-cli</module>
@@ -113,6 +114,7 @@
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.26.1</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.2.0</exec-maven-plugin.version>
+		<flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
 		<graalvm.version>23.0.1</graalvm.version>
 		<guava.version>33.1.0-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
@@ -288,6 +290,21 @@
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.test</groupId>
+				<artifactId>neo4j-harness</artifactId>
+				<version>${neo4j.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-nop</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.neo4j</groupId>
+						<artifactId>neo4j-slf4j-provider</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.objenesis</groupId>
@@ -506,6 +523,7 @@
 						<sortDependencies>scope,groupId,artifactId</sortDependencies>
 						<createBackupFile>false</createBackupFile>
 						<expandEmptyElements>false</expandEmptyElements>
+						<spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -619,6 +637,11 @@
 					<groupId>org.moditect</groupId>
 					<artifactId>moditect-maven-plugin</artifactId>
 					<version>${moditect-maven-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>flatten-maven-plugin</artifactId>
+					<version>${flatten-maven-plugin.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

@@ -40,6 +40,13 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>eu.michael-simons.neo4j</groupId>
+				<artifactId>neo4j-migrations-bom</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<!-- Import dependency management from Spring Boot -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -55,7 +62,6 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-spring-boot-starter</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>

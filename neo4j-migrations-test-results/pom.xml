@@ -33,21 +33,30 @@
 		<java-module-name>ac.simons.neo4j.migrations.test_results</java-module-name>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>eu.michael-simons.neo4j</groupId>
+				<artifactId>neo4j-migrations-bom</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-annotation-processor</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-cli</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
@@ -74,27 +83,22 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-formats-adoc</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-formats-csv</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-formats-markdown</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-maven-plugin</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations-quarkus</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>*</groupId>

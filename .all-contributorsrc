@@ -273,6 +273,15 @@
         "research",
         "review"
       ]
+    },
+    {
+      "login": "ttemple06",
+      "name": "ttemple06",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37306883?v=4",
+      "profile": "https://github.com/ttemple06",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

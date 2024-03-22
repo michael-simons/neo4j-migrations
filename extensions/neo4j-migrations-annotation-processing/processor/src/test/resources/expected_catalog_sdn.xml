@@ -10,6 +10,12 @@
 					<property>title</property>
 				</properties>
 			</constraint>
+			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_renamedidproperty_myOtherIdName_unique" type="unique">
+				<label>RenamedIdProperty</label>
+				<properties>
+					<property>myOtherIdName</property>
+				</properties>
+			</constraint>
 		</constraints>
 	</catalog>
 	<apply/>

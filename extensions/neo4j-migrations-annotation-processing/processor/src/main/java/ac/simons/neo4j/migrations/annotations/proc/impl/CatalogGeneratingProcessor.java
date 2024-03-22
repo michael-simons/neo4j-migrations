@@ -288,7 +288,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.forEach(t -> {
 				var labels = computeLabelsOGM(t);
 				var owner = new DefaultNodeType(t.getQualifiedName().toString(), labels);
-				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(labels), owner));
+				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(Mode.OGM, labels), owner));
 			});
 
 		roundEnv.getElementsAnnotatedWith(ogm.relationshipEntity())
@@ -297,7 +297,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.forEach(t -> {
 				var type = computeTypeOGM(t);
 				var owner = new DefaultRelationshipType(t.getQualifiedName().toString(), type);
-				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(List.of(type)), owner));
+				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(Mode.OGM, List.of(type)), owner));
 			});
 	}
 
@@ -753,7 +753,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				List<SchemaName> labels = computeLabelsSDN6(t);
 				DefaultNodeType owner = new DefaultNodeType(t.getQualifiedName().toString(), labels);
 				if (requiresPrimaryKeyConstraintSDN6(t)) {
-					PropertyType<NodeType> idProperty = t.accept(new PropertySelector(supportedSDN6Annotations),
+					PropertyType<NodeType> idProperty = t.accept(new IdPropertySelector(Mode.SDN6, supportedSDN6Annotations),
 						owner);
 					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
 						Collections.singleton(idProperty));
@@ -761,7 +761,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 						.unique(idProperty.getName()));
 				}
 				if (generateTypeConstraints) {
-					catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(labels), owner));
+					catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator<>(Mode.SDN6, labels), owner));
 				}
 			});
 	}
@@ -769,9 +769,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	@SuppressWarnings("squid:S110") // Not something we need or can do anything about (Number of parents)
 	class PropertyTypeConstraintGenerator<E extends ElementType<E>> extends ElementKindVisitor8<List<CatalogItem<?>>, WriteableElementType<E>> {
 
+		private final Mode mode;
+
 		private final List<SchemaName> labels;
 
-		PropertyTypeConstraintGenerator(List<SchemaName> labels) {
+		PropertyTypeConstraintGenerator(Mode mode, List<SchemaName> labels) {
+			this.mode = mode;
 			this.labels = labels;
 		}
 
@@ -803,7 +806,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				return List.of();
 			}
 
-			var property = owner.addProperty(e.getSimpleName().toString());
+			Optional<String> additionalName = switch (mode) {
+				case SDN6 -> extractPropertyName(e, sdn6.property());
+				case OGM -> extractPropertyName(e, ogm.property());
+				case PURE -> Optional.empty();
+			};
+			var property = owner.addProperty(additionalName.orElseGet(() -> e.getSimpleName().toString()));
 			var name = constraintNameGenerator.generateName(Constraint.Type.PROPERTY_TYPE, List.of(property));
 			return List.of(Constraint.forNode(labels.get(0).getValue()).named(name).type(property.getName(), TypesEligibleForPropertyTypeConstraints.get(type)));
 		}
@@ -822,7 +830,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 			.map(TypeElement.class::cast)
 			.forEach(t -> {
 				List<SchemaName> labels = computeLabelsOGM(t);
-				PropertyType<NodeType> idProperty = t.accept(new PropertySelector(Collections.singleton(ogm.id())),
+				PropertyType<NodeType> idProperty = t.accept(new IdPropertySelector(Mode.OGM, Collections.singleton(ogm.id())),
 					new DefaultNodeType(t.getQualifiedName().toString(), labels));
 				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,
 					Collections.singleton(idProperty));
@@ -1130,11 +1138,14 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 	}
 
 	@SuppressWarnings("squid:S110") // Not something we need or can do anything about (Number of parents)
-	class PropertySelector extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
+	class IdPropertySelector extends ElementKindVisitor8<PropertyType<NodeType>, DefaultNodeType> {
+
+		private final Mode mode;
 
 		private final Set<Element> requiredAnnotations;
 
-		PropertySelector(Set<Element> requiredAnnotations) {
+		IdPropertySelector(Mode mode, Set<Element> requiredAnnotations) {
+			this.mode = mode;
 			this.requiredAnnotations = requiredAnnotations;
 		}
 
@@ -1165,7 +1176,18 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 				.map(AnnotationMirror::getAnnotationType)
 				.map(DeclaredType::asElement)
 				.anyMatch(requiredAnnotations::contains);
-			return requiredAnnotationPresent ? owner.addProperty(e.getSimpleName().toString()) : null;
+
+			if (!requiredAnnotationPresent) {
+				return null;
+			}
+
+			Optional<String> additionalName = switch (mode) {
+				case SDN6 -> extractPropertyName(e, sdn6.property());
+				case OGM -> extractPropertyName(e, ogm.property());
+				case PURE -> Optional.empty();
+			};
+
+			return owner.addProperty(additionalName.orElseGet(() -> e.getSimpleName().toString()));
 		}
 	}
 

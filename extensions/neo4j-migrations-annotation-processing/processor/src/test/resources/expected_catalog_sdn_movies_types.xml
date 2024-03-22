@@ -16,10 +16,10 @@
 					<property type="STRING">title</property>
 				</properties>
 			</constraint>
-			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_movie_description_property_type" type="property_type">
+			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_movie_tagline_property_type" type="property_type">
 				<label>Movie</label>
 				<properties>
-					<property type="STRING">description</property>
+					<property type="STRING">tagline</property>
 				</properties>
 			</constraint>
 			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_movie_released_property_type" type="property_type">
@@ -56,6 +56,18 @@
 				<label>Person</label>
 				<properties>
 					<property type="INTEGER">born</property>
+				</properties>
+			</constraint>
+			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_renamedidproperty_myOtherIdName_unique" type="unique">
+				<label>RenamedIdProperty</label>
+				<properties>
+					<property>myOtherIdName</property>
+				</properties>
+			</constraint>
+			<constraint name="ac_simons_neo4j_migrations_annotations_proc_sdn6_movies_renamedidproperty_myOtherIdName_property_type" type="property_type">
+				<label>RenamedIdProperty</label>
+				<properties>
+					<property type="STRING">myOtherIdName</property>
 				</properties>
 			</constraint>
 		</constraints>

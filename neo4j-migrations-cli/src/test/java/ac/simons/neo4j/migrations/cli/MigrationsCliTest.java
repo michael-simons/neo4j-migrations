@@ -19,6 +19,7 @@ import static com.github.stefanbirkner.systemlambda.SystemLambda.restoreSystemPr
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import ac.simons.neo4j.migrations.cli.internal.ImageInfo;
 import ac.simons.neo4j.migrations.core.Migrations;
@@ -35,6 +36,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -42,8 +45,10 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.security.InternalAuthToken;
@@ -223,6 +228,16 @@ class MigrationsCliTest {
 		commandLine.parseArgs("--bearer", "thisisatoken.");
 	}
 
+	private void setCustom(MigrationsCli cli) {
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs(
+			"--custom-auth", "principal=neo4j",
+			"--custom-auth", "credentials=wurstsalat",
+			"--custom-auth", "realm=whatever",
+			"--custom-auth", "scheme=basic"
+		);
+	}
+
 	@Test
 	void createDriverConfigShouldSetCorrectValues() {
 
@@ -322,6 +337,93 @@ class MigrationsCliTest {
 	}
 
 	@Nested
+	class CustomAuthOptionsTreatmentShouldBeSane {
+
+		@ParameterizedTest
+		@CsvSource(textBlock = """
+			principal,principal,neo4j
+			principal,Principal,neo4j
+			credentials,credentials,wurstsalat
+			credentials,CREDENTIALS,wurstsalat
+			scheme,scheme,basic
+			scheme,schEme,basic
+			realm,realm,whatever
+			realm,REALM,whatever
+			""")
+		void findAndRemoveRequiredKeysShouldWork(String key, String entryKey, String expected) {
+
+			var cli = new MigrationsCli();
+			var map = new HashMap<String, Object>(Map.of(entryKey, expected));
+			var value = cli.findAndRemove(map, key);
+			assertThat(value).isEqualTo(expected);
+			assertThat(map).isEmpty();
+		}
+
+		@Test
+		void emptyMapShouldNotFail() {
+
+			var cli = new MigrationsCli();
+			cli.customAuth = Map.of();
+			assertThat(cli.getOptionalCustomToken()).isEmpty();
+		}
+
+		@Test
+		void nullMapShouldNotFail() {
+
+			var cli = new MigrationsCli();
+			assertThat(cli.getOptionalCustomToken()).isEmpty();
+		}
+
+		@ParameterizedTest
+		@CsvSource(textBlock = """
+			principal,Principal for custom auth must not be null
+			credentials,Credentials for custom auth must not be null
+			scheme,Scheme for custom auth must not be null
+			""")
+		void missingKeyShouldBeCaughtEarly(String key, String msg) {
+
+			var cli = new MigrationsCli();
+			cli.customAuth = new HashMap<>(Map.of(
+				"principal", "neo4j",
+				"credentials", "wurstsalat",
+				"scheme", "basic"
+			));
+			cli.customAuth.remove(key);
+			assertThatNullPointerException().isThrownBy(cli::getOptionalCustomToken)
+				.withMessage(msg);
+		}
+
+		@Test
+		void customAuthTokenShouldBeDerived1() {
+			var cli = new MigrationsCli();
+			cli.customAuth = Map.of(
+				"principal", "neo4j",
+				"credentials", "wurstsalat",
+				"realm", "whatever",
+				"scheme", "basic",
+				"oneMore", "option"
+			);
+			var customAuth = cli.getOptionalCustomToken();
+			assertThat(customAuth).
+				hasValue(AuthTokens.custom("neo4j", "wurstsalat", "whatever", "basic", Map.of("oneMore", "option")));
+		}
+
+		@Test
+		void customAuthTokenShouldBeDerived2() {
+			var cli = new MigrationsCli();
+			cli.customAuth = Map.of(
+				"principal", "neo4j",
+				"credentials", "wurstsalat",
+				"realm", "whatever",
+				"scheme", "basic"
+			);
+			var customAuth = cli.getOptionalCustomToken();
+			assertThat(customAuth).
+				hasValue(AuthTokens.custom("neo4j", "wurstsalat", "whatever", "basic", null));
+		}
+	}
+
+	@Nested
 	class PasswordOptions {
 
 		@Test
@@ -372,7 +474,7 @@ class MigrationsCliTest {
 			setPasswordFile(cli, new File("non-existing"));
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file', '--bearer' or `--custom-auth`");
 		}
 
 		@Test
@@ -386,6 +488,17 @@ class MigrationsCliTest {
 		}
 
 		@Test
+		void shouldUseCustom() {
+
+			MigrationsCli cli = new MigrationsCli();
+			setCustom(cli);
+
+			AuthToken authToken = cli.getAuthToken();
+			assertThat(authToken)
+				.isEqualTo(AuthTokens.custom("neo4j", "wurstsalat", "whatever", "basic", null));
+		}
+
+		@Test
 		void shouldTrim() {
 
 			MigrationsCli cli = new MigrationsCli();
@@ -394,7 +507,7 @@ class MigrationsCliTest {
 			setPasswordEnv(cli, "emptyPassword");
 
 			assertThatExceptionOfType(CommandLine.ParameterException.class).isThrownBy(cli::getAuthToken)
-				.withMessage("Missing required option: '--password', '--password:env', '--password:file' or '--bearer'");
+				.withMessage("Missing required option: '--password', '--password:env', '--password:file', '--bearer' or `--custom-auth`");
 		}
 
 		private void assertAuthToken(AuthToken authToken, String expectedCredentials) {

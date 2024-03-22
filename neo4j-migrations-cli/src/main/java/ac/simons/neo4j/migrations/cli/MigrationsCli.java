@@ -29,7 +29,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
@@ -143,6 +147,9 @@ public final class MigrationsCli implements Runnable {
 
 	@Option(names = "--password:env")
 	String passwordEnv;
+
+	@Option(names = "--custom-auth")
+	Map<String, String> customAuth;
 
 	@Option(
 		names = { OPTION_PASSWORD, "--password" },
@@ -328,10 +335,37 @@ public final class MigrationsCli implements Runnable {
 			.filter(Predicate.not(String::isBlank))
 			.map(s -> AuthTokens.basic(user, s))
 			.or(this::getOptionalBearerToken)
+			.or(this::getOptionalCustomToken)
 			.orElseThrow(
 				() -> new CommandLine.ParameterException(commandSpec.commandLine(),
-					"Missing required option: '--password', '--password:env', '--password:file' or '--bearer'")
+					"Missing required option: '--password', '--password:env', '--password:file', '--bearer' or `--custom-auth`")
 			);
+	}
+
+	Optional<AuthToken> getOptionalCustomToken() {
+		if (this.customAuth == null || this.customAuth.isEmpty()) {
+			return Optional.empty();
+		}
+
+		var copy = new HashMap<String, Object>(this.customAuth);
+		var principal = Objects.requireNonNull(Optional.ofNullable(findAndRemove(copy, "principal")).orElse(this.user), "Principal for custom auth must not be null");
+		var credentials = Objects.requireNonNull(findAndRemove(copy, "credentials"), "Credentials for custom auth must not be null");
+		var realm = findAndRemove(copy, "realm");
+		var scheme = Objects.requireNonNull(findAndRemove(copy, "scheme"), "Scheme for custom auth must not be null");
+
+		return Optional.of(AuthTokens.custom(principal, credentials, realm, scheme, copy.isEmpty() ? null : copy));
+	}
+
+	String findAndRemove(Map<String, Object> src, String key) {
+		var it = src.entrySet().iterator();
+		while (it.hasNext()) {
+			var entry = it.next();
+			if (entry.getKey().toLowerCase(Locale.ROOT).equals(key)) {
+				it.remove();
+				return (String) entry.getValue();
+			}
+		}
+		return null;
 	}
 
 	Optional<AuthToken> getOptionalBearerToken() {

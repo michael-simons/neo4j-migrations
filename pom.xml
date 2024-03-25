@@ -99,7 +99,7 @@
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
 		<asciidoctor-maven-plugin.version>3.0.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.3.0</asciidoctorj-diagram.version>
-		<asciidoctorj.version>2.5.11</asciidoctorj.version>
+		<asciidoctorj.version>2.5.12</asciidoctorj.version>
 		<assertj.version>3.25.3</assertj.version>
 		<build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.14.12</byte-buddy.version>

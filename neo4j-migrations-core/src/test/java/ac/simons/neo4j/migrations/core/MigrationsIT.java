@@ -815,6 +815,37 @@ class MigrationsIT extends TestBase {
 		assertThat(appliedMigrations).isEqualTo(1);
 	}
 
+	@Test // 1342
+	void addingMigrationsAfterRepeatingOnesMustNotFail() {
+
+		var config = MigrationsConfig.builder().withLocationsToScan("classpath:repeatable/original", "classpath:repeatable/constant")
+			.build();
+
+		var migrations = new Migrations(config, driver);
+		migrations.clean(false);
+		migrations.info();
+		migrations.apply();
+
+		config = MigrationsConfig.builder().withLocationsToScan("classpath:repeatable/modified", "classpath:repeatable/constant", "classpath:repeatable/added")
+			.build();
+
+		migrations = new Migrations(config, driver);
+		migrations.apply();
+
+		// If chain is wrong, this would fail
+		assertThatNoException().isThrownBy(migrations::apply);
+
+		var records = driver.executableQuery("""
+			MATCH (:`__Neo4jMigration` {version:'BASELINE'}) (()-[:MIGRATED_TO]->()){4} (t:`__Neo4jMigration`)
+			RETURN t.version AS version
+			""").execute().records();
+		assertThat(records).hasSize(1).first().extracting(r -> r.get("version").asString()).isEqualTo("004");
+
+		var repetitionCnt = driver.executableQuery("MATCH (n:`__Neo4jMigration` {version: '001'})-[r:REPEATED]->(n) RETURN count(r) AS cnt")
+			.execute().records().get(0).get("cnt").asLong();
+		assertThat(repetitionCnt).isOne();
+	}
+
 	@Nested
 	class Repairing {
 

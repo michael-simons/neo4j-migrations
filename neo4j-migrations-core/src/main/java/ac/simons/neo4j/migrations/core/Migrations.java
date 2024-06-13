@@ -721,6 +721,7 @@ public final class Migrations {
 					repeated = true;
 				} else {
 					LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
+					previousVersion = migration.getVersion();
 					continue;
 				}
 			}

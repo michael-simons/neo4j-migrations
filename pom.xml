@@ -151,7 +151,7 @@
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.2.0</mockito.version>
-		<moditect-maven-plugin.version>1.2.1.Final</moditect-maven-plugin.version>
+		<moditect-maven-plugin.version>1.2.2.Final</moditect-maven-plugin.version>
 		<native.maven.plugin.version>0.10.2</native.maven.plugin.version>
 		<neo4j-java-driver.version>5.21.0</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>2.10.3</neo4j-migrations.previous.version>

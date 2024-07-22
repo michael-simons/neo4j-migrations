@@ -112,7 +112,7 @@
 		<cypher-dsl.version>2024.0.2</cypher-dsl.version>
 		<docker-maven-plugin.version>0.44.0</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
-		<error_prone_annotations.version>2.28.0</error_prone_annotations.version>
+		<error_prone_annotations.version>2.29.2</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
 		<flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
 		<graalvm.version>23.0.1</graalvm.version>

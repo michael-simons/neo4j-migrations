@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
+import ac.simons.neo4j.migrations.core.Discoverer;
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsException;
@@ -59,7 +61,7 @@ public class MigrationsAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean({ MigrationsConfig.class, Migrations.class, MigrationsInitializer.class })
 	MigrationsConfig neo4jMigrationsConfig(ResourceLoader resourceLoader, MigrationsProperties migrationsProperties,
-		ObjectProvider<ConfigBuilderCustomizer> configBuilderCustomizers) {
+		ObjectProvider<ConfigBuilderCustomizer> configBuilderCustomizers, ObjectProvider<Discoverer<JavaBasedMigration>> applicationContextAwareDiscoverer) {
 
 		if (migrationsProperties.isCheckLocation()) {
 			checkLocationExists(resourceLoader, migrationsProperties);
@@ -76,7 +78,8 @@ public class MigrationsAutoConfiguration {
 			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())
 			.withAutocrlf(migrationsProperties.isAutocrlf())
 			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
-			.withVersionSortOrder(migrationsProperties.getVersionSortOrder());
+			.withVersionSortOrder(migrationsProperties.getVersionSortOrder())
+			.withMigrationClassesDiscoverer(applicationContextAwareDiscoverer.getIfAvailable());
 		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
 		return builder.build();
 	}
@@ -94,6 +97,14 @@ public class MigrationsAutoConfiguration {
 	MigrationsInitializer neo4jMigrationsInitializer(Migrations neo4jMigrations) {
 
 		return new MigrationsInitializer(neo4jMigrations);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean({ Discoverer.class })
+	@ConditionalOnProperty(prefix = "org.neo4j.migrations", name = "enabled", matchIfMissing = true)
+	Discoverer<JavaBasedMigration> applicationContextAwareDiscoverer(ObjectProvider<JavaBasedMigration> javaBasedMigrations) {
+
+		return new ApplicationContextAwareDiscoverer(javaBasedMigrations);
 	}
 
 	private static void checkLocationExists(ResourceLoader resourceLoader, MigrationsProperties properties) {

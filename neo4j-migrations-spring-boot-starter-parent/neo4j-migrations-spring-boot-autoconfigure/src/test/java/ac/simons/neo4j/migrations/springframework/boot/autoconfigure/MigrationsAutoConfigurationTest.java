@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import ac.simons.neo4j.migrations.core.Discoverer;
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
@@ -111,40 +113,52 @@ class MigrationsAutoConfigurationTest {
 		}
 	}
 
+	static ObjectProvider<Discoverer<JavaBasedMigration>> noSpringDiscoverer() {
+		return new StaticObjectProvider<>(null);
+	}
+
 	static ObjectProvider<ConfigBuilderCustomizer> noCustomizer() {
 		return withCustomizer(null);
 	}
 
 	static ObjectProvider<ConfigBuilderCustomizer> withCustomizer(ConfigBuilderCustomizer customizer) {
-		return new ObjectProvider<>() {
-			@Override
-			public ConfigBuilderCustomizer getObject(Object... args) throws BeansException {
-				return customizer;
-			}
+		return new StaticObjectProvider<>(customizer);
+	}
 
-			@Override
-			public ConfigBuilderCustomizer getIfAvailable() throws BeansException {
-				return customizer;
-			}
+	private static class StaticObjectProvider<T> implements ObjectProvider<T> {
+		private final T value;
 
-			@Override
-			public ConfigBuilderCustomizer getIfUnique() throws BeansException {
-				return customizer;
-			}
+		StaticObjectProvider(T value) {
+			this.value = value;
+		}
 
-			@Override
-			public ConfigBuilderCustomizer getObject() throws BeansException {
-				if (customizer == null) {
-					throw new BeanCreationException("No such bean");
-				}
-				return customizer;
-			}
+		@Override
+		public T getObject(Object... args) throws BeansException {
+			return value;
+		}
 
-			@Override
-			public Stream<ConfigBuilderCustomizer> orderedStream() {
-				return customizer == null ? Stream.empty() : Stream.of(customizer);
+		@Override
+		public T getIfAvailable() throws BeansException {
+			return value;
+		}
+
+		@Override
+		public T getIfUnique() throws BeansException {
+			return value;
+		}
+
+		@Override
+		public T getObject() throws BeansException {
+			if (value == null) {
+				throw new BeanCreationException("No such bean");
 			}
-		};
+			return value;
+		}
+
+		@Override
+		public Stream<T> orderedStream() {
+			return value == null ? Stream.empty() : Stream.of(value);
+		}
 	}
 
 	@Nested
@@ -168,7 +182,7 @@ class MigrationsAutoConfigurationTest {
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
 			assertThatExceptionOfType(MigrationsException.class)
-				.isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer()))
+				.isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), null))
 				.withMessage("Neither locations nor packages to scan are configured.");
 		}
 
@@ -190,7 +204,7 @@ class MigrationsAutoConfigurationTest {
 			Mockito.when(resource.exists()).thenReturn(false);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 
 			logAppender.stop();
 			assertThat(logAppender.containsMessage(MigrationsAutoConfiguration.class.getName(),
@@ -213,7 +227,7 @@ class MigrationsAutoConfigurationTest {
 			Mockito.when(resource.exists()).thenReturn(true);
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer()));
+			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer()));
 		}
 
 		@Test
@@ -225,7 +239,7 @@ class MigrationsAutoConfigurationTest {
 			assertThat(properties.isCheckLocation()).isTrue();
 
 			MigrationsAutoConfiguration ac = new MigrationsAutoConfiguration();
-			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer()));
+			assertThatNoException().isThrownBy(() -> ac.neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer()));
 		}
 
 		@Test // GH-237
@@ -234,7 +248,7 @@ class MigrationsAutoConfigurationTest {
 			MigrationsProperties properties = new MigrationsProperties();
 			properties.setPackagesToScan(new String[] { "na" });
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.isValidateOnMigrate()).isTrue();
 		}
 
@@ -245,7 +259,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setValidateOnMigrate(false);
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.isValidateOnMigrate()).isFalse();
 		}
 
@@ -255,7 +269,7 @@ class MigrationsAutoConfigurationTest {
 			MigrationsProperties properties = new MigrationsProperties();
 			properties.setPackagesToScan(new String[] { "na" });
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.isAutocrlf()).isFalse();
 		}
 
@@ -266,7 +280,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setAutocrlf(true);
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.isAutocrlf()).isTrue();
 		}
 
@@ -276,7 +290,7 @@ class MigrationsAutoConfigurationTest {
 			MigrationsProperties properties = new MigrationsProperties();
 			properties.setPackagesToScan(new String[] { "na" });
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.getOptionalDelayBetweenMigrations()).isEmpty();
 		}
 
@@ -287,7 +301,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setDelayBetweenMigrations(Duration.ofMillis(667));
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofMillis(667));
 		}
 
@@ -298,7 +312,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setVersionSortOrder(MigrationsConfig.VersionSortOrder.SEMANTIC);
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
 		}
 
@@ -309,7 +323,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setImpersonatedUser("someoneElse");
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.getOptionalImpersonatedUser()).hasValue("someoneElse");
 		}
 
@@ -320,7 +334,7 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setSchemaDatabase("anotherDatabase");
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer());
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.getOptionalSchemaDatabase()).hasValue("anotherDatabase");
 		}
 
@@ -331,19 +345,14 @@ class MigrationsAutoConfigurationTest {
 			properties.setPackagesToScan(new String[] { "na" });
 			properties.setSchemaDatabase("anotherDatabase");
 
-			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, withCustomizer(new ConfigBuilderCustomizer() {
-				@Override
-				public void customize(MigrationsConfig.Builder configBuilder) {
-					configBuilder
-						.withImpersonatedUser("blah")
-						.withConstraintRenderingOptions(List.of(new RenderConfig.CypherRenderingOptions() {
-							@Override
-							public boolean useExplicitPropertyIndexType() {
-								return true;
-							}
-						}));
-				}
-			}));
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, withCustomizer(configBuilder -> configBuilder
+				.withImpersonatedUser("blah")
+				.withConstraintRenderingOptions(List.of(new RenderConfig.CypherRenderingOptions() {
+					@Override
+					public boolean useExplicitPropertyIndexType() {
+						return true;
+					}
+				}))), noSpringDiscoverer());
 
 			assertThat(config.getOptionalSchemaDatabase()).hasValue("anotherDatabase");
 			assertThat(config.getOptionalImpersonatedUser()).hasValue("blah");

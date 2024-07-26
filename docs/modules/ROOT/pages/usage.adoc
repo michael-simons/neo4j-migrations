@@ -514,7 +514,9 @@ The driver is managed by Spring Boot since 2.4, and you can enjoy configuration 
 For Spring Boot versions prior to Spring Boot 2.4, please have a look at version https://github.com/michael-simons/neo4j-migrations/tree/0.0.13[0.0.13] of this library.
 
 Neo4j-Migrations will automatically look for migrations in `classpath:neo4j/migrations` and will fail if this location does not exist.
-It does not scan by default for Java-based migrations.
+It does not scan by default for Java-based migrations itself.
+It will however discover all Java-based migrations that are annotated with `@Component`, `@Service` or other stereotypes and all beans that made it otherwise into the application context.
+Such a Java-based migrations is free to use anything that is injectable itself, such as Spring Data Neo4j repositories.
 
 Here's an example on how to configure the driver and the migrations:
 

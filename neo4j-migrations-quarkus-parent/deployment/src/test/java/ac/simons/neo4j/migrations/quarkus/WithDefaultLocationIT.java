@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.test.QuarkusUnitTest;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 
 import jakarta.inject.Inject;
 
@@ -34,7 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-@QuarkusTestResource(value = Neo4jTestResource.class)
+@WithTestResource(Neo4jTestResource.class)
 class WithDefaultLocationIT {
 
 	@RegisterExtension

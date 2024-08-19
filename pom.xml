@@ -122,7 +122,7 @@
 		<java-module-name />
 		<java.version>17</java.version>
 		<!-- to be overridden in sub modules -->
-		<junit.jupiter.version>5.10.3</junit.jupiter.version>
+		<junit.jupiter.version>5.11.0</junit.jupiter.version>
 		<license-maven-plugin.version>4.5</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>

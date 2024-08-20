@@ -857,4 +857,23 @@ class IndexToCypherRendererTest {
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThat(renderer.render(index, config)).isEqualTo("CREATE INDEX n_a_n FOR (n:A) ON (n.a)");
 	}
+
+	@Test
+	void shouldRenderVectorIndexProper() {
+		Index index = new Index("account_name", Index.Type.VECTOR, TargetEntityType.NODE, Collections.singleton("Movie"), Collections.singleton("embedding"), "{indexConfig: { `vector.dimensions`: 1536, `vector.similarity_function`: 'cosine' }}");
+		index.getOptionalOptions().ifPresent(System.out::println);
+		RenderConfig config = RenderConfig.create()
+			.ifNotExists()
+			.forVersionAndEdition(Neo4jVersion.V5, Neo4jEdition.ENTERPRISE);
+
+		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		assertThat(renderer.render(index, config)).isEqualTo("""
+			CREATE VECTOR INDEX account_name IF NOT EXISTS
+			FOR (n:Movie)
+			ON (n.embedding)
+			OPTIONS {indexConfig: {
+				`vector.dimensions`: 1536,
+				`vector.similarity_function`: 'cosine'
+			}}""".replace("\n", " ").replace("\t", ""));
+	}
 }

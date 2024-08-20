@@ -84,7 +84,7 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 
 		switch (index.getType()) {
-			case POINT, PROPERTY, TEXT -> w.write(renderNodePropertiesIndex(index, config));
+			case POINT, PROPERTY, TEXT, VECTOR -> w.write(renderNodePropertiesIndex(index, config));
 			case FULLTEXT -> w.write(renderFulltextIndex(index, config));
 			default -> throw new IllegalArgumentException("Unsupported type of constraint: " + index.getType());
 		}
@@ -169,8 +169,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			}
 			return String.format("%s %#s%s", operator, item, config.ifNotExistsOrEmpty());
 		} else if (isNodeIndex) {
-			return String.format("%s%s%#s %sFOR (n:%s) ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
-				identifier, properties);
+			return String.format("%s%s%#s %sFOR (n:%s) ON (%s)%s", operator, type, item, config.ifNotExistsOrEmpty(),
+				identifier, properties, index.getOptionalOptions().filter(ignored -> index.getType() == Index.Type.VECTOR).map(o -> " OPTIONS " + o).orElse(""));
 		} else {
 			return String.format("%s%s%#s %sFOR ()-[r:%s]-() ON (%s)", operator, type, item, config.ifNotExistsOrEmpty(),
 				identifier, properties);

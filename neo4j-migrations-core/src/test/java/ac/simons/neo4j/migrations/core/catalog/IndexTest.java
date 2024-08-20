@@ -24,6 +24,7 @@ import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -315,6 +316,39 @@ class IndexTest {
 		index = Index.forNode("A").named("a").text("a1");
 		assertThat(index.getDeconstructedIdentifiers()).containsExactly("A");
 		assertThat(index.getType()).isEqualTo(Index.Type.TEXT);
+	}
+
+	@Test
+	void shouldParseVectorIndex() {
+		Value indexName = Values.value("account_name");
+		Value type = Values.value("VECTOR");
+		Value tokenNames = Values.value(List.of("Movie"));
+		Value properties = Values.value(List.of("embedding"));
+
+		Index index = Index.parse(
+			new MapAccessorAndRecordImpl(Map.of(
+				"name", indexName,
+				"type", type,
+				"entityType", Values.value("NODE"),
+				"labelsOrTypes", tokenNames,
+				"properties", properties,
+				"indexProvider", Values.value("vector-2.0"),
+				"options", Values.value(Map.of(
+					"indexProvider", "vector-2.0",
+					"indexConfig", Map.of(
+						"vector.dimensions", 1536,
+						"vector.similarity_function", "COSINE"
+					)))
+			)));
+
+		assertThat(index.getType()).isEqualTo(Index.Type.VECTOR);
+		assertThat(index.getTargetEntityType()).isEqualTo(TargetEntityType.NODE);
+		assertThat(index.getName().getValue()).isEqualTo("account_name");
+		assertThat(index.getIdentifier()).isEqualTo("[Movie]");
+		assertThat(index.getDeconstructedIdentifiers()).containsExactly("Movie");
+		assertThat(index.getProperties()).containsExactlyInAnyOrder("embedding");
+		assertThat(index.getOptionalOptions()).hasValue("""
+			{`indexConfig`: {`vector.dimensions`: 1536, `vector.similarity_function`: "COSINE"}, `indexProvider`: "vector-2.0"}""");
 	}
 
 	@SafeVarargs

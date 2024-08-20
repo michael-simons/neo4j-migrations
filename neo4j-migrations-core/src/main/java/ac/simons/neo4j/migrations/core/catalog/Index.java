@@ -80,7 +80,11 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 		/**
 		 * An index backing a constraint.
 		 */
-		CONSTRAINT_BACKING_INDEX;
+		CONSTRAINT_BACKING_INDEX,
+		/**
+		 * A vector index.
+		 */
+		VECTOR;
 
 		@Override
 		public String getName() {
@@ -319,6 +323,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 				Type.PROPERTY;
 			case "FULLTEXT", "node_fulltext" -> Type.FULLTEXT;
 			case "node_unique_property" -> Type.CONSTRAINT_BACKING_INDEX;
+			case "VECTOR" -> Type.VECTOR;
 			default -> throw new IllegalArgumentException("Unsupported index type " + name);
 		};
 

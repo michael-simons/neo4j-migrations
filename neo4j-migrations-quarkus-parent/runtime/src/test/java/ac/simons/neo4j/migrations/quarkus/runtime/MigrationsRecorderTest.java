@@ -16,6 +16,8 @@
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 
@@ -33,24 +35,24 @@ class MigrationsRecorderTest {
 	@Test
 	void migrationConfigShouldWork() {
 
-		var properties = new MigrationsProperties();
-		properties.autocrlf = true;
-		properties.database = Optional.of("db");
-		properties.installedBy = Optional.of("ich");
-		properties.impersonatedUser = Optional.of("hg");
-		properties.schemaDatabase = Optional.of("db2");
-		properties.transactionMode = MigrationsConfig.TransactionMode.PER_STATEMENT;
-		properties.validateOnMigrate = false;
-		properties.externalLocations = Optional.of(List.of("file:///bazbar", "dropped"));
-		properties.delayBetweenMigrations = Optional.empty();
+		var properties = mock(MigrationsProperties.class);
+		when(properties.autocrlf()).thenReturn(true);
+		when(properties.database()).thenReturn(Optional.of("db"));
+		when(properties.installedBy()).thenReturn(Optional.of("ich"));
+		when(properties.impersonatedUser()).thenReturn(Optional.of("hg"));
+		when(properties.schemaDatabase()).thenReturn(Optional.of("db2"));
+		when(properties.transactionMode()).thenReturn(MigrationsConfig.TransactionMode.PER_STATEMENT);
+		when(properties.validateOnMigrate()).thenReturn(false);
+		when(properties.externalLocations()).thenReturn(Optional.of(List.of("file:///bazbar", "dropped")));
+		when(properties.delayBetweenMigrations()).thenReturn(Optional.empty());
 
-		var buildTimeProperties = new MigrationsBuildTimeProperties();
-		buildTimeProperties.packagesToScan = Optional.of(List.of("foo"));
-		buildTimeProperties.locationsToScan = List.of("bar");
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.of(List.of("foo")));
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
 		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
 
-		assertThat(config.getPackagesToScan()).containsExactlyElementsOf(buildTimeProperties.packagesToScan.get());
+		assertThat(config.getPackagesToScan()).containsExactlyElementsOf(buildTimeProperties.packagesToScan().orElse(List.of()));
 		assertThat(config.isAutocrlf()).isTrue();
 		assertThat(config.getOptionalDatabase()).hasValue("db");
 		assertThat(config.getOptionalInstalledBy()).hasValue("ich");
@@ -68,19 +70,19 @@ class MigrationsRecorderTest {
 	@Test
 	void delayShallBeConfigurable() {
 
-		var properties = new MigrationsProperties();
-		properties.autocrlf = true;
-		properties.database = Optional.empty();
-		properties.installedBy = Optional.empty();
-		properties.impersonatedUser = Optional.empty();
-		properties.schemaDatabase = Optional.empty();
-		properties.transactionMode = MigrationsConfig.TransactionMode.PER_STATEMENT;
-		properties.externalLocations = Optional.empty();
-		properties.delayBetweenMigrations = Optional.of(Duration.ofSeconds(1));
+		var properties = mock(MigrationsProperties.class);
+		when(properties.autocrlf()).thenReturn(true);
+		when(properties.database()).thenReturn(Optional.empty());
+		when(properties.installedBy()).thenReturn(Optional.empty());
+		when(properties.impersonatedUser()).thenReturn(Optional.empty());
+		when(properties.schemaDatabase()).thenReturn(Optional.empty());
+		when(properties.transactionMode()).thenReturn(MigrationsConfig.TransactionMode.PER_STATEMENT);
+		when(properties.externalLocations()).thenReturn(Optional.empty());
+		when(properties.delayBetweenMigrations()).thenReturn(Optional.of(Duration.ofSeconds(1)));
 
-		var buildTimeProperties = new MigrationsBuildTimeProperties();
-		buildTimeProperties.packagesToScan = Optional.empty();
-		buildTimeProperties.locationsToScan = List.of("bar");
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
 		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
 		assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofSeconds(1));

@@ -56,27 +56,27 @@ public class MigrationsRecorder {
 	) {
 
 		var allLocationsToScan = new ArrayList<String>(
-			buildTimeProperties.locationsToScan.size() + runtimeProperties.externalLocations.map(
+			buildTimeProperties.locationsToScan().size() + runtimeProperties.externalLocations().map(
 				List::size).orElse(0));
-		allLocationsToScan.addAll(buildTimeProperties.locationsToScan);
-		runtimeProperties.externalLocations.ifPresent(locations -> locations.stream()
+		allLocationsToScan.addAll(buildTimeProperties.locationsToScan());
+		runtimeProperties.externalLocations().ifPresent(locations -> locations.stream()
 			.filter(l -> Location.of(l).getType() == Location.LocationType.FILESYSTEM)
 			.forEach(allLocationsToScan::add));
 
 		var config = MigrationsConfig.builder()
 			.withLocationsToScan(allLocationsToScan.toArray(new String[0]))
-			.withPackagesToScan(buildTimeProperties.packagesToScan.map(v -> v.toArray(String[]::new)).orElse(null))
-			.withTransactionMode(runtimeProperties.transactionMode)
-			.withDatabase(runtimeProperties.database.orElse(null))
-			.withSchemaDatabase(runtimeProperties.schemaDatabase.orElse(null))
-			.withImpersonatedUser(runtimeProperties.impersonatedUser.orElse(null))
-			.withInstalledBy(runtimeProperties.installedBy.orElse(null))
-			.withValidateOnMigrate(runtimeProperties.validateOnMigrate)
-			.withAutocrlf(runtimeProperties.autocrlf)
+			.withPackagesToScan(buildTimeProperties.packagesToScan().map(v -> v.toArray(String[]::new)).orElse(null))
+			.withTransactionMode(runtimeProperties.transactionMode())
+			.withDatabase(runtimeProperties.database().orElse(null))
+			.withSchemaDatabase(runtimeProperties.schemaDatabase().orElse(null))
+			.withImpersonatedUser(runtimeProperties.impersonatedUser().orElse(null))
+			.withInstalledBy(runtimeProperties.installedBy().orElse(null))
+			.withValidateOnMigrate(runtimeProperties.validateOnMigrate())
+			.withAutocrlf(runtimeProperties.autocrlf())
 			.withMigrationClassesDiscoverer(discoverer)
 			.withResourceScanner(resourceScanner)
-			.withDelayBetweenMigrations(runtimeProperties.delayBetweenMigrations.orElse(null))
-			.withVersionSortOrder(runtimeProperties.versionSortOrder)
+			.withDelayBetweenMigrations(runtimeProperties.delayBetweenMigrations().orElse(null))
+			.withVersionSortOrder(runtimeProperties.versionSortOrder())
 			.build();
 
 		return new RuntimeValue<>(config);
@@ -89,7 +89,7 @@ public class MigrationsRecorder {
 	 * @return A runtime value containing the enabled-flag
 	 */
 	public RuntimeValue<Boolean> isEnabled(MigrationsProperties runtimeProperties) {
-		return new RuntimeValue<>(runtimeProperties.enabled);
+		return new RuntimeValue<>(runtimeProperties.enabled());
 	}
 
 	/**

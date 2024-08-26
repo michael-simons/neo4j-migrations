@@ -16,9 +16,10 @@
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import ac.simons.neo4j.migrations.core.Defaults;
-import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,18 +31,18 @@ import java.util.Optional;
  * @soundtrack Bad Religion - The Gray Race
  * @since 1.3.0
  */
-@ConfigRoot(prefix = "org.neo4j", name = "migrations", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
-public class MigrationsBuildTimeProperties {
+@ConfigMapping(prefix = "org.neo4j.migrations")
+@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+public interface MigrationsBuildTimeProperties {
 
 	/**
 	 * List of packages to scan for Java migrations. This is a build time configuration option and can't be changed during runtime.
 	 */
-	@ConfigItem
-	public Optional<List<String>> packagesToScan;
+	Optional<List<String>> packagesToScan();
 
 	/**
 	 * Locations of migrations scripts. This is a build time configuration option and can't be changed during runtime.
 	 */
-	@ConfigItem(defaultValue = Defaults.LOCATIONS_TO_SCAN_VALUE)
-	public List<String> locationsToScan;
+	@WithDefault(Defaults.LOCATIONS_TO_SCAN_VALUE)
+	List<String> locationsToScan();
 }

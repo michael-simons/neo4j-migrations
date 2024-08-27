@@ -23,6 +23,8 @@ import io.quarkus.devui.spi.page.CardPageBuildItem;
 import io.quarkus.devui.spi.page.Page;
 
 /**
+ * Provides the necessary RPC items to fill toe web-ui, including the corresponding cards.
+ *
  * @author Michael J. Simons
  * @soundtrack Dr. Dre - The Chronic
  * @since 1.4.0

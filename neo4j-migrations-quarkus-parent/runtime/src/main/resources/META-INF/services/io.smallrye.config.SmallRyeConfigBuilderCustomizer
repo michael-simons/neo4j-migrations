@@ -1,1 +1,1 @@
-ac.simons.neo4j.migrations.quarkus.runtime.CustomConfigBuilder
+ac.simons.neo4j.migrations.quarkus.runtime.MigrationsConfigCustomizer

@@ -20,7 +20,6 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,15 +36,17 @@ import java.util.Optional;
 public interface MigrationsBuildTimeProperties {
 
 	/**
-	 * List of packages to scan for Java migrations. This is a build time configuration option and can't be changed during runtime.
+	 * This is a build time configuration option and can't be changed during runtime.
+	 *
+	 * @return the list of packages to scan for Java migrations.
 	 */
-	@WithName("packages-to-scan")
 	Optional<List<String>> packagesToScan();
 
 	/**
-	 * Locations of migrations scripts. This is a build time configuration option and can't be changed during runtime.
+	 * This is a build time configuration option and can't be changed during runtime.
+	 *
+	 * @return the list of locations of migrations scripts
 	 */
 	@WithDefault(Defaults.LOCATIONS_TO_SCAN_VALUE)
-	@WithName("locations-to-scan")
 	List<String> locationsToScan();
 }

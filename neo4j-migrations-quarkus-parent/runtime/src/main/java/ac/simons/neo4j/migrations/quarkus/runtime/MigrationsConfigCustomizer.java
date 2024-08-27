@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ac.simons.neo4j.migrations.quarkus.it.migrations;
+package ac.simons.neo4j.migrations.quarkus.runtime;
 
-import ac.simons.neo4j.migrations.core.JavaBasedMigration;
-import ac.simons.neo4j.migrations.core.MigrationContext;
+import io.quarkus.runtime.annotations.StaticInitSafe;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import io.smallrye.config.SmallRyeConfigBuilderCustomizer;
 
 /**
- * A placeholder class for a package private inner class that should be discovered.
+ * Config customizer to ignore validation of unmapped properties between build-time and runtime.
  *
  * @author Michael J. Simons
+ * @author Roberto Cortez
+ * @see MigrationsProperties
+ * @see MigrationsBuildTimeProperties
  */
-public class SomeService {
+@StaticInitSafe
+public final class MigrationsConfigCustomizer implements SmallRyeConfigBuilderCustomizer {
 
-	private SomeService() {
-	}
-
-	@SuppressWarnings({ "squid:S101", "unused" })
-	static class V0003__SomethingStatic implements JavaBasedMigration {
-
-		@Override
-		public void apply(MigrationContext context) {
-			// Left empty in purpose
-		}
+	@Override
+	public void configBuilder(final SmallRyeConfigBuilder builder) {
+		builder.withMappingIgnore("org.neo4j.migrations.**");
 	}
 }

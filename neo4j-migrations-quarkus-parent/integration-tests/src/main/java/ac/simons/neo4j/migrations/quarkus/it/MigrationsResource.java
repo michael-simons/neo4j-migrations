@@ -38,7 +38,7 @@ public class MigrationsResource {
 	Migrations migrations;
 
 	/**
-	 * @return The list of migrations given by the info command.
+	 * {@return The list of migrations given by the info command}
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

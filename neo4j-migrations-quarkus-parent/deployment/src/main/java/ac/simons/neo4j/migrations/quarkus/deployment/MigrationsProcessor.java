@@ -101,7 +101,7 @@ public class MigrationsProcessor {
 	@SuppressWarnings("unused")
 	DiscovererBuildItem createDiscoverer(CombinedIndexBuildItem combinedIndexBuildItem, MigrationsBuildTimeProperties buildTimeProperties) {
 
-		var packagesToScan = buildTimeProperties.packagesToScan.orElseGet(List::of);
+		var packagesToScan = buildTimeProperties.packagesToScan().orElseGet(List::of);
 		var classesFoundDuringBuild = findClassBasedMigrations(packagesToScan, combinedIndexBuildItem.getIndex());
 		return new DiscovererBuildItem(StaticJavaBasedMigrationDiscoverer.of(classesFoundDuringBuild));
 	}
@@ -183,7 +183,7 @@ public class MigrationsProcessor {
 	ClasspathResourceScannerBuildItem createScanner(MigrationsBuildTimeProperties buildTimeProperties) throws IOException {
 
 		var providers = ResourceBasedMigrationProvider.unique();
-		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan);
+		var resourcesFoundDuringBuild = findResourceBasedMigrations(providers, buildTimeProperties.locationsToScan());
 		return new ClasspathResourceScannerBuildItem(StaticClasspathResourceScanner.of(resourcesFoundDuringBuild));
 	}
 

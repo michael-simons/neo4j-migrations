@@ -18,9 +18,10 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
-import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 
 import java.time.Duration;
 import java.util.List;
@@ -32,60 +33,60 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 1.2.2
  */
-@ConfigRoot(prefix = "org.neo4j", name = "migrations", phase = ConfigPhase.RUN_TIME)
-public class MigrationsProperties {
+@ConfigMapping(prefix = "org.neo4j.migrations")
+@ConfigRoot(phase = ConfigPhase.RUN_TIME)
+public interface MigrationsProperties {
 
 	/**
 	 * An optional list of external locations that don't become part of the image. Those locations can be changed during
 	 * runtime in contrast to {@link MigrationsBuildTimeProperties#locationsToScan} but can only be used for locations
 	 * inside the filesystem.
+	 * @return the external locations to scan
 	 */
-	@ConfigItem
-	public Optional<List<String>> externalLocations;
+	Optional<List<String>> externalLocations();
 
 	/**
 	 * Set to {@literal false} to disable migrations at start. An instance of {@link ac.simons.neo4j.migrations.core.Migrations} will
 	 * still be provided to interested parties.
+	 * @return whether migrations are enabled or not
 	 */
-	@ConfigItem(defaultValue = "true")
-	public boolean enabled;
+	@WithDefault("true")
+	boolean enabled();
 
 	/**
-	 * The transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction).
+	 * {@return the transaction mode in use (Defaults to "per migration", meaning one script is run in one transaction)}
 	 */
-	@ConfigItem(defaultValue = Defaults.TRANSACTION_MODE_VALUE)
-	public MigrationsConfig.TransactionMode transactionMode;
+	@WithDefault(Defaults.TRANSACTION_MODE_VALUE)
+	MigrationsConfig.TransactionMode transactionMode();
 
 	/**
-	 * The database that should be migrated (Neo4j EE 4.0+ only). Leave empty for using the default database.
+	 * {@return the database that should be migrated (Neo4j EE 4.0+ only), leave empty for using the default database}
 	 */
-	@ConfigItem
-	public Optional<String> database;
+	Optional<String> database();
 
 	/**
-	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave empty for using the default database.
+	 * {@return the database that should be used for storing informations about migrations (Neo4j EE 4.0+ only), leave empty for using the default database}
 	 */
-	@ConfigItem
-	public Optional<String> schemaDatabase;
+	Optional<String> schemaDatabase();
 
 	/**
 	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
 	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave empty for using the connected user.
+	 * @return the name of the user to impersonate
 	 */
-	@ConfigItem
-	public Optional<String> impersonatedUser;
+	Optional<String> impersonatedUser();
 
 	/**
-	 * Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+	 * {@return username recorded as property {@literal by} on the MIGRATED_TO relationship}
 	 */
-	@ConfigItem
-	public Optional<String> installedBy;
+	Optional<String> installedBy();
 
 	/**
 	 * Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+	 * @return a flag whether to validate the migration chaon during startup
 	 */
-	@ConfigItem(defaultValue = Defaults.VALIDATE_ON_MIGRATE_VALUE)
-	public boolean validateOnMigrate;
+	@WithDefault(Defaults.VALIDATE_ON_MIGRATE_VALUE)
+	boolean validateOnMigrate();
 
 	/**
 	 * If you're programming on Windows and working with people who are not (or vice-versa), you'll probably run into
@@ -95,19 +96,19 @@ public class MigrationsProperties {
 	 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
 	 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
 	 * Cypher-based migration or applying it.
+	 * @return a flag whether to use automatic CRLF detection
 	 */
-	@ConfigItem(defaultValue = Defaults.AUTOCRLF_VALUE)
-	public boolean autocrlf;
+	@WithDefault(Defaults.AUTOCRLF_VALUE)
+	boolean autocrlf();
 
 	/**
-	 * A configurable delay that will be applied in between applying two migrations.
+	 * {@return a configurable delay that will be applied in between applying two migrations}
 	 */
-	@ConfigItem
-	public Optional<Duration> delayBetweenMigrations;
+	Optional<Duration> delayBetweenMigrations();
 
 	/**
-	 * The sort order for migrations. Defaults to {@link VersionSortOrder#LEXICOGRAPHIC} until 3.x.
+	 * {@return the sort order for migrations which Defaults to {@link VersionSortOrder#LEXICOGRAPHIC} until 3.x.}
 	 */
-	@ConfigItem(defaultValue = Defaults.VERSION_SORT_ORDER_VALUE)
-	public VersionSortOrder versionSortOrder;
+	@WithDefault(Defaults.VERSION_SORT_ORDER_VALUE)
+	VersionSortOrder versionSortOrder();
 }

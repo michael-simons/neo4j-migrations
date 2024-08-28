@@ -135,6 +135,8 @@ public final class MigrationsConfig {
 
 	private final VersionSortOrder versionSortOrder;
 
+	private final Duration transactionTimeout;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -155,6 +157,7 @@ public final class MigrationsConfig {
 		this.delayBetweenMigrations = builder.delayBetweenMigrations;
 		this.constraintOptions = builder.constraintOptions;
 		this.versionSortOrder = builder.versionSortOrder;
+		this.transactionTimeout = builder.transactionTimeout;
 	}
 
 	/**
@@ -254,6 +257,14 @@ public final class MigrationsConfig {
 	 */
 	public List<? extends RenderConfig.AdditionalRenderingOptions> getConstraintRenderingOptions() {
 		return List.copyOf(constraintOptions);
+	}
+
+	/**
+	 * {@return the transaction timeout, <code>null</code> indicates all transactions will use the drivers default timeout}
+	 * @since 2.13.0
+	 */
+	public Duration getTransactionTimeout() {
+		return transactionTimeout;
 	}
 
 	/**
@@ -367,6 +378,8 @@ public final class MigrationsConfig {
 		private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions = List.of();
 
 		private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
+
+		private Duration transactionTimeout;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -564,6 +577,17 @@ public final class MigrationsConfig {
 		public Builder withVersionSortOrder(VersionSortOrder newVersionSortOrder) {
 
 			this.versionSortOrder = newVersionSortOrder;
+			return this;
+		}
+
+		/**
+		 * Configures the transaction timeout. Leave {@literal null} (the default), to use the drivers default
+		 * @param newTransactionTimeout The transaction timeout
+		 * @return The builder for further customization
+		 * @since 2.13.0
+		 */
+		public Builder withTransactionTimeout(Duration newTransactionTimeout) {
+			this.transactionTimeout = newTransactionTimeout;
 			return this;
 		}
 

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -815,7 +816,7 @@ class MigrationsIT extends TestBase {
 		assertThat(appliedMigrations).isEqualTo(1);
 	}
 
-	@Test // 1342
+	@Test // GH-1342
 	void addingMigrationsAfterRepeatingOnesMustNotFail() {
 
 		var config = MigrationsConfig.builder().withLocationsToScan("classpath:repeatable/original", "classpath:repeatable/constant")
@@ -844,6 +845,38 @@ class MigrationsIT extends TestBase {
 		var repetitionCnt = driver.executableQuery("MATCH (n:`__Neo4jMigration` {version: '001'})-[r:REPEATED]->(n) RETURN count(r) AS cnt")
 			.execute().records().get(0).get("cnt").asLong();
 		assertThat(repetitionCnt).isOne();
+	}
+
+	@Test // GH-1428
+	void shouldRespectTimeoutWithPerStatementTransactions() {
+
+		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
+			.withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+			.withTransactionTimeout(Duration.ofMillis(500)).build(), driver);
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
+			.withCauseInstanceOf(ClientException.class)
+			.withStackTraceContaining("The transaction has not completed within the timeout specified at its start by the client.");
+	}
+
+	@Test // GH-1428
+	void shouldRespectTimeoutWithPerMigrationTransactions() {
+
+		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
+			.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
+			.withTransactionTimeout(Duration.ofMillis(500)).build(), driver);
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
+			.withCauseInstanceOf(ClientException.class)
+			.withStackTraceContaining("The transaction has not completed within the timeout specified at its start by the client.");
+	}
+
+	@Test // GH-1428
+	void timeoutCanBeResetToDefault() {
+
+		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
+			.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
+			.withTransactionTimeout(Duration.ofMillis(10))
+			.withTransactionTimeout(null).build(), driver);
+		assertThatNoException().isThrownBy(migrations::apply);
 	}
 
 	@Nested

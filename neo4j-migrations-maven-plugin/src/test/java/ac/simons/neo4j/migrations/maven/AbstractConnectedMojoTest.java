@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -106,6 +107,7 @@ public class AbstractConnectedMojoTest {
 		assertThat(config.getLocationsToScan()).hasSize(1);
 		assertThat(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches()).isTrue();
 		assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_MIGRATION);
+		assertThat(config.getTransactionTimeout()).isEqualTo(Duration.ofMinutes(1).plusSeconds(23));
 
 		Method getMigrations = Migrations.class.getDeclaredMethod("getMigrations");
 		getMigrations.setAccessible(true);

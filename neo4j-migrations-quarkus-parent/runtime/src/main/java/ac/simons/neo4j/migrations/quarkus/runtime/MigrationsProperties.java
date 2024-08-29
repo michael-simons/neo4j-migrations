@@ -111,4 +111,13 @@ public interface MigrationsProperties {
 	 */
 	@WithDefault(Defaults.VERSION_SORT_ORDER_VALUE)
 	VersionSortOrder versionSortOrder();
+
+	/**
+	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends
+	 * on {@link #transactionMode}). {@literal null} is a valid value and make the driver apply the default timeout for
+	 * the database.
+	 *
+	 * @since 2.13.0
+	 */
+	Optional<Duration> transactionTimeout();
 }

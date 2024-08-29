@@ -39,6 +39,7 @@ import java.util.zip.CRC32;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.SimpleQueryRunner;
+import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 
@@ -278,10 +279,12 @@ final class DefaultCypherResource implements CypherResource {
 
 				int numberOfStatements;
 				MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();
+				TransactionConfig transactionConfig = Optional.ofNullable(context.getConfig().getTransactionTimeout())
+					.map(TransactionConfig.builder()::withTimeout).orElse(TransactionConfig.builder().withDefaultTimeout()).build();
 				if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT || !statementsNeedingImplicitTransactions.isEmpty()) {
 
 					LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", cypherResource.getIdentifier());
-					numberOfStatements = executeInSeparateTransactions(session, executableStatements, statementsNeedingImplicitTransactions);
+					numberOfStatements = executeInSeparateTransactions(session, transactionConfig, executableStatements, statementsNeedingImplicitTransactions);
 
 				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
@@ -294,7 +297,7 @@ final class DefaultCypherResource implements CypherResource {
 							++cnt;
 						}
 						return cnt;
-					});
+					}, transactionConfig);
 					HBD.vladimirAndEstragonMayWait(session, c);
 				} else {
 					throw new MigrationsException("Unknown transaction mode " + transactionMode);
@@ -305,7 +308,7 @@ final class DefaultCypherResource implements CypherResource {
 		});
 	}
 
-	private static int executeInSeparateTransactions(Session session, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
+	private static int executeInSeparateTransactions(Session session, TransactionConfig transactionConfig, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
 
 		int numberOfStatements = 0;
 		Counters counters = Counters.empty();
@@ -317,7 +320,7 @@ final class DefaultCypherResource implements CypherResource {
 				numberOfStatements += session.executeWrite(t -> {
 					run(t, statement);
 					return 1;
-				});
+				}, transactionConfig);
 			}
 		}
 		HBD.vladimirAndEstragonMayWait(session, counters);
@@ -339,7 +342,7 @@ final class DefaultCypherResource implements CypherResource {
 	}
 
 	/**
-	 * REturns the transaction mode needed for the query. When in doubt, use a transactional function.
+	 * Returns the transaction mode needed for the query. When in doubt, use a transactional function.
 	 * @param statement The query to evaluate
 	 * @return The transaction mode
 	 */

@@ -117,6 +117,14 @@ public class MigrationsProperties {
 	private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 
 	/**
+	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends on {@link #transactionMode}).
+	 * {@literal null} is a valid value and make the driver apply the default timeout for the database.
+	 *
+	 * @since 2.13.0
+	 */
+	private Duration transactionTimeout;
+
+	/**
 	 * @return see {@link #enabled}
 	 */
 	public boolean isEnabled() {
@@ -310,5 +318,19 @@ public class MigrationsProperties {
 	 */
 	public void setVersionSortOrder(VersionSortOrder versionSortOrder) {
 		this.versionSortOrder = versionSortOrder;
+	}
+
+	/**
+	 * @return see {@link #transactionTimeout}
+	 */
+	public Duration getTransactionTimeout() {
+		return transactionTimeout;
+	}
+
+	/**
+	 * @param transactionTimeout A new value for {@link #transactionTimeout}
+	 */
+	public void setTransactionTimeout(Duration transactionTimeout) {
+		this.transactionTimeout = transactionTimeout;
 	}
 }

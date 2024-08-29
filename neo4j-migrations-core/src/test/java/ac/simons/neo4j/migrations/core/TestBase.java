@@ -56,6 +56,7 @@ abstract class TestBase {
 	@SuppressWarnings("resource") // On purpose to reuse this
 	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>(DEFAULT_NEO4J_IMAGE)
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+		.withPlugins("apoc")
 		.withReuse(true);
 
 	Driver driver;

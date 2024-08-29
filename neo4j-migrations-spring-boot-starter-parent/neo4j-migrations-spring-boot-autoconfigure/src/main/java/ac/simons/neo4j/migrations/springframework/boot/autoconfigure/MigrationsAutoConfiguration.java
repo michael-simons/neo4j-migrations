@@ -71,6 +71,7 @@ public class MigrationsAutoConfiguration {
 			.withLocationsToScan(migrationsProperties.getLocationsToScan())
 			.withPackagesToScan(migrationsProperties.getPackagesToScan())
 			.withTransactionMode(migrationsProperties.getTransactionMode())
+			.withTransactionTimeout(migrationsProperties.getTransactionTimeout())
 			.withDatabase(migrationsProperties.getDatabase())
 			.withSchemaDatabase(migrationsProperties.getSchemaDatabase())
 			.withImpersonatedUser(migrationsProperties.getImpersonatedUser())

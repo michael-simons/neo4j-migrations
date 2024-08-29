@@ -67,6 +67,7 @@ public class MigrationsRecorder {
 			.withLocationsToScan(allLocationsToScan.toArray(new String[0]))
 			.withPackagesToScan(buildTimeProperties.packagesToScan().map(v -> v.toArray(String[]::new)).orElse(null))
 			.withTransactionMode(runtimeProperties.transactionMode())
+			.withTransactionTimeout(runtimeProperties.transactionTimeout().orElse(null))
 			.withDatabase(runtimeProperties.database().orElse(null))
 			.withSchemaDatabase(runtimeProperties.schemaDatabase().orElse(null))
 			.withImpersonatedUser(runtimeProperties.impersonatedUser().orElse(null))

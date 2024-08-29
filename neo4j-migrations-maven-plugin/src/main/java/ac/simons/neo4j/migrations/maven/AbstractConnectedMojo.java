@@ -23,6 +23,8 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 
 import java.net.URI;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -90,6 +92,18 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private TransactionMode transactionMode;
 
 	/**
+	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends
+	 * on {@link #transactionMode}). {@literal null} is a valid value and make the driver apply the default timeout for
+	 * the database.
+	 * <p>
+	 * The value must be a valid ISO-8601 duration representation.
+	 *
+	 * @since 2.13.0
+	 */
+	@Parameter
+	private String transactionTimeout;
+
+	/**
 	 * The database that should be migrated (Neo4j EE 4.0+).
 	 */
 	@Parameter
@@ -150,6 +164,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withLocationsToScan(locationsToScan)
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
+			.withTransactionTimeout(Optional.ofNullable(transactionTimeout).map(Duration::parse).orElse(null))
 			.withDatabase(database)
 			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)

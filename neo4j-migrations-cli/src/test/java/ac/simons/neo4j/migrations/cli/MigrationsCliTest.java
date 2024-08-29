@@ -423,6 +423,16 @@ class MigrationsCliTest {
 		}
 	}
 
+	@Test // GH-1428
+	void shouldConfigureTimeout() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--transaction-timeout", "PT1M23S");
+
+		assertThat(cli.getConfig().getTransactionTimeout()).isEqualTo(Duration.ofSeconds(83));
+	}
+
 	@Nested
 	class PasswordOptions {
 

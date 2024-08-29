@@ -32,6 +32,9 @@
 			<plugin>
 				<groupId>eu.michael-simons.neo4j</groupId>
 				<artifactId>neo4j-migrations-maven-plugin</artifactId>
+				<configuration>
+					<transactionTimeout>PT1M23S</transactionTimeout>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

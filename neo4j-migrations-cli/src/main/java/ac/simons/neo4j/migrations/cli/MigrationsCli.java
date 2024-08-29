@@ -183,6 +183,12 @@ public final class MigrationsCli implements Runnable {
 	private TransactionMode transactionMode;
 
 	@Option(
+		names = { "--transaction-timeout" },
+		description = "Configures the transaction timeout that should be applied for each migration or each statement."
+	)
+	private Duration transactionTimeout;
+
+	@Option(
 		names = { "-d", "--database" },
 		description = "The database that should be migrated (Neo4j EE 4.0+)."
 	)
@@ -284,6 +290,7 @@ public final class MigrationsCli implements Runnable {
 			.withLocationsToScan(getOrComputeLocationsToScan())
 			.withPackagesToScan(packagesToScan)
 			.withTransactionMode(transactionMode)
+			.withTransactionTimeout(transactionTimeout)
 			.withDatabase(database)
 			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)

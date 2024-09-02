@@ -43,7 +43,7 @@
 		<ivy.version>2.5.2</ivy.version>
 		<java-module-name>ac.simons.neo4j.migrations.maven</java-module-name>
 		<junit.version>4.13.2</junit.version>
-		<maven-plugin-annotations.version>3.14.0</maven-plugin-annotations.version>
+		<maven-plugin-annotations.version>3.15.0</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plexus-classworlds.version>2.8.0</plexus-classworlds.version>
 		<plexus-component-annotations.version>2.2.0</plexus-component-annotations.version>

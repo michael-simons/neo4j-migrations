@@ -118,7 +118,7 @@
 		<graalvm.version>23.0.1</graalvm.version>
 		<guava.version>33.3.0-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-		<japicmp-maven-plugin.version>0.22.0</japicmp-maven-plugin.version>
+		<japicmp-maven-plugin.version>0.23.0</japicmp-maven-plugin.version>
 		<java-module-name />
 		<java.version>17</java.version>
 		<!-- to be overridden in sub modules -->

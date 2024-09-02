@@ -1,0 +1,3 @@
+module:ac.simons.neo4j.migrations.cli
+ac.simons.neo4j.migrations.cli
+ac.simons.neo4j.migrations.cli.internal

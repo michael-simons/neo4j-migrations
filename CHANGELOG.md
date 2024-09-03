@@ -1,3 +1,247 @@
+# 2.13.0
+
+⚠️ If you are using Neo4j-Migrations with Quarkus, this release requires Quarkus >= 3.14. For more background see this [discussion](https://github.com/orgs/quarkiverse/discussions/228). Big shoutout to @radcortez for helping me here and in the original extension.
+
+Thanks to @David-Giliotti-Wonder for the idea making transaction timeout configurable.
+
+## 🚀 Features
+- 4bb9d64 feat: Add support for configuring the transaction timeout. (#1430)
+
+## 🔄️ Refactorings
+- 765e3f2 refactor: Migrate to Quarkus 3.14 `@ConfigMapping`.
+
+## 📝 Documentation
+- 6cc5c99 docs: add David-Giliotti-Wonder as a contributor for ideas (#1429)
+- b0ce143 docs: add radcortez as a contributor for mentoring (#1427)
+
+## 🧹 Housekeeping
+- 64aa23e Bump quarkus-neo4j.version from 4.2.2 to 4.3.0 (#1434)
+- 42cd825 Bump org.asciidoctor:asciidoctorj from 2.5.13 to 3.0.0 (#1440)
+- 939ad24 Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.14.0 to 3.15.0 (#1439)
+- 64732c4 Bump org.neo4j.driver:neo4j-java-driver from 5.23.0 to 5.24.0 (#1438)
+- 2be8477 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.30.0 to 2.31.0 (#1437)
+- c10342b Bump org.apache.commons:commons-lang3 from 3.16.0 to 3.17.0 (#1436)
+- 446d8f2 Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.6.2 to 3.7.0 (#1435)
+- 3f532d4 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.22.0 to 0.23.0 (#1433)
+- aaf1a2d Bump org.apache.maven.plugins:maven-plugin-plugin from 3.14.0 to 3.15.0 (#1432)
+- 20cd000 Bump quarkus.version from 3.14.0 to 3.14.1 (#1431)
+- a46675e Revert "Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.20.0 (#1406)"
+- 1bca19b build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.2 to 7.3.3 (#1425)
+- 6602965 Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.0.2 to 2024.0.3 (#1424)
+- a85ff40 Bump byte-buddy.version from 1.14.19 to 1.15.0 (#1423)
+- 3247100 Bump quarkus-neo4j.version from 4.2.1 to 4.2.2 (#1422)
+- d3cdea6 Bump org.apache.maven.plugins:maven-install-plugin from 3.1.2 to 3.1.3 (#1421)
+- 123fde6 Bump neo4j-ogm.version from 4.0.10 to 4.0.11 (#1420)
+- 01156bd Bump com.puppycrawl.tools:checkstyle from 10.17.0 to 10.18.0 (#1419)
+- f8f910c Bump org.apache.maven.plugins:maven-checkstyle-plugin from 3.4.0 to 3.5.0 (#1418)
+- 3b0ccc5 Bump spring-boot.version from 3.3.2 to 3.3.3 (#1416)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @David-Giliotti-Wonder
+- @radcortez
+
+
+# 2.12.0
+
+## 🚀 Features
+- 3345af0 feat: Add support for vector indexes.
+
+## 🔄️ Refactorings
+- 780b4c1 refactor: Use modern JDK features.
+
+## 🧹 Housekeeping
+- 60557e6 Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.4 to 3.2.5 (#1408)
+- dd972b0 Bump org.junit:junit-bom from 5.10.3 to 5.11.0 (#1405)
+- e70df56 Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.20.0 (#1406)
+- 8af7fc7 Bump byte-buddy.version from 1.14.18 to 1.14.19 (#1407)
+- e8ea5d2 Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.13.1 to 3.14.0 (#1409)
+- e643b24 Bump org.apache.maven.plugins:maven-plugin-plugin from 3.13.1 to 3.14.0 (#1410)
+- 7ff55ab build(deps-dev): Bump com.google.guava:guava from 33.2.1-jre to 33.3.0-jre (#1411)
+- 238e87c Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.3.1 to 3.4.0 (#1412)
+- b0d7db6 Bump org.codehaus.mojo:exec-maven-plugin from 3.4.0 to 3.4.1 (#1413)
+- b2c1251 Bump org.apache.maven.plugins:maven-surefire-plugin from 3.3.1 to 3.4.0 (#1414)
+- e368067 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.29.2 to 2.30.0 (#1404)
+- f54d981 Bump org.apache.commons:commons-lang3 from 3.15.0 to 3.16.0 (#1403)
+- 18ff635 Bump quarkus.version from 3.13.0 to 3.13.2 (#1402)
+- b1ffee5 Bump org.codehaus.mojo:exec-maven-plugin from 3.3.0 to 3.4.0 (#1401)
+- 1f29e6d build(deps-dev): Bump org.checkerframework:checker-qual from 3.45.0 to 3.46.0 (#1400)
+- fd106f6 Bump testcontainers.version from 1.20.0 to 1.20.1 (#1399)
+
+
+# 2.11.0
+
+## 🚀 Features
+- 4dce778 feat: Add support for using Spring Beans as Java based migrations. (#1395)
+
+## 📝 Documentation
+- a131d86 docs: add @rugbroed as a contributor for ideas (#1394)
+
+## 🧹 Housekeeping
+- e754bd4 Bump quarkus-neo4j.version from 4.2.0 to 4.2.1
+- 87b6d22 Bump quarkus.version from 3.12.3 to 3.13.0 (#1397)
+- ea3ffd7 Bump org.neo4j.driver:neo4j-java-driver from 5.22.0 to 5.23.0 (#1398)
+- afdb145 Bump io.fabric8:docker-maven-plugin from 0.44.0 to 0.45.0 (#1396)
+- 4af384c Bump quarkus-neo4j.version from 4.1.0 to 4.2.0 (#1389)
+
+
+# 2.10.4
+
+## 🧹 Housekeeping
+- d075184 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.28.0 to 2.29.2 (#1392)
+- 5cffefd Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.21.2 to 0.22.0 (#1391)
+- 377bbd4 Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.7.0 to 3.8.0 (#1390)
+- 33a8579 Bump spring-boot.version from 3.3.1 to 3.3.2 (#1388)
+- d4822b9 Bump testcontainers.version from 1.19.8 to 1.20.0 (#1387)
+- 874af7a Bump org.apache.commons:commons-lang3 from 3.14.0 to 3.15.0 (#1386)
+- ccdf87d Bump quarkus.version from 3.12.2 to 3.12.3 (#1385)
+- a38c283 Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.6.1 to 3.6.2 (#1380)
+- 62b5844 Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.3.0 to 3.3.1 (#1384)
+- df382ad Bump org.apache.maven.plugins:maven-surefire-plugin from 3.3.0 to 3.3.1 (#1383)
+- 947a2de Bump org.assertj:assertj-core from 3.26.0 to 3.26.3 (#1382)
+- 0036069 Bump byte-buddy.version from 1.14.17 to 1.14.18 (#1381)
+- 32b9ccb Bump quarkus.version from 3.12.1 to 3.12.2 (#1379)
+- 8e793af build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.1 to 7.3.2 (#1378)
+- be699be Bump org.apache.maven.plugins:maven-release-plugin from 3.1.0 to 3.1.1 (#1377)
+- a2b5cbc Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.0.1 to 2024.0.2 (#1376)
+- 373b02d build(deps-dev): Bump org.checkerframework:checker-qual from 3.44.0 to 3.45.0 (#1375)
+- 7ccebdf Bump quarkus.version from 3.12.0 to 3.12.1 (#1374)
+- 5d30c3a Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.6.0 to 3.6.1 (#1371)
+- 11ef84a Bump org.neo4j.driver:neo4j-java-driver from 5.21.0 to 5.22.0 (#1373)
+- 7fb0e37 Bump org.moditect:moditect-maven-plugin from 1.2.1.Final to 1.2.2.Final (#1372)
+- e46c39e Bump io.github.classgraph:classgraph from 4.8.173 to 4.8.174 (#1370)
+- dd71753 Bump org.apache.maven.plugins:maven-shade-plugin from 3.5.3 to 3.6.0 (#1369)
+- c9739dc Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 3.11.0.3922 to 4.0.0.4121 (#1368)
+- 1081420 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.27.1 to 2.28.0 (#1367)
+- f6f616b Bump org.asciidoctor:asciidoctorj-diagram from 2.3.0 to 2.3.1 (#1366)
+- fa1b76a Bump org.apache.maven.plugins:maven-release-plugin from 3.0.1 to 3.1.0 (#1365)
+- bf6d8eb Bump org.junit:junit-bom from 5.10.2 to 5.10.3 (#1364)
+- 64b24b8 Bump org.apache.maven.plugins:maven-jar-plugin from 3.4.1 to 3.4.2 (#1360)
+- 1a15b03 Bump org.neo4j:neo4j-cypher-dsl-bom from 2023.9.7 to 2024.0.1 (#1363)
+- 41ab2f1 Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.13.0 to 3.13.1 (#1362)
+- e98830c Bump org.apache.maven.plugins:maven-surefire-plugin from 3.2.5 to 3.3.0 (#1361)
+- 7ca9b2f Bump org.assertj:assertj-core from 3.25.3 to 3.26.0 (#1359)
+- 7aa3a8d Bump quarkus.version from 3.11.1 to 3.12.0 (#1358)
+- b402f6e Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.3 to 3.7.0 (#1357)
+- 1d2a17c Bump spring-boot.version from 3.3.0 to 3.3.1 (#1356)
+- 6c4b0dc Bump org.apache.maven.plugins:maven-clean-plugin from 3.3.2 to 3.4.0 (#1355)
+- dfa02dc Bump org.neo4j.driver:neo4j-java-driver from 5.20.0 to 5.21.0 (#1354)
+- 06f9af6 Bump org.sonatype.plugins:nexus-staging-maven-plugin from 1.6.13 to 1.7.0 (#1353)
+- d6923a0 Bump org.apache.maven.plugins:maven-plugin-plugin from 3.13.0 to 3.13.1 (#1352)
+- 03bd496 Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.5.0 to 3.6.0 (#1351)
+- ada1517 build(deps-dev): Bump com.google.guava:guava from 33.2.0-jre to 33.2.1-jre (#1350)
+- f28b2f8 Bump io.github.classgraph:classgraph from 4.8.172 to 4.8.173 (#1349)
+- 0e09eaf build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.0 to 7.3.1 (#1348)
+- b858bf8 build(deps-dev): Bump org.checkerframework:checker-qual from 3.43.0 to 3.44.0 (#1347)
+- 8bc3bf4 Bump org.codehaus.mojo:exec-maven-plugin from 3.2.0 to 3.3.0 (#1346)
+- 77a69f8 Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.2.5 to 3.3.0 (#1345)
+- 5c92619 Bump org.apache.maven.plugins:maven-checkstyle-plugin from 3.3.1 to 3.4.0 (#1344)
+
+
+# 2.10.3
+
+## 🐛 Bug Fixes
+- 4574c2c fix: Keep total order of migrations intact. (#1343)
+
+## 🧹 Housekeeping
+- 6a9193b Bump quarkus-neo4j.version from 4.0.0 to 4.1.0
+- 1b46676 Bump quarkus.version from 3.11.0 to 3.11.1
+
+
+# 2.10.2
+
+## 🧹 Housekeeping
+- f5d044b Bump byte-buddy.version from 1.14.15 to 1.14.17 (#1341)
+- bc23203 build(deps-dev): Bump braces from 3.0.2 to 3.0.3 in /etc/antora (#1340)
+- 96ecd52 Bump spring-boot.version from 3.2.5 to 3.3.0 (#1336)
+- c23e43e Bump org.apache.maven.plugins:maven-invoker-plugin from 3.6.1 to 3.7.0 (#1339)
+- c0ad40c Bump com.puppycrawl.tools:checkstyle from 10.16.0 to 10.17.0 (#1337)
+- 746b97e Bump quarkus.version from 3.10.0 to 3.11.0 (#1335)
+- 4ac0be1 Bump org.codehaus.mojo:build-helper-maven-plugin from 3.5.0 to 3.6.0 (#1334)
+- 914a7f5 Bump org.asciidoctor:asciidoctorj from 2.5.12 to 2.5.13 (#1333)
+- ba6d258 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.2.5 to 7.3.0 (#1332)
+- 6719f4e Bump com.github.ekryd.sortpom:sortpom-maven-plugin from 3.4.1 to 4.0.0 (#1331)
+- f964278 Bump org.graalvm.buildtools:native-maven-plugin from 0.10.1 to 0.10.2 (#1329)
+- b07e39f Bump picocli.version from 4.7.5 to 4.7.6 (#1327)
+- 378afad Bump byte-buddy.version from 1.14.14 to 1.14.15 (#1328)
+- 717f553 Bump quarkus-neo4j.version from 3.10.0 to 4.0.0 (#1326)
+- f883dfc Bump testcontainers.version from 1.19.7 to 1.19.8 (#1325)
+- 722c494 Bump com.mycila:license-maven-plugin from 4.3 to 4.5 (#1324)
+
+
+# 2.10.1
+
+## 🧹 Housekeeping
+- 46dafc6 Bump quarkus-neo4j.version from 3.9.0 to 3.10.0
+- 8e64093 build(deps-dev): Bump com.google.guava:guava from 33.1.0-jre to 33.2.0-jre (#1323)
+- 9ad7aff Bump org.apache.maven.plugins:maven-plugin-plugin from 3.12.0 to 3.13.0 (#1322)
+- aaf0245 Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.1 to 3.1.2 (#1321)
+- 0c849fe Bump org.apache.maven.plugins:maven-install-plugin from 3.1.1 to 3.1.2 (#1320)
+- 32219fc Bump org.neo4j:neo4j-cypher-dsl-bom from 2023.9.6 to 2023.9.7 (#1319)
+- 023c0ef Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.12.0 to 3.13.0 (#1318)
+- 9698a5b build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.27.0 to 2.27.1 (#1317)
+- e179ece build(deps-dev): Bump org.checkerframework:checker-qual from 3.42.0 to 3.43.0 (#1316)
+- d5f3c34 Bump org.objenesis:objenesis from 3.3 to 3.4 (#1315)
+- fb18fa1 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.21.1 to 0.21.2 (#1314)
+- 5732c5a build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.26.1 to 2.27.0 (#1313)
+- c33af4f Bump org.neo4j.driver:neo4j-java-driver from 5.19.0 to 5.20.0 (#1312)
+- 6ffe033 Bump org.apache.maven.plugins:maven-shade-plugin from 3.5.2 to 3.5.3 (#1311)
+- a5edc75 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.20.0 to 0.21.1 (#1310)
+- ae4577a Bump com.puppycrawl.tools:checkstyle from 10.15.0 to 10.16.0 (#1309)
+- 5098136 Bump quarkus.version from 3.9.4 to 3.10.0 (#1308)
+- 2512be5 Bump byte-buddy.version from 1.14.13 to 1.14.14 (#1307)
+- c408362 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.2.4 to 7.2.5 (#1296)
+- bbdea8a build(deps-dev): Bump com.tngtech.archunit:archunit from 1.2.1 to 1.3.0 (#1298)
+- 39dbde6 Bump org.neo4j:neo4j-cypher-dsl-bom from 2023.9.5 to 2023.9.6 (#1299)
+- 6cd7c33 Bump plexus-utils.version from 4.0.0 to 4.0.1 (#1301)
+- c8fbafe Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.2 to 3.2.4 (#1302)
+- f45124b Bump quarkus.version from 3.9.2 to 3.9.4 (#1303)
+- 95d700b Bump spring-boot.version from 3.2.4 to 3.2.5 (#1304)
+- 2557d64 Bump io.github.classgraph:classgraph from 4.8.170 to 4.8.172 (#1305)
+- a89c209 Bump org.apache.maven.plugins:maven-jar-plugin from 3.3.0 to 3.4.1 (#1306)
+- 23f5820 Bump commons-io:commons-io from 2.16.0 to 2.16.1 (#1295)
+- 01ebafb Bump org.apache.maven.plugins:maven-plugin-plugin from 3.11.0 to 3.12.0 (#1293)
+- c081cff Bump org.apache.maven.plugins:maven-invoker-plugin from 3.6.0 to 3.6.1 (#1292)
+- 8d6b451 Bump io.github.classgraph:classgraph from 4.8.168 to 4.8.170 (#1291)
+- a8844be Bump jacoco-maven-plugin.version from 0.8.11 to 0.8.12 (#1290)
+- 606ff8e Bump org.neo4j.driver:neo4j-java-driver from 5.18.0 to 5.19.0 (#1289)
+- 67e5bba Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.11.0 to 3.12.0 (#1288)
+- 38e406b Bump org.apache.maven.plugins:maven-source-plugin from 3.3.0 to 3.3.1 (#1287)
+- a3a3733 Bump quarkus.version from 3.9.1 to 3.9.2 (#1286)
+
+## 🛠 Build
+- b8d8d20 build: GH runners don't support Intel Macs anymore.
+
+
+# 2.10.0
+
+## 🚀 Features
+- 5793af4 feat: Add support for custom auth tokens.
+- 9299ca9 feat: Add neo4j-migrations-bom module for easier dependency consumption.
+
+## 🐛 Bug Fixes
+- 6297f1c fix: Evaluate `@Property` correctly.
+
+## 📝 Documentation
+- 901f282 docs: add @ttemple06 as a contributor for ideas (#1273)
+- 53a004b docs: Update local changelog.
+
+## 🧹 Housekeeping
+- fd648f2 Bump quarkus-neo4j.version from 3.8.1 to 3.9.0
+- cbb40bd Bump com.puppycrawl.tools:checkstyle from 10.14.2 to 10.15.0 (#1285)
+- c9a5768 Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.1 to 3.2.2 (#1284)
+- b68a370 Bump commons-io:commons-io from 2.15.1 to 2.16.0 (#1283)
+- c69e01e Bump quarkus.version from 3.9.0 to 3.9.1 (#1282)
+- 40e3e26 Bump byte-buddy.version from 1.14.12 to 1.14.13 (#1281)
+- 3f9b94f Bump org.moditect:moditect-maven-plugin from 1.2.0.Final to 1.2.1.Final (#1280)
+- 686a637 Bump org.asciidoctor:asciidoctorj from 2.5.11 to 2.5.12 (#1279)
+- a2cd792 Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.0 to 3.2.1 (#1278)
+- 06d2f96 Bump org.apache.maven.plugins:maven-compiler-plugin from 3.12.1 to 3.13.0 (#1277)
+- a323654 Bump org.apache.maven.plugins:maven-assembly-plugin from 3.7.0 to 3.7.1 (#1276)
+- f8f4bbc Bump spring-boot.version from 3.2.3 to 3.2.4 (#1275)
+- 3fd0496 Bump quarkus.version from 3.8.3 to 3.9.0 (#1274)
+
+
 # 2.9.3
 
 ## 🧹 Housekeeping
@@ -105,7 +349,6 @@
 - a3bf30e build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.2.1 to 7.2.2 (#1198)
 - 27c56c3 Bump neo4j-ogm.version from 4.0.8 to 4.0.9 (#1197)
 - a72c040 Bump quarkus.version from 3.6.4 to 3.6.5 (#1196)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1424,7 +1667,6 @@ This feature does not have *any* breaking changes to the core, so 1.10.0 is a dr
 ## 🧹 Housekeeping
 - 2a1ca61 Bump spring-boot.version from 2.7.2 to 2.7.3 (#610)
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @meistermeier
@@ -1494,7 +1736,6 @@ We'd like to thank the following people for their contributions:
 - 8c65341 Bump native-maven-plugin from 0.9.12 to 0.9.13 (#571)
 - 9995d00 Bump sortpom-maven-plugin from 3.1.3 to 3.2.0 (#569)
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @ali-ince
@@ -1520,7 +1761,6 @@ We'd like to thank the following people for their contributions:
 ## 🛠 Build
 - 6cc739b Don't drop LOOKUP constraints prior to tests. (#562)
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @ali-ince
@@ -1538,7 +1778,6 @@ We'd like to thank the following people for their contributions:
 - 3edeca0 Bump quarkus.version from 2.10.1.Final to 2.10.2.Final (#552)
 - b698497 Bump classgraph from 4.8.147 to 4.8.149 (#553)
 - 9048202 Bump maven-assembly-plugin from 3.4.0 to 3.4.1 (#554)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1564,7 +1803,6 @@ We'd like to thank the following people for their contributions:
 - 3e25207 Completely exclude asciidoc extension from site plugin.
 - 9d58c90 Install a Ruby version compatible with JRuby and Maven.
 - d49d744 Add mavengem-wagon as extension to avoid site generation errors. (#541)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1616,7 +1854,6 @@ We'd like to thank the following people for their contributions:
 - a127f05 Bump neo4j-java-driver from 4.4.5 to 4.4.6 (#518)
 - a950fe8 Bump mockito.version from 4.6.0 to 4.6.1 (#517)
 - ee390ae Bump asciidoctorj from 2.5.3 to 2.5.4 (#515)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1802,7 +2039,6 @@ Thank you for making me rethink releasing my stuff a lot. I truly enjoyed our co
 - 0fe080d Bump quarkus-neo4j.version from 1.0.4 to 1.0.5 (#453)
 - 6c550a3 Bump maven-compiler-plugin from 3.10.0 to 3.10.1 (#455)
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @meistermeier
@@ -1822,7 +2058,6 @@ We'd like to thank the following people for their contributions:
 
 ## 🛠 Build
 - 3b1098b Add Sdkman distribution.
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1866,7 +2101,6 @@ Thanks to @fbiville for an inspirational presentation!
 - d9ba177 Bump japicmp-maven-plugin from 0.15.6 to 0.15.7 (#435)
 - ac9e9b1 Bump spring-boot.version from 2.6.3 to 2.6.4 (#434)
 - 9aaefe9 Bump maven-project-info-reports-plugin from 3.2.1 to 3.2.2 (#433)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -1981,7 +2215,6 @@ Most notable is the fact that the native binaries are now build with **GraalVM 2
 - bcb7b14 Optimize release workflow.
 - 18b1ab3 Enable debug information and use bytecode verification during tests.
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @bsideup
@@ -2035,7 +2268,6 @@ The API hasn't changed in an incompatible way, but there are 2 changes in behavi
 - 5ffda5c Use official GraalVM action for releasing. (#366)
 - 2c96895 Define a stable order for categories in the changelog.
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @meistermeier
@@ -2065,7 +2297,6 @@ We'd like to thank the following people for their contributions:
 - 9f8a369 Bump maven-site-plugin from 3.9.1 to 3.10.0 (#353)
 - e03eef0 Bump plexus-component-annotations from 2.1.0 to 2.1.1 (#354)
 - cd829fa Bump checkstyle from 9.2 to 9.2.1 (#355)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -2106,7 +2337,6 @@ We'd like to thank the following people for their contributions:
 - 318a889 Add zip file to distribution.
 - 89e1e79 Reorder plugins so that the zip distribution isn't empty.
 
-
 ## Contributors
 We'd like to thank the following people for their contributions:
 - @meistermeier
@@ -2137,7 +2367,6 @@ We'd like to thank the following people for their contributions:
 ## 📝 Documentation
 - 73e279c Improve the structure of the readme.
 - ab78aad Add information about  keyword.
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:
@@ -2264,7 +2493,6 @@ We'd like to thank the following people for their contributions:
 - c466804 Add more tests.
 - 51be13c Set expected coverage to a minimum now that there is at least one test
 - 93c0233 Add JaCoCo and Sonar analysis to the build. (#275)
-
 
 ## Contributors
 We'd like to thank the following people for their contributions:

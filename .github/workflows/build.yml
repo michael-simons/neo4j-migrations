@@ -69,7 +69,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./mvnw -Dmigrations.test-only-latest-neo4j=true --no-transfer-progress clean install -P$USE_SONAR
       - name: Upload assembly
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: assembly
           path: neo4j-migrations-cli/target/assembly
@@ -104,7 +104,7 @@ jobs:
         if: "${{ env.EXTERNAL_TEST_DB_URL == 'bolt://localhost:7687' }}"
         run: cmd /c "START /b jbang bin/start_neo4j.java"
       - name: Download assembly
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: assembly
           path: assembly
@@ -144,7 +144,7 @@ jobs:
           distribution: zulu
           java-version: 21
       - name: Download assembly
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: assembly
           path: assembly

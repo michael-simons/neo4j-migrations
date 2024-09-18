@@ -161,10 +161,8 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: 'graalvm-community'
-          java-version: 21
+          java-version: 23
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install upx
-        run: sudo apt-get install upx
       - uses: actions/checkout@v3
       - name: Restore Maven cache
         uses: actions/cache@v3

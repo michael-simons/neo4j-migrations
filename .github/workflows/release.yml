@@ -36,9 +36,9 @@ jobs:
           ./mvnw --no-transfer-progress -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli -am package
 
       - name: 'Upload build artifact'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: artifacts-jvm
           path: neo4j-migrations-cli/target/neo4j-migrations*.zip
 
   create_native_binaries:
@@ -79,10 +79,12 @@ jobs:
           ./neo4j-migrations-cli/target/neo4j-migrations -V
 
       - name: 'Upload build artifact'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
-          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
+          name: artifacts-${{ matrix.os }}
+          path: |
+            neo4j-migrations-cli/target/neo4j-migrations*.zip
+            !neo4j-migrations-cli/target/neo4j-migrations-${{ env.refName }}.zip
 
   release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
@@ -102,8 +104,9 @@ jobs:
       - name: 'Download all build artifacts'
         uses: actions/download-artifact@v4
         with:
-          name: artifacts
+          pattern: artifacts-*
           path: neo4j-migrations-cli/target
+          merge-multiple: true
 
       - name: 'Restore Maven packages'
         uses: actions/cache@v3

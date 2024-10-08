@@ -19,6 +19,7 @@ import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
@@ -73,6 +74,11 @@ public final class Migrations {
 		Constraint.forNode("__Neo4jMigration")
 			.named("unique_version___Neo4jMigration")
 			.unique(PROPERTY_MIGRATION_VERSION, PROPERTY_MIGRATION_TARGET);
+
+	static final Index REPEATED_AT =
+		Index.forRelationship("REPEATED")
+			.named("repeated_at__Neo4jMigration")
+			.onProperties("at");
 
 	private final MigrationsConfig config;
 	private final Driver driver;
@@ -680,11 +686,14 @@ public final class Migrations {
 
 		ConnectionDetails cd = context.getConnectionDetails();
 		try (Session session = context.getSchemaSession()) {
-			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			RenderConfig createConfig = RenderConfig.create().ifNotExists()
+				.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 
-			final String stmt = renderer.render(UNIQUE_VERSION, createConfig);
-			HBD.silentCreateConstraint(context.getConnectionDetails(), session, stmt, null, () -> "Could not create unique constraint for targeted migrations.");
+			var stmt = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(UNIQUE_VERSION, createConfig);
+			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null, () -> "Could not create unique constraint for targeted migrations.");
+
+			stmt = Renderer.get(Renderer.Format.CYPHER, Index.class).render(REPEATED_AT, createConfig);
+			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null, () -> "Could not create index constraint for repeated migrations.");
 		}
 	}
 

@@ -50,7 +50,7 @@ final class HBD {
 		return versionComparator.compare(connectionDetails.getServerVersion(), "4.4") >= 0;
 	}
 
-	static Integer silentCreateConstraint(ConnectionDetails connectionDetails, Session session, String statement,
+	static Integer silentCreateConstraintOrIndex(ConnectionDetails connectionDetails, Session session, String statement,
 		String name, Supplier<String> failureMessage) {
 
 		String finalStatement;

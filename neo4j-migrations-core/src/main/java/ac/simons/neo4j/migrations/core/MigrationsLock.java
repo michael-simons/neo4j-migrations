@@ -90,7 +90,7 @@ final class MigrationsLock {
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
 				String cypher = renderer.render(constraint, createConfig);
 				try {
-					constraintsAdded += HBD.silentCreateConstraint(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
+					constraintsAdded += HBD.silentCreateConstraintOrIndex(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);
 				} catch (MigrationsException e) {
 					if (!constraintWithNameAlreadyExistsAndIsEquivalent(cd, session, constraint, e)) {
 						throw e;

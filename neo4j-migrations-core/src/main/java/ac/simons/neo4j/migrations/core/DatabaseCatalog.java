@@ -127,11 +127,15 @@ final class DatabaseCatalog implements Catalog {
 			.filter(internalConstraints)
 			.forEach(items::add);
 
+		Predicate<Index> internalIndexes = index -> index.getType() != Index.Type.LOOKUP && index.getType() != Index.Type.CONSTRAINT_BACKING_INDEX;
+		if (filterInternalConstraints) {
+			internalIndexes = internalIndexes.and(i -> !Migrations.REPEATED_AT.isEquivalentTo(i));
+		}
 		queryRunner.run(version.getShowIndexes())
 			.stream()
 			.map(mapAccessorMapper)
 			.map(Index::parse)
-			.filter(index -> index.getType() != Index.Type.LOOKUP && index.getType() != Index.Type.CONSTRAINT_BACKING_INDEX)
+			.filter(internalIndexes)
 			.forEach(items::add);
 
 		return new DatabaseCatalog(items);

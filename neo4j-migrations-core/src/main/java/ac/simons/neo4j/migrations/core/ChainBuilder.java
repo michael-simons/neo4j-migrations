@@ -168,7 +168,7 @@ final class ChainBuilder {
 			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)
 			WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
 			WITH p
-			OPTIONAL MATCH () - [r:REPEATED] -> ()
+			OPTIONAL MATCH (n:__Neo4jMigration) - [r:REPEATED] -> (n)
 			WITH p, r order by r.at DESC
 			RETURN p, collect(r) AS repetitions
 			""";

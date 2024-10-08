@@ -38,6 +38,7 @@ import java.util.stream.IntStream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -877,6 +878,28 @@ class MigrationsIT extends TestBase {
 			.withTransactionTimeout(Duration.ofMillis(10))
 			.withTransactionTimeout(null).build(), driver);
 		assertThatNoException().isThrownBy(migrations::apply);
+	}
+
+	static boolean isUsingLTSNeo4j() {
+		for (var versionUnderTest : List.of("neo4j:4", "neo4j:5")) {
+			if (TestBase.DEFAULT_NEO4J_IMAGE.contains(versionUnderTest)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Test // GH-1476
+	@EnabledIf("isUsingLTSNeo4j")
+	void shouldCreatedRelationshipIndex() {
+
+		var migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		assertThatNoException().isThrownBy(migrations::apply);
+
+		try (var session = driver.session()) {
+			var indexes = session.run("SHOW INDEXES yield name").list(record -> record.get("name").asString());
+			assertThat(indexes).contains("repeated_at__Neo4jMigration");
+		}
 	}
 
 	@Nested

@@ -142,9 +142,9 @@ class ConstraintsIT {
 			Supplier<String> errorMessage = () -> "oops";
 			ConnectionDetails cd = ctx.getConnectionDetails();
 			try (Session session = ctx.getSession()) {
-				assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraint(cd, session, s1, "BBB", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraint(cd, session, s2, null, errorMessage)).isOne();
+				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s0, "AAA", errorMessage)).isOne();
+				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s1, "BBB", errorMessage)).isOne();
+				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s2, null, errorMessage)).isOne();
 			}
 
 			boolean is35 = Neo4jVersion.V3_5 == version.value;
@@ -193,7 +193,7 @@ class ConstraintsIT {
 			ConnectionDetails cd = ctx.getConnectionDetails();
 
 			try (Session session = ctx.getSession()) {
-				assertThat(HBD.silentCreateConstraint(cd, session, s0, "AAA", errorMessage)).isOne();
+				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s0, "AAA", errorMessage)).isOne();
 			}
 
 			int dropped;
@@ -230,7 +230,7 @@ class ConstraintsIT {
 				assertThat(created).isOne();
 
 				assertThatExceptionOfType(MigrationsException.class)
-					.isThrownBy(() -> HBD.silentCreateConstraint(cd, session,
+					.isThrownBy(() -> HBD.silentCreateConstraintOrIndex(cd, session,
 						"CREATE CONSTRAINT X ON (n:SomethingElse) ASSERT n.whatever IS UNIQUE", null, errorMessage))
 					.matches(HBD::constraintWithNameAlreadyExists);
 			}

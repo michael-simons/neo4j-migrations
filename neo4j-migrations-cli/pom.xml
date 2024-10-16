@@ -299,7 +299,7 @@
 							<buildArgs>
 								<arg>--no-fallback</arg>
 								<arg>-Os</arg>
-								<arg>-march=native</arg>
+								<arg>-march=compatibility</arg>
 								<arg>-H:+UnlockExperimentalVMOptions</arg>
 							</buildArgs>
 						</configuration>

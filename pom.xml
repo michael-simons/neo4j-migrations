@@ -740,7 +740,7 @@
 						<dependencyPolicy>
 							<type>LICENSE_NAME</type>
 							<rule>APPROVE</rule>
-							<name>BSD-2-Clause</name>
+							<value>BSD-2-Clause</value>
 						</dependencyPolicy>
 						<dependencyPolicy>
 							<type>ARTIFACT_PATTERN</type>

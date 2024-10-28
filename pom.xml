@@ -738,6 +738,11 @@
 							<value>BSD 2-Clause License</value>
 						</dependencyPolicy>
 						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<name>BSD-2-Clause</name>
+						</dependencyPolicy>
+						<dependencyPolicy>
 							<type>ARTIFACT_PATTERN</type>
 							<rule>APPROVE</rule>
 							<!-- This is under GNU, but we don't deliver any binary that depends on it. -->

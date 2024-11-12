@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.20">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <meta name="author" content="Michael Simons">
 <title>Neo4j-Migrations</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
@@ -141,7 +141,7 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #content::before{content:none}
 #header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
 #header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
-#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header>h1:only-child{border-bottom:1px solid #dddddf;padding-bottom:8px}
 #header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
 #header .details span:first-child{margin-left:-.125em}
 #header .details span.email a{color:rgba(0,0,0,.85)}
@@ -163,6 +163,7 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #toctitle{color:#7a2518;font-size:1.2em}
 @media screen and (min-width:768px){#toctitle{font-size:1.375em}
 body.toc2{padding-left:15em;padding-right:0}
+body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
 #toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
 #toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
 #toc.toc2>ul{font-size:.9em;margin-bottom:0}
@@ -328,7 +329,7 @@ a.image{text-decoration:none;display:inline-block}
 a.image object{pointer-events:none}
 sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
 sup.footnote a,sup.footnoteref a{text-decoration:none}
-sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+sup.footnote a:active,sup.footnoteref a:active,#footnotes .footnote a:first-of-type:active{text-decoration:underline}
 #footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
 #footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
 #footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
@@ -599,7 +600,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 2.13.4-SNAPSHOT.</p>
+<p>This is the Neo4j-Migrations manual version 2.13.5-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -764,7 +765,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -775,7 +776,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -788,7 +789,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -821,7 +822,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -832,7 +833,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:2.13.4-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:2.13.5-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -851,7 +852,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -863,7 +864,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="gradle">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:2.13.4-SNAPSHOT'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:2.13.5-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -883,7 +884,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -900,7 +901,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -2452,9 +2453,9 @@ For that version to work, you need to have JDK 17 or higher installed:</p>
 <div class="title">Listing 20. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip
-unzip neo4j-migrations-2.13.4-SNAPSHOT.zip
-cd neo4j-migrations-2.13.4-SNAPSHOT
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip
+unzip neo4j-migrations-2.13.5-SNAPSHOT.zip
+cd neo4j-migrations-2.13.5-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -2848,9 +2849,9 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip
-unzip neo4j-migrations-2.13.4-SNAPSHOT.zip
-cd neo4j-migrations-2.13.4-SNAPSHOT
+<pre class="CodeRay highlight"><code data-lang="bash">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip
+unzip neo4j-migrations-2.13.5-SNAPSHOT.zip
+cd neo4j-migrations-2.13.5-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -2893,7 +2894,7 @@ We do add this here for completeness, but we do think that Java-based migrations
 <div class="sect2">
 <h3 id="usage_core"><a class="anchor" href="#usage_core"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 2.13.4-SNAPSHOT API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 2.13.5-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">download</a>.</p>
 </div>
 <div class="paragraph">
@@ -3033,7 +3034,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3373,7 +3374,7 @@ Declare the following dependency in your Quarkus application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3472,7 +3473,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -4715,7 +4716,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-processor<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -4733,7 +4734,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
             <span class="tag">&lt;annotationProcessorPath&gt;</span>
                 <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
                 <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-processor<span class="tag">&lt;/artifactId&gt;</span>
-                <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+                <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
             <span class="tag">&lt;/annotationProcessorPath&gt;</span>
         <span class="tag">&lt;/annotationProcessorPaths&gt;</span>
         <span class="tag">&lt;compilerArgs&gt;</span>
@@ -4851,7 +4852,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-catalog<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -4892,15 +4893,15 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 </div>
 <div class="dlist">
 <dl>
-<dt class="hdlist1"><code>neo4j-migrations-2.13.4-SNAPSHOT.jar</code></dt>
+<dt class="hdlist1"><code>neo4j-migrations-2.13.5-SNAPSHOT.jar</code></dt>
 <dd>
 <p>Needed to generate the catalogs</p>
 </dd>
-<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-api-2.13.4-SNAPSHOT.jar</code></dt>
+<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-api-2.13.5-SNAPSHOT.jar</code></dt>
 <dd>
 <p>Contains the API and built-in annotations</p>
 </dd>
-<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-2.13.4-SNAPSHOT.jar</code> </dt>
+<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-2.13.5-SNAPSHOT.jar</code> </dt>
 <dd>
 <p>The processor itself</p>
 </dd>
@@ -4918,7 +4919,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <div class="title">Listing 54. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.4-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.5-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
 -cp neo4j-ogm-core-4.0.0.jar \
@@ -4935,7 +4936,7 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <div class="title">Listing 55. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.4-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.5-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
@@ -4952,10 +4953,10 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <div class="title">Listing 56. Generating a catalog from plain annotated classes</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.4-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.4-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.13.5-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.13.5-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R01__Create_annotated_schema.xml \
--cp neo4j-migrations-annotation-catalog-2.13.4-SNAPSHOT \
+-cp neo4j-migrations-annotation-catalog-2.13.5-SNAPSHOT \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/catalog/valid/CoffeeBeanPure*</code></pre>
 </div>
 </div>
@@ -5208,7 +5209,7 @@ dependency:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-adoc<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -5219,7 +5220,7 @@ dependency:</p>
 <div class="title">Listing 59. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.13.4-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.13.5-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -5227,19 +5228,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.13.4-SNAPSHOT/neo4j-migrations-formats-adoc-2.13.4-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-2.13.4-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.13.5-SNAPSHOT/neo4j-migrations-formats-adoc-2.13.5-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-2.13.5-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.13.4-SNAPSHOT/neo4j-migrations-formats-adoc-2.13.4-SNAPSHOT-all.jar
-unzip neo4j-migrations-2.13.4-SNAPSHOT.zip
-cd neo4j-migrations-2.13.4-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-2.13.4-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.13.5-SNAPSHOT/neo4j-migrations-formats-adoc-2.13.5-SNAPSHOT-all.jar
+unzip neo4j-migrations-2.13.5-SNAPSHOT.zip
+cd neo4j-migrations-2.13.5-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-2.13.5-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/adoc-migrations \
   info</code></pre>
@@ -5300,7 +5301,7 @@ dependency:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-markdown<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.13.4-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.13.5-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -5311,7 +5312,7 @@ dependency:</p>
 <div class="title">Listing 61. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.13.4-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.13.5-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -5319,19 +5320,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.13.4-SNAPSHOT/neo4j-migrations-formats-markdown-2.13.4-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-2.13.4-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.13.5-SNAPSHOT/neo4j-migrations-formats-markdown-2.13.5-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-2.13.5-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.4-SNAPSHOT/neo4j-migrations-2.13.4-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.13.4-SNAPSHOT/neo4j-migrations-formats-markdown-2.13.4-SNAPSHOT-all.jar
-unzip neo4j-migrations-2.13.4-SNAPSHOT.zip
-cd neo4j-migrations-2.13.4-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-2.13.4-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.13.5-SNAPSHOT/neo4j-migrations-2.13.5-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.13.5-SNAPSHOT/neo4j-migrations-formats-markdown-2.13.5-SNAPSHOT-all.jar
+unzip neo4j-migrations-2.13.5-SNAPSHOT.zip
+cd neo4j-migrations-2.13.5-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-2.13.5-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/markdown-migrations \
   info</code></pre>
@@ -5365,7 +5366,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-11-11 08:20:22 UTC
+Last updated 2024-11-12 11:19:46 UTC
 </div>
 </div>
 </body>

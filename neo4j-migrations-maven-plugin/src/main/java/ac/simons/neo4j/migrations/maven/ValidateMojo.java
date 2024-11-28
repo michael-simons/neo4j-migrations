@@ -44,6 +44,7 @@ public class ValidateMojo extends AbstractConnectedMojo {
 	 * The default constructor is primarily used by the Maven machinery.
 	 */
 	public ValidateMojo() {
+		// Make both JDK 21 JavaDoc and Maven happy
 	}
 
 	/**

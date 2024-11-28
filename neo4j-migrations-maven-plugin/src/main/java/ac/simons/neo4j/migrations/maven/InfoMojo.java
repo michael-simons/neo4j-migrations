@@ -38,6 +38,7 @@ public class InfoMojo extends AbstractConnectedMojo {
 	 * The default constructor is primarily used by the Maven machinery.
 	 */
 	public InfoMojo() {
+		// Make both JDK 21 JavaDoc and Maven happy
 	}
 
 	@Override

@@ -87,4 +87,31 @@ class MigrationsRecorderTest {
 		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
 		assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofSeconds(1));
 	}
+
+	@Test // GH-1213
+	void outOfOrderShouldBeDisallowedByDefault() {
+
+		var properties = mock(MigrationsProperties.class);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.isOutOfOrder()).isFalse();
+	}
+
+	@Test // GH-1213
+	void outOfOrderShouldBeApplied() {
+
+		var properties = mock(MigrationsProperties.class);
+		when(properties.outOfOrder()).thenReturn(true);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.isOutOfOrder()).isTrue();
+	}
 }

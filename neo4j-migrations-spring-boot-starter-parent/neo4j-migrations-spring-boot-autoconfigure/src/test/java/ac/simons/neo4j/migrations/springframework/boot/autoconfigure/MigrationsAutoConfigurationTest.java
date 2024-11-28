@@ -358,6 +358,27 @@ class MigrationsAutoConfigurationTest {
 			assertThat(config.getOptionalImpersonatedUser()).hasValue("blah");
 			assertThat(config.getConstraintRenderingOptions()).hasSize(1);
 		}
+
+		@Test // GH-1213
+		void outOfOrderShouldBeDisallowedByDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.isOutOfOrder()).isFalse();
+		}
+
+		@Test // GH-1213
+		void outOfOrderShouldBeApplied() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setOutOfOrder(true);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.isOutOfOrder()).isTrue();
+		}
 	}
 
 	private static class LoggingAppender extends ListAppender<ILoggingEvent> {

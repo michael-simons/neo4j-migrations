@@ -244,6 +244,13 @@ public final class MigrationsCli implements Runnable {
 	)
 	private VersionSortOrder versionSortOrder;
 
+	@Option(
+		names = {"--out-of-order"},
+		description = "Use this flag to enable migrations to be discovered out-of-order and integrated into the migration chain.",
+		defaultValue = Defaults.OUT_OF_ORDER_VALUE
+	)
+	private boolean outOfOrder;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -298,6 +305,7 @@ public final class MigrationsCli implements Runnable {
 			.withAutocrlf(autocrlf)
 			.withDelayBetweenMigrations(delayBetweenMigrations)
 			.withVersionSortOrder(versionSortOrder)
+			.withOutOfOrderAllowed(outOfOrder)
 			.build();
 
 		if (!forceSilence) {

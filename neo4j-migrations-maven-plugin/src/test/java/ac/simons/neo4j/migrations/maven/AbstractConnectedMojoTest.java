@@ -151,5 +151,31 @@ public class AbstractConnectedMojoTest {
 		assertThat(config.logging()).isInstanceOf(ConsoleLogging.class);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
+
+	@Test // GH-1213
+	public void outOfOrderShouldNotBeAllowedByDefault() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-and-schema/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().isOutOfOrder()).isFalse();
+	}
+
+	@Test // GH-1213
+	public void outOfOrderShouldBeConfigurable() throws Exception {
+
+		File pom = new File("target/test-classes/out-of-order/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().isOutOfOrder()).isTrue();
+	}
 }
 

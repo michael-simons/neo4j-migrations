@@ -129,10 +129,17 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private boolean verbose;
 
 	/**
-	 * The sort order  to use.
+	 * The sort order to use.
 	 */
 	@Parameter(defaultValue = Defaults.VERSION_SORT_ORDER_VALUE)
 	private VersionSortOrder versionSortOrder;
+
+	/**
+	 * Whether to allow out-of-order migrations or not.
+	 * @since 2.14.0
+	 */
+	@Parameter(defaultValue = Defaults.OUT_OF_ORDER_VALUE)
+	private boolean outOfOrder;
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -169,6 +176,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withSchemaDatabase(schemaDatabase)
 			.withImpersonatedUser(impersonatedUser)
 			.withVersionSortOrder(versionSortOrder)
+			.withOutOfOrderAllowed(outOfOrder)
 			.build();
 
 		config.logTo(LOGGER, verbose);

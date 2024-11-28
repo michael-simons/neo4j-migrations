@@ -137,6 +137,8 @@ public final class MigrationsConfig {
 
 	private final Duration transactionTimeout;
 
+	private final boolean outOfOrder;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -158,6 +160,7 @@ public final class MigrationsConfig {
 		this.constraintOptions = builder.constraintOptions;
 		this.versionSortOrder = builder.versionSortOrder;
 		this.transactionTimeout = builder.transactionTimeout;
+		this.outOfOrder = builder.outOfOrder;
 	}
 
 	/**
@@ -265,6 +268,18 @@ public final class MigrationsConfig {
 	 */
 	public Duration getTransactionTimeout() {
 		return transactionTimeout;
+	}
+
+	/**
+	 * When this flag is set to {@literal true}, new migrations discovered that are "out of order", such as a version 15
+	 * is to be found between 10 and 20, it will be accepted, integrated into the chain and then move on instead of throwing
+	 * an error.
+	 *
+	 * @return true if migrations shall be allowed to be out of order
+	 * @since 2.14.0
+	 */
+	public boolean isOutOfOrder() {
+		return outOfOrder;
 	}
 
 	/**
@@ -380,6 +395,8 @@ public final class MigrationsConfig {
 		private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 
 		private Duration transactionTimeout;
+
+		private boolean outOfOrder = Defaults.OUT_OF_ORDER;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -588,6 +605,18 @@ public final class MigrationsConfig {
 		 */
 		public Builder withTransactionTimeout(Duration newTransactionTimeout) {
 			this.transactionTimeout = newTransactionTimeout;
+			return this;
+		}
+
+		/**
+		 * Allows or disallows migrations discovered to be out of order.
+		 *
+		 * @param allowed use {@literal true} to allow out-of-order discovery of migrations
+		 * @return The builder for further customization
+		 * @since 2.14.0
+		 */
+		public Builder withOutOfOrderAllowed(boolean allowed) {
+			this.outOfOrder = allowed;
 			return this;
 		}
 

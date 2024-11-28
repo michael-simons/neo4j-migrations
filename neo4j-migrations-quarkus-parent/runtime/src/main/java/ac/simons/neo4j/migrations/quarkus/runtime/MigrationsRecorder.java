@@ -78,6 +78,7 @@ public class MigrationsRecorder {
 			.withResourceScanner(resourceScanner)
 			.withDelayBetweenMigrations(runtimeProperties.delayBetweenMigrations().orElse(null))
 			.withVersionSortOrder(runtimeProperties.versionSortOrder())
+			.withOutOfOrderAllowed(runtimeProperties.outOfOrder())
 			.build();
 
 		return new RuntimeValue<>(config);

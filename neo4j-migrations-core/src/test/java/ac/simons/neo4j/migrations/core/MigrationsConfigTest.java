@@ -65,6 +65,18 @@ class MigrationsConfigTest {
 		assertThat(MigrationsConfig.builder().withAutocrlf(true).build().isAutocrlf()).isTrue();
 	}
 
+	@Test // GH-1213
+	void outOfOrderShouldBeFalseByDefault() {
+
+		assertThat(MigrationsConfig.builder().build().isOutOfOrder()).isFalse();
+	}
+
+	@Test // GH-1213
+	void outOfOrderShouldBeChangeable() {
+
+		assertThat(MigrationsConfig.builder().withOutOfOrderAllowed(true).build().isOutOfOrder()).isTrue();
+	}
+
 	@Test
 	void logToShouldWork() {
 

@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +49,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.types.Node;
 import org.testcontainers.containers.Neo4jContainer;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
@@ -899,6 +902,212 @@ class MigrationsIT extends TestBase {
 		try (var session = driver.session()) {
 			var indexes = session.run("SHOW INDEXES yield name").list(record -> record.get("name").asString());
 			assertThat(indexes).contains("repeated_at__Neo4jMigration");
+		}
+	}
+
+	@Nested
+	class Ordering {
+
+		static final String FIND_NODES_QUERY = "MATCH (n:OOO) RETURN n ORDER BY n.created_on";
+
+		@Test
+			// GH-1213
+		void shouldDefaultToOrderAndOrderShouldBeRight() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "005", "010", "015", "020");
+			assertCreationOrder("N4", "N1", "N3", "N2");
+		}
+
+		@Test
+			// GH-1213
+		void shouldFailOnOutOfOrderByDefault() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/second").build(), driver);
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
+				.withMessage("Unexpected migration at index 1: 015 (\"NewSecond\").");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderInTheBeginningOne() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/third")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "005", "010", "020");
+			assertCreationOrder("N1", "N2", "N4");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderInTheBeginningN() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/third", "classpath:ooo/additional/third")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "001", "005", "009", "010", "020");
+			assertCreationOrder("N1", "N2", "N7", "N4", "N8");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderInTheMiddleOne() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/second")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "015", "020");
+			assertCreationOrder("N1", "N2", "N3");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderInTheMiddleN() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/second", "classpath:ooo/additional/second")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "014", "015", "019", "020");
+			assertCreationOrder("N1", "N2", "N5", "N3", "N6");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderCombined() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base/first", "classpath:ooo/base/second", "classpath:ooo/base/third")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "005", "010", "015", "020");
+			assertCreationOrder("N1", "N2", "N4", "N3");
+		}
+
+		@Test
+			// GH-1213
+		void shouldNotFailOnOutOfOrderCombinedAll() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020");
+			assertCreationOrder("N1", "N2");
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base", "classpath:ooo/additional", "classpath:ooo/repeatable/orig")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "001", "002", "005", "009", "010", "014", "015", "016", "019", "020");
+			assertCreationOrder("N1", "N2", "N7", "N4", "N8", "N5", "N3", "N6");
+			assertRepeats(2, 0);
+
+			migrations = new Migrations(defaultConfigPart()
+				.withLocationsToScan("classpath:ooo/base", "classpath:ooo/additional", "classpath:ooo/repeatable/modified")
+				.withOutOfOrderAllowed(true)
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "001", "002", "005", "009", "010", "014", "015", "016", "019", "020");
+			assertCreationOrder("N1", "N2", "N7", "N4", "N8", "N5", "N3", "N6");
+			assertRepeats(4, 2);
+		}
+
+		private static MigrationsConfig.Builder defaultConfigPart() {
+			return MigrationsConfig.builder()
+				.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION);
+		}
+
+		private static void assertChainOrder(Migrations migrations, String... expectedVersions) {
+			var chain = migrations.info();
+			assertThat(chain.getElements())
+				.allSatisfy(c -> {
+					assertThat(c.getInstalledOn()).isNotEmpty();
+				})
+				.map(MigrationChain.Element::getVersion)
+				.containsExactly(expectedVersions);
+		}
+
+		private void assertCreationOrder(String... labels) {
+			try (var session = driver.session()) {
+				var nodes = session.executeRead(tx -> tx.run(FIND_NODES_QUERY).list(r -> r.get("n").asNode()));
+				assertThat(nodes)
+					.map(n -> StreamSupport.stream(n.labels().spliterator(), false).filter(Predicate.not("OOO"::equals)).findFirst().orElseThrow())
+					.containsExactly(labels);
+			}
+		}
+
+		private void assertRepeats(int expectedTotal, int expectedModified) {
+			try (var session = driver.session()) {
+				var nodes = session.executeRead(tx -> tx.run("MATCH (n:FromRepeatable) RETURN n").list(r -> r.get("n").asNode()));
+				int cnt = 0;
+				int mod = 0;
+				for (Node node : nodes) {
+					++cnt;
+					for (String l : node.labels()) {
+						if (l.equals("Mod")) {
+							++mod;
+						}
+					}
+				}
+				assertThat(cnt).isEqualTo(expectedTotal);
+				assertThat(mod).isEqualTo(expectedModified);
+			}
 		}
 	}
 

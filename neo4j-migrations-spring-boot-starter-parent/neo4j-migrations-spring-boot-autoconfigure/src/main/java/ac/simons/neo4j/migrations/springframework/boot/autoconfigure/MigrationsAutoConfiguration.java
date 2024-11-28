@@ -80,7 +80,8 @@ public class MigrationsAutoConfiguration {
 			.withAutocrlf(migrationsProperties.isAutocrlf())
 			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
 			.withVersionSortOrder(migrationsProperties.getVersionSortOrder())
-			.withMigrationClassesDiscoverer(applicationContextAwareDiscoverer.getIfAvailable());
+			.withMigrationClassesDiscoverer(applicationContextAwareDiscoverer.getIfAvailable())
+			.withOutOfOrderAllowed(migrationsProperties.isOutOfOrder());
 		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
 		return builder.build();
 	}

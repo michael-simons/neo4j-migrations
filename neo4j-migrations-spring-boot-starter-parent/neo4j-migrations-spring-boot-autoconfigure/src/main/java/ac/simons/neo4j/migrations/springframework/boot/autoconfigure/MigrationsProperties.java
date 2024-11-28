@@ -125,6 +125,15 @@ public class MigrationsProperties {
 	private Duration transactionTimeout;
 
 	/**
+	 * When this flag is set to {@literal true}, new migrations discovered that are "out of order", such as a version 15
+	 * is to be found between 10 and 20, it will be accepted, integrated into the chain and then move on instead of throwing
+	 * an error.
+	 *
+	 * @since 2.14.0
+	 */
+	private boolean outOfOrder = Defaults.OUT_OF_ORDER;
+
+	/**
 	 * @return see {@link #enabled}
 	 */
 	public boolean isEnabled() {
@@ -332,5 +341,20 @@ public class MigrationsProperties {
 	 */
 	public void setTransactionTimeout(Duration transactionTimeout) {
 		this.transactionTimeout = transactionTimeout;
+	}
+
+	/**
+	 * {@return whether out-of-order migrations are allowed and integrated into the chain or not}
+	 */
+	public boolean isOutOfOrder() {
+		return outOfOrder;
+	}
+
+	/**
+	 * Configures whether migrations are allowed to be out-of-order or not
+	 * @param outOfOrder the new value for the out-of-order flag
+	 */
+	public void setOutOfOrder(boolean outOfOrder) {
+		this.outOfOrder = outOfOrder;
 	}
 }

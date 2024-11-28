@@ -33,6 +33,13 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 	threadSafe = true)
 public class RepairMojo extends AbstractConnectedMojo {
 
+	/**
+	 * The default constructor is primarily used by the Maven machinery.
+	 */
+	public RepairMojo() {
+		// Make both JDK 21 JavaDoc and Maven happy
+	}
+
 	@Override
 	void withMigrations(Migrations migrations) {
 

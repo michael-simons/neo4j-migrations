@@ -15,6 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.io.Serial;
+import java.util.function.Supplier;
+
 /**
  * An unchecked exception that is thrown when something didn't work as expected. Most of the time, mitigation from the
  * call won't be possible.
@@ -24,7 +27,23 @@ package ac.simons.neo4j.migrations.core;
  */
 public final class MigrationsException extends RuntimeException {
 
-	static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * If {@code cause} is already a {@link MigrationsException}, {@code cause} will be returned, otherwise
+	 * a new {@link  MigrationsException} will be created
+	 *
+	 * @param cause           original cause
+	 * @param messageSupplier message supplier for the new exception to be created
+	 * @return a {@link MigrationsException}
+	 */
+	static MigrationsException of(Exception cause, Supplier<String> messageSupplier) {
+		if (cause instanceof MigrationsException me) {
+			return me;
+		}
+		return new MigrationsException(messageSupplier.get(), cause);
+	}
 
 	/**
 	 * Constructs a new exception with the given message.

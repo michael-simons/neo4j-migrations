@@ -117,7 +117,19 @@ public interface MigrationsProperties {
 	 * on {@link #transactionMode}). {@literal null} is a valid value and make the driver apply the default timeout for
 	 * the database.
 	 *
+	 * @return an optional transaction timeout
 	 * @since 2.13.0
 	 */
 	Optional<Duration> transactionTimeout();
+
+	/**
+	 * When this flag is set to {@literal true}, new migrations discovered that are "out of order", such as a version 15
+	 * is to be found between 10 and 20, it will be accepted, integrated into the chain and then move on instead of throwing
+	 * an error.
+	 *
+	 * @return whether to allow out-of-order migrations or not
+	 * @since 2.14.0
+	 */
+	@WithDefault(Defaults.OUT_OF_ORDER_VALUE)
+	boolean outOfOrder();
 }

@@ -141,6 +141,26 @@ class MigrationsCliTest {
 		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
 	}
 
+	@Test // GH-1213
+	void outOfOrderShouldBeDisallowedByDefault() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs();
+
+		assertThat(cli.getConfig().isOutOfOrder()).isFalse();
+	}
+
+	@Test // GH-1213
+	void outOfOrderShouldBeApplied() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--out-of-order");
+
+		assertThat(cli.getConfig().isOutOfOrder()).isTrue();
+	}
+
 	@Test
 	void shouldRequire2Connections() {
 

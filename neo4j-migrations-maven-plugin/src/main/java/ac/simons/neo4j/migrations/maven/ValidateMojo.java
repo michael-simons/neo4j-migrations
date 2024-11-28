@@ -41,6 +41,13 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class ValidateMojo extends AbstractConnectedMojo {
 
 	/**
+	 * The default constructor is primarily used by the Maven machinery.
+	 */
+	public ValidateMojo() {
+		// Make both JDK 21 JavaDoc and Maven happy
+	}
+
+	/**
 	 * Set this to {@literal false} if the database can be brought into a valid state by just applying the configuration
 	 */
 	@Parameter(defaultValue = "true")

@@ -99,7 +99,8 @@ public final class Defaults {
 	public static final String AUTOCRLF_VALUE = "false";
 
 	/**
-	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used in configuration that requires defaults given as string.
+	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used in configuration that requires
+	 * defaults given as string.
 	 */
 	public static final String VERSION_SORT_ORDER_VALUE = "LEXICOGRAPHIC";
 
@@ -109,6 +110,18 @@ public final class Defaults {
 	 * @since 2.9.0
 	 */
 	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.LEXICOGRAPHIC;
+
+	/**
+	 * Default setting for {@code outOfOrder}.
+	 * @since 2.14.0
+	 */
+	public static final boolean OUT_OF_ORDER = false;
+
+	/**
+	 * Same as {@link #OUT_OF_ORDER} but as a {@link String string value} to be used in configuration that requires
+	 * defaults given as string.
+	 */
+	public static final String OUT_OF_ORDER_VALUE = "false";
 
 	private Defaults() {
 	}

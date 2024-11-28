@@ -46,6 +46,12 @@ It applies all locally resolved migrations to the target database and stores the
 
 It returns the last applied version.
 
+That operation does not allow migrations out-of-order by default.
+That means if you add version 2 after you already migrated to 5, it will fail with an appropriate error.
+You can spot these cases beforehand by validating your chain of migrations (see below).
+If you absolutely must however, you can use `withOutOfOrderAllowed` on the config object or the corresponding property in either the Spring Boot starter or the Quarkus extension.
+Setting this to true will integrate out-of-order migrations into the chain.
+
 [[usage_common_repair]]
 === Repair
 
@@ -676,6 +682,13 @@ A configurable delay that will be applied in between applying two migrations.
 
 - Type: `java.time.Duration`
 - Default: `false`
+
+`org.neo4j.migrations.out-of-order`::
+A flag to enable out-of-order migrations.
+
+- Type: `java.lang.Boolean`
+- Default: `false`
+
 
 NOTE: Migrations can be disabled by setting `org.neo4j.migrations.enabled` to `false`.
 

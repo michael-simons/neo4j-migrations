@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -87,41 +88,50 @@ final class ChainBuilder {
 		}
 
 		final String incompleteMigrationsMessage = "More migrations have been applied to the database than locally resolved.";
-		Map<MigrationVersion, Element> fullMigrationChain = new LinkedHashMap<>(
-			discoveredMigrations.size() + appliedMigrations.size());
+		Map<MigrationVersion, Element> fullMigrationChain = new TreeMap<>(context.getConfig().getVersionComparator());
+		boolean outOfOrderAllowed = context.getConfig().isOutOfOrder();
 		int i = 0;
 		for (Map.Entry<MigrationVersion, Element> entry : appliedMigrations.entrySet()) {
 			MigrationVersion expectedVersion = entry.getKey();
 			Optional<String> expectedChecksum = entry.getValue().getChecksum();
 
-			Migration newMigration;
-			try {
-				newMigration = discoveredMigrations.get(i);
-			} catch (IndexOutOfBoundsException e) {
-				if (detailedCauses) {
-					throw new MigrationsException(incompleteMigrationsMessage, e);
+			boolean checkNext = true;
+			while (checkNext) {
+				checkNext = false;
+				Migration newMigration;
+				try {
+					newMigration = discoveredMigrations.get(i++);
+				} catch (IndexOutOfBoundsException e) {
+					if (detailedCauses) {
+						throw new MigrationsException(incompleteMigrationsMessage, e);
+					}
+					throw new MigrationsException(incompleteMigrationsMessage);
 				}
-				throw new MigrationsException(incompleteMigrationsMessage);
-			}
 
-			if (!newMigration.getVersion().equals(expectedVersion)) {
-				if (getNumberOfAppliedMigrations(context) > discoveredMigrations.size()) {
-					throw new MigrationsException(incompleteMigrationsMessage, new IndexOutOfBoundsException());
+				if (!newMigration.getVersion().equals(expectedVersion)) {
+					if (getNumberOfAppliedMigrations(context) > discoveredMigrations.size()) {
+						throw new MigrationsException(incompleteMigrationsMessage, new IndexOutOfBoundsException());
+					}
+					if (outOfOrderAllowed) {
+						fullMigrationChain.put(newMigration.getVersion(), DefaultMigrationChainElement.pendingElement(newMigration));
+						checkNext = true;
+						continue;
+					} else {
+						throw new MigrationsException("Unexpected migration at index " + (i - 1) + ": " + Migrations.toString(newMigration) + ".");
+					}
 				}
-				throw new MigrationsException("Unexpected migration at index " + i + ": " + Migrations.toString(newMigration) + ".");
-			}
 
-			if (newMigration.isRepeatable() != expectedVersion.isRepeatable()) {
-				throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
-			}
+				if (newMigration.isRepeatable() != expectedVersion.isRepeatable()) {
+					throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
+				}
 
-			if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
-				throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
-			}
+				if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
+					throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
+				}
 
-			// This is not a pending migration anymore
-			fullMigrationChain.put(expectedVersion, entry.getValue());
-			++i;
+				// This is not a pending migration anymore
+				fullMigrationChain.put(expectedVersion, entry.getValue());
+			}
 		}
 
 		// All remaining migrations are pending

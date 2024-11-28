@@ -2404,6 +2404,13 @@ It applies all locally resolved migrations to the target database and stores the
 <div class="paragraph">
 <p>It returns the last applied version.</p>
 </div>
+<div class="paragraph">
+<p>That operation does not allow migrations out-of-order by default.
+That means if you add version 2 after you already migrated to 5, it will fail with an appropriate error.
+You can spot these cases beforehand by validating your chain of migrations (see below).
+If you absolutely must however, you can use <code>withOutOfOrderAllowed</code> on the config object or the corresponding property in either the Spring Boot starter or the Quarkus extension.
+Setting this to true will integrate out-of-order migrations into the chain.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="usage_common_repair"><a class="anchor" href="#usage_common_repair"></a>4.1.5. Repair</h4>
@@ -3340,6 +3347,20 @@ Leave <code>null</code> for using the connected user.</p>
 <ul>
 <li>
 <p>Type: <code>java.time.Duration</code></p>
+</li>
+<li>
+<p>Default: <code>false</code></p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code>org.neo4j.migrations.out-of-order</code></dt>
+<dd>
+<p>A flag to enable out-of-order migrations.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Type: <code>java.lang.Boolean</code></p>
 </li>
 <li>
 <p>Default: <code>false</code></p>
@@ -5366,7 +5387,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-11-12 11:19:46 UTC
+Last updated 2024-11-28 21:27:01 UTC
 </div>
 </div>
 </body>

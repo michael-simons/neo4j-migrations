@@ -77,7 +77,9 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
 
-	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*\\{.*}\\s*IN\\s+TRANSACTIONS)(?!`)");
+	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*(?<importClause>[^{]+)?\\{.*}\\s*+IN(\\s++|(?<concurrency>.+?)?)TRANSACTIONS)(?!`)");
+	private static final Pattern PATTERN_CALL_IMPORT_CLAUSE = Pattern.compile("\\(.+\\)");
+	private static final Pattern PATTERN_CALL_CONCURRENCY = Pattern.compile("(?ims)(-\\d+|\\d+)?\\s*CONCURRENT");
 
 	private static final Pattern USING_PERIODIC_PATTERN = Pattern.compile("(?ims)(?<!`)(([^`\\s*]|^)\\s*+USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)");
 
@@ -348,10 +350,25 @@ final class DefaultCypherResource implements CypherResource {
 	 */
 	static TransactionMode getTransactionMode(String statement) {
 
-		if (CALL_PATTERN.matcher(statement).find() || USING_PERIODIC_PATTERN.matcher(statement).find()) {
+		if (USING_PERIODIC_PATTERN.matcher(statement).find()) {
 			return TransactionMode.IMPLICIT;
 		}
+
+		var callMatcher = CALL_PATTERN.matcher(statement);
+		if (callMatcher.find()) {
+			var importClause = callMatcher.group("importClause");
+			var concurrency = callMatcher.group("concurrency");
+			if (nullOrEmpty(importClause, PATTERN_CALL_IMPORT_CLAUSE) && nullOrEmpty(concurrency, PATTERN_CALL_CONCURRENCY)) {
+				return TransactionMode.IMPLICIT;
+			} else {
+				throw new MigrationsException("Invalid statement: " + statement);
+			}
+		}
 		return TransactionMode.MANAGED;
+	}
+
+	private static boolean nullOrEmpty(String value, Pattern pattern) {
+		return value == null || pattern.matcher(value.trim()).matches();
 	}
 
 	/**

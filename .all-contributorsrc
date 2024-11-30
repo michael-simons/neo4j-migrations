@@ -329,6 +329,15 @@
       "contributions": [
         "research"
       ]
+    },
+    {
+      "login": "ctytgat",
+      "name": "ctytgat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1969808?v=4",
+      "profile": "https://github.com/ctytgat",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,

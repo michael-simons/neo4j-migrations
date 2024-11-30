@@ -77,7 +77,7 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
 
-	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*+(?<importClause>[^{]++)?\\{.*}\\s*+IN(?<concurrency>\\s++|.+?)?TRANSACTIONS)(?!`)");
+	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*+(?<importClause>[^{]++)?\\{.*}\\s*+(?<transactionClause>IN(?<concurrency>.+?)TRANSACTIONS)?)(?!`)");
 	private static final Pattern PATTERN_CALL_IMPORT_CLAUSE = Pattern.compile("\\(.+\\)");
 	private static final Pattern PATTERN_CALL_CONCURRENCY = Pattern.compile("(?ims)(-\\d+|\\d+)?\\s*CONCURRENT");
 
@@ -355,20 +355,26 @@ final class DefaultCypherResource implements CypherResource {
 		}
 
 		var callMatcher = CALL_PATTERN.matcher(statement);
-		if (callMatcher.find()) {
-			var importClause = callMatcher.group("importClause");
-			var concurrency = callMatcher.group("concurrency");
-			if (nullOrEmpty(importClause, PATTERN_CALL_IMPORT_CLAUSE) && nullOrEmpty(concurrency, PATTERN_CALL_CONCURRENCY)) {
-				return TransactionMode.IMPLICIT;
-			} else {
-				throw new MigrationsException("Invalid statement: " + statement);
-			}
+		if (!callMatcher.find()) {
+			return TransactionMode.MANAGED;
 		}
-		return TransactionMode.MANAGED;
-	}
 
-	private static boolean nullOrEmpty(String value, Pattern pattern) {
-		return value == null || pattern.matcher(value.trim()).matches();
+		var importClause = callMatcher.group("importClause");
+		var transactionClause = callMatcher.group("transactionClause");
+
+		if (importClause != null && !PATTERN_CALL_IMPORT_CLAUSE.matcher(importClause.trim()).matches()) {
+			throw new MigrationsException("Invalid statement: " + statement);
+		}
+
+		if (transactionClause == null) {
+			return TransactionMode.MANAGED;
+		}
+		var concurrency = callMatcher.group("concurrency");
+		if (concurrency.isBlank() || PATTERN_CALL_CONCURRENCY.matcher(concurrency.trim()).matches()) {
+			return TransactionMode.IMPLICIT;
+		} else {
+			throw new MigrationsException("Invalid statement: " + statement);
+		}
 	}
 
 	/**

@@ -367,7 +367,13 @@ class DefaultCypherResourceTest {
 		"CREATE (a:`USING PERIODIC COMMIT `) RETURN a",
 		"CREATE (a:`CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a",
 		"CREATE (a: `  CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a",
-		"MATCH (n) CALL {blub}concurrent IN TRANSACTIONS RETURN n"
+		"MATCH (n) CALL {blub}concurrent IN TRANSACTIONS RETURN n",
+		"""
+		WITH apoc.date.currentTimestamp() AS start
+		CALL apoc.util.sleep(4000)
+		WITH start, apoc.date.currentTimestamp() AS end
+		RETURN datetime({epochmillis: start}) AS start, datetime({epochmillis: end}) AS end;
+		"""
 	})
 	void shouldDetectManagedTransactionNeeds(String query) {
 
@@ -376,7 +382,6 @@ class DefaultCypherResourceTest {
 
 	@ParameterizedTest
 	@ValueSource(strings = {
-		"MATCH (n) CALL thisisInvalidCypherIKnow {blub} IN TRANSACTIONS RETURN n",
 		"MATCH (n) CALL {blub} IN concurrently TRANSACTIONS RETURN n"
 	})
 	void weEvenMightThrowWhenWeDoHalfwayParsingAnyway(String query) {

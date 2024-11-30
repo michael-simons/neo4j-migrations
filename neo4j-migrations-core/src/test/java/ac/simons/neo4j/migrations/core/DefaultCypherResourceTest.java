@@ -333,7 +333,20 @@ class DefaultCypherResourceTest {
 		  WITH line
 		  CREATE (:`PERSON` {name: line[1], age: toInteger(line[2])})
 		} IN TRANSACTIONS
+		""",
+		"MATCH(n)CALL(n){MATCH (m)-->(n)RETURN m}IN TRANSACTIONS RETURN m",
 		"""
+		MATCH (n) \
+		CALL(n) {
+		  MATCH (m)-->(n)
+		  RETURN m
+		}  IN TRANSACTIONS RETURN m
+		""",
+		"MATCH (n) CALL(n) {MATCH (m)-->(n)RETURN m}  IN TRANSACTIONS RETURN y",
+		"MATCH(n)CALL(n){MATCH (m)-->(n)RETURN m}IN -2 CONCURRENT TRANSACTIONS OF 23 ROWS RETURN x",
+		"MATCH(n)CALL(n){MATCH (m)-->(n)RETURN m}IN-1 CONCURRENT TRANSACTIONS OF 23 ROWS RETURN m",
+		"MATCH(n)CALL(n){MATCH (m)-->(n)RETURN m}IN 42 CONCURRENT TRANSACTIONS OF 23 ROWS RETURN m",
+		"MATCH (n) CALL {RETURN 1 AS x} IN concurrent TRANSACTIONS RETURN *"
 	})
 	void shouldDetectImplicitTransactionNeeds(String query) {
 
@@ -353,10 +366,27 @@ class DefaultCypherResourceTest {
 		"CREATE (a:`USING PERIODIC COMMIT `) RETURN a",
 		"CREATE (a:`USING PERIODIC COMMIT `) RETURN a",
 		"CREATE (a:`CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a",
-		"CREATE (a: `  CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a"
+		"CREATE (a: `  CALL {WITH WHATEVER} IN TRANSACTIONS`) RETURN a",
+		"MATCH (n) CALL {blub}concurrent IN TRANSACTIONS RETURN n",
+		"""
+		WITH apoc.date.currentTimestamp() AS start
+		CALL apoc.util.sleep(4000)
+		WITH start, apoc.date.currentTimestamp() AS end
+		RETURN datetime({epochmillis: start}) AS start, datetime({epochmillis: end}) AS end;
+		"""
 	})
 	void shouldDetectManagedTransactionNeeds(String query) {
 
 		assertThat(DefaultCypherResource.getTransactionMode(query)).isEqualTo(DefaultCypherResource.TransactionMode.MANAGED);
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+		"MATCH (n) CALL {blub} IN concurrently TRANSACTIONS RETURN n"
+	})
+	void weEvenMightThrowWhenWeDoHalfwayParsingAnyway(String query) {
+
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(() -> DefaultCypherResource.getTransactionMode(query));
 	}
 }

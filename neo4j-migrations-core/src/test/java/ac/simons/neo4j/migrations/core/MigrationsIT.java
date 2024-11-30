@@ -804,17 +804,18 @@ class MigrationsIT extends TestBase {
 		}
 	}
 
-	@ParameterizedTest // GH-719
-	@ValueSource(strings = {"V000__Use_call_in_tx1", "V000__Use_call_in_tx2"})
-	void shouldAllowCallInTX(String script) {
+	@ParameterizedTest // GH-719, GH-1537
+	@ValueSource(ints = {1, 2, 3, 4})
+	void shouldAllowCallInTX(int idx) {
 
 		try (Session session = driver.session()) {
 			session.run("with range(1,100) as r unwind r as i create (n:F) return n").consume();
+			session.run("CREATE (a:Asset)-[:ASSET_TYPE]->(type:AssetType)");
 		}
 
 		Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
 		int appliedMigrations = migrations.apply(
-			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/" + script + ".cypher"))
+			Objects.requireNonNull(MigrationsIT.class.getResource("/manual_resources/V000__Use_call_in_tx" + idx + ".cypher"))
 		);
 
 		assertThat(appliedMigrations).isEqualTo(1);

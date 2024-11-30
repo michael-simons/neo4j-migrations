@@ -77,7 +77,7 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
 
-	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*+(?<importClause>[^{]+)?\\{.*}\\s*+IN(\\s++|(?<concurrency>.+?)?)TRANSACTIONS)(?!`)");
+	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*+(?<importClause>[^{]++)?\\{.*}\\s*+IN(\\s++|(?<concurrency>.+?)?)TRANSACTIONS)(?!`)");
 	private static final Pattern PATTERN_CALL_IMPORT_CLAUSE = Pattern.compile("\\(.+\\)");
 	private static final Pattern PATTERN_CALL_CONCURRENCY = Pattern.compile("(?ims)(-\\d+|\\d+)?\\s*CONCURRENT");
 

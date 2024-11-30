@@ -77,7 +77,13 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);
 
-	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*]\\s*+CALL\\s*+(?:\\(.+?\\)\\s*+)?\\{.*}\\s*+(?<transactionClause>IN(?<concurrency>.+?)TRANSACTIONS)?)(?!`)");
+	/**
+	 * The regex is as greedy as I can get it without parsing the statement fully. And as of now, there is no parser
+	 * available that still supports periodic commit AND concurrent transactions with all options the latter provides
+	 * today in latest Neo4j.
+	 */
+	@SuppressWarnings("squid:S5852")
+	private static final Pattern CALL_PATTERN = Pattern.compile("(?ims)(?<!`)([^`\\s*+]\\s*+CALL\\s*+(?:\\(.+?\\)\\s*+)?\\{.*}\\s*+(?<transactionClause>IN(?<concurrency>.+?)TRANSACTIONS)?)(?!`)");
 	private static final Pattern PATTERN_CALL_CONCURRENCY = Pattern.compile("(?ims)(-\\d+|\\d+)?\\s*CONCURRENT");
 
 	private static final Pattern USING_PERIODIC_PATTERN = Pattern.compile("(?ims)(?<!`)(([^`\\s*]|^)\\s*+USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)");

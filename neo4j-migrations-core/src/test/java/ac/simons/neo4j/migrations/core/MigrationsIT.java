@@ -93,6 +93,22 @@ class MigrationsIT extends TestBase {
 		assertThat(migrationChain.getLastAppliedVersion()).hasValue(MigrationVersion.withValue("023.1.1"));
 	}
 
+	@Test
+	void getLastAppliedMigrationShouldBeCorrect() {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.build(), driver);
+
+
+		MigrationChain migrationChain = migrations.info();
+		assertThat(migrationChain.getElements())
+			.hasSize(5);
+		assertThat(migrationChain.getLastAppliedVersion()).isEmpty();
+	}
+
 	@Test // GH-573
 	void shouldIgnoreNullRefactorings() {
 

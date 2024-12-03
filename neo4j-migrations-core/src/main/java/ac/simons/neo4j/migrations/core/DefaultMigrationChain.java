@@ -18,7 +18,11 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.function.Predicate;
+
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TargetVersion;
 
 /**
  * Only implementation of a {@link MigrationChain}.
@@ -78,11 +82,28 @@ final class DefaultMigrationChain implements MigrationChain {
 	}
 
 	@Override
+	public Optional<MigrationVersion> toConcreteVersion(TargetVersion targetVersion) {
+		return switch (targetVersion) {
+			case CURRENT -> getLastAppliedVersion();
+			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1).findFirst();
+			case NEXT ->
+				this.elements.entrySet().stream().dropWhile(e -> e.getValue().getState() == MigrationState.APPLIED)
+					.map(Map.Entry::getKey)
+					.findFirst();
+		};
+	}
+
+	@Override
 	public Optional<MigrationVersion> getLastAppliedVersion() {
-		Iterator<MigrationVersion> it = this.elements.keySet().iterator();
+		Iterator<Map.Entry<MigrationVersion, Element>> it = this.elements.entrySet().iterator();
 		MigrationVersion version = null;
 		while (it.hasNext()) {
-			version = it.next();
+			var next = it.next();
+			if (next.getValue().getState() == MigrationState.APPLIED) {
+				version = next.getKey();
+			} else {
+				break;
+			}
 		}
 		return Optional.ofNullable(version);
 	}

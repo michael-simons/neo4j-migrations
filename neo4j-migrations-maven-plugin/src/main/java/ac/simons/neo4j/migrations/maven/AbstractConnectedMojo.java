@@ -141,6 +141,14 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	@Parameter(defaultValue = Defaults.OUT_OF_ORDER_VALUE)
 	private boolean outOfOrder;
 
+	/**
+	 * Use this option to specify a valid target version up to which migrations
+	 * should be considered. Can also be one of current, latest or next.
+	 *
+	 * @since 2.15.0
+	 */
+	private String target;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -177,6 +185,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withImpersonatedUser(impersonatedUser)
 			.withVersionSortOrder(versionSortOrder)
 			.withOutOfOrderAllowed(outOfOrder)
+			.withTarget(target)
 			.build();
 
 		config.logTo(LOGGER, verbose);

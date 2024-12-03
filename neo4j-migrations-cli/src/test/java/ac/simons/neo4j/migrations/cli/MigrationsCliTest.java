@@ -161,6 +161,26 @@ class MigrationsCliTest {
 		assertThat(cli.getConfig().isOutOfOrder()).isTrue();
 	}
 
+	@Test // GH-1536
+	void targetShouldBeNullByDefault() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs();
+
+		assertThat(cli.getConfig().getTarget()).isNull();
+	}
+
+	@Test // GH-1536
+	void targetShouldBeApplied() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--target=current");
+
+		assertThat(cli.getConfig().getTarget()).isEqualTo("current");
+	}
+
 	@Test
 	void shouldRequire2Connections() {
 

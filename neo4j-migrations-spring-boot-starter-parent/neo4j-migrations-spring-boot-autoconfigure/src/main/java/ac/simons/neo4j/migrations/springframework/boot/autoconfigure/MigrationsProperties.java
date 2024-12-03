@@ -134,6 +134,14 @@ public class MigrationsProperties {
 	private boolean outOfOrder = Defaults.OUT_OF_ORDER;
 
 	/**
+	 * Configures the target version up to which migrations should be considered. This must be a valid migration version,
+	 * or one of the special values {@code current}, {@code latest} or {@code next}.
+	 *
+	 * @since 2.15.0
+	 */
+	private String target;
+
+	/**
 	 * @return see {@link #enabled}
 	 */
 	public boolean isEnabled() {
@@ -356,5 +364,20 @@ public class MigrationsProperties {
 	 */
 	public void setOutOfOrder(boolean outOfOrder) {
 		this.outOfOrder = outOfOrder;
+	}
+
+	/**
+	 * {@return the version up-to which migrations should be considered}
+	 */
+	public String getTarget() {
+		return target;
+	}
+
+	/**
+	 * Configures the target version to consider.
+	 * @param target the new value for the target version
+	 */
+	public void setTarget(String target) {
+		this.target = target;
 	}
 }

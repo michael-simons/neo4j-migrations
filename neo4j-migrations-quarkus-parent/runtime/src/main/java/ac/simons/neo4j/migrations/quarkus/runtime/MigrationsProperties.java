@@ -132,4 +132,13 @@ public interface MigrationsProperties {
 	 */
 	@WithDefault(Defaults.OUT_OF_ORDER_VALUE)
 	boolean outOfOrder();
+
+	/**
+	 * Configures the target version up to which migrations should be considered. This must be a valid migration version,
+	 * or one of the special values {@code current}, {@code latest} or {@code next}.
+	 *
+	 * @return an optional target version
+	 * @since 2.15.0
+	 */
+	Optional<String> target();
 }

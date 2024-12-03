@@ -79,6 +79,29 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * Special values for some target versions. When migrating forwards, we will apply all migrations up to and including
+	 * the target version. Migrations with a higher version number will be ignored. If the target is current,
+	 * then no versioned migrations will be applied but repeatable migrations will be.
+	 *
+	 * @since 2.15.0
+	 */
+	public enum TargetVersion {
+
+		/**
+		 * Designates the current version of the schema (only applies repeatable migrations until the current version is reached).
+		 */
+		CURRENT,
+		/**
+		 * The latest version of the schema, as defined by the migration with the highest version.
+		 */
+		LATEST,
+		/**
+		 * The next version of the schema, as defined by the first pending migration
+		 */
+		NEXT
+	}
+
+	/**
 	 * Start building a new configuration.
 	 *
 	 * @return The entry point for creating a new configuration.
@@ -139,6 +162,8 @@ public final class MigrationsConfig {
 
 	private final boolean outOfOrder;
 
+	private final String target;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -161,6 +186,11 @@ public final class MigrationsConfig {
 		this.versionSortOrder = builder.versionSortOrder;
 		this.transactionTimeout = builder.transactionTimeout;
 		this.outOfOrder = builder.outOfOrder;
+		if (builder.target == null || builder.target.isBlank()) {
+			this.target = null;
+		} else {
+			this.target = builder.target;
+		}
 	}
 
 	/**
@@ -256,6 +286,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * {@return the list of additional options to use when rendering constraints}
+	 *
 	 * @since 2.8.2
 	 */
 	public List<? extends RenderConfig.AdditionalRenderingOptions> getConstraintRenderingOptions() {
@@ -264,6 +295,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * {@return the transaction timeout, <code>null</code> indicates all transactions will use the drivers default timeout}
+	 *
 	 * @since 2.13.0
 	 */
 	public Duration getTransactionTimeout() {
@@ -280,6 +312,15 @@ public final class MigrationsConfig {
 	 */
 	public boolean isOutOfOrder() {
 		return outOfOrder;
+	}
+
+	/**
+	 * {@return a valid target version or one of three dedicated values}
+	 *
+	 * @since 2.15.0
+	 */
+	public String getTarget() {
+		return target;
 	}
 
 	/**
@@ -311,6 +352,7 @@ public final class MigrationsConfig {
 
 	/**
 	 * This is internal API and will be made package private in 2.0.0
+	 *
 	 * @return True if there are packages to scan
 	 */
 	boolean hasPlacesToLookForMigrations() {
@@ -397,6 +439,8 @@ public final class MigrationsConfig {
 		private Duration transactionTimeout;
 
 		private boolean outOfOrder = Defaults.OUT_OF_ORDER;
+
+		private String target;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -573,6 +617,7 @@ public final class MigrationsConfig {
 		/**
 		 * Configures the rendering options for constraints defined by a catalog. Can be {@literal null} but must not
 		 * contain any {@literal null} items.
+		 *
 		 * @param newRenderingOptions The rendering options to use, a {@literal null} argument resets the options.
 		 * @return The builder for further customization
 		 * @throws NullPointerException if {@code newRenderingOptions} contains {@literal null} values
@@ -586,6 +631,7 @@ public final class MigrationsConfig {
 
 		/**
 		 * Configures how versions are sorted.
+		 *
 		 * @param newVersionSortOrder the new order
 		 * @return The builder for further customization
 		 * @see VersionSortOrder
@@ -599,6 +645,7 @@ public final class MigrationsConfig {
 
 		/**
 		 * Configures the transaction timeout. Leave {@literal null} (the default), to use the drivers default
+		 *
 		 * @param newTransactionTimeout The transaction timeout
 		 * @return The builder for further customization
 		 * @since 2.13.0
@@ -617,6 +664,20 @@ public final class MigrationsConfig {
 		 */
 		public Builder withOutOfOrderAllowed(boolean allowed) {
 			this.outOfOrder = allowed;
+			return this;
+		}
+
+		/**
+		 * Configures the target version up to which migrations should be considered.
+		 * This must be a valid migration version, or one of the special values
+		 * {@code current}, {@code latest} or {@code next}.
+		 *
+		 * @param newTarget the new target version
+		 * @return The builder for further customization
+		 * @since 2.15.0
+		 */
+		public Builder withTarget(String newTarget) {
+			this.target = newTarget;
 			return this;
 		}
 

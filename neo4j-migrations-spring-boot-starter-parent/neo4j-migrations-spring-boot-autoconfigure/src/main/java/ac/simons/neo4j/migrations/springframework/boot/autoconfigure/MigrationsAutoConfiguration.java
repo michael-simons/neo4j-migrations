@@ -81,7 +81,8 @@ public class MigrationsAutoConfiguration {
 			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())
 			.withVersionSortOrder(migrationsProperties.getVersionSortOrder())
 			.withMigrationClassesDiscoverer(applicationContextAwareDiscoverer.getIfAvailable())
-			.withOutOfOrderAllowed(migrationsProperties.isOutOfOrder());
+			.withOutOfOrderAllowed(migrationsProperties.isOutOfOrder())
+			.withTarget(migrationsProperties.getTarget());
 		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
 		return builder.build();
 	}

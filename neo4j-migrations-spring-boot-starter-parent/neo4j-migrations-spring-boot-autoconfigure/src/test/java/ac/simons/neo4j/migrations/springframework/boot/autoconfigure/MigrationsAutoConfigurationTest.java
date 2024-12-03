@@ -379,6 +379,27 @@ class MigrationsAutoConfigurationTest {
 			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
 			assertThat(config.isOutOfOrder()).isTrue();
 		}
+
+		@Test // GH-1536
+		void targetShouldBeNullByDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.getTarget()).isNull();
+		}
+
+		@Test // GH-1536
+		void targetShouldBeApplied() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setTarget("0.10.0");
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.getTarget()).isEqualTo("0.10.0");
+		}
 	}
 
 	private static class LoggingAppender extends ListAppender<ILoggingEvent> {

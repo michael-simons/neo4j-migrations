@@ -16,8 +16,13 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.logging.Level;
+
+import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 
 /**
  * A helper class that can be used to delay the iteration of migrations by a configurable amount of time.
@@ -31,42 +36,85 @@ final class IterableMigrations implements Iterable<Migration> {
 
 	private final List<Migration> migrations;
 
-	IterableMigrations(MigrationsConfig config, List<Migration> migrations) {
+	private final MigrationVersion optionalStop;
+
+	static IterableMigrations of(MigrationsConfig config, List<Migration> migrations) {
+		return of(config, migrations, null);
+	}
+
+	static IterableMigrations of(MigrationsConfig config, List<Migration> migrations, StopVersion stopVersion) {
+		MigrationVersion optionalStop;
+		if (stopVersion == null) {
+			optionalStop = null;
+		} else {
+			optionalStop = stopVersion.version();
+			if (!stopVersion.optional() && migrations.stream().filter(m -> m.getVersion().equals(optionalStop)).findFirst().isEmpty()) {
+				throw new MigrationsException("Target version %s is not available".formatted(optionalStop.getValue()));
+			}
+		}
+		return new IterableMigrations(config, migrations, optionalStop);
+	}
+
+	private IterableMigrations(MigrationsConfig config, List<Migration> migrations, MigrationVersion optionalStop) {
 		this.config = config;
 		this.migrations = migrations;
+		this.optionalStop = optionalStop;
 	}
 
 	@Override
 	public Iterator<Migration> iterator() {
 		var iterator = migrations.iterator();
-		return config.getOptionalDelayBetweenMigrations().map(d -> (Iterator<Migration>) new DelayingIterator(iterator, d))
-			.orElse(iterator);
+		if (optionalStop != null) {
+			Migrations.LOGGER.log(Level.INFO, "Will stop at target version {0}", optionalStop);
+		}
+		return new DelayingIterator(iterator, config.getOptionalDelayBetweenMigrations().orElse(null), config.getVersionComparator(), optionalStop);
 	}
 
 	private static final class DelayingIterator implements Iterator<Migration> {
 
 		private final Iterator<Migration> delegate;
 
-		private final Duration delay;
+		private final Duration optionalDelay;
 
-		DelayingIterator(Iterator<Migration> delegate, Duration delay) {
+		private final Comparator<MigrationVersion> comparator;
+
+		private final MigrationVersion optionalStop;
+
+		private Migration next;
+
+		DelayingIterator(Iterator<Migration> delegate, Duration optionalDelay, Comparator<MigrationVersion> comparator, MigrationVersion optionalStop) {
 			this.delegate = delegate;
-			this.delay = delay;
+			this.optionalDelay = optionalDelay;
+			this.comparator = comparator;
+			this.optionalStop = optionalStop;
 		}
 
 		@Override
 		public boolean hasNext() {
-			return delegate.hasNext();
+			var hasNext = delegate.hasNext();
+			if (hasNext) {
+				this.next = delegate.next();
+				hasNext = this.optionalStop == null || comparator.compare(next.getVersion(), optionalStop) <= 0;
+			} else {
+				this.next = null;
+			}
+			return hasNext;
 		}
 
 		@Override
-		public Migration next() {
-			try {
-				Thread.sleep(delay.toMillis());
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
+		public Migration next() throws NoSuchElementException {
+			if (next == null) {
+				throw new NoSuchElementException();
 			}
-			return delegate.next();
+
+			if (optionalDelay != null) {
+				try {
+					Thread.sleep(optionalDelay.toMillis());
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+			return next;
 		}
 	}
 }

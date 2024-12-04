@@ -16,15 +16,23 @@
 package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Michael J. Simons
@@ -39,8 +47,8 @@ class IterableMigrationsTest {
 	@MethodSource
 	void iteratingWithoutDelayShouldWork(Duration delay) {
 
-		List<Migration> migrations = List.of(Mockito.mock(JavaBasedMigration.class), Mockito.mock(JavaBasedMigration.class));
-		var iterableMigrations = new IterableMigrations(MigrationsConfig.builder().withDelayBetweenMigrations(delay).build(), migrations);
+		List<Migration> migrations = List.of(mock(JavaBasedMigration.class), mock(JavaBasedMigration.class));
+		var iterableMigrations = IterableMigrations.of(MigrationsConfig.builder().withDelayBetweenMigrations(delay).build(), migrations);
 		var start = System.currentTimeMillis();
 		int cnt = 0;
 		for (@SuppressWarnings("unused") Migration migration : iterableMigrations) {
@@ -53,5 +61,67 @@ class IterableMigrationsTest {
 		} else {
 			assertThat(duration).isGreaterThanOrEqualTo(delay.multipliedBy(cnt).toSeconds());
 		}
+	}
+
+	@ParameterizedTest // GH-1536
+	@ValueSource(booleans = {true, false})
+	void optionalStopVersionShouldBeChecked(boolean optional) {
+
+		var migrations = mockMigrations("V10");
+		var config = MigrationsConfig.defaultConfig();
+		var stopVersion = new MigrationVersion.StopVersion(MigrationVersion.parse("V2025__Is going to be so much fun.cypher"), optional);
+
+		ThrowingCallable iterableMigrationsSupplier = () -> IterableMigrations.of(config, migrations, stopVersion);
+		if (optional) {
+			assertThatNoException().isThrownBy(iterableMigrationsSupplier);
+		} else {
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(iterableMigrationsSupplier).withMessage("Target version 2025 is not available");
+		}
+	}
+
+	static List<Migration> mockMigrations(String firstVersion, String... moreVersions) {
+		return Stream.concat(Stream.of(firstVersion), Stream.of(moreVersions)).map(v -> MigrationVersion.parse(v + "__na"))
+			.map(v -> {
+				var m = mock(JavaBasedMigration.class);
+				when(m.getVersion()).thenReturn(v);
+				return m;
+			}).collect(Collectors.toUnmodifiableList());
+	}
+
+
+	static Stream<Arguments> stopVersions() {
+		return Stream.of(
+			Arguments.of("V023_1_1", List.of("10", "20")),
+			Arguments.of("V5", List.of()),
+			Arguments.of("V50", List.of("10", "20", "30", "40", "50")),
+			Arguments.of("V60", List.of("10", "20", "30", "40", "50", "60")),
+			Arguments.of("V61", List.of("10", "20", "30", "40", "50", "60"))
+		);
+	}
+
+	@ParameterizedTest // GH-1536
+	@MethodSource
+	void stopVersions(String version, List<String> expected) {
+
+		var migrations = mockMigrations("V10", "R20", "V30", "V40", "R50", "V60");
+		var config = MigrationsConfig.builder().withVersionSortOrder(MigrationsConfig.VersionSortOrder.SEMANTIC).build();
+		var stopVersion = new MigrationVersion.StopVersion(MigrationVersion.parse(version + "__na"), true);
+
+
+		assertThat(IterableMigrations.of(config, migrations, stopVersion))
+			.extracting(Migration::getVersion)
+			.extracting(MigrationVersion::getValue)
+			.containsExactlyElementsOf(expected);
+
+	}
+
+	@Test // GH-1536
+	void shouldThrowIfDone() {
+
+		var it = IterableMigrations.of(MigrationsConfig.defaultConfig(), mockMigrations("V1")).iterator();
+		while (it.hasNext()) {
+			assertThat(it.next()).isNotNull();
+		}
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(it::next);
 	}
 }

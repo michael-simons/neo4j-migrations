@@ -251,6 +251,12 @@ public final class MigrationsCli implements Runnable {
 	)
 	private boolean outOfOrder;
 
+	@Option(
+		names = {"--target"},
+		description = "Use this option to specify a valid target version up to which migrations should be considered. Can also be one of current, latest or next."
+	)
+	private String target;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -306,6 +312,7 @@ public final class MigrationsCli implements Runnable {
 			.withDelayBetweenMigrations(delayBetweenMigrations)
 			.withVersionSortOrder(versionSortOrder)
 			.withOutOfOrderAllowed(outOfOrder)
+			.withTarget(target)
 			.build();
 
 		if (!forceSilence) {

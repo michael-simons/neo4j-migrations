@@ -78,11 +78,33 @@ final class DefaultMigrationChain implements MigrationChain {
 	}
 
 	@Override
+	public Optional<MigrationVersion> findTargetVersion(MigrationVersion.TargetVersion targetVersion) {
+
+		if (this.elements.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return switch (targetVersion) {
+			case CURRENT -> getLastAppliedVersion();
+			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1L).findFirst();
+			case NEXT ->
+				this.elements.entrySet().stream().dropWhile(e -> e.getValue().getState() == MigrationState.APPLIED)
+					.map(Map.Entry::getKey)
+					.findFirst();
+		};
+	}
+
+	@Override
 	public Optional<MigrationVersion> getLastAppliedVersion() {
-		Iterator<MigrationVersion> it = this.elements.keySet().iterator();
+		Iterator<Map.Entry<MigrationVersion, Element>> it = this.elements.entrySet().iterator();
 		MigrationVersion version = null;
 		while (it.hasNext()) {
-			version = it.next();
+			var next = it.next();
+			if (next.getValue().getState() == MigrationState.APPLIED) {
+				version = next.getKey();
+			} else {
+				break;
+			}
 		}
 		return Optional.ofNullable(version);
 	}

@@ -32,18 +32,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -91,6 +97,22 @@ class MigrationsIT extends TestBase {
 			.hasSizeGreaterThan(0)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 		assertThat(migrationChain.getLastAppliedVersion()).hasValue(MigrationVersion.withValue("023.1.1"));
+	}
+
+	@Test
+	void getLastAppliedMigrationShouldBeCorrect() {
+
+		Migrations migrations;
+		migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+				"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+			.build(), driver);
+
+
+		MigrationChain migrationChain = migrations.info();
+		assertThat(migrationChain.getElements())
+			.hasSize(5);
+		assertThat(migrationChain.getLastAppliedVersion()).isEmpty();
 	}
 
 	@Test // GH-573
@@ -907,12 +929,12 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Nested
-	class Ordering {
+	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	class OrderingAndStopping {
 
 		static final String FIND_NODES_QUERY = "MATCH (n:OOO) RETURN n ORDER BY n.created_on";
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldDefaultToOrderAndOrderShouldBeRight() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base").build(), driver);
@@ -922,8 +944,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N4", "N1", "N3", "N2");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldFailOnOutOfOrderByDefault() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -938,8 +959,7 @@ class MigrationsIT extends TestBase {
 				.withMessage("Unexpected migration at index 1: 015 (\"NewSecond\").");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderInTheBeginningOne() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -958,8 +978,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N1", "N2", "N4");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderInTheBeginningN() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -978,8 +997,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N1", "N2", "N7", "N4", "N8");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderInTheMiddleOne() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -998,8 +1016,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N1", "N2", "N3");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderInTheMiddleN() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -1018,8 +1035,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N1", "N2", "N5", "N3", "N6");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderCombined() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -1038,8 +1054,7 @@ class MigrationsIT extends TestBase {
 			assertCreationOrder("N1", "N2", "N4", "N3");
 		}
 
-		@Test
-			// GH-1213
+		@Test // GH-1213
 		void shouldNotFailOnOutOfOrderCombinedAll() {
 
 			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:ooo/base/first").build(), driver);
@@ -1069,16 +1084,113 @@ class MigrationsIT extends TestBase {
 			assertRepeats(4, 2);
 		}
 
+		@Test // GH-1536
+		void nonStop() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v1", "classpath:stopping/pt3").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020", "030", "040");
+			assertCreationOrder("N1", "N2", "N3", "N4");
+		}
+
+		@Test // GH-1536
+		void stopOnRepeat() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v1", "classpath:stopping/pt3").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020", "030", "040");
+			assertCreationOrder("N1", "N2", "N3", "N4");
+
+			migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v2", "classpath:stopping/pt3", "classpath:stopping/pt4")
+				.withTarget("R030")
+				.build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, Set.of("050", "060"), "010", "020", "030", "040", "050", "060");
+			assertCreationOrder("N1", "N2", "N3", "N4", "N3R");
+		}
+
+		Stream<Arguments> stopOnVersion() {
+			Consumer<Migrations> currentAssertion = migrations -> {
+				assertChainOrder(migrations, Set.of("050", "060"), "010", "020", "030", "040", "050", "060");
+				assertCreationOrder("N1", "N2", "N3", "N4");
+			};
+
+			Consumer<Migrations> latestAssertion = migrations -> {
+				assertChainOrder(migrations, Set.of(), "010", "020", "030", "040", "050", "060");
+				assertCreationOrder("N1", "N2", "N3", "N4", "N5", "N6");
+			};
+
+			Consumer<Migrations> nextAssertion = migrations -> {
+				assertChainOrder(migrations, Set.of("060"), "010", "020", "030", "040", "050", "060");
+				assertCreationOrder("N1", "N2", "N3", "N4", "N5");
+			};
+
+			return Stream.of(
+				Arguments.of("current", currentAssertion),
+				Arguments.of("V040", currentAssertion),
+				Arguments.of("V045?", currentAssertion),
+				Arguments.of("latest", latestAssertion),
+				Arguments.of("V060", latestAssertion),
+				Arguments.of("V100?", latestAssertion),
+				Arguments.of("next", nextAssertion),
+				Arguments.of("V050", nextAssertion),
+				Arguments.of("V055?", nextAssertion)
+			);
+		}
+
+		@ParameterizedTest(name = "{0}") // GH-1536
+		@MethodSource
+		void stopOnVersion(String version, Consumer<Migrations> assertion) {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v1", "classpath:stopping/pt3").build(), driver);
+			migrations.apply();
+
+			assertChainOrder(migrations, "010", "020", "030", "040");
+			assertCreationOrder("N1", "N2", "N3", "N4");
+
+			migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v1", "classpath:stopping/pt3", "classpath:stopping/pt4")
+				.withTarget(version)
+				.build(), driver);
+			migrations.apply();
+
+			assertion.accept(migrations);
+		}
+
+		@Test // GH-1536
+		void shouldAbortOnNonExisting() {
+
+			var migrations = new Migrations(defaultConfigPart().withLocationsToScan("classpath:stopping/pt1", "classpath:stopping/pt2v1", "classpath:stopping/pt3")
+				.withTarget("V1000")
+				.build(), driver);
+			assertThatExceptionOfType(MigrationsException.class)
+				.isThrownBy(migrations::apply)
+				.withMessage("Target version 1000 is not available");
+		}
+
 		private static MigrationsConfig.Builder defaultConfigPart() {
 			return MigrationsConfig.builder()
 				.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION);
 		}
 
 		private static void assertChainOrder(Migrations migrations, String... expectedVersions) {
+			assertChainOrder(migrations, Set.of(), expectedVersions);
+		}
+
+		private static void assertChainOrder(Migrations migrations, Set<String> pending, String... expectedVersions) {
 			var chain = migrations.info();
 			assertThat(chain.getElements())
 				.allSatisfy(c -> {
-					assertThat(c.getInstalledOn()).isNotEmpty();
+					var isPending = pending.contains(c.getVersion());
+					if (isPending) {
+						assertThat(c.getState()).isEqualTo(MigrationState.PENDING);
+						assertThat(c.getInstalledOn()).isEmpty();
+					} else {
+						assertThat(c.getState()).isEqualTo(MigrationState.APPLIED);
+						assertThat(c.getInstalledOn()).isNotEmpty();
+					}
 				})
 				.map(MigrationChain.Element::getVersion)
 				.containsExactly(expectedVersions);

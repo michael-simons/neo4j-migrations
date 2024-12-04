@@ -177,5 +177,31 @@ public class AbstractConnectedMojoTest {
 		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isTrue();
 	}
+
+	@Test // GH-1536
+	public void targetShouldBeNullByDefault() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-and-schema/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getTarget()).isNull();
+	}
+
+	@Test // GH-1536
+	public void targetShouldBeApplied() throws Exception {
+
+		File pom = new File("target/test-classes/target/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getTarget()).isEqualTo("next");
+	}
 }
 

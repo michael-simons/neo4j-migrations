@@ -114,4 +114,32 @@ class MigrationsRecorderTest {
 		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
 		assertThat(config.isOutOfOrder()).isTrue();
 	}
+
+	@Test // GH-1536
+	void targetShouldBeNullByDefault() {
+
+		var properties = mock(MigrationsProperties.class);
+		when(properties.target()).thenReturn(Optional.empty());
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.getTarget()).isNull();
+	}
+
+	@Test // GH-1536
+	void targetShouldBeApplied() {
+
+		var properties = mock(MigrationsProperties.class);
+		when(properties.target()).thenReturn(Optional.of("latest"));
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.getTarget()).isEqualTo("latest");
+	}
 }

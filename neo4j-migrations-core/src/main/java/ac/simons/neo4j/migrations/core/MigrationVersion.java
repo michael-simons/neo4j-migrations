@@ -32,8 +32,10 @@ public final class MigrationVersion {
 
 	private static final String BASELINE_VALUE = "BASELINE";
 	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null, false);
+	static final String VERSION_PATTERN_BASE = "(?<type>[VR])(?<version>\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)";
 	@SuppressWarnings("squid:S5843") // This is a fine regex
-	static final Pattern VERSION_PATTERN = Pattern.compile("(?<type>[VR])(?<version>\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)__(?<name>[\\w ]+)(?:\\.(?<ext>\\w+))?");
+	static final Pattern VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_BASE + "__(?<name>[\\w ]+)(?:\\.(?<ext>\\w+))?");
+	static final Pattern STOP_VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_BASE + "(?<op>\\?)?(__(?<name>[\\w ]+)(?:\\.(?<ext>\\w+))?)?");
 
 	private final String value;
 	private final String description;
@@ -44,7 +46,7 @@ public final class MigrationVersion {
 	private final boolean repeatable;
 
 	/**
-	 * @param pathOrUrl A string representing either a path or an URL.
+	 * @param pathOrUrl A string representing either a path or a URL.
 	 * @return {@literal true} when the given path or URL can be parsed into a valid {@link MigrationVersion}
 	 */
 	public static boolean canParse(String pathOrUrl) {
@@ -73,6 +75,57 @@ public final class MigrationVersion {
 
 		boolean repeatable = "R".equalsIgnoreCase(matcher.group("type"));
 		return new MigrationVersion(matcher.group("version").replace("_", "."), matcher.group("name").replace("_", " "), repeatable);
+	}
+
+	/**
+	 * Finds an optional target version in a {@link MigrationChain}.
+	 *
+	 * @param chain The chain in which to look for the target version
+	 * @param value The value of the target version
+	 * @return an optional version to stop migrating at
+	 * @since 2.15.0
+	 */
+	static Optional<StopVersion> findTargetVersion(MigrationChain chain, String value) {
+
+		if (value == null) {
+			return Optional.empty();
+		}
+
+		try {
+			var upperCaseValue = value.trim().toUpperCase();
+			boolean optional;
+			if (!upperCaseValue.endsWith("?")) {
+				optional = false;
+			} else {
+				optional = true;
+				upperCaseValue = upperCaseValue.substring(0, upperCaseValue.length() - 1);
+			}
+			var targetVersion = TargetVersion.valueOf(upperCaseValue);
+			return chain.findTargetVersion(targetVersion).map(v -> new StopVersion(v, optional));
+		} catch (IllegalArgumentException e) {
+			return Optional.of(parseStopVersion(value));
+		}
+	}
+
+	/**
+	 * Creates a {@link StopVersion} from the given class or file name in a more lenient way (the name for the migration
+	 * is optional) and an optional flag.
+	 *
+	 * @param name A class or file name
+	 * @return A {@link StopVersion}
+	 * @throws MigrationsException if the name cannot be parsed
+	 * @since 2.15.0
+	 */
+	private static StopVersion parseStopVersion(String name) {
+
+		Matcher matcher = STOP_VERSION_PATTERN.matcher(name);
+		if (!matcher.matches()) {
+			throw new MigrationsException("Invalid class or file name for a migration: " + name);
+		}
+
+		boolean repeatable = "R".equalsIgnoreCase(matcher.group("type"));
+		String optionalName = matcher.group("name") == null ? "n/a" : matcher.group("name").replace("_", " ");
+		return new StopVersion(new MigrationVersion(matcher.group("version").replace("_", "."), optionalName, repeatable), matcher.group("op") != null);
 	}
 
 	/**
@@ -210,5 +263,38 @@ public final class MigrationVersion {
 
 			return o1.getValue().compareTo(o2.getValue());
 		}
+	}
+
+	/**
+	 * Special values for some target versions. When migrating forwards, we will apply all migrations up to and including
+	 * the target version. Migrations with a higher version number will be ignored. If the target is current,
+	 * then no versioned migrations will be applied but repeatable migrations will be.
+	 *
+	 * @since 2.15.0
+	 */
+	public enum TargetVersion {
+
+		/**
+		 * Designates the current version of the schema.
+		 */
+		CURRENT,
+		/**
+		 * The latest version of the schema, as defined by the migration with the highest version.
+		 */
+		LATEST,
+		/**
+		 * The next version of the schema, as defined by the first pending migration.
+		 */
+		NEXT
+	}
+
+	/**
+	 * Marks a version as stop version. If the version is marked as optional, migrations  will go up to but not beyond the
+	 * specified version. Otherwise, it will fail, if the version does not exist.
+	 *
+	 * @param version  the version to stop at
+	 * @param optional set to {@code true} if the version is not required to be in the chain.
+	 */
+	record StopVersion(MigrationVersion version, boolean optional) {
 	}
 }

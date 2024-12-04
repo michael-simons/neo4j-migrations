@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+import ac.simons.neo4j.migrations.core.MigrationVersion.TargetVersion;
+
 /**
  * Public information about an applied migration. All migrations (applied and pending) form a chain of transformations
  * to a database. The chain starts implicit with a baseline version. The baseline version is not contained in this chain.
@@ -113,6 +115,15 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	default Optional<MigrationVersion> getLastAppliedVersion() {
 		return Optional.empty();
 	}
+
+	/**
+	 * Translates a target version into a concrete version
+	 *
+	 * @param targetVersion the target version to translate into a concrete version
+	 * @return the concrete version if any
+	 * @since 2.15.0
+	 */
+	Optional<MigrationVersion> findTargetVersion(TargetVersion targetVersion);
 
 	/**
 	 * A chain element describing a pending or applied migration.

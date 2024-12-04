@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
@@ -304,7 +305,7 @@ public final class Migrations {
 			migrations.addAll(provider.handle(ResourceContext.of(resource, config)));
 		}
 
-		for (Migration migration : new IterableMigrations(config, migrations)) {
+		for (Migration migration : IterableMigrations.of(config, migrations)) {
 			migration.apply(context);
 			LOGGER.info(() -> "Applied " + toString(migration));
 			++cnt;
@@ -718,13 +719,13 @@ public final class Migrations {
 
 		ensureConstraints(context);
 
-		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);
-
 		// Validate and build the chain of migrations
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);
+		StopVersion optionalStop = MigrationVersion.findTargetVersion(chain, config.getTarget()).orElse(null);
 
 		StopWatch stopWatch = new StopWatch();
-		for (Migration migration : new IterableMigrations(config, migrations)) {
+		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);
+		for (Migration migration : IterableMigrations.of(config, migrations, optionalStop)) {
 			var isApplied = chain.isApplied(migration.getVersion().getValue());
 			var isRepeated = false;
 

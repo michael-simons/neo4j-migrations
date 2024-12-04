@@ -23,10 +23,12 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -111,5 +113,15 @@ class IterableMigrationsTest {
 			.extracting(MigrationVersion::getValue)
 			.containsExactlyElementsOf(expected);
 
+	}
+
+	@Test // GH-1536
+	void shouldThrowIfDone() {
+
+		var it = IterableMigrations.of(MigrationsConfig.defaultConfig(), mockMigrations("V1")).iterator();
+		while (it.hasNext()) {
+			assertThat(it.next()).isNotNull();
+		}
+		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(it::next);
 	}
 }

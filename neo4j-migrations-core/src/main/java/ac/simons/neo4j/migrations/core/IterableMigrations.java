@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 
@@ -90,12 +91,18 @@ final class IterableMigrations implements Iterable<Migration> {
 			if (hasNext) {
 				this.next = delegate.next();
 				hasNext = this.optionalStop == null || comparator.compare(next.getVersion(), optionalStop) <= 0;
+			} else {
+				this.next = null;
 			}
 			return hasNext;
 		}
 
 		@Override
-		public Migration next() {
+		public Migration next() throws NoSuchElementException {
+			if (next == null) {
+				throw new NoSuchElementException();
+			}
+
 			if (optionalDelay != null) {
 				try {
 					Thread.sleep(optionalDelay.toMillis());

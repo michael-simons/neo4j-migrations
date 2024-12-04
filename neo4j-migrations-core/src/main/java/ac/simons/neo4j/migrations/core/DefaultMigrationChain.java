@@ -86,7 +86,7 @@ final class DefaultMigrationChain implements MigrationChain {
 
 		return switch (targetVersion) {
 			case CURRENT -> getLastAppliedVersion();
-			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1).findFirst();
+			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1L).findFirst();
 			case NEXT ->
 				this.elements.entrySet().stream().dropWhile(e -> e.getValue().getState() == MigrationState.APPLIED)
 					.map(Map.Entry::getKey)

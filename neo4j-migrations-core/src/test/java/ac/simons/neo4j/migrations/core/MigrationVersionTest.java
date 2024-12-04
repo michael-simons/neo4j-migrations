@@ -17,13 +17,21 @@ package ac.simons.neo4j.migrations.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -163,5 +171,85 @@ class MigrationVersionTest {
 		hlp.addAll(List.of(v1, v2, v3, v4, v5a, v5b));
 		assertThat(hlp).containsExactly(v2, v1, v3, v5a);
 		assertThat(hlp).containsExactly(v2, v1, v4, v5a);
+	}
+
+	static Stream<Arguments> allTargetVersions() {
+		var required = Arrays.stream(MigrationVersion.TargetVersion.values()).map(MigrationVersion.TargetVersion::name);
+		var optional = Arrays.stream(MigrationVersion.TargetVersion.values()).map(v -> v.name() + "?");
+		return Stream.concat(required, optional).map(Arguments::of);
+	}
+
+	@ParameterizedTest // GH-1536
+	@MethodSource("allTargetVersions")
+	void shouldFindTargetVersionEmptyChain(String version) {
+
+		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var stopVersion = MigrationVersion.findTargetVersion(chain, version);
+		assertThat(stopVersion).isEmpty();
+	}
+
+	Map<MigrationVersion, MigrationChain.Element> makeChain() {
+		var versions = IterableMigrationsTest.mockMigrations("V1", "V2", "V3", "V4", "V5");
+		return versions.stream().collect(Collectors.toMap(Migration::getVersion, m -> {
+			MigrationChain.Element element = mock(DefaultMigrationChainElement.class);
+			var state = Integer.parseInt(m.getVersion().getValue()) <= 3 ? MigrationState.APPLIED : MigrationState.PENDING;
+			when(element.getState()).thenReturn(state);
+			return element;
+		}));
+	}
+
+	static Stream<Arguments> shouldFindSpecial() {
+		return Stream.of(
+			Arguments.of(MigrationVersion.TargetVersion.CURRENT, "3"),
+			Arguments.of(MigrationVersion.TargetVersion.LATEST, "5"),
+			Arguments.of(MigrationVersion.TargetVersion.NEXT, "4")
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldFindSpecial(MigrationVersion.TargetVersion targetVersion, String expected) {
+
+		var chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null), makeChain());
+		var stopVersion = MigrationVersion.findTargetVersion(chain, targetVersion.name());
+		assertThat(stopVersion).hasValueSatisfying(v -> {
+			assertThat(v.version().getValue()).isEqualTo(expected);
+			assertThat(v.optional()).isFalse();
+		});
+	}
+
+	@Test
+	void shouldFindLatest() {
+
+		var chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null), makeChain());
+		var stopVersion = MigrationVersion.findTargetVersion(chain, MigrationVersion.TargetVersion.LATEST.name());
+		assertThat(stopVersion).hasValueSatisfying(v -> {
+			assertThat(v.version().getValue()).isEqualTo("5");
+			assertThat(v.optional()).isFalse();
+		});
+	}
+
+	@Test // GH-1536
+	void findTargetVersionMustNotFailOnNull() {
+
+		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var stopVersion = MigrationVersion.findTargetVersion(chain, null);
+		assertThat(stopVersion).isEmpty();
+	}
+
+	static Stream<Arguments> specificVersions() {
+		return Stream.of(Arguments.of("V04.2", false), Arguments.of("V04_2?", true));
+	}
+
+	@ParameterizedTest // GH-1536
+	@MethodSource("specificVersions")
+	void findSpecificTargetMustNotFailWithEmptyChain(String version, boolean optional) {
+
+		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var stopVersion = MigrationVersion.findTargetVersion(chain, version);
+		assertThat(stopVersion).hasValueSatisfying(v -> {
+			assertThat(v.version().getValue()).isEqualTo("04.2");
+			assertThat(v.optional()).isEqualTo(optional);
+		});
 	}
 }

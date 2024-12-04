@@ -55,8 +55,7 @@ class MigrationChainTest {
 		assertThat(chain.prettyPrint()).contains("Database: a");
 	}
 
-	@Test
-		// GH-648
+	@Test // GH-648
 	void shouldPrintEdition() {
 
 		MigrationChain chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null), Collections.emptyMap());

@@ -18,11 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Optional;
-import java.util.function.Predicate;
-
-import ac.simons.neo4j.migrations.core.MigrationsConfig.TargetVersion;
 
 /**
  * Only implementation of a {@link MigrationChain}.
@@ -82,7 +78,12 @@ final class DefaultMigrationChain implements MigrationChain {
 	}
 
 	@Override
-	public Optional<MigrationVersion> toConcreteVersion(TargetVersion targetVersion) {
+	public Optional<MigrationVersion> findTargetVersion(MigrationVersion.TargetVersion targetVersion) {
+
+		if (this.elements.isEmpty()) {
+			return Optional.empty();
+		}
+
 		return switch (targetVersion) {
 			case CURRENT -> getLastAppliedVersion();
 			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1).findFirst();

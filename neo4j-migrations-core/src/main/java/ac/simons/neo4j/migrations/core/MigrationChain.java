@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import ac.simons.neo4j.migrations.core.MigrationsConfig.TargetVersion;
+import ac.simons.neo4j.migrations.core.MigrationVersion.TargetVersion;
 
 /**
  * Public information about an applied migration. All migrations (applied and pending) form a chain of transformations
@@ -123,7 +123,7 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	 * @return the concrete version if any
 	 * @since 2.15.0
 	 */
-	Optional<MigrationVersion> toConcreteVersion(TargetVersion targetVersion);
+	Optional<MigrationVersion> findTargetVersion(TargetVersion targetVersion);
 
 	/**
 	 * A chain element describing a pending or applied migration.

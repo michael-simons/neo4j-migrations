@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
-import ac.simons.neo4j.migrations.core.MigrationsConfig.TargetVersion;
+import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -306,7 +305,7 @@ public final class Migrations {
 			migrations.addAll(provider.handle(ResourceContext.of(resource, config)));
 		}
 
-		for (Migration migration : new IterableMigrations(config, migrations)) {
+		for (Migration migration : IterableMigrations.of(config, migrations)) {
 			migration.apply(context);
 			LOGGER.info(() -> "Applied " + toString(migration));
 			++cnt;
@@ -526,7 +525,7 @@ public final class Migrations {
 	/**
 	 * Validates the database against the resolved migrations. A database  is considered to be in a valid state when all
 	 * resolved migrations  have been applied (there  are no more  pending migrations). If  a database is not  yet fully
-	 * migrated,  it  won't  identify  as  {@link  Outcome#VALID}  but  it  will  indicate  via  {@link
+	 * migrated,  it  won't  identify  as  {@link  ValidationResult.Outcome#VALID}  but  it  will  indicate  via  {@link
 	 * ValidationResult#needsRepair()} that it doesn't need repair. Applying the pending migrations via {@link #apply()}
 	 * will bring the database  into a valid state. Most other  outcomes not valid need to be  manually fix. One radical
 	 * fix is calling {@link Migrations#clean(boolean)} with the same configuration.
@@ -716,42 +715,22 @@ public final class Migrations {
 		return !ChainBuilder.matches(appliedChecksum, migration);
 	}
 
-	private static Optional<TargetVersion> targetVersionOf(String value) {
-
-		if (value == null) {
-			return Optional.empty();
-		}
-		try {
-			return Optional.of(TargetVersion.valueOf(value.trim().toUpperCase()));
-		} catch (IllegalArgumentException e) {
-			return Optional.empty();
-		}
-	}
-
 	private void apply0(List<Migration> migrations) {
 
 		ensureConstraints(context);
 
-		MigrationVersion currentVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);
 		// Validate and build the chain of migrations
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);
-
-		String stopVersion;
-		var unspecifiedTargetString = context.getConfig().getTarget();
-		if (unspecifiedTargetString == null) {
-			 stopVersion = null;
-		} else {
-			stopVersion = targetVersionOf(unspecifiedTargetString).flatMap(chain::toConcreteVersion)
-				.map(MigrationVersion::getValue).orElse(unspecifiedTargetString);
+		StopVersion optionalStop = MigrationVersion.findTargetVersion(chain, config.getTarget()).orElse(null);
+		if (optionalStop != null) {
+			LOGGER.log(Level.INFO, "Will stop at target version {0}", optionalStop.version());
 		}
 
-		MigrationVersion previousVersion = currentVersion;
 		StopWatch stopWatch = new StopWatch();
-		for (Migration migration : new IterableMigrations(config, migrations)) {
+		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);
+		for (Migration migration : IterableMigrations.of(config, migrations, optionalStop)) {
 			var isApplied = chain.isApplied(migration.getVersion().getValue());
 			var isRepeated = false;
-			var stop = migration.getVersion().getValue().equals(stopVersion);
-			var skip = false;
 
 			if (!isApplied && config.getVersionComparator().compare(migration.getVersion(), previousVersion) < 0) {
 				previousVersion = MigrationVersion.baseline();
@@ -762,34 +741,27 @@ public final class Migrations {
 				if (!checksumOfRepeatableChanged(chain, migration)) {
 					LOGGER.log(Level.INFO, "Skipping already applied migration {0}", toString(migration));
 					previousVersion = migration.getVersion();
-					skip = true;
-				} else {
-					logMessage = () -> String.format("Reapplied changed repeatable migration %s", toString(migration));
-					isRepeated = true;
+					continue;
 				}
+
+				logMessage = () -> String.format("Reapplied changed repeatable migration %s", toString(migration));
+				isRepeated = true;
 			}
 
-			if(!skip) {
-				try {
-					stopWatch.start();
-					migration.apply(context);
-					long executionTime = stopWatch.stop();
-					previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime, isRepeated);
+			try {
+				stopWatch.start();
+				migration.apply(context);
+				long executionTime = stopWatch.stop();
+				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime, isRepeated);
 
-					LOGGER.log(Level.INFO, logMessage);
-				} catch (Exception e) {
-					if (HBD.constraintProbablyRequiredEnterpriseEdition(e, getConnectionDetails())) {
-						throw new MigrationsException(Messages.INSTANCE.format("errors.edition_mismatch", toString(migration), getConnectionDetails().getServerEdition()));
-					}
-					throw MigrationsException.of(e, () -> "Could not apply migration: " + toString(migration) + ".");
-				} finally {
-					stopWatch.reset();
+				LOGGER.log(Level.INFO, logMessage);
+			} catch (Exception e) {
+				if (HBD.constraintProbablyRequiredEnterpriseEdition(e, getConnectionDetails())) {
+					throw new MigrationsException(Messages.INSTANCE.format("errors.edition_mismatch", toString(migration), getConnectionDetails().getServerEdition()));
 				}
-			}
-
-			if (stop) { // if the stop version is a repeatable one, it is now applied
-				LOGGER.log(Level.INFO, () -> "Stopping at target version %s".formatted(stopVersion));
-				break;
+				throw MigrationsException.of(e, () -> "Could not apply migration: " + toString(migration) + ".");
+			} finally {
+				stopWatch.reset();
 			}
 		}
 	}

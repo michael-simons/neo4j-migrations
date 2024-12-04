@@ -79,29 +79,6 @@ public final class MigrationsConfig {
 	}
 
 	/**
-	 * Special values for some target versions. When migrating forwards, we will apply all migrations up to and including
-	 * the target version. Migrations with a higher version number will be ignored. If the target is current,
-	 * then no versioned migrations will be applied but repeatable migrations will be.
-	 *
-	 * @since 2.15.0
-	 */
-	public enum TargetVersion {
-
-		/**
-		 * Designates the current version of the schema (only applies repeatable migrations until the current version is reached).
-		 */
-		CURRENT,
-		/**
-		 * The latest version of the schema, as defined by the migration with the highest version.
-		 */
-		LATEST,
-		/**
-		 * The next version of the schema, as defined by the first pending migration
-		 */
-		NEXT
-	}
-
-	/**
 	 * Start building a new configuration.
 	 *
 	 * @return The entry point for creating a new configuration.

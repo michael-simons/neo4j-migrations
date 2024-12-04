@@ -85,7 +85,7 @@ class IterableMigrationsTest {
 				var m = mock(JavaBasedMigration.class);
 				when(m.getVersion()).thenReturn(v);
 				return m;
-			}).collect(Collectors.toList());
+			}).collect(Collectors.toUnmodifiableList());
 	}
 
 

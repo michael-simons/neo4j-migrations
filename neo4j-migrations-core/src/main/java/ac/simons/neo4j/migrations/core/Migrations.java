@@ -722,9 +722,6 @@ public final class Migrations {
 		// Validate and build the chain of migrations
 		MigrationChain chain = chainBuilder.buildChain(context, migrations);
 		StopVersion optionalStop = MigrationVersion.findTargetVersion(chain, config.getTarget()).orElse(null);
-		if (optionalStop != null) {
-			LOGGER.log(Level.INFO, "Will stop at target version {0}", optionalStop.version());
-		}
 
 		StopWatch stopWatch = new StopWatch();
 		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);

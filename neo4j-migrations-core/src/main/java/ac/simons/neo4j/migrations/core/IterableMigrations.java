@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 
 import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 
@@ -63,6 +64,9 @@ final class IterableMigrations implements Iterable<Migration> {
 	@Override
 	public Iterator<Migration> iterator() {
 		var iterator = migrations.iterator();
+		if (optionalStop != null) {
+			Migrations.LOGGER.log(Level.INFO, "Will stop at target version {0}", optionalStop);
+		}
 		return new DelayingIterator(iterator, config.getOptionalDelayBetweenMigrations().orElse(null), config.getVersionComparator(), optionalStop);
 	}
 

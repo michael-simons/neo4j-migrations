@@ -1,3 +1,184 @@
+# 2.15.1
+
+## 🧹 Housekeeping
+- 053c132 Bump neo4j-ogm.version from 4.0.12 to 4.0.13
+- daf4c4c Bump quarkus-neo4j.version from 5.0.1 to 5.0.2
+- d3ebed2 build(deps-dev): Bump org.checkerframework:checker-qual from 3.48.2 to 3.48.3 (#1549)
+- 25ebdac Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.11.1 to 3.11.2 (#1548)
+- 3d1eeae Bump org.graalvm.buildtools:native-maven-plugin from 0.10.3 to 0.10.4 (#1547)
+- 1d03171 Bump quarkus.version from 3.17.2 to 3.17.3 (#1546)
+
+
+# 2.15.0
+
+## 🚀 Features
+- c7ae213 feat: Introduce a `target` version up to which migrations should be applied. (#1544)
+
+## 📝 Documentation
+- 6920e9f docs: add zakjan as a contributor for ideas (#1545)
+
+## 🧹 Housekeeping
+- 6a2949e Bump com.puppycrawl.tools:checkstyle from 10.20.1 to 10.20.2 (#1543)
+
+
+# 2.14.1
+
+## 🐛 Bug Fixes
+- cd0f323 fix: Enhance detection for `CALL IN TRANSACTION`. (#1540)
+
+## 📝 Documentation
+- fd16d3f docs: add ctytgat as a contributor for bug (#1542)
+- b2675ae docs: add pepow as a contributor for ideas (#1539)
+- de2c686 docs: add guy-keller as a contributor for research (#1538)
+
+
+# 2.14.0
+
+## 🚀 Features
+- aa2a852 feat: Add support for out-of-order migrations. (#1531)
+
+## 🧹 Housekeeping
+- 9a003b4 Bump quarkus.version from 3.17.0 to 3.17.2 (#1535)
+- c3dacbc Bump quarkus-neo4j.version from 5.0.0 to 5.0.1 (#1532)
+- 36bf34c Bump org.neo4j.driver:neo4j-java-driver from 5.26.3 to 5.27.0 (#1534)
+- 64e3452 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.35.1 to 2.36.0 (#1530)
+- 6a8cd4c Bump commons-io:commons-io from 2.17.0 to 2.18.0 (#1529)
+- 31efc0f Bump testcontainers.version from 1.20.3 to 1.20.4 (#1528)
+- 3b5ebb9 Bump spring-boot.version from 3.3.5 to 3.4.0 (#1527)
+- 5cee934 Bump quarkus.version from 3.16.3 to 3.17.0 (#1526)
+- e53c127 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.5 to 7.4.0 (#1525)
+- 5a945fd Bump io.github.classgraph:classgraph from 4.8.177 to 4.8.179 (#1524)
+- 2953c26 Bump neo4j-ogm.version from 4.0.11 to 4.0.12 (#1523)
+- 9866d29 Bump org.neo4j.driver:neo4j-java-driver from 5.26.1 to 5.26.3 (#1522)
+- cc8d3ed Bump quarkus.version from 3.16.2 to 3.16.3 (#1521)
+- a2b994a Bump org.asciidoctor:asciidoctor-maven-plugin from 3.1.0 to 3.1.1 (#1520)
+
+---
+- 7b82e14 Update gitHub-push-action
+
+
+# 2.13.4
+
+## 🧹 Housekeeping
+- f6d8ef0 build(deps-dev): Bump org.checkerframework:checker-qual from 3.48.1 to 3.48.2 (#1516)
+- b9e00cd Bump quarkus.version from 3.16.1 to 3.16.2 (#1512)
+- 7ead5c6 Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.10.1 to 3.11.1 (#1519)
+- bf4fde6 Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.7.0 to 3.8.0 (#1518)
+- a16c4a0 Bump org.asciidoctor:asciidoctor-maven-plugin from 3.0.0 to 3.1.0 (#1517)
+- dbaf67a Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 4.0.0.4121 to 5.0.0.4389 (#1515)
+- 00df03d Bump com.puppycrawl.tools:checkstyle from 10.20.0 to 10.20.1 (#1513)
+- ce5daf0 Bump org.neo4j.driver:neo4j-java-driver from 5.26.0 to 5.26.1 (#1505)
+- aa0bde7 Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.5.1 to 3.5.2 (#1511)
+- 25ae0ed Bump testcontainers.version from 1.20.2 to 1.20.3 (#1510)
+- 6877ca3 Bump org.apache.maven.plugins:maven-surefire-plugin from 3.5.1 to 3.5.2 (#1509)
+- acb17c3 Bump com.puppycrawl.tools:checkstyle from 10.19.0 to 10.20.0 (#1508)
+- cdbe421 Bump org.apache.maven.plugins:maven-checkstyle-plugin from 3.5.0 to 3.6.0 (#1507)
+- 1a88339 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.4 to 7.3.5 (#1506)
+- a38c5c0 Bump byte-buddy.version from 1.15.7 to 1.15.10 (#1504)
+- a0fa361 Bump quarkus.version from 3.16.0 to 3.16.1 (#1503)
+- 4113d8c Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.15.0 to 3.15.1 (#1502)
+- de81c64 Bump org.commonmark:commonmark from 0.23.0 to 0.24.0 (#1493)
+- 7822980 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.34.0 to 2.35.1 (#1496)
+- 8bded65 Bump quarkus.version from 3.15.1 to 3.16.0 (#1501)
+- 07d6756 Bump spring-boot.version from 3.3.4 to 3.3.5 (#1500)
+- 63fb2ff Bump org.apache.maven.plugins:maven-plugin-plugin from 3.15.0 to 3.15.1 (#1499)
+- 11dfd3d Bump byte-buddy.version from 1.15.4 to 1.15.7 (#1498)
+- dda5d67 Bump org.junit:junit-bom from 5.11.2 to 5.11.3 (#1497)
+- 03d16c4 Bump com.puppycrawl.tools:checkstyle from 10.18.2 to 10.19.0 (#1495)
+- 541b1d9 Bump org.codehaus.mojo:exec-maven-plugin from 3.4.1 to 3.5.0 (#1494)
+- 4a525ed Bump org.apache.maven.plugins:maven-invoker-plugin from 3.8.0 to 3.8.1 (#1492)
+
+
+# 2.13.3
+
+## 📝 Documentation
+- 01ea330 docs: add medsouz as a contributor for code (#1489)
+
+## 🧹 Housekeeping
+- 519b1c6 build(deps-dev): Bump org.checkerframework:checker-qual from 3.47.0 to 3.48.1 (#1487)
+- 5ecec0a Bump org.neo4j.driver:neo4j-java-driver from 5.24.0 to 5.26.0 (#1491)
+- 39bb56f build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.32.0 to 2.34.0 (#1490)
+- 9921c98 Bump byte-buddy.version from 1.15.3 to 1.15.4 (#1485)
+- e8108c5 Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.10.0 to 3.10.1 (#1484)
+- 48b54c3 Bump io.github.classgraph:classgraph from 4.8.176 to 4.8.177 (#1482)
+- c10891b Bump org.apache.maven.plugins:maven-surefire-plugin from 3.5.0 to 3.5.1 (#1481)
+- 27753cd Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.5.0 to 3.5.1 (#1480)
+- 07f3661 Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.1.0 to 2024.2.0 (#1479)
+- 92a9fbc Bump testcontainers.version from 1.20.1 to 1.20.2 (#1478)
+
+## 🛠 Build
+- 432ff85 build: Switch GraalVM `-march` flag from `native` to `compatibility` (#1488)
+
+## Contributors
+We'd like to thank the following people for their contributions:
+- @medsouz for his input on better GraalVM native image compatibility in #1488
+
+
+# 2.13.2
+
+Thanks to @medsouz who spotted the performance bottleneck in my mind- and indexless cypher (see #1476).
+
+## 🔄️ Refactorings
+- d4f85d7 refactor: Create index for repeated migrations and improve query for retrieving them.
+
+## 📝 Documentation
+- 23d8562 docs: add medsouz as a contributor for ideas (#1477)
+
+## 🧹 Housekeeping
+- 089a16d Bump com.mycila:license-maven-plugin from 4.5 to 4.6 (#1474)
+- cee12d0 Bump io.fabric8:docker-maven-plugin from 0.45.0 to 0.45.1 (#1465)
+- 8b94d4a Bump byte-buddy.version from 1.15.1 to 1.15.3 (#1466)
+- e97c932 build(deps-dev): Bump com.google.guava:guava from 33.3.0-jre to 33.3.1-jre (#1467)
+- 9c63bc5 Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.6 to 3.2.7 (#1468)
+- acc06eb Bump quarkus.version from 3.15.0 to 3.15.1 (#1469)
+- 10fb83f Bump plexus-utils.version from 4.0.1 to 4.0.2 (#1471)
+- 5af62f4 Bump com.puppycrawl.tools:checkstyle from 10.18.1 to 10.18.2 (#1472)
+- b15cae1 Bump org.junit:junit-bom from 5.11.0 to 5.11.2 (#1475)
+- bb83cb6 Revert "Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.20.0 (#1447)"
+
+## 🛠 Build
+- 100d9e7 build: Modernize actions.
+
+
+# 2.13.1
+
+You'll notice that the tag `2.13.1` has been recreated several times. That's how many attempts I need to get GitHub actions up- and download artifacts in version 4 right. The release to central was out already, but despite having to rewrite history, no code has been changed, but only this [file](https://github.com/michael-simons/neo4j-migrations/commit/eaed8ae828fb44a4eeb2bd6481db14305628c114).
+
+## 📝 Documentation
+- 044879b docs: Update local changelog.
+
+## 🧹 Housekeeping
+- 0b908ba Bump quarkus-neo4j.version from 4.3.0 to 4.4.0
+- d88392f Bump commons-io:commons-io from 2.16.1 to 2.17.0 (#1464)
+- 85cdb2d Bump spring-boot.version from 3.3.3 to 3.3.4 (#1463)
+- cb479c9 Bump io.github.classgraph:classgraph from 4.8.175 to 4.8.176 (#1462)
+- 92f3ad5 Bump quarkus.version from 3.14.4 to 3.15.0 (#1461)
+- 44e589d Bump org.commonmark:commonmark from 0.22.0 to 0.23.0 (#1460)
+- f1279bb Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.0.3 to 2024.1.0 (#1459)
+- 0c5bf74 Bump org.apache.maven.plugins:maven-gpg-plugin from 3.2.5 to 3.2.6 (#1458)
+- 4f8cfcc Bump org.apache.maven.plugins:maven-surefire-plugin from 3.4.0 to 3.5.0 (#1457)
+- ead2269 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.31.0 to 2.32.0 (#1456)
+- b6d3294 Bump org.graalvm.buildtools:native-maven-plugin from 0.10.2 to 0.10.3 (#1455)
+- 4217c27 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.3.3 to 7.3.4 (#1454)
+- 7dda780 Bump net.java.dev.jna:jna from 5.14.0 to 5.15.0 (#1453)
+- e93d921 Bump quarkus.version from 3.14.2 to 3.14.4 (#1452)
+- 8284356 Bump io.github.classgraph:classgraph from 4.8.174 to 4.8.175 (#1451)
+- 6644b11 build(deps-dev): Bump org.checkerframework:checker-qual from 3.46.0 to 3.47.0 (#1450)
+- 150345c Bump org.apache.maven.plugins:maven-invoker-plugin from 3.7.0 to 3.8.0 (#1449)
+- d5964ec Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.4.0 to 3.5.0 (#1448)
+- b692d66 Bump org.apache.maven.plugins:maven-site-plugin from 3.12.1 to 3.20.0 (#1447)
+- 9287e8d Bump com.puppycrawl.tools:checkstyle from 10.18.0 to 10.18.1 (#1446)
+- 3c8d577 Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.2 to 3.1.3 (#1445)
+- 3d3f93c Bump quarkus.version from 3.14.1 to 3.14.2 (#1444)
+- a24c004 Bump org.apache.maven.plugins:maven-javadoc-plugin from 3.8.0 to 3.10.0 (#1443)
+- fa076ab Bump byte-buddy.version from 1.15.0 to 1.15.1 (#1442)
+- adc997a Bump actions/download-artifact from 1 to 4.1.7 in /.github/workflows (#1441)
+
+## 🛠 Build
+- eaed8ae build: Update upload-artifact everywhere.
+- 786589a build: Use GraalVM 23 to build native images.
+
+
 # 2.13.0
 
 ⚠️ If you are using Neo4j-Migrations with Quarkus, this release requires Quarkus >= 3.14. For more background see this [discussion](https://github.com/orgs/quarkiverse/discussions/228). Big shoutout to @radcortez for helping me here and in the original extension.

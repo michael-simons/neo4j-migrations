@@ -154,7 +154,7 @@
 		<native.maven.plugin.version>0.10.4</native.maven.plugin.version>
 		<neo4j-java-driver.version>5.27.0</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>2.15.0</neo4j-migrations.previous.version>
-		<neo4j-ogm.version>4.0.12</neo4j-ogm.version>
+		<neo4j-ogm.version>4.0.13</neo4j-ogm.version>
 		<neo4j.image>neo4j:5.23</neo4j.image>
 		<nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
 		<objenesis.version>3.4</objenesis.version>

@@ -1436,4 +1436,41 @@ class MigrationsIT extends TestBase {
 			}
 		}
 	}
+
+	static Stream<Arguments> lockSkippingShouldWork() {
+		return Stream.of(
+			Arguments.of(
+				(Consumer<Migrations>) Migrations::validate,
+				(Consumer<Migrations>) migrations -> migrations.validate(false)),
+			Arguments.of(
+				(Consumer<Migrations>) Migrations::info,
+				(Consumer<Migrations>) migrations -> migrations.info(false))
+		);
+	}
+
+	@ParameterizedTest // GH-1582
+	@MethodSource
+	void lockSkippingShouldWork(Consumer<Migrations> hard, Consumer<Migrations> soft) {
+		var migrations = new Migrations(MigrationsConfig
+			.builder().withLocationsToScan("classpath:softvalidations").build(), driver);
+
+		// The single migration in the above resources contains an apoc.util.sleep call
+		var thread = new Thread(migrations::apply);
+		thread.start();
+
+		try {
+			// Wait on this thread long enough so that the locking thread can start
+			Thread.sleep(1000);
+			// hard validate
+			assertThatExceptionOfType(MigrationsException.class).isThrownBy(() -> hard.accept(migrations))
+				.withMessage("Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed");
+
+			// soft validate
+			assertThatNoException().isThrownBy(() -> soft.accept(migrations));
+
+			thread.join();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
 }

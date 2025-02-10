@@ -181,8 +181,21 @@ public final class Migrations {
 	 */
 	public MigrationChain info() {
 
+		return info(true);
+	}
+
+	/**
+	 * This is an overload for {@link #info()} ()} that allows skipping the locking mechanism. Use with care.
+	 *
+	 * @param doLock Use {@literal false} to skip the locking mechanism
+	 * @return The chain of migrations.
+	 * @see #info()
+	 * @since 2.16.0
+	 */
+	public MigrationChain info(boolean doLock) {
+
 		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations()),
-			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO, doLock);
 	}
 
 	/**
@@ -197,7 +210,7 @@ public final class Migrations {
 	public MigrationChain info(ChainBuilderMode mode) {
 
 		return executeWithinLock(() -> chainBuilder.buildChain(context, this.getMigrations(), false, mode),
-			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO);
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO, true);
 	}
 
 	/**
@@ -236,7 +249,7 @@ public final class Migrations {
 			}
 			apply0(this.getMigrations());
 			return getLastAppliedVersion();
-		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE);
+		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE, true);
 	}
 
 	/**
@@ -338,7 +351,7 @@ public final class Migrations {
 
 		Optional<String> optionalMigrationTarget = config.getMigrationTargetIn(context);
 		DeletedChainsWithCounters deletedChainsWithCounters
-			= executeWithinLock(() -> clean0(optionalMigrationTarget, all), LifecyclePhase.BEFORE_CLEAN, LifecyclePhase.AFTER_CLEAN);
+			= executeWithinLock(() -> clean0(optionalMigrationTarget, all), LifecyclePhase.BEFORE_CLEAN, LifecyclePhase.AFTER_CLEAN, true);
 
 		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();
 		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();
@@ -447,7 +460,7 @@ public final class Migrations {
 						deletedVersion);
 				});
 			}
-		}, null, null);
+		}, null, null, true);
 	}
 
 	/**
@@ -519,7 +532,7 @@ public final class Migrations {
 
 			return RepairmentResult.repaired(affectedDatabase, nodesDeleted, nodesCreated,
 				relationshipsDeleted, relationshipsCreated, propertiesSet);
-		}, null, null);
+		}, null, null, true);
 	}
 
 	/**
@@ -536,7 +549,21 @@ public final class Migrations {
 	 */
 	public ValidationResult validate() {
 
-		return executeWithinLock(this::validate0, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE);
+		return validate(true);
+	}
+
+	/**
+	 * This is an overload for {@link #validate()} that allows skipping the locking mechanism. Use with care.
+	 *
+	 * @param doLock Use {@literal false} to skip the locking mechanism
+	 * @return a validation result, with an outcome, a possible list  of warnings and indicators if the database is in a
+	 *         valid state
+	 * @see #validate()
+	 * @since 2.16.0
+	 */
+	public ValidationResult validate(boolean doLock) {
+
+		return executeWithinLock(this::validate0, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE, doLock);
 	}
 
 	private ValidationResult validate0() {
@@ -593,7 +620,7 @@ public final class Migrations {
 				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());
 				return DatabaseCatalog.of(neo4jVersion, session, true);
 			}
-		}, null, null);
+		}, null, null, true);
 	}
 
 	/**
@@ -604,13 +631,15 @@ public final class Migrations {
 		return "neo4j-migrations/" + ProductVersion.getValue();
 	}
 
-	private <T> T executeWithinLock(Supplier<T> executable, LifecyclePhase before, LifecyclePhase after) {
+	private <T> T executeWithinLock(Supplier<T> executable, LifecyclePhase before, LifecyclePhase after, boolean doLock) {
 
 		driver.verifyConnectivity();
 
 		MigrationsLock lock = new MigrationsLock(this.context);
 		try {
-			lock.lock();
+			if (doLock) {
+				lock.lock();
+			}
 			if (beforeFirstUseHasBeenCalled.compareAndSet(false, true)) {
 				invokeCallbacks(LifecyclePhase.BEFORE_FIRST_USE);
 			}

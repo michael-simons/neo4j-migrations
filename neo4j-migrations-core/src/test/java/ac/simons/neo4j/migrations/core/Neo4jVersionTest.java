@@ -42,9 +42,10 @@ class Neo4jVersionTest {
 		assertThat(version).isEqualTo(Neo4jVersion.V5);
 	}
 
-	@Test
-	void shouldBeLatestOnAnythingHigherThanDefined() {
-		Neo4jVersion version = Neo4jVersion.of("Neo4j/4711");
+	@ParameterizedTest
+	@ValueSource(strings = {"Neo4j/4711", "2025.02.0-20138"})
+	void shouldBeLatestOnAnythingHigherThanDefined(String value) {
+		Neo4jVersion version = Neo4jVersion.of(value);
 		assertThat(version).isEqualTo(Neo4jVersion.LATEST);
 	}
 

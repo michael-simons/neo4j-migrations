@@ -120,6 +120,7 @@
 		<japicmp-maven-plugin.version>0.23.1</japicmp-maven-plugin.version>
 		<java-module-name />
 		<java.version>17</java.version>
+		<jreleaser-maven-plugin.version>1.16.0</jreleaser-maven-plugin.version>
 		<!-- to be overridden in sub modules -->
 		<junit.jupiter.version>5.11.4</junit.jupiter.version>
 		<license-maven-plugin.version>4.6</license-maven-plugin.version>
@@ -1125,7 +1126,7 @@
 					<plugin>
 						<groupId>org.jreleaser</groupId>
 						<artifactId>jreleaser-maven-plugin</artifactId>
-						<version>1.5.1</version>
+						<version>${jreleaser-maven-plugin.version}</version>
 						<inherited>false</inherited>
 						<configuration>
 							<jreleaser>
@@ -1269,10 +1270,10 @@
 										<brew>
 											<active>ALWAYS</active>
 											<templateDirectory>etc/jreleaser/distributions/brew</templateDirectory>
-											<tap>
+											<repository>
 												<name>homebrew-neo4j-migrations</name>
 												<commitMessage>Bump neo4j-migrations to {{tagName}}.</commitMessage>
-											</tap>
+											</repository>
 											<formulaName>neo4j-migrations</formulaName>
 										</brew>
 										<sdkman>
@@ -1298,10 +1299,10 @@
 												<scriptName>neo4j_migrations</scriptName>
 												<distributionGA>eu.michael-simons.neo4j:neo4j-migrations-cli</distributionGA>
 											</extraProperties>
-											<catalog>
+											<repository>
 												<owner>neo4j</owner>
 												<commitMessage>Bump neo4j-migrations to {{tagName}}.</commitMessage>
-											</catalog>
+											</repository>
 										</jbang>
 									</neo4j-migrations-no-arch>
 								</distributions>

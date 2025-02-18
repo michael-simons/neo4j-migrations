@@ -386,8 +386,8 @@ public final class Migrations {
 			this.counter = source.counter;
 			this.additionalConstraintsRemoved = additionalConstraintsRemoved;
 		}
-
 	}
+
 	private DeletedChainsWithCounters clean0(
 		@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<String> migrationTarget,
 		boolean all

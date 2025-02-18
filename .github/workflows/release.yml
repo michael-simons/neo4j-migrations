@@ -120,4 +120,6 @@ jobs:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
           JRELEASER_SDKMAN_CONSUMER_KEY: ${{ secrets.JRELEASER_SDKMAN_CONSUMER_KEY }}
           JRELEASER_SDKMAN_CONSUMER_TOKEN: ${{ secrets.JRELEASER_SDKMAN_CONSUMER_TOKEN }}
+          JRELEASER_BLUESKY_HANDLE: ${{ secrets.JRELEASER_BLUESKY_HANDLE }}
+          JRELEASER_BLUESKY_PASSWORD: ${{ secrets.JRELEASER_BLUESKY_PASSWORD }}
         run: ./mvnw --no-transfer-progress -Pjreleaser -pl :neo4j-migrations-parent jreleaser:full-release

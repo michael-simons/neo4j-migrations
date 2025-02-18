@@ -1306,6 +1306,12 @@
 										</jbang>
 									</neo4j-migrations-no-arch>
 								</distributions>
+								<announce>
+									<bluesky>
+											<active>RELEASE</active>
+											<host>https://bsky.social</host>
+									</bluesky>
+								</announce>
 							</jreleaser>
 						</configuration>
 					</plugin>

@@ -5,6 +5,9 @@
     },
     {
       "name": "com.sun.org.apache.xerces.internal.impl.xpath.regex.message"
+    },
+    {
+      "name": "com.sun.org.apache.xml.internal.security/resource/xmlsecurity"
     }
   ],
   "resources": [

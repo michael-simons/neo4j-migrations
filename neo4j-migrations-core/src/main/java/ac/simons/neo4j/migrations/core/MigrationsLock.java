@@ -83,9 +83,15 @@ final class MigrationsLock {
 
 		int constraintsAdded = 0;
 		ConnectionDetails cd = context.getConnectionDetails();
+		Neo4jVersion neo4jVersion = Neo4jVersion.of(cd.getServerVersion());
+		Neo4jEdition edition = Neo4jEdition.of(cd.getServerEdition());
 		try (Session session = context.getSchemaSession()) {
 			Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
-			RenderConfig createConfig = RenderConfig.create().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
+			RenderConfig.Builder builder = RenderConfig.create();
+			if (neo4jVersion.hasIdempotentOperations()) {
+				builder = ((RenderConfig.IfNotExistsConfigBuilder) builder).ifNotExists();
+			}
+			RenderConfig createConfig = builder.forVersionAndEdition(neo4jVersion, edition);
 
 			for (Constraint constraint : REQUIRED_CONSTRAINTS) {
 				String cypher = renderer.render(constraint, createConfig);

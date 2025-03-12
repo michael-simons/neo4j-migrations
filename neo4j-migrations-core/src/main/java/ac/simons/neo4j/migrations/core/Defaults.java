@@ -123,6 +123,19 @@ public final class Defaults {
 	 */
 	public static final String OUT_OF_ORDER_VALUE = "false";
 
+	/**
+	 * Default setting for {@code useFlywayCompatibleChecksums}.
+	 * @since 2.17.0
+	 */
+	public static final boolean USE_FLYWAY_COMPATIBLE_CHECKSUMS = false;
+
+	/**
+	 * Default setting for {@code useFlywayCompatibleChecksums} but as a {@link String string value} to be used in
+	 * configuration that requires defaults given as string.
+	 * @since 2.17.0
+	 */
+	public static final String USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE = "false";
+
 	private Defaults() {
 	}
 }

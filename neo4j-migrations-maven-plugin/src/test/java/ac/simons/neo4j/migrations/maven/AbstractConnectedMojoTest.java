@@ -178,6 +178,32 @@ public class AbstractConnectedMojoTest {
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isTrue();
 	}
 
+	@Test
+	public void useFlywayCompatibleChecksumsShouldBeDisabled() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-and-schema/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isFalse();
+	}
+
+	@Test
+	public void useFlywayCompatibleChecksumsShouldBeEnabled() throws Exception {
+
+		File pom = new File("target/test-classes/out-of-order/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isTrue();
+	}
+
 	@Test // GH-1536
 	public void targetShouldBeNullByDefault() throws Exception {
 

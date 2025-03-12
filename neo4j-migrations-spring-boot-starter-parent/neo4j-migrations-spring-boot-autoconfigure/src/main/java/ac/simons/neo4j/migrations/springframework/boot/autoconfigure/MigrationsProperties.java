@@ -134,6 +134,13 @@ public class MigrationsProperties {
 	private boolean outOfOrder = Defaults.OUT_OF_ORDER;
 
 	/**
+	 * When this flag is set to {@literal true}, checksums will be computed with the same algorithm Flyway uses.
+	 *
+	 * @since 2.17.0
+	 */
+	private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
+
+	/**
 	 * Configures the target version up to which migrations should be considered. This must be a valid migration version,
 	 * or one of the special values {@code current}, {@code latest} or {@code next}.
 	 *
@@ -356,6 +363,23 @@ public class MigrationsProperties {
 	 */
 	public boolean isOutOfOrder() {
 		return outOfOrder;
+	}
+
+	/**
+	 * {@return whether to use Flyway compatible checksums or not}
+	 * @since 2.17.0
+	 */
+	public boolean isUseFlywayCompatibleChecksums() {
+		return useFlywayCompatibleChecksums;
+	}
+
+	/**
+	 * Configures whether Flyway compatible checksums should be used or not
+	 * @param useFlywayCompatibleChecksums the new value for the corresponding flag
+	 * @since 2.17.0
+	 */
+	public void setUseFlywayCompatibleChecksums(boolean useFlywayCompatibleChecksums) {
+		this.useFlywayCompatibleChecksums = useFlywayCompatibleChecksums;
 	}
 
 	/**

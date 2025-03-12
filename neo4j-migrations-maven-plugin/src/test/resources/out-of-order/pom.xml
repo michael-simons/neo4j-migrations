@@ -36,6 +36,7 @@
 					<password>secret</password>
 					<locationsToScan>classpath:/wontwork</locationsToScan>
 					<outOfOrder>true</outOfOrder>
+					<useFlywayCompatibleChecksums>true</useFlywayCompatibleChecksums>
 				</configuration>
 			</plugin>
 		</plugins>

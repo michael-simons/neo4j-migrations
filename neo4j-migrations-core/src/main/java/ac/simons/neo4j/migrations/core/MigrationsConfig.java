@@ -141,6 +141,8 @@ public final class MigrationsConfig {
 
 	private final String target;
 
+	private final boolean useFlywayCompatibleChecksums;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -163,6 +165,7 @@ public final class MigrationsConfig {
 		this.versionSortOrder = builder.versionSortOrder;
 		this.transactionTimeout = builder.transactionTimeout;
 		this.outOfOrder = builder.outOfOrder;
+		this.useFlywayCompatibleChecksums = builder.useFlywayCompatibleChecksums;
 		if (builder.target == null || builder.target.isBlank()) {
 			this.target = null;
 		} else {
@@ -301,6 +304,15 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * {@return if Flyway compatible checksums should be used}
+	 *
+	 * @since 2.17.0
+	 */
+	public boolean isUseFlywayCompatibleChecksums() {
+		return useFlywayCompatibleChecksums;
+	}
+
+	/**
 	 * Helper method to pretty print this configuration into a logger (on level {@literal INFO} respectively {@literal WARNING}.
 	 *
 	 * @param logger  the logger to print to
@@ -418,6 +430,8 @@ public final class MigrationsConfig {
 		private boolean outOfOrder = Defaults.OUT_OF_ORDER;
 
 		private String target;
+
+		private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -655,6 +669,18 @@ public final class MigrationsConfig {
 		 */
 		public Builder withTarget(String newTarget) {
 			this.target = newTarget;
+			return this;
+		}
+
+		/**
+		 * Enables or disables migrations with checksums in Flyway compatible mode
+		 *
+		 * @param enabled use {@literal true} to enable Flyway compatible checksums
+		 * @return The builder for further customization
+		 * @since 2.17.0
+		 */
+		public Builder withFlywayCompatibleChecksums(boolean enabled) {
+			this.useFlywayCompatibleChecksums = enabled;
 			return this;
 		}
 

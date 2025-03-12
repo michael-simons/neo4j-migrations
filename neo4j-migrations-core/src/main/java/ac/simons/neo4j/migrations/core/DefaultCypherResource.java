@@ -15,7 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +59,7 @@ import ac.simons.neo4j.migrations.core.refactorings.Counters;
 final class DefaultCypherResource implements CypherResource {
 
 	private static final Logger LOGGER = Logger.getLogger(DefaultCypherResource.class.getName());
+	private static final char BOM = '\ufeff';
 	private static final Predicate<String> NOT_A_SINGLE_COMMENT =
 		s -> {
 			if (!Strings.isSingleLineComment(s)) {
@@ -101,6 +106,8 @@ final class DefaultCypherResource implements CypherResource {
 	 */
 	private final Supplier<InputStream> inputStreamSupplier;
 
+	private final boolean useFlywayCompatibleChecksums;
+
 	/**
 	 * A lazily initialized list of statements, will be initialized with Double-checked locking into an unmodifiable
 	 * list, see {@link #readStatements()}.
@@ -109,10 +116,11 @@ final class DefaultCypherResource implements CypherResource {
 	private volatile List<String> statements;
 	private volatile String checksum;
 
-	DefaultCypherResource(String identifier, boolean autocrlf, Supplier<InputStream> inputStreamSupplier) {
+	DefaultCypherResource(String identifier, boolean autocrlf, boolean useFlywayCompatibleChecksums, Supplier<InputStream> inputStreamSupplier) {
 
 		this.identifier = identifier;
 		this.autocrlf = autocrlf;
+		this.useFlywayCompatibleChecksums = useFlywayCompatibleChecksums;
 		this.inputStreamSupplier = inputStreamSupplier;
 	}
 
@@ -136,7 +144,38 @@ final class DefaultCypherResource implements CypherResource {
 	}
 
 	private String computeChecksum() {
-		return computeChecksum(getStatements());
+		return useFlywayCompatibleChecksums ? flywayCompatChecksum() : computeChecksum(getStatements());
+	}
+
+	private static String filterBomFromString(String s) {
+		if (s == null || s.isEmpty()) {
+			return s;
+		}
+
+		if (s.charAt(0)  == BOM) {
+			return s.substring(1);
+		}
+
+		return s;
+	}
+
+	private String flywayCompatChecksum() {
+		final CRC32 crc32 = new CRC32();
+
+		try (var bufferedReader = new BufferedReader(new InputStreamReader(inputStreamSupplier.get()), 4096)) {
+			String line = bufferedReader.readLine();
+
+			if (line != null) {
+				line = filterBomFromString(line);
+				do {
+					crc32.update(line.getBytes(StandardCharsets.UTF_8));
+				} while ((line = bufferedReader.readLine()) != null);
+			}
+		} catch (IOException e) {
+			throw new MigrationsException("Unable to calculate checksum of " + identifier + "\r\n" + e.getMessage(), e);
+		}
+		// Yeah, this is fucked up, but flyway does that too…
+		return Integer.toString((int) (crc32.getValue()));
 	}
 
 	static String computeChecksum(Collection<String> statements) {

@@ -193,8 +193,12 @@ final class ChainBuilder {
 					Record row = result.single();
 					List<Relationship> repetitions = row.get("repetitions").asList(Value::asRelationship);
 					row.get("p").asPath().forEach(segment -> {
+						var end = segment.end();
+						if (end.get("flyway_failed").asBoolean(false) || !end.containsKey("version") || end.get("type").asString().equals("DELETE")) {
+							return;
+						}
 						Element chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);
-						chain.put(MigrationVersion.withValue(chainElement.getVersion(), segment.end().get("repeatable").asBoolean(false)), chainElement);
+						chain.put(MigrationVersion.withValue(chainElement.getVersion(), end.get("repeatable").asBoolean(false)), chainElement);
 					});
 				}
 				return chain;

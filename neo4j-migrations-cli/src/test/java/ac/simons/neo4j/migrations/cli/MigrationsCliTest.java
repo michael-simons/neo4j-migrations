@@ -161,6 +161,26 @@ class MigrationsCliTest {
 		assertThat(cli.getConfig().isOutOfOrder()).isTrue();
 	}
 
+	@Test
+	void useFlywayCompatibleChecksumsShouldBeDisabled() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs();
+
+		assertThat(cli.getConfig().isUseFlywayCompatibleChecksums()).isFalse();
+	}
+
+	@Test
+	void useFlywayCompatibleChecksumsShouldBeEnabled() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--use-flyway-compatible-checksums");
+
+		assertThat(cli.getConfig().isUseFlywayCompatibleChecksums()).isTrue();
+	}
+
 	@Test // GH-1536
 	void targetShouldBeNullByDefault() {
 

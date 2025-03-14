@@ -86,6 +86,7 @@ The Core API is provided as a Multi-Release-Jar in the older releases, providing
 While the CLI module actually does not require a JVM installed (it is a native binary, available for a Linux, macOS and Windows alike), some people might prefer a solution native to their ecosystem. The following projects serve the same purpose as Neo4j-Migrations and use the same graph, check-summing and versioning scheme as this project:
 
 * https://github.com/marianozunino/morpheus[Morpheus], written in TypeScript and published as NPM package, by https://github.com/marianozunino[@marianozunino]
+* https://github.com/michael-simons/neo4j-flyway-database[Neo4j for Flyway], a plugin for Flyway that allows using Neo4j with Flyway through the https://github.com/neo4j/neo4j-jdbc[Neo4j JDBC Driver]
 
 If you want to be listed here too, please reach out, and we can collaborate to ensure compatibility.
 

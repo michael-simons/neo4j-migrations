@@ -142,6 +142,13 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private boolean outOfOrder;
 
 	/**
+	 * Whether to use Flyway compatible checksums or not.
+	 * @since 2.17.0
+	 */
+	@Parameter(defaultValue = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE)
+	private boolean useFlywayCompatibleChecksums;
+
+	/**
 	 * Use this option to specify a valid target version up to which migrations
 	 * should be considered. Can also be one of current, latest or next.
 	 *
@@ -185,6 +192,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withImpersonatedUser(impersonatedUser)
 			.withVersionSortOrder(versionSortOrder)
 			.withOutOfOrderAllowed(outOfOrder)
+			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)
 			.withTarget(target)
 			.build();
 

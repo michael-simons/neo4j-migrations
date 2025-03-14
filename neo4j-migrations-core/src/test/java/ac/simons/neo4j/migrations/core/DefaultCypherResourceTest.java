@@ -151,6 +151,20 @@ class DefaultCypherResourceTest {
 		assertThat(cypherResource.getChecksum()).isEqualTo("1916418554");
 	}
 
+	@ParameterizedTest
+	@CsvSource(
+		textBlock = """
+			true,-626195011
+			false,1491717096
+			"""
+	)
+	void shouldConvertLineEndings(boolean enabled, String expected) {
+		URL resource = TestResources.class.getResource("/my/awesome/migrations/V5000__WithCommentAtEnd.cypher");
+		DefaultCypherResource cypherResource = (DefaultCypherResource) CypherResource.of(ResourceContext.of(resource, MigrationsConfig.builder()
+			.withFlywayCompatibleChecksums(enabled).build()));
+		assertThat(cypherResource.getChecksum()).isEqualTo(expected);
+	}
+
 	@Test
 	void shouldBeAbleToReadFromJar() {
 

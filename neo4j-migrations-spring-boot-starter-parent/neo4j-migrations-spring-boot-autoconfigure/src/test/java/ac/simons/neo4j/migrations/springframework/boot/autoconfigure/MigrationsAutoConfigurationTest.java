@@ -380,6 +380,27 @@ class MigrationsAutoConfigurationTest {
 			assertThat(config.isOutOfOrder()).isTrue();
 		}
 
+		@Test
+		void useFlywayCompatibleChecksumsShouldBeDisabled() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.isUseFlywayCompatibleChecksums()).isFalse();
+		}
+
+		@Test
+		void useFlywayCompatibleChecksumsShouldBeEnabled() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setUseFlywayCompatibleChecksums(true);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.isUseFlywayCompatibleChecksums()).isTrue();
+		}
+
 		@Test // GH-1536
 		void targetShouldBeNullByDefault() {
 

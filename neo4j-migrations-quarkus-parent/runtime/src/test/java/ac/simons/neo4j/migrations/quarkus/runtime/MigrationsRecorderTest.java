@@ -115,6 +115,33 @@ class MigrationsRecorderTest {
 		assertThat(config.isOutOfOrder()).isTrue();
 	}
 
+	@Test
+	void useFlywayCompatibleChecksumsShouldBeDisabled() {
+
+		var properties = mock(MigrationsProperties.class);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.isUseFlywayCompatibleChecksums()).isFalse();
+	}
+
+	@Test
+	void useFlywayCompatibleChecksumsShouldBeEnabled() {
+
+		var properties = mock(MigrationsProperties.class);
+		when(properties.useFlywayCompatibleChecksums()).thenReturn(true);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		assertThat(config.isUseFlywayCompatibleChecksums()).isTrue();
+	}
+
 	@Test // GH-1536
 	void targetShouldBeNullByDefault() {
 

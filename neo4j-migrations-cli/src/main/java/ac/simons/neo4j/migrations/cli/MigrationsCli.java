@@ -257,6 +257,13 @@ public final class MigrationsCli implements Runnable {
 	)
 	private String target;
 
+	@Option(
+		names = {"--use-flyway-compatible-checksums"},
+		description = "Use this flag to enable Flyway compatible checksums.",
+		defaultValue = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE
+	)
+	private boolean useFlywayCompatibleChecksums;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -312,6 +319,7 @@ public final class MigrationsCli implements Runnable {
 			.withDelayBetweenMigrations(delayBetweenMigrations)
 			.withVersionSortOrder(versionSortOrder)
 			.withOutOfOrderAllowed(outOfOrder)
+			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)
 			.withTarget(target)
 			.build();
 

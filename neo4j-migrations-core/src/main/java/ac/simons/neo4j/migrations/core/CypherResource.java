@@ -60,8 +60,9 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	static CypherResource of(ResourceContext context) {
 		var url = context.getUrl();
 		var autocrlf = context.getConfig().isAutocrlf();
+		var useFlywayCompatibleChecksums = context.getConfig().isUseFlywayCompatibleChecksums();
 
-		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf,
+		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf, useFlywayCompatibleChecksums,
 			context::openStream);
 	}
 
@@ -73,7 +74,7 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	 * @since 1.8.0
 	 */
 	static WithContent withContent(String content) {
-		return identifier -> new DefaultCypherResource(identifier, Defaults.AUTOCRLF,
+		return identifier -> new DefaultCypherResource(identifier, Defaults.AUTOCRLF, Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS,
 			() -> new ByteArrayInputStream(content.getBytes(Defaults.CYPHER_SCRIPT_ENCODING)));
 	}
 

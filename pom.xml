@@ -153,7 +153,7 @@
 		<mockito.version>5.2.0</mockito.version>
 		<moditect-maven-plugin.version>1.2.2.Final</moditect-maven-plugin.version>
 		<native.maven.plugin.version>0.10.6</native.maven.plugin.version>
-		<neo4j-java-driver.version>5.28.2</neo4j-java-driver.version>
+		<neo4j-java-driver.version>5.28.3</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>2.17.0</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>4.0.16</neo4j-ogm.version>
 		<neo4j.image>neo4j:5.23</neo4j.image>
@@ -165,7 +165,7 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>5.2.0</quarkus-neo4j.version>
+		<quarkus-neo4j.version>5.2.1</quarkus-neo4j.version>
 		<quarkus.version>3.19.3</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<!--

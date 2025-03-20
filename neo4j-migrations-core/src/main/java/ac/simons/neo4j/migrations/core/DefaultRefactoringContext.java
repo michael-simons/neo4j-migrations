@@ -83,7 +83,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 				availableVersion = this.version;
 				if (availableVersion == null) {
 					String value = sessionSupplier.get()
-						.readTransaction(tx -> tx.run(new Query("CALL dbms.components() YIELD versions RETURN versions[0] AS version")).single())
+						.readTransaction(tx -> tx.run(new Query("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0] AS version")).single())
 						.get("version").asString();
 					this.version = Neo4jVersion.of(value);
 					availableVersion = this.version;

@@ -198,13 +198,13 @@ final class DefaultMigrationContext implements MigrationContext {
 		TransactionWork<ExtendedResultSummary> extendedResultSummaryTransactionWork;
 		if (hasDbmsProcedures()) {
 			extendedResultSummaryTransactionWork = tx -> {
-				Result result = tx.run(""
-					+ "CALL dbms.procedures() YIELD name "
-					+ "WHERE name = 'dbms.showCurrentUser' "
-					+ "WITH count(*) > 0 AS showCurrentUserExists "
-					+ "CALL dbms.components() YIELD versions, edition "
-					+ "RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition"
-				);
+				Result result = tx.run(
+					"CALL dbms.procedures() YIELD name\n" +
+					"WHERE name = 'dbms.showCurrentUser'\n" +
+					"WITH count(*) > 0 AS showCurrentUserExists\n" +
+					"CALL dbms.components() YIELD name, versions, edition\n" +
+					"WHERE name = 'Neo4j Kernel'\n" +
+					"RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition");
 				Record singleResultRecord = result.single();
 				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
 				String version = singleResultRecord.get("version").asString();
@@ -215,9 +215,10 @@ final class DefaultMigrationContext implements MigrationContext {
 		} else {
 			extendedResultSummaryTransactionWork = tx -> {
 				boolean showCurrentUserExists = tx.run("SHOW PROCEDURES YIELD name WHERE name = 'dbms.showCurrentUser' RETURN count(*)").single().get(0).asInt() == 1;
-				Result result = tx.run(""
-					+ "CALL dbms.components() YIELD versions, edition "
-					+ "RETURN 'Neo4j/' + versions[0] AS version, edition"
+				Result result = tx.run(
+					"CALL dbms.components() YIELD name, versions, edition\n" +
+					"WHERE name = 'Neo4j Kernel'\n" +
+					"RETURN 'Neo4j/' + versions[0] AS version, edition"
 				);
 				Record singleResultRecord = result.single();
 				String version = singleResultRecord.get("version").asString();

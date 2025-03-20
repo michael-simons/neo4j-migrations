@@ -159,7 +159,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	List<CatalogItem<?>> findBTreeBasedItems(QueryRunner queryRunner) {
 
-		List<String> versions = queryRunner.run(new Query("CALL dbms.components() YIELD versions")).single().get("versions").asList(Value::asString);
+		List<String> versions = queryRunner.run(new Query("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions")).single().get("versions").asList(Value::asString);
 		if (versions.stream().anyMatch(v -> v.startsWith("5."))) {
 			return Collections.emptyList();
 		}

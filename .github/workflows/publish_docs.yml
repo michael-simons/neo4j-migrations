@@ -17,6 +17,9 @@ jobs:
   publish_docs:
     if: github.event_name == 'push' || (github.event_name == 'create' && github.event.ref_type == 'tag')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Prepare branch name
         run: >

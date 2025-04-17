@@ -82,7 +82,7 @@ public class MigrationsProcessor {
 
 		var classesFoundAndLoaded = new HashSet<Class<? extends JavaBasedMigration>>();
 		indexView
-			.getAllKnownImplementors(DotName.createSimple(JavaBasedMigration.class.getName()))
+			.getAllKnownImplementations(DotName.createSimple(JavaBasedMigration.class.getName()))
 			.forEach(cf -> {
 				if (!packagesToScan.contains(cf.name().packagePrefix())) {
 					return;

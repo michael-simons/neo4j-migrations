@@ -110,6 +110,7 @@
 		<compile-testing.version>0.21.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
+		<cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
 		<cypher-dsl.version>2024.5.1</cypher-dsl.version>
 		<docker-maven-plugin.version>0.46.0</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
@@ -122,7 +123,7 @@
 		<java-module-name />
 		<java.version>17</java.version>
 		<jreleaser-maven-plugin.version>1.16.0</jreleaser-maven-plugin.version>
-		<!-- to be overridden in sub modules -->
+		<!-- to be overridden in submodules -->
 		<junit.jupiter.version>5.12.2</junit.jupiter.version>
 		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
@@ -643,6 +644,15 @@
 					<artifactId>flatten-maven-plugin</artifactId>
 					<version>${flatten-maven-plugin.version}</version>
 				</plugin>
+				<plugin>
+					<groupId>org.cyclonedx</groupId>
+					<artifactId>cyclonedx-maven-plugin</artifactId>
+					<version>${cyclonedx-maven-plugin.version}</version>
+					<configuration>
+						<skipNotDeployed>false</skipNotDeployed>
+						<classifier>sbom-cyclonedx</classifier>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -932,6 +942,18 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.cyclonedx</groupId>
+				<artifactId>cyclonedx-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>makeAggregateBom</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>${maven-release-plugin.version}</version>
@@ -1113,6 +1135,7 @@
 			<properties>
 				<asciidoctor.skip>true</asciidoctor.skip>
 				<checkstyle.skip>true</checkstyle.skip>
+				<cyclonedx.skip>true</cyclonedx.skip>
 				<docker.skip>true</docker.skip>
 				<invoker.skip>true</invoker.skip>
 				<jacoco.skip>true</jacoco.skip>

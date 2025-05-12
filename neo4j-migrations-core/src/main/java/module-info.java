@@ -18,7 +18,7 @@
  * @author Michael J. Simons
  * @since 2.0.0
  */
-@SuppressWarnings({ "requires-automatic", "requires-transitive-automatic" }) // needed for org.neo4j.driver
+@SuppressWarnings("requires-automatic")
 module ac.simons.neo4j.migrations.core {
 
 	requires io.github.classgraph;
@@ -29,8 +29,6 @@ module ac.simons.neo4j.migrations.core {
 	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
-	requires jdk.httpserver;
-	requires java.net.http;
 
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;

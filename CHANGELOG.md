@@ -1,3 +1,198 @@
+# 2.17.3
+
+## 🚀 Features
+- 5b0c72c feat: Publish SBOMs.
+
+## 🧹 Housekeeping
+- dc342a0 Bump spring-boot.version from 3.4.4 to 3.4.5 (#1659)
+- e370693 Bump com.puppycrawl.tools:checkstyle from 10.23.0 to 10.23.1 (#1660)
+- 7386067 Bump quarkus.version from 3.21.2 to 3.22.0 (#1658)
+- b0ed32b Bump org.neo4j.driver:neo4j-java-driver from 5.28.4 to 5.28.5 (#1657)
+- 357b88c build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.4.4 to 7.4.5 (#1656)
+- 5ca6e0b Bump testcontainers.version from 1.20.6 to 1.21.0 (#1655)
+- b0f7f79 build(deps-dev): Bump com.google.guava:guava from 33.4.7-jre to 33.4.8-jre (#1654)
+- acf83f4 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.37.0 to 2.38.0 (#1652)
+- 390a03e Bump picocli.version from 4.7.6 to 4.7.7 (#1651)
+- 70aeeac Bump quarkus.version from 3.21.1 to 3.21.2 (#1648)
+- 0678808 Bump commons-io:commons-io from 2.18.0 to 2.19.0 (#1650)
+- 0ec610d build(deps-dev): Bump com.google.guava:guava from 33.4.6-jre to 33.4.7-jre (#1649)
+- 95256b8 Bump org.junit:junit-bom from 5.12.1 to 5.12.2 (#1647)
+
+## 🛠 Build
+- 47247e6 build: Remove dispatch to Neo4j docs repo as this is now behind SSO.
+
+
+# 2.17.2
+
+## 🧹 Housekeeping
+- 9195eb2 Bump quarkus-neo4j.version from 5.2.1 to 5.3.0 (#1642)
+- 5e977ef build(deps-dev): Bump org.checkerframework:checker-qual from 3.49.1 to 3.49.2 (#1644)
+- ee78384 Bump org.codehaus.plexus:plexus-classworlds from 2.8.0 to 2.9.0 (#1646)
+- b803c05 Bump neo4j-ogm.version from 4.0.16 to 4.0.17 (#1645)
+- bd4be0d Bump com.puppycrawl.tools:checkstyle from 10.22.0 to 10.23.0 (#1643)
+- 3b8c309 Bump org.asciidoctor:asciidoctorj-diagram from 2.3.1 to 2.3.2 (#1641)
+- bb30999 Bump jacoco-maven-plugin.version from 0.8.12 to 0.8.13 (#1640)
+- ee99eae Bump quarkus.version from 3.21.0 to 3.21.1 (#1639)
+- 9006577 Bump io.fabric8:docker-maven-plugin from 0.45.1 to 0.46.0 (#1638)
+- be56a90 Bump byte-buddy.version from 1.17.4 to 1.17.5 (#1637)
+- 19c5c0a Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 5.0.0.4389 to 5.1.0.4751 (#1636)
+- 59713fb build(deps-dev): Bump com.google.guava:guava from 33.4.5-jre to 33.4.6-jre (#1635)
+- b81a6ae Bump org.apache.maven.plugins:maven-surefire-plugin from 3.5.2 to 3.5.3 (#1634)
+- f2eb6db Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.5.2 to 3.5.3 (#1633)
+- d7f15ea Bump com.puppycrawl.tools:checkstyle from 10.21.4 to 10.22.0 (#1632)
+
+## 🛠 Build
+- aaad857 build: Try to fix docs publishing.
+- 58e75db build: Use new central publishing and move away from the sunsetting ossrh service.
+
+
+# 2.17.1
+
+## 🔄️ Refactorings
+- bdd5643 refactor: Restrict the output of `dbms.components()` to `'Neo4j Kernel'`. (#1622)
+
+## 📝 Documentation
+- 6acb2eb docs: Add info about Neo4j-Flyway-Database.
+
+## 🧹 Housekeeping
+- 5e4a2b0 Bump org.asciidoctor:asciidoctor-maven-plugin from 3.1.1 to 3.2.0 (#1631)
+- 93923fc Bump quarkus.version from 3.19.3 to 3.21.0 (#1630)
+- 6d48100 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.36.0 to 2.37.0 (#1629)
+- 4a8313a Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.5.0 to 2024.5.1 (#1628)
+- cfcf74d build(deps-dev): Bump com.google.guava:guava from 33.4.0-jre to 33.4.5-jre (#1627)
+- 8e1228c Bump org.neo4j.driver:neo4j-java-driver from 5.28.3 to 5.28.4 (#1626)
+- 5172020 Bump byte-buddy.version from 1.17.2 to 1.17.4 (#1625)
+- b155bec Bump spring-boot.version from 3.4.3 to 3.4.4 (#1624)
+- ce4ab41 Bump com.mycila:license-maven-plugin from 4.6 to 5.0.0 (#1623)
+- b398946 Bump org.neo4j.driver:neo4j-java-driver from 5.28.2 to 5.28.3 (#1618)
+- c8537f1 Bump org.junit:junit-bom from 5.12.0 to 5.12.1 (#1621)
+- 61f5e7e Bump quarkus.version from 3.19.2 to 3.19.3 (#1620)
+- f83e43c build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.4.3 to 7.4.4 (#1619)
+- dbcf797 Bump net.java.dev.jna:jna from 5.16.0 to 5.17.0 (#1617)
+- 7226e19 Bump org.graalvm.buildtools:native-maven-plugin from 0.10.5 to 0.10.6 (#1616)
+
+## 🛠 Build
+- 7e241bb build: Remove JBang catalog support (repository is now behind SSO / SAML).
+
+
+# 2.17.0
+
+This release adds compatibility with [neo4j-flyway-database](https://github.com/michael-simons/neo4j-flyway-database), a new plugin for [Flyway](https://github.com/flyway/flyway), that allows using Flyway with Neo4j through Neo4j's JDBC Driver.
+
+## 🚀 Features
+- 6b584f0 feat: Provide an option to enable Flyway compatible checksums. (#1615)
+
+## 🧹 Housekeeping
+- b63ddbb build(deps-dev): Bump org.checkerframework:checker-qual from 3.49.0 to 3.49.1 (#1612)
+- 465e035 Bump com.puppycrawl.tools:checkstyle from 10.21.3 to 10.21.4 (#1614)
+- 427cd83 Bump org.neo4j.driver:neo4j-java-driver from 5.28.1 to 5.28.2 (#1613)
+- fb0c601 Bump byte-buddy.version from 1.17.1 to 1.17.2 (#1611)
+- 1678b4d Bump quarkus.version from 3.19.1 to 3.19.2 (#1610)
+- fbc9039 Bump testcontainers.version from 1.20.5 to 1.20.6 (#1609)
+- 49ed1db Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.4.1 to 2024.5.0 (#1608)
+- 902c87c Bump org.apache.maven.plugins:maven-project-info-reports-plugin from 3.8.0 to 3.9.0 (#1607)
+- baa1a23 Bump org.apache.maven.plugins:maven-deploy-plugin from 3.1.3 to 3.1.4 (#1606)
+- 81ef5cb Bump org.codehaus.mojo:flatten-maven-plugin from 1.6.0 to 1.7.0 (#1605)
+- f79325e Bump quarkus.version from 3.19.0 to 3.19.1 (#1604)
+- 493060b Bump org.apache.maven.plugins:maven-install-plugin from 3.1.3 to 3.1.4 (#1603)
+
+
+# 2.16.2
+
+## 🐛 Bug Fixes
+- 9452d60 fix: Add missing bundle for `xmlsecurity` on native image.
+
+## 🔄️ Refactorings
+- 9bb43a0 refactor: Use existing version to check for idempotency being available and avoid exception driven development.
+
+## 🧹 Housekeeping
+- da27d42 Bump quarkus-neo4j.version from 5.1.0 to 5.2.0
+- 31cd9c4 Bump org.apache.maven.plugins:maven-compiler-plugin from 3.13.0 to 3.14.0 (#1601)
+- 6dac0e3 Bump org.junit:junit-bom from 5.11.4 to 5.12.0 (#1602)
+- 4d3b628 Bump org.apache.maven.plugins:maven-clean-plugin from 3.4.0 to 3.4.1 (#1600)
+- ebcbf53 Bump com.puppycrawl.tools:checkstyle from 10.21.2 to 10.21.3 (#1599)
+- 61eac97 Bump spring-boot.version from 3.4.2 to 3.4.3 (#1598)
+- 35e0b2c Bump neo4j-ogm.version from 4.0.15 to 4.0.16 (#1597)
+- 74071d6 Bump testcontainers.version from 1.20.4 to 1.20.5 (#1596)
+- 8688e21 Bump quarkus.version from 3.18.3 to 3.19.0 (#1595)
+
+
+# 2.16.1
+
+## 🔄️ Refactorings
+- 53a017c refactor: Polishing.
+
+## 🧹 Housekeeping
+- bd3f7fc Bump jreleaser-maven-plugin from 1.5.1 to 1.16.0
+- a6f5398 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.4.2 to 7.4.3 (#1592)
+- 6ec4907 build(deps-dev): Bump com.tngtech.archunit:archunit from 1.3.0 to 1.4.0 (#1591)
+- 9712622 Bump quarkus.version from 3.18.2 to 3.18.3 (#1590)
+- 021417f Bump byte-buddy.version from 1.17.0 to 1.17.1 (#1589)
+- ba03e04 Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.4.0 to 2024.4.1 (#1588)
+
+## 🛠 Build
+- 1d2a9e3 build: Enable bluesky announcer.
+
+
+# 2.16.0
+
+## 🚀 Features
+- d9cdfa7 feat: Add overloads to `validate` and `info` allowing to skip the lock mechanism. (#1587)
+
+## 🔄️ Refactorings
+- a61c1b7 refactor(test): Ensure compatibility of vesion comparision with Neo4j calver.
+
+## 🧹 Housekeeping
+- de94b1a Bump org.neo4j.driver:neo4j-java-driver from 5.27.0 to 5.28.1 (#1586)
+- 2354e41 Bump org.graalvm.buildtools:native-maven-plugin from 0.10.4 to 0.10.5 (#1585)
+- 9bb2d46 build(deps-dev): Bump org.checkerframework:checker-qual from 3.48.4 to 3.49.0 (#1584)
+- c5cc1ff Bump quarkus.version from 3.18.1 to 3.18.2 (#1583)
+- 98cbf13 Bump neo4j-ogm.version from 4.0.14 to 4.0.15 (#1581)
+- 1384a47 Bump byte-buddy.version from 1.16.1 to 1.17.0 (#1580)
+- 8836839 Bump quarkus.version from 3.17.7 to 3.18.1 (#1575)
+- 654d3ee Bump com.puppycrawl.tools:checkstyle from 10.21.1 to 10.21.2 (#1579)
+- 24b8794 Bump quarkus-neo4j.version from 5.0.3 to 5.1.0 (#1578)
+
+
+# 2.15.2
+
+## 📝 Documentation
+- 6622ee3 docs: Update local changelog.
+
+## 🧰 Tasks
+- 49d8d98 chore: Extend license header to 2025.
+
+## 🧹 Housekeeping
+- ff58ad3 Bump spring-boot.version from 3.4.1 to 3.4.2 (#1576)
+- 199822d Bump neo4j-ogm.version from 4.0.13 to 4.0.14 (#1577)
+- 14c779e Bump quarkus-neo4j.version from 5.0.2 to 5.0.3 (#1574)
+- 3740cda Bump org.assertj:assertj-core from 3.27.2 to 3.27.3 (#1572)
+- 7582e36 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.4.1 to 7.4.2 (#1571)
+- 9d90752 Bump byte-buddy.version from 1.15.11 to 1.16.1 (#1570)
+- 55a147b Bump quarkus.version from 3.17.6 to 3.17.7 (#1569)
+- bc7ebea Bump quarkus.version from 3.17.5 to 3.17.6 (#1568)
+- 4f365a9 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.23.0 to 0.23.1 (#1567)
+- 69cbe1a build(deps-dev): Bump org.checkerframework:checker-qual from 3.48.3 to 3.48.4 (#1565)
+- 2d5604d Bump org.apache.ivy:ivy from 2.5.2 to 2.5.3 (#1566)
+- 57c9461 Bump org.assertj:assertj-core from 3.26.3 to 3.27.2 (#1564)
+- e368b73 Bump com.puppycrawl.tools:checkstyle from 10.21.0 to 10.21.1 (#1563)
+- a6991c4 build(deps-dev): Bump com.google.guava:guava from 33.3.1-jre to 33.4.0-jre (#1561)
+- a5e2cd5 Bump net.java.dev.jna:jna from 5.15.0 to 5.16.0 (#1560)
+- fc3d813 Bump spring-boot.version from 3.4.0 to 3.4.1 (#1559)
+- c0d41a3 Bump org.junit:junit-bom from 5.11.3 to 5.11.4 (#1558)
+- 57513b8 Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.3.1 to 2024.4.0 (#1557)
+- e0c430b Bump quarkus.version from 3.17.4 to 3.17.5 (#1556)
+- e7402c5 Bump org.apache.maven.plugins:maven-invoker-plugin from 3.8.1 to 3.9.0 (#1555)
+- d4078a0 Bump org.neo4j:neo4j-cypher-dsl-bom from 2024.2.0 to 2024.3.1 (#1554)
+- 1fecc0f Bump com.puppycrawl.tools:checkstyle from 10.20.2 to 10.21.0 (#1553)
+- f33d534 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 7.4.0 to 7.4.1 (#1552)
+- 4d87abe Bump byte-buddy.version from 1.15.10 to 1.15.11 (#1551)
+- 23fceb5 Bump quarkus.version from 3.17.3 to 3.17.4 (#1550)
+
+## 🛠 Build
+- 0694f0a build: Upgrade workflow for native image testing to use latest JBang. (#1573)
+
+
 # 2.15.1
 
 ## 🧹 Housekeeping
@@ -1320,6 +1515,18 @@ We'd like to thank the following people for their contributions:
 - @adam-cowley
 - @meistermeier
 - @Mogztter
+
+
+# 1.16.3
+
+This is mainly a bug fix release to make Neo4j Migrations 1.16.x work with latest Neo4j 2025.05. This release does not provide binaries, as the actions used to build those are no longer available. Maven artefacts are however of course on Central already.
+
+## 🐛 Bug Fixes
+- 4971bdfe58 refactor: Restrict the output of `dbms.components()` to `'Neo4j Kernel'`. (#1622)
+- e5fc2db488 fix: Don't delete properties that are already `boolean` when normalizing.
+
+## 🛠 Build
+- 854e85230c build: Use new central publishing and move away from the sunsetting ossrh service.
 
 
 # 1.16.2

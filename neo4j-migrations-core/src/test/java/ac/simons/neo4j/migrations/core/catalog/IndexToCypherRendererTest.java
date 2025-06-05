@@ -274,9 +274,9 @@ class IndexToCypherRendererTest {
 		);
 	}
 
-	/**
-	 * Even though this is just a long existing deprecation, we have decided to fail on dropping unnamed indexes above 3.5.
-	 */
+
+	// Even though this is just a long existing deprecation,
+	// we have decided to fail on dropping unnamed indexes above 3.5.
 	@ParameterizedTest
 	@MethodSource
 	void shouldFailUnnamedCompositeIndexDrop(String serverVersion, boolean named, Neo4jEdition edition,

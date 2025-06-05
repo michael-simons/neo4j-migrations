@@ -572,7 +572,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		/**
 		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
 		 * item types from the database, drop them and eventually create the content of the catalog.
-		 *
+		 * @param definedAt the version which should be applied
 		 * @return The operation ready to execute.
 		 */
 		static ApplyOperation apply(MigrationVersion definedAt) {

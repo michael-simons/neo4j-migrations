@@ -44,6 +44,7 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	 * Creates a new resource for the given URL.
 	 * @param url The url to create the resource from
 	 * @param autocrlf Setting for autocrlf.
+	 * @return a new Cypher resource
 	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
 	 */
 	@Deprecated(forRemoval = true)

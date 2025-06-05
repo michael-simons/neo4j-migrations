@@ -107,6 +107,7 @@ abstract class ConnectedCommand implements Callable<Integer> {
 	/**
 	 * To be implemented by commands that need a connection to a Neo4j server.
 	 *
+	 * @param migrations the migrations to work on
 	 * @return The return code of this command
 	 */
 	abstract Integer withMigrations(Migrations migrations);

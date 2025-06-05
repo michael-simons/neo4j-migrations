@@ -65,7 +65,8 @@ final class DefaultRefactoringContext implements RefactoringContext {
 	/**
 	 * Adapts a query to the syntax supported by the underlying database, especially unifies all id calls to return strings,
 	 * so you might be extra careful when dealing with comparison on those.
-	 * @return An adapted query.
+	 * @param query the query to adapt
+	 * @return an adapted query.
 	 */
 	Query adaptQuery(Query query) {
 

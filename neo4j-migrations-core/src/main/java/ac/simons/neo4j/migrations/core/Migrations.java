@@ -436,6 +436,7 @@ public final class Migrations {
 	 * resolved.
 	 *
 	 * @param version the version that should be deleted, must not be null.
+	 * @return the result of the operation
 	 * @since 2.2.0
 	 */
 	public DeleteResult delete(MigrationVersion version) {

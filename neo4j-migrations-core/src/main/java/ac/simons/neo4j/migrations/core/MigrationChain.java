@@ -36,7 +36,8 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	/**
 	 * Creates an empty instance of a {@link MigrationChain}. Can be useful for testing.
 	 *
-	 * @return An empty migration chain
+	 * @param connectionDetails required to initialize the chain
+	 * @return an empty migration chain
 	 * @since 2.3.0
 	 */
 	static MigrationChain empty(ConnectionDetails connectionDetails) {

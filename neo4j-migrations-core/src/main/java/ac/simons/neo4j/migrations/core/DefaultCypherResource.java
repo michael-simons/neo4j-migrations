@@ -189,13 +189,15 @@ final class DefaultCypherResource implements CypherResource {
 	}
 
 	/**
-	 * @return The list of statements to apply.
+	 * {@return the list of statements to apply}
 	 */
 	List<String> getStatements() {
 		return getStatements(null);
 	}
 
 	/**
+	 * Retrieves statements from the resource with an optional filter
+	 * @param filter a filter to apply when selecting the statements
 	 * @return A filtered list of statements
 	 */
 	List<String> getStatements(Predicate<String> filter) {

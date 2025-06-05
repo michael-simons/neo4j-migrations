@@ -46,6 +46,7 @@ public final class ImageInfo {
 	 * Returns true if (at the time of the call) code is executing at image runtime. This method
 	 * will be const-folded. It can be used to hide parts of an application that only work when
 	 * running as native image.
+	 * @return {@literal true} if this app runs in a native image runtime
 	 */
 	public static boolean inImageRuntimeCode() {
 		return PROPERTY_IMAGE_CODE_VALUE_RUNTIME.equals(System.getProperty(PROPERTY_IMAGE_CODE_KEY));

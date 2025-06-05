@@ -69,6 +69,7 @@ final class ChainBuilder {
 	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
 	 *                             It is not yet known whether those are pending or not.
 	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
+	 * @param mode                 local, remote or combined chain
 	 * @return The full migration chain.
 	 */
 	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {

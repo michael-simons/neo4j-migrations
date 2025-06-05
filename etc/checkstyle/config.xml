@@ -168,5 +168,9 @@
 			<property name="format" value="System\.out\.println"/>
 			<property name="illegalPattern" value="true"/>
 		</module>
+
+        <module name="JavadocMethod">
+            <property name="allowInlineReturn" value="true"/>
+        </module>
     </module>
 </module>

@@ -49,7 +49,9 @@ final class DiscoveryService {
 	}
 
 	/**
-	 * @return An unmodifiable list of migrations sorted by version.
+	 * Finds all migrations in this context.
+	 * @param context the context in which the migrations run
+	 * @return an unmodifiable list of migrations sorted by version
 	 */
 	List<Migration> findMigrations(MigrationContext context) {
 

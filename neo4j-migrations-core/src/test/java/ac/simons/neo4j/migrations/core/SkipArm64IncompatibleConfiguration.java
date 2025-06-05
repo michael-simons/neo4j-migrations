@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.testcontainers.DockerClientFactory;
 
 /**
@@ -45,7 +46,7 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 	public static class VersionProvider implements ArgumentsProvider {
 
 		@Override
-		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+		public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
 			if (TEST_ONLY_LATEST_NEO_4_J) {
 				return Stream.of(Arguments.of(new VersionUnderTest(Neo4jVersion.V4_4, true)));
 			}

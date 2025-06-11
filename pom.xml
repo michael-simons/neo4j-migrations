@@ -149,7 +149,7 @@
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.1.1</mockito.version>
-		<native.maven.plugin.version>0.9.19</native.maven.plugin.version>
+		<native.maven.plugin.version>0.10.6</native.maven.plugin.version>
 		<neo4j-java-driver.version>4.4.20</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>1.16.3</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>3.2.39</neo4j-ogm.version>

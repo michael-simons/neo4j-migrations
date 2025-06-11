@@ -5,13 +5,22 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'README.adoc'
       - '.all-contributorsrc'
+      - '.github/workflows/publish_docs.yml'
+      - 'README.adoc'
       - 'CHANGELOG.md'
+      - 'bin/generate-site.sh'
+      - 'docs/antora.yml'
+      - 'etc/index.tpl'
   pull_request:
     paths-ignore:
-      - 'README.adoc'
       - '.all-contributorsrc'
+      - '.github/workflows/publish_docs.yml'
+      - 'README.adoc'
+      - 'CHANGELOG.md'
+      - 'bin/generate-site.sh'
+      - 'docs/antora.yml'
+      - 'etc/index.tpl'
 
 jobs:
   build:
@@ -19,9 +28,11 @@ jobs:
     env:
       TC_CLOUD_TOKEN: ${{ secrets.TC_CLOUD_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Ensure read permissions
+        run: chmod 640 neo4j-migrations-examples/neo4j-migrations-cluster-tests/src/test/resources/cc/neo4j.conf
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: 17
@@ -41,22 +52,24 @@ jobs:
           ./agent &
           ./agent wait
       - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
+      - name: Download dependencies upfront
+        run: ./mvnw -Dfast --no-transfer-progress clean package dependency:go-offline
       - name: Clean and verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./mvnw -Dmigrations.test-only-latest-neo4j=true --no-transfer-progress clean install -P$USE_SONAR
       - name: Upload assembly
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: assembly
           path: neo4j-migrations-cli/target/assembly
@@ -69,14 +82,14 @@ jobs:
     steps:
       - name: 'Prepare git'
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: 17
       - name: 'Restore Maven packages'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
@@ -91,7 +104,7 @@ jobs:
         if: "${{ env.EXTERNAL_TEST_DB_URL == 'bolt://localhost:7687' }}"
         run: cmd /c "START /b jbang bin/start_neo4j.java"
       - name: Download assembly
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: assembly
           path: assembly
@@ -113,7 +126,7 @@ jobs:
         run: assembly/bin/neo4j-migrations.bat -a %EXTERNAL_TEST_DB_URL% --password:env EXTERNAL_TEST_DB_PWD --location file:///$pwd/neo4j-migrations-test-resources/src/main/resources/some/changeset info
 
   ensure_jdk_compat:
-    name: Ensure compatibilty with minimum required Java version
+    name: Ensure compatibility with minimum required Java version
     runs-on: ubuntu-latest
     services:
       neo4j:
@@ -126,12 +139,12 @@ jobs:
     needs: build
     steps:
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: 8
       - name: Download assembly
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: assembly
           path: assembly
@@ -139,7 +152,6 @@ jobs:
         run: chmod +x assembly/bin/neo4j-migrations
       - name: Print info
         run: assembly/bin/neo4j-migrations -a bolt://localhost:7687 -p secret info
-
   test_cli_native:
     name: Test CLI native binary
     runs-on: ubuntu-latest
@@ -147,15 +159,12 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.2.0'
-          java-version: '17'
-          components: 'native-image'
+          distribution: 'graalvm-community'
+          java-version: 23
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install upx
-        run: sudo apt-get install upx
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Restore Maven cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
@@ -163,7 +172,7 @@ jobs:
       - name: Clean and build
         run: ./mvnw --no-transfer-progress -Dnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli clean package
       - name: Run binary
-        uses: jbangdev/jbang-action@v0.86.0
+        uses: jbangdev/jbang-action@v0.119.0
         with:
           script: bin/test_native_cli.java
 
@@ -174,13 +183,12 @@ jobs:
     steps:
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.2.0'
-          java-version: '17'
-          components: 'native-image'
+          distribution: 'graalvm-community'
+          java-version: 23
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Restore Maven cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}

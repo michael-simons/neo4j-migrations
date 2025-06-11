@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Set up JDK'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: 17
@@ -21,12 +21,12 @@ jobs:
           echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: 'Checkout relevant branch'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ env.refName }}
 
       - name: 'Cache Maven packages'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
@@ -36,9 +36,9 @@ jobs:
           ./mvnw --no-transfer-progress -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli -am package
 
       - name: 'Upload build artifact'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: artifacts-jvm
           path: neo4j-migrations-cli/target/neo4j-migrations*.zip
 
   create_native_binaries:
@@ -59,28 +59,15 @@ jobs:
           echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: 'Checkout relevant branch'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ env.refName }}
-
-      - name: Install upx
-        run: sudo apt-get install upx
-        if: ${{ runner.os == 'Linux' }}
-
-      - name: Install upx
-        run: brew install upx
-        if: ${{ runner.os == 'macOS' }}
-
-      - name: Install upx
-        run: choco install upx
-        if: ${{ runner.os == 'Windows' }}
 
       - name: 'Set up Graal'
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '21.3.2'
-          java-version: '17'
-          components: 'native-image'
+          distribution: 'graalvm-community'
+          java-version: 23
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Create distribution'
@@ -92,61 +79,16 @@ jobs:
           ./neo4j-migrations-cli/target/neo4j-migrations -V
 
       - name: 'Upload build artifact'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
-          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
-
-  create_native_arm_binaries:
-    if: (github.event_name == 'create' && github.event.ref_type == 'tag')
-    name: 'Build with Graal on ${{ matrix.os }} ARM64'
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ linux ]
-    runs-on:
-      - self-hosted
-      - ${{ matrix.os }}
-      - ARM64
-
-    steps:
-      - name: 'Prepare git'
-        run: git config --global core.autocrlf false
-
-      - name: 'Prepare branch name'
-        run: >
-          echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
-      - name: 'Checkout relevant branch'
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ env.refName }}
-
-      - name: 'Set up Graal'
-        uses: graalvm/setup-graalvm@v1
-        with:
-          version: '21.3.2'
-          java-version: '17'
-          components: 'native-image'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 'Create distribution'
-        run: >
-          ./mvnw --no-transfer-progress -Pnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli package -am
-
-      - name: 'Smoke test'
-        run: >
-          ./neo4j-migrations-cli/target/neo4j-migrations -V
-
-      - name: 'Upload build artifact'
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts
-          path: neo4j-migrations-cli/target/neo4j-migrations*.zip
+          name: artifacts-${{ matrix.os }}
+          path: |
+            neo4j-migrations-cli/target/neo4j-migrations*.zip
+            !neo4j-migrations-cli/target/neo4j-migrations-${{ env.refName }}.zip
 
   release:
     if: (github.event_name == 'create' && github.event.ref_type == 'tag')
-    needs: [ create_binaries, create_native_binaries, create_native_arm_binaries ]
+    needs: [ create_binaries, create_native_binaries ]
     runs-on: ubuntu-latest
     steps:
       - name: 'Prepare branch name'
@@ -154,19 +96,20 @@ jobs:
           echo "refName=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: 'Checkout relevant branch'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ env.refName }}
           fetch-depth: 0
 
       - name: 'Download all build artifacts'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: artifacts
+          pattern: artifacts-*
           path: neo4j-migrations-cli/target
+          merge-multiple: true
 
       - name: 'Restore Maven packages'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}

@@ -1116,6 +1116,17 @@
 				<skipTests>true</skipTests>
 			</properties>
 		</profile>
+		<profile>
+			<id>native</id>
+			<activation>
+				<property>
+					<name>native</name>
+				</property>
+			</activation>
+			<properties>
+				<asciidoctor.skip>true</asciidoctor.skip>
+			</properties>
+		</profile>
 		<?SORTPOM IGNORE?>
 		<profile>
 			<id>jreleaser</id>

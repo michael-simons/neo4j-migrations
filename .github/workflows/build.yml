@@ -161,7 +161,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: 'graalvm-community'
-          java-version: 23
+          java-version: 24
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
       - name: Restore Maven cache
@@ -185,7 +185,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: 'graalvm-community'
-          java-version: 21
+          java-version: 24
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
       - name: Restore Maven cache

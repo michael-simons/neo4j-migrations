@@ -122,7 +122,8 @@ public class MigrationsRecorder {
 		try {
 			migrationsRv.getValue().apply(true);
 		} catch (ServiceUnavailableException e) {
-			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.", e);
+			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.");
+			throw e;
 		}
 	}
 }

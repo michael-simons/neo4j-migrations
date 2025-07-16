@@ -64,10 +64,11 @@ jobs:
           ref: ${{ env.refName }}
 
       - name: 'Set up Graal'
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@v1.3.4
         with:
           distribution: 'graalvm-community'
           java-version: 24
+          native-image-musl: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Create distribution'

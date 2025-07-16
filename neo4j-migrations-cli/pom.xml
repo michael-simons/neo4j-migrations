@@ -92,6 +92,28 @@
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.graalvm.buildtools</groupId>
+					<artifactId>native-maven-plugin</artifactId>
+					<version>${native.maven.plugin.version}</version>
+					<extensions>true</extensions>
+					<configuration>
+						<requiredVersion>24</requiredVersion>
+						<mainClass>${name-of-main-class}</mainClass>
+						<imageName>neo4j-migrations</imageName>
+						<buildArgs>
+							<arg>--no-fallback</arg>
+							<arg>-Os</arg>
+							<arg>-march=compatibility</arg>
+							<arg>-H:+UnlockExperimentalVMOptions</arg>
+							<arg>-J--sun-misc-unsafe-memory-access=allow</arg>
+						</buildArgs>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -279,6 +301,38 @@
 			</build>
 		</profile>
 		<profile>
+			<id>musl_static</id>
+			<activation>
+				<os>
+					<name>Linux</name>
+				</os>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.graalvm.buildtools</groupId>
+							<artifactId>native-maven-plugin</artifactId>
+							<configuration combine.self="override">
+								<requiredVersion>24</requiredVersion>
+								<mainClass>${name-of-main-class}</mainClass>
+								<imageName>neo4j-migrations</imageName>
+								<buildArgs>
+									<arg>--no-fallback</arg>
+									<arg>-Os</arg>
+									<arg>--static</arg>
+									<arg>--libc=musl</arg>
+									<arg>-march=compatibility</arg>
+									<arg>-H:+UnlockExperimentalVMOptions</arg>
+									<arg>-J--sun-misc-unsafe-memory-access=allow</arg>
+								</buildArgs>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+		<profile>
 			<id>native</id>
 			<activation>
 				<property>
@@ -301,20 +355,6 @@
 					<plugin>
 						<groupId>org.graalvm.buildtools</groupId>
 						<artifactId>native-maven-plugin</artifactId>
-						<version>${native.maven.plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<requiredVersion>24</requiredVersion>
-							<mainClass>${name-of-main-class}</mainClass>
-							<imageName>neo4j-migrations</imageName>
-							<buildArgs>
-								<arg>--no-fallback</arg>
-								<arg>-Os</arg>
-								<arg>-march=compatibility</arg>
-								<arg>-H:+UnlockExperimentalVMOptions</arg>
-								<arg>-J--sun-misc-unsafe-memory-access=allow</arg>
-							</buildArgs>
-						</configuration>
 						<executions>
 							<execution>
 								<id>create-native-image</id>

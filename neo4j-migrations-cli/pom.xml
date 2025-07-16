@@ -285,6 +285,17 @@
 					<name>native</name>
 				</property>
 			</activation>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>io.netty</groupId>
+						<artifactId>netty-bom</artifactId>
+						<version>4.1.123.Final</version>
+						<type>pom</type>
+						<scope>import</scope>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
 			<build>
 				<plugins>
 					<plugin>
@@ -293,7 +304,7 @@
 						<version>${native.maven.plugin.version}</version>
 						<extensions>true</extensions>
 						<configuration>
-							<requiredVersion>23</requiredVersion>
+							<requiredVersion>24</requiredVersion>
 							<mainClass>${name-of-main-class}</mainClass>
 							<imageName>neo4j-migrations</imageName>
 							<buildArgs>
@@ -301,6 +312,7 @@
 								<arg>-Os</arg>
 								<arg>-march=compatibility</arg>
 								<arg>-H:+UnlockExperimentalVMOptions</arg>
+								<arg>-J--sun-misc-unsafe-memory-access=allow</arg>
 							</buildArgs>
 						</configuration>
 						<executions>

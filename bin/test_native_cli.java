@@ -68,8 +68,10 @@ public class test_native_cli {
 
 		p.onExit().thenAccept(done -> {
 			try (var in = new BufferedReader(new InputStreamReader(done.getInputStream()))) {
-				var output = in.lines().collect(Collectors.toCollection(LinkedHashSet::new));
-				assertThat(output).allSatisfy(c -> expectedOutput.stream().anyMatch(c::contains));
+				var output = in.lines()
+					.filter(line -> !line.startsWith("WARNING: "))
+					.collect(Collectors.toCollection(LinkedHashSet::new));
+				assertThat(output).allMatch(c -> expectedOutput.stream().anyMatch(c::contains));
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}

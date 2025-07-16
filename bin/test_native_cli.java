@@ -2,7 +2,7 @@
 //JAVA 17
 //DEPS org.testcontainers:neo4j:1.20.4
 //DEPS org.slf4j:slf4j-simple:1.7.36
-//DEPS org.neo4j.driver:neo4j-java-driver:4.4.19
+//DEPS org.neo4j.driver:neo4j-java-driver:5.28.9
 //DEPS org.assertj:assertj-core:3.22.0
 import static org.assertj.core.api.Assertions.assertThat;
 

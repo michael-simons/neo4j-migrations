@@ -30,7 +30,7 @@ import ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration;
 public class R050__LoadBookData extends AbstractLoadCSVMigration {
 
 	public R050__LoadBookData() {
-		super(URI.create("https://raw.githubusercontent.com/michael-simons/goodreads/master/all.csv"), true);
+		super(URI.create("https://codeberg.org/michael-simons/goodreads/raw/branch/main/all.csv"), true);
 	}
 
 	@Override

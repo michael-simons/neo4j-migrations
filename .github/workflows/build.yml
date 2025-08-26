@@ -174,7 +174,7 @@ jobs:
       - name: Clean and build
         run: ./mvnw --no-transfer-progress -Dnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli clean package
       - name: Run binary
-        uses: jbangdev/jbang-action@v0.119.0
+        uses: jbangdev/jbang-action@v0.129.0
         with:
           script: bin/test_native_cli.java
 

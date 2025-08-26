@@ -1,8 +1,8 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA 17
 //JAVA_OPTIONS --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED
-//DEPS org.neo4j:neo4j:4.4.6
-//DEPS org.neo4j:neo4j-bolt:4.4.6
+//DEPS org.neo4j:neo4j:4.4.44
+//DEPS org.neo4j:neo4j-bolt:4.4.44
 import java.io.IOException;
 import java.nio.file.Files;
 

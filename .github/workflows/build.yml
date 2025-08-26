@@ -158,10 +158,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: ensure_jdk_compat
     steps:
-      - uses: graalvm/setup-graalvm@v1.3.4
+      - uses: graalvm/setup-graalvm@v1.3.5
         with:
           distribution: 'graalvm-community'
           java-version: 24
+          set-java-home: true
           native-image-musl: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
@@ -174,7 +175,7 @@ jobs:
       - name: Clean and build
         run: ./mvnw --no-transfer-progress -Dnative -DskipTests -pl eu.michael-simons.neo4j:neo4j-migrations-cli clean package
       - name: Run binary
-        uses: jbangdev/jbang-action@v0.119.0
+        uses: jbangdev/jbang-action@v0.129.0
         with:
           script: bin/test_native_cli.java
 

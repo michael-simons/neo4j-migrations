@@ -1,6 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA 17
-//DEPS org.neo4j.driver:neo4j-java-driver:4.4.6
+//DEPS org.neo4j.driver:neo4j-java-driver:4.4.20
 import java.time.Duration;
 import java.util.Objects;
 

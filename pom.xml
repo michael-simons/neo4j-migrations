@@ -174,7 +174,7 @@
 		 and just keep the trusted 1.7.x version managed above and overwrite where necessary.
 		-->
 		<slf4jv2.version>2.0.4</slf4jv2.version>
-		<sonar-maven-plugin.version>5.1.0.4751</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
 		<spring-boot.version>3.5.5</spring-boot.version>
 		<spring-data-neo4j.version>7.5.3</spring-data-neo4j.version>

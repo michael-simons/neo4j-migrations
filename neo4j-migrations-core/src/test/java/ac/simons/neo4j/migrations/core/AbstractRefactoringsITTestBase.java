@@ -52,7 +52,7 @@ abstract class AbstractRefactoringsITTestBase {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session()) {
-			version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD versions RETURN versions[0]").single().get(0).asString());
+			version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());
 		}
 	}
 

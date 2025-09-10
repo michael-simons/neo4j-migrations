@@ -188,7 +188,9 @@ public enum Neo4jVersion {
 	 * @since 1.10.0
 	 */
 	public int getMajorVersion() {
-		if (SERIES_3.contains(this)) {
+		if (this == LATEST) {
+			return -1;
+		} else if (SERIES_3.contains(this)) {
 			return 3;
 		} else if (SERIES_4.contains(this)) {
 			return 4;

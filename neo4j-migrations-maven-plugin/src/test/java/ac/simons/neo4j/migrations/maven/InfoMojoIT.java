@@ -58,7 +58,7 @@ public class InfoMojoIT {
 				System.out.flush();
 			});
 			assertThat(result)
-				.containsPattern(".+Neo4j/[3-5].+")
+				.containsPattern(".+Neo4j/([3-5]|20\\d{2}\\.\\d{2}).+")
 				.contains("No migrations found");
 		}
 	}

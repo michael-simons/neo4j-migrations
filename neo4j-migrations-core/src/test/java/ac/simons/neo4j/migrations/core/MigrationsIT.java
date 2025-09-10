@@ -822,7 +822,7 @@ class MigrationsIT extends TestBase {
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums)
 				.containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555", "2663714411", "2581374719", "200310393",
-						"949907516", "949907516", "2884945437", "1491717096", migrations.getConnectionDetails().getServerVersion().startsWith("Neo4j/5") ? "454777450" : "227047158");
+						"949907516", "949907516", "2884945437", "1491717096", isModernNeo4j(migrations.getConnectionDetails()) ? "454777450" : "227047158");
 		}
 	}
 

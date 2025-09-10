@@ -37,7 +37,8 @@ class Neo4jVersionComparatorTest {
 		"4, 4.0.0",
 		"Neo4j/4.4-aura, 4.4",
 		"4.4-aura, 4.4",
-		"5.0.0-drop04.0, 5.0"
+		"5.0.0-drop04.0, 5.0",
+		"2025.08, 2025.08.0"
 	})
 	void equalsShouldWork(String v1, String v2) {
 		Assertions.assertThat(VERSION_COMPARATOR.compare(v1, v2)).isZero();
@@ -52,7 +53,9 @@ class Neo4jVersionComparatorTest {
 		"4.0.0, 4.0.1",
 		"4.0.0, 4.1.0",
 		"4.1.0, 4.1.1",
-		"5.26, 2025.02.0-20138"
+		"5.26, 2025.02.0-20138",
+		"5.26, 2025.08",
+		"5.0, Neo4j/2025.08.0"
 	})
 	void lessShouldWork(String v1, String v2) {
 		Assertions.assertThat(VERSION_COMPARATOR.compare(v1, v2)).isNegative();
@@ -68,7 +71,9 @@ class Neo4jVersionComparatorTest {
 		"4.0.0, 4.1.0",
 		"4.1.0, 4.1.1",
 		"4.4, 5",
-		"5.26, 2025.02.0-20138"
+		"5.26, 2025.02.0-20138",
+		"5.26, 2025.08",
+		"5.0, Neo4j/2025.08.0"
 	})
 	void greaterShouldWork(String v1, String v2) {
 		Assertions.assertThat(VERSION_COMPARATOR.compare(v2, v1)).isPositive();

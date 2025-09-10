@@ -275,9 +275,9 @@ class MigrationsEEIT {
 		// Assert that the lock had been created in the correct database
 		try (Session session = driver.session(TestBase.getSessionConfig(actualSchemaDatabase))) {
 
-			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD versions RETURN versions[0]").single().get(0).asString());
+			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());
 
-			if(version.getMajorVersion() < 5) {
+			if(version.getMajorVersion() > 0 && version.getMajorVersion() < 5) {
 				List<String> constraints = session.run(
 					"CALL db.constraints() YIELD description "
 					+ "WITH description WHERE description =~'.+:__Neo4jMigrationsLock\\\\s?\\\\).*' "

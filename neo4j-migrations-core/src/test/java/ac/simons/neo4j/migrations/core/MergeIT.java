@@ -73,7 +73,7 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 		Merge merge = Merge.nodes(selectionQuery.trim());
 
 		try (Session session = driver.session()) {
-			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD versions RETURN versions[0]").single().get(0).asString());
+			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());
 
 			List<String> queries = new ArrayList<>();
 			if (!(initQuery == null || initQuery.trim().isEmpty())) {

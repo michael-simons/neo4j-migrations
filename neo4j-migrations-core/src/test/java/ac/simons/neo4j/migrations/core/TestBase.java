@@ -80,6 +80,11 @@ abstract class TestBase {
 		return neo4j.getBoltUrl().replaceAll("bolt://", "");
 	}
 
+	boolean isModernNeo4j(ConnectionDetails connectionDetails) {
+		var serverVersion = connectionDetails.getServerVersion();
+		return serverVersion.startsWith("Neo4j/5") || serverVersion.matches("Neo4j/20\\d{2}\\.\\d{2}.*");
+	}
+
 	@AfterAll
 	void closeDriver() {
 

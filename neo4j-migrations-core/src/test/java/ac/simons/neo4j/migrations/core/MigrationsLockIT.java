@@ -57,7 +57,7 @@ class MigrationsLockIT extends TestBase {
 	void shouldNotFailIfTheConstraintExistsAsUnnamedConstraint() {
 
 		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
-		var query = context.getConnectionDetails().getServerVersion().startsWith("Neo4j/5") ?
+		var query = isModernNeo4j(context.getConnectionDetails()) ?
 			"CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE" :
 			"CREATE CONSTRAINT ON (lock:__Neo4jMigrationsLock) ASSERT lock.id IS UNIQUE";
 		try (Session session = driver.session()) {
@@ -79,7 +79,7 @@ class MigrationsLockIT extends TestBase {
 		DefaultMigrationContext context = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
 		String query;
 		String validationQuery;
-		if (context.getConnectionDetails().getServerVersion().startsWith("Neo4j/5")) {
+		if (isModernNeo4j(context.getConnectionDetails())) {
 			query = "CREATE CONSTRAINT a_name FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
 			validationQuery = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
 		} else {
@@ -185,7 +185,7 @@ class MigrationsLockIT extends TestBase {
 
 		String idConstraint;
 		String nameConstraint;
-		if (migrations.getConnectionDetails().getServerVersion().startsWith("Neo4j/5")) {
+		if (isModernNeo4j(migrations.getConnectionDetails())) {
 			idConstraint = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.id IS UNIQUE";
 			nameConstraint = "CREATE CONSTRAINT FOR (lock:__Neo4jMigrationsLock) REQUIRE lock.name IS UNIQUE";
 		} else {

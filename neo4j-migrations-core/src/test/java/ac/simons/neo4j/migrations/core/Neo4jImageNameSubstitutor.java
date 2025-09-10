@@ -28,7 +28,7 @@ import org.testcontainers.utility.ImageNameSubstitutor;
  */
 public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 
-	private final Set<String> OFFICIALLY_SUPPORTED_ON_ARM = Set.of("4.4", "5");
+	private final Set<String> OFFICIALLY_SUPPORTED_ON_ARM = Set.of("4.4", "5", "2025");
 
 	@Override
 	public DockerImageName apply(DockerImageName dockerImageName) {

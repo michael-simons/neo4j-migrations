@@ -123,6 +123,7 @@
 		<java-module-name />
 		<java.version>17</java.version>
 		<jreleaser-maven-plugin.version>1.16.0</jreleaser-maven-plugin.version>
+		<jspecify.version>1.0.0</jspecify.version>
 		<!-- to be overridden in submodules -->
 		<junit.jupiter.version>5.13.4</junit.jupiter.version>
 		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
@@ -261,6 +262,11 @@
 				<groupId>org.assertj</groupId>
 				<artifactId>assertj-core</artifactId>
 				<version>${assertj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jspecify</groupId>
+				<artifactId>jspecify</artifactId>
+				<version>${jspecify.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>

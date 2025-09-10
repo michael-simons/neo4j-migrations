@@ -40,21 +40,26 @@ public class MigrationsRecorder {
 
 	private static final Logger LOG = Logger.getLogger("ac.simons.neo4j.migrations.quarkus.runtime");
 
+	private final RuntimeValue<MigrationsProperties> rtvruntimeProperties;
+
+	public MigrationsRecorder(RuntimeValue<MigrationsProperties> rtvruntimeProperties) {
+		this.rtvruntimeProperties = rtvruntimeProperties;
+	}
+
 	/**
 	 * Records the configuration
 	 *
-	 * @param runtimeProperties   runtime properties
 	 * @param buildTimeProperties build-time properties
 	 * @param discoverer          the (static) discovered configured during build time
 	 * @param resourceScanner     the (static) scanner configured during build time
 	 * @return A runtime value containing the configuration
 	 */
 	public RuntimeValue<MigrationsConfig> recordConfig(
-		MigrationsBuildTimeProperties buildTimeProperties,
-		MigrationsProperties runtimeProperties,
-		StaticJavaBasedMigrationDiscoverer discoverer, ClasspathResourceScanner resourceScanner
+		MigrationsBuildTimeProperties buildTimeProperties, StaticJavaBasedMigrationDiscoverer discoverer,
+		ClasspathResourceScanner resourceScanner
 	) {
 
+		var runtimeProperties = this.rtvruntimeProperties.getValue();
 		var allLocationsToScan = new ArrayList<String>(
 			buildTimeProperties.locationsToScan().size() + runtimeProperties.externalLocations().map(
 				List::size).orElse(0));
@@ -89,11 +94,10 @@ public class MigrationsRecorder {
 	/**
 	 * Records the enabled-flag. The actual value of the property <strong>must</strong> be recorded here as well before use.
 	 *
-	 * @param runtimeProperties runtime properties
 	 * @return A runtime value containing the enabled-flag
 	 */
-	public RuntimeValue<Boolean> isEnabled(MigrationsProperties runtimeProperties) {
-		return new RuntimeValue<>(runtimeProperties.enabled());
+	public RuntimeValue<Boolean> isEnabled() {
+		return new RuntimeValue<>(rtvruntimeProperties.getValue().enabled());
 	}
 
 	/**

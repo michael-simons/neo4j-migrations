@@ -21,7 +21,6 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsBuildTimeProperties;
-import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsProperties;
 import ac.simons.neo4j.migrations.quarkus.runtime.MigrationsRecorder;
 import ac.simons.neo4j.migrations.quarkus.runtime.ResourceWrapper;
 import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner;
@@ -202,7 +201,6 @@ public class MigrationsProcessor {
 	@SuppressWarnings("unused")
 	MigrationsBuildItem createMigrations(
 		MigrationsBuildTimeProperties buildTimeProperties,
-		MigrationsProperties runtimeProperties,
 		DiscovererBuildItem discovererBuildItem,
 		ClasspathResourceScannerBuildItem classpathResourceScannerBuildItem,
 		MigrationsRecorder migrationsRecorder,
@@ -210,7 +208,7 @@ public class MigrationsProcessor {
 		BuildProducer<SyntheticBeanBuildItem> syntheticBeans
 	) {
 
-		var configRv = migrationsRecorder.recordConfig(buildTimeProperties, runtimeProperties,
+		var configRv = migrationsRecorder.recordConfig(buildTimeProperties,
 			discovererBuildItem.getDiscoverer(),
 			classpathResourceScannerBuildItem.getScanner());
 		syntheticBeans.produce(
@@ -226,10 +224,9 @@ public class MigrationsProcessor {
 	@BuildStep
 	@Record(ExecutionTime.RUNTIME_INIT)
 	@SuppressWarnings("unused")
-	ServiceStartBuildItem applyMigrations(MigrationsProperties migrationsProperties,
-		MigrationsRecorder migrationsRecorder, MigrationsBuildItem migrationsBuildItem) {
+	ServiceStartBuildItem applyMigrations(MigrationsRecorder migrationsRecorder, MigrationsBuildItem migrationsBuildItem) {
 		migrationsRecorder.applyMigrations(migrationsBuildItem.getValue(),
-			migrationsRecorder.isEnabled(migrationsProperties));
+			migrationsRecorder.isEnabled());
 		return new ServiceStartBuildItem(FEATURE_NAME);
 	}
 }

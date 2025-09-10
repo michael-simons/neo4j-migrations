@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
+import io.quarkus.runtime.RuntimeValue;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +51,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.of(List.of("foo")));
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 
 		assertThat(config.getPackagesToScan()).containsExactlyElementsOf(buildTimeProperties.packagesToScan().orElse(List.of()));
 		assertThat(config.isAutocrlf()).isTrue();
@@ -84,7 +85,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.getOptionalDelayBetweenMigrations()).hasValue(Duration.ofSeconds(1));
 	}
 
@@ -97,7 +98,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.isOutOfOrder()).isFalse();
 	}
 
@@ -111,7 +112,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.isOutOfOrder()).isTrue();
 	}
 
@@ -124,7 +125,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.isUseFlywayCompatibleChecksums()).isFalse();
 	}
 
@@ -138,7 +139,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.isUseFlywayCompatibleChecksums()).isTrue();
 	}
 
@@ -152,7 +153,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.getTarget()).isNull();
 	}
 
@@ -166,7 +167,7 @@ class MigrationsRecorderTest {
 		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
 		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
 
-		var config = new MigrationsRecorder().recordConfig(buildTimeProperties, properties, null, null).getValue();
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.getTarget()).isEqualTo("latest");
 	}
 }

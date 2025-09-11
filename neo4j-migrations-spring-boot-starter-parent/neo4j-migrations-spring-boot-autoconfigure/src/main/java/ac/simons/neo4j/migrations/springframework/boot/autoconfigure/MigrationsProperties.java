@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 
@@ -139,6 +140,15 @@ public class MigrationsProperties {
 	 * @since 2.17.0
 	 */
 	private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
+
+	/**
+	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
+	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
+	 * of letting the database decide.
+	 *
+	 * @since 2.19.0
+	 */
+	private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;
 
 	/**
 	 * Configures the target version up to which migrations should be considered. This must be a valid migration version,
@@ -403,5 +413,20 @@ public class MigrationsProperties {
 	 */
 	public void setTarget(String target) {
 		this.target = target;
+	}
+
+	/**
+	 * {@return the Cypher version to use for statements in Cypher based migrations}
+	 */
+	public CypherVersion getCypherVersion() {
+		return cypherVersion;
+	}
+
+	/**
+	 * Configures the Cypher version to use for statements in Cypher based migrations.
+	 * @param cypherVersion set to {@literal null} or {@link CypherVersion#DATABASE_DEFAULT} to use the database default
+	 */
+	public void setCypherVersion(CypherVersion cypherVersion) {
+		this.cypherVersion = cypherVersion;
 	}
 }

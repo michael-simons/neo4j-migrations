@@ -79,6 +79,42 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * This type has been introduced in 2.19.0 to allow configuration of the Cypher version in which all scripts should
+	 * be run without the necessity to define this in individual scripts. This is especially helpful on databases that
+	 * default to Cypher 25 and cannot run old scripts anymore. If you were to change the scripts, migrations would fail
+	 * as the hash of the script would change, too.
+	 * <br/>
+	 * For now, this setting will only be applied to Cypher based resources and not to Java or XML based migrations.
+	 * <br/>
+	 * Read more about Cypher versioning <a href="https://neo4j.com/docs/cypher-manual/current/queries/select-version/#select-default-cypher-version">here</a>.
+	 */
+	public enum CypherVersion {
+
+		/**
+		 * Uses the database defaults and will work with all versions of Neo4j.
+		 */
+		DATABASE_DEFAULT(""),
+		/**
+		 * Uses Cypher 5 and will work from later 5.26 versions.
+		 */
+		CYPHER_5("CYPHER 5"),
+		/**
+		 * Uses Cypher 25 and will work from 2025.06 onwards.
+		 */
+		CYPHER_25("CYPHER 25");
+
+		private final String prefix;
+
+		CypherVersion(String prefix) {
+			this.prefix = prefix;
+		}
+
+		public String getPrefix() {
+			return prefix;
+		}
+	}
+
+	/**
 	 * Start building a new configuration.
 	 *
 	 * @return The entry point for creating a new configuration.
@@ -143,6 +179,8 @@ public final class MigrationsConfig {
 
 	private final boolean useFlywayCompatibleChecksums;
 
+	private final CypherVersion cypherVersion;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan =
@@ -171,6 +209,7 @@ public final class MigrationsConfig {
 		} else {
 			this.target = builder.target;
 		}
+		this.cypherVersion = builder.cypherVersion == null ? Defaults.CYPHER_VERSION : builder.cypherVersion;
 	}
 
 	/**
@@ -313,6 +352,15 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * {@return the cypher version used as prefix for all Cypher scripts}
+	 *
+	 * @since 2.19.0
+	 */
+	public CypherVersion getCypherVersion() {
+		return cypherVersion;
+	}
+
+	/**
 	 * Helper method to pretty print this configuration into a logger (on level {@literal INFO} respectively {@literal WARNING}.
 	 *
 	 * @param logger  the logger to print to
@@ -432,6 +480,8 @@ public final class MigrationsConfig {
 		private String target;
 
 		private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
+
+		private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
@@ -681,6 +731,17 @@ public final class MigrationsConfig {
 		 */
 		public Builder withFlywayCompatibleChecksums(boolean enabled) {
 			this.useFlywayCompatibleChecksums = enabled;
+			return this;
+		}
+
+		/**
+		 * Selects the default cypher version. A {@literal null} argument uses {@link Defaults#CYPHER_VERSION}.
+		 * @param newCypherVersion the cypher version to use as prefix for all cypher baseed migrations
+		 * @return The builder for further customization
+		 * @since 2.19.0
+		 */
+		public Builder withCypherVersion(CypherVersion newCypherVersion) {
+			this.cypherVersion = newCypherVersion;
 			return this;
 		}
 

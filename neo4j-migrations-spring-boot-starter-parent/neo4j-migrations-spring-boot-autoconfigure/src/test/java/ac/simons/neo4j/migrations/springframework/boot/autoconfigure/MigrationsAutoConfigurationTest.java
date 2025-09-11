@@ -317,6 +317,27 @@ class MigrationsAutoConfigurationTest {
 		}
 
 		@Test
+		void cypherVersionShouldHaveDefault() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
+		}
+
+		@Test
+		void cypherVersionShouldBeApplied() {
+
+			MigrationsProperties properties = new MigrationsProperties();
+			properties.setPackagesToScan(new String[] { "na" });
+			properties.setCypherVersion(MigrationsConfig.CypherVersion.CYPHER_25);
+
+			MigrationsConfig config = new MigrationsAutoConfiguration().neo4jMigrationsConfig(resourceLoader, properties, noCustomizer(), noSpringDiscoverer());
+			assertThat(config.getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
+		}
+
+		@Test
 		void shouldConfigureImpersonatedUser() {
 
 			MigrationsProperties properties = new MigrationsProperties();

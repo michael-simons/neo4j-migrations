@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.CRC32;
 
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.SimpleQueryRunner;
@@ -332,7 +333,7 @@ final class DefaultCypherResource implements CypherResource {
 				if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT || !statementsNeedingImplicitTransactions.isEmpty()) {
 
 					LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions", cypherResource.getIdentifier());
-					numberOfStatements = executeInSeparateTransactions(session, transactionConfig, executableStatements, statementsNeedingImplicitTransactions);
+					numberOfStatements = executeInSeparateTransactions(session, transactionConfig, context.getConfig().getCypherVersion(), executableStatements, statementsNeedingImplicitTransactions);
 
 				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {
 
@@ -341,7 +342,7 @@ final class DefaultCypherResource implements CypherResource {
 					numberOfStatements = session.executeWrite(t -> {
 						int cnt = 0;
 						for (String statement : executableStatements) {
-							c.add(run(t, statement));
+							c.add(run(context.getConfig().getCypherVersion(), t, statement));
 							++cnt;
 						}
 						return cnt;
@@ -356,17 +357,17 @@ final class DefaultCypherResource implements CypherResource {
 		});
 	}
 
-	private static int executeInSeparateTransactions(Session session, TransactionConfig transactionConfig, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
+	private static int executeInSeparateTransactions(Session session, TransactionConfig transactionConfig, CypherVersion cypherVersion, List<String> executableStatements, Set<String> statementsNeedingImplicitTransactions) {
 
 		int numberOfStatements = 0;
 		Counters counters = Counters.empty();
 		for (String statement : executableStatements) {
 			if (statementsNeedingImplicitTransactions.contains(statement)) {
 				++numberOfStatements;
-				run(session, statement);
+				run(cypherVersion, session, statement);
 			} else {
 				numberOfStatements += session.executeWrite(t -> {
-					run(t, statement);
+					run(cypherVersion, t, statement);
 					return 1;
 				}, transactionConfig);
 			}
@@ -454,10 +455,14 @@ final class DefaultCypherResource implements CypherResource {
 		return result;
 	}
 
-	static Counters run(SimpleQueryRunner runner, String statement) {
+	static Counters run(CypherVersion cypherVersion, SimpleQueryRunner runner, String statement) {
 
-		LOGGER.log(Level.FINE, "Running {0}", statement);
-		ResultSummary resultSummary = runner.run(statement).consume();
+		var finalStatement = statement;
+		if (cypherVersion != CypherVersion.DATABASE_DEFAULT) {
+			finalStatement = cypherVersion.getPrefix() + " " + statement;
+		}
+		LOGGER.log(Level.FINE, "Running {0}", finalStatement);
+		ResultSummary resultSummary = runner.run(finalStatement).consume();
 		SummaryCounters c = resultSummary.counters();
 
 		if (LOGGER.isLoggable(Level.FINEST)) {

@@ -40,6 +40,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,6 @@ import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Driver;
@@ -782,13 +783,24 @@ class MigrationsIT extends TestBase {
 		return files;
 	}
 
+	Stream<Arguments> shouldApplyResourceBasedMigrations() {
+		var builder = Stream.<Arguments>builder();
+		for (var transactionMode : TransactionMode.values()) {
+			for (var cypherVersion : CypherVersion.values()) {
+				builder.add(Arguments.of(transactionMode, cypherVersion));
+			}
+		}
+		return builder.build();
+	}
+
 	@ParameterizedTest
-	@EnumSource(MigrationsConfig.TransactionMode.class)
-	void shouldApplyResourceBasedMigrations(MigrationsConfig.TransactionMode transactionMode) {
+	@MethodSource
+	void shouldApplyResourceBasedMigrations(TransactionMode transactionMode, CypherVersion cypherVersion) {
 
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder()
 			.withTransactionMode(transactionMode)
+			.withCypherVersion(cypherVersion)
 			.withLocationsToScan(
 			"classpath:my/awesome/migrations", "classpath:some/changeset").build(), driver);
 
@@ -878,7 +890,7 @@ class MigrationsIT extends TestBase {
 	void shouldRespectTimeoutWithPerStatementTransactions() {
 
 		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
-			.withTransactionMode(MigrationsConfig.TransactionMode.PER_STATEMENT)
+			.withTransactionMode(TransactionMode.PER_STATEMENT)
 			.withTransactionTimeout(Duration.ofMillis(500)).build(), driver);
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
 			.withCauseInstanceOf(ClientException.class)
@@ -889,7 +901,7 @@ class MigrationsIT extends TestBase {
 	void shouldRespectTimeoutWithPerMigrationTransactions() {
 
 		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
-			.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
+			.withTransactionMode(TransactionMode.PER_MIGRATION)
 			.withTransactionTimeout(Duration.ofMillis(500)).build(), driver);
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
 			.withCauseInstanceOf(ClientException.class)
@@ -900,7 +912,7 @@ class MigrationsIT extends TestBase {
 	void timeoutCanBeResetToDefault() {
 
 		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("classpath:sleepy")
-			.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION)
+			.withTransactionMode(TransactionMode.PER_MIGRATION)
 			.withTransactionTimeout(Duration.ofMillis(10))
 			.withTransactionTimeout(null).build(), driver);
 		assertThatNoException().isThrownBy(migrations::apply);
@@ -1172,7 +1184,7 @@ class MigrationsIT extends TestBase {
 
 		private static MigrationsConfig.Builder defaultConfigPart() {
 			return MigrationsConfig.builder()
-				.withTransactionMode(MigrationsConfig.TransactionMode.PER_MIGRATION);
+				.withTransactionMode(TransactionMode.PER_MIGRATION);
 		}
 
 		private static void assertChainOrder(Migrations migrations, String... expectedVersions) {

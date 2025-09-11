@@ -202,6 +202,25 @@ class MigrationsCliTest {
 	}
 
 	@Test
+	void cypherVersionShouldHaveDefault() {
+
+		MigrationsCli cli = new MigrationsCli();
+		new CommandLine(cli);
+
+		assertThat(cli.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
+	}
+
+	@Test
+	void cypherVersionShouldBeApplied() {
+
+		MigrationsCli cli = new MigrationsCli();
+		CommandLine commandLine = new CommandLine(cli);
+		commandLine.parseArgs("--cypher-version=CYPHER_25");
+
+		assertThat(cli.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
+	}
+
+	@Test
 	void shouldRequire2Connections() {
 
 		MigrationsCli cli = new MigrationsCli();

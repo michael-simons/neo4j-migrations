@@ -229,5 +229,31 @@ public class AbstractConnectedMojoTest {
 		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getTarget()).isEqualTo("next");
 	}
+
+	@Test
+	public void cypherVersionShouldHaveDefault() throws Exception {
+
+		File pom = new File("target/test-classes/with-imp-and-schema/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
+	}
+
+	@Test
+	public void cypherVersionShouldBeApplied() throws Exception {
+
+		File pom = new File("target/test-classes/cypher-version/");
+		assertThat(pom)
+			.isNotNull()
+			.exists();
+
+		InfoMojo infoMojo = (InfoMojo) rule.lookupConfiguredMojo(pom, "info");
+		assertThat(infoMojo).isNotNull();
+		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
+	}
 }
 

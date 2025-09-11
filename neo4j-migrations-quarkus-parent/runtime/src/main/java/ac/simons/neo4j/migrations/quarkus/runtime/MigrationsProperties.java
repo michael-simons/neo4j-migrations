@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
@@ -150,4 +151,15 @@ public interface MigrationsProperties {
 	 * @since 2.15.0
 	 */
 	Optional<String> target();
+
+	/**
+	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
+	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
+	 * of letting the database decide.
+	 *
+	 * @return the Cypher version to use for statements in Cypher based migrations
+	 * @since 2.19.0
+	 */
+	@WithDefault(Defaults.CYPHER_VERSION_VALUE)
+	CypherVersion cypherVersion();
 }

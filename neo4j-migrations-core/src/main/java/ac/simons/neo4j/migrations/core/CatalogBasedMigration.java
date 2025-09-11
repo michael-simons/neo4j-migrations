@@ -322,7 +322,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	}
 
 	/**
-	 * Sorts operations by type (constrants before indexes)
+	 * Sorts operations by type (constraints before indexes)
 	 * @param o1 first item to compare
 	 * @param o2 second item to compare
 	 * @return Result of comparison

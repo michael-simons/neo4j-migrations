@@ -86,6 +86,7 @@ public class MigrationsRecorder {
 			.withOutOfOrderAllowed(runtimeProperties.outOfOrder())
 			.withFlywayCompatibleChecksums(runtimeProperties.useFlywayCompatibleChecksums())
 			.withTarget(runtimeProperties.target().orElse(null))
+			.withCypherVersion(runtimeProperties.cypherVersion())
 			.build();
 
 		return new RuntimeValue<>(config);

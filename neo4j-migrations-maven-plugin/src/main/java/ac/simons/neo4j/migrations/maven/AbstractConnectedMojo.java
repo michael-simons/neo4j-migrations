@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.maven;
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import ac.simons.neo4j.migrations.core.MigrationsException;
@@ -149,6 +150,16 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private boolean useFlywayCompatibleChecksums;
 
 	/**
+	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
+	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
+	 * of letting the database decide.
+	 *
+	 * @since 2.19.0
+	 */
+	@Parameter(defaultValue = Defaults.CYPHER_VERSION_VALUE)
+	private CypherVersion cypherVersion;
+
+	/**
 	 * Use this option to specify a valid target version up to which migrations
 	 * should be considered. Can also be one of current, latest or next.
 	 *
@@ -194,6 +205,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			.withOutOfOrderAllowed(outOfOrder)
 			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)
 			.withTarget(target)
+			.withCypherVersion(cypherVersion)
 			.build();
 
 		config.logTo(LOGGER, verbose);

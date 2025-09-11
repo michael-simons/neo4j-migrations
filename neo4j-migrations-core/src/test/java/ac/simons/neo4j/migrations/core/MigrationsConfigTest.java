@@ -25,9 +25,13 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Michael J. Simons
@@ -89,6 +93,28 @@ class MigrationsConfigTest {
 		assertThat(logCollector.logMessages)
 			.containsExactly("Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
 				"Statements will be applied in one transaction per migration");
+	}
+
+	static Stream<Arguments> shouldConfigureCypherVersion() {
+		return Stream.of(Arguments.of(null, Defaults.CYPHER_VERSION),
+			Arguments.of(MigrationsConfig.CypherVersion.CYPHER_5, MigrationsConfig.CypherVersion.CYPHER_5),
+			Arguments.of(MigrationsConfig.CypherVersion.CYPHER_25, MigrationsConfig.CypherVersion.CYPHER_25)
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldConfigureCypherVersion(MigrationsConfig.CypherVersion in, MigrationsConfig.CypherVersion expected) {
+
+		var config = MigrationsConfig.builder().withCypherVersion(in).build();
+		assertThat(config.getCypherVersion()).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldDefaultToNoCypherVersion() {
+
+		var config = MigrationsConfig.builder().build();
+		assertThat(config.getCypherVersion()).isEqualTo(Defaults.CYPHER_VERSION);
 	}
 
 	@Test

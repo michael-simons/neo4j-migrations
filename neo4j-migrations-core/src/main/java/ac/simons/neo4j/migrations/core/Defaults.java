@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 
@@ -135,6 +136,19 @@ public final class Defaults {
 	 * @since 2.17.0
 	 */
 	public static final String USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE = "false";
+
+	/**
+	 * Default setting for {@code cypherVersion}.
+	 * @since 2.19.0
+	 */
+	public static final CypherVersion CYPHER_VERSION = CypherVersion.DATABASE_DEFAULT;
+
+	/**
+	 * Default setting for {@code cypherVersion} but as a {@link String string value} to be used in
+	 * configuration that requires defaults given as string.
+	 * @since 2.19.0
+	 */
+	public static final String CYPHER_VERSION_VALUE = "DATABASE_DEFAULT";
 
 	private Defaults() {
 	}

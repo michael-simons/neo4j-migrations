@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -245,6 +246,13 @@ public final class MigrationsCli implements Runnable {
 	private VersionSortOrder versionSortOrder;
 
 	@Option(
+		names = { "--cypher-version" },
+		description = "A valid Cypher version to prepend to every statement of every Cypher based migration",
+		defaultValue = Defaults.CYPHER_VERSION_VALUE
+	)
+	private CypherVersion cypherVersion;
+
+	@Option(
 		names = {"--out-of-order"},
 		description = "Use this flag to enable migrations to be discovered out-of-order and integrated into the migration chain.",
 		defaultValue = Defaults.OUT_OF_ORDER_VALUE
@@ -321,6 +329,7 @@ public final class MigrationsCli implements Runnable {
 			.withOutOfOrderAllowed(outOfOrder)
 			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)
 			.withTarget(target)
+			.withCypherVersion(cypherVersion)
 			.build();
 
 		if (!forceSilence) {

@@ -170,4 +170,31 @@ class MigrationsRecorderTest {
 		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.getTarget()).isEqualTo("latest");
 	}
+
+	@Test
+	void cypherVersionShouldHaveDefault() {
+
+		var properties = mock(MigrationsProperties.class);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
+		assertThat(config.getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
+	}
+
+	@Test
+	void cypherVersionShouldBeApplied() {
+
+		var properties = mock(MigrationsProperties.class);
+		when(properties.cypherVersion()).thenReturn(MigrationsConfig.CypherVersion.CYPHER_25);
+
+		var buildTimeProperties = mock(MigrationsBuildTimeProperties.class);
+		when(buildTimeProperties.packagesToScan()).thenReturn(Optional.empty());
+		when(buildTimeProperties.locationsToScan()).thenReturn(List.of("bar"));
+
+		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
+		assertThat(config.getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
+	}
 }

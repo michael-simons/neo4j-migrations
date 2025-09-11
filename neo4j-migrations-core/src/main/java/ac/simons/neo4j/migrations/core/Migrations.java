@@ -243,6 +243,10 @@ public final class Migrations {
 	 */
 	public Optional<MigrationVersion> apply(boolean log) {
 
+		if (config.getCypherVersion() != MigrationsConfig.CypherVersion.DATABASE_DEFAULT) {
+			LOGGER.log(Level.INFO, "All statements in all Cypher based migrations will be prefixed with {0}", config.getCypherVersion().getPrefix());
+		}
+
 		return executeWithinLock(() -> {
 			if (log && STARTUP_LOGGER.isLoggable(Level.INFO)) {
 				STARTUP_LOGGER.info(() -> Messages.INSTANCE.format("startup_log", getUserAgent(), ConnectionDetailsFormatter.INSTANCE.format(this.getConnectionDetails())));

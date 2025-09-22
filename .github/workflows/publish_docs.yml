@@ -34,7 +34,7 @@ jobs:
           ref: gh-pages
           path: target/gh-pages
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@cf7216d52fba1017929b4d7162fabe2b30af5b49 # 1.262.0
         with:
           ruby-version: '2.6'
       - name: Set up JDK
@@ -55,7 +55,7 @@ jobs:
           git add .
           git commit -m "Update GH-Pages."
       - name: Push changes
-        uses: ad-m/github-push-action@v0.8.0
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df # 0.8.0
         with:
           directory: target/gh-pages
           branch: gh-pages

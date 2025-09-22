@@ -64,7 +64,7 @@ jobs:
           ref: ${{ env.refName }}
 
       - name: 'Set up Graal'
-        uses: graalvm/setup-graalvm@v1.3.4
+        uses: graalvm/setup-graalvm@aba6a077d71fbfc02138d7470c4ad6e7f85bd2a9 # 1.3.7
         with:
           distribution: 'graalvm-community'
           java-version: 24

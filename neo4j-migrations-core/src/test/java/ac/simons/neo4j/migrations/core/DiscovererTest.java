@@ -22,12 +22,20 @@ import ac.simons.neo4j.migrations.test_resources.TestResources;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import org.assertj.core.api.Assumptions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -76,6 +84,20 @@ class DiscovererTest {
 
 	@Nested
 	class CypherBasedMigrationDiscovererTest {
+
+		private static final LogCapturingHandler handler = new LogCapturingHandler();
+
+		@BeforeAll
+		static void setup() {
+
+			handler.setLevel(Level.WARNING);
+			Discoverer.LOGGER.addHandler(handler);
+		}
+
+		@AfterAll
+		static void cleanup() {
+			Discoverer.LOGGER.removeHandler(handler);
+		}
 
 		@Test
 		void shouldFindClasspathResources() {
@@ -129,25 +151,62 @@ class DiscovererTest {
 				file.createNewFile();
 			}
 
+			var name = UUID.randomUUID().toString();
+			var dir3 = Files.createDirectories(Path.of("target", name));
+			var v4 = dir3.resolve("V4__Vier.cypher");
+			Files.writeString(v4, "RETURN 1;");
+			files.add(v4.toFile());
+
 			try {
-				MigrationContext context = new DefaultMigrationContext(
+				MigrationContext  context = new DefaultMigrationContext(
 					MigrationsConfig.builder().withLocationsToScan(
-						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath()).build(),
+						"file:" + dir.getAbsolutePath(), "file:" + dir2.getAbsolutePath(), "file:/idontexists",
+						"./target/" + name
+						).build(),
 					Mockito.mock(Driver.class));
 
 				Collection<Migration> migrations = ResourceDiscoverer.forMigrations(new DefaultClasspathResourceScanner()).discover(context);
 				assertThat(migrations)
 					.extracting(Migration::getOptionalDescription)
 					.filteredOn(Optional::isPresent)
-					.hasSize(3)
+					.hasSize(4)
 					.extracting(Optional::get)
-					.contains("One", "Two", "Three");
+					.contains("One", "Two", "Three", "Vier");
 			} finally {
 				for (File file : files) {
 					file.delete();
 				}
 				subDir.delete();
 			}
+
+			assertThat(handler.messages).containsExactly("Ignoring `/idontexists` (not a directory)", "Ignoring `/idontexists` (not a directory)");
+		}
+	}
+
+	static class LogCapturingHandler extends Handler {
+
+		final List<String> messages = new ArrayList<>();
+
+		LogCapturingHandler() {
+			this.setLevel(Level.ALL);
+		}
+
+		@Override
+		public void publish(LogRecord logRecord) {
+			if (logRecord.getLevel().intValue() < this.getLevel().intValue()) {
+				return;
+			}
+			messages.add(MessageFormat.format(logRecord.getMessage(), logRecord.getParameters()));
+		}
+
+		@Override
+		public void flush() {
+			// Nothing to be flushed
+		}
+
+		@Override
+		public void close() {
+			// Nothing to be closed
 		}
 	}
 }

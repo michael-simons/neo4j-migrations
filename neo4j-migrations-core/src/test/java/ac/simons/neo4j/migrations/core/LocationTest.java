@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 
 import ac.simons.neo4j.migrations.core.Location.LocationType;
 
@@ -45,10 +46,44 @@ class LocationTest {
 		description = Location.of(" classPath : foobar ");
 		assertThat(description.getType()).isEqualTo(LocationType.CLASSPATH);
 		assertThat(description.getName()).isEqualTo("/foobar");
+	}
+
+	@Test
+	void relativeFiles() {
+
+		Location description;
+		var workingDir = System.getProperty("user.dir");
+		description = Location.of("./test/");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo(workingDir + "/test");
+
+		description = Location.of("../test/");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo(Path.of(workingDir).getParent().resolve("test").toString());
+
+		description = Location.of(".././test/.");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo(Path.of(workingDir).getParent().resolve("test").toString());
+
+		description = Location.of("./.././test/..");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo(Path.of(workingDir).getParent().toString());
 
 		description = Location.of("file:/./foobar");
 		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
-		assertThat(description.getName()).isEqualTo("/./foobar");
+		assertThat(description.getName()).isEqualTo("/foobar");
+
+		description = Location.of("file://test/./foobar");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo("/foobar");
+
+		description = Location.of("file://test/../foobar");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo("/foobar");
+
+		description = Location.of("file://test/../../foobar");
+		assertThat(description.getType()).isEqualTo(LocationType.FILESYSTEM);
+		assertThat(description.getName()).isEqualTo("/foobar");
 	}
 
 	@Test

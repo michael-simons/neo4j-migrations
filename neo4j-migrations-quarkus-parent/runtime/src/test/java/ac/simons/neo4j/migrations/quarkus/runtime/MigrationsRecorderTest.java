@@ -21,17 +21,49 @@ import static org.mockito.Mockito.when;
 
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 
+import java.text.MessageFormat;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 import io.quarkus.runtime.RuntimeValue;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 /**
  * @author Michael J. Simons
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MigrationsRecorderTest {
+
+	static {
+		System.setProperty("org.jboss.logging.provider", "jdk");
+	}
+
+	private final LogCapturingHandler handler;
+
+	MigrationsRecorderTest() {
+		this.handler = new LogCapturingHandler();
+	}
+
+	@BeforeAll
+	void setup() {
+
+		var jdkLogger = java.util.logging.Logger.getLogger("ac.simons.neo4j.migrations.quarkus.runtime");
+		jdkLogger.addHandler(handler);
+	}
+
+	@AfterAll
+	void cleanup() {
+		var jdkLogger = java.util.logging.Logger.getLogger("ac.simons.neo4j.migrations.quarkus.runtime");
+		jdkLogger.removeHandler(this.handler);
+	}
 
 	@Test
 	void migrationConfigShouldWork() {
@@ -66,6 +98,7 @@ class MigrationsRecorderTest {
 
 		assertThat(config.getMigrationClassesDiscoverer()).isNotNull();
 		assertThat(config.getResourceScanner()).isNotNull();
+		assertThat(this.handler.messages).containsExactly("External locations only support filesystem locations, ignoring `dropped`");
 	}
 
 	@Test
@@ -196,5 +229,32 @@ class MigrationsRecorderTest {
 
 		var config = new MigrationsRecorder(new RuntimeValue<>(properties)).recordConfig(buildTimeProperties, null, null).getValue();
 		assertThat(config.getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
+	}
+
+	static class LogCapturingHandler extends Handler {
+
+		final List<String> messages = new ArrayList<>();
+
+		LogCapturingHandler() {
+			this.setLevel(Level.ALL);
+		}
+
+		@Override
+		public void publish(LogRecord logRecord) {
+			if (logRecord.getLevel().intValue() < this.getLevel().intValue()) {
+				return;
+			}
+			messages.add(MessageFormat.format(logRecord.getMessage(), logRecord.getParameters()));
+		}
+
+		@Override
+		public void flush() {
+			// Nothing to be flushed
+		}
+
+		@Override
+		public void close() {
+			// Nothing to be closed
+		}
 	}
 }

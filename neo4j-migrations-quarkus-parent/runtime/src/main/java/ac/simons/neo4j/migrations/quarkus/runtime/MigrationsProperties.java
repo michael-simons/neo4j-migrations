@@ -41,7 +41,8 @@ public interface MigrationsProperties {
 	/**
 	 * An optional list of external locations that don't become part of the image. Those locations can be changed during
 	 * runtime in contrast to {@link MigrationsBuildTimeProperties#locationsToScan} but can only be used for locations
-	 * inside the filesystem.
+	 * inside the filesystem. Only {@link ac.simons.neo4j.migrations.core.Location.LocationType#FILESYSTEM filesystem locations}
+	 * are supported
 	 * @return the external locations to scan
 	 */
 	Optional<List<String>> externalLocations();

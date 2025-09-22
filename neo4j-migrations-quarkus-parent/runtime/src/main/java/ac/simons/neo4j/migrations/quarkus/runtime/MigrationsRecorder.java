@@ -65,7 +65,13 @@ public class MigrationsRecorder {
 				List::size).orElse(0));
 		allLocationsToScan.addAll(buildTimeProperties.locationsToScan());
 		runtimeProperties.externalLocations().ifPresent(locations -> locations.stream()
-			.filter(l -> Location.of(l).getType() == Location.LocationType.FILESYSTEM)
+			.filter(l -> {
+				var isFileSystem = Location.of(l).getType() == Location.LocationType.FILESYSTEM;
+				if (!isFileSystem) {
+					LOG.warnv("External locations only support filesystem locations, ignoring `{0}`", l);
+				}
+				return isFileSystem;
+			})
 			.forEach(allLocationsToScan::add));
 
 		var config = MigrationsConfig.builder()

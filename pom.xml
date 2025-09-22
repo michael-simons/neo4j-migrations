@@ -100,7 +100,7 @@
 		<asciidoctor-maven-plugin.version>3.2.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>3.0.1</asciidoctorj-diagram.version>
 		<asciidoctorj.version>3.0.0</asciidoctorj.version>
-		<assertj.version>3.27.4</assertj.version>
+		<assertj.version>3.27.5</assertj.version>
 		<build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.17.7</byte-buddy.version>
 		<central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
@@ -111,12 +111,12 @@
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
-		<cypher-dsl.version>2025.0.1</cypher-dsl.version>
+		<cypher-dsl.version>2025.0.2</cypher-dsl.version>
 		<docker-maven-plugin.version>0.46.0</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
-		<error_prone_annotations.version>2.41.0</error_prone_annotations.version>
+		<error_prone_annotations.version>2.42.0</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
-		<flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
+		<flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
 		<guava.version>33.5.0-jre</guava.version>
 		<jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
 		<japicmp-maven-plugin.version>0.23.1</japicmp-maven-plugin.version>
@@ -130,7 +130,7 @@
 		<maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
 		<maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
-		<maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+		<maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
@@ -138,7 +138,7 @@
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-invoker-plugin.version>3.9.1</maven-invoker-plugin.version>
 		<maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-		<maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
 		<maven-project-info-reports-plugin.version>3.9.0</maven-project-info-reports-plugin.version>
 		<maven-release-plugin.version>3.1.1</maven-release-plugin.version>
@@ -168,7 +168,7 @@
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<quarkus-neo4j.version>5.7.1</quarkus-neo4j.version>
-		<quarkus.version>3.26.3</quarkus.version>
+		<quarkus.version>3.28.0</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<!--
 		 I am not in the mood for _yet_ another player in the Neo4j-Java-Driver 5.x, Spring Boot 3, Quarkus Future battle of version fu
@@ -177,7 +177,7 @@
 		<slf4jv2.version>2.0.4</slf4jv2.version>
 		<sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
-		<spring-boot.version>3.5.5</spring-boot.version>
+		<spring-boot.version>3.5.6</spring-boot.version>
 		<spring-data-neo4j.version>7.5.4</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>1.21.3</testcontainers.version>

@@ -17,8 +17,12 @@ package ac.simons.neo4j.migrations.core;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +30,8 @@ import java.util.stream.Collectors;
  * @since 0.0.2
  */
 public final class Location {
+
+	private static final Set<Path> DOTS = Set.of(Path.of("."), Path.of(".."));
 
 	/**
 	 * A location type. If no prefix is given, we assume {@literal classpath:}.
@@ -55,6 +61,18 @@ public final class Location {
 		}
 	}
 
+	private static Optional<Path> tryRelative(String uri) {
+		var path = Path.of(uri);
+		if (path.getNameCount() >= 1 && !path.isAbsolute() && DOTS.contains(path.getName(0))) {
+			return Optional.of(resolveAndNormalize(path));
+		}
+		return Optional.empty();
+	}
+
+	private static Path resolveAndNormalize(Path path) {
+		return Path.of("").toAbsolutePath().resolve(path).normalize();
+	}
+
 	/**
 	 * Creates a new {@link Location} object from a given location that has an optional prefix (protocol) and a name
 	 * @param uri A name with an optional scheme / name
@@ -64,7 +82,8 @@ public final class Location {
 		// Yep, Regex would work, too. I know how to do this with regex, but it's slower and not necessary.
 		int indexOfFirstColon = uri.indexOf(":");
 		if (indexOfFirstColon < 0) {
-			return new Location(LocationType.CLASSPATH, uri);
+			return tryRelative(uri).map(path -> new Location(LocationType.FILESYSTEM, path.toString()))
+				.orElseGet(() -> new Location(LocationType.CLASSPATH, uri));
 		}
 
 		String prefix = uri.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();
@@ -79,7 +98,20 @@ public final class Location {
 			type = LocationType.CLASSPATH;
 		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {
 			type = LocationType.FILESYSTEM;
-			name = URI.create(String.format("%s:%s", prefix, name)).getPath();
+			try {
+				// Let's delegate to Java if we can get a valid path out of this URL, this is all madness
+				// https://en.wikipedia.org/wiki/File_URI_scheme
+				// If we encounter a non-empty authority, we strip it away and try again, the relative paths
+				// handling follows later. As the first / will always denote root, resolving will never resolve
+				// against the current working directory.
+				var hlp = URI.create(String.format("%s:%s", prefix, name));
+				if (hlp.getAuthority() != null) {
+					hlp = URI.create(String.format("%s:%s", prefix, hlp.getPath()));
+				}
+				name = Paths.get(hlp).toString();
+			} catch (IllegalArgumentException ex) {
+				name = null;
+			}
 		} else {
 			String supportedSchemes = Arrays.stream(LocationType.values()).map(LocationType::getPrefix)
 				.map(s -> String.format("'%s:'", s))
@@ -87,8 +119,12 @@ public final class Location {
 			throw new MigrationsException("Invalid scheme: '" + prefix + "', supported schemes are " + supportedSchemes);
 		}
 
-		if (name == null || name.length() == 0) {
+		if (name == null || name.isEmpty()) {
 			throw new MigrationsException("Invalid path; a valid file location must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path");
+		}
+
+		if (type == LocationType.FILESYSTEM) {
+			name = resolveAndNormalize(Path.of(name)).toString();
 		}
 
 		return new Location(type, name);

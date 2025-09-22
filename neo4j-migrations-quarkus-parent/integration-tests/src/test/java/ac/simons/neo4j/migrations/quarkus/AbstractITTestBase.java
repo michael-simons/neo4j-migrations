@@ -57,7 +57,7 @@ abstract class AbstractITTestBase {
 
 	void assertStateOfMigrations(MigrationState expectedState) {
 
-		var expected = Stream.of("0001: 2nd location", "0002: SomethingJava", "0003: SomethingStatic", "0004: Create constraints")
+		var expected = Stream.of("0001: 2nd location", "0002: SomethingJava", "0003: SomethingStatic", "0004: Create constraints", "0005: Whatever")
 			.map(s -> s + " (" + expectedState + ")")
 			.collect(Collectors.joining("\",\"", "[\"", "\"]"));
 

@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 /**
@@ -77,8 +76,6 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 		return new ResourceDiscoverer<>(resourceScanner, filter,
 			ctx -> Collections.singletonList(new CypherBasedCallback(ctx)));
 	}
-
-	private static final Logger LOGGER = Logger.getLogger(ResourceDiscoverer.class.getName());
 
 	private final ClasspathResourceScanner scanner;
 
@@ -150,6 +147,7 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 		for (URI location : filesystemLocations) {
 			Path path = Paths.get(location);
 			if (!Files.isDirectory(path)) {
+				LOGGER.log(Level.WARNING, "Ignoring `{0}` (not a directory)", path);
 				continue;
 			}
 			try {

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Attributes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">Attributes.java</span></div><h1>Attributes.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import java.util.Optional;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+
+/**
+ * Access to commonly used attribute names and their values
+ *
+ * @author Michael J. Simons
+ * @soundtrack Motörhead - Iron Fist
+ * @since 1.15.0
+ */
+final class Attributes {
+
+	static final String TYPE = &quot;type&quot;;
+	static final String VALUE = &quot;value&quot;;
+	static final String NAME = &quot;name&quot;;
+	static final String LABEL = &quot;label&quot;;
+	static final String LABELS = &quot;labels&quot;;
+	static final String PRIMARY_LABEL = &quot;primaryLabel&quot;;
+	static final String PROPERTIES = &quot;properties&quot;;
+	static final String PROPERTY = &quot;property&quot;;
+	static final String UNIQUE = &quot;unique&quot;;
+	static final String INDEX_TYPE = &quot;indexType&quot;;
+	static final String OPTIONS = &quot;options&quot;;
+	static final String KEY = &quot;key&quot;;
+
+	static Optional&lt;ExecutableElement&gt; get(TypeElement annotation, String name) {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">		if (annotation == null) {</span>
+<span class="fc" id="L47">			return Optional.empty();</span>
+		}
+<span class="fc" id="L49">		return annotation.getEnclosedElements().stream()</span>
+<span class="fc" id="L50">			.filter(e -&gt; e.getSimpleName().contentEquals(name)).map(ExecutableElement.class::cast).findFirst();</span>
+	}
+
+	private Attributes() {
+
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

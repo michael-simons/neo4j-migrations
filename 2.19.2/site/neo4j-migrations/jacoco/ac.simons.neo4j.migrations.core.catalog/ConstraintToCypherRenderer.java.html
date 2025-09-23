@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConstraintToCypherRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">ConstraintToCypherRenderer.java</span></div><h1>ConstraintToCypherRenderer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
+import java.util.Formattable;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * Renders constraints (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}) as Cypher.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since 1.7.0
+ */
+<span class="fc" id="L39">enum ConstraintToCypherRenderer implements Renderer&lt;Constraint&gt; {</span>
+
+<span class="fc" id="L41">	INSTANCE;</span>
+
+	/**
+	 * A range of versions from 4.1 to 4.3.
+	 */
+<span class="fc" id="L46">	private static final Set&lt;Neo4jVersion&gt; RANGE_41_TO_43 = EnumSet.of(Neo4jVersion.V4_1, Neo4jVersion.V4_2, Neo4jVersion.V4_3);</span>
+	/**
+	 * A range of versions from 4.1 to 4.2.
+	 */
+<span class="fc" id="L50">	private static final Set&lt;Neo4jVersion&gt; RANGE_41_TO_42 = EnumSet.of(Neo4jVersion.V4_1, Neo4jVersion.V4_2);</span>
+	private static final String KEYWORD_REQUIRE = &quot;REQUIRE&quot;;
+	private static final String KEYWORD_ASSERT = &quot;ASSERT&quot;;
+
+	@Override
+	public void render(Constraint constraint, RenderConfig config, OutputStream target) throws IOException {
+
+<span class="fc" id="L57">		Neo4jVersion version = config.getVersion();</span>
+<span class="fc bfc" id="L58" title="All 6 branches covered.">		if (config.isIdempotent() &amp;&amp; !version.hasIdempotentOperations() &amp;&amp; !config.isIgnoreName()) {</span>
+<span class="fc" id="L59">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L60">				String.format(&quot;The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.&quot;,</span>
+					version));
+		}
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		if (constraint.getProperties().size() &gt; 1) {</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(constraint.getType())) {</span>
+<span class="fc" id="L66">				throw new IllegalArgumentException(&quot;Only unique and node key constraints support multiple properties.&quot;);</span>
+			}
+
+<span class="fc bfc" id="L69" title="All 4 branches covered.">			if (config.isVersionPriorTo44() &amp;&amp; constraint.getType() != Constraint.Type.KEY) {</span>
+<span class="fc" id="L70">				throw new IllegalArgumentException(&quot;Constraints require exactly one property prior to Neo4j 4.4.&quot;);</span>
+			}
+		}
+
+<span class="fc bfc" id="L74" title="All 6 branches covered.">		if (!constraint.hasName() &amp;&amp; config.isIdempotent() &amp;&amp; config.getOperator() == Operator.DROP) {</span>
+<span class="fc" id="L75">			throw new IllegalArgumentException(&quot;The constraint can only be rendered in the given context when having a name.&quot;);</span>
+		}
+
+<span class="fc" id="L78">		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));</span>
+<span class="fc bfc" id="L79" title="All 8 branches covered.">		if (config.getOperator() == Operator.DROP &amp;&amp; config.getVersion() != Neo4jVersion.V3_5 &amp;&amp; constraint.hasName() &amp;&amp; !config.isIgnoreName()) {</span>
+<span class="fc" id="L80">			w.write(String.format(&quot;DROP %#s%s&quot;, new FormattableCatalogItem(constraint, config.getVersion()), config.ifNotExistsOrEmpty()));</span>
+<span class="pc bpc" id="L81" title="1 of 8 branches missed.">		} else if (config.getOperator() == Operator.DROP &amp;&amp; constraint.getType() == Constraint.Type.PROPERTY_TYPE &amp;&amp; (!constraint.hasName() || config.isIgnoreName())) {</span>
+<span class="fc" id="L82">			throw new IllegalArgumentException(&quot;Property type constraints can only be dropped via name.&quot;);</span>
+		} else {
+<span class="pc bpc" id="L84" title="1 of 5 branches missed.">			switch (constraint.getType()) {</span>
+<span class="fc" id="L85">				case UNIQUE -&gt; w.write(renderUniqueConstraint(constraint, config));</span>
+<span class="fc" id="L86">				case EXISTS -&gt; w.write(renderPropertyExists(constraint, config));</span>
+<span class="fc" id="L87">				case KEY -&gt; w.write(renderNodeKey(constraint, config));</span>
+<span class="fc" id="L88">				case PROPERTY_TYPE -&gt; w.write(renderPropertyType(constraint, config));</span>
+				default -&gt;
+<span class="nc" id="L90">					throw new IllegalArgumentException(&quot;Unsupported type of constraint: &quot; + constraint.getType());</span>
+			}
+		}
+
+<span class="fc" id="L94">		CypherRenderingUtils.renderOptions(constraint, config, w);</span>
+<span class="fc" id="L95">		w.flush();</span>
+<span class="fc" id="L96">	}</span>
+
+	private String renderNodeKey(Constraint constraint, RenderConfig config) {
+
+<span class="pc bpc" id="L100" title="1 of 4 branches missed.">		if (config.getOperator() == Operator.CREATE &amp;&amp; config.getEdition() != Neo4jEdition.ENTERPRISE) {</span>
+<span class="nc" id="L101">			throw new IllegalStateException(</span>
+<span class="nc" id="L102">				String.format(&quot;This constraint cannot be created with %s edition.&quot;, config.getEdition()));</span>
+		}
+
+<span class="fc" id="L105">		Neo4jVersion version = config.getVersion();</span>
+
+<span class="fc" id="L107">		Formattable item = formattableItem(constraint, config);</span>
+<span class="fc" id="L108">		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		String properties = renderProperties(version, &quot;n&quot;, constraint, !version.isPriorTo44());</span>
+<span class="fc" id="L110">		Operator operator = config.getOperator();</span>
+
+<span class="fc bfc" id="L112" title="All 4 branches covered.">		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {</span>
+<span class="fc" id="L113">			return String.format(&quot;%s %#s ON (n:%s) ASSERT %s IS NODE KEY&quot;, operator, item, identifier, properties);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">		} else if (RANGE_41_TO_43.contains(version)) {</span>
+<span class="fc" id="L115">			return String.format(&quot;%s %#s %sON (n:%s) ASSERT %s IS NODE KEY&quot;, operator, item,</span>
+<span class="fc" id="L116">				config.ifNotExistsOrEmpty(), identifier, properties);</span>
+		} else {
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">			String adjective = operator == Operator.CREATE ? &quot;FOR&quot; : &quot;ON&quot;;</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;</span>
+			// We just assume the newest
+<span class="fc" id="L121">			return String.format(&quot;%s %#s %s%s (n:%s) %s %s IS NODE KEY&quot;, operator, item,</span>
+<span class="fc" id="L122">				config.ifNotExistsOrEmpty(), adjective, identifier, verb, properties);</span>
+		}
+	}
+
+	private String renderPropertyExists(Constraint item, RenderConfig config) {
+
+<span class="fc bfc" id="L128" title="All 4 branches covered.">		if (config.getOperator() == Operator.CREATE &amp;&amp; config.getEdition() != Neo4jEdition.ENTERPRISE) {</span>
+<span class="fc" id="L129">			throw new IllegalStateException(</span>
+<span class="fc" id="L130">				String.format(&quot;This constraint cannot be created with %s edition.&quot;, config.getEdition()));</span>
+		}
+
+<span class="fc bfc" id="L133" title="All 2 branches covered.">		if (item.getTargetEntityType() == TargetEntityType.NODE) {</span>
+<span class="fc" id="L134">			return renderNodePropertyExists(item, config);</span>
+		}
+<span class="fc" id="L136">		return renderRelationshipPropertyExists(item, config);</span>
+	}
+
+	private String renderRelationshipPropertyExists(Constraint constraint, RenderConfig config) {
+
+<span class="fc" id="L141">		return renderPropertyExists(constraint, config, &quot;r&quot;, &quot;()-[%s:%s]-()&quot;);</span>
+	}
+
+	private String renderNodePropertyExists(Constraint constraint, RenderConfig config) {
+
+<span class="fc" id="L146">		return renderPropertyExists(constraint, config, &quot;n&quot;, &quot;(%s:%s)&quot;);</span>
+	}
+
+	private String renderPropertyExists(Constraint constraint, RenderConfig config, String variable, String templateFragment) {
+
+<span class="fc" id="L151">		Neo4jVersion version = config.getVersion();</span>
+
+<span class="fc" id="L153">		Formattable item = formattableItem(constraint, config);</span>
+<span class="fc" id="L154">		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());</span>
+<span class="fc" id="L155">		String properties = renderProperties(version, variable, constraint);</span>
+<span class="fc" id="L156">		Operator operator = config.getOperator();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">		String object = String.format(operator == Operator.CREATE ? &quot;%s IS NOT NULL&quot; : &quot;exists(%s)&quot;, properties);</span>
+
+<span class="fc bfc" id="L159" title="All 4 branches covered.">		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {</span>
+<span class="fc" id="L160">			String format = &quot;%s %#s ON &quot; + templateFragment + &quot; ASSERT exists(%s)&quot;;</span>
+<span class="fc" id="L161">			return String.format(format, operator, item, variable, identifier, properties);</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">		} else if (RANGE_41_TO_42.contains(version)) {</span>
+<span class="fc" id="L163">			String format = &quot;%s %#s %sON &quot; + templateFragment + &quot; ASSERT exists(%s)&quot;;</span>
+<span class="fc" id="L164">			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), variable, identifier, properties);</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">		} else if (version == Neo4jVersion.V4_3) {</span>
+<span class="fc" id="L166">			String format = &quot;%s %#s %sON &quot; + templateFragment + &quot; ASSERT %s&quot;;</span>
+<span class="fc" id="L167">			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), variable, identifier, object);</span>
+		} else {
+<span class="fc bfc" id="L169" title="All 2 branches covered.">			String adjective = operator == Operator.CREATE ? &quot;FOR&quot; : &quot;ON&quot;;</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;</span>
+			// We just assume the newest
+<span class="fc" id="L172">			String format = &quot;%s %#s %s%s &quot; + templateFragment + &quot; %s %s&quot;;</span>
+<span class="fc" id="L173">			return String.format(format, operator, item, config.ifNotExistsOrEmpty(), adjective, variable, identifier, verb, object);</span>
+		}
+	}
+
+	private String renderPropertyType(Constraint item, RenderConfig config) {
+
+<span class="pc bpc" id="L179" title="2 of 4 branches missed.">		if (config.getOperator() == Operator.CREATE &amp;&amp; config.getEdition() != Neo4jEdition.ENTERPRISE) {</span>
+<span class="nc" id="L180">			throw new IllegalStateException(</span>
+<span class="nc" id="L181">				String.format(&quot;This constraint cannot be created with %s edition.&quot;, config.getEdition()));</span>
+		}
+
+<span class="fc bfc" id="L184" title="All 2 branches covered.">		if (item.getTargetEntityType() == TargetEntityType.NODE) {</span>
+<span class="fc" id="L185">			return renderNodePropertyType(item, config);</span>
+		}
+<span class="fc" id="L187">		return renderRelationshipPropertyType(item, config);</span>
+	}
+
+	private String renderRelationshipPropertyType(Constraint constraint, RenderConfig config) {
+
+<span class="fc" id="L192">		return renderPropertyType(constraint, config, &quot;r&quot;, &quot;()-[%s:%s]-()&quot;);</span>
+	}
+
+	private String renderNodePropertyType(Constraint constraint, RenderConfig config) {
+
+<span class="fc" id="L197">		return renderPropertyType(constraint, config, &quot;n&quot;, &quot;(%s:%s)&quot;);</span>
+	}
+
+	private String renderPropertyType(Constraint constraint, RenderConfig config, String variable, String templateFragment) {
+
+<span class="fc" id="L202">		Neo4jVersion version = config.getVersion();</span>
+
+<span class="fc" id="L204">		Formattable item = formattableItem(constraint, config);</span>
+<span class="fc" id="L205">		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());</span>
+<span class="fc" id="L206">		String properties = renderProperties(version, variable, constraint);</span>
+
+<span class="fc" id="L208">		return String.format(&quot;CREATE %#s %sFOR &quot; + templateFragment + &quot; REQUIRE %s IS :: %s&quot;, item,</span>
+<span class="fc" id="L209">			config.ifNotExistsOrEmpty(), variable, identifier, properties, constraint.getPropertyType().getName());</span>
+	}
+
+	private String renderUniqueConstraint(Constraint constraint, RenderConfig config) {
+
+<span class="pc bpc" id="L214" title="1 of 4 branches missed.">		if (constraint.getProperties().size() &gt; 1 &amp;&amp; config.getVersion().isPriorTo44()) {</span>
+<span class="nc" id="L215">			throw new IllegalArgumentException(&quot;Composite unique constraints are not supported prior to Neo4j/4.4.&quot;);</span>
+		}
+
+<span class="fc" id="L218">		Neo4jVersion version = config.getVersion();</span>
+
+<span class="fc" id="L220">		Formattable item = formattableItem(constraint, config);</span>
+<span class="fc" id="L221">		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());</span>
+<span class="fc" id="L222">		String properties = renderProperties(version, &quot;n&quot;, constraint);</span>
+<span class="fc" id="L223">		Constraint.Type type = constraint.getType();</span>
+<span class="fc" id="L224">		Operator operator = config.getOperator();</span>
+
+<span class="fc bfc" id="L226" title="All 4 branches covered.">		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {</span>
+<span class="fc" id="L227">			return String.format(&quot;%s %#s ON (n:%s) ASSERT %s IS %s&quot;, operator, item, identifier, properties, type);</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">		} else if (RANGE_41_TO_43.contains(version)) {</span>
+<span class="fc" id="L229">			return String.format(&quot;%s %#s %sON (n:%s) ASSERT %s IS %s&quot;, operator, item, config.ifNotExistsOrEmpty(),</span>
+				identifier, properties, type);
+		} else {
+<span class="fc bfc" id="L232" title="All 2 branches covered.">			String adjective = operator == Operator.CREATE ? &quot;FOR&quot; : &quot;ON&quot;;</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">			String verb = operator == Operator.CREATE ? KEYWORD_REQUIRE : KEYWORD_ASSERT;</span>
+			// We just assume the newest
+<span class="fc" id="L235">			return String.format(&quot;%s %#s %s%s (n:%s) %s %s IS %s&quot;, operator, item,</span>
+<span class="fc" id="L236">				config.ifNotExistsOrEmpty(), adjective, identifier, verb, properties, type);</span>
+		}
+	}
+
+	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item) {
+<span class="fc" id="L241">		return renderProperties(version, prefix, item, true);</span>
+	}
+
+	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item, boolean optimizeSingle) {
+
+<span class="fc bfc" id="L246" title="All 4 branches covered.">		if (item.getProperties().size() == 1 &amp;&amp; optimizeSingle) {</span>
+<span class="fc" id="L247">			return prefix + &quot;.&quot; + version.sanitizeSchemaName(item.getProperties().iterator().next());</span>
+		}
+
+<span class="fc" id="L250">		return item.getProperties().stream()</span>
+<span class="fc" id="L251">			.map(version::sanitizeSchemaName)</span>
+<span class="fc" id="L252">			.map(v -&gt; prefix + &quot;.&quot; + v).collect(Collectors.joining(&quot;, &quot;, &quot;(&quot;, &quot;)&quot;));</span>
+	}
+
+	Formattable formattableItem(Constraint item, RenderConfig config) {
+<span class="fc bfc" id="L256" title="All 4 branches covered.">		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ? new AnonymousCatalogItem(item) : new FormattableCatalogItem(item, config.getVersion());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

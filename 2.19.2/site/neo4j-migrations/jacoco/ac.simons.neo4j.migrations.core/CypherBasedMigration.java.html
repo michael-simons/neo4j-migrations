@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CypherBasedMigration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">CypherBasedMigration.java</span></div><h1>CypherBasedMigration.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * A cypher script based migration.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.2
+ */
+final class CypherBasedMigration extends AbstractCypherBasedMigration implements MigrationWithPreconditions {
+
+	/**
+	 * In case a migration with the {@link #getSource() source} with different preconditions is available, we treat those as alternatives
+	 */
+<span class="fc" id="L39">	private List&lt;String&gt; alternativeChecksums = Collections.emptyList();</span>
+
+	@SuppressWarnings(&quot;squid:S3077&quot;) // This will always be an immutable instance.s
+	private volatile Optional&lt;String&gt; checksumOfNonePreconditions;
+
+	CypherBasedMigration(ResourceContext context) {
+<span class="fc" id="L45">		super(CypherResource.of(context));</span>
+<span class="fc" id="L46">	}</span>
+
+	// The whole point of the optional is in fact to deal with non-null
+	// String is not enough, as null is a valid value in this case and comparing
+	// to it would defeat the purpose of caching it.
+	@SuppressWarnings({ &quot;OptionalAssignedToNull&quot;, &quot;squid:S2789&quot; })
+	Optional&lt;String&gt; getChecksumWithoutPreconditions() {
+
+<span class="fc" id="L54">		Optional&lt;String&gt; availableChecksum = this.checksumOfNonePreconditions;</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">		if (availableChecksum == null) {</span>
+<span class="fc" id="L56">			synchronized (this) {</span>
+<span class="fc" id="L57">				availableChecksum = this.checksumOfNonePreconditions;</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">				if (availableChecksum == null) {</span>
+<span class="fc" id="L59">					this.checksumOfNonePreconditions = computeChecksumWithoutPreconditions();</span>
+<span class="fc" id="L60">					availableChecksum = this.checksumOfNonePreconditions;</span>
+				}
+<span class="fc" id="L62">			}</span>
+		}
+<span class="fc" id="L64">		return availableChecksum;</span>
+	}
+
+	private Optional&lt;String&gt; computeChecksumWithoutPreconditions() {
+
+		// On JDK17 there can be only one, but alas, we aren't there yet.
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">		if (!(cypherResource instanceof DefaultCypherResource)) {</span>
+<span class="nc" id="L71">			return Optional.empty();</span>
+		}
+<span class="fc" id="L73">		List&lt;String&gt; statements = ((DefaultCypherResource) cypherResource).getStatements().stream()</span>
+<span class="fc" id="L74">			.map(statement -&gt; {</span>
+<span class="fc" id="L75">				String quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)</span>
+<span class="fc" id="L76">					.filter(c -&gt; Precondition.parse(c).isPresent())</span>
+<span class="fc" id="L77">					.map(String::trim)</span>
+<span class="fc" id="L78">					.map(Pattern::quote)</span>
+<span class="fc" id="L79">					.collect(Collectors.joining(&quot;|&quot;));</span>
+
+<span class="fc bfc" id="L81" title="All 2 branches covered.">				return quotedPatterns.isEmpty() ?</span>
+<span class="fc" id="L82">					statement :</span>
+<span class="fc" id="L83">					statement.replaceAll(&quot;(&quot; + quotedPatterns + &quot;)&quot; + Strings.LINE_DELIMITER, &quot;&quot;);</span>
+<span class="fc" id="L84">			}).toList();</span>
+<span class="fc" id="L85">		return Optional.of(DefaultCypherResource.computeChecksum(statements));</span>
+	}
+
+	@Override
+	public List&lt;String&gt; getAlternativeChecksums() {
+
+<span class="fc" id="L91">		Optional&lt;String&gt; additionalAlternativeChecksum = getChecksumWithoutPreconditions();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">		if (getChecksum().equals(additionalAlternativeChecksum)) {</span>
+<span class="fc" id="L93">			return Collections.unmodifiableList(alternativeChecksums);</span>
+		}
+
+<span class="fc" id="L96">		List&lt;String&gt; alternateChecksums = new ArrayList&lt;&gt;(alternativeChecksums);</span>
+<span class="fc" id="L97">		additionalAlternativeChecksum.ifPresent(alternateChecksums::add);</span>
+<span class="fc" id="L98">		return alternateChecksums;</span>
+	}
+
+	@Override
+	public void setAlternativeChecksums(List&lt;String&gt; alternativeChecksums) {
+
+<span class="fc" id="L104">		Objects.requireNonNull(alternativeChecksums);</span>
+<span class="fc" id="L105">		this.alternativeChecksums = new ArrayList&lt;&gt;(alternativeChecksums);</span>
+<span class="fc" id="L106">	}</span>
+
+	@Override
+	public List&lt;Precondition&gt; getPreconditions() {
+<span class="fc" id="L110">		return Precondition.in(cypherResource);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

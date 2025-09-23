@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619276472">
+    <module artifactId="neo4j-migrations-quarkus-integration-tests" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/it/MigrationsResource.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/it/migrations/SomeService.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/it/migrations/V0002__SomethingJava.java" result="PRESENT"/>
+        <file path="src/main/resources/application.properties" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/AbstractITTestBase.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/MigrationsDisabledIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/MigrationsIT.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

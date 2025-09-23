@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619275121">
+    <module artifactId="neo4j-migrations-quarkus-deployment" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/ClasspathResourceScannerBuildItem.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/DiscovererBuildItem.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/MigrationsBuildItem.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/MigrationsDevConsoleProcessor.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/deployment/MigrationsProcessor.java" result="PRESENT"/>
+        <file path="src/main/resources/dev-templates/embedded.html" result="PRESENT"/>
+        <file path="src/main/resources/dev-templates/migrations.html" result="PRESENT"/>
+        <file path="src/main/resources/dev-ui/qwc-neo4j-migrations.js" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/Neo4jTestResource.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/WithDefaultLocationIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/WithDifferentLocationIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/WithMigrationsDisabledIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/deployment/MigrationsProcessorTest.java" result="PRESENT"/>
+        <file path="src/test/resources/application.properties" result="PRESENT"/>
+    </files>
+</licensePluginReport>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619277327">
+    <module artifactId="neo4j-migrations-annotation-processing" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RenderConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">RenderConfig.java</span></div><h1>RenderConfig.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * Contextual information passed to renderers.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since 1.7.0
+ */
+public final class RenderConfig {
+
+	static RenderConfig defaultConfig() {
+<span class="fc" id="L37">		return new RenderConfig(Neo4jVersion.UNDEFINED, Neo4jEdition.UNDEFINED, null, true);</span>
+	}
+
+	/**
+	 * Additional options passed to a {@link RenderConfig configuration}.
+	 * &lt;strong&gt;Warning&lt;/strong&gt;: Not to be implemented by user code. Will be sealed in a later release.
+	 *
+	 * @since 1.11.0
+	 */
+	public sealed interface AdditionalRenderingOptions permits XMLRenderingOptions, CypherRenderingOptions {
+	}
+
+	/**
+	 * Additional options passed to an XML renderer. Some options might be ignored for some content.
+	 *
+	 * @since 1.11.0
+	 */
+	public non-sealed interface XMLRenderingOptions extends AdditionalRenderingOptions {
+
+		/**
+		 * Only applicable to {@link Catalog catalogs}.
+		 *
+		 * @return {@literal true} to add an {@code &lt;apply /&gt;} element.
+		 */
+		default boolean withApply() {
+<span class="fc" id="L62">			return false;</span>
+		}
+
+		/**
+		 * Only applicable to {@link Catalog catalogs}.
+		 *
+		 * @return {@literal true} to add an {@code reset} attribute.
+		 */
+		default boolean withReset() {
+<span class="fc" id="L71">			return false;</span>
+		}
+
+		/**
+		 * @return Optional comment to add to the generated document
+		 */
+		default Optional&lt;String&gt; optionalHeader() {
+<span class="fc" id="L78">			return Optional.empty();</span>
+		}
+	}
+
+	/**
+	 * Additional options passed to a Cypher renderer. Some options might be ignored for some content.
+	 *
+	 * @since 1.13.0
+	 */
+	public non-sealed interface CypherRenderingOptions extends AdditionalRenderingOptions {
+
+		/**
+		 * @return {@literal true} to enable rendering of options
+		 */
+		default boolean includingOptions() {
+<span class="fc" id="L93">			return false;</span>
+		}
+
+		/**
+		 * This setting will only have effect if an index uses an option map defining a valid index provider for property indexes.
+		 *
+		 * @return {@literal true} to enable the use of explicit index types for property index based on the index provider
+		 */
+		default boolean useExplicitPropertyIndexType() {
+<span class="fc" id="L102">			return false;</span>
+		}
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfNotExistsConfigBuilder extends Builder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		default Builder ifNotExists() {
+<span class="fc" id="L115">			return this.idempotent(true);</span>
+		}
+	}
+
+	/**
+	 * Allows adding idempotency to the context.
+	 */
+	public interface IfExistsConfigBuilder extends Builder {
+
+		/**
+		 * @return a context that renders its statements in an idempotent fashion if possible
+		 */
+		default Builder ifExists() {
+<span class="fc" id="L128">			return this.idempotent(true);</span>
+		}
+	}
+
+	/**
+	 * Defines the version and the edition of the current context. They will be parsed in a lenient way.
+	 */
+	public interface Builder {
+
+		/**
+		 * @param version will be parsed lenient into a static version and default to {@code LATEST}
+		 * @param edition will be parsed lenient into a static edition and default to {@code UNDEFINED}
+		 * @return a config accommodating the given version and edition
+		 */
+		default RenderConfig forVersionAndEdition(String version, String edition) {
+<span class="fc" id="L143">			return forVersionAndEdition(Neo4jVersion.of(version), Neo4jEdition.of(edition));</span>
+		}
+
+		/**
+		 * @param version the target version of this config
+		 * @param edition the target edition of this config
+		 * @return a config accommodating the given version and edition
+		 */
+		RenderConfig forVersionAndEdition(Neo4jVersion version, Neo4jEdition edition);
+
+		/**
+		 * Turn the outcome into a potentially idempotent fashion
+		 *
+		 * @param idempotent set to {@literal true} to produce an idempotent config
+		 * @return this builder
+		 */
+		Builder idempotent(boolean idempotent);
+	}
+
+	private static class DefaultBuilder implements IfNotExistsConfigBuilder, IfExistsConfigBuilder {
+
+		private final Operator operator;
+
+		private boolean idempotent;
+
+<span class="fc" id="L168">		private DefaultBuilder(Operator operator) {</span>
+<span class="fc" id="L169">			this.operator = operator;</span>
+<span class="fc" id="L170">		}</span>
+
+		@Override
+		public RenderConfig forVersionAndEdition(Neo4jVersion version, Neo4jEdition edition) {
+<span class="fc" id="L174">			return new RenderConfig(version, edition, operator, idempotent);</span>
+		}
+
+		@Override
+		@SuppressWarnings(&quot;HiddenField&quot;)
+		public Builder idempotent(boolean idempotent) {
+<span class="fc" id="L180">			this.idempotent = idempotent;</span>
+<span class="fc" id="L181">			return this;</span>
+		}
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal CREATE ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfNotExistsConfigBuilder create() {
+<span class="fc" id="L190">		return new DefaultBuilder(Operator.CREATE);</span>
+	}
+
+	/**
+	 * Starts building a render context that eventually will result in a {@literal DROP ...} statement.
+	 * @return An ongoing build step
+	 */
+	public static IfExistsConfigBuilder drop() {
+<span class="fc" id="L198">		return new DefaultBuilder(Operator.DROP);</span>
+	}
+
+	/**
+	 * Neo4j version used to get any of the contained information.
+	 */
+	private final Neo4jVersion version;
+
+	/**
+	 * Neo4j edition used to get any of the contained information.
+	 */
+	private final Neo4jEdition edition;
+
+	private final Operator operator;
+
+	private final boolean idempotent;
+
+	/**
+	 * Flag if the name should be ignored.
+	 */
+	private final boolean ignoreName;
+
+	@SuppressWarnings(&quot;squid:S1874&quot;)
+	private final List&lt;AdditionalRenderingOptions&gt; additionalOptions;
+
+	/**
+	 * Flag to include options when rendering to cypher.
+	 */
+	private final boolean includingOptions;
+
+	/**
+	 * Flag to include an explicit index type for property indizes when available.
+	 */
+	private final boolean useExplicitPropertyIndexType;
+
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
+<span class="fc" id="L234">		this(version, edition, operator, idempotent, false, null);</span>
+<span class="fc" id="L235">	}</span>
+
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent,
+<span class="fc" id="L238">		boolean ignoreName, @SuppressWarnings(&quot;squid:S1874&quot;) List&lt;AdditionalRenderingOptions&gt; additionalOptions) {</span>
+<span class="fc" id="L239">		this.version = version;</span>
+<span class="fc" id="L240">		this.edition = edition;</span>
+<span class="fc" id="L241">		this.operator = operator;</span>
+<span class="fc" id="L242">		this.idempotent = idempotent;</span>
+<span class="fc" id="L243">		this.ignoreName = ignoreName;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">		this.additionalOptions = additionalOptions == null ? Collections.emptyList() : additionalOptions;</span>
+
+<span class="fc" id="L246">		List&lt;CypherRenderingOptions&gt; cypherRenderingOptions = this.additionalOptions.stream()</span>
+<span class="fc" id="L247">			.filter(CypherRenderingOptions.class::isInstance)</span>
+<span class="fc" id="L248">			.map(CypherRenderingOptions.class::cast)</span>
+<span class="fc" id="L249">			.toList();</span>
+
+<span class="fc" id="L251">		this.includingOptions = cypherRenderingOptions.stream()</span>
+<span class="fc" id="L252">			.map(CypherRenderingOptions::includingOptions)</span>
+<span class="pc bpc" id="L253" title="1 of 6 branches missed.">			.reduce(!cypherRenderingOptions.isEmpty(), (v1, v2) -&gt; v1 &amp;&amp; v2);</span>
+<span class="fc" id="L254">		this.useExplicitPropertyIndexType = cypherRenderingOptions.stream()</span>
+<span class="fc" id="L255">			.map(CypherRenderingOptions::useExplicitPropertyIndexType)</span>
+<span class="pc bpc" id="L256" title="1 of 6 branches missed.">			.reduce(!cypherRenderingOptions.isEmpty(), (v1, v2) -&gt; v1 &amp;&amp; v2);</span>
+<span class="fc" id="L257">	}</span>
+
+	Neo4jVersion getVersion() {
+<span class="fc" id="L260">		return version;</span>
+	}
+
+	Neo4jEdition getEdition() {
+<span class="fc" id="L264">		return edition;</span>
+	}
+
+	Operator getOperator() {
+<span class="fc" id="L268">		return operator;</span>
+	}
+
+	boolean isIdempotent() {
+<span class="fc" id="L272">		return idempotent;</span>
+	}
+
+	boolean isVersionPriorTo44() {
+<span class="fc" id="L276">		return getVersion().isPriorTo44();</span>
+	}
+
+	boolean isIgnoreName() {
+<span class="fc" id="L280">		return ignoreName;</span>
+	}
+
+	@SuppressWarnings(&quot;squid:S1874&quot;)
+	List&lt;AdditionalRenderingOptions&gt; getAdditionalOptions() {
+<span class="fc" id="L285">		return Collections.unmodifiableList(additionalOptions);</span>
+	}
+
+	boolean includeOptions() {
+<span class="fc" id="L289">		return includingOptions;</span>
+	}
+
+	boolean useExplicitPropertyIndexType() {
+<span class="fc" id="L293">		return useExplicitPropertyIndexType;</span>
+	}
+
+	/**
+	 * This is useful to get a render context that ignores the name of an object to force dropping things created without a name.
+	 * @return a new context ignoring the name
+	 */
+	public RenderConfig ignoreName() {
+<span class="fc" id="L301">		return new RenderConfig(version, edition, operator, idempotent, true, additionalOptions);</span>
+	}
+
+	/**
+	 * Adds additional options to the renderer or deletes the existing ones.
+	 *
+	 * @param newOptions New list of options, may be {@literal null} or empty
+	 * @return A (potentially) new {@link RenderConfig}
+	 * @since 1.11.0
+	 */
+	public RenderConfig withAdditionalOptions(@SuppressWarnings(&quot;squid:S1874&quot;) List&lt;? extends AdditionalRenderingOptions&gt; newOptions) {
+<span class="fc bfc" id="L312" title="All 2 branches covered.">		if (Objects.equals(this.additionalOptions, newOptions)) {</span>
+<span class="fc" id="L313">			return this;</span>
+		}
+
+<span class="fc bfc" id="L316" title="All 2 branches covered.">		return new RenderConfig(version, edition, operator, idempotent, ignoreName, newOptions == null ? null : new ArrayList&lt;&gt;(newOptions));</span>
+	}
+
+	/**
+	 * @return the snippet necessary to use an idempotent operation for the given operation in this config.
+	 */
+	String ifNotExistsOrEmpty() {
+<span class="fc bfc" id="L323" title="All 2 branches covered.">		if (getOperator() == Operator.CREATE) {</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">			return isIdempotent() ? &quot;IF NOT EXISTS &quot; : &quot;&quot;;</span>
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">		} else if (getOperator() == Operator.DROP) {</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">			return isIdempotent() ? &quot; IF EXISTS&quot; : &quot;&quot;;</span>
+		} else {
+<span class="nc" id="L328">			throw new IllegalStateException();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

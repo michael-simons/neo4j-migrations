@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsRecorder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Quarkus)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.quarkus.runtime</a> &gt; <span class="el_source">MigrationsRecorder.java</span></div><h1>MigrationsRecorder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.quarkus.runtime;
+
+import ac.simons.neo4j.migrations.core.ClasspathResourceScanner;
+import ac.simons.neo4j.migrations.core.Location;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import io.quarkus.runtime.RuntimeValue;
+import io.quarkus.runtime.annotations.Recorder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jboss.logging.Logger;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
+
+/**
+ * Records both initialization of the {@link MigrationsConfig migration config} and the {@link Migrations migrations} itself.
+ *
+ * @author Michael J. Simons
+ * @since 1.2.2
+ */
+@Recorder
+public class MigrationsRecorder {
+
+<span class="fc" id="L41">	private static final Logger LOG = Logger.getLogger(&quot;ac.simons.neo4j.migrations.quarkus.runtime&quot;);</span>
+
+	private final RuntimeValue&lt;MigrationsProperties&gt; rtvruntimeProperties;
+
+<span class="fc" id="L45">	public MigrationsRecorder(RuntimeValue&lt;MigrationsProperties&gt; rtvruntimeProperties) {</span>
+<span class="fc" id="L46">		this.rtvruntimeProperties = rtvruntimeProperties;</span>
+<span class="fc" id="L47">	}</span>
+
+	/**
+	 * Records the configuration
+	 *
+	 * @param buildTimeProperties build-time properties
+	 * @param discoverer          the (static) discovered configured during build time
+	 * @param resourceScanner     the (static) scanner configured during build time
+	 * @return A runtime value containing the configuration
+	 */
+	public RuntimeValue&lt;MigrationsConfig&gt; recordConfig(
+		MigrationsBuildTimeProperties buildTimeProperties, StaticJavaBasedMigrationDiscoverer discoverer,
+		ClasspathResourceScanner resourceScanner
+	) {
+
+<span class="fc" id="L62">		var runtimeProperties = this.rtvruntimeProperties.getValue();</span>
+<span class="fc" id="L63">		var allLocationsToScan = new ArrayList&lt;String&gt;(</span>
+<span class="fc" id="L64">			buildTimeProperties.locationsToScan().size() + runtimeProperties.externalLocations().map(</span>
+<span class="fc" id="L65">				List::size).orElse(0));</span>
+<span class="fc" id="L66">		allLocationsToScan.addAll(buildTimeProperties.locationsToScan());</span>
+<span class="fc" id="L67">		runtimeProperties.externalLocations().ifPresent(locations -&gt; locations.stream()</span>
+<span class="fc" id="L68">			.filter(l -&gt; {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">				var isFileSystem = Location.of(l).getType() == Location.LocationType.FILESYSTEM;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">				if (!isFileSystem) {</span>
+<span class="fc" id="L71">					LOG.warnv(&quot;External locations only support filesystem locations, ignoring `{0}`&quot;, l);</span>
+				}
+<span class="fc" id="L73">				return isFileSystem;</span>
+			})
+<span class="fc" id="L75">			.forEach(allLocationsToScan::add));</span>
+
+<span class="fc" id="L77">		var config = MigrationsConfig.builder()</span>
+<span class="fc" id="L78">			.withLocationsToScan(allLocationsToScan.toArray(new String[0]))</span>
+<span class="fc" id="L79">			.withPackagesToScan(buildTimeProperties.packagesToScan().map(v -&gt; v.toArray(String[]::new)).orElse(null))</span>
+<span class="fc" id="L80">			.withTransactionMode(runtimeProperties.transactionMode())</span>
+<span class="fc" id="L81">			.withTransactionTimeout(runtimeProperties.transactionTimeout().orElse(null))</span>
+<span class="fc" id="L82">			.withDatabase(runtimeProperties.database().orElse(null))</span>
+<span class="fc" id="L83">			.withSchemaDatabase(runtimeProperties.schemaDatabase().orElse(null))</span>
+<span class="fc" id="L84">			.withImpersonatedUser(runtimeProperties.impersonatedUser().orElse(null))</span>
+<span class="fc" id="L85">			.withInstalledBy(runtimeProperties.installedBy().orElse(null))</span>
+<span class="fc" id="L86">			.withValidateOnMigrate(runtimeProperties.validateOnMigrate())</span>
+<span class="fc" id="L87">			.withAutocrlf(runtimeProperties.autocrlf())</span>
+<span class="fc" id="L88">			.withMigrationClassesDiscoverer(discoverer)</span>
+<span class="fc" id="L89">			.withResourceScanner(resourceScanner)</span>
+<span class="fc" id="L90">			.withDelayBetweenMigrations(runtimeProperties.delayBetweenMigrations().orElse(null))</span>
+<span class="fc" id="L91">			.withVersionSortOrder(runtimeProperties.versionSortOrder())</span>
+<span class="fc" id="L92">			.withOutOfOrderAllowed(runtimeProperties.outOfOrder())</span>
+<span class="fc" id="L93">			.withFlywayCompatibleChecksums(runtimeProperties.useFlywayCompatibleChecksums())</span>
+<span class="fc" id="L94">			.withTarget(runtimeProperties.target().orElse(null))</span>
+<span class="fc" id="L95">			.withCypherVersion(runtimeProperties.cypherVersion())</span>
+<span class="fc" id="L96">			.build();</span>
+
+<span class="fc" id="L98">		return new RuntimeValue&lt;&gt;(config);</span>
+	}
+
+	/**
+	 * Records the enabled-flag. The actual value of the property &lt;strong&gt;must&lt;/strong&gt; be recorded here as well before use.
+	 *
+	 * @return A runtime value containing the enabled-flag
+	 */
+	public RuntimeValue&lt;Boolean&gt; isEnabled() {
+<span class="nc" id="L107">		return new RuntimeValue&lt;&gt;(rtvruntimeProperties.getValue().enabled());</span>
+	}
+
+	/**
+	 * Records the migration itself.
+	 *
+	 * @param migrationsConfig The runtime value for the configuration
+	 * @param driver           The runtime value of a driver instance
+	 * @return A runtime value containing the migrations
+	 */
+	public RuntimeValue&lt;Migrations&gt; recordMigrations(
+		RuntimeValue&lt;MigrationsConfig&gt; migrationsConfig, RuntimeValue&lt;Driver&gt; driver
+	) {
+<span class="nc" id="L120">		return new RuntimeValue&lt;&gt;(new Migrations(migrationsConfig.getValue(), driver.getValue()));</span>
+	}
+
+	/**
+	 * Applies the migrations if {@link MigrationsProperties#enabled} is {@literal true}.
+	 *
+	 * @param migrationsRv        The runtime value containing the migrations instance
+	 * @param migrationsEnabledRv The runtime value containing the flag whether migrations are enabled or not
+	 */
+	public void applyMigrations(RuntimeValue&lt;Migrations&gt; migrationsRv, RuntimeValue&lt;Boolean&gt; migrationsEnabledRv) {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">		if (Boolean.FALSE.equals(migrationsEnabledRv.getValue())) {</span>
+<span class="nc" id="L131">			return;</span>
+		}
+		try {
+<span class="nc" id="L134">			migrationsRv.getValue().apply(true);</span>
+<span class="nc" id="L135">		} catch (ServiceUnavailableException e) {</span>
+<span class="nc" id="L136">			LOG.error(&quot;Cannot apply Neo4j migrations, driver instance cannot reach any database.&quot;);</span>
+<span class="nc" id="L137">			throw e;</span>
+<span class="nc" id="L138">		}</span>
+<span class="nc" id="L139">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

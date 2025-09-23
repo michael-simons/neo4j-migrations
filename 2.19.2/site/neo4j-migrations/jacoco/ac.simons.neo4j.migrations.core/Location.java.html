@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Location.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Location.java</span></div><h1>Location.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * @author Michael J. Simons
+ * @since 0.0.2
+ */
+public final class Location {
+
+<span class="fc" id="L34">	private static final Set&lt;Path&gt; DOTS = Set.of(Path.of(&quot;.&quot;), Path.of(&quot;..&quot;));</span>
+
+	/**
+	 * A location type. If no prefix is given, we assume {@literal classpath:}.
+	 */
+<span class="fc" id="L39">	public enum LocationType {</span>
+
+		/**
+		 * A location inside the classpath.
+		 */
+<span class="fc" id="L44">		CLASSPATH(&quot;classpath&quot;),</span>
+		/**
+		 * A location inside the filesystem.
+		 */
+<span class="fc" id="L48">		FILESYSTEM(&quot;file&quot;);</span>
+
+		private final String prefix;
+
+<span class="fc" id="L52">		LocationType(String prefix) {</span>
+<span class="fc" id="L53">			this.prefix = prefix;</span>
+<span class="fc" id="L54">		}</span>
+
+		/**
+		 * @return the prefix / protocol under which the location is recognized
+		 */
+		public String getPrefix() {
+<span class="fc" id="L60">			return prefix;</span>
+		}
+	}
+
+	private static Optional&lt;Path&gt; tryRelative(String uri) {
+<span class="fc" id="L65">		var path = Path.of(uri);</span>
+<span class="pc bpc" id="L66" title="2 of 6 branches missed.">		if (path.getNameCount() &gt;= 1 &amp;&amp; !path.isAbsolute() &amp;&amp; DOTS.contains(path.getName(0))) {</span>
+<span class="fc" id="L67">			return Optional.of(resolveAndNormalize(path));</span>
+		}
+<span class="fc" id="L69">		return Optional.empty();</span>
+	}
+
+	private static Path resolveAndNormalize(Path path) {
+<span class="fc" id="L73">		return Path.of(&quot;&quot;).toAbsolutePath().resolve(path).normalize();</span>
+	}
+
+	/**
+	 * Creates a new {@link Location} object from a given location that has an optional prefix (protocol) and a name
+	 * @param uri A name with an optional scheme / name
+	 * @return A location object
+	 */
+	public static Location of(String uri) {
+		// Yep, Regex would work, too. I know how to do this with regex, but it's slower and not necessary.
+<span class="fc" id="L83">		int indexOfFirstColon = uri.indexOf(&quot;:&quot;);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">		if (indexOfFirstColon &lt; 0) {</span>
+<span class="fc" id="L85">			return tryRelative(uri).map(path -&gt; new Location(LocationType.FILESYSTEM, path.toString()))</span>
+<span class="fc" id="L86">				.orElseGet(() -&gt; new Location(LocationType.CLASSPATH, uri));</span>
+		}
+
+<span class="fc" id="L89">		String prefix = uri.substring(0, indexOfFirstColon).toLowerCase(Locale.ENGLISH).trim();</span>
+<span class="fc" id="L90">		String name = uri.substring(indexOfFirstColon + 1).trim().replace('\\', '/');</span>
+
+<span class="fc bfc" id="L92" title="All 2 branches covered.">		if (name.isEmpty()) {</span>
+<span class="fc" id="L93">			throw new MigrationsException(&quot;Invalid location: '&quot; + uri + &quot;'&quot;);</span>
+		}
+
+		LocationType type;
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		if (LocationType.CLASSPATH.getPrefix().equals(prefix)) {</span>
+<span class="fc" id="L98">			type = LocationType.CLASSPATH;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">		} else if (LocationType.FILESYSTEM.getPrefix().equals(prefix)) {</span>
+<span class="fc" id="L100">			type = LocationType.FILESYSTEM;</span>
+			try {
+				// Let's delegate to Java if we can get a valid path out of this URL, this is all madness
+				// https://en.wikipedia.org/wiki/File_URI_scheme
+				// If we encounter a non-empty authority, we strip it away and try again, the relative paths
+				// handling follows later. As the first / will always denote root, resolving will never resolve
+				// against the current working directory.
+<span class="fc" id="L107">				var hlp = URI.create(String.format(&quot;%s:%s&quot;, prefix, name));</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">				if (hlp.getAuthority() != null) {</span>
+<span class="fc" id="L109">					hlp = URI.create(String.format(&quot;%s:%s&quot;, prefix, hlp.getPath()));</span>
+				}
+<span class="fc" id="L111">				name = Paths.get(hlp).toString();</span>
+<span class="fc" id="L112">			} catch (IllegalArgumentException ex) {</span>
+<span class="fc" id="L113">				name = null;</span>
+<span class="fc" id="L114">			}</span>
+		} else {
+<span class="fc" id="L116">			String supportedSchemes = Arrays.stream(LocationType.values()).map(LocationType::getPrefix)</span>
+<span class="fc" id="L117">				.map(s -&gt; String.format(&quot;'%s:'&quot;, s))</span>
+<span class="fc" id="L118">				.collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L119">			throw new MigrationsException(&quot;Invalid scheme: '&quot; + prefix + &quot;', supported schemes are &quot; + supportedSchemes);</span>
+		}
+
+<span class="pc bpc" id="L122" title="1 of 4 branches missed.">		if (name == null || name.isEmpty()) {</span>
+<span class="fc" id="L123">			throw new MigrationsException(&quot;Invalid path; a valid file location must begin with either file:/path (no hostname), file:///path (empty hostname), or file://hostname/path&quot;);</span>
+		}
+
+<span class="fc bfc" id="L126" title="All 2 branches covered.">		if (type == LocationType.FILESYSTEM) {</span>
+<span class="fc" id="L127">			name = resolveAndNormalize(Path.of(name)).toString();</span>
+		}
+
+<span class="fc" id="L130">		return new Location(type, name);</span>
+	}
+
+	private final LocationType type;
+	private final String name;
+
+<span class="fc" id="L136">	private Location(LocationType type, String name) {</span>
+<span class="fc" id="L137">		this.type = type;</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">		this.name = (name.startsWith(&quot;/&quot;) ? name : &quot;/&quot; + name);</span>
+<span class="fc" id="L139">	}</span>
+
+	/**
+	 * @return the type of this location
+	 */
+	public LocationType getType() {
+<span class="fc" id="L145">		return type;</span>
+	}
+
+	/**
+	 * @return the name of this location
+	 */
+	public String getName() {
+<span class="fc" id="L152">		return name;</span>
+	}
+
+	URI toUri() {
+		try {
+<span class="fc" id="L157">			return new URI(type.getPrefix(), &quot;&quot;, name, null);</span>
+<span class="fc" id="L158">		} catch (URISyntaxException e) {</span>
+<span class="fc" id="L159">			throw new IllegalArgumentException(e.getMessage(), e);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

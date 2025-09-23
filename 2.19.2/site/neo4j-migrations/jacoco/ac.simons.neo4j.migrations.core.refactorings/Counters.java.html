@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Counters.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">Counters.java</span></div><h1>Counters.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.Map;
+
+import org.neo4j.driver.summary.SummaryCounters;
+
+/**
+ * Represents the available changes to the Graph done by a refactoring.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Antilopen Gang - Adrenochrom
+ * @since 1.10.0
+ */
+public sealed interface Counters permits DefaultCounters, Counters.Empty {
+
+	/**
+	 * Turns drivers {@link  SummaryCounters} into a standardized counters facade.
+	 *
+	 * @param summaryCounters The drivers counter
+	 * @return A new facade
+	 * @since 2.4.0
+	 */
+	static Counters of(SummaryCounters summaryCounters) {
+<span class="fc" id="L39">		return new DefaultCounters(summaryCounters);</span>
+	}
+
+	/**
+	 * @return An empty instance
+	 */
+	static Counters empty() {
+<span class="fc" id="L46">		return Empty.INSTANCE;</span>
+	}
+
+	/**
+	 * Creates a new {@link Counters} instance from the values inside a map. If a required value is not present, {@literal 0}
+	 * will be assumed.
+	 *
+	 * @param values The values to be used
+	 * @return Counters, never {@literal null}
+	 */
+	static Counters of(Map&lt;String, Integer&gt; values) {
+<span class="fc" id="L57">		return new DefaultCounters(</span>
+<span class="fc" id="L58">			values.getOrDefault(&quot;nodesCreated&quot;, 0),</span>
+<span class="fc" id="L59">			values.getOrDefault(&quot;nodesDeleted&quot;, 0),</span>
+<span class="fc" id="L60">			values.getOrDefault(&quot;labelsAdded&quot;, 0),</span>
+<span class="fc" id="L61">			values.getOrDefault(&quot;labelsRemoved&quot;, 0),</span>
+<span class="fc" id="L62">			values.getOrDefault(&quot;typesAdded&quot;, 0),</span>
+<span class="fc" id="L63">			values.getOrDefault(&quot;typesRemoved&quot;, 0),</span>
+<span class="fc" id="L64">			values.getOrDefault(&quot;propertiesSet&quot;, 0),</span>
+<span class="fc" id="L65">			values.getOrDefault(&quot;indexesAdded&quot;, 0),</span>
+<span class="fc" id="L66">			values.getOrDefault(&quot;indexesRemoved&quot;, 0),</span>
+<span class="fc" id="L67">			values.getOrDefault(&quot;constraintsAdded&quot;, 0),</span>
+<span class="fc" id="L68">			values.getOrDefault(&quot;constraintsRemoved&quot;, 0)</span>
+		);
+	}
+
+	/**
+	 * @return Number of nodes created
+	 */
+	int nodesCreated();
+
+	/**
+	 * @return Number of nodes deleted
+	 */
+	int nodesDeleted();
+
+	/**
+	 * @return Number of labels added
+	 */
+	int labelsAdded();
+
+	/**
+	 * @return Number of labels removed
+	 */
+	int labelsRemoved();
+
+	/**
+	 * @return Number of types added
+	 */
+	int typesAdded();
+
+	/**
+	 * @return Number types removed
+	 */
+	int typesRemoved();
+
+	/**
+	 * @return Number of properties changed
+	 */
+	int propertiesSet();
+
+	/**
+	 * @return number of indexes added to the schema.
+	 */
+	int indexesAdded();
+
+	/**
+	 * @return number of indexes removed from the schema.
+	 */
+	int indexesRemoved();
+
+	/**
+	 * @return number of constraints added to the schema.
+	 */
+	int constraintsAdded();
+
+	/**
+	 * @return number of constraints removed from the schema.
+	 */
+	int constraintsRemoved();
+
+	/**
+	 * Add {@code rhs} to this instance, creating a new one
+	 *
+	 * @param rhs The counters to add to this instance
+	 * @return a new set of counters
+	 */
+	Counters add(Counters rhs);
+
+	/**
+	 * An empty instance.
+	 */
+<span class="fc" id="L138">	enum Empty implements Counters {</span>
+
+		/**
+		 * The single, empty instance.
+		 */
+<span class="fc" id="L143">		INSTANCE;</span>
+
+		@Override
+		public int nodesCreated() {
+<span class="nc" id="L147">			return 0;</span>
+		}
+
+		@Override
+		public int nodesDeleted() {
+<span class="nc" id="L152">			return 0;</span>
+		}
+
+		@Override
+		public int labelsAdded() {
+<span class="nc" id="L157">			return 0;</span>
+		}
+
+		@Override
+		public int labelsRemoved() {
+<span class="nc" id="L162">			return 0;</span>
+		}
+
+		@Override
+		public int typesAdded() {
+<span class="nc" id="L167">			return 0;</span>
+		}
+
+		@Override
+		public int typesRemoved() {
+<span class="nc" id="L172">			return 0;</span>
+		}
+
+		@Override
+		public int propertiesSet() {
+<span class="nc" id="L177">			return 0;</span>
+		}
+
+		@Override
+		public int indexesAdded() {
+<span class="fc" id="L182">			return 0;</span>
+		}
+
+		@Override
+		public int indexesRemoved() {
+<span class="nc" id="L187">			return 0;</span>
+		}
+
+		@Override
+		public int constraintsAdded() {
+<span class="fc" id="L192">			return 0;</span>
+		}
+
+		@Override
+		public int constraintsRemoved() {
+<span class="nc" id="L197">			return 0;</span>
+		}
+
+		@Override
+		public Counters add(Counters rhs) {
+
+<span class="fc bfc" id="L203" title="All 2 branches covered.">			if (rhs == INSTANCE) {</span>
+<span class="fc" id="L204">				return this;</span>
+			}
+<span class="fc" id="L206">			return new DefaultCounters(</span>
+<span class="fc" id="L207">				rhs.nodesCreated(),</span>
+<span class="fc" id="L208">				rhs.nodesDeleted(),</span>
+<span class="fc" id="L209">				rhs.labelsAdded(),</span>
+<span class="fc" id="L210">				rhs.labelsRemoved(),</span>
+<span class="fc" id="L211">				rhs.typesAdded(),</span>
+<span class="fc" id="L212">				rhs.typesRemoved(),</span>
+<span class="fc" id="L213">				rhs.propertiesSet(),</span>
+<span class="fc" id="L214">				rhs.indexesAdded(),</span>
+<span class="fc" id="L215">				rhs.indexesRemoved(),</span>
+<span class="fc" id="L216">				rhs.constraintsAdded(),</span>
+<span class="fc" id="L217">				rhs.constraintsRemoved()</span>
+			);
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

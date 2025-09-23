@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619273892">
+    <module artifactId="neo4j-migrations-quarkus" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationDetailsSupplier.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsBuildTimeProperties.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsConfigCustomizer.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsDevConsoleRecorder.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsProperties.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsRPCService.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsRecorder.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/ResourceWrapper.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/StaticClasspathResourceScanner.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/quarkus/runtime/StaticJavaBasedMigrationDiscoverer.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationDetailsSupplierTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsRPCServiceTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/MigrationsRecorderTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/ResourceWrapperTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/StaticClasspathResourceScannerTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/StaticJavaBasedMigrationDiscovererTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/quarkus/runtime/protocol/resource/Handler.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

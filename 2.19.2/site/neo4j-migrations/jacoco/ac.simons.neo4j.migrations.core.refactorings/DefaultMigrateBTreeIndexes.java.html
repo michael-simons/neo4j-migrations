@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultMigrateBTreeIndexes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">DefaultMigrateBTreeIndexes.java</span></div><h1>DefaultMigrateBTreeIndexes.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Value;
+
+/**
+ * @author Michael J. Simons
+ * @soundtrack Kraftklub - KARGO
+ */
+final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
+
+	private static final String OPTION_USE_RANGE_INDEX_PROVIDER = &quot;{`indexProvider`: \&quot;range-1.0\&quot;}&quot;;
+	private final QueryRunner.FeatureSet featureSet;
+
+	/**
+	 * Set to {@literal true} to drop old {@literal btree} indexes and just create new {@literal range} backed indexes
+	 * and constraints. The default value is {@literal false}, which will make this refactoring create new indexes and
+	 * constraints in parallel to the old ones with a derived name. They won't do anything on a 4.4 instance but will
+	 * avoid downtime when migrating to 5.0.
+	 */
+	private final boolean dropOldIndexes;
+
+	/**
+	 * The suffix appended to the replacement constraints and indexes in case {@link #dropOldIndexes} is {@literal false}.
+	 * Defaults to {@link #DEFAULT_SUFFIX}.
+	 */
+	private final String suffix;
+
+	/**
+	 * A map with optional type mappings: Any named index appearing in this map will be created with the given type and
+	 * not default to {@code RANGE}.
+	 */
+	private final Map&lt;String, Index.Type&gt; typeMapping;
+
+	/**
+	 * A set of catalog items (both indexes and constraints) that are ignored and not touched.
+	 */
+	private final Set&lt;String&gt; excludes;
+
+	/**
+	 * A set of catalog items (both indexes and constraints) that are included.
+	 */
+	private final Set&lt;String&gt; includes;
+
+	private final RenderConfig createConfigConstraint;
+	private final RenderConfig createConfigIndex;
+	private final RenderConfig dropConfig;
+
+	DefaultMigrateBTreeIndexes() {
+<span class="fc" id="L88">		this(false, null, null, null, null);</span>
+<span class="fc" id="L89">	}</span>
+
+<span class="fc" id="L91">	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map&lt;String, Index.Type&gt; typeMapping, Collection&lt;String&gt; excludes, Collection&lt;String&gt; includes) {</span>
+
+<span class="fc" id="L93">		this.dropOldIndexes = dropOldIndexes;</span>
+<span class="pc bpc" id="L94" title="1 of 4 branches missed.">		this.suffix = suffix == null || suffix.trim().isEmpty() ? DEFAULT_SUFFIX : suffix.trim();</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">		this.typeMapping = typeMapping == null ? Collections.emptyMap() : new HashMap&lt;&gt;(typeMapping);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">		this.excludes = excludes == null ? Set.of() : new HashSet&lt;&gt;(excludes);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		this.includes = includes == null ? Set.of() : new HashSet&lt;&gt;(includes);</span>
+
+<span class="fc" id="L99">		this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion(&quot;4.4&quot;);</span>
+<span class="fc" id="L100">		this.createConfigConstraint = RenderConfig.create()</span>
+<span class="fc" id="L101">			.idempotent(true)</span>
+<span class="fc" id="L102">			.forVersionAndEdition(featureSet.requiredVersion(), &quot;ENTERPRISE&quot;)</span>
+<span class="fc" id="L103">			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {</span>
+				@Override
+				public boolean includingOptions() {
+<span class="fc" id="L106">					return true;</span>
+				}
+
+				@Override public boolean useExplicitPropertyIndexType() {
+<span class="fc" id="L110">					return true;</span>
+				}
+			}));
+<span class="fc" id="L113">		this.createConfigIndex = createConfigConstraint</span>
+<span class="fc" id="L114">			.withAdditionalOptions(Collections.singletonList(new RenderConfig.CypherRenderingOptions() {</span>
+				@Override
+				public boolean useExplicitPropertyIndexType() {
+<span class="fc" id="L117">					return true;</span>
+				}
+			}));
+<span class="fc" id="L120">		this.dropConfig = RenderConfig.drop()</span>
+<span class="fc" id="L121">			.ifExists()</span>
+<span class="fc" id="L122">			.forVersionAndEdition(featureSet.requiredVersion(), &quot;ENTERPRISE&quot;);</span>
+<span class="fc" id="L123">	}</span>
+
+	/**
+	 * Returns a map of constraints backed by indexes based on btrees. The map key is the id of the owning index for
+	 * later processing.
+	 *
+	 * @param queryRunner Might be a session or tx
+	 * @param owners      An optional list of owning indexes. If {@literal null}, this method will retrieve the indexes itself
+	 * @return A map of constraints backed by indexes based on btrees
+	 */
+	Map&lt;Long, Constraint&gt; findBTreeBasedConstraints(QueryRunner queryRunner, Map&lt;Long, Index&gt; owners) {
+<span class="fc bfc" id="L134" title="All 2 branches covered.">		Map&lt;Long, Index&gt; indexLookup = owners == null ? findBTreeBasedIndexes(queryRunner) : owners;</span>
+<span class="fc" id="L135">		return queryRunner.run(new Query(&quot;SHOW constraints YIELD * WHERE ownedIndexId IN $owners&quot;,</span>
+<span class="fc" id="L136">				Collections.singletonMap(&quot;owners&quot;, indexLookup.keySet())))</span>
+<span class="fc" id="L137">			.stream().collect(Collectors.toMap(r -&gt; r.get(&quot;ownedIndexId&quot;).asLong(), Constraint::parse));</span>
+	}
+
+	/**
+	 * Returns a map of indexes backed by btrees. The map key is the id of the index.
+	 *
+	 * @param queryRunner Might be a session or tx
+	 * @return A map of indexes
+	 */
+	Map&lt;Long, Index&gt; findBTreeBasedIndexes(QueryRunner queryRunner) {
+<span class="fc" id="L147">		Result result = queryRunner.run(new Query(&quot;SHOW indexes YIELD * WHERE toUpper(type) = 'BTREE' RETURN *&quot;));</span>
+<span class="fc" id="L148">		return result.stream()</span>
+<span class="fc" id="L149">			.collect(Collectors.toMap(r -&gt; r.get(&quot;id&quot;).asLong(), Index::parse));</span>
+	}
+
+	/**
+	 * Creates a list of catalog items that can be replaced by new range indexes
+	 *
+	 * @param queryRunner Might be a session or tx
+	 * @return A list with items that need processing
+	 */
+	@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+	List&lt;CatalogItem&lt;?&gt;&gt; findBTreeBasedItems(QueryRunner queryRunner) {
+
+<span class="fc" id="L161">		var versions = queryRunner.run(new Query(&quot;CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions&quot;)).single().get(&quot;versions&quot;).asList(Value::asString);</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">		if (versions.stream().anyMatch(v -&gt; v.startsWith(&quot;5.&quot;))) {</span>
+<span class="nc" id="L163">			return List.of();</span>
+		}
+
+<span class="fc" id="L166">		Map&lt;Long, Index&gt; indexes = findBTreeBasedIndexes(queryRunner);</span>
+<span class="fc" id="L167">		Map&lt;Long, Constraint&gt; constraints = findBTreeBasedConstraints(queryRunner, indexes);</span>
+
+<span class="fc" id="L169">		List&lt;CatalogItem&lt;?&gt;&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">		Predicate&lt;CatalogItem&lt;?&gt;&gt; notExcluded = c -&gt; !excludes.contains(c.getName().getValue());</span>
+<span class="fc bfc" id="L171" title="All 4 branches covered.">		notExcluded = notExcluded.and(c -&gt; includes.isEmpty() || includes.contains(c.getName().getValue()));</span>
+<span class="fc" id="L172">		constraints.values()</span>
+<span class="fc" id="L173">			.stream()</span>
+<span class="fc" id="L174">			.filter(notExcluded)</span>
+<span class="fc" id="L175">			.forEach(result::add);</span>
+<span class="fc" id="L176">		indexes</span>
+<span class="fc" id="L177">			.entrySet()</span>
+<span class="fc" id="L178">			.stream()</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">			.filter(e -&gt; !constraints.containsKey(e.getKey()))</span>
+<span class="fc" id="L180">			.map(Map.Entry::getValue)</span>
+<span class="fc" id="L181">			.filter(notExcluded)</span>
+<span class="fc" id="L182">			.forEach(result::add);</span>
+<span class="fc" id="L183">		return result;</span>
+	}
+
+	/**
+	 * Migrates an existing item to a new form (adding options and potentially changes the name).
+	 *
+	 * @param old The old catalog item
+	 * @return modified one
+	 * @throws IllegalArgumentException on {@literal null} or unsupported items
+	 */
+	@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+	CatalogItem&lt;?&gt; migrate(CatalogItem&lt;?&gt; old) {
+
+<span class="fc bfc" id="L196" title="All 2 branches covered.">		if (old == null) {</span>
+<span class="fc" id="L197">			throw new IllegalArgumentException(&quot;Cannot migrate null items&quot;);</span>
+		}
+
+<span class="fc" id="L200">		String oldName = old.getName().getValue();</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">		if (old instanceof Constraint constraint) {</span>
+<span class="fc" id="L202">			return constraint</span>
+<span class="fc" id="L203">				.withOptions(OPTION_USE_RANGE_INDEX_PROVIDER)</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">				.withName(dropOldIndexes ? oldName : oldName + suffix);</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">		} else if (old instanceof Index index) {</span>
+<span class="fc" id="L206">			return index</span>
+<span class="fc" id="L207">				.withOptions(OPTION_USE_RANGE_INDEX_PROVIDER)</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">				.withName(dropOldIndexes ? oldName : oldName + suffix)</span>
+<span class="fc" id="L209">				.withType(typeMapping.getOrDefault(oldName, Index.Type.PROPERTY));</span>
+		}
+
+<span class="fc" id="L212">		throw new IllegalArgumentException(&quot;Cannot migrate catalog items of type &quot; + old.getClass());</span>
+	}
+
+	@Override
+	public Counters apply(RefactoringContext context) {
+
+<span class="fc" id="L218">		Function&lt;CatalogItem&lt;?&gt;, Renderer&lt;CatalogItem&lt;?&gt;&gt;&gt; rendererProvider = new Function&lt;&gt;() {</span>
+<span class="fc" id="L219">			final Map&lt;Class&lt;CatalogItem&lt;?&gt;&gt;, Renderer&lt;CatalogItem&lt;?&gt;&gt;&gt; cachedRenderer = new ConcurrentHashMap&lt;&gt;(4);</span>
+
+			@SuppressWarnings(&quot;unchecked&quot;)
+			@Override
+			public Renderer&lt;CatalogItem&lt;?&gt;&gt; apply(CatalogItem&lt;?&gt; item) {
+<span class="fc" id="L224">				return cachedRenderer.computeIfAbsent((Class&lt;CatalogItem&lt;?&gt;&gt;) item.getClass(),</span>
+<span class="fc" id="L225">					type -&gt; Renderer.get(Renderer.Format.CYPHER, type));</span>
+			}
+		};
+
+<span class="fc" id="L229">		Counters counters = Counters.empty();</span>
+<span class="fc" id="L230">		try (QueryRunner tx = context.getQueryRunner(featureSet)) {</span>
+<span class="fc" id="L231">			List&lt;CatalogItem&lt;?&gt;&gt; bTreeBasedItems = findBTreeBasedItems(tx);</span>
+<span class="fc" id="L232">			StringJoiner dropStatements = new StringJoiner(System.lineSeparator(), System.lineSeparator(), &quot;&quot;);</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">			for (CatalogItem&lt;?&gt; item : bTreeBasedItems) {</span>
+<span class="fc" id="L234">				Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer = rendererProvider.apply(item);</span>
+
+<span class="fc" id="L236">				String dropStatement = renderer.render(item, dropConfig);</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">				if (dropOldIndexes) {</span>
+<span class="fc" id="L238">					counters = counters.add(new DefaultCounters(tx.run(new Query(dropStatement)).consume().counters()));</span>
+				} else {
+<span class="fc" id="L240">					dropStatements.add(dropStatement + &quot;;&quot;);</span>
+				}
+
+<span class="fc" id="L243">				CatalogItem&lt;?&gt; migratedItem = migrate(item);</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">				RenderConfig config = item instanceof Index ? createConfigIndex : createConfigConstraint;</span>
+<span class="fc" id="L245">				counters = counters.add(new DefaultCounters(tx.run(new Query(renderer.render(migratedItem, config))).consume().counters()));</span>
+<span class="fc" id="L246">			}</span>
+
+<span class="pc bpc" id="L248" title="2 of 6 branches missed.">			if (!dropOldIndexes &amp;&amp; LOGGER.isLoggable(Level.INFO) &amp;&amp; (counters.indexesAdded() + counters.constraintsAdded()) &gt; 0) {</span>
+<span class="fc" id="L249">				LOGGER.log(Level.INFO, &quot;Future indexes have been created. Use the following statements to drop all BTREE based constraints and indexes:{0}&quot;, dropStatements);</span>
+			}
+		}
+
+<span class="fc" id="L253">		return counters;</span>
+	}
+
+	@Override
+	public MigrateBTreeIndexes withTypeMapping(Map&lt;String, Index.Type&gt; newTypeMapping) {
+<span class="pc bpc" id="L258" title="1 of 6 branches missed.">		if (Objects.equals(this.typeMapping, newTypeMapping) || (newTypeMapping == null &amp;&amp; this.typeMapping.isEmpty())) {</span>
+<span class="fc" id="L259">			return this;</span>
+		}
+
+<span class="fc" id="L262">		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, newTypeMapping, excludes, includes);</span>
+	}
+
+	@Override
+	public MigrateBTreeIndexes withExcludes(Collection&lt;String&gt; newExcludes) {
+<span class="pc bpc" id="L267" title="1 of 8 branches missed.">		if (Objects.equals(this.excludes, newExcludes) || ((newExcludes == null || newExcludes.isEmpty()) &amp;&amp; this.excludes.isEmpty())) {</span>
+<span class="fc" id="L268">			return this;</span>
+		}
+
+<span class="fc" id="L271">		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, newExcludes, includes);</span>
+	}
+
+	@Override
+	public MigrateBTreeIndexes withIncludes(Collection&lt;String&gt; newIncludes) {
+<span class="pc bpc" id="L276" title="1 of 8 branches missed.">		if (Objects.equals(this.includes, newIncludes) || ((newIncludes == null || newIncludes.isEmpty()) &amp;&amp; this.includes.isEmpty())) {</span>
+<span class="fc" id="L277">			return this;</span>
+		}
+
+<span class="fc" id="L280">		return new DefaultMigrateBTreeIndexes(dropOldIndexes, suffix, typeMapping, excludes, newIncludes);</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L286">			return true;</span>
+		}
+<span class="pc bpc" id="L288" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L289">			return false;</span>
+		}
+<span class="fc" id="L291">		DefaultMigrateBTreeIndexes that = (DefaultMigrateBTreeIndexes) o;</span>
+<span class="pc bpc" id="L292" title="5 of 10 branches missed.">		return dropOldIndexes == that.dropOldIndexes &amp;&amp; suffix.equals(that.suffix) &amp;&amp; typeMapping.equals(that.typeMapping) &amp;&amp; excludes.equals(that.excludes) &amp;&amp; includes.equals(that.includes);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L297">		return Objects.hash(dropOldIndexes, suffix, typeMapping, excludes);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,1126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogBasedMigration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">CatalogBasedMigration.java</span></div><h1>CatalogBasedMigration.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogDiff;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.catalog.Name;
+import ac.simons.neo4j.migrations.core.catalog.Operator;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.internal.NodeSetDataImpl;
+import ac.simons.neo4j.migrations.core.internal.NoopDOMCryptoContext;
+import ac.simons.neo4j.migrations.core.internal.ThrowingErrorHandler;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serial;
+import java.net.URLDecoder;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.zip.CRC32;
+
+import javax.xml.XMLConstants;
+import javax.xml.crypto.XMLCryptoContext;
+import javax.xml.crypto.dom.DOMStructure;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.crypto.dsig.TransformException;
+import javax.xml.crypto.dsig.TransformService;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
+import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.summary.SummaryCounters;
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+/**
+ * A migration based on a catalog. The migration itself can contain a (partial) catalog with items that will be added
+ * to the {@link MigrationContext Migration contexts} global catalog. Items with the same ids in newer migrations will
+ * be added to the catalog. They will be picked up by operations depending on which migration the operation is applied.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Tom Holkenborg - Terminator: Dark Fate
+ * @since 1.7.0
+ */
+final class CatalogBasedMigration implements MigrationWithPreconditions {
+
+<span class="fc" id="L95">	private static final Logger LOGGER = Logger.getLogger(CatalogBasedMigration.class.getName());</span>
+
+	/**
+	 * A reference to the schema for validating our input.
+	 */
+	private static final Schema MIGRATION_SCHEMA;
+	/**
+	 * Neither document builder factories nor document builders are thread safe, so here we are…
+	 * This is supposed to stay there, otherwise I can spare myself the effort of a thread local.
+	 */
+	@SuppressWarnings(&quot;squid:S5164&quot;)
+	private static final ThreadLocal&lt;DocumentBuilderFactory&gt; DOCUMENT_BUILDER_FACTORY;
+
+	static {
+		try {
+<span class="fc" id="L110">			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);</span>
+<span class="fc" id="L111">			MIGRATION_SCHEMA = schemaFactory.newSchema(new StreamSource(</span>
+<span class="fc" id="L112">				CatalogBasedMigration.class.getResourceAsStream(&quot;/ac/simons/neo4j/migrations/core/migration.xsd&quot;)));</span>
+<span class="nc" id="L113">		} catch (SAXException e) {</span>
+<span class="nc" id="L114">			throw new MigrationsException(&quot;Could not load XML schema definition for schema based migrations.&quot;, e);</span>
+<span class="fc" id="L115">		}</span>
+
+<span class="fc" id="L117">		DOCUMENT_BUILDER_FACTORY = ThreadLocal.withInitial(() -&gt; {</span>
+<span class="fc" id="L118">			DocumentBuilderFactory value = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L119">			value.setSchema(MIGRATION_SCHEMA);</span>
+<span class="fc" id="L120">			value.setExpandEntityReferences(false);</span>
+<span class="fc" id="L121">			value.setNamespaceAware(true);</span>
+<span class="fc" id="L122">			return value;</span>
+		});
+<span class="fc" id="L124">	}</span>
+
+	private static String computeChecksum(Document document) {
+
+<span class="fc" id="L128">		final NodeList allElements = document.getElementsByTagName(&quot;*&quot;);</span>
+
+<span class="fc" id="L130">		Node newCatalog = document.createElement(XMLSchemaConstants.CATALOG);</span>
+<span class="fc" id="L131">		Node oldCatalog = null;</span>
+<span class="fc" id="L132">		Node constraints = null;</span>
+<span class="fc" id="L133">		Node indexes = null;</span>
+
+<span class="fc" id="L135">		final List&lt;Node&gt; elements = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">		for (int i = 0; i &lt; allElements.getLength(); i++) {</span>
+<span class="fc" id="L137">			Node currentItem = allElements.item(i);</span>
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">			if (currentItem.getLocalName().equals(XMLSchemaConstants.CATALOG)) {</span>
+<span class="fc" id="L140">				oldCatalog = currentItem;</span>
+<span class="fc" id="L141">				continue;</span>
+			}
+<span class="fc bfc" id="L143" title="All 2 branches covered.">			if (currentItem.getLocalName().equals(XMLSchemaConstants.INDEXES)) {</span>
+<span class="fc" id="L144">				indexes = currentItem;</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">			} else if (currentItem.getLocalName().equals(XMLSchemaConstants.CONSTRAINTS)) {</span>
+<span class="fc" id="L146">				constraints = currentItem;</span>
+			}
+<span class="fc" id="L148">			elements.add(currentItem);</span>
+<span class="fc" id="L149">			NodeList childNodes = currentItem.getChildNodes();</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">			for (int j = 0; j &lt; childNodes.getLength(); ++j) {</span>
+<span class="fc" id="L151">				Node childItem = childNodes.item(j);</span>
+<span class="fc bfc" id="L152" title="All 4 branches covered.">				if (!(childItem instanceof CharacterData textNode) || textNode.getTextContent().trim().isEmpty()) {</span>
+<span class="fc" id="L153">					continue;</span>
+				}
+
+<span class="fc" id="L156">				String content = Arrays</span>
+<span class="fc" id="L157">					.stream(textNode.getTextContent().split(&quot;\r?\n&quot;))</span>
+<span class="fc" id="L158">					.map(String::trim).collect(Collectors.joining(&quot;\n&quot;));</span>
+<span class="fc" id="L159">				textNode.setData(content);</span>
+<span class="fc" id="L160">				elements.add(textNode);</span>
+			}
+		}
+
+<span class="fc bfc" id="L164" title="All 2 branches covered.">		if (oldCatalog != null) {</span>
+<span class="fc" id="L165">			updateCatalog(oldCatalog, newCatalog);</span>
+		}
+<span class="fc bfc" id="L167" title="All 2 branches covered.">		if (constraints != null) {</span>
+<span class="fc" id="L168">			newCatalog.appendChild(constraints);</span>
+		}
+<span class="fc bfc" id="L170" title="All 2 branches covered.">		if (indexes != null) {</span>
+<span class="fc" id="L171">			newCatalog.appendChild(indexes);</span>
+		}
+<span class="fc" id="L173">		elements.add(newCatalog);</span>
+<span class="fc" id="L174">		return canonicalizeAndChecksumElements(document, elements);</span>
+	}
+
+	private static void updateCatalog(Node oldCatalog, Node newCatalog) {
+<span class="fc" id="L178">		oldCatalog.getParentNode().replaceChild(newCatalog, oldCatalog);</span>
+<span class="fc" id="L179">		NamedNodeMap attributes = oldCatalog.getAttributes();</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">		for (int i = 0; i &lt; attributes.getLength(); ++i) {</span>
+<span class="fc" id="L181">			Node attribute = attributes.item(i);</span>
+<span class="fc" id="L182">			attributes.removeNamedItem(attribute.getNodeName());</span>
+<span class="fc" id="L183">			newCatalog.getAttributes().setNamedItem(attribute);</span>
+		}
+<span class="fc" id="L185">	}</span>
+
+	private static String canonicalizeAndChecksumElements(Document document, List&lt;Node&gt; elements) {
+<span class="fc" id="L188">		try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L189">			XMLCryptoContext cryptoContext = new NoopDOMCryptoContext();</span>
+<span class="fc" id="L190">			TransformService transformService = TransformService.getInstance(CanonicalizationMethod.INCLUSIVE, &quot;DOM&quot;);</span>
+<span class="fc" id="L191">			transformService.init(new DOMStructure(document.createElement(&quot;holder&quot;)), cryptoContext);</span>
+<span class="fc" id="L192">			transformService.transform(NodeSetDataImpl.of(elements), cryptoContext, os);</span>
+
+<span class="fc" id="L194">			os.flush();</span>
+
+<span class="fc" id="L196">			final CRC32 crc32 = new CRC32();</span>
+<span class="fc" id="L197">			byte[] bytes = os.toByteArray();</span>
+<span class="fc" id="L198">			crc32.update(bytes, 0, bytes.length);</span>
+<span class="fc" id="L199">			return Long.toString(crc32.getValue());</span>
+<span class="nc" id="L200">		} catch (TransformException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | IOException e) {</span>
+<span class="nc" id="L201">			throw new MigrationsException(&quot;Could not canonicalize an xml document&quot;, e);</span>
+		}
+	}
+
+	static Migration from(ResourceContext context) {
+
+<span class="fc" id="L207">		var url = context.getUrl();</span>
+<span class="fc" id="L208">		String path = URLDecoder.decode(url.getPath(), Defaults.CYPHER_SCRIPT_ENCODING);</span>
+<span class="fc" id="L209">		int lastIndexOf = path.lastIndexOf(&quot;/&quot;);</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">		String fileName = lastIndexOf &lt; 0 ? path : path.substring(lastIndexOf + 1);</span>
+<span class="fc" id="L211">		MigrationVersion version = MigrationVersion.parse(fileName);</span>
+
+<span class="fc" id="L213">		Document document = parseDocument(context);</span>
+<span class="fc" id="L214">		return new CatalogBasedMigration(fileName, version, computeChecksum(document), Catalog.of(document),</span>
+<span class="fc" id="L215">			parseOperations(document, version), getPreconditions(document), isResetCatalog(document));</span>
+	}
+
+	static Document parseDocument(ResourceContext context) {
+
+<span class="fc" id="L220">		try (InputStream source = context.openStream()) {</span>
+<span class="fc" id="L221">			DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();</span>
+<span class="fc" id="L222">			documentBuilder.setErrorHandler(new ThrowingErrorHandler());</span>
+<span class="fc" id="L223">			Document document = documentBuilder.parse(source);</span>
+
+<span class="fc" id="L225">			document.normalizeDocument();</span>
+
+<span class="fc" id="L227">			return document;</span>
+<span class="nc" id="L228">		} catch (SAXParseException e) {</span>
+<span class="nc" id="L229">			throw new MigrationsException(&quot;Could not parse migration: &quot; + e.getMessage());</span>
+<span class="nc" id="L230">		} catch (SAXException | IOException | ParserConfigurationException e) {</span>
+<span class="nc" id="L231">			throw new MigrationsException(&quot;Could not parse the given document&quot;, e);</span>
+		}
+	}
+
+	static boolean isResetCatalog(Document document) {
+
+<span class="fc" id="L237">		NodeList catalog = document.getElementsByTagName(XMLSchemaConstants.CATALOG);</span>
+<span class="fc bfc" id="L238" title="All 4 branches covered.">		return catalog.getLength() == 1 &amp;&amp; Boolean.parseBoolean(((Element) catalog.item(0)).getAttribute(XMLSchemaConstants.RESET));</span>
+	}
+
+	static List&lt;Precondition&gt; getPreconditions(Node parentNode) {
+<span class="fc" id="L242">		List&lt;Precondition&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L243">		NodeList childNodes = parentNode.getChildNodes();</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">		for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L245">			Node node = childNodes.item(i);</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">			if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {</span>
+<span class="fc" id="L247">				Precondition.parse(String.format(&quot;// %s %s&quot;, node.getNodeName(), node.getTextContent().trim()))</span>
+<span class="fc" id="L248">					.ifPresent(result::add);</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">			} else if (node.getNodeType() == Node.ELEMENT_NODE) {</span>
+<span class="fc" id="L250">				result.addAll(getPreconditions(node));</span>
+			}
+		}
+<span class="fc" id="L253">		return result;</span>
+	}
+
+	static List&lt;Operation&gt; parseOperations(Document document, MigrationVersion version) {
+
+<span class="fc" id="L258">		List&lt;Operation&gt; result = new ArrayList&lt;&gt;();</span>
+
+		// We read the elements as they come, as there is no way to say &quot;give me all elements of a given type&quot;
+<span class="fc" id="L261">		NodeList migration = document.getElementsByTagName(&quot;migration&quot;);</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">		if (migration.getLength() != 1) {</span>
+<span class="nc" id="L263">			throw new MigrationsException(&quot;Invalid document: No &lt;migration /&gt; element.&quot;);</span>
+		}
+<span class="fc" id="L265">		NodeList childNodes = migration.item(0).getChildNodes();</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">		for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L267">			Node node = childNodes.item(i);</span>
+<span class="fc" id="L268">			String nodeName = node.getNodeName();</span>
+<span class="fc bfc" id="L269" title="All 4 branches covered.">			if (!((node instanceof Element) &amp;&amp; XMLSchemaConstants.SUPPORTED_OPERATIONS.contains(nodeName))) {</span>
+<span class="pc" id="L270">				LOGGER.fine(() -&gt; String.format(&quot;Skipping node: %s&quot;, nodeName));</span>
+<span class="fc" id="L271">				continue;</span>
+			}
+<span class="fc bfc" id="L273" title="All 2 branches covered.">			if (XMLSchemaConstants.REFACTOR.equals(nodeName)) {</span>
+<span class="fc" id="L274">				result.add(Operation.refactorWith(CatalogBasedRefactorings.fromNode(node)));</span>
+			} else {
+<span class="fc" id="L276">				OperationType type = OperationType.valueOf(nodeName.toUpperCase(Locale.ROOT));</span>
+<span class="fc" id="L277">				result.add(type.build((Element) node, version));</span>
+			}
+		}
+
+<span class="fc" id="L281">		Comparator&lt;CatalogItem&lt;?&gt;&gt; catalogItemComparator = CatalogBasedMigration::compareCatalogItems;</span>
+<span class="fc" id="L282">		return result.stream().sorted((operation1, operation2) -&gt; {</span>
+<span class="fc bfc" id="L283" title="All 4 branches covered.">					if (operation1 instanceof ItemSpecificOperation isop1 &amp;&amp; operation2 instanceof ItemSpecificOperation isop2</span>
+<span class="fc bfc" id="L284" title="All 4 branches covered.">					&amp;&amp; isop1.getLocalItem().isPresent() &amp;&amp; isop2.getLocalItem().isPresent()) {</span>
+<span class="fc" id="L285">						CatalogItem&lt;?&gt; item1 = isop1.getLocalItem().get();</span>
+<span class="fc" id="L286">						CatalogItem&lt;?&gt; item2 = isop2.getLocalItem().get();</span>
+<span class="fc" id="L287">						return catalogItemComparator.compare(item1, item2);</span>
+					}
+<span class="fc" id="L289">					return 0;</span>
+				})
+<span class="fc" id="L291">				.toList();</span>
+	}
+
+	private final String source;
+
+	private final MigrationVersion version;
+
+	private final String checksum;
+
+	private final Catalog catalog;
+
+	private final List&lt;Operation&gt; operations;
+
+	private final List&lt;Precondition&gt; preconditions;
+
+	private final boolean resetCatalog;
+
+	/**
+	 * @see CypherBasedMigration#getAlternativeChecksums() and field
+	 */
+<span class="fc" id="L311">	private List&lt;String&gt; alternativeChecksums = Collections.emptyList();</span>
+
+	private CatalogBasedMigration(String source, MigrationVersion version, String checksum, Catalog catalog,
+<span class="fc" id="L314">		List&lt;Operation&gt; operations, List&lt;Precondition&gt; preconditions, boolean resetCatalog) {</span>
+<span class="fc" id="L315">		this.source = source;</span>
+<span class="fc" id="L316">		this.version = version;</span>
+<span class="fc" id="L317">		this.checksum = checksum;</span>
+<span class="fc" id="L318">		this.catalog = catalog;</span>
+<span class="fc" id="L319">		this.operations = operations;</span>
+<span class="fc" id="L320">		this.preconditions = preconditions;</span>
+<span class="fc" id="L321">		this.resetCatalog = resetCatalog;</span>
+<span class="fc" id="L322">	}</span>
+
+	/**
+	 * Sorts operations by type (constraints before indexes)
+	 * @param o1 first item to compare
+	 * @param o2 second item to compare
+	 * @return Result of comparison
+	 */
+	private static int compareCatalogItems(CatalogItem&lt;?&gt; o1, CatalogItem&lt;?&gt; o2) {
+<span class="pc bpc" id="L331" title="3 of 4 branches missed.">		if (o1 instanceof Constraint &amp;&amp; o2 instanceof Index) {</span>
+<span class="nc" id="L332">			return -1;</span>
+<span class="pc bpc" id="L333" title="2 of 4 branches missed.">		} else if (o2 instanceof Constraint &amp;&amp; o1 instanceof Index) {</span>
+<span class="fc" id="L334">			return 1;</span>
+		}
+<span class="nc" id="L336">		return 0;</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getChecksum() {
+<span class="fc" id="L341">		return Optional.of(checksum);</span>
+	}
+
+	@Override
+	public List&lt;String&gt; getAlternativeChecksums() {
+<span class="fc" id="L346">		return Collections.unmodifiableList(alternativeChecksums);</span>
+	}
+
+	@Override
+	public void setAlternativeChecksums(List&lt;String&gt; alternativeChecksums) {
+
+<span class="fc" id="L352">		Objects.requireNonNull(alternativeChecksums);</span>
+<span class="fc" id="L353">		this.alternativeChecksums = new ArrayList&lt;&gt;(alternativeChecksums);</span>
+<span class="fc" id="L354">	}</span>
+
+	@Override
+	public MigrationVersion getVersion() {
+<span class="fc" id="L358">		return version;</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getOptionalDescription() {
+<span class="fc" id="L363">		return version.getOptionalDescription();</span>
+	}
+
+	@Override
+	public String getSource() {
+<span class="fc" id="L368">		return source;</span>
+	}
+
+	Catalog getCatalog() {
+<span class="fc" id="L372">		return catalog;</span>
+	}
+
+	boolean isResetCatalog() {
+<span class="fc" id="L376">		return resetCatalog;</span>
+	}
+
+	@Override
+	public void apply(MigrationContext context) {
+
+<span class="fc" id="L382">		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());</span>
+<span class="fc" id="L383">		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());</span>
+
+<span class="fc" id="L385">		Catalog globalCatalog = context.getCatalog();</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">		if (!(globalCatalog instanceof VersionedCatalog)) {</span>
+<span class="nc" id="L387">			throw new MigrationsException(&quot;Cannot use catalog based migrations without a versioned catalog.&quot;);</span>
+		}
+
+		try  {
+<span class="fc" id="L391">			OperationContext operationContext = new OperationContext(neo4jVersion, neo4jEdition,</span>
+<span class="fc" id="L392">				(VersionedCatalog) globalCatalog, context.getConfig(), context::getSession);</span>
+
+<span class="fc" id="L394">			Counters counters = this.operations</span>
+<span class="fc" id="L395">				.stream()</span>
+<span class="fc" id="L396">				.map(op -&gt; op.execute(operationContext))</span>
+<span class="fc" id="L397">				.reduce(Counters.empty(), Counters::add);</span>
+
+<span class="fc" id="L399">			LOGGER.fine(() -&gt;</span>
+<span class="nc" id="L400">				String.format(&quot;Removed %d constraints and %d indexes, added %d constraints and %d indexes in total.&quot;,</span>
+<span class="nc" id="L401">				counters.constraintsRemoved(), counters.indexesRemoved(), counters.constraintsAdded(), counters.indexesAdded()));</span>
+<span class="fc" id="L402">			LOGGER.fine(() -&gt;</span>
+<span class="nc" id="L403">				String.format(&quot;Removed %d labels and %d types, added %d labels and %d types and modified %d properties in total.&quot;,</span>
+<span class="nc" id="L404">					counters.labelsRemoved(), counters.typesRemoved(), counters.labelsAdded(), counters.typesAdded(), counters.propertiesSet()));</span>
+
+<span class="fc" id="L406">			try (Session session = operationContext.sessionSupplier().get()) {</span>
+<span class="fc" id="L407">				HBD.vladimirAndEstragonMayWait(session, counters);</span>
+			}
+
+<span class="fc" id="L410">		} catch (VerificationFailedException e) {</span>
+<span class="fc" id="L411">			throw new MigrationsException(&quot;Could not apply migration &quot; + Migrations.toString(this) + &quot; verification failed: &quot; + e.getMessage());</span>
+<span class="fc" id="L412">		}</span>
+<span class="fc" id="L413">	}</span>
+
+	@Override
+	public boolean isRepeatable() {
+<span class="fc" id="L417">		return version.isRepeatable();</span>
+	}
+
+	@Override
+	public List&lt;Precondition&gt; getPreconditions() {
+<span class="fc" id="L422">		return Collections.unmodifiableList(preconditions);</span>
+	}
+
+<span class="fc" id="L425">	record OperationContext(Neo4jVersion version, Neo4jEdition edition, VersionedCatalog catalog, MigrationsConfig config, Supplier&lt;Session&gt; sessionSupplier) {</span>
+	}
+
+<span class="fc" id="L428">	private enum OperationType {</span>
+<span class="fc" id="L429">		VERIFY,</span>
+<span class="fc" id="L430">		CREATE,</span>
+<span class="fc" id="L431">		DROP,</span>
+<span class="fc" id="L432">		APPLY;</span>
+
+		Operation build(Element operationElement, MigrationVersion targetVersion) {
+<span class="pc bpc" id="L435" title="1 of 4 branches missed.">			switch (this) {</span>
+				case VERIFY:
+<span class="fc" id="L437">					return Operation</span>
+<span class="fc" id="L438">						.verify(Boolean.parseBoolean(operationElement.getAttribute(&quot;useCurrent&quot;)))</span>
+<span class="fc" id="L439">						.includeOptions(Boolean.parseBoolean(operationElement.getAttribute(&quot;includeOptions&quot;)))</span>
+<span class="fc" id="L440">						.allowEquivalent(Boolean.parseBoolean(operationElement.getAttribute(&quot;allowEquivalent&quot;)))</span>
+<span class="fc" id="L441">						.at(targetVersion);</span>
+				case CREATE, DROP:
+<span class="fc" id="L443">					Optional&lt;Name&gt; optionalName = getOptionalReference(operationElement);</span>
+<span class="fc" id="L444">					boolean ifNotExists = Boolean.parseBoolean(operationElement.getAttribute(&quot;ifNotExists&quot;));</span>
+<span class="fc" id="L445">					boolean ifExists = Boolean.parseBoolean(operationElement.getAttribute(&quot;ifExists&quot;));</span>
+<span class="fc" id="L446">					return optionalName.&lt;Operation&gt;map(name -&gt; {</span>
+<span class="fc bfc" id="L447" title="All 2 branches covered.">						OperationBuilder&lt;?&gt; builder = this == CREATE ?</span>
+<span class="fc" id="L448">							Operation.create(optionalName.get(), ifNotExists) :</span>
+<span class="fc" id="L449">							Operation.drop(optionalName.get(), ifExists);</span>
+<span class="fc" id="L450">						return builder.with(targetVersion);</span>
+<span class="fc bfc" id="L451" title="All 2 branches covered.">					}).orElseGet(() -&gt; this == CREATE ?</span>
+<span class="fc" id="L452">						Operation.create(getLocalItem(operationElement), ifNotExists) :</span>
+<span class="fc" id="L453">						Operation.drop(getLocalItem(operationElement), ifExists)</span>
+					);
+				case APPLY:
+<span class="fc" id="L456">					return Operation.apply(targetVersion);</span>
+				default:
+<span class="nc" id="L458">					throw new IllegalArgumentException(&quot;Unsupported operation type: &quot; + this);</span>
+			}
+		}
+
+		private Optional&lt;Name&gt; getOptionalReference(Element operationElement) {
+
+<span class="fc bfc" id="L464" title="All 4 branches covered.">			if (operationElement.hasAttribute(&quot;ref&quot;) &amp;&amp; operationElement.hasAttribute(&quot;item&quot;)) {</span>
+<span class="fc" id="L465">				throw new IllegalArgumentException(</span>
+					&quot;Cannot create an operation referring to an item with both ref and item attributes. Please pick one.&quot;);
+			}
+
+			// operationElement.hasAttributes() won't work, as it will always return true as the element has a couple of defaulted attributes
+<span class="fc bfc" id="L470" title="All 6 branches covered.">			if ((operationElement.hasAttribute(&quot;ref&quot;) || operationElement.hasAttribute(&quot;item&quot;)) &amp;&amp; hasLocalItem(</span>
+				operationElement)) {
+<span class="fc" id="L472">				throw new IllegalArgumentException(</span>
+					&quot;Cannot create an operation referring to an element and defining an item locally at the same time.&quot;);
+			}
+
+<span class="fc bfc" id="L476" title="All 2 branches covered.">			if (operationElement.hasAttribute(&quot;ref&quot;)) {</span>
+<span class="fc" id="L477">				return Optional.of(Name.of(operationElement.getAttribute(&quot;ref&quot;)));</span>
+<span class="fc bfc" id="L478" title="All 2 branches covered.">			} else if (operationElement.hasAttribute(&quot;item&quot;)) {</span>
+<span class="fc" id="L479">				return Optional.of(Name.of(operationElement.getAttribute(&quot;item&quot;)));</span>
+			} else {
+<span class="fc" id="L481">				return Optional.empty();</span>
+			}
+		}
+
+		private CatalogItem&lt;?&gt; getLocalItem(Element operationElement) {
+
+<span class="fc bfc" id="L487" title="All 2 branches covered.">			if (operationElement.getElementsByTagName(&quot;constraint&quot;).getLength() == 1) {</span>
+<span class="fc" id="L488">				return Constraint.parse((Element) operationElement.getElementsByTagName(&quot;constraint&quot;).item(0));</span>
+			}
+
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">			if (operationElement.getElementsByTagName(&quot;index&quot;).getLength() == 1) {</span>
+<span class="fc" id="L492">				return Index.parse((Element) operationElement.getElementsByTagName(&quot;index&quot;).item(0));</span>
+			}
+
+<span class="nc" id="L495">			throw new UnsupportedOperationException(&quot;Could not get a local catalog item.&quot;);</span>
+		}
+
+		private boolean hasLocalItem(Element operationElement) {
+<span class="fc bfc" id="L499" title="All 2 branches covered.">			if (!operationElement.hasChildNodes()) {</span>
+<span class="fc" id="L500">				return false;</span>
+			}
+<span class="fc" id="L502">			NodeList childNodes = operationElement.getChildNodes();</span>
+<span class="fc bfc" id="L503" title="All 2 branches covered.">			for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L504">				Node child = childNodes.item(i);</span>
+<span class="fc bfc" id="L505" title="All 2 branches covered.">				if (child instanceof Element) {</span>
+<span class="fc" id="L506">					return true;</span>
+				}
+			}
+<span class="fc" id="L509">			return false;</span>
+		}
+	}
+
+	/**
+	 * Something that can be executed from withing a catalog based migration.
+	 */
+	interface Operation {
+
+		/**
+		 * Creates a new drop operation
+		 *
+		 * @param name    The name of the item to drop
+		 * @param ifExits should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static OperationBuilder&lt;DropOperation&gt; drop(Name name, boolean ifExits) {
+<span class="fc" id="L526">			return new DefaultOperationBuilder&lt;DropOperation&gt;(Operator.DROP).drop(name, ifExits);</span>
+		}
+
+		/**
+		 * Creates a new create operation
+		 *
+		 * @param name        The name of the item to create
+		 * @param ifNotExists should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static OperationBuilder&lt;CreateOperation&gt; create(Name name, boolean ifNotExists) {
+<span class="fc" id="L537">			return new DefaultOperationBuilder&lt;CreateOperation&gt;(Operator.CREATE).create(name, ifNotExists);</span>
+		}
+
+		/**
+		 * Creates a new drop operation
+		 *
+		 * @param item    The item to create
+		 * @param ifExits should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static DropOperation drop(CatalogItem&lt;?&gt; item, boolean ifExits) {
+<span class="fc" id="L548">			return new DefaultOperationBuilder&lt;DropOperation&gt;(Operator.DROP).drop(item, ifExits);</span>
+		}
+
+		/**
+		 * Creates a new create operation
+		 *
+		 * @param item        The item to drop
+		 * @param ifNotExists should it be an idempotent operation or not?
+		 * @return Ongoing definition
+		 */
+		static CreateOperation create(CatalogItem&lt;?&gt; item, boolean ifNotExists) {
+<span class="fc" id="L559">			return new DefaultOperationBuilder&lt;CreateOperation&gt;(Operator.CREATE).create(item, ifNotExists);</span>
+		}
+
+		/**
+		 * Creates a new refactoring operation
+		 *
+		 * @param refactoring The refactoring to execute
+		 * @return A new operation ready to execute.
+		 */
+		static Operation refactorWith(Refactoring refactoring) {
+<span class="fc" id="L569">			return new DefaultRefactorOperation(refactoring);</span>
+		}
+
+		/**
+		 * Creates a new {@link ApplyOperation}. This operation is potentially destructive. It will load all supported
+		 * item types from the database, drop them and eventually create the content of the catalog.
+		 * @param definedAt the version which should be applied
+		 * @return The operation ready to execute.
+		 */
+		static ApplyOperation apply(MigrationVersion definedAt) {
+<span class="fc" id="L579">			return new DefaultApplyOperation(definedAt);</span>
+		}
+
+		/**
+		 * Create a new {@link VerifyOperation}.
+		 *
+		 * @param useCurrent Use {@literal true} to verify / assert the current version, use {@literal false} to verify the previous.
+		 * @return The operation ready to execute.
+		 */
+		static VerifyBuilder verify(boolean useCurrent) {
+<span class="fc" id="L589">			return new DefaultOperationBuilder&lt;&gt;(null).verify(useCurrent);</span>
+		}
+
+		/**
+		 * Executes this operation in the given context.
+		 *
+		 * @param context the context in which to execute this operation
+		 * @return Counters with information about the changes to the schema
+		 */
+		Counters execute(OperationContext context);
+	}
+
+	/**
+	 * An operation that executes a {@link Refactoring}.
+	 */
+	static final class DefaultRefactorOperation implements Operation {
+
+		final Refactoring refactoring;
+
+<span class="fc" id="L608">		DefaultRefactorOperation(Refactoring refactoring) {</span>
+<span class="fc" id="L609">			this.refactoring = refactoring;</span>
+<span class="fc" id="L610">		}</span>
+
+		@Override
+		public Counters execute(OperationContext context) {
+<span class="fc" id="L614">			return refactoring.apply(new DefaultRefactoringContext(context.sessionSupplier, context.version));</span>
+		}
+	}
+
+	/**
+	 * An operation that requires a version to be executed.
+	 */
+	interface VersionSpecificOperation extends Operation {
+
+		/**
+		 * @return the version at which this operation has been defined
+		 */
+		MigrationVersion definedAt();
+	}
+
+	/**
+	 * An operation that requires an item to be executed.
+	 */
+	interface ItemSpecificOperation extends Operation {
+
+		/**
+		 * @return an optional reference to the item that is subject to this operation
+		 */
+		Optional&lt;Name&gt; getReference();
+
+		/**
+		 * @return an optional local item.
+		 */
+		@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+		Optional&lt;CatalogItem&lt;?&gt;&gt; getLocalItem();
+	}
+
+	/**
+	 * An operation that creates an item from the catalog inside the database.
+	 */
+	interface CreateOperation extends VersionSpecificOperation, ItemSpecificOperation {
+	}
+
+	/**
+	 * An operation that drops an item from the catalog from the database.
+	 */
+	interface DropOperation extends VersionSpecificOperation, ItemSpecificOperation {
+	}
+
+	/**
+	 * This operation loads all supported item types from the database, drops them and then creates all items of the local catalog.
+	 */
+	interface ApplyOperation extends VersionSpecificOperation {
+	}
+
+	/**
+	 * This operation takes the current catalog and checks whether all items in the version second to last are
+	 * defined in the same or equivalent fashion in the database or if both this catalog or the database are empty. The
+	 * assertion is done before the most recent version so that - if necessary - all create and drop operations can be
+	 * safely applied. Thus, you can even assert an empty catalog. This behaviour can be switched to using the current
+	 * version by using the appropriate argument to builder method.
+	 */
+	interface VerifyOperation extends VersionSpecificOperation {
+
+		/**
+		 * @return {@literal true} if the current version should be verified, defaults to {@literal false}
+		 */
+		boolean useCurrent();
+
+		/**
+		 * @return {@literal true} if the equivalent catalogs are allowed, defaults to {@literal true}
+		 */
+		boolean allowEquivalent();
+
+		/**
+		 * @return {@literal true} if options should be included during verification
+		 */
+		boolean includeOptions();
+	}
+
+	/**
+	 * Specifies the version in which the item that is dealt with has been reference
+	 *
+	 * @param &lt;T&gt; The type of operation to build
+	 */
+	interface OperationBuilder&lt;T extends Operation&gt; {
+
+		T with(MigrationVersion version);
+	}
+
+	/**
+	 * Specifies the version at which verification should take place.
+	 */
+	interface TerminalVerifyBuilder {
+		VerifyOperation at(MigrationVersion version);
+	}
+
+	/**
+	 * Allows configuring whether options should be included and whether equivalent but not identical catalogs are allowed
+	 */
+	interface VerifyBuilder extends TerminalVerifyBuilder {
+
+		VerifyBuilder includeOptions(boolean includeOptions);
+
+		TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent);
+	}
+
+	private static class DefaultOperationBuilder&lt;T extends Operation&gt; implements OperationBuilder&lt;T&gt;, VerifyBuilder {
+
+		private final Operator operator;
+
+		private Name reference;
+
+		private CatalogItem&lt;?&gt; item;
+
+		private boolean idempotent;
+
+		private boolean useCurrent;
+
+<span class="fc" id="L728">		private boolean allowEquivalent = true;</span>
+
+<span class="fc" id="L730">		private boolean includingOptions = false;</span>
+
+<span class="fc" id="L732">		DefaultOperationBuilder(final Operator operator) {</span>
+<span class="fc" id="L733">			this.operator = operator;</span>
+<span class="fc" id="L734">		}</span>
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		OperationBuilder&lt;T&gt; drop(Name reference, boolean ifExits) {
+
+<span class="fc" id="L739">			this.reference = reference;</span>
+<span class="fc" id="L740">			this.idempotent = ifExits;</span>
+<span class="fc" id="L741">			return this;</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		OperationBuilder&lt;T&gt; create(Name reference, boolean ifNotExists) {
+
+<span class="fc" id="L747">			this.reference = reference;</span>
+<span class="fc" id="L748">			this.idempotent = ifNotExists;</span>
+<span class="fc" id="L749">			return this;</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		DropOperation drop(CatalogItem&lt;?&gt; item, boolean ifExits) {
+
+<span class="fc" id="L755">			this.item = item;</span>
+<span class="fc" id="L756">			this.idempotent = ifExits;</span>
+<span class="fc" id="L757">			return new DefaultDropOperation(null, reference, item, idempotent);</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		CreateOperation create(CatalogItem&lt;?&gt; item, boolean ifNotExists) {
+
+<span class="fc" id="L763">			this.item = item;</span>
+<span class="fc" id="L764">			this.idempotent = ifNotExists;</span>
+<span class="fc" id="L765">			return new DefaultCreateOperation(null, reference, item, idempotent);</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		VerifyBuilder verify(boolean useCurrent) {
+
+<span class="fc" id="L771">			this.useCurrent = useCurrent;</span>
+<span class="fc" id="L772">			return this;</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		@Override
+		public VerifyBuilder includeOptions(boolean includeOptions) {
+
+<span class="fc" id="L779">			this.includingOptions = includeOptions;</span>
+<span class="fc" id="L780">			return this;</span>
+		}
+
+		@SuppressWarnings({ &quot;HiddenField&quot; })
+		@Override
+		public TerminalVerifyBuilder allowEquivalent(boolean allowEquivalent) {
+
+<span class="fc" id="L787">			this.allowEquivalent = allowEquivalent;</span>
+<span class="fc" id="L788">			return this;</span>
+		}
+
+		@Override
+		public VerifyOperation at(MigrationVersion version) {
+<span class="fc" id="L793">			return new DefaultVerifyOperation(useCurrent, includingOptions, allowEquivalent, version);</span>
+		}
+
+		@SuppressWarnings(&quot;unchecked&quot;)
+		@Override
+		public T with(MigrationVersion version) {
+
+<span class="fc bfc" id="L800" title="All 2 branches covered.">			if (this.operator == Operator.DROP) {</span>
+<span class="fc" id="L801">				return (T) new DefaultDropOperation(version, reference, item, idempotent);</span>
+<span class="pc bpc" id="L802" title="1 of 2 branches missed.">			} else if (this.operator == Operator.CREATE) {</span>
+<span class="fc" id="L803">				return (T) new DefaultCreateOperation(version, reference, item, idempotent);</span>
+			} else {
+<span class="nc" id="L805">				throw new UnsupportedOperationException();</span>
+			}
+		}
+	}
+
+	/**
+	 * Some state for all operations working on a specific item defined by a named reference.
+	 */
+	private abstract static class AbstractItemBasedOperation
+		implements VersionSpecificOperation, ItemSpecificOperation {
+
+		protected final MigrationVersion definedAt;
+
+		protected final Name reference;
+
+		protected final CatalogItem&lt;?&gt; localItem;
+
+		protected final boolean idempotent;
+
+		AbstractItemBasedOperation(MigrationVersion definedAt, Name reference, CatalogItem&lt;?&gt; localItem,
+<span class="fc" id="L825">			boolean idempotent) {</span>
+
+<span class="fc bfc" id="L827" title="All 4 branches covered.">			if (definedAt == null &amp;&amp; localItem == null) {</span>
+<span class="fc" id="L828">				throw new IllegalArgumentException(&quot;Without a version, a concrete, local item is required.&quot;);</span>
+			}
+<span class="fc bfc" id="L830" title="All 4 branches covered.">			if (reference != null &amp;&amp; localItem != null) {</span>
+<span class="fc" id="L831">				throw new IllegalArgumentException(&quot;Either reference or item is required, not both.&quot;);</span>
+			}
+
+<span class="fc" id="L834">			this.definedAt = definedAt;</span>
+<span class="fc" id="L835">			this.reference = reference;</span>
+<span class="fc" id="L836">			this.localItem = localItem;</span>
+<span class="fc" id="L837">			this.idempotent = idempotent;</span>
+<span class="fc" id="L838">		}</span>
+
+		@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+		CatalogItem&lt;?&gt; getRequiredItem(VersionedCatalog catalog) {
+
+			// I want Java9+ and better optionals, so that I can or them
+<span class="fc bfc" id="L844" title="All 2 branches covered.">			if (this.localItem != null) {</span>
+<span class="fc" id="L845">				return this.localItem;</span>
+			}
+
+<span class="fc" id="L848">			return catalog.getItem(reference, definedAt).orElseThrow(() -&gt; new MigrationsException(</span>
+<span class="fc" id="L849">				String.format(&quot;An item named '%s' has not been defined as of version %s.&quot;, reference.getValue(),</span>
+<span class="fc" id="L850">					definedAt.getValue())));</span>
+		}
+
+		@Override
+		public MigrationVersion definedAt() {
+<span class="nc" id="L855">			return definedAt;</span>
+		}
+
+		@Override
+		public Optional&lt;Name&gt; getReference() {
+<span class="fc" id="L860">			return Optional.ofNullable(reference);</span>
+		}
+
+		@Override
+		public Optional&lt;CatalogItem&lt;?&gt;&gt; getLocalItem() {
+<span class="fc" id="L865">			return Optional.ofNullable(localItem);</span>
+		}
+	}
+
+	/**
+	 * Executes creates.
+	 */
+	static final class DefaultCreateOperation extends AbstractItemBasedOperation implements CreateOperation {
+
+		DefaultCreateOperation(MigrationVersion definedAt, Name reference, CatalogItem&lt;?&gt; item, boolean idempotent) {
+<span class="fc" id="L875">			super(definedAt, reference, item, idempotent);</span>
+<span class="fc" id="L876">		}</span>
+
+		@Override
+		public Counters execute(OperationContext context) {
+
+<span class="fc" id="L881">			try (Session queryRunner = context.sessionSupplier.get()) {</span>
+<span class="fc" id="L882">				CatalogItem&lt;?&gt; item = getRequiredItem(context.catalog);</span>
+<span class="fc" id="L883">				Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer = Renderer.get(Renderer.Format.CYPHER, item);</span>
+<span class="fc" id="L884">				RenderConfig config = RenderConfig.create()</span>
+<span class="fc" id="L885">					.idempotent(idempotent)</span>
+<span class="fc" id="L886">					.forVersionAndEdition(context.version, context.edition)</span>
+<span class="fc" id="L887">					.withAdditionalOptions(context.config().getConstraintRenderingOptions());</span>
+
+<span class="fc bfc" id="L889" title="All 4 branches covered.">				if (idempotent &amp;&amp; !context.version.hasIdempotentOperations()) {</span>
+<span class="fc" id="L890">					config = config.ignoreName();</span>
+<span class="fc" id="L891">					return createIfNotExists(context, item, queryRunner, renderer, config);</span>
+				} else {
+<span class="fc" id="L893">					return schemaCounters(queryRunner.run(renderer.render(item, config)).consume().counters());</span>
+				}
+<span class="pc bpc" id="L895" title="1 of 2 branches missed.">			}</span>
+		}
+
+		private Counters createIfNotExists(OperationContext context, CatalogItem&lt;?&gt; item, QueryRunner queryRunner,
+			Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer, RenderConfig config) {
+
+			try {
+<span class="fc" id="L902">				return schemaCounters(queryRunner.run(renderer.render(item, config)).consume().counters());</span>
+<span class="fc" id="L903">			} catch (Neo4jException e) {</span>
+				// Directly throw anything that can't match
+<span class="fc bfc" id="L905" title="All 2 branches covered.">				if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {</span>
+<span class="fc" id="L906">					throw e;</span>
+				}
+
+				// Make sure the thing actually is there.
+<span class="pc bpc" id="L910" title="1 of 2 branches missed.">				List&lt;CatalogItem&lt;?&gt;&gt; items = item instanceof Constraint</span>
+<span class="fc" id="L911">					? queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse)</span>
+<span class="pc" id="L912">					: queryRunner.run(context.version.getShowIndexes()).list(Index::parse);</span>
+
+				// If there are no constraints there at all, something fishy is going on for sure
+				// otherwise, there must now an equivalent version of it
+<span class="pc bpc" id="L916" title="1 of 4 branches missed.">				if (items.isEmpty() || items.stream().noneMatch(existingItem -&gt; existingItem.isEquivalentTo(item))) {</span>
+<span class="fc" id="L917">					throw e;</span>
+				}
+			}
+<span class="fc" id="L920">			return Counters.empty();</span>
+		}
+	}
+
+	/**
+	 * Executes drops.
+	 */
+	static final class DefaultDropOperation extends AbstractItemBasedOperation implements DropOperation {
+
+		DefaultDropOperation(MigrationVersion definedAt, Name reference, CatalogItem&lt;?&gt; item, boolean idempotent) {
+<span class="fc" id="L930">			super(definedAt, reference, item, idempotent);</span>
+<span class="fc" id="L931">		}</span>
+
+		@Override
+		public Counters execute(OperationContext context) {
+
+<span class="fc" id="L936">			try (Session queryRunner = context.sessionSupplier.get()) {</span>
+<span class="fc" id="L937">				CatalogItem&lt;?&gt; item = getRequiredItem(context.catalog);</span>
+<span class="fc" id="L938">				Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer = Renderer.get(Renderer.Format.CYPHER, item);</span>
+<span class="fc" id="L939">				RenderConfig config = RenderConfig.drop()</span>
+<span class="fc" id="L940">					.idempotent(idempotent)</span>
+<span class="fc" id="L941">					.forVersionAndEdition(context.version, context.edition)</span>
+<span class="fc" id="L942">					.withAdditionalOptions(context.config().getConstraintRenderingOptions());</span>
+
+<span class="fc bfc" id="L944" title="All 4 branches covered.">				if (idempotent &amp;&amp; !context.version.hasIdempotentOperations()) {</span>
+<span class="fc" id="L945">					config = config.ignoreName();</span>
+<span class="fc" id="L946">					return drop(context, item, queryRunner, renderer, config, true);</span>
+				} else {
+<span class="fc" id="L948">					return schemaCounters(queryRunner.run(renderer.render(item, config)).consume().counters());</span>
+				}
+<span class="pc bpc" id="L950" title="1 of 2 branches missed.">			}</span>
+		}
+
+		private Counters drop(OperationContext context, CatalogItem&lt;?&gt; item, QueryRunner queryRunner,
+			Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer,
+			RenderConfig config, boolean fallbackToPrior) {
+
+			try {
+<span class="fc" id="L958">				return schemaCounters(queryRunner.run(renderer.render(item, config)).consume().counters());</span>
+<span class="fc" id="L959">			} catch (Neo4jException e) {</span>
+				// Directly throw anything that can't match
+<span class="fc bfc" id="L961" title="All 2 branches covered.">				if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {</span>
+<span class="fc" id="L962">					throw e;</span>
+				}
+
+<span class="pc bpc" id="L965" title="3 of 4 branches missed.">				if (!(item instanceof Constraint || item instanceof Index)) {</span>
+<span class="nc" id="L966">					throw new IllegalStateException(&quot;Item type &quot; + item.getClass() + &quot; not supported&quot;);</span>
+				}
+
+				// Make sure the thing actually not there.
+<span class="pc bpc" id="L970" title="1 of 2 branches missed.">				List&lt;CatalogItem&lt;?&gt;&gt; items = item instanceof Constraint</span>
+<span class="fc" id="L971">					? queryRunner.run(context.version.getShowConstraints()).list(Constraint::parse)</span>
+<span class="pc" id="L972">					: queryRunner.run(context.version.getShowIndexes()).list(Index::parse);</span>
+
+<span class="fc bfc" id="L974" title="All 2 branches covered.">				if (items.isEmpty()) {</span>
+<span class="fc" id="L975">					return Counters.empty();</span>
+				}
+
+<span class="fc bfc" id="L978" title="All 2 branches covered.">				if (items.stream().anyMatch(existingIndex -&gt; existingIndex.isEquivalentTo(item))) {</span>
+<span class="fc" id="L979">					throw e;</span>
+				}
+
+<span class="fc bfc" id="L982" title="All 4 branches covered.">				if (!fallbackToPrior || getLocalItem().isPresent()) {</span>
+<span class="fc" id="L983">					return Counters.empty();</span>
+				}
+
+				// If it has been defined in an older version users might have redefined it in this version,
+				// such that couldn't have been dropped
+<span class="fc" id="L988">				return context.catalog.getItemPriorTo(reference, definedAt)</span>
+<span class="fc" id="L989">						.filter(</span>
+<span class="fc" id="L990">								v -&gt; items.stream().anyMatch(existingIndex -&gt; existingIndex.isEquivalentTo(v)))</span>
+<span class="fc" id="L991">						.map(olderItem -&gt; drop(context, olderItem, queryRunner, renderer, config, false))</span>
+<span class="fc" id="L992">						.orElseGet(Counters::empty);</span>
+			}
+		}
+	}
+
+	static Counters schemaCounters(SummaryCounters summaryCounters) {
+
+<span class="fc" id="L999">		Map&lt;String, Integer&gt; schema = Map.of(</span>
+<span class="fc" id="L1000">			&quot;indexesAdded&quot;, summaryCounters.indexesAdded(),</span>
+<span class="fc" id="L1001">			&quot;indexesRemoved&quot;, summaryCounters.indexesRemoved(),</span>
+<span class="fc" id="L1002">			&quot;constraintsAdded&quot;, summaryCounters.constraintsAdded(),</span>
+<span class="fc" id="L1003">			&quot;constraintsRemoved&quot;, summaryCounters.constraintsRemoved()</span>
+		);
+<span class="fc" id="L1005">		return Counters.of(schema);</span>
+	}
+
+	static Counters schemaCounters(int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved) {
+
+<span class="fc" id="L1010">		Map&lt;String, Integer&gt; schema = Map.of(</span>
+<span class="fc" id="L1011">			&quot;indexesAdded&quot;, indexesAdded,</span>
+<span class="fc" id="L1012">			&quot;indexesRemoved&quot;, indexesRemoved,</span>
+<span class="fc" id="L1013">			&quot;constraintsAdded&quot;, constraintsAdded,</span>
+<span class="fc" id="L1014">			&quot;constraintsRemoved&quot;, constraintsRemoved</span>
+		);
+<span class="fc" id="L1016">		return Counters.of(schema);</span>
+	}
+
+	/**
+	 * Default implementation of verification.
+	 */
+<span class="fc" id="L1022">	record DefaultVerifyOperation(boolean useCurrent, boolean includeOptions, boolean allowEquivalent, MigrationVersion definedAt) implements VerifyOperation {</span>
+
+		@Override
+		public Counters execute(OperationContext context) {
+
+<span class="fc" id="L1027">			try (Session queryRunner = context.sessionSupplier.get()) {</span>
+				// Get all the constraints
+<span class="fc" id="L1029">				Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner, includeOptions);</span>
+<span class="fc" id="L1030">				VersionedCatalog currentCatalog = context.catalog;</span>
+
+<span class="fc" id="L1032">				CatalogDiff diff = CatalogDiff.between(databaseCatalog,</span>
+<span class="fc bfc" id="L1033" title="All 2 branches covered.">					useCurrent ?</span>
+<span class="fc" id="L1034">						currentCatalog.getCatalogAt(definedAt) :</span>
+<span class="fc" id="L1035">						currentCatalog.getCatalogPriorTo(definedAt));</span>
+
+<span class="fc bfc" id="L1037" title="All 2 branches covered.">				if (diff.identical()) {</span>
+<span class="fc" id="L1038">					LOGGER.log(Level.FINE, &quot;Database schema and catalog are identical.&quot;);</span>
+<span class="fc bfc" id="L1039" title="All 4 branches covered.">				} else if (diff.equivalent() &amp;&amp; allowEquivalent) {</span>
+<span class="fc" id="L1040">					LOGGER.warning(() -&gt; buildEquivalentWarningMessage(diff));</span>
+				} else {
+<span class="fc bfc" id="L1042" title="All 2 branches covered.">					throw new VerificationFailedException(diff.equivalent() ?</span>
+<span class="fc" id="L1043">						&quot;Database schema and the catalog are equivalent but the verification requires them to be identical.&quot; :</span>
+<span class="fc" id="L1044">						&quot;Catalogs are neither identical nor equivalent.&quot;);</span>
+				}
+
+<span class="fc" id="L1047">				return Counters.empty();</span>
+			}
+		}
+
+		private String buildEquivalentWarningMessage(CatalogDiff diff) {
+<span class="fc" id="L1052">			StringBuilder message = new StringBuilder();</span>
+<span class="fc" id="L1053">			Collection&lt;CatalogItem&lt;?&gt;&gt; itemsOnlyInRight = diff.getItemsOnlyInRight();</span>
+<span class="fc" id="L1054">			message.append(&quot;Items in the database are not identical to items in the schema catalog. The following items have different names but an equivalent definition:&quot;);</span>
+<span class="fc" id="L1055">			diff.getItemsOnlyInLeft().forEach(item -&gt; itemsOnlyInRight.stream()</span>
+<span class="fc" id="L1056">				.filter(item::isEquivalentTo)</span>
+<span class="fc" id="L1057">				.findFirst()</span>
+<span class="fc" id="L1058">				.ifPresent(equivalentItem -&gt;</span>
+<span class="fc" id="L1059">					message</span>
+<span class="fc" id="L1060">						.append(System.lineSeparator())</span>
+<span class="fc" id="L1061">						.append(&quot;* Database item `&quot;)</span>
+<span class="fc" id="L1062">						.append(item.getName().getValue())</span>
+<span class="fc" id="L1063">						.append(&quot;` matches catalog item `&quot;)</span>
+<span class="fc" id="L1064">						.append(equivalentItem.getName().getValue())</span>
+<span class="fc" id="L1065">						.append(&quot;`&quot;)</span>
+				));
+<span class="fc" id="L1067">			return message.toString();</span>
+		}
+	}
+
+	static final class VerificationFailedException extends RuntimeException {
+
+		@Serial
+		private static final long serialVersionUID = 6481650211840799118L;
+
+		VerificationFailedException(String message) {
+<span class="fc" id="L1077">			super(message);</span>
+<span class="fc" id="L1078">		}</span>
+	}
+
+	/**
+	 * Drops everything from the database catalog, adds everything from the migrations catalog.
+	 */
+<span class="fc" id="L1084">	record DefaultApplyOperation(MigrationVersion definedAt) implements ApplyOperation {</span>
+
+		@Override
+		public Counters execute(OperationContext context) {
+
+<span class="fc" id="L1089">			try (Session queryRunner = context.sessionSupplier.get()) {</span>
+				// Get all the constraints
+<span class="fc" id="L1091">				Catalog databaseCatalog = DatabaseCatalog.of(context.version, queryRunner, false);</span>
+
+				// Make them go away
+<span class="fc" id="L1094">				RenderConfig dropConfig = RenderConfig.drop()</span>
+<span class="fc" id="L1095">					.forVersionAndEdition(context.version, context.edition);</span>
+<span class="fc" id="L1096">				AtomicInteger constraintsRemoved = new AtomicInteger(0);</span>
+<span class="fc" id="L1097">				AtomicInteger indexesRemoved = new AtomicInteger(0);</span>
+<span class="fc" id="L1098">				databaseCatalog.getItems().forEach(catalogItem -&gt; {</span>
+<span class="fc" id="L1099">					Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer = Renderer.get(Renderer.Format.CYPHER, catalogItem);</span>
+<span class="fc" id="L1100">					SummaryCounters counters = queryRunner.run(renderer.render(catalogItem, dropConfig)).consume()</span>
+<span class="fc" id="L1101">						.counters();</span>
+<span class="fc" id="L1102">					constraintsRemoved.addAndGet(counters.constraintsRemoved());</span>
+<span class="fc" id="L1103">					indexesRemoved.addAndGet(counters.indexesRemoved());</span>
+<span class="fc" id="L1104">				});</span>
+
+				// Add the new ones
+<span class="fc" id="L1107">				RenderConfig createConfig = RenderConfig.create()</span>
+<span class="fc" id="L1108">					.forVersionAndEdition(context.version, context.edition)</span>
+<span class="fc" id="L1109">					.withAdditionalOptions(context.config().getConstraintRenderingOptions());</span>
+<span class="fc" id="L1110">				AtomicInteger constraintsAdded = new AtomicInteger(0);</span>
+<span class="fc" id="L1111">				AtomicInteger indexesAdded = new AtomicInteger(0);</span>
+<span class="fc" id="L1112">				context.catalog.getCatalogAt(definedAt).getItems().forEach(item -&gt; {</span>
+<span class="fc" id="L1113">					Renderer&lt;CatalogItem&lt;?&gt;&gt; renderer = Renderer.get(Renderer.Format.CYPHER, item);</span>
+<span class="fc" id="L1114">					SummaryCounters counters = queryRunner.run(renderer.render(item, createConfig)).consume()</span>
+<span class="fc" id="L1115">						.counters();</span>
+<span class="fc" id="L1116">					constraintsAdded.addAndGet(counters.constraintsAdded());</span>
+<span class="fc" id="L1117">					indexesAdded.addAndGet(counters.indexesAdded());</span>
+<span class="fc" id="L1118">				});</span>
+
+<span class="fc" id="L1120">				return schemaCounters(indexesAdded.get(), indexesRemoved.get(), constraintsAdded.get(),</span>
+<span class="fc" id="L1121">					constraintsRemoved.get());</span>
+			}
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

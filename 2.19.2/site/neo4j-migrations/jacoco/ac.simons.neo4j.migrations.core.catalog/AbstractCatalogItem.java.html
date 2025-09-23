@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractCatalogItem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">AbstractCatalogItem.java</span></div><h1>AbstractCatalogItem.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.TypeSystem;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+/**
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+abstract non-sealed class AbstractCatalogItem&lt;T extends ItemType&gt; implements CatalogItem&lt;T&gt; {
+
+	/**
+	 * Reads an optional {@code options} column from a row and formats it as a map that is renderable as Cypher.
+	 *
+	 * @param row Row returned from {@code SHOW INDEXES} or {@code SHOW CONSTRAINTS}
+	 * @return An optional options value.
+	 */
+	static Optional&lt;String&gt; resolveOptions(MapAccessor row) {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (!row.containsKey(&quot;options&quot;)) {</span>
+<span class="fc" id="L53">			return Optional.empty();</span>
+		}
+
+<span class="fc" id="L56">		Value options = row.get(&quot;options&quot;);</span>
+<span class="fc bfc" id="L57" title="All 4 branches covered.">		if (options.isNull() || options.isEmpty()) {</span>
+<span class="fc" id="L58">			return Optional.empty();</span>
+		}
+<span class="fc" id="L60">		return Optional.of(renderMap(options));</span>
+	}
+
+	private static String renderMap(Value value) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		if (TypeSystem.getDefault().MAP().isTypeOf(value)) {</span>
+<span class="fc" id="L65">			Map&lt;String, Value&gt; map = value.asMap(Function.identity());</span>
+<span class="fc" id="L66">			return map.entrySet()</span>
+<span class="fc" id="L67">				.stream()</span>
+<span class="fc" id="L68">				.map(e -&gt; String.format(&quot;`%s`: %s&quot;, e.getKey(), renderMap(e.getValue())))</span>
+<span class="fc" id="L69">				.collect(Collectors.joining(&quot;, &quot;, &quot;{&quot;, &quot;}&quot;));</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		} else if (TypeSystem.getDefault().LIST().isTypeOf(value)) {</span>
+<span class="fc" id="L71">			List&lt;Value&gt; list = value.asList(Function.identity());</span>
+<span class="fc" id="L72">			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(&quot;, &quot;, &quot;[&quot;, &quot;]&quot;));</span>
+		} else {
+<span class="fc" id="L74">			return value.toString();</span>
+		}
+	}
+
+	/**
+	 * The unique name of this item.
+	 */
+	private final Name name;
+
+	/**
+	 * The type of this item.
+	 */
+	private final T type;
+
+	/**
+	 * The type of database entity targeted.
+	 */
+	private final TargetEntityType targetEntityType;
+
+	/**
+	 * The identifier of that entity, either a label or a (relationship) type.
+	 */
+	private final String identifier;
+
+	/**
+	 * The set of properties to be included in the item. Not all Neo4j versions support more than one property
+	 * for some or all given constraint or index types.
+	 */
+	private final Set&lt;String&gt; properties;
+
+	/**
+	 * Any additional options to be passed to the item. Might be {@literal null}.
+	 */
+	protected final String options;
+
+	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier,
+<span class="fc" id="L110">		Collection&lt;String&gt; properties, String options) {</span>
+
+<span class="pc bpc" id="L112" title="1 of 4 branches missed.">		if (properties.isEmpty() &amp;&amp; type != Index.Type.LOOKUP) {</span>
+<span class="nc" id="L113">			throw new IllegalArgumentException(&quot;Constraints or indices require one or more properties.&quot;);</span>
+		}
+
+<span class="fc" id="L116">		this.type = type;</span>
+<span class="fc" id="L117">		this.targetEntityType = targetEntityType;</span>
+<span class="fc" id="L118">		this.identifier = identifier;</span>
+<span class="fc" id="L119">		this.properties = new LinkedHashSet&lt;&gt;(properties);</span>
+<span class="fc" id="L120">		this.options = options;</span>
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		if (Strings.isBlank(name)) {</span>
+<span class="fc" id="L123">			this.name = Name.generate(this.getClass(), type, targetEntityType, identifier, properties, options);</span>
+		} else {
+<span class="fc" id="L125">			this.name = Name.of(name);</span>
+		}
+<span class="fc" id="L127">	}</span>
+
+	@Override
+	public final Name getName() {
+<span class="fc" id="L131">		return name;</span>
+	}
+
+	boolean hasName() {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">		return !(name instanceof GeneratedName);</span>
+	}
+
+	@Override
+	public T getType() {
+<span class="fc" id="L140">		return this.type;</span>
+	}
+
+	/**
+	 * @return The target entity of this item.
+	 */
+	public TargetEntityType getTargetEntityType() {
+<span class="fc" id="L147">		return targetEntityType;</span>
+	}
+
+	/**
+	 * @return Identifier of this item to be used in create statements
+	 */
+	public String getIdentifier() {
+<span class="fc" id="L154">		return identifier;</span>
+	}
+
+	/**
+	 * @return Set of properties to be included with the item
+	 */
+	public Set&lt;String&gt; getProperties() {
+<span class="fc" id="L161">		return properties;</span>
+	}
+
+	/**
+	 * @return Optional options to be passed down during creation of the item
+	 */
+	public Optional&lt;String&gt; getOptionalOptions() {
+<span class="fc" id="L168">		return Strings.optionalOf(options);</span>
+	}
+
+	@Override
+	public final boolean hasGeneratedName() {
+<span class="fc" id="L173">		return this.getName() instanceof GeneratedName;</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L179">			return true;</span>
+		}
+<span class="pc bpc" id="L181" title="1 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="fc" id="L182">			return false;</span>
+		}
+<span class="fc" id="L184">		AbstractCatalogItem&lt;?&gt; that = (AbstractCatalogItem&lt;?&gt;) o;</span>
+<span class="pc bpc" id="L185" title="1 of 6 branches missed.">		return getName().equals(that.getName()) &amp;&amp; getOptionalOptions().equals(that.getOptionalOptions()) &amp;&amp; isEquivalentTo(that);</span>
+	}
+
+<span class="fc" id="L188">	record Target(String identifier, TargetEntityType targetEntityType) {</span>
+	}
+
+	/**
+	 * Extracts the target of the given item
+	 * @param element The element to extract the target from
+	 * @return A target
+	 */
+	static Target extractTarget(Element element) {
+
+<span class="fc" id="L198">		NodeList labelOrType = element.getElementsByTagName(XMLSchemaConstants.LABEL);</span>
+		TargetEntityType targetEntityType;
+<span class="fc bfc" id="L200" title="All 2 branches covered.">		if (labelOrType.getLength() == 0) {</span>
+<span class="fc" id="L201">			labelOrType = element.getElementsByTagName(XMLSchemaConstants.TYPE);</span>
+<span class="fc" id="L202">			targetEntityType = TargetEntityType.RELATIONSHIP;</span>
+		} else {
+<span class="fc" id="L204">			targetEntityType = TargetEntityType.NODE;</span>
+		}
+<span class="fc" id="L206">		return new Target(labelOrType.item(0).getTextContent(), targetEntityType);</span>
+	}
+
+	/**
+	 * Extracts the properties from the element into a set, guaranteeing order.
+	 *
+	 * @param element The element to extract properties from
+	 * @return a sorted set
+	 */
+	static Set&lt;String&gt; extractProperties(Element element) {
+<span class="fc" id="L216">		NodeList propertyNodes = ((Element) element</span>
+<span class="fc" id="L217">			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(</span>
+			XMLSchemaConstants.PROPERTY);
+<span class="fc" id="L219">		Set&lt;String&gt; properties = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">		for (int i = 0; i &lt; propertyNodes.getLength(); ++i) {</span>
+<span class="fc" id="L221">			properties.add(propertyNodes.item(i).getTextContent());</span>
+		}
+<span class="fc" id="L223">		return properties;</span>
+	}
+
+	/**
+	 * Extracts options child elements from the given element
+	 *
+	 * @param constraintElement The element to extract options from
+	 * @return optional options
+	 */
+	static String extractOptions(Element constraintElement) {
+<span class="fc" id="L233">		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);</span>
+<span class="fc" id="L234">		String options = null;</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">		if (optionsElement.getLength() == 1) {</span>
+<span class="fc" id="L236">			options = Arrays.stream(optionsElement.item(0).getTextContent()</span>
+<span class="fc" id="L237">				.split(&quot;\r?\n&quot;)).map(String::trim).collect(Collectors.joining(&quot;\n&quot;));</span>
+		}
+<span class="fc" id="L239">		return options;</span>
+	}
+
+	final Element toXML(Document document) {
+		String elementName;
+		String labelOrTypeContent;
+<span class="fc bfc" id="L245" title="All 2 branches covered.">		if (this instanceof Constraint) {</span>
+<span class="fc" id="L246">			elementName = XMLSchemaConstants.CONSTRAINT;</span>
+<span class="fc" id="L247">			labelOrTypeContent = getIdentifier();</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">		} else if (this instanceof Index index) {</span>
+<span class="fc" id="L249">			elementName = XMLSchemaConstants.INDEX;</span>
+<span class="fc" id="L250">			labelOrTypeContent = index.getDeconstructedIdentifiers()</span>
+<span class="fc" id="L251">				.stream().map(s -&gt; s.replace(&quot;|&quot;, &quot;\\|&quot;)).collect(Collectors.joining(&quot;|&quot;));</span>
+		} else {
+<span class="nc" id="L253">			throw new IllegalStateException(&quot;Unsupported subclass &quot; + this.getClass());</span>
+		}
+<span class="fc" id="L255">		Element element = document.createElement(elementName);</span>
+<span class="fc" id="L256">		element.setAttribute(XMLSchemaConstants.NAME, getName().getValue());</span>
+<span class="fc" id="L257">		element.setIdAttribute(XMLSchemaConstants.NAME, true);</span>
+<span class="fc" id="L258">		element.setAttribute(XMLSchemaConstants.TYPE, getType().getName());</span>
+
+		Element labelOrType;
+<span class="fc bfc" id="L261" title="All 2 branches covered.">		if (getTargetEntityType() == TargetEntityType.NODE) {</span>
+<span class="fc" id="L262">			labelOrType = document.createElement(XMLSchemaConstants.LABEL);</span>
+		} else {
+<span class="fc" id="L264">			labelOrType = document.createElement(XMLSchemaConstants.TYPE);</span>
+		}
+<span class="fc" id="L266">		labelOrType.setTextContent(labelOrTypeContent);</span>
+<span class="fc" id="L267">		element.appendChild(labelOrType);</span>
+
+<span class="fc" id="L269">		Element propertiesParentElement = document.createElement(XMLSchemaConstants.PROPERTIES);</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">		for (String propertyValue : getProperties()) {</span>
+<span class="fc" id="L271">			Element newElement = document.createElement(XMLSchemaConstants.PROPERTY);</span>
+<span class="fc" id="L272">			newElement.setTextContent(propertyValue);</span>
+<span class="fc bfc" id="L273" title="All 4 branches covered.">			if (this instanceof Constraint constraint &amp;&amp; constraint.getType() == Constraint.Type.PROPERTY_TYPE) {</span>
+<span class="fc" id="L274">				newElement.setAttribute(&quot;type&quot;, constraint.getPropertyType().getName());</span>
+			}
+<span class="fc" id="L276">			propertiesParentElement.appendChild(newElement);</span>
+<span class="fc" id="L277">		}</span>
+<span class="fc" id="L278">		element.appendChild(propertiesParentElement);</span>
+
+<span class="fc" id="L280">		getOptionalOptions().ifPresent(optionsValue -&gt; {</span>
+<span class="nc" id="L281">			Element newElement = document.createElement(XMLSchemaConstants.OPTIONS);</span>
+<span class="nc" id="L282">			newElement.setTextContent(optionsValue);</span>
+<span class="nc" id="L283">			element.appendChild(newElement);</span>
+<span class="nc" id="L284">		});</span>
+
+<span class="fc" id="L286">		return element;</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="fc" id="L291">		return Objects.hash(getName(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),</span>
+<span class="fc" id="L292">			getOptionalOptions());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

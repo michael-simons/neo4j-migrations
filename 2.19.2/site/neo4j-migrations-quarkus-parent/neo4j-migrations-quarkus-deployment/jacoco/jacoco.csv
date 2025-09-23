@@ -1,0 +1,6 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Neo4j Migrations (Quarkus Deployment),ac.simons.neo4j.migrations.quarkus.deployment,ClasspathResourceScannerBuildItem,0,9,0,0,0,4,0,2,0,2
+Neo4j Migrations (Quarkus Deployment),ac.simons.neo4j.migrations.quarkus.deployment,MigrationsProcessor,24,273,3,11,8,72,5,19,2,15
+Neo4j Migrations (Quarkus Deployment),ac.simons.neo4j.migrations.quarkus.deployment,DiscovererBuildItem,0,9,0,0,0,4,0,2,0,2
+Neo4j Migrations (Quarkus Deployment),ac.simons.neo4j.migrations.quarkus.deployment,MigrationsDevConsoleProcessor,28,0,0,0,10,0,3,0,3,0
+Neo4j Migrations (Quarkus Deployment),ac.simons.neo4j.migrations.quarkus.deployment,MigrationsBuildItem,0,9,0,0,0,4,0,2,0,2

@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Constraint.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">Constraint.java</span></div><h1>Constraint.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
+import org.w3c.dom.Element;
+
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+
+/**
+ * A somewhat Neo4j version independent representation of a constraint.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Metallica - Ride The Lightning
+ * @since 1.7.0
+ */
+public final class Constraint extends AbstractCatalogItem&lt;Constraint.Type&gt; {
+
+	/**
+	 * Enumerates the different kinds of constraints.
+	 */
+<span class="fc" id="L50">	public enum Type implements ItemType {</span>
+
+		/**
+		 * Unique constraints.
+		 */
+<span class="fc" id="L55">		UNIQUE,</span>
+		/**
+		 * Existential constraints.
+		 */
+<span class="fc" id="L59">		EXISTS,</span>
+		/**
+		 * Key constraints.
+		 */
+<span class="fc" id="L63">		KEY,</span>
+		/**
+		 * Property type constraints.
+		 * @since 2.5.0
+		 */
+<span class="fc" id="L68">		PROPERTY_TYPE;</span>
+
+		@Override
+		public String getName() {
+<span class="fc" id="L72">			return name().toLowerCase(Locale.ROOT);</span>
+		}
+	}
+
+	/**
+	 * Programmatic way of defining constraints for nodes.
+	 */
+	public interface NodeConstraintBuilder {
+
+		/**
+		 * Adds a name to the constraint
+		 *
+		 * @param name The new name
+		 * @return The next step when building a constraint
+		 */
+		ConstraintsForNodes named(String name);
+	}
+
+	/**
+	 * Programmatic way of defining constraints for relationships.
+	 */
+	public interface RelationshipConstraintBuilder {
+
+		/**
+		 * Adds a name to the constraint
+		 *
+		 * @param name The new name
+		 * @return The next step when building a constraint
+		 */
+		CommonConstraints named(String name);
+	}
+
+	/**
+	 * Constraints available for both nodes and relationships.
+	 */
+	public interface CommonConstraints {
+
+		/**
+		 * Creates an existential constraint for the given property
+		 *
+		 * @param property the property that is required to exist
+		 * @return the new constraint
+		 */
+		Constraint exists(String property);
+
+		/**
+		 * Creates a new property type constraint.
+		 *
+		 * @param property the name of the property that should be constrained
+		 * @param type     the type required
+		 * @return the new constraint
+		 * @since 2.5.0
+		 */
+		Constraint type(String property, PropertyType type);
+	}
+
+	/**
+	 * Allows to specify the type of the constraint.
+	 */
+	public interface ConstraintsForNodes extends CommonConstraints {
+
+		/**
+		 * Creates a unique constraint for the given property
+		 *
+		 * @param properties the property that should be unique
+		 * @return the new constraint
+		 */
+		Constraint unique(String... properties);
+
+		/**
+		 * Creates a key constraint for the given property
+		 *
+		 * @param properties the property that should be part of the key
+		 * @return the new constraint
+		 */
+		Constraint key(String... properties);
+	}
+
+	private static class DefaultBuilder implements NodeConstraintBuilder, RelationshipConstraintBuilder, ConstraintsForNodes {
+		private final TargetEntityType targetEntityType;
+
+		private final String identifier;
+
+		private String name;
+
+<span class="fc" id="L157">		private DefaultBuilder(TargetEntityType targetEntityType, String identifier) {</span>
+<span class="fc" id="L158">			this.targetEntityType = targetEntityType;</span>
+<span class="fc" id="L159">			this.identifier = identifier;</span>
+<span class="fc" id="L160">		}</span>
+
+		@Override
+		public ConstraintsForNodes named(String newName) {
+
+<span class="fc" id="L165">			this.name = newName;</span>
+<span class="fc" id="L166">			return this;</span>
+		}
+
+		@Override
+		public Constraint unique(String... properties) {
+<span class="fc" id="L171">			return new Constraint(name, Type.UNIQUE, targetEntityType, identifier, Arrays.asList(properties), null);</span>
+		}
+
+		@Override
+		public Constraint exists(String property) {
+<span class="fc" id="L176">			return new Constraint(name, Type.EXISTS, targetEntityType, identifier, Collections.singleton(property), null);</span>
+		}
+
+		@Override
+		public Constraint key(String... properties) {
+<span class="fc" id="L181">			return new Constraint(name, Type.KEY, targetEntityType, identifier, Arrays.asList(properties), null);</span>
+		}
+
+		@Override
+		public Constraint type(String property, PropertyType type) {
+<span class="fc" id="L186">			return new Constraint(name, Type.PROPERTY_TYPE, targetEntityType, identifier, Collections.singleton(property), type);</span>
+		}
+	}
+
+	/**
+	 * Starts defining a new instance of a node constraint.
+	 *
+	 * @param label The label on which the constraint should be applied
+	 * @return The ongoing builder
+	 */
+	public static NodeConstraintBuilder forNode(String label) {
+<span class="fc" id="L197">		return new DefaultBuilder(TargetEntityType.NODE, label);</span>
+	}
+
+	/**
+	 * Starts defining a new instance of a relationship constraint.
+	 *
+	 * @param type The type on which the constraint should be applied
+	 * @return The ongoing builder
+	 */
+	public static RelationshipConstraintBuilder forRelationship(String type) {
+<span class="fc" id="L207">		return new DefaultBuilder(TargetEntityType.RELATIONSHIP, type);</span>
+	}
+
+	/**
+	 * Parses a constraint from a {@link MapAccessor}, which will either contain a result from {@code call db.constraints()}
+	 * (Neo4j 3.5 upto 4.1) or from {@code SHOW CONSTRAINTS YIELD *} from Neo4j 4.2 and upwards
+	 *
+	 * @param row the result row
+	 * @return A constraint
+	 * @throws IllegalArgumentException if the row cannot be processed
+	 */
+	public static Constraint parse(MapAccessor row) {
+
+<span class="fc" id="L220">		Value descriptionValue = row.get(&quot;description&quot;);</span>
+<span class="fc" id="L221">		Value nameValue = row.get(&quot;name&quot;);</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">		if (descriptionValue != Values.NULL) {</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">			String name = nameValue != Values.NULL ? nameValue.asString() : null;</span>
+<span class="fc" id="L224">			return parse(descriptionValue.asString(), name);</span>
+		}
+
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">		if (!REQUIRED_KEYS.stream().allMatch(row::containsKey)) {</span>
+<span class="nc" id="L228">			throw new IllegalArgumentException(&quot;Required keys are missing in the row describing the constraint&quot;);</span>
+		}
+
+<span class="fc" id="L231">		String name = nameValue.asString();</span>
+<span class="pc bpc" id="L232" title="1 of 5 branches missed.">		Constraint.Type type = switch (row.get(XMLSchemaConstants.TYPE).asString()) {</span>
+<span class="fc" id="L233">			case &quot;NODE_KEY&quot; -&gt; Type.KEY;</span>
+<span class="fc" id="L234">			case &quot;NODE_PROPERTY_EXISTENCE&quot;, &quot;RELATIONSHIP_PROPERTY_EXISTENCE&quot; -&gt; Type.EXISTS;</span>
+<span class="fc" id="L235">			case &quot;NODE_PROPERTY_TYPE&quot;, &quot;RELATIONSHIP_PROPERTY_TYPE&quot; -&gt; Type.PROPERTY_TYPE;</span>
+<span class="fc" id="L236">			case &quot;UNIQUENESS&quot; -&gt; Type.UNIQUE;</span>
+<span class="nc" id="L237">			default -&gt; throw new IllegalArgumentException(&quot;Unsupported constraint type &quot; + nameValue.asString());</span>
+		};
+
+<span class="fc" id="L240">		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get(&quot;entityType&quot;).asString());</span>
+<span class="fc" id="L241">		List&lt;String&gt; labelsOrTypes = row.get(&quot;labelsOrTypes&quot;).asList(Value::asString);</span>
+<span class="fc" id="L242">		List&lt;String&gt; properties = row.get(XMLSchemaConstants.PROPERTIES).asList(Value::asString);</span>
+<span class="fc" id="L243">		String options = resolveOptions(row).orElse(null);</span>
+<span class="fc" id="L244">		PropertyType propertyType = null;</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">		if (type == Type.PROPERTY_TYPE) {</span>
+<span class="fc" id="L246">			propertyType = PropertyType.parse(row.get(&quot;propertyType&quot;).asString());</span>
+		}
+
+<span class="fc" id="L249">		return new Constraint(name, type, targetEntityType, labelsOrTypes.get(0), new LinkedHashSet&lt;&gt;(properties), options, propertyType);</span>
+	}
+
+	/**
+	 * Creates a constraint from a xml definition.
+	 *
+	 * @param constraintElement as defined in {@code migration.xsd}.
+	 * @return The new constraint if the element as parseable
+	 */
+	public static Constraint parse(Element constraintElement) {
+
+<span class="fc" id="L260">		String name = constraintElement.getAttribute(XMLSchemaConstants.NAME);</span>
+<span class="fc" id="L261">		Type type = Type.valueOf(constraintElement.getAttribute(XMLSchemaConstants.TYPE)</span>
+<span class="fc" id="L262">			.toUpperCase(Locale.ROOT).replace(&quot; &quot;, &quot;_&quot;));</span>
+<span class="fc" id="L263">		Target target = extractTarget(constraintElement);</span>
+
+		Set&lt;String&gt; properties;
+<span class="fc" id="L266">		PropertyType propertyType = null;</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">		if (type == Type.PROPERTY_TYPE) {</span>
+<span class="fc" id="L268">			var propertyNodes = ((Element) constraintElement</span>
+<span class="fc" id="L269">				.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(</span>
+				XMLSchemaConstants.PROPERTY);
+<span class="fc bfc" id="L271" title="All 2 branches covered.">			if (propertyNodes.getLength() &gt; 1) {</span>
+<span class="fc" id="L272">				throw new IllegalArgumentException(&quot;Only one property allowed on property type constraints.&quot;);</span>
+			}
+<span class="fc" id="L274">			var typeAttribute = propertyNodes.item(0).getAttributes().getNamedItem(&quot;type&quot;);</span>
+<span class="fc bfc" id="L275" title="All 4 branches covered.">			if (typeAttribute == null || typeAttribute.getTextContent().isBlank()) {</span>
+<span class="fc" id="L276">				throw new IllegalArgumentException(&quot;The type attribute for properties is required on property type constraints.&quot;);</span>
+			}
+<span class="fc" id="L278">			propertyType = PropertyType.parse(typeAttribute.getTextContent());</span>
+<span class="fc" id="L279">			properties = Set.of(propertyNodes.item(0).getTextContent());</span>
+<span class="fc" id="L280">		} else {</span>
+<span class="fc" id="L281">			properties = extractProperties(constraintElement);</span>
+		}
+<span class="fc" id="L283">		String options = extractOptions(constraintElement);</span>
+
+<span class="fc bfc" id="L285" title="All 4 branches covered.">		if (target.targetEntityType() == TargetEntityType.RELATIONSHIP &amp;&amp; type != Type.EXISTS) {</span>
+<span class="fc" id="L286">			throw new IllegalArgumentException(&quot;Only existential constraints are supported for relationships&quot;);</span>
+		}
+<span class="fc" id="L288">		return new Constraint(name, type, target.targetEntityType(), target.identifier(), properties, options, propertyType);</span>
+	}
+
+	private static class PatternHolder {
+
+		private final Pattern pattern;
+		private final Constraint.Type type;
+		private final TargetEntityType targetEntityType;
+
+<span class="fc" id="L297">		PatternHolder(String pattern, Type type, TargetEntityType targetEntityType) {</span>
+<span class="fc" id="L298">			this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);</span>
+<span class="fc" id="L299">			this.type = type;</span>
+<span class="fc" id="L300">			this.targetEntityType = targetEntityType;</span>
+<span class="fc" id="L301">		}</span>
+	}
+
+<span class="fc" id="L304">	private static final PatternHolder PATTERN_NODE_PROPERTY_IS_UNIQUE = new PatternHolder(</span>
+		&quot;CONSTRAINT ON \\(\\s?(?&lt;var&gt;\\w+):(?&lt;identifier&gt;\\w+)\\s?\\) ASSERT \\(?\\k&lt;var&gt;\\.(?&lt;properties&gt;.+?)\\)? IS UNIQUE&quot;,
+		Type.UNIQUE,
+		TargetEntityType.NODE
+	);
+
+<span class="fc" id="L310">	private static final PatternHolder PATTERN_NODE_PROPERTY_EXISTS = new PatternHolder(</span>
+		&quot;CONSTRAINT ON \\(\\s?(?&lt;var&gt;\\w+):(?&lt;identifier&gt;\\w+)\\s?\\) ASSERT (?:exists)?\\((?&lt;properties&gt;\\k&lt;var&gt;\\..+?)\\)(?: IS NOT NULL)?&quot;,
+		Type.EXISTS,
+		TargetEntityType.NODE
+	);
+
+<span class="fc" id="L316">	private static final PatternHolder PATTERN_NODE_KEY = new PatternHolder(</span>
+		&quot;CONSTRAINT ON \\(\\s?(?&lt;var&gt;\\w+):(?&lt;identifier&gt;\\w+)\\s?\\) ASSERT \\((?&lt;properties&gt;\\k&lt;var&gt;\\..+?)\\) IS NODE KEY&quot;,
+		Type.KEY,
+		TargetEntityType.NODE
+	);
+
+<span class="fc" id="L322">	private static final PatternHolder PATTERN_REL_PROPERTY_EXISTS = new PatternHolder(</span>
+		&quot;CONSTRAINT ON \\(\\)-\\[\\s?(?&lt;var&gt;\\w+):(?&lt;identifier&gt;\\w+)\\s?]-\\(\\) ASSERT (?:exists)?\\((?&lt;properties&gt;\\k&lt;var&gt;\\..+?)\\)(?: IS NOT NULL)?&quot;,
+		Type.EXISTS,
+		TargetEntityType.RELATIONSHIP
+	);
+
+<span class="fc" id="L328">	private static final Set&lt;String&gt; REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet&lt;&gt;(Arrays.asList(&quot;name&quot;,</span>
+		XMLSchemaConstants.TYPE, &quot;entityType&quot;, &quot;labelsOrTypes&quot;, XMLSchemaConstants.PROPERTIES)));
+
+	/**
+	 * Creates a constraint from a [3.5, 4.1] database description
+	 *
+	 * @param description as returned by {@code CALL db.constraints}
+	 * @param name        an optional name, might be {@literal null}
+	 * @return The new constraint if the description is parseable
+	 */
+	private static Constraint parse(String description, String name) {
+
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">		for (PatternHolder patternHolder : new PatternHolder[] {</span>
+			PATTERN_NODE_PROPERTY_IS_UNIQUE,
+			PATTERN_NODE_PROPERTY_EXISTS,
+			PATTERN_NODE_KEY,
+			PATTERN_REL_PROPERTY_EXISTS
+		}) {
+<span class="fc" id="L346">			Matcher matcher = patternHolder.pattern.matcher(description);</span>
+<span class="fc bfc" id="L347" title="All 2 branches covered.">			if (!matcher.matches()) {</span>
+<span class="fc" id="L348">				continue;</span>
+			}
+
+<span class="fc" id="L351">			String identifier = matcher.group(&quot;identifier&quot;).trim();</span>
+<span class="fc" id="L352">			String variable = Pattern.quote(matcher.group(&quot;var&quot;) + &quot;.&quot;);</span>
+<span class="fc" id="L353">			String propertiesGroup = matcher.group(XMLSchemaConstants.PROPERTIES);</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">			Stream&lt;String&gt; propertiesStream = patternHolder.type == Type.KEY ?</span>
+<span class="fc" id="L355">				Arrays.stream(propertiesGroup.split(&quot;, &quot;)).map(String::trim) :</span>
+<span class="fc" id="L356">				Stream.of(propertiesGroup.trim());</span>
+<span class="fc" id="L357">			String[] properties = propertiesStream.map(s -&gt; s.replaceFirst(variable, &quot;&quot;)).toArray(String[]::new);</span>
+<span class="fc" id="L358">			return new Constraint(name, patternHolder.type, patternHolder.targetEntityType, identifier,</span>
+<span class="fc" id="L359">				new LinkedHashSet&lt;&gt;(Arrays.asList(properties)), null);</span>
+		}
+
+<span class="nc" id="L362">		throw new IllegalArgumentException(</span>
+<span class="nc" id="L363">			String.format(&quot;The description '%s' does not match any known pattern.&quot;, description));</span>
+	}
+
+	private final PropertyType propertyType;
+
+	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection&lt;String&gt; properties, PropertyType propertyType) {
+<span class="fc" id="L369">		this(null, type, targetEntityType, identifier, properties, null, propertyType);</span>
+<span class="fc" id="L370">	}</span>
+
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection&lt;String&gt; properties, PropertyType propertyType) {
+<span class="fc" id="L373">		this(name, type, targetEntityType, identifier, properties, null, propertyType);</span>
+<span class="fc" id="L374">	}</span>
+
+	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier, Collection&lt;String&gt; properties, String options, PropertyType propertyType) {
+<span class="fc" id="L377">		super(name, type, targetEntityType, identifier, properties, options);</span>
+
+<span class="fc bfc" id="L379" title="All 4 branches covered.">		if (type == Type.KEY &amp;&amp; getTargetEntityType() != TargetEntityType.NODE) {</span>
+<span class="fc" id="L380">			throw new IllegalArgumentException(&quot;Key constraints are only supported for nodes, not for relationships.&quot;);</span>
+		}
+
+<span class="fc bfc" id="L383" title="All 4 branches covered.">		if (propertyType != null &amp;&amp; type != Type.PROPERTY_TYPE) {</span>
+<span class="fc" id="L384">			throw new IllegalArgumentException(&quot;A property type can only be used with a property type constraint.&quot;);</span>
+		}
+<span class="fc bfc" id="L386" title="All 4 branches covered.">		if (type == Type.PROPERTY_TYPE &amp;&amp; propertyType == null) {</span>
+<span class="fc" id="L387">			throw new IllegalArgumentException(&quot;A property type constraint requires a property type.&quot;);</span>
+		}
+<span class="fc bfc" id="L389" title="All 4 branches covered.">		if (propertyType != null &amp;&amp; properties.size() != 1) {</span>
+<span class="fc" id="L390">			throw new IllegalArgumentException(&quot;A property type constraint can only be applied to a single property.&quot;);</span>
+		}
+<span class="fc" id="L392">		this.propertyType = propertyType;</span>
+<span class="fc" id="L393">	}</span>
+
+	/**
+	 * Creates a copy of this constraint with the specific set of options added. Will return {@literal this} instance if
+	 * the options are identical to current options
+	 *
+	 * @param options The new options to use
+	 * @return A (potentially) new constraint
+	 * @since 1.13.0
+	 */
+	@SuppressWarnings(&quot;HiddenField&quot;)
+	public Constraint withOptions(String options) {
+
+<span class="fc bfc" id="L406" title="All 2 branches covered.">		if (Objects.equals(super.options, options)) {</span>
+<span class="fc" id="L407">			return this;</span>
+		}
+
+<span class="fc" id="L410">		return new Constraint(getName().getValue(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),</span>
+			options, propertyType);
+	}
+
+	@Override
+	@SuppressWarnings(&quot;HiddenField&quot;)
+	public Constraint withName(String name) {
+
+<span class="fc bfc" id="L418" title="All 2 branches covered.">		if (Objects.equals(super.getName().getValue(), name)) {</span>
+<span class="fc" id="L419">			return this;</span>
+		}
+
+<span class="fc" id="L422">		return new Constraint(name, getType(), getTargetEntityType(), getIdentifier(), getProperties(), options, propertyType);</span>
+	}
+
+	public PropertyType getPropertyType() {
+<span class="fc" id="L426">		return propertyType;</span>
+	}
+
+	/**
+	 * {@literal true}, if {@literal item} is a constraint of the same type for the same entity containing the same properties.
+	 *
+	 * @param that the other item to compare to
+	 * @return {@literal true} if this and the other {@literal item} are equivalent
+	 */
+	@Override
+	public boolean isEquivalentTo(CatalogItem&lt;?&gt; that) {
+
+<span class="fc bfc" id="L438" title="All 2 branches covered.">		if (this == that) {</span>
+<span class="fc" id="L439">			return true;</span>
+		}
+
+<span class="fc bfc" id="L442" title="All 2 branches covered.">		if (!(that instanceof Constraint other)) {</span>
+<span class="fc" id="L443">			return false;</span>
+		}
+
+<span class="fc bfc" id="L446" title="All 2 branches covered.">		return this.getType().equals(other.getType()) &amp;&amp;</span>
+<span class="fc bfc" id="L447" title="All 2 branches covered.">			this.getTargetEntityType().equals(other.getTargetEntityType()) &amp;&amp;</span>
+<span class="fc bfc" id="L448" title="All 2 branches covered.">			this.getIdentifier().equals(other.getIdentifier()) &amp;&amp;</span>
+<span class="fc bfc" id="L449" title="All 2 branches covered.">			this.getProperties().equals(other.getProperties());</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="fc bfc" id="L454" title="All 2 branches covered.">		if (this == o) {</span>
+<span class="fc" id="L455">			return true;</span>
+		}
+<span class="pc bpc" id="L457" title="1 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="fc" id="L458">			return false;</span>
+		}
+<span class="fc bfc" id="L460" title="All 2 branches covered.">		if (!super.equals(o)) {</span>
+<span class="fc" id="L461">			return false;</span>
+		}
+<span class="fc" id="L463">		Constraint that = (Constraint) o;</span>
+<span class="pc bpc" id="L464" title="1 of 2 branches missed.">		return propertyType == that.propertyType;</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="fc" id="L469">		return Objects.hash(super.hashCode(), propertyType);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

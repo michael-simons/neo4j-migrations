@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultMigrationChain.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultMigrationChain.java</span></div><h1>DefaultMigrationChain.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Only implementation of a {@link MigrationChain}.
+ * @author Michael J. Simons
+ * @since 2.0.0
+ */
+final class DefaultMigrationChain implements MigrationChain {
+
+	private final ConnectionDetails connectionDetailsDelegate;
+
+	private final Map&lt;MigrationVersion, Element&gt; elements;
+
+<span class="fc" id="L34">	DefaultMigrationChain(ConnectionDetails connectionDetailsDelegate, Map&lt;MigrationVersion, Element&gt; elements) {</span>
+<span class="fc" id="L35">		this.connectionDetailsDelegate = connectionDetailsDelegate;</span>
+<span class="fc" id="L36">		this.elements = elements;</span>
+<span class="fc" id="L37">	}</span>
+
+	@Override
+	public String getServerAddress() {
+<span class="fc" id="L41">		return connectionDetailsDelegate.getServerAddress();</span>
+	}
+
+	@Override
+	public String getServerVersion() {
+<span class="fc" id="L46">		return connectionDetailsDelegate.getServerVersion();</span>
+	}
+
+	@Override
+	public String getServerEdition() {
+<span class="fc" id="L51">		return connectionDetailsDelegate.getServerEdition();</span>
+	}
+
+	@Override
+	public String getUsername() {
+<span class="fc" id="L56">		return connectionDetailsDelegate.getUsername();</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getOptionalDatabaseName() {
+<span class="fc" id="L61">		return connectionDetailsDelegate.getOptionalDatabaseName();</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getOptionalSchemaDatabaseName() {
+<span class="fc" id="L66">		return connectionDetailsDelegate.getOptionalSchemaDatabaseName();</span>
+	}
+
+	@Override
+	public boolean isApplied(String version) {
+<span class="fc" id="L71">		Element element = this.elements.get(MigrationVersion.withValue(version));</span>
+<span class="pc bpc" id="L72" title="1 of 4 branches missed.">		return element != null &amp;&amp; element.getState() == MigrationState.APPLIED;</span>
+	}
+
+	@Override
+	public Collection&lt;Element&gt; getElements() {
+<span class="fc" id="L77">		return this.elements.values();</span>
+	}
+
+	@Override
+	public Optional&lt;MigrationVersion&gt; findTargetVersion(MigrationVersion.TargetVersion targetVersion) {
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">		if (this.elements.isEmpty()) {</span>
+<span class="fc" id="L84">			return Optional.empty();</span>
+		}
+
+<span class="fc bfc" id="L87" title="All 3 branches covered.">		return switch (targetVersion) {</span>
+<span class="fc" id="L88">			case CURRENT -&gt; getLastAppliedVersion();</span>
+<span class="fc" id="L89">			case LATEST -&gt; this.elements.keySet().stream().skip(this.elements.size() - 1L).findFirst();</span>
+			case NEXT -&gt;
+<span class="fc bfc" id="L91" title="All 2 branches covered.">				this.elements.entrySet().stream().dropWhile(e -&gt; e.getValue().getState() == MigrationState.APPLIED)</span>
+<span class="fc" id="L92">					.map(Map.Entry::getKey)</span>
+<span class="fc" id="L93">					.findFirst();</span>
+		};
+	}
+
+	@Override
+	public Optional&lt;MigrationVersion&gt; getLastAppliedVersion() {
+<span class="fc" id="L99">		Iterator&lt;Map.Entry&lt;MigrationVersion, Element&gt;&gt; it = this.elements.entrySet().iterator();</span>
+<span class="fc" id="L100">		MigrationVersion version = null;</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		while (it.hasNext()) {</span>
+<span class="fc" id="L102">			var next = it.next();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">			if (next.getValue().getState() == MigrationState.APPLIED) {</span>
+<span class="fc" id="L104">				version = next.getKey();</span>
+			} else {
+				break;
+			}
+<span class="fc" id="L108">		}</span>
+<span class="fc" id="L109">		return Optional.ofNullable(version);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

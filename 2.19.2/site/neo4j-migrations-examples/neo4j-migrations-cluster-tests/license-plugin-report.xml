@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619278269">
+    <module artifactId="neo4j-migrations-cluster-tests" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cluster_tests/ClusterTestIT.java" result="PRESENT"/>
+        <file path="src/test/resources/cc/docker-compose.yml" result="PRESENT"/>
+        <file path="src/test/resources/cc/neo4j.conf" result="UNKNOWN"/>
+    </files>
+</licensePluginReport>

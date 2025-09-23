@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultAddSurrogateKey.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">DefaultAddSurrogateKey.java</span></div><h1>DefaultAddSurrogateKey.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Query;
+
+/**
+ * Default implementation for adding surrogates.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Max Herre - MTV Unplugged Kahedi Radio Show
+ * @since 1.15.2
+ */
+final class DefaultAddSurrogateKey extends AbstractCustomizableRefactoring implements AddSurrogateKey {
+
+<span class="fc" id="L40">	static final Pattern OPENING_CLOSING_BRACES = Pattern.compile(&quot;\\(?.+\\)&quot;);</span>
+
+	/**
+	 * Target of the new surrogate key
+	 */
+<span class="fc" id="L45">	enum Target implements FormatStringGenerator {</span>
+
+		/**
+		 * Targets relationships.
+		 */
+<span class="fc" id="L50">		RELATIONSHIP(</span>
+			&quot;MATCH ()-[r:%1$s]-&gt;() WHERE r.%2$s IS NULL&quot;,
+			&quot;CALL { %5$s } WITH %6$s AS r&quot;,
+			&quot;SET r.%2$s = %3$s&quot;,
+			&quot;CALL { WITH r SET r.%2$s = %3$s } IN TRANSACTIONS OF %4$d ROWS&quot;
+		),
+
+		/**
+		 * Targets nodes
+		 */
+<span class="fc" id="L60">		NODE(</span>
+			&quot;MATCH (n:%1$s) WHERE n.%2$s IS NULL&quot;,
+			&quot;CALL { %5$s } WITH %6$s AS n&quot;,
+			&quot;SET n.%2$s = %3$s&quot;,
+			&quot;CALL { WITH n SET n.%2$s = %3$s } IN TRANSACTIONS OF %4$d ROWS&quot;
+		);
+
+		private final Fragments fragments;
+
+<span class="fc" id="L69">		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment, String actionFragmentWithBatchSize) {</span>
+
+<span class="fc" id="L71">			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment, actionFragmentWithBatchSize);</span>
+<span class="fc" id="L72">		}</span>
+
+		@Override
+		public Fragments getFragments() {
+<span class="fc" id="L76">			return fragments;</span>
+		}
+	}
+
+	private final Target target;
+
+	private final Set&lt;String&gt; identifiers;
+
+	private final String property;
+
+	private final String generator;
+
+	private final QueryRunner.FeatureSet featureSet;
+
+	DefaultAddSurrogateKey(Target target, Collection&lt;String&gt; identifiers, String property, String generator) {
+<span class="fc" id="L91">		this(target, identifiers, property, generator, null, null);</span>
+<span class="fc" id="L92">	}</span>
+
+	DefaultAddSurrogateKey(Target target, String customQuery, String property, String generator) {
+<span class="fc" id="L95">		this(target, null, property, generator, customQuery, null);</span>
+<span class="fc" id="L96">	}</span>
+
+	private DefaultAddSurrogateKey(Target target, Collection&lt;String&gt; identifiers, String property, String generator, String customQuery, Integer batchSize) {
+<span class="fc" id="L99">		super(customQuery, batchSize);</span>
+
+<span class="fc" id="L101">		this.target = target;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">		this.identifiers = identifiers == null ?</span>
+<span class="fc" id="L103">			Collections.emptySet() :</span>
+<span class="fc" id="L104">			identifiers.stream().map(String::trim).collect(Collectors.toCollection(LinkedHashSet::new));</span>
+<span class="fc" id="L105">		this.property = property;</span>
+<span class="fc" id="L106">		this.generator = generator;</span>
+
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		if (this.batchSize != null) {</span>
+<span class="fc" id="L109">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L110">				.withRequiredVersion(&quot;4.4&quot;)</span>
+<span class="fc" id="L111">				.withBatchingSupport(true);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		} else if (this.customQuery != null) {</span>
+<span class="fc" id="L113">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L114">				.withRequiredVersion(&quot;4.1&quot;);</span>
+		} else {
+<span class="fc" id="L116">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L117">				.withRequiredVersion(&quot;3.5&quot;);</span>
+		}
+<span class="fc" id="L119">	}</span>
+
+
+	@Override
+	public AddSurrogateKey withProperty(String name) {
+
+<span class="pc bpc" id="L125" title="2 of 4 branches missed.">		if (name == null || name.isBlank()) {</span>
+<span class="nc" id="L126">			throw new IllegalArgumentException(&quot;Property name must not be null or blank&quot;);</span>
+		}
+<span class="fc" id="L128">		return new DefaultAddSurrogateKey(target, identifiers, name, generator, customQuery, batchSize);</span>
+	}
+
+	@Override
+	public AddSurrogateKey withGeneratorFunction(String name) {
+
+<span class="pc bpc" id="L134" title="2 of 4 branches missed.">		if (name == null || name.isBlank()) {</span>
+<span class="nc" id="L135">			throw new IllegalArgumentException(&quot;Generator function must not be null or blank&quot;);</span>
+		}
+<span class="fc" id="L137">		return new DefaultAddSurrogateKey(target, identifiers, property, name, customQuery, batchSize);</span>
+	}
+
+	@Override
+	public AddSurrogateKey inBatchesOf(Integer newBatchSize) {
+
+<span class="fc" id="L143">		return inBatchesOf0(newBatchSize,</span>
+			AddSurrogateKey.class,
+<span class="fc" id="L145">			v -&gt; new DefaultAddSurrogateKey(this.target, this.identifiers, this.property, this.generator, this.customQuery, v));</span>
+	}
+
+	@Override
+	public AddSurrogateKey withCustomQuery(String newCustomQuery) {
+
+<span class="fc" id="L151">		return withCustomQuery0(newCustomQuery,</span>
+			AddSurrogateKey.class,
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">			v -&gt; new DefaultAddSurrogateKey(this.target, v != null ? null : this.identifiers, this.property, this.generator, v, this.batchSize));</span>
+	}
+
+	@Override
+	public Counters apply(RefactoringContext context) {
+<span class="fc" id="L158">		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {</span>
+<span class="fc" id="L159">			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());</span>
+		}
+	}
+
+	static boolean isReadyMadeFunctionCall(String value) {
+<span class="fc" id="L164">		return OPENING_CLOSING_BRACES.matcher(value.trim()).find();</span>
+	}
+
+
+	Query generateQuery(UnaryOperator&lt;String&gt; sanitizer, Function&lt;String, Optional&lt;String&gt;&gt; elementExtractor) {
+
+<span class="fc bfc" id="L170" title="All 2 branches covered.">		String entityName = customQuery == null ? &quot;&quot; :</span>
+<span class="fc" id="L171">			elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);</span>
+
+<span class="fc bfc" id="L173" title="All 2 branches covered.">		String varName = switch (target) {</span>
+<span class="fc" id="L174">			case NODE -&gt; &quot;n&quot;;</span>
+<span class="fc" id="L175">			case RELATIONSHIP -&gt; &quot;r&quot;;</span>
+		};
+
+<span class="fc" id="L178">		String sanitizedIdentifiers = this.identifiers.stream().map(sanitizer).collect(Collectors.joining(&quot;:&quot;));</span>
+<span class="fc" id="L179">		String sanitizedProperty = sanitizer.apply(property);</span>
+		String generatorCall;
+<span class="fc bfc" id="L181" title="All 2 branches covered.">		if (isReadyMadeFunctionCall(generator)) {</span>
+<span class="fc" id="L182">			generatorCall = String.format(generator, varName);</span>
+		} else {
+<span class="fc" id="L184">			generatorCall = generator + &quot;()&quot;;</span>
+		}
+
+<span class="fc" id="L187">		return new Query(String.format(target.generateFormatString(customQuery, batchSize), sanitizedIdentifiers,</span>
+			sanitizedProperty, generatorCall, batchSize, customQuery, entityName));
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L194">			return true;</span>
+		}
+<span class="pc bpc" id="L196" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L197">			return false;</span>
+		}
+<span class="fc" id="L199">		DefaultAddSurrogateKey that = (DefaultAddSurrogateKey) o;</span>
+<span class="pc bpc" id="L200" title="4 of 8 branches missed.">		return target == that.target &amp;&amp; identifiers.equals(that.identifiers) &amp;&amp; property.equals(that.property) &amp;&amp; generator.equals(that.generator);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L205">		return Objects.hash(target, identifiers, property, generator);</span>
+	}
+
+	Target getTarget() {
+<span class="fc" id="L209">		return target;</span>
+	}
+
+	Set&lt;String&gt; getIdentifiers() {
+<span class="fc" id="L213">		return Collections.unmodifiableSet(identifiers);</span>
+	}
+
+	String getProperty() {
+<span class="fc" id="L217">		return property;</span>
+	}
+
+	String getGenerator() {
+<span class="fc" id="L221">		return generator;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

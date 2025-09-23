@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommonEnvVarDefaultProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CLI)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">CommonEnvVarDefaultProvider.java</span></div><h1>CommonEnvVarDefaultProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import picocli.CommandLine;
+import picocli.CommandLine.IDefaultValueProvider;
+import picocli.CommandLine.Model.OptionSpec;
+import picocli.CommandLine.PropertiesDefaultProvider;
+
+import java.util.Optional;
+import java.util.Properties;
+
+/**
+ * Neo4j seems to have settled on a common set of env variables across docs. This value provider
+ * uses them if present for defaults.
+ *
+ * @author Michael J. Simons
+ * @since 1.9.0
+ */
+final class CommonEnvVarDefaultProvider extends PropertiesDefaultProvider implements IDefaultValueProvider {
+
+	private static final String ENV_ADDRESS = &quot;NEO4J_URI&quot;;
+	private static final String ENV_USERNAME = &quot;NEO4J_USERNAME&quot;;
+	private static final String ENV_PASSWORD = &quot;NEO4J_PASSWORD&quot;;
+
+<span class="fc" id="L39">	@SuppressWarnings(&quot;unused&quot;) CommonEnvVarDefaultProvider() {</span>
+<span class="fc" id="L40">	}</span>
+
+	CommonEnvVarDefaultProvider(Properties properties) {
+<span class="nc" id="L43">		super(properties);</span>
+<span class="nc" id="L44">	}</span>
+
+	@Override
+	public String defaultValue(CommandLine.Model.ArgSpec argSpec) throws Exception {
+
+<span class="fc" id="L49">		Optional&lt;String&gt; value = Optional.empty();</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">		if (argSpec instanceof OptionSpec optionSpec) {</span>
+<span class="fc" id="L51">			value = getFromEnv(optionSpec);</span>
+		}
+
+<span class="fc bfc" id="L54" title="All 2 branches covered.">		if (value.isPresent()) {</span>
+<span class="fc" id="L55">			return value.get();</span>
+		}
+<span class="fc" id="L57">		return super.defaultValue(argSpec);</span>
+	}
+
+	static Optional&lt;String&gt; getFromEnv(OptionSpec optionSpec) {
+<span class="fc bfc" id="L61" title="All 4 branches covered.">		return switch (optionSpec.shortestName()) {</span>
+<span class="fc" id="L62">			case MigrationsCli.OPTION_ADDRESS -&gt; getOptionalEnv(ENV_ADDRESS);</span>
+<span class="fc" id="L63">			case MigrationsCli.OPTION_USERNAME -&gt; getOptionalEnv(ENV_USERNAME);</span>
+<span class="fc" id="L64">			case MigrationsCli.OPTION_PASSWORD -&gt; getOptionalEnv(ENV_PASSWORD);</span>
+<span class="fc" id="L65">			default -&gt; Optional.empty();</span>
+		};
+	}
+
+	static Optional&lt;String&gt; getOptionalEnv(String name) {
+<span class="fc" id="L70">		return Optional.ofNullable(System.getenv(name));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

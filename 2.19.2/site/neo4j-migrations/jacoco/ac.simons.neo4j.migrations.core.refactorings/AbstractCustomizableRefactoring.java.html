@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractCustomizableRefactoring.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">AbstractCustomizableRefactoring.java</span></div><h1>AbstractCustomizableRefactoring.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+
+/**
+ * Abstract base class to hold state that many refactorings have, such as custom queries or a batch-size.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Black Sabbath - Black Sabbath
+ * @since 1.10.0
+ */
+abstract class AbstractCustomizableRefactoring {
+
+	/**
+	 * An optional, custom query to generate the list of nodes or relationships whose labels or types should be renamed.
+	 * This query must return rows with one single element per row. This is checked upon before executing.
+	 */
+	protected final String customQuery;
+
+	/**
+	 * The batch size to perform renaming. If {@literal null}, no batching is attempted and the refactoring will use one
+	 * a transactional function when applied. Setting this to a value different from {@literal null} also requires Neo4j &gt;= 4.4
+	 */
+	protected final Integer batchSize;
+
+<span class="fc" id="L43">	protected AbstractCustomizableRefactoring(String customQuery, Integer batchSize) {</span>
+<span class="fc" id="L44">		this.customQuery = customQuery;</span>
+<span class="fc" id="L45">		this.batchSize = batchSize;</span>
+<span class="fc" id="L46">	}</span>
+
+	protected final String filterCustomQuery(String newCustomQuery) {
+<span class="fc" id="L49">		return Optional.ofNullable(newCustomQuery).map(String::trim)</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">			.filter(s -&gt; !s.isEmpty())</span>
+<span class="fc" id="L51">			.orElse(null);</span>
+	}
+
+	protected final &lt;T extends CustomizableRefactoring&lt;?&gt;&gt; T inBatchesOf0(
+		Integer newBatchSize, Class&lt;T&gt; type,
+		@SuppressWarnings(&quot;squid:S4276&quot;) // The new batchsize might as well be null
+		Function&lt;Integer, ? extends T&gt; newInstanceSupplier
+	) {
+<span class="pc bpc" id="L59" title="1 of 4 branches missed.">		if (newBatchSize != null &amp;&amp; newBatchSize &lt; 1) {</span>
+<span class="nc" id="L60">			throw new IllegalArgumentException(&quot;Batch size must be either null or equal or greater one&quot;);</span>
+		}
+
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">		return Objects.equals(this.batchSize, newBatchSize) ?</span>
+<span class="pc" id="L64">			type.cast(this) : newInstanceSupplier.apply(newBatchSize);</span>
+	}
+
+	protected final &lt;T extends CustomizableRefactoring&lt;?&gt;&gt; T withCustomQuery0(
+		String newCustomQuery, Class&lt;T&gt; type, Function&lt;String, ? extends T&gt; newInstanceSupplier
+	) {
+<span class="fc" id="L70">		String value = filterCustomQuery(newCustomQuery);</span>
+
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		return Objects.equals(this.customQuery, value) ?</span>
+<span class="fc" id="L73">			type.cast(this) : newInstanceSupplier.apply(newCustomQuery);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

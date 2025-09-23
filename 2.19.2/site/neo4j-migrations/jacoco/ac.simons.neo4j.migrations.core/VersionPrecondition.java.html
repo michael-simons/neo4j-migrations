@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VersionPrecondition.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">VersionPrecondition.java</span></div><h1>VersionPrecondition.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.5.0
+ */
+final class VersionPrecondition extends AbstractPrecondition implements Precondition {
+
+	private static final String MMP_PATTERN = &quot;\\d++(\\.\\d++)*+&quot;;
+<span class="fc" id="L39">	private static final Pattern CONDITION_PATTERN = Pattern.compile(&quot;(?i)^ *+// *+(?:assume|assert) that version is *+(?&lt;versions&gt;&quot; + MMP_PATTERN + &quot;[\\w\\s.,]*+)?.*+$&quot;);</span>
+<span class="fc" id="L40">	private static final Pattern CONDITION_RANGE_PATTERN = Pattern.compile(&quot;(?i)^ *+// *+(?:assume|assert) that version is (lt|ge) (?&lt;versions&gt;&quot; + MMP_PATTERN + &quot;).*+$&quot;);</span>
+<span class="fc" id="L41">	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile(MMP_PATTERN);</span>
+
+	/**
+	 * How to match versions
+	 */
+<span class="fc" id="L46">	enum Mode {</span>
+		/** Everything lower than the given single pattern */
+<span class="fc" id="L48">		LT,</span>
+		/** Everything higher than the given single pattern. */
+<span class="fc" id="L50">		GE,</span>
+		/** Exact */
+<span class="fc" id="L52">		EXACT</span>
+	}
+
+	/**
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to create a factory for
+	 * a corresponding precondition.
+	 *
+	 * @param hint The complete hint
+	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
+	 */
+	static Optional&lt;Function&lt;Type, Precondition&gt;&gt; tryToParse(String hint) {
+
+<span class="fc" id="L64">		Matcher matcher = CONDITION_RANGE_PATTERN.matcher(hint);</span>
+		Mode mode;
+<span class="fc bfc" id="L66" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L67">			mode = Mode.valueOf(matcher.group(1).toUpperCase(Locale.ROOT));</span>
+		} else {
+<span class="fc" id="L69">			matcher = CONDITION_PATTERN.matcher(hint);</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">			if (!matcher.find()) {</span>
+<span class="fc" id="L71">				return Optional.empty();</span>
+			}
+<span class="fc" id="L73">			mode = Mode.EXACT;</span>
+		}
+
+		try {
+<span class="fc" id="L77">			String rawVersions = matcher.group(&quot;versions&quot;);</span>
+<span class="fc" id="L78">			rawVersions = rawVersions.replace(&quot;or&quot;, &quot;,&quot;);</span>
+
+<span class="fc" id="L80">			Set&lt;String&gt; formattedVersions = new TreeSet&lt;&gt;();</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">			for (String rawVersion : rawVersions.split(&quot;,&quot;)) {</span>
+<span class="fc" id="L82">				String version = rawVersion.trim();</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">				if (!VERSION_SUB_PATTERN.matcher(version).matches()) {</span>
+<span class="nc" id="L84">					throw new IllegalArgumentException();</span>
+				}
+<span class="fc" id="L86">				formattedVersions.add(&quot;Neo4j/&quot; + version);</span>
+			}
+<span class="fc" id="L88">			return Optional.of(type -&gt; new VersionPrecondition(type, mode, formattedVersions));</span>
+<span class="fc" id="L89">		} catch (NullPointerException | IllegalArgumentException e) {</span>
+<span class="fc" id="L90">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L91">					String.format(</span>
+							&quot;Wrong version precondition %s. Usage: `&lt;assume|assert&gt; that version is &lt;versions&gt;`. With &lt;versions&gt; being a comma separated list of major.minor.patch versions.&quot;,
+<span class="fc" id="L93">							Precondition.formattedHint(hint)));</span>
+		}
+	}
+
+	private final Mode mode;
+	private final Set&lt;String&gt; versions;
+
+	private VersionPrecondition(Type type, final Mode mode, Set&lt;String&gt; versions) {
+<span class="fc" id="L101">		super(type);</span>
+<span class="fc" id="L102">		this.mode = mode;</span>
+<span class="fc" id="L103">		this.versions = versions;</span>
+<span class="fc" id="L104">	}</span>
+
+	@Override
+	public boolean isMet(MigrationContext migrationContext) {
+<span class="fc" id="L108">		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		if (mode == Mode.EXACT) {</span>
+<span class="fc" id="L110">			return versions.stream().anyMatch(serverVersion::startsWith);</span>
+		} else {
+<span class="fc" id="L112">			return versions.stream().findFirst().map(version -&gt; {</span>
+<span class="fc" id="L113">				int result = new Neo4jVersionComparator().compare(serverVersion, version);</span>
+<span class="pc bpc" id="L114" title="1 of 6 branches missed.">				return (mode == Mode.LT) == (result &lt; 0);</span>
+<span class="fc" id="L115">			}).orElse(false);</span>
+		}
+	}
+
+	Collection&lt;String&gt; getVersions() {
+<span class="fc" id="L120">		return Collections.unmodifiableCollection(versions);</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L125">		return String.format(&quot;// %s that version is %s%s&quot;,</span>
+<span class="fc" id="L126">			getType().keyword(),</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">			mode == Mode.EXACT ? &quot;&quot; : mode.name().toLowerCase(Locale.ROOT) + &quot; &quot;,</span>
+<span class="fc" id="L128">			versions.stream().map(s -&gt; s.replace(&quot;Neo4j/&quot;, &quot;&quot;)).collect(</span>
+<span class="fc" id="L129">				Collectors.joining(&quot;, &quot;)).trim());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

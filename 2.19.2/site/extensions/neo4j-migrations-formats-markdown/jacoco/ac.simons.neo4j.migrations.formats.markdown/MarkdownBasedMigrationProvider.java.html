@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MarkdownBasedMigrationProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Markdown)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.formats.markdown</a> &gt; <span class="el_source">MarkdownBasedMigrationProvider.java</span></div><h1>MarkdownBasedMigrationProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.formats.markdown;
+
+import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migration;
+import ac.simons.neo4j.migrations.core.Ordered;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.ResourceContext;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.commonmark.node.AbstractVisitor;
+import org.commonmark.node.FencedCodeBlock;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+
+/**
+ * Implementation of a {@link ResourceBasedMigrationProvider} that deals with Markdown files under the extension
+ * of {@code .md}.
+ *
+ * @author Gerrit Meier
+ */
+public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
+
+	/**
+	 * Creates a new instance of this provider. It should not be necessary to call this directly, it will be done by the
+	 * service loader.
+	 */
+	public MarkdownBasedMigrationProvider() {
+<span class="fc" id="L52">		super(Ordered.LOWEST_PRECEDENCE, &quot;md&quot;, true);</span>
+<span class="fc" id="L53">	}</span>
+
+	@Override
+	public Collection&lt;Migration&gt; handle(ResourceContext ctx) {
+
+<span class="fc" id="L58">		StringBuilder content = new StringBuilder();</span>
+<span class="fc" id="L59">		CharBuffer buffer = CharBuffer.allocate(1024);</span>
+<span class="fc" id="L60">		try (BufferedReader in = new BufferedReader(</span>
+<span class="fc" id="L61">			new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">			while (in.read(buffer) != -1) {</span>
+<span class="fc" id="L63">				buffer.flip();</span>
+<span class="fc" id="L64">				content.append(buffer);</span>
+			}
+<span class="nc" id="L66">		} catch (IOException e) {</span>
+<span class="nc" id="L67">			throw new UncheckedIOException(e);</span>
+<span class="fc" id="L68">		}</span>
+
+<span class="fc" id="L70">		Parser markdownParser = Parser.builder().build();</span>
+
+<span class="fc" id="L72">		Node node = markdownParser.parse(content.toString());</span>
+<span class="fc" id="L73">		MigrationsExtractor collector = new MigrationsExtractor(ctx);</span>
+<span class="fc" id="L74">		node.accept(collector);</span>
+
+<span class="fc" id="L76">		return collector.migrations;</span>
+
+	}
+
+	private static class MigrationsExtractor extends AbstractVisitor {
+
+<span class="fc" id="L82">		private final List&lt;Migration&gt; migrations = new ArrayList&lt;&gt;();</span>
+
+		private final ResourceContext ctx;
+
+<span class="fc" id="L86">		MigrationsExtractor(ResourceContext ctx) {</span>
+<span class="fc" id="L87">			this.ctx = ctx;</span>
+<span class="fc" id="L88">		}</span>
+
+		@Override
+		public void visit(FencedCodeBlock fencedCodeBlock) {
+<span class="fc" id="L92">			migrations.add(MarkdownBasedMigration.of(ctx, fencedCodeBlock));</span>
+<span class="fc" id="L93">		}</span>
+
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XMLSchemaConstants.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.internal</a> &gt; <span class="el_source">XMLSchemaConstants.java</span></div><h1>XMLSchemaConstants.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.internal;
+
+import java.util.Set;
+
+/**
+ * Constants used throughout parsing and reading / writing elements and attributes of xml and database constraints.
+ *
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+public final class XMLSchemaConstants {
+
+	/**
+	 * The namespace constant.
+	 */
+	public static final String MIGRATION_NS = &quot;https://michael-simons.github.io/neo4j-migrations&quot;;
+	/**
+	 * Constant for {@literal migration}
+	 */
+	public static final String MIGRATION = &quot;migration&quot;;
+	/**
+	 * Constant for {@literal type} (both used as attribute and element).
+	 */
+	public static final String TYPE = &quot;type&quot;;
+	/**
+	 * Constant for the element {@literal properties}.
+	 */
+	public static final String PROPERTIES = &quot;properties&quot;;
+	/**
+	 * Constant for the attribute {@literal name}.
+	 */
+	public static final String NAME = &quot;name&quot;;
+	/**
+	 * Constant for the element {@literal constraint}.
+	 */
+	public static final String CONSTRAINT = &quot;constraint&quot;;
+	/**
+	 * Constant for the element {@literal label}.
+	 */
+	public static final String LABEL = &quot;label&quot;;
+	/**
+	 * Constant for the element {@literal property}.
+	 */
+	public static final String PROPERTY = &quot;property&quot;;
+	/**
+	 * Constant for the element {@literal options}.
+	 */
+	public static final String OPTIONS = &quot;options&quot;;
+	/**
+	 * Constant for the element {@literal catalog}.
+	 */
+	public static final String CATALOG = &quot;catalog&quot;;
+	/**
+	 * Constant for the element {@literal indexes}.
+	 */
+	public static final String INDEX = &quot;index&quot;;
+	/**
+	 * Constant for the element {@literal indexes}.
+	 */
+	public static final String INDEXES = &quot;indexes&quot;;
+	/**
+	 * Constant for the element {@literal constraints}.
+	 */
+	public static final String CONSTRAINTS = &quot;constraints&quot;;
+	/**
+	 * Constant for the element {@literal apply}
+	 */
+	public static final String APPLY = &quot;apply&quot;;
+	/**
+	 * Constant for the element {@literal refactor}
+	 */
+	public static final String REFACTOR = &quot;refactor&quot;;
+	/**
+	 * Constant for the {@literal reset} attribute.
+	 */
+	public static final String RESET = &quot;reset&quot;;
+	/**
+	 * Constant for the element names of supported operations.
+	 */
+<span class="fc" id="L95">	public static final Set&lt;String&gt; SUPPORTED_OPERATIONS = Set.of(&quot;verify&quot;, &quot;create&quot;, &quot;drop&quot;, APPLY, REFACTOR);</span>
+
+	private XMLSchemaConstants() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

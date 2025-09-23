@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CypherResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">CypherResource.java</span></div><h1>CypherResource.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.util.List;
+
+/**
+ * Abstraction over Cypher resources.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Koljah - Aber der Abgrund
+ * @since 1.8.0
+ */
+public sealed interface CypherResource permits DefaultCypherResource {
+
+	/**
+	 * Creates a new resource for the given URL, using the default settings for autocrlf.
+	 *
+	 * @param url The url to create the resource from
+	 * @return a new Cypher resource
+	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
+	 */
+	@Deprecated(forRemoval = true)
+	static CypherResource of(URL url) {
+<span class="nc" id="L40">		return of(url, Defaults.AUTOCRLF);</span>
+	}
+
+	/**
+	 * Creates a new resource for the given URL.
+	 * @param url The url to create the resource from
+	 * @param autocrlf Setting for autocrlf.
+	 * @return a new Cypher resource
+	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
+	 */
+	@Deprecated(forRemoval = true)
+	static CypherResource of(URL url, boolean autocrlf) {
+<span class="nc" id="L52">		return of(ResourceContext.of(url, MigrationsConfig.builder().withAutocrlf(autocrlf).build()));</span>
+	}
+
+	/**
+	 * Creates a new resource for the given URL.
+	 *
+	 * @param context the context in which this resource was discovered
+	 * @return a new Cypher resource
+	 */
+	static CypherResource of(ResourceContext context) {
+<span class="fc" id="L62">		var url = context.getUrl();</span>
+<span class="fc" id="L63">		var autocrlf = context.getConfig().isAutocrlf();</span>
+<span class="fc" id="L64">		var useFlywayCompatibleChecksums = context.getConfig().isUseFlywayCompatibleChecksums();</span>
+
+<span class="fc" id="L66">		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf, useFlywayCompatibleChecksums,</span>
+<span class="fc" id="L67">			context::openStream);</span>
+	}
+
+	/**
+	 * Starts building a Cypher resource from the given content
+	 *
+	 * @param content The string containing cypher
+	 * @return first step of building the resource
+	 * @since 1.8.0
+	 */
+	static WithContent withContent(String content) {
+<span class="fc" id="L78">		return identifier -&gt; new DefaultCypherResource(identifier, Defaults.AUTOCRLF, Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS,</span>
+<span class="fc" id="L79">			() -&gt; new ByteArrayInputStream(content.getBytes(Defaults.CYPHER_SCRIPT_ENCODING)));</span>
+	}
+
+	/**
+	 * Terminal step of building a resource
+	 *
+	 * @since 1.8.0
+	 */
+	interface WithContent {
+
+		/**
+		 * Adds an identifier to the content and builds the resource.
+		 *
+		 * @param identifier the identifier to use
+		 * @return a new Cypher resource
+		 */
+		CypherResource identifiedBy(String identifier);
+	}
+
+	/**
+	 * The identifier for this resource must be parsable into a {@link MigrationVersion}, see {@link MigrationVersion#canParse(String)}.
+	 *
+	 * @return An identifier for this resource
+	 */
+	String getIdentifier();
+
+	/**
+	 * {@return The checksum of this resource}
+	 */
+	String getChecksum();
+
+	/**
+	 * Returns all statements that are not single line comments. The list of statements might contain {@code :use database}
+	 * statements, which neo4j-migrations (browser and cypher-shell) can deal with but the pure driver can't.
+	 * &lt;p&gt;
+	 * The returned list will never include single line comments, but the statements themselves might contain comments.
+	 *
+	 * @return A list of executable statements
+	 */
+	List&lt;String&gt; getExecutableStatements();
+
+	/**
+	 * {@return A list of surely identifiable single line comments, either &quot;standalone&quot; or before a valid cypher statement}
+	 */
+	List&lt;String&gt; getSingleLineComments();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

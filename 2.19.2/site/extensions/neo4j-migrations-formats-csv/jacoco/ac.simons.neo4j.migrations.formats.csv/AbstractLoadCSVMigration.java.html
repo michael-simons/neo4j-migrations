@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractLoadCSVMigration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CSV)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.formats.csv</a> &gt; <span class="el_source">AbstractLoadCSVMigration.java</span></div><h1>AbstractLoadCSVMigration.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.formats.csv;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.CRC32;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Session;
+
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.MigrationContext;
+import ac.simons.neo4j.migrations.core.Migrations;
+
+/**
+ * This base class can be inherited inside applications that want to grab some data from a URI for example to trigger
+ * a {@code LOAD CSV} statement inside Neo4j. Migrations inheriting from it will always be repeatable (when adhering to
+ * the repeatable versioning scheme, such as {@code R000__LoadBaseData.java}) but also compute a CRC32 checksum from the
+ * source URI, so that the migration is only repeated when the source actually has changed.
+ *
+ * @author Michael J. Simons
+ * @since 2.0.1
+ */
+public abstract class AbstractLoadCSVMigration implements JavaBasedMigration {
+
+<span class="fc" id="L46">	static final Logger LOGGER = Logger.getLogger(AbstractLoadCSVMigration.class.getName());</span>
+
+<span class="fc" id="L48">	private final HttpClient httpClient = HttpClient.newBuilder()</span>
+<span class="fc" id="L49">		.followRedirects(HttpClient.Redirect.NORMAL)</span>
+<span class="fc" id="L50">		.build();</span>
+
+	private final URI csvSource;
+
+	private final boolean repeatable;
+
+	@SuppressWarnings({&quot;OptionalUsedAsFieldOrParameterType&quot;, &quot;squid:S3077&quot;})
+	private volatile Optional&lt;String&gt; checksum;
+
+	/**
+	 * You need to call this constructor, but your implementation must have a default, no-arg constructor to be loadable
+	 * like any other Java based migration.
+	 * @param csvSource The source to load data from
+	 * @param repeatable Whether this is repeatable or not
+	 */
+<span class="fc" id="L65">	protected AbstractLoadCSVMigration(URI csvSource, boolean repeatable) {</span>
+<span class="fc" id="L66">		this.csvSource = csvSource;</span>
+<span class="fc" id="L67">		this.repeatable = repeatable;</span>
+<span class="fc" id="L68">	}</span>
+
+	@Override
+	public final void apply(MigrationContext context) {
+
+<span class="fc" id="L73">		var originalQuery = getQuery();</span>
+<span class="fc" id="L74">		try (Session session = context.getSession()) {</span>
+<span class="fc" id="L75">			var summary = session</span>
+<span class="fc" id="L76">				.run(new Query(originalQuery.text().formatted(csvSource), originalQuery.parameters()))</span>
+<span class="fc" id="L77">				.consume();</span>
+<span class="pc" id="L78">			LOGGER.log(Level.FINE, () -&gt; String.format(&quot;Loaded CSV from %s resulting in %s&quot;, csvSource, summary.counters()));</span>
+		}
+<span class="fc" id="L80">	}</span>
+
+	/**
+	 * The statement returned by this method should have exactly one Java format specifier {@code %s} which will be used
+	 * by us to insert the result of {@link #csvSource}. Any other parameters included with the query object will just
+	 * be used as is.
+	 *
+	 * @return The Cypher statement to be used to load the CSV file.
+	 */
+	public abstract Query getQuery();
+
+	/**
+	 * Overwrite this method and apply all customization to the {@link HttpRequest.Builder builder} that you might need,
+	 * such as authentication, additional headers and cookies. Everybody loves cookies.
+	 *
+	 * @param builder Pre-initialized with the target source
+	 * @return The usable request
+	 */
+	public HttpRequest customizeRequest(HttpRequest.Builder builder) {
+<span class="fc" id="L99">		return builder.build();</span>
+	}
+
+	@Override
+	public final boolean isRepeatable() {
+<span class="fc" id="L104">		return repeatable;</span>
+	}
+
+	// Having the value in a lazily initialized optional is the point here.
+	@SuppressWarnings({&quot;OptionalAssignedToNull&quot;, &quot;squid:S2789&quot;})
+	@Override
+	public final Optional&lt;String&gt; getChecksum() {
+<span class="fc" id="L111">		Optional&lt;String&gt; availableChecksum = this.checksum;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		if (availableChecksum == null) {</span>
+<span class="fc" id="L113">			synchronized (this) {</span>
+<span class="fc" id="L114">				availableChecksum = this.checksum;</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">				if (availableChecksum == null) {</span>
+<span class="fc" id="L116">					this.checksum = Optional.ofNullable(computeChecksum());</span>
+<span class="fc" id="L117">					availableChecksum = this.checksum;</span>
+				}
+<span class="fc" id="L119">			}</span>
+		}
+<span class="fc" id="L121">		return availableChecksum;</span>
+	}
+
+	private String computeChecksum() {
+		try {
+<span class="fc" id="L126">			var crc32 = new CRC32();</span>
+<span class="fc" id="L127">			var request = customizeRequest(HttpRequest</span>
+<span class="fc" id="L128">				.newBuilder(csvSource)</span>
+<span class="fc" id="L129">				.header(&quot;User-Agent&quot;, Migrations.getUserAgent())</span>
+<span class="fc" id="L130">				.GET());</span>
+<span class="fc" id="L131">			httpClient.send(request, HttpResponse.BodyHandlers.ofByteArrayConsumer(optionalBytes -&gt; optionalBytes.ifPresent(crc32::update)));</span>
+<span class="fc" id="L132">			return Long.toString(crc32.getValue());</span>
+<span class="nc" id="L133">		} catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L134">			LOGGER.log(Level.WARNING, e, () -&gt; String.format(&quot;Could not retrieve %s, checksum won't be available until next migration attempt.&quot;, csvSource));</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">			if (e instanceof InterruptedException) {</span>
+				// Restore interrupted state...
+<span class="nc" id="L137">				Thread.currentThread().interrupt();</span>
+			}
+<span class="nc" id="L139">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

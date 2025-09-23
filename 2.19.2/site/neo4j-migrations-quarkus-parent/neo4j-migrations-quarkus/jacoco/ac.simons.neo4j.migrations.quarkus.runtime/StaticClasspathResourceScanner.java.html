@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StaticClasspathResourceScanner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Quarkus)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.quarkus.runtime</a> &gt; <span class="el_source">StaticClasspathResourceScanner.java</span></div><h1>StaticClasspathResourceScanner.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.quarkus.runtime;
+
+import ac.simons.neo4j.migrations.core.ClasspathResourceScanner;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+import io.quarkus.bootstrap.graal.ImageInfo;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * This resource scanner holds a list of {@link ResourceWrapper resource wrappers}, pointing to (Cypher) resources found
+ * on the classpath. The resources as well as this special scanner are mutable. They must be as that is the way how
+ * Quarkus works when serializing them to bytecode.
+ *
+ * @author Michael J. Simons
+ * @since 1.3.0
+ */
+<span class="fc" id="L36">public final class StaticClasspathResourceScanner implements ClasspathResourceScanner {</span>
+
+	/**
+	 * Creates a new scanner from a fixed set of predefined resources. No further checking is done if This exists or not.
+	 *
+	 * @param resources The set of resources found elsewhere
+	 * @return a correctly initialized scanner
+	 */
+	public static StaticClasspathResourceScanner of(Collection&lt;ResourceWrapper&gt; resources) {
+
+<span class="nc" id="L46">		var discoverer = new StaticClasspathResourceScanner();</span>
+<span class="nc" id="L47">		discoverer.setResources(Set.copyOf(resources));</span>
+<span class="nc" id="L48">		return discoverer;</span>
+	}
+
+<span class="fc" id="L51">	private Set&lt;ResourceWrapper&gt; resources = Set.of();</span>
+
+	/**
+	 * @return the set of scanned / discovered resources
+	 */
+	public Set&lt;ResourceWrapper&gt; getResources() {
+<span class="fc" id="L57">		return resources;</span>
+	}
+
+	/**
+	 * This method may not be used outside Quarkus internal code.
+	 *
+	 * @param resources a new set of resources
+	 */
+	public void setResources(Set&lt;ResourceWrapper&gt; resources) {
+<span class="fc" id="L66">		this.resources = resources;</span>
+<span class="fc" id="L67">	}</span>
+
+	/**
+	 * This method takes the statically found URLs and transform them depending on the runtime: If the scan is invoked
+	 * in native image runtime, the {@literal resource:} protocol is used with the original path of the resource. Otherwise
+	 * the current thread classloader is used to retrieve a resource url with that path. If that url is null, we are most
+	 * likely looking at {@literal file:} url.
+	 * &lt;p&gt;
+	 * The URLs must be recreated for reasons explained in {@link ResourceWrapper#getUrl()}.
+	 *
+	 * @param locations The locations to scan
+	 * @return The resources found
+	 * @see ClasspathResourceScanner#scan(List)
+	 */
+	@Override
+	public List&lt;URL&gt; scan(List&lt;String&gt; locations) {
+
+<span class="fc" id="L84">		var ccl = Thread.currentThread().getContextClassLoader();</span>
+<span class="fc" id="L85">		var stripped = locations.stream()</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">			.map(location -&gt; location.charAt(0) == '/' ? location.substring(1) : location).toList();</span>
+<span class="fc" id="L87">		return resources.stream()</span>
+<span class="fc" id="L88">			.filter(r -&gt; stripped.stream().anyMatch(location -&gt; r.getPath().startsWith(location)))</span>
+<span class="fc" id="L89">			.map(rw -&gt; {</span>
+				try {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">					if (ImageInfo.inImageRuntimeCode()) {</span>
+						// See https://github.com/oracle/graal/issues/4514#issuecomment-1111216980
+<span class="fc" id="L93">						return new URL(&quot;resource:/&quot; + rw.getPath());</span>
+					} else {
+<span class="nc" id="L95">						var classpathURL = ccl.getResource(rw.getPath());</span>
+						// The classpath URL is most likely null when the thing is only accessible via file protocol
+<span class="nc bnc" id="L97" title="All 2 branches missed.">						return classpathURL == null ? new URL(rw.getUrl()) : classpathURL;</span>
+					}
+<span class="fc" id="L99">				} catch (MalformedURLException e) {</span>
+<span class="fc" id="L100">					throw new MigrationsException(&quot;Could recreate an URL from a resource wrapper.&quot;, e);</span>
+				}
+			})
+<span class="fc" id="L103">			.toList();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

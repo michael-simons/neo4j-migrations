@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultRename.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">DefaultRename.java</span></div><h1>DefaultRename.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+
+import org.neo4j.driver.Query;
+
+/**
+ * @author Michael J. Simons
+ * @soundtrack Nightwish - Decades: Live In Buenos Aires
+ * @since 1.10.0
+ */
+final class DefaultRename extends AbstractCustomizableRefactoring implements Rename {
+
+	/**
+	 * Target of the renaming
+	 */
+<span class="fc" id="L35">	enum Target implements FormatStringGenerator {</span>
+
+		/**
+		 * Targets labels.
+		 */
+<span class="fc" id="L40">		LABEL(</span>
+			&quot;MATCH (s:%1$s)&quot;,
+			&quot;CALL { %4$s } WITH %5$s AS s&quot;,
+			&quot;REMOVE s:%1$s SET s:%2$s&quot;,
+			&quot;CALL { WITH s REMOVE s:%1$s SET s:%2$s } IN TRANSACTIONS OF %3$d ROWS&quot;
+		),
+		/**
+		 * Targets types
+		 */
+<span class="fc" id="L49">		TYPE(</span>
+			&quot;MATCH (a)-[old:%1$s]-&gt;(b)&quot;,
+			&quot;CALL { %4$s } WITH %5$s AS old, startNode(%5$s) AS a, endNode(%5$s) AS b&quot;,
+			&quot;CREATE (a)-[new:%2$s]-&gt;(b) SET new+=old DELETE old&quot;,
+			&quot;CALL { WITH old, a, b CREATE (a)-[new:%2$s]-&gt;(b) SET new+=old DELETE old } IN TRANSACTIONS OF %3$d ROWS&quot;
+		),
+		/**
+		 * Targets node properties.
+		 */
+<span class="fc" id="L58">		NODE_PROPERTY(</span>
+			&quot;MATCH (s) WHERE s.%1$s IS NOT NULL&quot;,
+			&quot;CALL { %4$s } WITH %5$s AS s WHERE s.%1$s IS NOT NULL&quot;,
+			&quot;SET s.%2$s = s.%1$s REMOVE s.%1$s&quot;,
+			&quot;CALL { WITH s SET s.%2$s = s.%1$s REMOVE s.%1$s } IN TRANSACTIONS OF %3$d ROWS&quot;
+		),
+		/**
+		 * Targets relationship properties
+		 */
+<span class="fc" id="L67">		REL_PROPERTY(</span>
+			&quot;MATCH (a)-[r]-&gt;(b) WHERE r.%1$s IS NOT NULL&quot;,
+			&quot;CALL { %4$s } WITH %5$s AS r WHERE r.%1$s IS NOT NULL&quot;,
+			&quot;SET r.%2$s = r.%1$s REMOVE r.%1$s&quot;,
+			&quot;CALL { WITH r SET r.%2$s = r.%1$s REMOVE r.%1$s } IN TRANSACTIONS OF %3$d ROWS&quot;
+		);
+
+		private final Fragments fragments;
+
+<span class="fc" id="L76">		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment, String actionFragmentWithBatchSize) {</span>
+
+<span class="fc" id="L78">			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment, actionFragmentWithBatchSize);</span>
+<span class="fc" id="L79">		}</span>
+
+		@Override
+		public Fragments getFragments() {
+<span class="fc" id="L83">			return fragments;</span>
+		}
+	}
+
+	/**
+	 * The target of this refactoring.
+	 */
+	private final Target target;
+
+	/**
+	 * The old value of the label, type or property to be renamed.
+	 */
+	private final String oldValue;
+
+	/**
+	 * The new value of the label, type or property to be renamed.
+	 */
+	private final String newValue;
+
+	private final QueryRunner.FeatureSet featureSet;
+
+	DefaultRename(Target targetEntityType, String oldValue, String newValue) {
+<span class="fc" id="L105">		this(targetEntityType, oldValue, newValue, null, null);</span>
+<span class="fc" id="L106">	}</span>
+
+	private DefaultRename(Target target, String oldValue, String newValue, String customQuery, Integer batchSize) {
+<span class="fc" id="L109">		super(customQuery, batchSize);</span>
+
+<span class="fc" id="L111">		this.target = target;</span>
+<span class="fc" id="L112">		this.oldValue = oldValue;</span>
+<span class="fc" id="L113">		this.newValue = newValue;</span>
+
+<span class="fc bfc" id="L115" title="All 2 branches covered.">		if (this.batchSize != null) {</span>
+<span class="fc" id="L116">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L117">				.withRequiredVersion(&quot;4.4&quot;)</span>
+<span class="fc" id="L118">				.withBatchingSupport(true);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">		} else if (this.customQuery != null) {</span>
+<span class="fc" id="L120">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L121">				.withRequiredVersion(&quot;4.1&quot;);</span>
+		} else {
+<span class="fc" id="L123">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L124">				.withRequiredVersion(&quot;3.5&quot;);</span>
+		}
+<span class="fc" id="L126">	}</span>
+
+	QueryRunner.FeatureSet getFeatures() {
+<span class="fc" id="L129">		return featureSet;</span>
+	}
+
+	@Override
+	public Counters apply(RefactoringContext context) {
+<span class="fc" id="L134">		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {</span>
+<span class="fc" id="L135">			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());</span>
+		}
+	}
+
+	@Override
+	public Rename inBatchesOf(Integer newBatchSize) {
+<span class="fc" id="L141">		return inBatchesOf0(newBatchSize, Rename.class, v -&gt; new DefaultRename(this.target, this.oldValue, this.newValue, this.customQuery, v));</span>
+	}
+
+	@Override
+	public Rename withCustomQuery(String newCustomQuery) {
+<span class="fc" id="L146">		return withCustomQuery0(newCustomQuery, Rename.class, v -&gt; new DefaultRename(this.target, this.oldValue, this.newValue, v, this.batchSize));</span>
+	}
+
+	Query generateQuery(UnaryOperator&lt;String&gt; sanitizer, Function&lt;String, Optional&lt;String&gt;&gt; elementExtractor) {
+
+		String varName;
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		if (customQuery == null) {</span>
+<span class="fc" id="L153">			varName = &quot;&quot;;</span>
+		} else {
+<span class="fc" id="L155">			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);</span>
+		}
+
+<span class="fc" id="L158">		return new Query(String.format(target.generateFormatString(customQuery, batchSize), sanitizer.apply(oldValue),</span>
+<span class="fc" id="L159">			sanitizer.apply(newValue), batchSize, customQuery, varName));</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L165">			return true;</span>
+		}
+<span class="pc bpc" id="L167" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L168">			return false;</span>
+		}
+<span class="fc" id="L170">		DefaultRename that = (DefaultRename) o;</span>
+<span class="pc bpc" id="L171" title="3 of 6 branches missed.">		return target == that.target &amp;&amp; oldValue.equals(that.oldValue) &amp;&amp; newValue.equals(that.newValue)</span>
+<span class="pc bpc" id="L172" title="2 of 4 branches missed.">			&amp;&amp; Objects.equals(customQuery, that.customQuery) &amp;&amp; Objects.equals(batchSize, that.batchSize);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L177">		return Objects.hash(target, oldValue, newValue, customQuery, batchSize);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

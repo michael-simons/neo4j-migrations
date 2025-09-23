@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultRelationshipType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">DefaultRelationshipType.java</span></div><h1>DefaultRelationshipType.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.RelationshipType;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * @author Michael J. Simons
+ * @since 1.11.0
+ */
+final class DefaultRelationshipType implements RelationshipType, WriteableElementType&lt;RelationshipType&gt; {
+
+	private final String owningTypeName;
+
+	private final SchemaName name;
+
+	private final List&lt;PropertyType&lt;RelationshipType&gt;&gt; properties;
+
+<span class="fc" id="L38">	DefaultRelationshipType(String owningTypeName, SchemaName name) {</span>
+<span class="fc" id="L39">		this.owningTypeName = owningTypeName;</span>
+<span class="fc" id="L40">		this.name = name;</span>
+<span class="fc" id="L41">		this.properties = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L42">	}</span>
+
+	@Override public String getOwningTypeName() {
+<span class="fc" id="L45">		return owningTypeName;</span>
+	}
+
+	@Override
+	public List&lt;PropertyType&lt;RelationshipType&gt;&gt; getProperties() {
+<span class="nc" id="L50">		return Collections.unmodifiableList(this.properties);</span>
+	}
+
+	@Override
+	public SchemaName getName() {
+<span class="fc" id="L55">		return name;</span>
+	}
+
+	@Override
+	public PropertyType&lt;RelationshipType&gt; addProperty(String property) {
+<span class="fc" id="L60">		PropertyType&lt;RelationshipType&gt; propertyType = new DefaultPropertyType&lt;&gt;(this, property);</span>
+<span class="fc" id="L61">		this.properties.add(propertyType);</span>
+<span class="fc" id="L62">		return propertyType;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

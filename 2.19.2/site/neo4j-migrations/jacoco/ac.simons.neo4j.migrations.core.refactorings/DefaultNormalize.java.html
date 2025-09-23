@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultNormalize.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">DefaultNormalize.java</span></div><h1>DefaultNormalize.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Values;
+
+/**
+ * @author Michael J. Simons
+ * @soundtrack Soilwork - Natural Born Chaos
+ * @since 1.10.0
+ */
+final class DefaultNormalize extends AbstractCustomizableRefactoring implements Normalize {
+
+	private final String property;
+
+	private final List&lt;Object&gt; trueValues;
+
+	private final List&lt;Object&gt; falseValues;
+
+	private final QueryRunner.FeatureSet featureSet;
+
+	DefaultNormalize(String property, List&lt;Object&gt; trueValues, List&lt;Object&gt; falseValues) {
+<span class="fc" id="L45">		this(property, trueValues, falseValues, null, null);</span>
+<span class="fc" id="L46">	}</span>
+
+	private DefaultNormalize(String property, List&lt;Object&gt; trueValues, List&lt;Object&gt; falseValues, String customQuery, Integer batchSize) {
+<span class="fc" id="L49">		super(customQuery, batchSize);</span>
+
+<span class="fc" id="L51">		boolean nullIsTrue = trueValues.stream().anyMatch(DefaultNormalize::isNull);</span>
+<span class="fc" id="L52">		boolean nullIsFalse = falseValues.stream().anyMatch(DefaultNormalize::isNull);</span>
+
+<span class="fc bfc" id="L54" title="All 4 branches covered.">		if (nullIsFalse &amp;&amp; nullIsTrue) {</span>
+<span class="fc" id="L55">			throw new IllegalArgumentException(&quot;Both true and false values contain the literal value null&quot;);</span>
+		}
+
+<span class="fc" id="L58">		trueValues.stream().filter(falseValues::contains)</span>
+<span class="fc" id="L59">			.findFirst().ifPresent(v -&gt; {</span>
+<span class="fc" id="L60">				throw new IllegalArgumentException(&quot;Both true and false values contain `&quot; + v + &quot;`&quot;);</span>
+			});
+
+<span class="fc" id="L63">		this.property = property;</span>
+<span class="fc" id="L64">		this.trueValues = trueValues;</span>
+<span class="fc" id="L65">		this.falseValues = falseValues;</span>
+
+<span class="fc bfc" id="L67" title="All 2 branches covered.">		if (this.batchSize != null) {</span>
+<span class="fc" id="L68">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L69">				.withRequiredVersion(&quot;4.4&quot;)</span>
+<span class="fc" id="L70">				.withBatchingSupport(true);</span>
+		} else {
+<span class="fc" id="L72">			this.featureSet = QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L73">				.withRequiredVersion(&quot;4.1&quot;);</span>
+		}
+<span class="fc" id="L75">	}</span>
+
+	static boolean isNull(Object v) {
+<span class="fc bfc" id="L78" title="All 4 branches covered.">		return v == null || Values.NULL.equals(v);</span>
+	}
+
+	QueryRunner.FeatureSet getFeatures() {
+<span class="fc" id="L82">		return featureSet;</span>
+	}
+
+	@Override
+	public Normalize inBatchesOf(Integer newBatchSize) {
+
+<span class="fc" id="L88">		return inBatchesOf0(</span>
+<span class="fc" id="L89">			newBatchSize, DefaultNormalize.class, v -&gt; new DefaultNormalize(this.property, this.trueValues, this.falseValues, this.customQuery, v));</span>
+	}
+
+	@Override
+	public Normalize withCustomQuery(String newCustomQuery) {
+
+<span class="fc" id="L95">		return withCustomQuery0(newCustomQuery,</span>
+			Normalize.class,
+<span class="fc" id="L97">			v -&gt; new DefaultNormalize(this.property, this.trueValues, this.falseValues, v, this.batchSize));</span>
+	}
+
+	@Override
+	public Counters apply(RefactoringContext context) {
+<span class="fc" id="L102">		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {</span>
+<span class="fc" id="L103">			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());</span>
+		}
+	}
+
+	Query generateQuery(UnaryOperator&lt;String&gt; sanitizer, Function&lt;String, Optional&lt;String&gt;&gt; elementExtractor) {
+
+<span class="fc" id="L109">		List&lt;Object&gt; tv = trueValues;</span>
+<span class="fc" id="L110">		List&lt;Object&gt; fv = falseValues;</span>
+<span class="fc" id="L111">		Boolean nullValue = null;</span>
+<span class="fc" id="L112">		Predicate&lt;Object&gt; isNull = DefaultNormalize::isNull;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		if (trueValues.stream().anyMatch(isNull)) {</span>
+<span class="fc" id="L114">			nullValue = true;</span>
+<span class="fc" id="L115">			tv = trueValues.stream().filter(isNull.negate()).toList();</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">		} else if (falseValues.stream().anyMatch(DefaultNormalize::isNull)) {</span>
+<span class="fc" id="L117">			nullValue = false;</span>
+<span class="fc" id="L118">			fv = falseValues.stream().filter(isNull.negate()).toList();</span>
+		}
+
+		String varName;
+		String innerQuery;
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		if (customQuery == null) {</span>
+<span class="fc" id="L124">			varName = &quot;t&quot;;</span>
+<span class="fc" id="L125">			innerQuery = &quot;MATCH (n) RETURN n AS t UNION ALL MATCH ()-[r]-&gt;() RETURN r AS t&quot;;</span>
+		} else {
+<span class="fc" id="L127">			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);</span>
+<span class="fc" id="L128">			innerQuery = customQuery;</span>
+		}
+
+<span class="fc" id="L131">		String quotedProperty = sanitizer.apply(this.property);</span>
+<span class="fc" id="L132">		String formatString = &quot;&quot;&quot;</span>
+			CALL { %2$s } WITH %3$s AS e
+			&lt;FILTER /&gt;
+			&lt;BATCH&gt;SET e.%1$s = CASE
+			  WHEN e.%1$s IN $trueValues THEN true
+			  WHEN e.%1$s IN $falseValues THEN false
+			  WHEN e.%1$s IN [true, false] THEN e.%1$s
+			  ELSE $nullValue
+			END&lt;/BATCH&gt;&quot;&quot;&quot;;
+
+<span class="fc bfc" id="L142" title="All 2 branches covered.">		if (batchSize == null) {</span>
+<span class="fc" id="L143">			formatString = formatString.replaceAll(&quot;&lt;BATCH&gt;|&lt;/BATCH&gt;&quot;, &quot;&quot;);</span>
+		} else {
+<span class="fc" id="L145">			formatString = formatString</span>
+<span class="fc" id="L146">				.replace(&quot;&lt;BATCH&gt;&quot;, &quot;CALL { WITH e &quot;)</span>
+<span class="fc" id="L147">				.replace(&quot;&lt;/BATCH&gt;&quot;, &quot; } IN TRANSACTIONS OF %4$d ROWS&quot;);</span>
+		}
+		// If the property does not exist and the value for non-existing properties is undefined, we can reduce the
+		// number of touched entities.
+<span class="fc" id="L151">		formatString = formatString</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">			.replace(&quot;&lt;FILTER /&gt;\n&quot;, nullValue == null ? &quot;WHERE e.%1$s IS NOT NULL\n&quot; : &quot;&quot;);</span>
+
+<span class="fc" id="L154">		Map&lt;String, Object&gt; parameters = Map.of(</span>
+<span class="fc" id="L155">			&quot;trueValues&quot;, Values.value(tv),</span>
+<span class="fc" id="L156">			&quot;falseValues&quot;, Values.value(fv),</span>
+<span class="fc" id="L157">			&quot;nullValue&quot;, Values.value(nullValue)</span>
+		);
+<span class="fc" id="L159">		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, batchSize), parameters);</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L165">			return true;</span>
+		}
+<span class="pc bpc" id="L167" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L168">			return false;</span>
+		}
+<span class="fc" id="L170">		DefaultNormalize that = (DefaultNormalize) o;</span>
+<span class="pc bpc" id="L171" title="3 of 6 branches missed.">		return property.equals(that.property) &amp;&amp; trueValues.equals(that.trueValues) &amp;&amp; falseValues.equals(that.falseValues)</span>
+<span class="pc bpc" id="L172" title="2 of 4 branches missed.">				&amp;&amp; Objects.equals(customQuery, that.customQuery) &amp;&amp; Objects.equals(batchSize, that.batchSize);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L177">		return Objects.hash(property, trueValues, falseValues, customQuery, batchSize);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

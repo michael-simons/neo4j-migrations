@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResourceBasedMigrationProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ResourceBasedMigrationProvider.java</span></div><h1>ResourceBasedMigrationProvider.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
+
+/**
+ * An interface defining a provider with a set of supported extension and a mapper from resource to {@link Migration}.
+ * The interface is ordered so that we can pick accordingly when one provider maps to the same extension.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Fatoni - Andorra
+ * @since 1.7.0
+ */
+public interface ResourceBasedMigrationProvider extends Ordered {
+
+	/**
+	 * @return a collection containing unique providers (only one for each extension)
+	 */
+	static Collection&lt;ResourceBasedMigrationProvider&gt; unique() {
+
+<span class="fc" id="L39">		Map&lt;String, ResourceBasedMigrationProvider&gt; providers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L40">		ServiceLoader&lt;ResourceBasedMigrationProvider&gt; loader = ServiceLoader.load(ResourceBasedMigrationProvider.class);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">		for (ResourceBasedMigrationProvider provider : loader) {</span>
+<span class="fc" id="L42">			String extension = provider.getExtension();</span>
+<span class="pc bpc" id="L43" title="3 of 4 branches missed.">			if (providers.containsKey(extension) &amp;&amp; providers.get(extension).getOrder() &lt; provider.getOrder()) {</span>
+<span class="nc" id="L44">				continue;</span>
+			}
+<span class="fc" id="L46">			providers.put(extension, provider);</span>
+<span class="fc" id="L47">		}</span>
+
+<span class="fc" id="L49">		return Collections.unmodifiableCollection(providers.values());</span>
+	}
+
+	/**
+	 * @return the file extension this resource based migration provider deals with
+	 */
+	String getExtension();
+
+	/**
+	 * Handles the resource of the given context and produces one or more new migrations.
+	 *
+	 * @param ctx The context containing the resource and other information
+	 * @return The migrations contained in the resource
+	 */
+	Collection&lt;Migration&gt; handle(ResourceContext ctx);
+
+	/**
+	 * Return {@literal true} if the provider has different ways how to map from file / resource names to a valid
+	 * {@link MigrationVersion version}.
+	 *
+	 * @return {@literal true} if this provider can deal with non versioned file names
+	 * @since 1.8.0
+	 */
+	default boolean supportsArbitraryResourceNames() {
+<span class="fc" id="L73">		return false;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

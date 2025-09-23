@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Renderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">Renderer.java</span></div><h1>Renderer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Renders constraints. This indirection exists to decouple the definition of a constraint from the underlying database.
+ *
+ * @author Michael J. Simons
+ * @param &lt;T&gt; The type of things this renderer supports
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since 1.7.0
+ */
+public interface Renderer&lt;T&gt; {
+
+	/**
+	 * Target formats
+	 */
+<span class="fc" id="L37">	enum Format {</span>
+		/**
+		 * The cypher dialect is defined by the renders context.
+		 */
+<span class="fc" id="L41">		CYPHER,</span>
+		/**
+		 * Vendor neutral XML, matching the types defined in {@literal migration.xsd}
+		 */
+<span class="fc" id="L45">		XML</span>
+	}
+
+	/**
+	 * Retrieves a renderer for the given {@link Format} and given {@code item}.
+	 *
+	 * @param format The format in which to render
+	 * @param type   The item that should be rendered
+	 * @param &lt;T&gt;    The type of the item
+	 * @return A renderer for the given type
+	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	static &lt;T&gt; Renderer&lt;T&gt; get(Format format, T type) {
+<span class="fc" id="L59">		return Renderer.get(format, (Class&lt;T&gt;) type.getClass());</span>
+	}
+
+	/**
+	 * Retrieves a renderer for the given {@link Format} and the type matching {@literal type}.
+	 *
+	 * @param format The format in which to render
+	 * @param type   The type that should be rendered
+	 * @param &lt;T&gt;    The types specific type
+	 * @return A renderer for the given type
+	 * @throws UnsupportedOperationException in case the combination of format and type is not supported
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	static &lt;T&gt; Renderer&lt;T&gt; get(Format format, Class&lt;T&gt; type) {
+
+<span class="fc bfc" id="L74" title="All 2 branches covered.">		if (format == Format.CYPHER) {</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">			if (Constraint.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L76">				return (Renderer&lt;T&gt;) ConstraintToCypherRenderer.INSTANCE;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">			} else if (Index.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L78">				return (Renderer&lt;T&gt;) IndexToCypherRenderer.INSTANCE;</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">			} else if (Catalog.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L80">				return (Renderer&lt;T&gt;) CatalogToCypherRenderer.INSTANCE;</span>
+			}
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">		} else if (format == Format.XML) {</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">			if (Constraint.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L84">				return (Renderer&lt;T&gt;) ConstraintToXMLRenderer.INSTANCE;</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">			} else if (Index.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L86">				return (Renderer&lt;T&gt;) IndexToXMLRenderer.INSTANCE;</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">			} else if (Catalog.class.isAssignableFrom(type)) {</span>
+<span class="fc" id="L88">				return (Renderer&lt;T&gt;) CatalogToXMLRenderer.INSTANCE;</span>
+			}
+		}
+
+<span class="nc" id="L92">		throw new UnsupportedOperationException(</span>
+			&quot;Unsupported combination of format (&quot; + format + &quot;) and type (&quot; + type + &quot;).&quot;);
+	}
+
+	/**
+	 * Renders a schema item.
+	 *
+	 * @param item   The item to be rendered
+	 * @param config The context in which the constraint is to be rendered.
+	 * @param target The target to write to. Will not be closed.
+	 * @throws IllegalStateException in case a given item cannot be rendered with the features requested in the given context.
+	 * @throws IOException           If rendering fails due to issues with the {@literal target}
+	 */
+	void render(T item, RenderConfig config, OutputStream target) throws IOException;
+
+	/**
+	 * Renders a schema item.
+	 *
+	 * @param item   The item to be rendered
+	 * @param config The configuration to render
+	 * @return The textual representation of the item in the given context, ready to be executed.
+	 * @throws UncheckedIOException any {@link IOException} from {@link #render(T, RenderConfig, OutputStream)} is rethrown here
+	 */
+	default String render(T item, RenderConfig config) {
+<span class="fc" id="L116">		try (ByteArrayOutputStream bout = new ByteArrayOutputStream()) {</span>
+
+<span class="fc" id="L118">			render(item, config, bout);</span>
+<span class="fc" id="L119">			bout.flush();</span>
+
+<span class="fc" id="L121">			return bout.toString(StandardCharsets.UTF_8);</span>
+<span class="nc" id="L122">		} catch (IOException e) {</span>
+<span class="nc" id="L123">			throw new UncheckedIOException(e);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

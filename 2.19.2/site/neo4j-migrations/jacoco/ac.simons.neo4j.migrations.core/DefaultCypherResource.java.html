@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultCypherResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultCypherResource.java</span></div><h1>DefaultCypherResource.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.zip.CRC32;
+
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.SimpleQueryRunner;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+
+/**
+ * An executable Cypher-based resources as a basis for migrations and callbacks
+ *
+ * @author Michael J. Simons
+ * @since 1.2.2
+ */
+final class DefaultCypherResource implements CypherResource {
+
+<span class="fc" id="L62">	private static final Logger LOGGER = Logger.getLogger(DefaultCypherResource.class.getName());</span>
+	private static final char BOM = '\ufeff';
+<span class="fc" id="L64">	private static final Predicate&lt;String&gt; NOT_A_SINGLE_COMMENT =</span>
+		s -&gt; {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">			if (!Strings.isSingleLineComment(s)) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">				if (s.trim().startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT)) {</span>
+<span class="fc" id="L68">					return Arrays.stream(s.split(Strings.LINE_DELIMITER))</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">						.anyMatch(sub -&gt; !Strings.isSingleLineComment(sub));</span>
+				}
+<span class="fc" id="L71">				return true;</span>
+			}
+<span class="fc" id="L73">			return false;</span>
+		};
+
+	private static final String USE_DATABASE_EXPRESSION =
+		&quot;(?i):use +&quot; + Strings.VALID_DATABASE_NAME + &quot;(?:;?(?:&quot; + Strings.LINE_DELIMITER + &quot;)?)?&quot;;
+
+	/**
+	 * Cypher delimiter
+	 */
+	private static final String CYPHER_STATEMENT_DELIMITER = &quot;;(?:&quot; + Strings.LINE_DELIMITER + &quot;)&quot;;
+
+<span class="fc" id="L84">	private static final Pattern USE_DATABASE_PATTERN = Pattern.compile(USE_DATABASE_EXPRESSION);</span>
+
+	/**
+	 * The regex is as greedy as I can get it without parsing the statement fully. And as of now, there is no parser
+	 * available that still supports periodic commit AND concurrent transactions with all options the latter provides
+	 * today in latest Neo4j.
+	 */
+	@SuppressWarnings(&quot;squid:S5852&quot;)
+<span class="fc" id="L92">	private static final Pattern CALL_PATTERN = Pattern.compile(&quot;(?ims)(?&lt;!`)([^`\\s*+]\\s*+CALL\\s*+(?:\\(.+?\\)\\s*+)?\\{.*}\\s*+(?&lt;transactionClause&gt;IN(?&lt;concurrency&gt;.+?)TRANSACTIONS)?)(?!`)&quot;);</span>
+<span class="fc" id="L93">	private static final Pattern PATTERN_CALL_CONCURRENCY = Pattern.compile(&quot;(?ims)(-\\d+|\\d+)?\\s*CONCURRENT&quot;);</span>
+
+<span class="fc" id="L95">	private static final Pattern USING_PERIODIC_PATTERN = Pattern.compile(&quot;(?ims)(?&lt;!`)(([^`\\s*]|^)\\s*+USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)&quot;);</span>
+
+	/**
+	 * The identifier of this resource.
+	 */
+	private final String identifier;
+	/**
+	 * Flag if line feeds should be converted to the system default.
+	 */
+	private final boolean autocrlf;
+	/**
+	 * Actual content provider
+	 */
+	private final Supplier&lt;InputStream&gt; inputStreamSupplier;
+
+	private final boolean useFlywayCompatibleChecksums;
+
+	/**
+	 * A lazily initialized list of statements, will be initialized with Double-checked locking into an unmodifiable
+	 * list, see {@link #readStatements()}.
+	 */
+	@SuppressWarnings(&quot;squid:S3077&quot;)
+	private volatile List&lt;String&gt; statements;
+	private volatile String checksum;
+
+<span class="fc" id="L120">	DefaultCypherResource(String identifier, boolean autocrlf, boolean useFlywayCompatibleChecksums, Supplier&lt;InputStream&gt; inputStreamSupplier) {</span>
+
+<span class="fc" id="L122">		this.identifier = identifier;</span>
+<span class="fc" id="L123">		this.autocrlf = autocrlf;</span>
+<span class="fc" id="L124">		this.useFlywayCompatibleChecksums = useFlywayCompatibleChecksums;</span>
+<span class="fc" id="L125">		this.inputStreamSupplier = inputStreamSupplier;</span>
+<span class="fc" id="L126">	}</span>
+
+	public String getIdentifier() {
+<span class="fc" id="L129">		return identifier;</span>
+	}
+
+	public String getChecksum() {
+
+<span class="fc" id="L134">		String availableChecksum = this.checksum;</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">		if (availableChecksum == null) {</span>
+<span class="fc" id="L136">			synchronized (this) {</span>
+<span class="fc" id="L137">				availableChecksum = this.checksum;</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">				if (availableChecksum == null) {</span>
+<span class="fc" id="L139">					this.checksum = computeChecksum();</span>
+<span class="fc" id="L140">					availableChecksum = this.checksum;</span>
+				}
+<span class="fc" id="L142">			}</span>
+		}
+<span class="fc" id="L144">		return availableChecksum;</span>
+	}
+
+	private String computeChecksum() {
+<span class="fc bfc" id="L148" title="All 2 branches covered.">		return useFlywayCompatibleChecksums ? flywayCompatChecksum() : computeChecksum(getStatements());</span>
+	}
+
+	private static String filterBomFromString(String s) {
+<span class="pc bpc" id="L152" title="2 of 4 branches missed.">		if (s == null || s.isEmpty()) {</span>
+<span class="nc" id="L153">			return s;</span>
+		}
+
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">		if (s.charAt(0)  == BOM) {</span>
+<span class="nc" id="L157">			return s.substring(1);</span>
+		}
+
+<span class="fc" id="L160">		return s;</span>
+	}
+
+	private String flywayCompatChecksum() {
+<span class="fc" id="L164">		final CRC32 crc32 = new CRC32();</span>
+
+<span class="fc" id="L166">		try (var bufferedReader = new BufferedReader(new InputStreamReader(inputStreamSupplier.get()), 4096)) {</span>
+<span class="fc" id="L167">			String line = bufferedReader.readLine();</span>
+
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">			if (line != null) {</span>
+<span class="fc" id="L170">				line = filterBomFromString(line);</span>
+				do {
+<span class="fc" id="L172">					crc32.update(line.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">				} while ((line = bufferedReader.readLine()) != null);</span>
+			}
+<span class="nc" id="L175">		} catch (IOException e) {</span>
+<span class="nc" id="L176">			throw new MigrationsException(&quot;Unable to calculate checksum of &quot; + identifier + &quot;\r\n&quot; + e.getMessage(), e);</span>
+<span class="fc" id="L177">		}</span>
+		// Yeah, this is fucked up, but flyway does that too…
+<span class="fc" id="L179">		return Integer.toString((int) (crc32.getValue()));</span>
+	}
+
+	static String computeChecksum(Collection&lt;String&gt; statements) {
+<span class="fc" id="L183">		final CRC32 crc32 = new CRC32();</span>
+
+<span class="fc bfc" id="L185" title="All 2 branches covered.">		for (String statement : statements) {</span>
+<span class="fc" id="L186">			byte[] bytes = statement.getBytes(Defaults.CYPHER_SCRIPT_ENCODING);</span>
+<span class="fc" id="L187">			crc32.update(bytes, 0, bytes.length);</span>
+<span class="fc" id="L188">		}</span>
+<span class="fc" id="L189">		return Long.toString(crc32.getValue());</span>
+	}
+
+	/**
+	 * {@return the list of statements to apply}
+	 */
+	List&lt;String&gt; getStatements() {
+<span class="fc" id="L196">		return getStatements(null);</span>
+	}
+
+	/**
+	 * Retrieves statements from the resource with an optional filter
+	 * @param filter a filter to apply when selecting the statements
+	 * @return A filtered list of statements
+	 */
+	List&lt;String&gt; getStatements(Predicate&lt;String&gt; filter) {
+
+<span class="fc" id="L206">		List&lt;String&gt; availableStatements = this.statements;</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">		if (availableStatements == null) {</span>
+<span class="fc" id="L208">			synchronized (this) {</span>
+<span class="fc" id="L209">				availableStatements = this.statements;</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">				if (availableStatements == null) {</span>
+<span class="fc" id="L211">					this.statements = readStatements();</span>
+<span class="fc" id="L212">					availableStatements = this.statements;</span>
+				}
+<span class="fc" id="L214">			}</span>
+		}
+<span class="fc bfc" id="L216" title="All 2 branches covered.">		return filter == null ? availableStatements : availableStatements.stream().filter(filter).toList();</span>
+	}
+
+	/**
+	 * Scans the resource for statements. Statements must be separated by a `;` followed by a newline.
+	 *
+	 * @return An unmodifiable list of statements contained inside the resource.
+	 * @throws MigrationsException in case the script file could not be read
+	 */
+	private List&lt;String&gt; readStatements() {
+
+<span class="fc" id="L227">		List&lt;String&gt; newStatements = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L228">		try (Scanner scanner = new Scanner(inputStreamSupplier.get(), Defaults.CYPHER_SCRIPT_ENCODING)</span>
+<span class="fc" id="L229">			.useDelimiter(CYPHER_STATEMENT_DELIMITER)) {</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">			while (scanner.hasNext()) {</span>
+<span class="fc" id="L231">				String statement = scanner.next().trim().replaceAll(&quot;;$&quot;, &quot;&quot;).trim();</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">				if (this.autocrlf) {</span>
+<span class="fc" id="L233">					statement = statement.replace(&quot;\r\n&quot;, &quot;\n&quot;);</span>
+				}
+<span class="fc bfc" id="L235" title="All 2 branches covered.">				if (statement.isEmpty()) {</span>
+<span class="fc" id="L236">					continue;</span>
+				}
+<span class="fc" id="L238">				Matcher useMatcher = USE_DATABASE_PATTERN.matcher(statement);</span>
+<span class="fc" id="L239">				boolean isMultiLine = statement.contains(&quot;\n&quot;);</span>
+<span class="fc" id="L240">				StringBuffer finalStatement = new StringBuffer();</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">				if (useMatcher.find()) {</span>
+<span class="fc" id="L242">					handleUseStatement(newStatements, useMatcher, finalStatement);</span>
+				}
+<span class="fc bfc" id="L244" title="All 2 branches covered.">				while (useMatcher.find()) {</span>
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">					if (isMultiLine) {</span>
+<span class="fc" id="L246">						useMatcher.appendTail(finalStatement);</span>
+<span class="fc" id="L247">						throw new MigrationsException(</span>
+							&quot;Can't switch database inside a statement, offending statement:\n&quot; + finalStatement);
+					}
+<span class="nc" id="L250">					handleUseStatement(newStatements, useMatcher, finalStatement);</span>
+				}
+<span class="fc" id="L252">				useMatcher.appendTail(finalStatement);</span>
+<span class="fc bfc" id="L253" title="All 2 branches covered.">				if (!finalStatement.isEmpty()) {</span>
+<span class="fc" id="L254">					newStatements.add(finalStatement.toString());</span>
+				}
+<span class="fc" id="L256">			}</span>
+		}
+
+<span class="fc" id="L259">		return Collections.unmodifiableList(newStatements);</span>
+	}
+
+	private static void handleUseStatement(List&lt;String&gt; newStatements, Matcher useMatcher, StringBuffer finalStatement) {
+<span class="fc" id="L263">		useMatcher.appendReplacement(finalStatement, &quot;&quot;);</span>
+<span class="fc" id="L264">		newStatements.add(useMatcher.group(0).trim());</span>
+<span class="fc" id="L265">	}</span>
+
+	@Override
+	public List&lt;String&gt; getExecutableStatements() {
+<span class="fc" id="L269">		return getStatements(NOT_A_SINGLE_COMMENT);</span>
+	}
+
+	/**
+	 * @return A list of surely identifiable single line comments, either &quot;standalone&quot; or before a valid cypher statement
+	 */
+	@Override
+	public List&lt;String&gt; getSingleLineComments() {
+<span class="fc" id="L277">		return getStatements()</span>
+<span class="fc" id="L278">			.stream()</span>
+<span class="fc" id="L279">			.flatMap(DefaultCypherResource::getSingleLineComments)</span>
+<span class="fc" id="L280">			.toList();</span>
+	}
+
+	static Stream&lt;String&gt; getSingleLineComments(String statement) {
+<span class="fc bfc" id="L284" title="All 2 branches covered.">		if (!statement.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT)) {</span>
+<span class="fc" id="L285">			return Stream.empty();</span>
+		}
+		boolean notAComment;
+<span class="fc" id="L288">		Stream.Builder&lt;String&gt; builder = Stream.builder();</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">		for (String line : statement.split(Strings.LINE_DELIMITER)) {</span>
+<span class="fc" id="L290">			line = line.trim();</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">			notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">			if (notAComment) {</span>
+<span class="fc" id="L293">				break;</span>
+			}
+<span class="fc" id="L295">			builder.add(line);</span>
+		}
+<span class="fc" id="L297">		return builder.build();</span>
+	}
+
+	static Optional&lt;String&gt; getDatabaseName(String line) {
+
+<span class="fc" id="L302">		Matcher matcher = USE_DATABASE_PATTERN.matcher(line);</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L304">			return Optional.of(matcher.group(1).toLowerCase(Locale.ROOT));</span>
+		}
+<span class="fc" id="L306">		return Optional.empty();</span>
+	}
+
+	static void executeIn(CypherResource cypherResource, MigrationContext context,
+		UnaryOperator&lt;SessionConfig.Builder&gt; sessionCustomizer) {
+
+<span class="fc" id="L312">		List&lt;DatabaseAndStatements&gt; statementsByDatabase = groupStatements(cypherResource.getExecutableStatements());</span>
+
+<span class="fc" id="L314">		statementsByDatabase.forEach(databaseAndStatements -&gt; {</span>
+
+<span class="fc" id="L316">			UnaryOperator&lt;SessionConfig.Builder&gt; finalSessionCustomizer =</span>
+<span class="fc" id="L317">				databaseAndStatements.database()</span>
+<span class="fc" id="L318">					.map(database -&gt; (UnaryOperator&lt;SessionConfig.Builder&gt;) builder -&gt; builder.withDatabase(database))</span>
+<span class="fc" id="L319">					.orElse(sessionCustomizer);</span>
+
+<span class="fc" id="L321">			try (Session session = context.getDriver().session(context.getSessionConfig(finalSessionCustomizer))) {</span>
+
+<span class="fc" id="L323">				List&lt;String&gt; executableStatements = databaseAndStatements.statements();</span>
+
+<span class="fc" id="L325">				var statementsNeedingImplicitTransactions = executableStatements.stream()</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">					.filter(statement -&gt; getTransactionMode(statement) == TransactionMode.IMPLICIT)</span>
+<span class="fc" id="L327">					.collect(Collectors.toSet());</span>
+
+				int numberOfStatements;
+<span class="fc" id="L330">				MigrationsConfig.TransactionMode transactionMode = context.getConfig().getTransactionMode();</span>
+<span class="fc" id="L331">				TransactionConfig transactionConfig = Optional.ofNullable(context.getConfig().getTransactionTimeout())</span>
+<span class="fc" id="L332">					.map(TransactionConfig.builder()::withTimeout).orElse(TransactionConfig.builder().withDefaultTimeout()).build();</span>
+<span class="fc bfc" id="L333" title="All 4 branches covered.">				if (transactionMode == MigrationsConfig.TransactionMode.PER_STATEMENT || !statementsNeedingImplicitTransactions.isEmpty()) {</span>
+
+<span class="fc" id="L335">					LOGGER.log(Level.FINE, &quot;Executing statements contained in script \&quot;{0}\&quot; in separate transactions&quot;, cypherResource.getIdentifier());</span>
+<span class="fc" id="L336">					numberOfStatements = executeInSeparateTransactions(session, transactionConfig, context.getConfig().getCypherVersion(), executableStatements, statementsNeedingImplicitTransactions);</span>
+
+<span class="pc bpc" id="L338" title="1 of 2 branches missed.">				} else if (transactionMode == MigrationsConfig.TransactionMode.PER_MIGRATION) {</span>
+
+<span class="fc" id="L340">					LOGGER.log(Level.FINE, &quot;Executing statements in script \&quot;{0}\&quot; in one transaction&quot;, cypherResource.getIdentifier());</span>
+<span class="fc" id="L341">					Counters c = Counters.empty();</span>
+<span class="fc" id="L342">					numberOfStatements = session.executeWrite(t -&gt; {</span>
+<span class="fc" id="L343">						int cnt = 0;</span>
+<span class="fc bfc" id="L344" title="All 2 branches covered.">						for (String statement : executableStatements) {</span>
+<span class="fc" id="L345">							c.add(run(context.getConfig().getCypherVersion(), t, statement));</span>
+<span class="fc" id="L346">							++cnt;</span>
+<span class="fc" id="L347">						}</span>
+<span class="fc" id="L348">						return cnt;</span>
+					}, transactionConfig);
+<span class="fc" id="L350">					HBD.vladimirAndEstragonMayWait(session, c);</span>
+<span class="fc" id="L351">				} else {</span>
+<span class="nc" id="L352">					throw new MigrationsException(&quot;Unknown transaction mode &quot; + transactionMode);</span>
+				}
+
+<span class="fc" id="L355">				LOGGER.log(Level.FINE, &quot;Executed {0} statements&quot;, numberOfStatements);</span>
+			}
+<span class="fc" id="L357">		});</span>
+<span class="fc" id="L358">	}</span>
+
+	private static int executeInSeparateTransactions(Session session, TransactionConfig transactionConfig, CypherVersion cypherVersion, List&lt;String&gt; executableStatements, Set&lt;String&gt; statementsNeedingImplicitTransactions) {
+
+<span class="fc" id="L362">		int numberOfStatements = 0;</span>
+<span class="fc" id="L363">		Counters counters = Counters.empty();</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">		for (String statement : executableStatements) {</span>
+<span class="fc bfc" id="L365" title="All 2 branches covered.">			if (statementsNeedingImplicitTransactions.contains(statement)) {</span>
+<span class="fc" id="L366">				++numberOfStatements;</span>
+<span class="fc" id="L367">				run(cypherVersion, session, statement);</span>
+			} else {
+<span class="fc" id="L369">				numberOfStatements += session.executeWrite(t -&gt; {</span>
+<span class="fc" id="L370">					run(cypherVersion, t, statement);</span>
+<span class="fc" id="L371">					return 1;</span>
+				}, transactionConfig);
+			}
+<span class="fc" id="L374">		}</span>
+<span class="fc" id="L375">		HBD.vladimirAndEstragonMayWait(session, counters);</span>
+<span class="fc" id="L376">		return numberOfStatements;</span>
+	}
+
+	/**
+	 * Indicator of the transaction mode to use
+	 */
+<span class="fc" id="L382">	enum TransactionMode {</span>
+		/**
+		 * Use managed transactions (aka transaction functions)
+		 */
+<span class="fc" id="L386">		MANAGED,</span>
+		/**
+		 * Use implicit transactions (aka auto commit)
+		 */
+<span class="fc" id="L390">		IMPLICIT</span>
+	}
+
+	/**
+	 * Returns the transaction mode needed for the query. When in doubt, use a transactional function.
+	 * @param statement The query to evaluate
+	 * @return The transaction mode
+	 */
+	static TransactionMode getTransactionMode(String statement) {
+
+<span class="fc bfc" id="L400" title="All 2 branches covered.">		if (USING_PERIODIC_PATTERN.matcher(statement).find()) {</span>
+<span class="fc" id="L401">			return TransactionMode.IMPLICIT;</span>
+		}
+
+<span class="fc" id="L404">		var callMatcher = CALL_PATTERN.matcher(statement);</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">		if (!callMatcher.find()) {</span>
+<span class="fc" id="L406">			return TransactionMode.MANAGED;</span>
+		}
+
+<span class="fc" id="L409">		var transactionClause = callMatcher.group(&quot;transactionClause&quot;);</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">		if (transactionClause == null) {</span>
+<span class="fc" id="L411">			return TransactionMode.MANAGED;</span>
+		}
+
+<span class="fc" id="L414">		var concurrency = callMatcher.group(&quot;concurrency&quot;);</span>
+<span class="fc bfc" id="L415" title="All 4 branches covered.">		if (concurrency.isBlank() || PATTERN_CALL_CONCURRENCY.matcher(concurrency.trim()).matches()) {</span>
+<span class="fc" id="L416">			return TransactionMode.IMPLICIT;</span>
+		} else {
+<span class="fc" id="L418">			throw new MigrationsException(&quot;Invalid statement: &quot; + statement);</span>
+		}
+	}
+
+	/**
+	 * A record holding together a list of statements and the database in which they should be executed.
+	 */
+	record DatabaseAndStatements(Optional&lt;String&gt; database, List&lt;String&gt; statements) {
+
+<span class="fc" id="L427">			DatabaseAndStatements {</span>
+<span class="fc" id="L428">				statements = List.copyOf(statements);</span>
+<span class="fc" id="L429">			}</span>
+	}
+
+	/**
+	 * Groups statements into a consecutive lists, each entry starting with a new database. Groups are not in the sense
+	 * of a GROUP BY as they are not distinct.
+	 *
+	 * @param statements The list of statements to group, containing use statements
+	 * @return An ordered grouped list, with groups not necessary unique
+	 */
+	static List&lt;DatabaseAndStatements&gt; groupStatements(List&lt;String&gt; statements) {
+
+<span class="fc" id="L441">		List&lt;DatabaseAndStatements&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L442">		Optional&lt;String&gt; current = Optional.empty();</span>
+<span class="fc" id="L443">		List&lt;String&gt; sublist = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L444" title="All 2 branches covered.">		for (String statement : statements) {</span>
+<span class="fc" id="L445">			Optional&lt;String&gt; databaseName = getDatabaseName(statement);</span>
+<span class="fc bfc" id="L446" title="All 2 branches covered.">			if (databaseName.isPresent()) { // If empty, it is not a :use statement</span>
+<span class="fc" id="L447">				result.add(new DatabaseAndStatements(current, sublist));</span>
+<span class="fc" id="L448">				current = databaseName;</span>
+<span class="fc" id="L449">				sublist = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L450">				continue;</span>
+			}
+<span class="fc" id="L452">			sublist.add(statement);</span>
+<span class="fc" id="L453">		}</span>
+<span class="fc" id="L454">		result.add(new DatabaseAndStatements(current, sublist));</span>
+<span class="fc" id="L455">		return result;</span>
+	}
+
+	static Counters run(CypherVersion cypherVersion, SimpleQueryRunner runner, String statement) {
+
+<span class="fc" id="L460">		var finalStatement = statement;</span>
+<span class="fc bfc" id="L461" title="All 2 branches covered.">		if (cypherVersion != CypherVersion.DATABASE_DEFAULT) {</span>
+<span class="fc" id="L462">			finalStatement = cypherVersion.getPrefix() + &quot; &quot; + statement;</span>
+		}
+<span class="fc" id="L464">		LOGGER.log(Level.FINE, &quot;Running {0}&quot;, finalStatement);</span>
+<span class="fc" id="L465">		ResultSummary resultSummary = runner.run(finalStatement).consume();</span>
+<span class="fc" id="L466">		SummaryCounters c = resultSummary.counters();</span>
+
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">		if (LOGGER.isLoggable(Level.FINEST)) {</span>
+<span class="nc" id="L469">			LOGGER.log(Level.FINEST,</span>
+				&quot;nodesCreated: {0}, nodesDeleted: {1}, relationshipsCreated: {2}, relationshipsDeleted: {3}, propertiesSet: {4}, labelsAdded: {5}, labelsRemoved: {6}, indexesAdded: {7}, indexesRemoved: {8}, constraintsAdded: {9}, constraintsRemoved: {10}&quot;,
+<span class="nc" id="L471">				new Object[] { c.nodesCreated(), c.nodesDeleted(), c.relationshipsCreated(), c.relationshipsDeleted(),</span>
+<span class="nc" id="L472">					c.propertiesSet(),</span>
+<span class="nc" id="L473">					c.labelsAdded(), c.labelsRemoved(), c.indexesAdded(), c.indexesRemoved(), c.constraintsAdded(),</span>
+<span class="nc" id="L474">					c.constraintsRemoved() });</span>
+		}
+
+<span class="fc" id="L477">		return Counters.of(c);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

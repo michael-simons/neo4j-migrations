@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TypesEligibleForPropertyTypeConstraints.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">TypesEligibleForPropertyTypeConstraints.java</span></div><h1>TypesEligibleForPropertyTypeConstraints.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.lang.model.type.TypeMirror;
+
+import ac.simons.neo4j.migrations.core.catalog.PropertyType;
+
+final class TypesEligibleForPropertyTypeConstraints {
+
+	static final Map&lt;String, PropertyType&gt; VALUES;
+
+	static {
+<span class="fc" id="L30">		var tmp = new HashMap&lt;String, PropertyType&gt;();</span>
+<span class="fc" id="L31">		tmp.put(&quot;java.lang.Boolean&quot;, PropertyType.BOOLEAN);</span>
+<span class="fc" id="L32">		tmp.put(&quot;boolean&quot;, PropertyType.BOOLEAN);</span>
+<span class="fc" id="L33">		tmp.put(&quot;java.lang.String&quot;, PropertyType.STRING);</span>
+<span class="fc" id="L34">		tmp.put(&quot;java.lang.Long&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L35">		tmp.put(&quot;long&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L36">		tmp.put(&quot;java.lang.Integer&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L37">		tmp.put(&quot;int&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L38">		tmp.put(&quot;java.lang.Short&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L39">		tmp.put(&quot;short&quot;, PropertyType.INTEGER);</span>
+<span class="fc" id="L40">		tmp.put(&quot;java.lang.Double&quot;, PropertyType.FLOAT);</span>
+<span class="fc" id="L41">		tmp.put(&quot;double&quot;, PropertyType.FLOAT);</span>
+<span class="fc" id="L42">		tmp.put(&quot;java.lang.Float&quot;, PropertyType.FLOAT);</span>
+<span class="fc" id="L43">		tmp.put(&quot;float&quot;, PropertyType.FLOAT);</span>
+<span class="fc" id="L44">		tmp.put(&quot;java.time.LocalDate&quot;, PropertyType.DATE);</span>
+<span class="fc" id="L45">		tmp.put(&quot;java.time.LocalTime&quot;, PropertyType.LOCAL_TIME);</span>
+<span class="fc" id="L46">		tmp.put(&quot;java.time.OffsetTime&quot;, PropertyType.ZONED_TIME);</span>
+<span class="fc" id="L47">		tmp.put(&quot;java.time.LocalDateTime&quot;, PropertyType.LOCAL_DATETIME);</span>
+<span class="fc" id="L48">		tmp.put(&quot;java.time.OffsetDateTime&quot;, PropertyType.ZONED_DATETIME);</span>
+<span class="fc" id="L49">		tmp.put(&quot;java.time.ZonedDateTime&quot;, PropertyType.ZONED_DATETIME);</span>
+<span class="fc" id="L50">		tmp.put(&quot;org.neo4j.driver.types.IsoDuration&quot;, PropertyType.DURATION);</span>
+<span class="fc" id="L51">		tmp.put(&quot;org.neo4j.driver.types.Point&quot;, PropertyType.POINT);</span>
+
+<span class="fc" id="L53">		VALUES = Map.copyOf(tmp);</span>
+<span class="fc" id="L54">	}</span>
+
+	public static boolean contains(TypeMirror key) {
+<span class="fc" id="L57">		return VALUES.containsKey(key.toString());</span>
+	}
+
+	public static PropertyType get(TypeMirror key) {
+<span class="fc" id="L61">		return VALUES.get(key.toString());</span>
+	}
+
+	private TypesEligibleForPropertyTypeConstraints() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationChainFormat.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationChainFormat.java</span></div><h1>MigrationChainFormat.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Utility class for formatting a migration chain and its elements.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.11
+ */
+final class MigrationChainFormat {
+
+<span class="fc" id="L35">	static final String LS = System.lineSeparator();</span>
+
+	static void formatElements(MigrationChain chain, StringBuilder target) {
+
+<span class="fc" id="L39">		Map&lt;String, List&lt;String&gt;&gt; table = buildMigrationTable(chain);</span>
+
+		// Compute column widths
+<span class="fc" id="L42">		int[] columnWidths = new int[table.size()];</span>
+<span class="fc" id="L43">		int columnm = 0;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">		for (Map.Entry&lt;String, List&lt;String&gt;&gt; entry : table.entrySet()) {</span>
+<span class="fc" id="L45">			String k = entry.getKey();</span>
+<span class="fc" id="L46">			List&lt;String&gt; v = entry.getValue();</span>
+<span class="fc" id="L47">			columnWidths[columnm++] = Math</span>
+<span class="fc" id="L48">				.max(k.length(), v.stream().map(String::length).max(Integer::compareTo).orElse(0));</span>
+<span class="fc" id="L49">		}</span>
+<span class="fc" id="L50">		String[] columnFormats = Arrays.stream(columnWidths).mapToObj(w -&gt; &quot;| %-&quot; + w + &quot;s &quot;).toArray(String[]::new);</span>
+
+		// Build separator
+<span class="fc" id="L53">		String separator = buildSeparator(columnWidths);</span>
+
+		// Build rows
+<span class="fc" id="L56">		Map&lt;Integer, StringBuilder&gt; rows = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L57">		int numRows = chain.getElements().size();</span>
+<span class="fc" id="L58">		columnm = 0;</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">		for (List&lt;String&gt; v : table.values()) {</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			for (int i = 0; i &lt; numRows; ++i) {</span>
+<span class="fc" id="L61">				StringBuilder row = rows.computeIfAbsent(i, k -&gt; new StringBuilder());</span>
+<span class="fc" id="L62">				row.append(String.format(columnFormats[columnm], v.get(i)));</span>
+			}
+<span class="fc" id="L64">			++columnm;</span>
+<span class="fc" id="L65">		}</span>
+
+		// Stitch everything together
+<span class="fc" id="L68">		target.append(separator);</span>
+<span class="fc" id="L69">		columnm = 0;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		for (String column : table.keySet()) {</span>
+<span class="fc" id="L71">			target.append(String.format(columnFormats[columnm++], column));</span>
+<span class="fc" id="L72">		}</span>
+<span class="fc" id="L73">		target.append(&quot;|&quot;).append(LS).append(separator);</span>
+<span class="fc" id="L74">		rows.values().forEach(row -&gt; target.append(row).append(&quot;|&quot;).append(LS));</span>
+<span class="fc" id="L75">		target.append(separator);</span>
+<span class="fc" id="L76">	}</span>
+
+	private static Map&lt;String, List&lt;String&gt;&gt; buildMigrationTable(MigrationChain chain) {
+
+<span class="fc" id="L80">		Map&lt;String, List&lt;String&gt;&gt; table = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">		for (MigrationChain.Element element : chain.getElements()) {</span>
+
+			List&lt;String&gt; column;
+
+<span class="fc" id="L85">			column = table.computeIfAbsent(&quot;Version&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L86">			column.add(element.getVersion());</span>
+
+<span class="fc" id="L88">			column = table.computeIfAbsent(&quot;Description&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L89">			column.add(element.getOptionalDescription().orElse(&quot;&quot;));</span>
+
+<span class="fc" id="L91">			column = table.computeIfAbsent(&quot;Type&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L92">			column.add(element.getType().name());</span>
+
+<span class="fc" id="L94">			column = table.computeIfAbsent(&quot;Installed on&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L95">			column.add(element.getInstalledOn().map(ZonedDateTime::toString).orElse(&quot;&quot;));</span>
+
+<span class="fc" id="L97">			column = table.computeIfAbsent(&quot;by&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L98">			column.add(element.getInstalledBy().orElse(&quot;&quot;));</span>
+
+<span class="fc" id="L100">			column = table.computeIfAbsent(&quot;Execution time&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L101">			column.add(element.getExecutionTime().map(Duration::toString).orElse(&quot;&quot;));</span>
+
+<span class="fc" id="L103">			column = table.computeIfAbsent(&quot;State&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L104">			column.add(element.getState().name());</span>
+
+<span class="fc" id="L106">			column = table.computeIfAbsent(&quot;Source&quot;, k -&gt; new ArrayList&lt;&gt;());</span>
+<span class="fc" id="L107">			column.add(element.getSource());</span>
+<span class="fc" id="L108">		}</span>
+<span class="fc" id="L109">		return table;</span>
+	}
+
+	private static String buildSeparator(int[] columnWidhts) {
+
+<span class="fc" id="L114">		StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">		for (int i = 0; i &lt; columnWidhts.length; ++i) {</span>
+<span class="fc" id="L116">			sb.append(&quot;+&quot;);</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">			for (int j = 0; j &lt; columnWidhts[i] + 2; ++j) {</span>
+<span class="fc" id="L118">				sb.append(&quot;-&quot;);</span>
+			}
+		}
+<span class="fc" id="L121">		return sb.append(&quot;+&quot;).append(LS).toString();</span>
+	}
+
+	private MigrationChainFormat() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

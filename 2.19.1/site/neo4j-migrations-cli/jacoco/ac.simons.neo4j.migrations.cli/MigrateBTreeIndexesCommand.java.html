@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrateBTreeIndexesCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CLI)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">MigrateBTreeIndexesCommand.java</span></div><h1>MigrateBTreeIndexesCommand.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
+import picocli.CommandLine;
+
+/**
+ * A hidden command for accessing the {@link MigrateBTreeIndexes} refactoring directly.
+ *
+ * @author Michael J. Simons
+ * @since 1.15.0
+ */
+@CommandLine.Command(name = &quot;migrateBTreeIndexes&quot;, description = &quot;Migrates existing B-tree indexes and constraints backed by such indexes to Neo4j 5.0+ and higher supported indexes. By default, new indexes will be created in parallel with a suffix attached to their name.&quot;, hidden = true)
+<span class="fc" id="L36">public class MigrateBTreeIndexesCommand extends ConnectedCommand {</span>
+
+<span class="fc" id="L38">	enum IndexType {</span>
+<span class="fc" id="L39">		RANGE, TEXT, POINT</span>
+	}
+
+	@CommandLine.ParentCommand
+	private MigrationsCli parent;
+
+	@CommandLine.Option(names = &quot;suffix&quot;, showDefaultValue = CommandLine.Help.Visibility.ALWAYS, defaultValue = MigrateBTreeIndexes.DEFAULT_SUFFIX, description = &quot;The suffix for the new indexes created in parallel.&quot;)
+	private String suffix;
+
+	@CommandLine.Option(names = &quot;replace&quot;, showDefaultValue = CommandLine.Help.Visibility.ALWAYS, defaultValue = &quot;false&quot;, description = &quot;Drops existing B-tree indexes and constraints and creates new one with the old names.&quot;)
+	private boolean replace;
+
+	@CommandLine.Option(names = &quot;--mapping&quot;, description = &quot;Use the given type for the index or constraint with the matching name.\nSpecify multiple times for multiple mappings.&quot;)
+	Map&lt;String, IndexType&gt; mappings;
+
+	@CommandLine.Option(names = &quot;--exclude&quot;, description = &quot;Names of indexes and constraints to exclude in migration.\nSpecify multiple times for multiple excludes.&quot;)
+	private Set&lt;String&gt; excludes;
+
+	@CommandLine.Option(names = &quot;--include&quot;, description = &quot;Names of indexes and constraints to include in migration.\nSpecify multiple times for multiple excludes.&quot;)
+	private Set&lt;String&gt; includes;
+
+	@Override
+	public MigrationsCli getParent() {
+<span class="nc" id="L62">		return parent;</span>
+	}
+
+	@Override
+	boolean forceSilence() {
+<span class="nc" id="L67">		return true;</span>
+	}
+
+	@Override
+	Integer withMigrations(Migrations migrations) {
+
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		if (excludes != null) {</span>
+<span class="fc" id="L74">			MigrationsCli.LOGGER.log(Level.INFO, &quot;Excluding the following schema items: {0}&quot;, new Object[] {String.join(&quot;, &quot;, excludes)});</span>
+		}
+
+<span class="fc bfc" id="L77" title="All 2 branches covered.">		if (includes != null) {</span>
+<span class="fc" id="L78">			MigrationsCli.LOGGER.log(Level.INFO, &quot;Including the following schema items: {0}&quot;, new Object[] {String.join(&quot;, &quot;, includes)});</span>
+		}
+
+<span class="fc" id="L81">		Map&lt;String, Index.Type&gt; typeMapping = null;</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		if (mappings != null) {</span>
+<span class="fc" id="L83">			typeMapping = mappings.entrySet()</span>
+<span class="pc bpc" id="L84" title="2 of 3 branches missed.">				.stream().collect(Collectors.toMap(Map.Entry::getKey, e -&gt; switch (e.getValue()) {</span>
+<span class="nc" id="L85">					case RANGE -&gt; Index.Type.PROPERTY;</span>
+<span class="fc" id="L86">					case POINT -&gt; Index.Type.POINT;</span>
+<span class="nc" id="L87">					case TEXT -&gt; Index.Type.TEXT;</span>
+				}));
+<span class="fc" id="L89">			String readableMappings = mappings.entrySet().stream().map(e -&gt; e.getKey() + &quot;=&quot; + e.getValue()).collect(Collectors.joining(System.lineSeparator()));</span>
+<span class="fc" id="L90">			MigrationsCli.LOGGER.log(Level.INFO, &quot;Using the following mapping:{0}{1}&quot;, new Object[] {System.lineSeparator(), readableMappings});</span>
+		}
+
+		MigrateBTreeIndexes refactoring;
+<span class="fc bfc" id="L94" title="All 2 branches covered.">		if (replace) {</span>
+<span class="fc" id="L95">			refactoring = MigrateBTreeIndexes.replaceBTreeIndexes();</span>
+		} else {
+<span class="fc" id="L97">			refactoring = MigrateBTreeIndexes.createFutureIndexes(suffix);</span>
+		}
+<span class="fc" id="L99">		refactoring = refactoring.withTypeMapping(typeMapping).withIncludes(includes).withExcludes(excludes);</span>
+<span class="fc" id="L100">		Counters counters = migrations.apply(refactoring);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (replace) {</span>
+<span class="fc" id="L102">			MigrationsCli.LOGGER.log(Level.INFO, &quot;Deleted {0} BTree based indexes and {1} constraints and replaced them with {2} new indexes and {3} constraints.&quot;, new Object[] {counters.indexesRemoved(), counters.constraintsRemoved(), counters.indexesAdded(), counters.constraintsAdded()});</span>
+		} else {
+<span class="fc" id="L104">			MigrationsCli.LOGGER.log(Level.INFO, &quot;Added {0} new indexes and {1} constraints.&quot;, new Object[] {counters.indexesAdded(), counters.constraintsAdded()});</span>
+		}
+<span class="fc" id="L106">		return 0;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

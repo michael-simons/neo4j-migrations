@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619277789">
+    <module artifactId="neo4j-migrations-formats-markdown" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigration.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigrationProvider.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigrationProviderIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigrationProviderTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/markdown/MarkdownBasedMigrationTest.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultMigrationChainElement.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultMigrationChainElement.java</span></div><h1>DefaultMigrationChainElement.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.neo4j.driver.types.IsoDuration;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
+
+/**
+ * Only implementation of a {@link MigrationChain.Element}.
+ * @author Michael J. Simons
+ * @since 2.0.0
+ */
+final class DefaultMigrationChainElement implements MigrationChain.Element {
+
+<span class="fc" id="L37">	record InstallationInfo(ZonedDateTime installedOn, String installedBy, Duration executionTime) {</span>
+	}
+
+	static MigrationChain.Element appliedElement(Path.Segment appliedMigration, List&lt;Relationship&gt; repetitions) {
+
+<span class="fc" id="L42">		Node targetMigration = appliedMigration.end();</span>
+<span class="fc" id="L43">		Map&lt;String, Object&gt; properties = targetMigration.asMap();</span>
+
+<span class="fc" id="L45">		Relationship migrationProperties = repetitions.stream()</span>
+<span class="fc" id="L46">			.filter(relationship -&gt; relationship.endNodeElementId().equals(targetMigration.elementId()))</span>
+<span class="fc" id="L47">			.max(Comparator.comparing((Relationship r) -&gt; r.get(&quot;at&quot;).asZonedDateTime()))</span>
+<span class="fc" id="L48">			.orElse(appliedMigration.relationship());</span>
+
+<span class="fc" id="L50">		ZonedDateTime installedOn = migrationProperties.get(&quot;at&quot;).asZonedDateTime();</span>
+<span class="fc" id="L51">		String installedBy = String.format(&quot;%s/%s&quot;, migrationProperties.get(&quot;by&quot;).asString(),</span>
+<span class="fc" id="L52">			migrationProperties.get(&quot;connectedAs&quot;).asString());</span>
+<span class="fc" id="L53">		IsoDuration storedExecutionTime = migrationProperties.get(&quot;in&quot;).asIsoDuration();</span>
+<span class="fc" id="L54">		Duration executionTime = Duration.ofSeconds(storedExecutionTime.seconds())</span>
+<span class="fc" id="L55">			.plusNanos(storedExecutionTime.nanoseconds());</span>
+
+<span class="fc" id="L57">		return new DefaultMigrationChainElement(MigrationState.APPLIED,</span>
+<span class="fc" id="L58">			MigrationType.valueOf((String) properties.get(&quot;type&quot;)), migrationProperties.get(&quot;checksum&quot;).asString((String) properties.get(&quot;checksum&quot;)),</span>
+<span class="fc" id="L59">			(String) properties.get(&quot;version&quot;), (String) properties.get(&quot;description&quot;),</span>
+<span class="fc" id="L60">			(String) properties.get(&quot;source&quot;), new InstallationInfo(installedOn, installedBy, executionTime));</span>
+	}
+
+	static MigrationChain.Element pendingElement(Migration pendingMigration) {
+<span class="fc" id="L64">		return new DefaultMigrationChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),</span>
+<span class="fc" id="L65">			pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),</span>
+<span class="fc" id="L66">			pendingMigration.getOptionalDescription().orElse(null), pendingMigration.getSource(), null);</span>
+	}
+
+	private final MigrationState state;
+
+	private final MigrationType type;
+
+	private final String checksum;
+
+	private final String version;
+
+	private final String description;
+
+	private final String source;
+
+	private final InstallationInfo installationInfo;
+
+	private DefaultMigrationChainElement(MigrationState state, MigrationType type, String checksum,
+<span class="fc" id="L84">		String version, String description, String source, InstallationInfo installationInfo) {</span>
+<span class="fc" id="L85">		this.state = state;</span>
+<span class="fc" id="L86">		this.type = type;</span>
+<span class="fc" id="L87">		this.checksum = checksum;</span>
+<span class="fc" id="L88">		this.version = version;</span>
+<span class="fc" id="L89">		this.description = description;</span>
+<span class="fc" id="L90">		this.source = source;</span>
+<span class="fc" id="L91">		this.installationInfo = installationInfo;</span>
+<span class="fc" id="L92">	}</span>
+
+	@Override
+	public MigrationState getState() {
+<span class="fc" id="L96">		return state;</span>
+	}
+
+	@Override
+	public MigrationType getType() {
+<span class="fc" id="L101">		return type;</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getChecksum() {
+<span class="fc" id="L106">		return Optional.ofNullable(checksum);</span>
+	}
+
+	@Override
+	public String getVersion() {
+<span class="fc" id="L111">		return version;</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getOptionalDescription() {
+<span class="fc" id="L116">		return Optional.ofNullable(description);</span>
+	}
+
+	@Override
+	public String getSource() {
+<span class="fc" id="L121">		return source;</span>
+	}
+
+	@Override
+	public Optional&lt;ZonedDateTime&gt; getInstalledOn() {
+<span class="fc" id="L126">		return Optional.ofNullable(installationInfo).map(InstallationInfo::installedOn);</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; getInstalledBy() {
+<span class="fc" id="L131">		return Optional.ofNullable(installationInfo).map(InstallationInfo::installedBy);</span>
+	}
+
+	@Override
+	public Optional&lt;Duration&gt; getExecutionTime() {
+<span class="fc" id="L136">		return Optional.ofNullable(installationInfo).map(InstallationInfo::executionTime);</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L141">		return &quot;DefaultMigrationChainElement{&quot; +</span>
+			&quot;type=&quot; + type +
+			&quot;, checksum='&quot; + checksum + '\'' +
+			&quot;, version='&quot; + version + '\'' +
+			'}';
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

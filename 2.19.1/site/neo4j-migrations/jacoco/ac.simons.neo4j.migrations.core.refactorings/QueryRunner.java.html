@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">QueryRunner.java</span></div><h1>QueryRunner.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.Objects;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Result;
+
+/**
+ * A simplification over a standard {@see org.neo4j.driver.QueryRunner}. This query runner here is also autocloseable and
+ * can and should be treated as such.
+ *
+ * @author Michael J. Simons
+ * @since 1.10.0
+ */
+public interface QueryRunner extends AutoCloseable {
+
+	/**
+	 * The minimum required version is 4.4 by default.
+	 *
+	 * @return The default feature set
+	 */
+	static FeatureSet defaultFeatureSet() {
+<span class="fc" id="L38">		return new FeatureSet(false, false, &quot;4.4&quot;);</span>
+	}
+
+	/**
+	 * Runs the given query and returns the result. The result should be consumed.
+	 *
+	 * @param query The query to run
+	 * @return A consumable result.
+	 */
+	Result run(Query query);
+
+	/**
+	 * Defaults to a NOOP.
+	 */
+	@Override
+	default void close() {
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * Defines a feature set for any newly opened query runner. Instances of this class are immutable, use the
+	 * return type pf any wither-method.
+	 */
+	final class FeatureSet {
+
+		private final String requiredVersion;
+
+		private final boolean hasBatchingSupport;
+
+		private final boolean hasElementIdSupport;
+
+		private FeatureSet(boolean hasBatchingSupport, boolean hasElementIdSupport,
+<span class="fc" id="L69">			String requiredVersion) {</span>
+<span class="fc" id="L70">			this.hasBatchingSupport = hasBatchingSupport;</span>
+<span class="fc" id="L71">			this.hasElementIdSupport = hasElementIdSupport;</span>
+<span class="fc" id="L72">			this.requiredVersion = requiredVersion;</span>
+<span class="fc" id="L73">		}</span>
+
+		/**
+		 * @return The required version.
+		 */
+		public String requiredVersion() {
+<span class="fc" id="L79">			return requiredVersion;</span>
+		}
+
+		/**
+		 * @return {@literal true} when the refactoring requires batching support
+		 */
+		public boolean hasBatchingSupport() {
+<span class="fc" id="L86">			return hasBatchingSupport;</span>
+		}
+
+		/**
+		 * @return {@literal true} when the refactoring makes use of {@code elementId()}
+		 */
+		public boolean hasElementIdSupport() {
+<span class="fc" id="L93">			return hasElementIdSupport;</span>
+		}
+
+		/**
+		 * Configures batching support.
+		 *
+		 * @param batchingSupport Set to {@literal true} for requesting batching support
+		 * @return New feature set
+		 */
+		public FeatureSet withBatchingSupport(boolean batchingSupport) {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">			return this.hasBatchingSupport == batchingSupport ? this :</span>
+<span class="fc" id="L104">				new FeatureSet(batchingSupport, this.hasElementIdSupport, this.requiredVersion);</span>
+		}
+
+		/**
+		 * Configures elementId support.
+		 *
+		 * @param elementIdSupport Set to {@literal true} for requesting elementId support
+		 * @return New feature set
+		 */
+		public FeatureSet withElementIdSupport(boolean elementIdSupport) {
+<span class="fc bfc" id="L114" title="All 2 branches covered.">			return this.hasElementIdSupport == elementIdSupport ? this :</span>
+<span class="fc" id="L115">				new FeatureSet(this.hasBatchingSupport, elementIdSupport, this.requiredVersion);</span>
+		}
+
+		/**
+		 * Configure the minimum required version.
+		 *
+		 * @param newRequiredVersion The new required minimum version
+		 * @return New feature set
+		 */
+		public FeatureSet withRequiredVersion(String newRequiredVersion) {
+
+<span class="fc bfc" id="L126" title="All 2 branches covered.">			return Objects.equals(this.requiredVersion, newRequiredVersion) ? this :</span>
+<span class="fc" id="L127">				new FeatureSet(this.hasBatchingSupport, this.hasElementIdSupport, newRequiredVersion);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

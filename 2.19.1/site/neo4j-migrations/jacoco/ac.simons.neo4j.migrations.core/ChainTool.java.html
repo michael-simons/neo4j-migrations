@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChainTool.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ChainTool.java</span></div><h1>ChainTool.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Values;
+
+/**
+ * This class is responsible for create a diff of two {@link MigrationChain migration chain instances}. The diff is then
+ * used to make one chain identical to the other.
+ *
+ * @author Michael J. Simons
+ * @since 2.2.0
+ */
+final class ChainTool {
+
+<span class="fc" id="L47">	record Pair(MigrationChain.Element e1, MigrationChain.Element e2) {</span>
+
+		boolean checksumDiffers() {
+<span class="fc bfc" id="L50" title="All 2 branches covered.">			return !e1.getChecksum().equals(e2.getChecksum());</span>
+		}
+
+		boolean hasChecksums() {
+<span class="pc bpc" id="L54" title="2 of 4 branches missed.">			return e1.getChecksum().isPresent() &amp;&amp; e2.getChecksum().isPresent();</span>
+		}
+	}
+
+	private final Comparator&lt;MigrationVersion&gt; versionComparator;
+
+	/**
+	 * The actual locally underlying migrations, not only the chain.
+	 */
+	private final Map&lt;MigrationVersion, Migration&gt; discoveredMigrations;
+
+	private final MigrationChain newChain;
+
+	private final Map&lt;MigrationVersion, MigrationChain.Element&gt; newElements;
+
+	private final Map&lt;MigrationVersion, MigrationChain.Element&gt; currentElements;
+
+<span class="fc" id="L71">	ChainTool(Comparator&lt;MigrationVersion&gt; versionComparator, Collection&lt;Migration&gt; discoveredMigrations, MigrationChain newChain, MigrationChain currentChain) {</span>
+<span class="fc" id="L72">		this.versionComparator = versionComparator;</span>
+<span class="fc" id="L73">		this.newChain = newChain;</span>
+<span class="fc" id="L74">		this.discoveredMigrations = discoveredMigrations</span>
+<span class="fc" id="L75">			.stream().collect(Collectors.toMap(Migration::getVersion, Function.identity()));</span>
+
+<span class="fc" id="L77">		Collector&lt;MigrationChain.Element, ?, TreeMap&lt;MigrationVersion, MigrationChain.Element&gt;&gt; collector = Collectors</span>
+<span class="fc" id="L78">			.toMap(</span>
+<span class="fc" id="L79">				e -&gt; MigrationVersion.withValue(e.getVersion()),</span>
+<span class="fc" id="L80">				Function.identity(),</span>
+<span class="fc" id="L81">				throwingMerger(),</span>
+<span class="fc" id="L82">				() -&gt; new TreeMap&lt;&gt;(this.versionComparator));</span>
+
+<span class="fc" id="L84">		this.newElements = newChain.getElements().stream().collect(collector);</span>
+<span class="fc" id="L85">		this.currentElements = currentChain.getElements().stream().collect(collector);</span>
+<span class="fc" id="L86">	}</span>
+
+	List&lt;Query&gt; repair(MigrationsConfig config, MigrationContext context) {
+
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">		if (currentElements.isEmpty()) {</span>
+<span class="nc" id="L91">			return List.of();</span>
+		}
+
+<span class="fc" id="L94">		var migrationTarget = config.getMigrationTargetIn(context).orElse(null);</span>
+
+<span class="fc" id="L96">		List&lt;Query&gt; result = new ArrayList&lt;&gt;(fixChecksums(migrationTarget));</span>
+<span class="fc" id="L97">		result.addAll(deleteLocallyMissingMigrations(migrationTarget));</span>
+<span class="fc" id="L98">		result.addAll(insertRemoteMissingMigrations(migrationTarget, config.getOptionalInstalledBy()));</span>
+<span class="fc" id="L99">		return result;</span>
+	}
+
+	static Query generateMigrationDeletionQuery(String migrationTarget, MigrationVersion version) {
+
+<span class="fc" id="L104">		var cypher = &quot;&quot;&quot;</span>
+			MATCH (p)-[l:MIGRATED_TO]-&gt;(m:__Neo4jMigration {version: $version})
+			OPTIONAL MATCH (m)-[r:MIGRATED_TO]-&gt;(n:__Neo4jMigration)
+			WHERE coalesce(m.migrationTarget, '&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;')
+			WITH p, l, m, r, n
+			FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
+			  CREATE (p)-[nl:MIGRATED_TO]-&gt;(n)
+			  SET nl = properties(l)
+			)
+			WITH l, m, r, properties(m) as p
+			DELETE l, m, r
+			RETURN p
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L118">		return new Query(cypher,</span>
+<span class="fc" id="L119">			Values.parameters(</span>
+<span class="fc" id="L120">				Migrations.PROPERTY_MIGRATION_VERSION, version.getValue(),</span>
+				Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget
+			)
+		);
+	}
+
+	private List&lt;Query&gt; fixChecksums(String migrationTarget) {
+
+<span class="fc" id="L128">		var cypher = &quot;&quot;&quot;        </span>
+			MATCH (m:__Neo4jMigration {version: $version, checksum: $oldChecksum})
+			WHERE coalesce(m.migrationTarget, '&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;')
+			SET m.checksum = $newChecksum
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L134">		Predicate&lt;Pair&gt; withChecksumFilter = Pair::checksumDiffers;</span>
+<span class="fc" id="L135">		withChecksumFilter = withChecksumFilter.and(Pair::hasChecksums);</span>
+
+<span class="fc" id="L137">		return findPairs().values().stream()</span>
+<span class="fc" id="L138">			.filter(withChecksumFilter)</span>
+<span class="fc" id="L139">			.map(p -&gt; new Query(cypher,</span>
+<span class="fc" id="L140">					Values.parameters(</span>
+						Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
+<span class="fc" id="L142">						Migrations.PROPERTY_MIGRATION_VERSION, p.e1.getVersion(),</span>
+<span class="fc" id="L143">						&quot;oldChecksum&quot;, p.e2.getChecksum().orElseThrow(),</span>
+<span class="fc" id="L144">						&quot;newChecksum&quot;, p.e1.getChecksum().orElseThrow()</span>
+					)
+				)
+			)
+<span class="fc" id="L148">			.toList();</span>
+	}
+
+	private List&lt;Query&gt; deleteLocallyMissingMigrations(String migrationTarget) {
+
+<span class="fc" id="L153">		return findMissingSourceElements()</span>
+<span class="fc" id="L154">			.stream()</span>
+<span class="fc" id="L155">			.map(version -&gt; generateMigrationDeletionQuery(migrationTarget, version))</span>
+<span class="fc" id="L156">			.toList();</span>
+	}
+
+	private List&lt;Query&gt; insertRemoteMissingMigrations(String migrationTarget, Optional&lt;String&gt; installedBy) {
+
+<span class="fc" id="L161">		var cypher = &quot;&quot;&quot;</span>
+			MATCH (pm:__Neo4jMigration {version: $previousVersion}) - [pr:MIGRATED_TO] -&gt; (nm:__Neo4jMigration)
+			WHERE coalesce(pm.migrationTarget, '&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;')
+			AND coalesce(pm.migrationTarget, '&lt;default&gt;') = coalesce(nm.migrationTarget, '&lt;default&gt;')
+			CREATE (im:__Neo4jMigration {version: $version})
+			CREATE (pm)-[nl:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: 0} ), by: $installedBy, connectedAs: $neo4jUser}]-&gt; (im)
+			CREATE (im)-[nr:MIGRATED_TO]-&gt;(nm)
+			SET im = $insertedMigration,  nr = properties(pr)
+			DELETE pr
+			RETURN *
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L173">		var lastKnownVersion = currentElements.keySet().stream().skip(currentElements.size() - 1L).findFirst().orElseThrow();</span>
+
+<span class="fc" id="L175">		var allVersions = new TreeSet&lt;&gt;(this.versionComparator);</span>
+<span class="fc" id="L176">		allVersions.add(MigrationVersion.baseline());</span>
+<span class="fc" id="L177">		allVersions.addAll(newElements.keySet());</span>
+<span class="fc" id="L178">		allVersions.addAll(currentElements.keySet());</span>
+<span class="fc" id="L179">		allVersions.removeAll(findMissingSourceElements());</span>
+
+<span class="fc" id="L181">		var sortedVersions = new ArrayList&lt;&gt;(allVersions);</span>
+
+<span class="fc" id="L183">		return newElements.entrySet().stream()</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">			.takeWhile(entry -&gt; this.versionComparator.compare(entry.getKey(), lastKnownVersion) &lt; 0)</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">			.filter(entry -&gt; !currentElements.containsKey(entry.getKey()))</span>
+<span class="fc" id="L186">			.map(entry -&gt; {</span>
+<span class="fc" id="L187">				var migration = entry.getValue();</span>
+<span class="fc" id="L188">				var properties = new HashMap&lt;String, Object&gt;();</span>
+
+<span class="fc" id="L190">				properties.put(Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue());</span>
+<span class="fc" id="L191">				migration.getOptionalDescription().ifPresent(v -&gt; properties.put(Migrations.PROPERTY_MIGRATION_DESCRIPTION, v));</span>
+<span class="fc" id="L192">				properties.put(&quot;type&quot;, migration.getType().name());</span>
+<span class="fc" id="L193">				properties.put(&quot;repeatable&quot;, Optional.ofNullable(discoveredMigrations.get(entry.getKey())).map(Migration::isRepeatable).orElse(false));</span>
+<span class="fc" id="L194">				properties.put(&quot;source&quot;, migration.getSource());</span>
+<span class="fc" id="L195">				migration.getChecksum().ifPresent(v -&gt; properties.put(&quot;checksum&quot;, v));</span>
+
+<span class="fc" id="L197">				return new Query(cypher, Values.parameters(</span>
+					Migrations.PROPERTY_MIGRATION_TARGET, migrationTarget,
+<span class="fc" id="L199">					Migrations.PROPERTY_MIGRATION_VERSION, entry.getKey().getValue(),</span>
+<span class="fc" id="L200">					&quot;previousVersion&quot;, sortedVersions.get(sortedVersions.indexOf(entry.getKey()) - 1).getValue(),</span>
+<span class="fc" id="L201">					&quot;installedBy&quot;, installedBy.map(Values::value).orElse(Values.NULL),</span>
+<span class="fc" id="L202">					&quot;neo4jUser&quot;, newChain.getUsername(),</span>
+					&quot;insertedMigration&quot;, properties
+				));
+<span class="fc" id="L205">		}).toList();</span>
+	}
+
+	private Map&lt;MigrationVersion, Pair&gt; findPairs() {
+
+<span class="fc" id="L210">		var sharedKeys = new HashSet&lt;&gt;(newElements.keySet());</span>
+<span class="fc" id="L211">		sharedKeys.retainAll(currentElements.keySet());</span>
+<span class="fc" id="L212">		return sharedKeys.stream()</span>
+<span class="fc" id="L213">			.collect(Collectors.toMap(</span>
+<span class="fc" id="L214">				Function.identity(),</span>
+<span class="fc" id="L215">				k -&gt; new Pair(newElements.get(k), currentElements.get(k)),</span>
+<span class="fc" id="L216">				throwingMerger(),</span>
+<span class="fc" id="L217">				() -&gt; new TreeMap&lt;&gt;(this.versionComparator)</span>
+			));
+	}
+
+	private Set&lt;MigrationVersion&gt; findMissingSourceElements() {
+
+<span class="fc bfc" id="L223" title="All 2 branches covered.">		return currentElements.keySet().stream().filter(element -&gt; !newElements.containsKey(element))</span>
+<span class="fc" id="L224">			.collect(Collectors.toSet());</span>
+	}
+
+	private static &lt;T&gt; BinaryOperator&lt;T&gt; throwingMerger() {
+<span class="fc" id="L228">		return (k, v) -&gt; {</span>
+<span class="nc" id="L229">			throw new IllegalStateException(&quot;Must not contain duplicate keys&quot;);</span>
+		};
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

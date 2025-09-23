@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationsConfig.java</span></div><h1>MigrationsConfig.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.summary.DatabaseInfo;
+
+/**
+ * Configuration for Migrations.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+public final class MigrationsConfig {
+
+	/**
+	 * Used for configuring the transaction mode in Cypher-based transactions.
+	 */
+<span class="fc" id="L46">	public enum TransactionMode {</span>
+
+		/**
+		 * Run all statements in one transaction. May need more memory, but it's generally safer. Either the
+		 * migration runs as a whole or not at all.
+		 */
+<span class="fc" id="L52">		PER_MIGRATION,</span>
+		/**
+		 * Runs each statement in a separate transaction. May leave your database in an inconsistent state when
+		 * one statement fails.
+		 */
+<span class="fc" id="L57">		PER_STATEMENT</span>
+	}
+
+	/**
+	 * This class has been introduced in 2.8.3 to configure the way version numbers are sorted.
+	 * By default, they are sorted in lexicographic order ever since Neo4j-Migrations has been conceived.
+	 * This has been an oversight and most likely not what is expected. We cannot change the default in the 2.x series,
+	 * as that would be a possible hard breaking change, but 3.x will default to semantic ordering.
+	 *
+	 * @since 2.9.0
+	 */
+<span class="fc" id="L68">	public enum VersionSortOrder {</span>
+
+		/**
+		 * Sort version numbers in lexicographic order (the default in 1.x and 2.x).
+		 */
+<span class="fc" id="L73">		LEXICOGRAPHIC,</span>
+
+		/**
+		 * Sort version numbers in semantic order (will be the default in 3.x)
+		 */
+<span class="fc" id="L78">		SEMANTIC</span>
+	}
+
+	/**
+	 * This type has been introduced in 2.19.0 to allow configuration of the Cypher version in which all scripts should
+	 * be run without the necessity to define this in individual scripts. This is especially helpful on databases that
+	 * default to Cypher 25 and cannot run old scripts anymore. If you were to change the scripts, migrations would fail
+	 * as the hash of the script would change, too.
+	 * &lt;br/&gt;
+	 * For now, this setting will only be applied to Cypher based resources and not to Java or XML based migrations.
+	 * &lt;br/&gt;
+	 * Read more about Cypher versioning &lt;a href=&quot;https://neo4j.com/docs/cypher-manual/current/queries/select-version/#select-default-cypher-version&quot;&gt;here&lt;/a&gt;.
+	 */
+<span class="fc" id="L91">	public enum CypherVersion {</span>
+
+		/**
+		 * Uses the database defaults and will work with all versions of Neo4j.
+		 */
+<span class="fc" id="L96">		DATABASE_DEFAULT(&quot;&quot;),</span>
+		/**
+		 * Uses Cypher 5 and will work from later 5.26 versions.
+		 */
+<span class="fc" id="L100">		CYPHER_5(&quot;CYPHER 5&quot;),</span>
+		/**
+		 * Uses Cypher 25 and will work from 2025.06 onwards.
+		 */
+<span class="fc" id="L104">		CYPHER_25(&quot;CYPHER 25&quot;);</span>
+
+		private final String prefix;
+
+<span class="fc" id="L108">		CypherVersion(String prefix) {</span>
+<span class="fc" id="L109">			this.prefix = prefix;</span>
+<span class="fc" id="L110">		}</span>
+
+		public String getPrefix() {
+<span class="fc" id="L113">			return prefix;</span>
+		}
+	}
+
+	/**
+	 * Start building a new configuration.
+	 *
+	 * @return The entry point for creating a new configuration.
+	 * @since 0.0.1
+	 */
+	public static Builder builder() {
+
+<span class="fc" id="L125">		return new Builder();</span>
+	}
+
+	/**
+	 * @return The default config
+	 * @since 0.0.6
+	 */
+	public static MigrationsConfig defaultConfig() {
+
+<span class="fc" id="L134">		return builder().build();</span>
+	}
+
+	private final String[] packagesToScan;
+
+	private final String[] locationsToScan;
+
+	private final TransactionMode transactionMode;
+
+	/**
+	 * The database to migrate.
+	 */
+	private final String database;
+
+	/**
+	 * The database to store the schema in.
+	 */
+	private final String schemaDatabase;
+
+	private final String impersonatedUser;
+
+	private final String installedBy;
+
+	private final boolean validateOnMigrate;
+
+	private final boolean autocrlf;
+
+	private final Discoverer&lt;JavaBasedMigration&gt; migrationClassesDiscoverer;
+
+	private final ClasspathResourceScanner resourceScanner;
+
+	/**
+	 * A configurable delay that will be applied in between applying two migrations.
+	 */
+	private final Duration delayBetweenMigrations;
+
+	private final List&lt;? extends RenderConfig.AdditionalRenderingOptions&gt; constraintOptions;
+
+	private final VersionSortOrder versionSortOrder;
+
+	private final Duration transactionTimeout;
+
+	private final boolean outOfOrder;
+
+	private final String target;
+
+	private final boolean useFlywayCompatibleChecksums;
+
+	private final CypherVersion cypherVersion;
+
+<span class="fc" id="L184">	private MigrationsConfig(Builder builder) {</span>
+
+<span class="fc" id="L186">		this.packagesToScan =</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">			builder.packagesToScan == null ? Defaults.PACKAGES_TO_SCAN.toArray(new String[0]) : builder.packagesToScan;</span>
+<span class="fc" id="L188">		this.locationsToScan =</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">			builder.locationsToScan == null ?</span>
+<span class="fc" id="L190">				Defaults.LOCATIONS_TO_SCAN.toArray(new String[0]) :</span>
+<span class="fc" id="L191">				builder.locationsToScan;</span>
+<span class="fc" id="L192">		this.transactionMode = Optional.ofNullable(builder.transactionMode).orElse(TransactionMode.PER_MIGRATION);</span>
+<span class="fc" id="L193">		this.database = builder.database;</span>
+<span class="fc" id="L194">		this.impersonatedUser = builder.impersonatedUser;</span>
+<span class="fc" id="L195">		this.installedBy = Optional.ofNullable(builder.installedBy).orElse(System.getProperty(&quot;user.name&quot;));</span>
+<span class="fc" id="L196">		this.validateOnMigrate = builder.validateOnMigrate;</span>
+<span class="fc" id="L197">		this.autocrlf = builder.autocrlf;</span>
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">		this.migrationClassesDiscoverer = builder.migrationClassesDiscoverer == null ? new JavaBasedMigrationDiscoverer() : builder.migrationClassesDiscoverer;</span>
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">		this.resourceScanner = builder.resourceScanner == null ? new DefaultClasspathResourceScanner() : builder.resourceScanner;</span>
+<span class="fc" id="L200">		this.schemaDatabase = builder.schemaDatabase;</span>
+<span class="fc" id="L201">		this.delayBetweenMigrations = builder.delayBetweenMigrations;</span>
+<span class="fc" id="L202">		this.constraintOptions = builder.constraintOptions;</span>
+<span class="fc" id="L203">		this.versionSortOrder = builder.versionSortOrder;</span>
+<span class="fc" id="L204">		this.transactionTimeout = builder.transactionTimeout;</span>
+<span class="fc" id="L205">		this.outOfOrder = builder.outOfOrder;</span>
+<span class="fc" id="L206">		this.useFlywayCompatibleChecksums = builder.useFlywayCompatibleChecksums;</span>
+<span class="pc bpc" id="L207" title="1 of 4 branches missed.">		if (builder.target == null || builder.target.isBlank()) {</span>
+<span class="fc" id="L208">			this.target = null;</span>
+		} else {
+<span class="fc" id="L210">			this.target = builder.target;</span>
+		}
+<span class="fc bfc" id="L212" title="All 2 branches covered.">		this.cypherVersion = builder.cypherVersion == null ? Defaults.CYPHER_VERSION : builder.cypherVersion;</span>
+<span class="fc" id="L213">	}</span>
+
+	/**
+	 * @return the list of packages to scan
+	 */
+	public String[] getPackagesToScan() {
+<span class="fc" id="L219">		return packagesToScan;</span>
+	}
+
+	/**
+	 * @return the list of locations to scan
+	 */
+	public String[] getLocationsToScan() {
+<span class="fc" id="L226">		return locationsToScan;</span>
+	}
+
+	/**
+	 * @return the transaction mode (whether to use one transaction for per migration or per statement)
+	 */
+	public TransactionMode getTransactionMode() {
+<span class="fc" id="L233">		return transactionMode;</span>
+	}
+
+	/**
+	 * @return An optional target database
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalDatabase() {
+<span class="fc" id="L241">		return Strings.optionalOf(database);</span>
+	}
+
+	/**
+	 * @return An optional schema database
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalSchemaDatabase() {
+<span class="fc" id="L249">		return Strings.optionalOf(schemaDatabase);</span>
+	}
+
+	/**
+	 * @return An optional user to impersonate
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalImpersonatedUser() {
+<span class="fc" id="L257">		return Strings.optionalOf(impersonatedUser);</span>
+	}
+
+	/**
+	 * @return Optional user information about the user executing the migration
+	 * @since 1.1.0
+	 */
+	public Optional&lt;String&gt; getOptionalInstalledBy() {
+<span class="fc" id="L265">		return Strings.optionalOf(installedBy);</span>
+	}
+
+	/**
+	 * @return {@literal true} if resolved migrations and database state should be validated before a migration attempt is applied
+	 */
+	public boolean isValidateOnMigrate() {
+<span class="fc" id="L272">		return validateOnMigrate;</span>
+	}
+
+	/**
+	 * @return whether {@literal CRLF} line endings should be automatically converted into {@literal LF}
+	 */
+	public boolean isAutocrlf() {
+<span class="fc" id="L279">		return autocrlf;</span>
+	}
+
+	/**
+	 * @return The discoverer for class based migrations,  never {@literal null}
+	 * @since 1.3.0
+	 */
+	public Discoverer&lt;JavaBasedMigration&gt; getMigrationClassesDiscoverer() {
+<span class="fc" id="L287">		return migrationClassesDiscoverer;</span>
+	}
+
+	/**
+	 * @return The resource scanner, never {@literal null}
+	 * @since 1.3.0
+	 */
+	public ClasspathResourceScanner getResourceScanner() {
+<span class="fc" id="L295">		return resourceScanner;</span>
+	}
+
+	/**
+	 * @return The delay to apply between migrations
+	 * @since 2.3.2
+	 */
+	public Optional&lt;Duration&gt; getOptionalDelayBetweenMigrations() {
+<span class="fc" id="L303">		return Optional.ofNullable(delayBetweenMigrations);</span>
+	}
+
+	/**
+	 * {@return the list of additional options to use when rendering constraints}
+	 *
+	 * @since 2.8.2
+	 */
+	public List&lt;? extends RenderConfig.AdditionalRenderingOptions&gt; getConstraintRenderingOptions() {
+<span class="fc" id="L312">		return List.copyOf(constraintOptions);</span>
+	}
+
+	/**
+	 * {@return the transaction timeout, &lt;code&gt;null&lt;/code&gt; indicates all transactions will use the drivers default timeout}
+	 *
+	 * @since 2.13.0
+	 */
+	public Duration getTransactionTimeout() {
+<span class="fc" id="L321">		return transactionTimeout;</span>
+	}
+
+	/**
+	 * When this flag is set to {@literal true}, new migrations discovered that are &quot;out of order&quot;, such as a version 15
+	 * is to be found between 10 and 20, it will be accepted, integrated into the chain and then move on instead of throwing
+	 * an error.
+	 *
+	 * @return true if migrations shall be allowed to be out of order
+	 * @since 2.14.0
+	 */
+	public boolean isOutOfOrder() {
+<span class="fc" id="L333">		return outOfOrder;</span>
+	}
+
+	/**
+	 * {@return a valid target version or one of three dedicated values}
+	 *
+	 * @since 2.15.0
+	 */
+	public String getTarget() {
+<span class="fc" id="L342">		return target;</span>
+	}
+
+	/**
+	 * {@return if Flyway compatible checksums should be used}
+	 *
+	 * @since 2.17.0
+	 */
+	public boolean isUseFlywayCompatibleChecksums() {
+<span class="fc" id="L351">		return useFlywayCompatibleChecksums;</span>
+	}
+
+	/**
+	 * {@return the cypher version used as prefix for all Cypher scripts}
+	 *
+	 * @since 2.19.0
+	 */
+	public CypherVersion getCypherVersion() {
+<span class="fc" id="L360">		return cypherVersion;</span>
+	}
+
+	/**
+	 * Helper method to pretty print this configuration into a logger (on level {@literal INFO} respectively {@literal WARNING}.
+	 *
+	 * @param logger  the logger to print to
+	 * @param verbose set to {@literal true} if you want to print all details
+	 */
+	public void logTo(Logger logger, boolean verbose) {
+<span class="fc bfc" id="L370" title="All 2 branches covered.">		if (!this.hasPlacesToLookForMigrations()) {</span>
+<span class="fc" id="L371">			logger.log(Level.WARNING, &quot;Cannot find migrations as neither locations nor packages to scan are configured!&quot;);</span>
+		}
+
+<span class="fc bfc" id="L374" title="All 4 branches covered.">		if (verbose &amp;&amp; logger.isLoggable(Level.INFO)) {</span>
+<span class="fc" id="L375">			this.getOptionalDatabase().ifPresent(v -&gt; logger.log(Level.INFO, &quot;Migrations will be applied to database \&quot;{0}\&quot;&quot;, v));</span>
+<span class="fc bfc" id="L376" title="All 2 branches covered.">			if (this.getLocationsToScan().length &gt; 0) {</span>
+<span class="fc" id="L377">				logger.log(Level.INFO, &quot;Will search for Cypher scripts in \&quot;{0}\&quot;&quot;,</span>
+<span class="fc" id="L378">					String.join(&quot;&quot;, this.getLocationsToScan()));</span>
+<span class="fc" id="L379">				logger.log(Level.INFO, &quot;Statements will be applied {0}&quot;,</span>
+<span class="fc bfc" id="L380" title="All 2 branches covered.">					this.getTransactionMode() == TransactionMode.PER_MIGRATION ?</span>
+<span class="fc" id="L381">						&quot;in one transaction per migration&quot; :</span>
+<span class="fc" id="L382">						&quot;in separate transactions&quot;);</span>
+			}
+<span class="fc bfc" id="L384" title="All 2 branches covered.">			if (this.getPackagesToScan().length &gt; 0) {</span>
+<span class="fc" id="L385">				logger.log(Level.INFO, &quot;Will scan for Java-based migrations in \&quot;{0}\&quot;&quot;, String.join(&quot;&quot;, this.getPackagesToScan()));</span>
+			}
+		}
+<span class="fc" id="L388">	}</span>
+
+	/**
+	 * This is internal API and will be made package private in 2.0.0
+	 *
+	 * @return True if there are packages to scan
+	 */
+	boolean hasPlacesToLookForMigrations() {
+<span class="fc bfc" id="L396" title="All 4 branches covered.">		return this.getPackagesToScan().length &gt; 0 || this.getLocationsToScan().length &gt; 0;</span>
+	}
+
+	/**
+	 * The migration target will be empty if no target database is given or the schema database is the same as the target.
+	 *
+	 * @param context The context in which the target should be retrieved
+	 * @return A target database to use for all chains stored.
+	 */
+	Optional&lt;String&gt; getMigrationTargetIn(MigrationContext context) {
+<span class="fc" id="L406">		Optional&lt;String&gt; optionalDatabase = getOptionalDatabase();</span>
+<span class="fc" id="L407">		Optional&lt;String&gt; optionalSchemaDatabase = getOptionalSchemaDatabase();</span>
+
+<span class="fc bfc" id="L409" title="All 2 branches covered.">		if (optionalSchemaDatabase.isEmpty()) {</span>
+<span class="fc" id="L410">			return Optional.empty();</span>
+		}
+
+<span class="fc bfc" id="L413" title="All 2 branches covered.">		if (optionalDatabase.isEmpty()) {</span>
+			// We need to connect to get this information
+<span class="fc" id="L415">			try (Session session = context.getSession()) {</span>
+				try {
+<span class="fc" id="L417">					optionalDatabase = Optional.of(session.executeRead(tx -&gt; tx.run(&quot;CALL db.info() YIELD name&quot;).single().get(&quot;name&quot;).asString()));</span>
+<span class="fc" id="L418">				} catch (ClientException e) {</span>
+<span class="fc" id="L419">					optionalDatabase =</span>
+<span class="fc" id="L420">						Optional.ofNullable(session.executeRead(tx -&gt; tx.run(&quot;MATCH (n) RETURN count(n)&quot;).consume()).database())</span>
+<span class="fc" id="L421">							.map(DatabaseInfo::name);</span>
+<span class="fc" id="L422">				}</span>
+			}
+		}
+
+<span class="fc bfc" id="L426" title="All 2 branches covered.">		if (!optionalDatabase.equals(optionalSchemaDatabase)) {</span>
+<span class="fc" id="L427">			return optionalDatabase.map(s -&gt; s.toLowerCase(Locale.ROOT));</span>
+		}
+<span class="fc" id="L429">		return Optional.empty();</span>
+	}
+
+	/**
+	 * {@return the configured version sort order}
+	 */
+	public VersionSortOrder getVersionSortOrder() {
+<span class="nc" id="L436">		return versionSortOrder;</span>
+	}
+
+	Comparator&lt;MigrationVersion&gt; getVersionComparator() {
+<span class="fc" id="L440">		return MigrationVersion.getComparator(this.versionSortOrder);</span>
+	}
+
+	/**
+	 * A builder to create new instances of {@link MigrationsConfig configurations}.
+	 */
+	public static class Builder {
+
+		private String[] packagesToScan;
+
+		private String[] locationsToScan;
+
+		private TransactionMode transactionMode;
+
+		private String database;
+
+		private String impersonatedUser;
+
+		private String installedBy;
+
+<span class="fc" id="L460">		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;</span>
+
+<span class="fc" id="L462">		private boolean autocrlf = Defaults.AUTOCRLF;</span>
+
+		private String schemaDatabase;
+
+		private Discoverer&lt;JavaBasedMigration&gt; migrationClassesDiscoverer;
+
+		private ClasspathResourceScanner resourceScanner;
+
+		private Duration delayBetweenMigrations;
+
+<span class="fc" id="L472">		private List&lt;? extends RenderConfig.AdditionalRenderingOptions&gt; constraintOptions = List.of();</span>
+
+<span class="fc" id="L474">		private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;</span>
+
+		private Duration transactionTimeout;
+
+<span class="fc" id="L478">		private boolean outOfOrder = Defaults.OUT_OF_ORDER;</span>
+
+		private String target;
+
+<span class="fc" id="L482">		private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;</span>
+
+<span class="fc" id="L484">		private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;</span>
+
+<span class="fc" id="L486">		private Builder() {</span>
+			// The explicit constructor has been added to avoid warnings when Neo4j-Migrations
+			// is used on the module path. JMS will complain about Builder being exported with
+			// a public visible, implicit constructor.
+<span class="fc" id="L490">		}</span>
+
+		/**
+		 * Configures the list of packages to scan. Default is an empty list.
+		 *
+		 * @param packages one or more packages to scan.
+		 * @return The builder for further customization
+		 */
+		public Builder withPackagesToScan(String... packages) {
+
+<span class="fc" id="L500">			this.packagesToScan = packages;</span>
+<span class="fc" id="L501">			return this;</span>
+		}
+
+		/**
+		 * Configures the list of locations to scan. Defaults to a single entry of `classpath:neo4j/migrations`.
+		 *
+		 * @param locations one or more locations to scan. Can start either with `classpath:` or `file:`. Locations
+		 *                  without prefix are treated as classpath resources.
+		 * @return The builder for further customization
+		 */
+		public Builder withLocationsToScan(String... locations) {
+
+<span class="fc" id="L513">			this.locationsToScan = locations;</span>
+<span class="fc" id="L514">			return this;</span>
+		}
+
+		/**
+		 * Configures the transaction mode. Please have a look at {@link TransactionMode} regarding advantages and
+		 * disadvantages of each mode.
+		 *
+		 * @param newTransactionMode The new transaction mode.
+		 * @return The builder for further customization
+		 */
+		public Builder withTransactionMode(TransactionMode newTransactionMode) {
+
+<span class="fc" id="L526">			this.transactionMode = newTransactionMode;</span>
+<span class="fc" id="L527">			return this;</span>
+		}
+
+		/**
+		 * Configures the database to apply Cypher-based migrations too. Leave null for the default database.
+		 *
+		 * @param newDatabase The database to use
+		 * @return The builder for further customization
+		 */
+		public Builder withDatabase(String newDatabase) {
+
+<span class="fc" id="L538">			this.database = newDatabase;</span>
+<span class="fc" id="L539">			return this;</span>
+		}
+
+		/**
+		 * Configures the user / principal name of the that is recorded in the MIGRATED_TO relationship as {@code by}.
+		 * Defaults to the OS user.
+		 *
+		 * @param newInstalledBy An arbitrary string to represent the service having installed the migrations
+		 * @return The builder for further customization
+		 * @since 0.0.6
+		 */
+		public Builder withInstalledBy(String newInstalledBy) {
+
+<span class="nc" id="L552">			this.installedBy = newInstalledBy;</span>
+<span class="nc" id="L553">			return this;</span>
+		}
+
+		/**
+		 * Validating helps you verify that the migrations applied to the database match the ones available locally and
+		 * is on by default. It can be turned off by using a configuration with {@link MigrationsConfig#isValidateOnMigrate()}
+		 * to {@literal false}.
+		 *
+		 * @param newValidateOnMigrate The new value for {@code validateOnMigrate}.
+		 * @return The builder for further customization
+		 * @since 0.2.1
+		 */
+		public Builder withValidateOnMigrate(boolean newValidateOnMigrate) {
+
+<span class="fc" id="L567">			this.validateOnMigrate = newValidateOnMigrate;</span>
+<span class="fc" id="L568">			return this;</span>
+		}
+
+		/**
+		 * If you're programming on Windows and working with people who are not (or vice-versa), you'll probably run into
+		 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+		 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+		 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+		 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+		 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+		 * Cypher-based migration or applying it.
+		 *
+		 * @param newAutocrlf The new value for {@code autocrlf}.
+		 * @return The builder for further customization
+		 * @since 0.3.1
+		 */
+		public Builder withAutocrlf(boolean newAutocrlf) {
+
+<span class="fc" id="L586">			this.autocrlf = newAutocrlf;</span>
+<span class="fc" id="L587">			return this;</span>
+		}
+
+		/**
+		 * Configures the impersonated user to use. This works only with Neo4j 4.4+ Enterprise and a Neo4j 4.4+ driver.
+		 * The feature comes in handy for escalating privileges during the time of migrations and dropping them again
+		 * for further use of a connection.
+		 *
+		 * @param newImpersonatedUser A user to impersonate
+		 * @return The builder for further customization
+		 * @since 1.0.0
+		 */
+		public Builder withImpersonatedUser(String newImpersonatedUser) {
+
+<span class="fc" id="L601">			this.impersonatedUser = newImpersonatedUser;</span>
+<span class="fc" id="L602">			return this;</span>
+		}
+
+		/**
+		 * Configures the schema database to use. This is different from {@link #withDatabase(String)}. The latter configures
+		 * the database that should be migrated, the schema database configures the database that holds the migration chain
+		 * &lt;p&gt;
+		 * To use this, Neo4j 4+ enterprise edition is required.
+		 *
+		 * @param newSchemaDatabase The new schema database to use.
+		 * @return The builder for further customization
+		 * @since 1.1.0
+		 */
+		public Builder withSchemaDatabase(String newSchemaDatabase) {
+
+<span class="fc" id="L617">			this.schemaDatabase = newSchemaDatabase;</span>
+<span class="fc" id="L618">			return this;</span>
+		}
+
+		/**
+		 * @param newMigrationClassesDiscoverer The discoverer for (Java) class based migrations. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withMigrationClassesDiscoverer(Discoverer&lt;JavaBasedMigration&gt; newMigrationClassesDiscoverer) {
+
+<span class="nc" id="L628">			this.migrationClassesDiscoverer = newMigrationClassesDiscoverer;</span>
+<span class="nc" id="L629">			return this;</span>
+		}
+
+		/**
+		 * @param newResourceScanner The Cypher resource scanner to be used. Set to {@literal null} to use the default.
+		 * @return The builder for further customization
+		 * @since 1.3.0
+		 */
+		public Builder withResourceScanner(ClasspathResourceScanner newResourceScanner) {
+
+<span class="nc" id="L639">			this.resourceScanner = newResourceScanner;</span>
+<span class="nc" id="L640">			return this;</span>
+		}
+
+		/**
+		 * Some migrations, for example creating large indexes followed by large updates can cause an exception boiling down to
+		 * {code Could not compile query due to insanely frequent schema changes}. To prevent this, you can configure a static
+		 * delay between migrations.
+		 *
+		 * @param newDelayBetweenMigrations The delay to use. Use {@literal null} to disable delay (which is the default)
+		 * @return The builder for further customization
+		 * @since 2.3.2
+		 */
+		public Builder withDelayBetweenMigrations(Duration newDelayBetweenMigrations) {
+
+<span class="fc" id="L654">			this.delayBetweenMigrations = newDelayBetweenMigrations;</span>
+<span class="fc" id="L655">			return this;</span>
+		}
+
+		/**
+		 * Configures the rendering options for constraints defined by a catalog. Can be {@literal null} but must not
+		 * contain any {@literal null} items.
+		 *
+		 * @param newRenderingOptions The rendering options to use, a {@literal null} argument resets the options.
+		 * @return The builder for further customization
+		 * @throws NullPointerException if {@code newRenderingOptions} contains {@literal null} values
+		 * @since 2.8.2
+		 */
+		public Builder withConstraintRenderingOptions(Collection&lt;? extends RenderConfig.AdditionalRenderingOptions&gt; newRenderingOptions) {
+
+<span class="fc" id="L669">			this.constraintOptions = List.copyOf(Objects.requireNonNullElseGet(newRenderingOptions, List::of));</span>
+<span class="fc" id="L670">			return this;</span>
+		}
+
+		/**
+		 * Configures how versions are sorted.
+		 *
+		 * @param newVersionSortOrder the new order
+		 * @return The builder for further customization
+		 * @see VersionSortOrder
+		 * @since 2.9.0
+		 */
+		public Builder withVersionSortOrder(VersionSortOrder newVersionSortOrder) {
+
+<span class="fc" id="L683">			this.versionSortOrder = newVersionSortOrder;</span>
+<span class="fc" id="L684">			return this;</span>
+		}
+
+		/**
+		 * Configures the transaction timeout. Leave {@literal null} (the default), to use the drivers default
+		 *
+		 * @param newTransactionTimeout The transaction timeout
+		 * @return The builder for further customization
+		 * @since 2.13.0
+		 */
+		public Builder withTransactionTimeout(Duration newTransactionTimeout) {
+<span class="fc" id="L695">			this.transactionTimeout = newTransactionTimeout;</span>
+<span class="fc" id="L696">			return this;</span>
+		}
+
+		/**
+		 * Allows or disallows migrations discovered to be out of order.
+		 *
+		 * @param allowed use {@literal true} to allow out-of-order discovery of migrations
+		 * @return The builder for further customization
+		 * @since 2.14.0
+		 */
+		public Builder withOutOfOrderAllowed(boolean allowed) {
+<span class="fc" id="L707">			this.outOfOrder = allowed;</span>
+<span class="fc" id="L708">			return this;</span>
+		}
+
+		/**
+		 * Configures the target version up to which migrations should be considered.
+		 * This must be a valid migration version, or one of the special values
+		 * {@code current}, {@code latest} or {@code next}.
+		 *
+		 * @param newTarget the new target version
+		 * @return The builder for further customization
+		 * @since 2.15.0
+		 */
+		public Builder withTarget(String newTarget) {
+<span class="fc" id="L721">			this.target = newTarget;</span>
+<span class="fc" id="L722">			return this;</span>
+		}
+
+		/**
+		 * Enables or disables migrations with checksums in Flyway compatible mode
+		 *
+		 * @param enabled use {@literal true} to enable Flyway compatible checksums
+		 * @return The builder for further customization
+		 * @since 2.17.0
+		 */
+		public Builder withFlywayCompatibleChecksums(boolean enabled) {
+<span class="fc" id="L733">			this.useFlywayCompatibleChecksums = enabled;</span>
+<span class="fc" id="L734">			return this;</span>
+		}
+
+		/**
+		 * Selects the default cypher version. A {@literal null} argument uses {@link Defaults#CYPHER_VERSION}.
+		 * @param newCypherVersion the cypher version to use as prefix for all cypher baseed migrations
+		 * @return The builder for further customization
+		 * @since 2.19.0
+		 */
+		public Builder withCypherVersion(CypherVersion newCypherVersion) {
+<span class="fc" id="L744">			this.cypherVersion = newCypherVersion;</span>
+<span class="fc" id="L745">			return this;</span>
+		}
+
+		/**
+		 * @return The immutable configuration
+		 */
+		public MigrationsConfig build() {
+
+<span class="fc" id="L753">			return new MigrationsConfig(this);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

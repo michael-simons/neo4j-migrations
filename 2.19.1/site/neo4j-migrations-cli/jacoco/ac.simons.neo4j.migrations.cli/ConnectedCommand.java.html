@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConnectedCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CLI)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">ConnectedCommand.java</span></div><h1>ConnectedCommand.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import picocli.CommandLine;
+
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.exceptions.AuthenticationException;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.FatalDiscoveryException;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
+
+/**
+ * Base class for a connected command.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Pet Shop Boys - Introspective
+ * @since 0.0.5
+ */
+<span class="fc" id="L41">abstract class ConnectedCommand implements Callable&lt;Integer&gt; {</span>
+
+	/**
+	 * Cannot be done on an attribute, as the annotation processor of Picocli prevents those annotations on something
+	 * that is not a command.
+	 *
+	 * @return The migration CLI parent.
+	 */
+	abstract MigrationsCli getParent();
+
+	/**
+	 * @return {@literal true} to enforce silence (no complaining about missing locations.
+	 */
+	boolean forceSilence() {
+<span class="fc" id="L55">		return false;</span>
+	}
+
+	@Override
+	public Integer call() {
+
+<span class="fc" id="L61">		MigrationsCli migrationsCli = getParent();</span>
+<span class="fc" id="L62">		AuthToken authToken = migrationsCli.getAuthToken();</span>
+
+		MigrationsConfig config;
+		try {
+<span class="fc" id="L66">			config = migrationsCli.getConfig(forceSilence());</span>
+<span class="fc" id="L67">		} catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L68">			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());</span>
+<span class="fc" id="L69">			return CommandLine.ExitCode.USAGE;</span>
+<span class="fc" id="L70">		}</span>
+
+<span class="fc" id="L72">		try (Driver driver = migrationsCli.openConnection(authToken)) {</span>
+
+<span class="fc" id="L74">			Migrations migrations = new Migrations(config, driver);</span>
+
+<span class="nc" id="L76">			return withMigrations(migrations);</span>
+<span class="nc" id="L77">		} catch (AuthenticationException | ServiceUnavailableException | FatalDiscoveryException e) {</span>
+<span class="nc" id="L78">			MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());</span>
+<span class="nc" id="L79">			return CommandLine.ExitCode.SOFTWARE;</span>
+<span class="fc" id="L80">		} catch (MigrationsException e) {</span>
+<span class="fc" id="L81">			Throwable cause = e.getCause();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">			if (cause instanceof ClientException ce) {</span>
+<span class="fc" id="L83">				MigrationsCli.LOGGER.log(Level.SEVERE, &quot;{0}{1}\t{2}: {3}&quot;,</span>
+<span class="fc" id="L84">					new Object[] { e.getMessage(), System.lineSeparator(), ce.code(), cause.getMessage() });</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">			} else if (isCatalogException(cause)) {</span>
+<span class="nc" id="L86">				MigrationsCli.LOGGER.log(Level.SEVERE, &quot;{0}: {1}&quot;, new Object[]{e.getMessage().replaceAll(&quot;\\.$&quot;, &quot;&quot;), cause.getMessage()});</span>
+			} else {
+<span class="fc" id="L88">				MigrationsCli.LOGGER.log(Level.SEVERE, e.getMessage());</span>
+			}
+<span class="fc" id="L90">			return CommandLine.ExitCode.SOFTWARE;</span>
+		}
+	}
+
+	static boolean isCatalogException(Throwable e) {
+<span class="fc bfc" id="L95" title="All 4 branches covered.">		if (!(e instanceof IllegalArgumentException || e instanceof IllegalStateException)) {</span>
+<span class="fc" id="L96">			return false;</span>
+		}
+
+<span class="fc" id="L99">		var stackTrace = e.getStackTrace();</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">		if (stackTrace.length == 0) {</span>
+<span class="fc" id="L101">			return false;</span>
+		}
+
+<span class="fc" id="L104">		return stackTrace[0].getClassName().contains(Renderer.class.getPackageName());</span>
+	}
+
+	/**
+	 * To be implemented by commands that need a connection to a Neo4j server.
+	 *
+	 * @param migrations the migrations to work on
+	 * @return The return code of this command
+	 */
+	abstract Integer withMigrations(Migrations migrations);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619278197">
+    <module artifactId="neo4j-migrations-examples-sb-testharness" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/examples/sb_testharness/Application.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/examples/sb_testharness/ApplicationTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/examples/sb_testharness/UsingDataNeo4jTest.java" result="PRESENT"/>
+        <file path="src/test/resources/logback-test.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

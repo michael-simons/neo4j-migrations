@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChainBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ChainBuilder.java</span></div><h1>ChainBuilder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
+
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Relationship;
+
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationChain.Element;
+
+/**
+ * Builder for retrieving information about a database and creating a chain containing applied and pending migrations.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Kettcar - Ich vs. wir
+ * @since 0.0.4
+ */
+final class ChainBuilder {
+
+	/**
+	 * A flag to force the chain builder into verification mode.
+	 */
+	private final boolean alwaysVerify;
+
+	ChainBuilder() {
+<span class="fc" id="L49">		this(false);</span>
+<span class="fc" id="L50">	}</span>
+
+<span class="fc" id="L52">	ChainBuilder(boolean alwaysVerify) {</span>
+<span class="fc" id="L53">		this.alwaysVerify = alwaysVerify;</span>
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * @param context              The current context
+	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
+	 *                             It is not yet known whether those are pending or not.
+	 * @return The full migration chain.
+	 * @see #buildChain(MigrationContext, List, boolean, ChainBuilderMode)
+	 */
+	MigrationChain buildChain(MigrationContext context, List&lt;Migration&gt; discoveredMigrations) {
+<span class="fc" id="L64">		return buildChain(context, discoveredMigrations, false, ChainBuilderMode.COMPARE);</span>
+	}
+
+	/**
+	 * @param context              The current context
+	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
+	 *                             It is not yet known whether those are pending or not.
+	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
+	 * @param mode                 local, remote or combined chain
+	 * @return The full migration chain.
+	 */
+	MigrationChain buildChain(MigrationContext context, List&lt;Migration&gt; discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
+
+<span class="fc" id="L77">		final Map&lt;MigrationVersion, Element&gt; elements = buildChain0(context, discoveredMigrations, detailedCauses, mode);</span>
+<span class="fc" id="L78">		return new DefaultMigrationChain(context.getConnectionDetails(), elements);</span>
+	}
+
+	@SuppressWarnings(&quot;squid:S3776&quot;) // Yep, this is a complex validation, but it still fits on one screen
+	private Map&lt;MigrationVersion, Element&gt; buildChain0(MigrationContext context, List&lt;Migration&gt; discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
+
+		Map&lt;MigrationVersion, Element&gt; appliedMigrations =
+<span class="fc bfc" id="L85" title="All 2 branches covered.">			mode == ChainBuilderMode.LOCAL ? Collections.emptyMap() : getChainOfAppliedMigrations(context);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">		if (mode == ChainBuilderMode.REMOTE) {</span>
+			// Only looking at remote, assume everything is applied
+<span class="fc" id="L88">			return Collections.unmodifiableMap(appliedMigrations);</span>
+		}
+
+<span class="fc" id="L91">		final String incompleteMigrationsMessage = &quot;More migrations have been applied to the database than locally resolved.&quot;;</span>
+<span class="fc" id="L92">		Map&lt;MigrationVersion, Element&gt; fullMigrationChain = new TreeMap&lt;&gt;(context.getConfig().getVersionComparator());</span>
+<span class="fc" id="L93">		boolean outOfOrderAllowed = context.getConfig().isOutOfOrder();</span>
+<span class="fc" id="L94">		int i = 0;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">		for (Map.Entry&lt;MigrationVersion, Element&gt; entry : appliedMigrations.entrySet()) {</span>
+<span class="fc" id="L96">			MigrationVersion expectedVersion = entry.getKey();</span>
+<span class="fc" id="L97">			Optional&lt;String&gt; expectedChecksum = entry.getValue().getChecksum();</span>
+
+<span class="fc" id="L99">			boolean checkNext = true;</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">			while (checkNext) {</span>
+<span class="fc" id="L101">				checkNext = false;</span>
+				Migration newMigration;
+				try {
+<span class="fc" id="L104">					newMigration = discoveredMigrations.get(i++);</span>
+<span class="fc" id="L105">				} catch (IndexOutOfBoundsException e) {</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">					if (detailedCauses) {</span>
+<span class="fc" id="L107">						throw new MigrationsException(incompleteMigrationsMessage, e);</span>
+					}
+<span class="fc" id="L109">					throw new MigrationsException(incompleteMigrationsMessage);</span>
+<span class="fc" id="L110">				}</span>
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">				if (!newMigration.getVersion().equals(expectedVersion)) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">					if (getNumberOfAppliedMigrations(context) &gt; discoveredMigrations.size()) {</span>
+<span class="fc" id="L114">						throw new MigrationsException(incompleteMigrationsMessage, new IndexOutOfBoundsException());</span>
+					}
+<span class="fc bfc" id="L116" title="All 2 branches covered.">					if (outOfOrderAllowed) {</span>
+<span class="fc" id="L117">						fullMigrationChain.put(newMigration.getVersion(), DefaultMigrationChainElement.pendingElement(newMigration));</span>
+<span class="fc" id="L118">						checkNext = true;</span>
+<span class="fc" id="L119">						continue;</span>
+					} else {
+<span class="fc" id="L121">						throw new MigrationsException(&quot;Unexpected migration at index &quot; + (i - 1) + &quot;: &quot; + Migrations.toString(newMigration) + &quot;.&quot;);</span>
+					}
+				}
+
+<span class="fc bfc" id="L125" title="All 2 branches covered.">				if (newMigration.isRepeatable() != expectedVersion.isRepeatable()) {</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">					throw new MigrationsException(&quot;State of &quot; + Migrations.toString(newMigration) + &quot; changed from &quot; + (expectedVersion.isRepeatable() ? &quot;repeatable to non-repeatable&quot; : &quot;non-repeatable to repeatable&quot;));</span>
+				}
+
+<span class="pc bpc" id="L129" title="1 of 8 branches missed.">				if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) &amp;&amp; !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {</span>
+<span class="fc" id="L130">					throw new MigrationsException(&quot;Checksum of &quot; + Migrations.toString(newMigration) + &quot; changed!&quot;);</span>
+				}
+
+				// This is not a pending migration anymore
+<span class="fc" id="L134">				fullMigrationChain.put(expectedVersion, entry.getValue());</span>
+<span class="fc" id="L135">			}</span>
+<span class="fc" id="L136">		}</span>
+
+		// All remaining migrations are pending
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		while (i &lt; discoveredMigrations.size()) {</span>
+<span class="fc" id="L140">			Migration pendingMigration = discoveredMigrations.get(i++);</span>
+<span class="fc" id="L141">			Element element = DefaultMigrationChainElement.pendingElement(pendingMigration);</span>
+<span class="fc" id="L142">			fullMigrationChain.put(pendingMigration.getVersion(), element);</span>
+<span class="fc" id="L143">		}</span>
+
+<span class="fc" id="L145">		return Collections.unmodifiableMap(fullMigrationChain);</span>
+	}
+
+	static boolean matches(Optional&lt;String&gt; expectedChecksum, Migration newMigration) {
+
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		if (expectedChecksum.equals(newMigration.getChecksum())) {</span>
+<span class="fc" id="L151">			return true;</span>
+		}
+
+<span class="fc bfc" id="L154" title="All 4 branches covered.">		if (!(newMigration instanceof MigrationWithPreconditions) || !expectedChecksum.isPresent()) {</span>
+<span class="fc" id="L155">			return false;</span>
+		}
+
+<span class="fc" id="L158">		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());</span>
+	}
+
+	private int getNumberOfAppliedMigrations(MigrationContext context) {
+<span class="fc" id="L162">		var query = &quot;&quot;&quot;</span>
+			MATCH (n:__Neo4jMigration)
+			WHERE n.version &lt;&gt; 'BASELINE' AND coalesce(n.migrationTarget,'&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;')
+			RETURN count(n)
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L168">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L169">			return session.executeRead(tx -&gt; {</span>
+<span class="fc" id="L170">				var migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);</span>
+<span class="fc" id="L171">				return tx.run(query, Collections.singletonMap(&quot;migrationTarget&quot;, migrationTarget)).single().get(0).asInt();</span>
+			});
+		}
+	}
+
+	private Map&lt;MigrationVersion, Element&gt; getChainOfAppliedMigrations(MigrationContext context) {
+
+<span class="fc" id="L178">		var query = &quot;&quot;&quot;</span>
+			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -&gt; (l:__Neo4jMigration)
+			WHERE coalesce(b.migrationTarget,'&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;') AND NOT (l)-[:MIGRATED_TO]-&gt;(:__Neo4jMigration)
+			WITH p
+			OPTIONAL MATCH (n:__Neo4jMigration) - [r:REPEATED] -&gt; (n)
+			WITH p, r order by r.at DESC
+			RETURN p, collect(r) AS repetitions
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L187">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L188">			return session.executeRead(tx -&gt; {</span>
+<span class="fc" id="L189">				Map&lt;MigrationVersion, Element&gt; chain = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L190">				String migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);</span>
+<span class="fc" id="L191">				Result result = tx.run(query, Collections.singletonMap(&quot;migrationTarget&quot;, migrationTarget));</span>
+				// Might be empty (when nothing has applied yet)
+<span class="fc bfc" id="L193" title="All 2 branches covered.">				if (result.hasNext()) {</span>
+<span class="fc" id="L194">					Record row = result.single();</span>
+<span class="fc" id="L195">					List&lt;Relationship&gt; repetitions = row.get(&quot;repetitions&quot;).asList(Value::asRelationship);</span>
+<span class="fc" id="L196">					row.get(&quot;p&quot;).asPath().forEach(segment -&gt; {</span>
+<span class="fc" id="L197">						var end = segment.end();</span>
+<span class="pc bpc" id="L198" title="3 of 6 branches missed.">						if (end.get(&quot;flyway_failed&quot;).asBoolean(false) || !end.containsKey(&quot;version&quot;) || end.get(&quot;type&quot;).asString().equals(&quot;DELETE&quot;)) {</span>
+<span class="nc" id="L199">							return;</span>
+						}
+<span class="fc" id="L201">						Element chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);</span>
+<span class="fc" id="L202">						chain.put(MigrationVersion.withValue(chainElement.getVersion(), end.get(&quot;repeatable&quot;).asBoolean(false)), chainElement);</span>
+<span class="fc" id="L203">					});</span>
+				}
+<span class="fc" id="L205">				return chain;</span>
+			});
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

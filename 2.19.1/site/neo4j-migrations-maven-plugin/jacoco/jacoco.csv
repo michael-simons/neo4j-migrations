@@ -1,0 +1,7 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,RepairMojo,0,22,0,0,0,6,0,2,0,2
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,MigrateMojo,18,0,0,0,6,0,3,0,3,0
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,InfoMojo,0,14,0,0,0,5,0,2,0,2
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,ValidateMojo,0,72,1,9,0,18,1,6,0,2
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,CleanMojo,24,0,0,0,6,0,2,0,2,0
+Neo4j Migrations (Maven Plugin),ac.simons.neo4j.migrations.maven,AbstractConnectedMojo,59,74,2,0,20,25,3,4,2,4

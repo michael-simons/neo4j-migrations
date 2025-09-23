@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultCatalog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultCatalog.java</span></div><h1>DefaultCatalog.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Name;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+/**
+ * @author Michael J. Simons
+ * @soundtrack Metallica - Ride The Lightning
+ * @since 1.7.0
+ */
+class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
+
+	private final Map&lt;Name, NavigableMap&lt;MigrationVersion, CatalogItem&lt;?&gt;&gt;&gt; items;
+<span class="fc" id="L43">	private final ReentrantReadWriteLock locks = new ReentrantReadWriteLock();</span>
+
+	private final Comparator&lt;MigrationVersion&gt; comparator;
+
+	private final NavigableMap&lt;MigrationVersion, VersionedCatalog&gt; oldVersions;
+
+	DefaultCatalog(Comparator&lt;MigrationVersion&gt; comparator) {
+<span class="fc" id="L50">		this(comparator, new HashMap&lt;&gt;());</span>
+<span class="fc" id="L51">	}</span>
+
+<span class="fc" id="L53">	private DefaultCatalog(Comparator&lt;MigrationVersion&gt; comparator, Map&lt;Name, NavigableMap&lt;MigrationVersion, CatalogItem&lt;?&gt;&gt;&gt; items) {</span>
+<span class="fc" id="L54">		this.comparator = comparator;</span>
+<span class="fc" id="L55">		this.oldVersions = new TreeMap&lt;&gt;(this.comparator);</span>
+<span class="fc" id="L56">		this.items = items;</span>
+<span class="fc" id="L57">	}</span>
+
+	@Override
+	public void addAll(MigrationVersion version, Catalog other, boolean reset) {
+
+<span class="fc" id="L62">		WriteLock lock = locks.writeLock();</span>
+		try {
+<span class="fc" id="L64">			lock.lock();</span>
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">			if (reset) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">				if (oldVersions.containsKey(version)) {</span>
+<span class="fc" id="L68">					throw new IllegalArgumentException(</span>
+<span class="fc" id="L69">						&quot;Catalog has been already reset at version &quot; + version.getValue());</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">				} else if (containsVersion(version)) {</span>
+<span class="fc" id="L71">					throw new IllegalArgumentException(</span>
+<span class="fc" id="L72">						&quot;Version &quot; + version.getValue() + &quot; has already been used in this catalog.&quot;);</span>
+				}
+<span class="fc" id="L74">				oldVersions.put(version, new DefaultCatalog(this.comparator, new HashMap&lt;&gt;(items)));</span>
+<span class="fc" id="L75">				items.clear();</span>
+			}
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">			for (CatalogItem&lt;?&gt; item : other.getItems()) {</span>
+<span class="fc" id="L79">				NavigableMap&lt;MigrationVersion, CatalogItem&lt;?&gt;&gt; versionedItems = items.computeIfAbsent(</span>
+<span class="fc" id="L80">					item.getName(), k -&gt; new TreeMap&lt;&gt;(this.comparator));</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">				if (versionedItems.containsKey(version)) {</span>
+<span class="fc" id="L82">					throw new MigrationsException(String.format(</span>
+						&quot;A constraint with the name '%s' has already been added to this catalog under the version %s.&quot;,
+<span class="fc" id="L84">						item.getName().getValue(), version.getValue()));</span>
+				}
+<span class="fc" id="L86">				versionedItems.put(version, item);</span>
+<span class="fc" id="L87">			}</span>
+		} finally {
+<span class="fc" id="L89">			lock.unlock();</span>
+		}
+<span class="fc" id="L91">	}</span>
+
+	private boolean containsVersion(MigrationVersion version) {
+<span class="fc" id="L94">		return items.entrySet().stream().flatMap(v -&gt; v.getValue().keySet().stream()).anyMatch(version::equals);</span>
+	}
+
+	private &lt;T&gt; T withReadLockGet(Supplier&lt;T&gt; s) {
+
+<span class="fc" id="L99">		ReadLock lock = locks.readLock();</span>
+		try {
+<span class="fc" id="L101">			lock.lock();</span>
+<span class="fc" id="L102">			return s.get();</span>
+		} finally {
+<span class="fc" id="L104">			lock.unlock();</span>
+		}
+	}
+
+	@Override
+	@SuppressWarnings({&quot;squid:S6204&quot;}) // toList vs Collectors.collect
+	public Collection&lt;CatalogItem&lt;?&gt;&gt; getItems() {
+
+<span class="fc" id="L112">		return withReadLockGet(() -&gt; items.values().stream().map(NavigableMap::lastEntry)</span>
+<span class="fc" id="L113">			.map(Map.Entry::getValue)</span>
+<span class="fc" id="L114">			.collect(Collectors.toList()));</span>
+	}
+
+	@Override
+	@SuppressWarnings({&quot;squid:S6204&quot;}) // toList vs Collectors.collect
+	public Collection&lt;CatalogItem&lt;?&gt;&gt; getItemsPriorTo(MigrationVersion version) {
+
+<span class="fc" id="L121">		return withReadLockGet(() -&gt; {</span>
+<span class="fc" id="L122">			Map.Entry&lt;MigrationVersion, VersionedCatalog&gt; oldEntry = oldVersions.ceilingEntry(version);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">			if (oldEntry != null) {</span>
+<span class="fc" id="L124">				return oldEntry.getValue().getItemsPriorTo(version);</span>
+			}
+<span class="fc" id="L126">			return items.values().stream()</span>
+<span class="fc" id="L127">				.map(m -&gt; Optional.ofNullable(m.lowerEntry(version)).map(Map.Entry::getValue))</span>
+<span class="fc" id="L128">				.filter(Optional::isPresent)</span>
+<span class="fc" id="L129">				.map(Optional::get)</span>
+<span class="fc" id="L130">				.collect(Collectors.toList());</span>
+		});
+	}
+
+	@Override
+	public Optional&lt;CatalogItem&lt;?&gt;&gt; getItemPriorTo(Name name, MigrationVersion version) {
+
+<span class="fc" id="L137">		return withReadLockGet(() -&gt; {</span>
+<span class="fc" id="L138">			Map.Entry&lt;MigrationVersion, VersionedCatalog&gt; oldEntry = oldVersions.ceilingEntry(version);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">			if (oldEntry != null) {</span>
+<span class="fc" id="L140">				return oldEntry.getValue().getItemPriorTo(name, version);</span>
+			}
+<span class="fc" id="L142">			return Optional.ofNullable(items.get(name))</span>
+<span class="fc" id="L143">				.map(m -&gt; m.lowerEntry(version))</span>
+<span class="fc" id="L144">				.map(Map.Entry::getValue);</span>
+		});
+	}
+
+	@Override
+	@SuppressWarnings({&quot;squid:S6204&quot;}) // toList vs Collectors.collect
+	public Collection&lt;CatalogItem&lt;?&gt;&gt; getItems(MigrationVersion version) {
+
+<span class="fc" id="L152">		return withReadLockGet(() -&gt; {</span>
+<span class="fc" id="L153">			Map.Entry&lt;MigrationVersion, VersionedCatalog&gt; oldEntry = oldVersions.higherEntry(version);</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">			if (oldEntry != null) {</span>
+<span class="fc" id="L155">				return oldEntry.getValue().getItems(version);</span>
+			}
+<span class="fc" id="L157">			return items.values().stream()</span>
+<span class="fc" id="L158">				.map(m -&gt; Optional.ofNullable(m.floorEntry(version)).map(Map.Entry::getValue))</span>
+<span class="fc" id="L159">				.filter(Optional::isPresent)</span>
+<span class="fc" id="L160">				.map(Optional::get)</span>
+<span class="fc" id="L161">				.collect(Collectors.toList());</span>
+		});
+	}
+
+	@Override
+	public Optional&lt;CatalogItem&lt;?&gt;&gt; getItem(Name name, MigrationVersion version) {
+
+<span class="fc" id="L168">		return withReadLockGet(() -&gt; {</span>
+<span class="fc" id="L169">			Map.Entry&lt;MigrationVersion, VersionedCatalog&gt; oldEntry = oldVersions.higherEntry(version);</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">			if (oldEntry != null) {</span>
+<span class="fc" id="L171">				return oldEntry.getValue().getItem(name, version);</span>
+			}
+<span class="fc" id="L173">			return Optional.ofNullable(items.get(name))</span>
+<span class="fc" id="L174">				.map(m -&gt; m.floorEntry(version))</span>
+<span class="fc" id="L175">				.map(Map.Entry::getValue);</span>
+		});
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

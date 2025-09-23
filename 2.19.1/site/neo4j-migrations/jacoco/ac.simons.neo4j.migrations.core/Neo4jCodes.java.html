@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Neo4jCodes.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Neo4jCodes.java</span></div><h1>Neo4jCodes.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * A set of internal Neo4j codes we rely on in several occasions.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Helge Schneider - Die Reaktion - The Last Jazz, Vol. II
+ * @since 1.7.0
+ */
+final class Neo4jCodes {
+
+	static final String CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE = &quot;Neo.ClientError.Schema.ConstraintWithNameAlreadyExists&quot;;
+
+	static final String CONSTRAINT_DROP_FAILED = &quot;Neo.DatabaseError.Schema.ConstraintDropFailed&quot;;
+
+	/**
+	 * Used in [3.5, 4.4] when a constraint without a name is defined twice and the 2nd one is equivalent
+	 */
+	static final String EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS = &quot;Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists&quot;;
+
+	/**
+	 * Used in [4,4, x] when a constraint with a name is semantically equivalent to a constraint defined without a name
+	 */
+	static final String CONSTRAINT_ALREADY_EXISTS = &quot;Neo.ClientError.Schema.ConstraintAlreadyExists&quot;;
+
+	/**
+	 * Used in notifications to warn about deprecated features.
+	 */
+	static final String FEATURE_DEPRECATION_WARNING = &quot;Neo.ClientNotification.Statement.FeatureDeprecationWarning&quot;;
+
+	/**
+	 * Used when a procedure was not found.
+	 */
+	static final String PROCEDURE_NOT_FOUND = &quot;Neo.ClientError.Procedure.ProcedureNotFound&quot;;
+
+<span class="fc" id="L56">	static final Set&lt;String&gt; CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet&lt;&gt;(</span>
+<span class="fc" id="L57">		Arrays.asList(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS, CONSTRAINT_ALREADY_EXISTS)));</span>
+
+	/**
+	 * Used when the creation of a constraint fails.
+	 */
+	static final String CONSTRAINT_CREATION_FAILED = &quot;Neo.DatabaseError.Schema.ConstraintCreationFailed&quot;;
+
+	private Neo4jCodes() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

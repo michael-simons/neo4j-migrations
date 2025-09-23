@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Neo4jVersion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Neo4jVersion.java</span></div><h1>Neo4jVersion.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
+
+/**
+ * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
+ *
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+<span class="fc" id="L32">public enum Neo4jVersion {</span>
+
+	/**
+	 * Constant for an undefined version.
+	 */
+<span class="fc" id="L37">	UNDEFINED,</span>
+	/**
+	 * Constant for everything Neo4j 3.5 and earlier.
+	 */
+<span class="fc" id="L41">	V3_5(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),</span>
+	/**
+	 * Constant for everything Neo4j 4.0.
+	 */
+<span class="fc" id="L45">	V4_0(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),</span>
+	/**
+	 * Constant for everything Neo4j 4.1.
+	 */
+<span class="fc" id="L49">	V4_1(true, Neo4jVersion.OLD_SHOW_CONSTRAINTS, Neo4jVersion.OLD_SHOW_INDEXES),</span>
+	/**
+	 * Constant for everything Neo4j 4.2.
+	 */
+<span class="fc" id="L53">	V4_2(true, &quot;SHOW CONSTRAINTS&quot;, Neo4jVersion.OLD_SHOW_INDEXES),</span>
+	/**
+	 * Constant for everything Neo4j 4.3.
+	 */
+<span class="fc" id="L57">	V4_3(true, Neo4jVersion.NEW_SHOW_CONSTRAINTS, Neo4jVersion.NEW_SHOW_INDEXES),</span>
+	/**
+	 * Constant for everything Neo4j 4.4.
+	 */
+<span class="fc" id="L61">	V4_4,</span>
+	/**
+	 * Constant for everything Neo4j 5
+	 */
+<span class="fc" id="L65">	V5,</span>
+	/**
+	 * Constant when we assume the latest version.
+	 */
+<span class="fc" id="L69">	LATEST;</span>
+
+	private static final String OLD_SHOW_CONSTRAINTS = &quot;CALL db.constraints()&quot;;
+	private static final String NEW_SHOW_CONSTRAINTS = &quot;SHOW CONSTRAINTS YIELD *&quot;;
+
+	private static final String OLD_SHOW_INDEXES = &quot;CALL db.indexes()&quot;;
+	private static final String NEW_SHOW_INDEXES = &quot;SHOW INDEXES YIELD *&quot;;
+
+	/**
+	 * A set of versions that have a concept of idempotent constraint / index statements.
+	 */
+<span class="fc" id="L80">	private static final Set&lt;Neo4jVersion&gt; WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));</span>
+
+<span class="fc" id="L82">	private static final Set&lt;Neo4jVersion&gt; WITH_TEXT_INDEXES = EnumSet.complementOf(EnumSet.of(V3_5, V4_0, V4_1, V4_2, V4_3, UNDEFINED));</span>
+
+<span class="fc" id="L84">	private static final Set&lt;Neo4jVersion&gt; SERIES_3 = EnumSet.of(V3_5);</span>
+
+<span class="fc" id="L86">	private static final Set&lt;Neo4jVersion&gt; SERIES_4 = Arrays.stream(Neo4jVersion.values()).filter(v -&gt; v.name().startsWith(&quot;V4_&quot;)).collect(</span>
+<span class="fc" id="L87">		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));</span>
+
+<span class="fc" id="L89">	private static final Set&lt;Neo4jVersion&gt; SERIES_5 = Arrays.stream(Neo4jVersion.values()).filter(v -&gt; v.name().startsWith(&quot;V5&quot;)).collect(</span>
+<span class="fc" id="L90">		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));</span>
+
+	/**
+	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.
+	 *
+	 * @param version A version string
+	 * @return A version
+	 */
+	public static Neo4jVersion of(String version) {
+
+<span class="fc bfc" id="L100" title="All 2 branches covered.">		String value = version == null ? null : version.replaceFirst(&quot;(?i)Neo4j[/:]&quot;, &quot;&quot;);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (value == null) {</span>
+<span class="fc" id="L102">			return UNDEFINED;</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">		} else if (value.startsWith(&quot;3.5&quot;)) {</span>
+<span class="fc" id="L104">			return V3_5;</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">		} else if (value.startsWith(&quot;4.0&quot;)) {</span>
+<span class="fc" id="L106">			return V4_0;</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">		} else if (value.startsWith(&quot;4.1&quot;)) {</span>
+<span class="fc" id="L108">			return V4_1;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		} else if (value.startsWith(&quot;4.2&quot;)) {</span>
+<span class="fc" id="L110">			return V4_2;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">		} else if (value.startsWith(&quot;4.3&quot;)) {</span>
+<span class="fc" id="L112">			return V4_3;</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		} else if (value.startsWith(&quot;4.4&quot;)) {</span>
+<span class="fc" id="L114">			return V4_4;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">		} else if (value.startsWith(&quot;5.&quot;)) {</span>
+<span class="fc" id="L116">			return V5;</span>
+		} else {
+<span class="fc" id="L118">			return LATEST;</span>
+		}
+	}
+
+	private final boolean priorTo44;
+
+	private final String showConstraints;
+	private final String showIndexes;
+
+	Neo4jVersion() {
+<span class="fc" id="L128">		this(false, NEW_SHOW_CONSTRAINTS, NEW_SHOW_INDEXES);</span>
+<span class="fc" id="L129">	}</span>
+
+<span class="fc" id="L131">	Neo4jVersion(boolean priorTo44, String showConstraints, String showIndexes) {</span>
+<span class="fc" id="L132">		this.priorTo44 = priorTo44;</span>
+<span class="fc" id="L133">		this.showConstraints = showConstraints;</span>
+<span class="fc" id="L134">		this.showIndexes = showIndexes;</span>
+<span class="fc" id="L135">	}</span>
+
+	@Override
+	public String toString() {
+<span class="fc" id="L139">		return name().replace(&quot;V&quot;, &quot;&quot;).replace(&quot;_&quot;, &quot;.&quot;);</span>
+	}
+
+	/**
+	 * @return true if this is a version prior to 4.4.
+	 */
+	public boolean isPriorTo44() {
+<span class="fc" id="L146">		return priorTo44;</span>
+	}
+
+	/**
+	 * @return true if this version has idempotent operations
+	 */
+	@SuppressWarnings(&quot;BooleanMethodIsAlwaysInverted&quot;) // That might be, but I prefer readability
+	public boolean hasIdempotentOperations() {
+<span class="fc" id="L154">		return WITH_IDEM_POTENCY.contains(this);</span>
+	}
+
+	/**
+	 * @return true if this version has text indexes
+	 */
+	@SuppressWarnings(&quot;BooleanMethodIsAlwaysInverted&quot;) // That might be, but I prefer readability
+	public boolean hasTextIndexes() {
+<span class="fc" id="L162">		return WITH_TEXT_INDEXES.contains(this);</span>
+	}
+
+	/**
+	 * @return true if this version supports specifying options on constraints and indexes.
+	 * @since 1.13.0
+	 */
+	public boolean supportsSchemaOptions() {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">		return this.compareTo(Neo4jVersion.V4_1) &gt; 0;</span>
+	}
+
+	/**
+	 * @return The command recommended for this specific version to get a list of all known constraints
+	 */
+	public String getShowConstraints() {
+<span class="fc" id="L177">		return showConstraints;</span>
+	}
+	/**
+	 * @return The command recommended for this specific version to get a list of all known indexes
+	 */
+	public String getShowIndexes() {
+<span class="fc" id="L183">		return showIndexes;</span>
+	}
+
+	/**
+	 * @return The major version of the database.
+	 * @since 1.10.0
+	 */
+	public int getMajorVersion() {
+<span class="fc bfc" id="L191" title="All 2 branches covered.">		if (this == LATEST) {</span>
+<span class="fc" id="L192">			return -1;</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">		} else if (SERIES_3.contains(this)) {</span>
+<span class="fc" id="L194">			return 3;</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">		} else if (SERIES_4.contains(this)) {</span>
+<span class="fc" id="L196">			return 4;</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">		} else if (SERIES_5.contains(this)) {</span>
+<span class="fc" id="L198">			return 5;</span>
+		}
+<span class="fc" id="L200">		throw new IllegalStateException(&quot;Unknown major version&quot;);</span>
+	}
+
+	/**
+	 * @return The minor version or {@code -1} if it can be determined
+	 * @since 1.11.0
+	 */
+	public int getMinorVersion() {
+<span class="fc bfc" id="L208" title="All 4 branches covered.">		if (this == LATEST || this == UNDEFINED) {</span>
+<span class="fc" id="L209">			return -1;</span>
+		}
+<span class="fc" id="L211">		String[] parts = this.name().split(&quot;_&quot;);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">		if (parts.length != 2) {</span>
+<span class="fc" id="L213">			return -1;</span>
+		}
+<span class="fc" id="L215">		return Integer.parseInt(parts[1]);</span>
+	}
+
+	/**
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier, fitting the given version
+	 *
+	 * @param potentiallyNonIdentifier A value to escape, must not be {@literal null} or blank
+	 * @return The sanitized and quoted value or the same value if no change is necessary.
+	 * @since 1.11.0
+	 */
+	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+
+<span class="fc bfc" id="L227" title="All 4 branches covered.">		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.isEmpty()) {</span>
+<span class="fc" id="L228">			return potentiallyNonIdentifier;</span>
+		}
+
+		int major;
+		try {
+<span class="fc" id="L233">			major = getMajorVersion();</span>
+<span class="fc" id="L234">		} catch (IllegalStateException e) {</span>
+<span class="fc" id="L235">			major = -1;</span>
+<span class="fc" id="L236">		}</span>
+<span class="fc" id="L237">		int minor = getMinorVersion();</span>
+
+<span class="fc" id="L239">		return SchemaNames.sanitize(potentiallyNonIdentifier, false, major, minor)</span>
+<span class="fc" id="L240">			.orElseThrow(NoSuchElementException::new);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

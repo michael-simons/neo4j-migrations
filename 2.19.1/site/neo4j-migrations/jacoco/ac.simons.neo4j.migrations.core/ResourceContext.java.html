@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResourceContext.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ResourceContext.java</span></div><h1>ResourceContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.logging.Level;
+
+/**
+ * A context in which a resource with a given URL was discovered.
+ *
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+public final class ResourceContext {
+
+	/**
+	 * Static factory method, might be helpful during tests of additional providers
+	 *
+	 * @param url    The url of the given resource
+	 * @param config The config used during discovery
+	 * @return A new resource context
+	 */
+	public static ResourceContext of(URL url, MigrationsConfig config) {
+<span class="fc" id="L44">		return new ResourceContext(url, config);</span>
+	}
+
+	static ResourceContext of(URL url) {
+<span class="fc" id="L48">		return ResourceContext.of(url, MigrationsConfig.builder().withAutocrlf(Defaults.AUTOCRLF).build());</span>
+	}
+
+	private final URL url;
+
+	private final MigrationsConfig config;
+
+<span class="fc" id="L55">	private ResourceContext(URL url, MigrationsConfig config) {</span>
+<span class="fc" id="L56">		this.url = url;</span>
+<span class="fc" id="L57">		this.config = config;</span>
+<span class="fc" id="L58">	}</span>
+
+	/**
+	 * @return the resources {@link URL}
+	 */
+	public URL getUrl() {
+<span class="fc" id="L64">		return url;</span>
+	}
+
+	/**
+	 * @return The identifier of the underlying resource
+	 * @since 1.8.0
+	 */
+	public String getIdentifier() {
+<span class="fc" id="L72">		return generateIdentifierOf(url);</span>
+	}
+
+	/**
+	 * Helper method to extract an optional last element from a URL path. If no such element exists, returns the full path.
+	 *
+	 * @param url The url containing a path
+	 * @return The last path element or if such an element does not exists, the full path
+	 */
+	static String generateIdentifierOf(URL url) {
+<span class="fc" id="L82">		String path = url.getPath();</span>
+		try {
+<span class="fc" id="L84">			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());</span>
+<span class="nc" id="L85">		} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L86">			throw new MigrationsException(&quot;Somethings broken: UTF-8 encoding not supported.&quot;);</span>
+<span class="fc" id="L87">		}</span>
+<span class="fc" id="L88">		int lastIndexOf = path.lastIndexOf(&quot;/&quot;);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">		return lastIndexOf &lt; 0 ? path : path.substring(lastIndexOf + 1);</span>
+	}
+
+	/**
+	 * @return the configuration with which the resource has been discovered
+	 */
+	public MigrationsConfig getConfig() {
+<span class="fc" id="L96">		return config;</span>
+	}
+
+	/**
+	 * This method tries to get an {@link InputStream} from a {@link URL}. If this URL points to something on the classpath,
+	 * it tries to handle the changes introduced in Spring Boot 3.2.0 about how nested JARs are handle, see
+	 * &lt;a href=&quot;https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support&quot;&gt;Nested Jar Support&lt;/a&gt;.
+	 * This affects Cypher as well as XML based resources.
+	 *
+	 * @return an {@link InputStream}. The caller is supposed to properly close the stream.
+	 * @since 2.9.2
+	 */
+	public InputStream openStream() {
+		try {
+<span class="fc" id="L110">			return url.openStream();</span>
+<span class="fc" id="L111">		} catch (IOException e) {</span>
+<span class="fc" id="L112">			var oldUrl = url.toString();</span>
+<span class="pc bpc" id="L113" title="2 of 6 branches missed.">			if (e instanceof FileNotFoundException &amp;&amp; oldUrl.contains(&quot;jar:file&quot;) &amp;&amp; oldUrl.contains(&quot;!/BOOT-INF/&quot;)) {</span>
+<span class="fc" id="L114">				var newUrl = oldUrl.replace(&quot;jar:file&quot;, &quot;jar:nested&quot;).replace(&quot;!/BOOT-INF/&quot;, &quot;/!BOOT-INF/&quot;);</span>
+<span class="fc" id="L115">				Migrations.LOGGER.log(Level.FINE, &quot;Probably on Spring Boot &gt;= 3.2.0 with new Jar loader, replacing {0} with {1}&quot;, new Object[] {oldUrl, newUrl});</span>
+				try {
+<span class="nc" id="L117">					return URI.create(newUrl).toURL().openStream();</span>
+<span class="fc" id="L118">				} catch (IOException ex) {</span>
+<span class="fc" id="L119">					throw new UncheckedIOException(ex);</span>
+				}
+			}
+<span class="fc" id="L122">			throw new UncheckedIOException(e);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

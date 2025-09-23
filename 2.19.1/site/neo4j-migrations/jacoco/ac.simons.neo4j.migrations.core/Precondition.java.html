@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Precondition.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Precondition.java</span></div><h1>Precondition.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+
+/**
+ * A precondition can be needs to be met after discovering migrations and prior to building changes. If it isn't met, the
+ * outcome depends on its {@link Precondition#getType()}: If it's an unmet {@link Type#ASSERTION}, discovering of migrations will
+ * stop and not check any migrations or preconditions further. If it's an unmet {@link Type#ASSUMPTION}, the migration
+ * to which the precondition belongs, will be discarded.
+ *
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.5.0
+ */
+interface Precondition {
+
+	/**
+	 * Type describing how a precondition is dealt with (assumed or asserted).
+	 */
+<span class="fc" id="L38">	enum Type {</span>
+		/**
+		 * Preconditions that are assumed and are not satisfied will lead to migrations being skipped.
+		 */
+<span class="fc" id="L42">		ASSUMPTION(&quot;assume&quot;),</span>
+		/**
+		 * Preconditions that are asserted and are not satisfied will halt the migrations at the given migration.
+		 */
+<span class="fc" id="L46">		ASSERTION(&quot;assert&quot;);</span>
+
+		private final String keyword;
+
+		private final Pattern pattern;
+
+<span class="fc" id="L52">		Type(String keyword) {</span>
+<span class="fc" id="L53">			this.keyword = keyword;</span>
+<span class="fc" id="L54">			this.pattern = Pattern.compile(&quot;(?i)// *&quot; + keyword + &quot;(?: in (?:schema|target))? (that|q').*&quot;);</span>
+<span class="fc" id="L55">		}</span>
+
+		String keyword() {
+<span class="fc" id="L58">			return keyword;</span>
+		}
+
+		static Optional&lt;Type&gt; of(String value) {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">			if (ASSUMPTION.pattern.matcher(value).find()) {</span>
+<span class="fc" id="L63">				return Optional.of(Type.ASSUMPTION);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">			} else if (ASSERTION.pattern.matcher(value).find()) {</span>
+<span class="fc" id="L65">				return Optional.of(Type.ASSERTION);</span>
+			} else {
+<span class="fc" id="L67">				return Optional.empty();</span>
+			}
+		}
+	}
+
+	/**
+	 * Tries to parse a precondition.
+	 *
+	 * @param in The single line comment
+	 * @return An empty optional if it's not something that is meant to be a precondition or a precondition
+	 * @throws IllegalArgumentException if {@literal in} looks like a precondition but cannot be successfully parsed
+	 */
+	static Optional&lt;Precondition&gt; parse(String in) {
+
+<span class="fc" id="L81">		return Type.of(in).flatMap(type -&gt; {</span>
+			Optional&lt;Function&lt;Type, Precondition&gt;&gt; producer;
+
+<span class="fc" id="L84">			producer = VersionPrecondition.tryToParse(in);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">			if (producer.isPresent()) {</span>
+<span class="fc" id="L86">				return producer.map(f -&gt; f.apply(type));</span>
+			}
+
+<span class="fc" id="L89">			producer = EditionPrecondition.tryToParse(in);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">			if (producer.isPresent()) {</span>
+<span class="fc" id="L91">				return producer.map(f -&gt; f.apply(type));</span>
+			}
+
+<span class="fc" id="L94">			producer = QueryPrecondition.tryToParse(in);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">			if (producer.isPresent()) {</span>
+<span class="fc" id="L96">				return producer.map(f -&gt; f.apply(type));</span>
+			}
+
+<span class="fc" id="L99">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L100">				&quot;Wrong precondition &quot; + formattedHint(in) + &quot;. Supported are `&lt;assume|assert&gt; (that &lt;edition|version&gt;)|q' &lt;cypherQuery&gt;)`.&quot;);</span>
+		});
+	}
+
+	/**
+	 * @param cypherResource The resource to extract preconditions from
+	 * @return A list of preconditions
+	 */
+	static List&lt;Precondition&gt; in(CypherResource cypherResource) {
+<span class="fc" id="L109">		return cypherResource.getSingleLineComments().stream().map(Precondition::parse)</span>
+<span class="fc" id="L110">			.filter(Optional::isPresent)</span>
+<span class="fc" id="L111">			.map(Optional::get)</span>
+<span class="fc" id="L112">			.toList();</span>
+	}
+
+	/**
+	 * Checks whether this precondition is satisfied in the given context.
+	 *
+	 * @param migrationContext The context in which this condition should be satisfied
+	 * @return True, if the precondition can be satisfied in the given context.
+	 */
+	boolean isMet(MigrationContext migrationContext);
+
+	/**
+	 * Every precondition must either be an {@link Type#ASSUMPTION assumption} or an {@link Type#ASSERTION}, and will
+	 * be treated accordingly (if an assumption is not satisfied, a given migration will be skipped, if an assertion is
+	 * not satisfied, it will halt the chain of migration at the given migration).
+	 *
+	 * @return The type of the precondition.
+	 */
+	Type getType();
+
+	static String formattedHint(String hint) {
+<span class="fc" id="L133">		return &quot;`&quot; + hint.replace(&quot;//&quot;, &quot;&quot;).trim() + &quot;`&quot;;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

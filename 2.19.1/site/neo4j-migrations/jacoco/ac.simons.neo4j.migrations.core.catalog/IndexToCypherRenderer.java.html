@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IndexToCypherRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">IndexToCypherRenderer.java</span></div><h1>IndexToCypherRenderer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
+import java.util.Formattable;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * Renders indexes (supported operators are {@link Operator#CREATE} and {@link Operator#DROP}) as Cypher.
+ *
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+<span class="fc" id="L40">enum IndexToCypherRenderer implements Renderer&lt;Index&gt; {</span>
+
+<span class="fc" id="L42">	INSTANCE;</span>
+
+	/**
+	 * A range of versions from 3.5 to 4.2.
+	 */
+<span class="fc" id="L47">	private static final Set&lt;Neo4jVersion&gt; RANGE_35_TO_42 = EnumSet.of(Neo4jVersion.V3_5, Neo4jVersion.V4_0,</span>
+		Neo4jVersion.V4_1, Neo4jVersion.V4_2);
+
+	private static final String ESCAPED_UNICODE_QUOTE = &quot;\\u0027&quot;;
+<span class="fc" id="L51">	private static final Pattern UNESCAPED_QUOTE = Pattern.compile(&quot;(?&lt;!\\\\)'&quot;);</span>
+
+<span class="fc" id="L53">	private static final UnaryOperator&lt;String&gt; TO_LITERAL = v -&gt; {</span>
+<span class="fc" id="L54">		String result = UNESCAPED_QUOTE.matcher(v.replace(ESCAPED_UNICODE_QUOTE, &quot;'&quot;)).replaceAll(&quot;\\\\'&quot;);</span>
+<span class="fc" id="L55">		return &quot;'&quot; + result + &quot;'&quot;;</span>
+	};
+
+	@Override
+	public void render(Index index, RenderConfig config, OutputStream target) throws IOException {
+
+<span class="fc" id="L61">		Neo4jVersion version = config.getVersion();</span>
+<span class="fc bfc" id="L62" title="All 4 branches covered.">		boolean isRelationshipPropertyIndex = index.getType() == Index.Type.PROPERTY &amp;&amp; index.getTargetEntityType() == TargetEntityType.RELATIONSHIP;</span>
+
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">		if (!version.hasTextIndexes() &amp;&amp; index.getType() == Index.Type.TEXT) {</span>
+<span class="nc" id="L65">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L66">				String.format(&quot;The given index cannot be rendered on Neo4j %s&quot;, version));</span>
+		}
+
+<span class="fc bfc" id="L69" title="All 4 branches covered.">		if (isRelationshipPropertyIndex &amp;&amp; RANGE_35_TO_42.contains(version)) {</span>
+<span class="fc" id="L70">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L71">				String.format(&quot;The given relationship index cannot be rendered on Neo4j %s.&quot;,</span>
+					version));
+		}
+<span class="fc bfc" id="L74" title="All 8 branches covered.">		if (config.isIdempotent() &amp;&amp; (!version.hasIdempotentOperations() || RANGE_35_TO_42.contains(version) &amp;&amp; index.getType() == Index.Type.FULLTEXT)) {</span>
+<span class="fc" id="L75">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L76">				String.format(&quot;The given index cannot be rendered in an idempotent fashion on Neo4j %s.&quot;,</span>
+					version));
+		}
+
+<span class="pc bpc" id="L80" title="3 of 6 branches missed.">		if (!index.hasName() &amp;&amp; config.isIdempotent() &amp;&amp; config.getOperator() == Operator.DROP) {</span>
+<span class="nc" id="L81">			throw new IllegalArgumentException(&quot;The index can only be rendered in the given context when having a name.&quot;);</span>
+		}
+
+<span class="fc" id="L84">		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));</span>
+
+<span class="pc bpc" id="L86" title="1 of 3 branches missed.">		switch (index.getType()) {</span>
+<span class="fc" id="L87">			case POINT, PROPERTY, TEXT, VECTOR -&gt; w.write(renderNodePropertiesIndex(index, config));</span>
+<span class="fc" id="L88">			case FULLTEXT -&gt; w.write(renderFulltextIndex(index, config));</span>
+<span class="nc" id="L89">			default -&gt; throw new IllegalArgumentException(&quot;Unsupported type of constraint: &quot; + index.getType());</span>
+		}
+
+<span class="fc" id="L92">		CypherRenderingUtils.renderOptions(index, config, w);</span>
+<span class="fc" id="L93">		w.flush();</span>
+<span class="fc" id="L94">	}</span>
+
+	private String renderFulltextIndex(Index index, RenderConfig config) {
+<span class="fc" id="L97">		Operator operator = config.getOperator();</span>
+<span class="fc" id="L98">		Neo4jVersion version = config.getVersion();</span>
+<span class="fc" id="L99">		String indexName = index.getName().getValue();</span>
+<span class="fc" id="L100">		String identifier = getAndEscapeIdentifier(version, index);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (operator == Operator.CREATE) {</span>
+<span class="fc" id="L102">			return renderCreateFulltext(index, config, version, indexName, identifier);</span>
+		} else {
+<span class="fc" id="L104">			return renderDropFulltext(index, config, version);</span>
+		}
+	}
+
+	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version, String indexName, String identifier) {
+
+		String safeName;
+<span class="fc bfc" id="L111" title="All 2 branches covered.">		if (RANGE_35_TO_42.contains(version)) {</span>
+<span class="fc" id="L112">			safeName = TO_LITERAL.apply(indexName);</span>
+		} else {
+<span class="fc" id="L114">			safeName = config.getVersion().sanitizeSchemaName(indexName);</span>
+		}
+
+<span class="fc bfc" id="L117" title="All 2 branches covered.">		if (index.getTargetEntityType() == TargetEntityType.NODE) {</span>
+<span class="fc" id="L118">			String properties = renderFulltextProperties(&quot;n&quot;, index, config);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">			if (RANGE_35_TO_42.contains(version)) {</span>
+<span class="fc" id="L120">				return String.format(&quot;CALL db.index.fulltext.createNodeIndex(%s,[%s],[%s])&quot;, safeName,</span>
+					identifier, properties);
+			} else {
+<span class="fc" id="L123">				return String.format(&quot;CREATE FULLTEXT INDEX %s %sFOR (n:%s) ON EACH [%s]&quot;, safeName,</span>
+<span class="fc" id="L124">					config.ifNotExistsOrEmpty(), identifier, properties);</span>
+			}
+		} else {
+<span class="fc" id="L127">			String properties = renderFulltextProperties(&quot;r&quot;, index, config);</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">			if (RANGE_35_TO_42.contains(version)) {</span>
+<span class="fc" id="L129">				return String.format(&quot;CALL db.index.fulltext.createRelationshipIndex(%s,[%s],[%s])&quot;, safeName,</span>
+					identifier, properties);
+			} else {
+<span class="fc" id="L132">				return String.format(&quot;CREATE FULLTEXT INDEX %s %sFOR ()-[r:%s]-() ON EACH [%s]&quot;, safeName,</span>
+<span class="fc" id="L133">					config.ifNotExistsOrEmpty(), identifier, properties);</span>
+			}
+		}
+	}
+
+	private static String renderDropFulltext(Index index, RenderConfig config, Neo4jVersion version) {
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		if (RANGE_35_TO_42.contains(version)) {</span>
+<span class="fc" id="L140">			return String.format(&quot;CALL db.index.fulltext.drop(%s)&quot;, TO_LITERAL.apply(index.getName().getValue()));</span>
+		} else {
+<span class="fc" id="L142">			return String.format(&quot;DROP %#s%s&quot;, new FormattableCatalogItem(index, config.getVersion()), config.ifNotExistsOrEmpty());</span>
+		}
+	}
+
+	private String renderNodePropertiesIndex(Index index, RenderConfig config) {
+
+<span class="fc" id="L148">		Formattable item = formattablePropertyIndexItem(index, config);</span>
+<span class="fc" id="L149">		String identifier = getAndEscapeIdentifier(config.getVersion(), index, true);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		boolean isNodeIndex = index.getTargetEntityType() == TargetEntityType.NODE;</span>
+
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		String properties = isNodeIndex</span>
+<span class="fc" id="L153">			? renderProperties(&quot;n&quot;, index, config)  // node</span>
+<span class="fc" id="L154">			: renderProperties(&quot;r&quot;, index, config); // relationship</span>
+
+<span class="fc" id="L156">		Operator operator = config.getOperator();</span>
+<span class="fc" id="L157">		String type = determineType(index, config);</span>
+
+<span class="fc" id="L159">		Neo4jVersion version = config.getVersion();</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">		if (version == Neo4jVersion.V3_5) {</span>
+<span class="fc" id="L161">			return String.format(&quot;%s %#s ON :%s(%s)&quot;, operator, item, identifier, properties);</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">		} else if (operator == Operator.DROP) {</span>
+<span class="pc bpc" id="L163" title="1 of 4 branches missed.">			if (!index.hasName() || config.isIgnoreName()) {</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">				if (index.getProperties().size() == 1) {</span>
+<span class="fc" id="L165">					return String.format(&quot;%s %#s ON :%s(%s)&quot;, operator, item, identifier, properties);</span>
+				}
+<span class="fc" id="L167">				throw new IllegalStateException(</span>
+<span class="fc" id="L168">					String.format(&quot;Dropping an unnamed index is not supported on Neo4j %s.&quot;, version));</span>
+			}
+<span class="fc" id="L170">			return String.format(&quot;%s %#s%s&quot;, operator, item, config.ifNotExistsOrEmpty());</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">		} else if (isNodeIndex) {</span>
+<span class="fc" id="L172">			return String.format(&quot;%s%s%#s %sFOR (n:%s) ON (%s)%s&quot;, operator, type, item, config.ifNotExistsOrEmpty(),</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">				identifier, properties, index.getOptionalOptions().filter(ignored -&gt; index.getType() == Index.Type.VECTOR).map(o -&gt; &quot; OPTIONS &quot; + o).orElse(&quot;&quot;));</span>
+		} else {
+<span class="fc" id="L175">			return String.format(&quot;%s%s%#s %sFOR ()-[r:%s]-() ON (%s)&quot;, operator, type, item, config.ifNotExistsOrEmpty(),</span>
+				identifier, properties);
+		}
+	}
+
+	private static String determineType(Index index, RenderConfig config) {
+
+<span class="fc bfc" id="L182" title="All 4 branches covered.">		if (index.getType() == Index.Type.PROPERTY &amp;&amp; !config.useExplicitPropertyIndexType()) {</span>
+<span class="fc" id="L183">			return &quot; &quot;;</span>
+		}
+
+<span class="fc bfc" id="L186" title="All 2 branches covered.">		if (index.isBtreePropertyIndex()) {</span>
+<span class="fc" id="L187">			return &quot; BTREE &quot;;</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">		} else if (index.isRangePropertyIndex()) {</span>
+<span class="fc" id="L189">			return &quot; RANGE &quot;;</span>
+		} else {
+<span class="fc" id="L191">			return &quot; &quot; + index.getType().name() + &quot; &quot;;</span>
+		}
+	}
+
+	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index) {
+<span class="fc" id="L196">		return getAndEscapeIdentifier(version, index, false);</span>
+	}
+
+	private static String getAndEscapeIdentifier(Neo4jVersion version, Index index, boolean forceBackTicks) {
+
+<span class="fc bfc" id="L201" title="All 4 branches covered.">		if (RANGE_35_TO_42.contains(version) &amp;&amp; !forceBackTicks) {</span>
+<span class="fc" id="L202">			return index.getDeconstructedIdentifiers()</span>
+<span class="fc" id="L203">				.stream()</span>
+<span class="fc" id="L204">				.map(TO_LITERAL)</span>
+<span class="fc" id="L205">				.collect(Collectors.joining(&quot;, &quot;));</span>
+		} else {
+<span class="fc" id="L207">			return index.getDeconstructedIdentifiers()</span>
+<span class="fc" id="L208">				.stream()</span>
+<span class="fc" id="L209">				.map(version::sanitizeSchemaName)</span>
+<span class="fc" id="L210">				.collect(Collectors.joining(&quot;|&quot;));</span>
+		}
+	}
+
+	private String renderProperties(String prefix, Index item, RenderConfig config) {
+
+<span class="fc" id="L216">		Neo4jVersion version = config.getVersion();</span>
+<span class="fc bfc" id="L217" title="All 4 branches covered.">		if (version == Neo4jVersion.V3_5 || config.getOperator() == Operator.DROP) {</span>
+<span class="fc" id="L218">			return item.getProperties().stream()</span>
+<span class="fc" id="L219">				.map(version::sanitizeSchemaName)</span>
+<span class="fc" id="L220">				.collect(Collectors.joining(&quot;, &quot;));</span>
+		} else {
+<span class="fc" id="L222">			return item.getProperties().stream()</span>
+<span class="fc" id="L223">				.map(version::sanitizeSchemaName)</span>
+<span class="fc" id="L224">				.map(v -&gt; prefix + &quot;.&quot; + v).collect(Collectors.joining(&quot;, &quot;));</span>
+		}
+	}
+
+	private String renderFulltextProperties(String prefix, Index item, RenderConfig config) {
+<span class="fc bfc" id="L229" title="All 2 branches covered.">		if (RANGE_35_TO_42.contains(config.getVersion())) {</span>
+<span class="fc" id="L230">			return item.getProperties().stream()</span>
+<span class="fc" id="L231">				.map(TO_LITERAL)</span>
+<span class="fc" id="L232">				.collect(Collectors.joining(&quot;, &quot;));</span>
+		}
+
+<span class="fc" id="L235">		return item.getProperties().stream().map(v -&gt; prefix + &quot;.`&quot; + v + &quot;`&quot;).collect(Collectors.joining(&quot;, &quot;));</span>
+	}
+
+	Formattable formattablePropertyIndexItem(Index item, RenderConfig config) {
+<span class="pc bpc" id="L239" title="1 of 4 branches missed.">		return config.isIgnoreName() || config.getVersion() == Neo4jVersion.V3_5 ?</span>
+<span class="fc" id="L240">			new AnonymousCatalogItem(item) :</span>
+<span class="fc" id="L241">			new FormattableCatalogItem(item, config.getVersion());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

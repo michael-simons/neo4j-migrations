@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FormatStringGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">FormatStringGenerator.java</span></div><h1>FormatStringGenerator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+/**
+ * Generates format strings for refactorings, depending on targets and / or custom queries.
+ *
+ * @author Michael J. Simons
+ */
+interface FormatStringGenerator {
+
+	/**
+	 * Value class for the fragments of a format string
+	 *
+	 * @param source                The fragment used to select the source
+	 * @param sourceWithCustomQuery The fragment used to select the source by a custom query
+	 * @param action                The action to deal with elements
+	 * @param actionWithBatchSize   The action to deal with elements in batches
+	 */
+<span class="fc" id="L33">	record Fragments(String source, String sourceWithCustomQuery, String action, String actionWithBatchSize) {</span>
+	}
+
+	/**
+	 * @return The fragments making up the format string
+	 */
+	Fragments getFragments();
+
+	default String generateFormatString(String customQuery, Integer batchSize) {
+<span class="fc" id="L42">		Fragments fragments = getFragments();</span>
+
+		String ptSource;
+		String ptAction;
+
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		if (customQuery == null) {</span>
+<span class="fc" id="L48">			ptSource = fragments.source();</span>
+		} else {
+<span class="fc" id="L50">			ptSource = fragments.sourceWithCustomQuery();</span>
+		}
+
+<span class="fc bfc" id="L53" title="All 2 branches covered.">		if (batchSize == null) {</span>
+<span class="fc" id="L54">			ptAction = fragments.action();</span>
+		} else {
+<span class="fc" id="L56">			ptAction = fragments.actionWithBatchSize();</span>
+		}
+
+<span class="fc" id="L59">		return ptSource + &quot; &quot; + ptAction;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Neo4jEdition.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Neo4jEdition.java</span></div><h1>Neo4jEdition.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Locale;
+
+/**
+ * Represents a Neo4j edition.
+ *
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+<span class="fc" id="L26">public enum Neo4jEdition {</span>
+
+	/**
+	 * Constant for the enterprise edition.
+	 */
+<span class="fc" id="L31">	ENTERPRISE,</span>
+	/**
+	 * Constant for the community edition.
+	 */
+<span class="fc" id="L35">	COMMUNITY,</span>
+	/**
+	 * Constant for an unknown edition.
+	 */
+<span class="fc" id="L39">	UNDEFINED;</span>
+
+	/**
+	 * @param edition A string value describing the edition, may be {@literal null}
+	 * @return The enum constant for the given edition or {@link Neo4jEdition#UNDEFINED} if lenient parsing is not possible.
+	 */
+	public static Neo4jEdition of(String edition) {
+<span class="fc" id="L46">		return of(edition, true);</span>
+	}
+
+	/**
+	 * @param edition A string value describing the edition, may be {@literal null}
+	 * @param lenient Whether lenient parsing should be attempted or not
+	 * @return The enum constant for the given edition or {@link Neo4jEdition#UNDEFINED} if lenient parsing is not possible.
+	 */
+	public static Neo4jEdition of(String edition, boolean lenient) {
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		if (edition == null) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">			if (!lenient) {</span>
+<span class="fc" id="L58">				throw new IllegalArgumentException(&quot;Cannot derive an edition from literal null&quot;);</span>
+			}
+<span class="fc" id="L60">			return Neo4jEdition.UNDEFINED;</span>
+		} else {
+<span class="fc" id="L62">			String value = edition.trim().toUpperCase(Locale.ROOT);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">			if (!lenient) {</span>
+<span class="fc" id="L64">				return Neo4jEdition.valueOf(value);</span>
+			}
+<span class="fc bfc" id="L66" title="All 3 branches covered.">			return switch (value) {</span>
+<span class="fc" id="L67">				case &quot;ENTERPRISE&quot; -&gt; Neo4jEdition.ENTERPRISE;</span>
+<span class="fc" id="L68">				case &quot;COMMUNITY&quot; -&gt; Neo4jEdition.COMMUNITY;</span>
+<span class="fc" id="L69">				default -&gt; Neo4jEdition.UNDEFINED;</span>
+			};
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

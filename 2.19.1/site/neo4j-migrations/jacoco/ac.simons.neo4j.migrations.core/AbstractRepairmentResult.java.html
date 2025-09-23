@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractRepairmentResult.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">AbstractRepairmentResult.java</span></div><h1>AbstractRepairmentResult.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Optional;
+
+/**
+ * Contains shared state for repair results (deleting migrations is considered a repairing attempt as well).
+ *
+ * @author Michael J. Simons
+ * @since 2.2.0
+ */
+abstract sealed class AbstractRepairmentResult implements DatabaseOperationResult
+	permits DeleteResult, RepairmentResult {
+
+	private final String affectedDatabase;
+
+	private final long nodesDeleted;
+
+	private final long nodesCreated;
+
+	private final long relationshipsDeleted;
+
+	private final long relationshipsCreated;
+
+	private final long propertiesSet;
+
+<span class="fc" id="L41">	AbstractRepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {</span>
+<span class="fc" id="L42">		this.affectedDatabase = affectedDatabase;</span>
+<span class="fc" id="L43">		this.nodesDeleted = nodesDeleted;</span>
+<span class="fc" id="L44">		this.nodesCreated = nodesCreated;</span>
+<span class="fc" id="L45">		this.relationshipsDeleted = relationshipsDeleted;</span>
+<span class="fc" id="L46">		this.relationshipsCreated = relationshipsCreated;</span>
+<span class="fc" id="L47">		this.propertiesSet = propertiesSet;</span>
+<span class="fc" id="L48">	}</span>
+
+	@Override
+	public Optional&lt;String&gt; getAffectedDatabase() {
+<span class="fc" id="L52">		return Optional.ofNullable(affectedDatabase);</span>
+	}
+
+	/**
+	 * @return how many nodes have been deleted.
+	 */
+	public long getNodesDeleted() {
+<span class="fc" id="L59">		return nodesDeleted;</span>
+	}
+
+	/**
+	 * @return how many nodes have been created.
+	 */
+	public long getNodesCreated() {
+<span class="fc" id="L66">		return nodesCreated;</span>
+	}
+
+	/**
+	 * @return how many relationships have been deleted
+	 */
+	public long getRelationshipsDeleted() {
+<span class="fc" id="L73">		return relationshipsDeleted;</span>
+	}
+
+	/**
+	 * @return how many relationships have been created
+	 */
+	public long getRelationshipsCreated() {
+<span class="fc" id="L80">		return relationshipsCreated;</span>
+	}
+
+	/**
+	 * @return the number of properties set
+	 */
+	public long getPropertiesSet() {
+<span class="fc" id="L87">		return propertiesSet;</span>
+	}
+
+	static String toString(MigrationVersion version) {
+
+<span class="fc" id="L92">		return version.getValue() + version.getOptionalDescription().map(d -&gt; String.format(&quot; (\&quot;%s\&quot;)&quot;, d)).orElse(&quot;&quot;);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

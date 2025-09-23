@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsLock.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationsLock.java</span></div><h1>MigrationsLock.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
+
+/**
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+final class MigrationsLock {
+
+<span class="fc" id="L43">	private static final Logger LOGGER = Logger.getLogger(MigrationsLock.class.getName());</span>
+	private static final String DEFAULT_NAME_OF_LOCK = &quot;John Doe&quot;;
+<span class="fc" id="L45">	private static final Supplier&lt;String&gt; LOCK_FAILED_MESSAGE_SUPPLIER = () -&gt; Messages.INSTANCE.get(&quot;lock_failed&quot;);</span>
+<span class="fc" id="L46">	private static final Renderer&lt;Constraint&gt; CONSTRAINT_RENDERER = Renderer.get(Renderer.Format.CYPHER, Constraint.class);</span>
+
+<span class="fc" id="L48">	static final Constraint[] REQUIRED_CONSTRAINTS = new Constraint[] {</span>
+<span class="fc" id="L49">		Constraint.forNode(&quot;__Neo4jMigrationsLock&quot;)</span>
+<span class="fc" id="L50">			.named(&quot;__Neo4jMigrationsLock__has_unique_id&quot;)</span>
+<span class="fc" id="L51">			.unique(&quot;id&quot;),</span>
+
+<span class="fc" id="L53">		Constraint.forNode(&quot;__Neo4jMigrationsLock&quot;)</span>
+<span class="fc" id="L54">			.named(&quot;__Neo4jMigrationsLock__has_unique_name&quot;)</span>
+<span class="fc" id="L55">			.unique(&quot;name&quot;)</span>
+	};
+
+	private final MigrationContext context;
+<span class="fc" id="L59">	private final String id = UUID.randomUUID().toString();</span>
+	private final String nameOfLock;
+
+<span class="fc" id="L62">	private final ReentrantReadWriteLock lockLockingLocks = new ReentrantReadWriteLock();</span>
+
+<span class="fc" id="L64">	private final Thread cleanUpTask = new Thread(this::unlock0);</span>
+
+<span class="fc" id="L66">	MigrationsLock(MigrationContext context) {</span>
+<span class="fc" id="L67">		this.context = context;</span>
+<span class="fc" id="L68">		this.nameOfLock = context.getConfig().getOptionalDatabase()</span>
+<span class="fc" id="L69">			.map(v -&gt; v.toLowerCase(Locale.ROOT))</span>
+			// Prior to 1.1, Migrations would use &quot;John Doe&quot; by default, so if someone used explicitly &quot;neo4j&quot; as database
+			// name, the lock wouldn't work. Therefore, we must translate this here.
+
+			// &quot;John Doe&quot; will be unique and not clash with any existing database name, see
+			// - Length must be between 3 and 63 characters.
+			// - The first character of a name must be an ASCII alphabetic character.
+			// - Subsequent characters must be ASCII alphabetic or numeric characters, dots or dashes; [a..z][0..9].
+			// From https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/
+<span class="fc bfc" id="L78" title="All 2 branches covered.">			.filter(v -&gt; !v.equals(&quot;neo4j&quot;))</span>
+<span class="fc" id="L79">			.orElse(DEFAULT_NAME_OF_LOCK);</span>
+<span class="fc" id="L80">	}</span>
+
+	private void createUniqueConstraintIfNecessary() {
+
+<span class="fc" id="L84">		int constraintsAdded = 0;</span>
+<span class="fc" id="L85">		ConnectionDetails cd = context.getConnectionDetails();</span>
+<span class="fc" id="L86">		Neo4jVersion neo4jVersion = Neo4jVersion.of(cd.getServerVersion());</span>
+<span class="fc" id="L87">		Neo4jEdition edition = Neo4jEdition.of(cd.getServerEdition());</span>
+<span class="fc" id="L88">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L89">			Renderer&lt;Constraint&gt; renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);</span>
+<span class="fc" id="L90">			RenderConfig.Builder builder = RenderConfig.create();</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">			if (neo4jVersion.hasIdempotentOperations()) {</span>
+<span class="fc" id="L92">				builder = ((RenderConfig.IfNotExistsConfigBuilder) builder).ifNotExists();</span>
+			}
+<span class="fc" id="L94">			RenderConfig createConfig = builder.forVersionAndEdition(neo4jVersion, edition);</span>
+
+<span class="fc bfc" id="L96" title="All 2 branches covered.">			for (Constraint constraint : REQUIRED_CONSTRAINTS) {</span>
+<span class="fc" id="L97">				String cypher = renderer.render(constraint, createConfig);</span>
+				try {
+<span class="fc" id="L99">					constraintsAdded += HBD.silentCreateConstraintOrIndex(cd, session, cypher, null, LOCK_FAILED_MESSAGE_SUPPLIER);</span>
+<span class="fc" id="L100">				} catch (MigrationsException e) {</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">					if (!constraintWithNameAlreadyExistsAndIsEquivalent(cd, session, constraint, e)) {</span>
+<span class="fc" id="L102">						throw e;</span>
+					}
+<span class="fc" id="L104">				}</span>
+			}
+		}
+<span class="fc" id="L107">		LOGGER.log(Level.FINE, &quot;Created {0} constraints&quot;, constraintsAdded);</span>
+<span class="fc" id="L108">	}</span>
+
+	private static boolean constraintWithNameAlreadyExistsAndIsEquivalent(ConnectionDetails cd, Session session, Constraint constraint, MigrationsException e) {
+<span class="pc bpc" id="L111" title="2 of 4 branches missed.">		return e.getCause() instanceof Neo4jException ne &amp;&amp; Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(ne.code()) &amp;&amp;</span>
+<span class="pc bnc" id="L112" title="All 2 branches missed.">			DatabaseCatalog.full(Neo4jVersion.of(cd.getServerVersion()), session).containsEquivalentItem(constraint);</span>
+	}
+
+	SummaryCounters clean() {
+
+<span class="fc" id="L117">		int nodesDeleted = 0;</span>
+<span class="fc" id="L118">		int relationshipsDeleted = 0;</span>
+<span class="fc" id="L119">		int constraintsDropped = 0;</span>
+
+<span class="fc" id="L121">		ConnectionDetails cd = context.getConnectionDetails();</span>
+<span class="fc" id="L122">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L123">			SummaryCounters summaryCounters = session.executeWrite(</span>
+<span class="fc" id="L124">				tx -&gt; tx.run(&quot;MATCH (l:`__Neo4jMigrationsLock`) delete l&quot;).consume().counters());</span>
+<span class="fc" id="L125">			nodesDeleted += summaryCounters.nodesDeleted();</span>
+<span class="fc" id="L126">			relationshipsDeleted += summaryCounters.relationshipsDeleted();</span>
+
+<span class="fc" id="L128">			RenderConfig dropConfig = RenderConfig.drop().forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">			for (Constraint constraint : REQUIRED_CONSTRAINTS) {</span>
+<span class="fc" id="L130">				constraintsDropped += dropConstraint(cd, session, dropConfig, constraint);</span>
+			}
+		}
+
+<span class="fc" id="L134">		return new SummaryCountersImpl(</span>
+			0, nodesDeleted,
+			0, relationshipsDeleted,
+			0,
+			0, 0,
+			0, 0,
+			0, constraintsDropped, 0
+		);
+	}
+
+	private static int dropConstraint(ConnectionDetails cd, Session session, RenderConfig dropConfig, Constraint constraint) {
+<span class="fc" id="L145">		var translation = Map.of(</span>
+			Constraint.Type.UNIQUE, &quot;UNIQUENESS&quot;,
+			Constraint.Type.KEY, &quot;NODE_KEY&quot;
+		);
+
+<span class="fc" id="L150">		String cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig);</span>
+<span class="fc" id="L151">		Integer constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		if (constraintsDropped == 0) {</span>
+			// Enforce unnamed
+<span class="fc" id="L154">			cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig.ignoreName());</span>
+			try {
+<span class="nc" id="L156">				constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);</span>
+<span class="fc" id="L157">			} catch (MigrationsException e) {</span>
+				// While you might be able to create unnamed constraints on 5.x, you cannot drop them without
+				// the generated name anymore, so here's to that…
+<span class="pc bpc" id="L160" title="2 of 4 branches missed.">				if (e.getCause() instanceof Neo4jException n &amp;&amp; &quot;Neo.ClientError.Statement.SyntaxError&quot;.equals(n.code())) {</span>
+<span class="fc" id="L161">					var name = session.executeRead(tx -&gt; tx.run(&quot;SHOW CONSTRAINTS YIELD * WHERE type = $type AND entityType = $entityType AND properties = $properties RETURN name&quot;, Map.of(&quot;type&quot;, translation.get(constraint.getType()), &quot;entityType&quot;, constraint.getTargetEntityType().name(), &quot;properties&quot;, constraint.getProperties())).single().get(0).asString());</span>
+<span class="fc" id="L162">					cypher = CONSTRAINT_RENDERER.render(constraint.withName(name), dropConfig);</span>
+<span class="fc" id="L163">					constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);</span>
+				}
+<span class="nc" id="L165">			}</span>
+		}
+<span class="fc" id="L167">		return constraintsDropped;</span>
+	}
+
+<span class="fc" id="L170">	record SummaryCountersImpl(int nodesCreated, int nodesDeleted, int relationshipsCreated,</span>
+		int relationshipsDeleted, int propertiesSet, int labelsAdded, int labelsRemoved,
+		int indexesAdded, int indexesRemoved, int constraintsAdded, int constraintsRemoved,
+		int systemUpdates
+	) implements SummaryCounters {
+
+		@Override
+		public boolean containsUpdates() {
+<span class="fc bfc" id="L178" title="All 2 branches covered.">			return (nodesCreated | nodesDeleted | relationshipsCreated | relationshipsDeleted | propertiesSet | labelsAdded | labelsRemoved | indexesAdded | indexesRemoved | constraintsAdded | constraintsRemoved) &gt; 0;</span>
+		}
+
+		@Override
+		public boolean containsSystemUpdates() {
+<span class="fc bfc" id="L183" title="All 2 branches covered.">			return systemUpdates &gt; 0;</span>
+		}
+	}
+
+	String lock() {
+
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">		if (LOGGER.isLoggable(Level.FINE)) {</span>
+<span class="nc" id="L190">			MigrationsConfig config = context.getConfig();</span>
+<span class="nc" id="L191">			UnaryOperator&lt;String&gt; databaseNameMapper = v -&gt; &quot;database `&quot; + v + &quot;`&quot;;</span>
+<span class="nc" id="L192">			String formattedTargetDatabaseName = config.getOptionalDatabase().map(databaseNameMapper).orElse(&quot;the default database&quot;);</span>
+<span class="nc" id="L193">			LOGGER.log(Level.FINE, &quot;Acquiring lock {0} on {1} in {2}&quot;, new Object[] { id, formattedTargetDatabaseName, config</span>
+<span class="nc" id="L194">				.getOptionalSchemaDatabase().map(databaseNameMapper).orElse(formattedTargetDatabaseName) });</span>
+		}
+
+<span class="fc" id="L197">		createUniqueConstraintIfNecessary();</span>
+
+<span class="fc" id="L199">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L200">			lockLockingLocks.writeLock().lock();</span>
+<span class="fc" id="L201">			var internalId = session.executeWrite(t -&gt;</span>
+<span class="fc" id="L202">				t.run(&quot;CREATE (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN l&quot;,</span>
+<span class="fc" id="L203">					Values.parameters(&quot;id&quot;, id, &quot;name&quot;, nameOfLock))</span>
+<span class="fc" id="L204">					.single().get(&quot;l&quot;).asNode().elementId()</span>
+			);
+<span class="fc" id="L206">			LOGGER.log(Level.FINE, &quot;Acquired lock {0} with internal id {1}&quot;, new Object[] { id, internalId });</span>
+<span class="fc" id="L207">			Runtime.getRuntime().addShutdownHook(cleanUpTask);</span>
+<span class="fc" id="L208">			return id;</span>
+<span class="fc" id="L209">		} catch (Neo4jException e) {</span>
+<span class="fc" id="L210">			throw new MigrationsException(</span>
+				&quot;Cannot create __Neo4jMigrationsLock node. Likely another migration is going on or has crashed&quot;, e);
+		} finally {
+<span class="fc" id="L213">			lockLockingLocks.writeLock().unlock();</span>
+		}
+	}
+
+	boolean isLocked() {
+
+<span class="fc" id="L219">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L220">			lockLockingLocks.readLock().lock();</span>
+<span class="fc" id="L221">			return session.executeRead(</span>
+<span class="fc" id="L222">				tx -&gt; tx.run(&quot;MATCH (l:__Neo4jMigrationsLock {id: $id, name: $name}) RETURN count(l)&quot;,</span>
+<span class="fc" id="L223">						Values.parameters(&quot;id&quot;, id, &quot;name&quot;, nameOfLock))</span>
+<span class="fc bfc" id="L224" title="All 2 branches covered.">					.single().get(0).asLong() &gt; 0);</span>
+		} finally {
+<span class="fc" id="L226">			lockLockingLocks.readLock().unlock();</span>
+		}
+	}
+
+	void unlock() {
+
+		try {
+<span class="fc" id="L233">			unlock0();</span>
+		} finally {
+<span class="fc" id="L235">			Runtime.getRuntime().removeShutdownHook(cleanUpTask);</span>
+		}
+<span class="fc" id="L237">	}</span>
+
+	private void unlock0() {
+
+<span class="fc" id="L241">		try (Session session = context.getSchemaSession()) {</span>
+
+<span class="fc" id="L243">			ResultSummary resultSummary = session.executeWrite(t -&gt;</span>
+<span class="fc" id="L244">				t.run(&quot;MATCH (l:__Neo4jMigrationsLock {id: $id}) DELETE l&quot;, Values.parameters(&quot;id&quot;, id))</span>
+<span class="fc" id="L245">					.consume());</span>
+<span class="fc" id="L246">			LOGGER.log(Level.FINE, &quot;Released lock {0} ({1} node(s) deleted)&quot;,</span>
+<span class="fc" id="L247">				new Object[] { id, resultSummary.counters().nodesDeleted() });</span>
+		}
+<span class="fc" id="L249">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

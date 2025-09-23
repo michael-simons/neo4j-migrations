@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResourceDiscoverer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ResourceDiscoverer.java</span></div><h1>ResourceDiscoverer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+
+/**
+ * Factory providing different {@link Discoverer} implementations.
+ *
+ * @author Michael J. Simons
+ * @param &lt;T&gt; The concrete type to be instantiated with a discovered resource
+ * @since 1.2.2
+ */
+final class ResourceDiscoverer&lt;T&gt; implements Discoverer&lt;T&gt; {
+
+	static Discoverer&lt;Migration&gt; forMigrations(ClasspathResourceScanner resourceScanner) {
+
+<span class="fc" id="L50">		List&lt;Discoverer&lt;Migration&gt;&gt; allDiscovers = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">		for (ResourceBasedMigrationProvider provider : ResourceBasedMigrationProvider.unique()) {</span>
+<span class="fc" id="L52">			Predicate&lt;String&gt; filter = pathOrUrl -&gt; {</span>
+<span class="fc" id="L53">				String path = URLDecoder.decode(pathOrUrl, Defaults.CYPHER_SCRIPT_ENCODING);</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">				if (provider.supportsArbitraryResourceNames()) {</span>
+<span class="nc" id="L55">					return path.endsWith(provider.getExtension());</span>
+				}
+<span class="fc" id="L57">				Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);</span>
+<span class="fc" id="L58">				boolean isValidResource = matcher.find();</span>
+<span class="pc bpc" id="L59" title="3 of 6 branches missed.">				if (!isValidResource &amp;&amp; LOGGER.isLoggable(Level.FINE) &amp;&amp; !LifecyclePhase.canParse(path)) {</span>
+<span class="nc" id="L60">					LOGGER.log(Level.FINE, &quot;Skipping resource {0}&quot;, path);</span>
+				}
+<span class="fc bfc" id="L62" title="All 4 branches covered.">				return isValidResource &amp;&amp; provider.getExtension().equals(matcher.group(&quot;ext&quot;));</span>
+			};
+<span class="fc" id="L64">			allDiscovers.add(new ResourceDiscoverer&lt;&gt;(resourceScanner, filter, provider::handle));</span>
+<span class="fc" id="L65">		}</span>
+<span class="fc" id="L66">		return new AggregatingMigrationDiscoverer(allDiscovers);</span>
+	}
+
+	static ResourceDiscoverer&lt;Callback&gt; forCallbacks(ClasspathResourceScanner resourceScanner) {
+<span class="fc" id="L70">		Predicate&lt;String&gt; filter = LifecyclePhase::canParse;</span>
+<span class="fc" id="L71">		filter = filter.and(fullPath -&gt; {</span>
+<span class="fc" id="L72">				final int lastSlashIdx = fullPath.lastIndexOf('/');</span>
+<span class="fc" id="L73">				final int lastDotIdx = fullPath.lastIndexOf('.');</span>
+<span class="pc bpc" id="L74" title="1 of 4 branches missed.">				return lastDotIdx &gt; lastSlashIdx &amp;&amp; fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);</span>
+		});
+<span class="fc" id="L76">		return new ResourceDiscoverer&lt;&gt;(resourceScanner, filter,</span>
+<span class="fc" id="L77">			ctx -&gt; Collections.singletonList(new CypherBasedCallback(ctx)));</span>
+	}
+
+	private final ClasspathResourceScanner scanner;
+
+	private final Predicate&lt;String&gt; resourceFilter;
+
+	private final Function&lt;ResourceContext, Collection&lt;T&gt;&gt; mapper;
+
+<span class="fc" id="L86">	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate&lt;String&gt; resourceFilter, Function&lt;ResourceContext, Collection&lt;T&gt;&gt; mapper) {</span>
+<span class="fc" id="L87">		this.scanner = scanner;</span>
+<span class="fc" id="L88">		this.resourceFilter = resourceFilter;</span>
+<span class="fc" id="L89">		this.mapper = mapper;</span>
+<span class="fc" id="L90">	}</span>
+
+	/**
+	 * @return All Cypher-based migrations. Empty list if no package to scan is configured.
+	 */
+	@Override
+	public Collection&lt;T&gt; discover(MigrationContext context) {
+
+<span class="fc" id="L98">		MigrationsConfig config = context.getConfig();</span>
+<span class="fc" id="L99">		List&lt;T&gt; listOfMigrations = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L101">		List&lt;String&gt; classpathLocations = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L102">		List&lt;URI&gt; filesystemLocations = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L104" title="All 2 branches covered.">		for (String prefixAndLocation : config.getLocationsToScan()) {</span>
+
+<span class="fc" id="L106">			Location location = Location.of(prefixAndLocation);</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">			if (location.getType() == Location.LocationType.CLASSPATH) {</span>
+<span class="fc" id="L108">				classpathLocations.add(location.getName());</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">			} else if (location.getType() == Location.LocationType.FILESYSTEM) {</span>
+<span class="fc" id="L110">				filesystemLocations.add(location.toUri());</span>
+			}
+		}
+
+<span class="fc" id="L114">		listOfMigrations.addAll(scanClasspathLocations(classpathLocations, context.getConfig()));</span>
+<span class="fc" id="L115">		listOfMigrations.addAll(scanFilesystemLocations(filesystemLocations, context.getConfig()));</span>
+
+<span class="fc" id="L117">		return listOfMigrations;</span>
+	}
+
+	private List&lt;T&gt; scanClasspathLocations(List&lt;String&gt; classpathLocations, MigrationsConfig config) {
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		if (classpathLocations.isEmpty()) {</span>
+<span class="fc" id="L123">			return Collections.emptyList();</span>
+		}
+
+<span class="fc" id="L126">		LOGGER.log(Level.FINE, &quot;Scanning for classpath resources in {0}&quot;, classpathLocations);</span>
+
+<span class="fc" id="L128">		return this.scanner.scan(classpathLocations)</span>
+<span class="fc" id="L129">			.stream()</span>
+<span class="fc" id="L130">			.filter(r -&gt; resourceFilter.test(r.getPath()))</span>
+<span class="fc" id="L131">			.map(resource -&gt; ResourceContext.of(resource, config))</span>
+<span class="fc" id="L132">			.map(mapper)</span>
+<span class="fc" id="L133">			.flatMap(Collection::stream)</span>
+<span class="fc" id="L134">			.toList();</span>
+	}
+
+	private List&lt;T&gt; scanFilesystemLocations(List&lt;URI&gt; filesystemLocations, MigrationsConfig config) {
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		if (filesystemLocations.isEmpty()) {</span>
+<span class="fc" id="L140">			return Collections.emptyList();</span>
+		}
+
+<span class="fc" id="L143">		LOGGER.log(Level.FINE, &quot;Scanning for filesystem resources in {0}&quot;, filesystemLocations);</span>
+
+<span class="fc" id="L145">		List&lt;T&gt; resources = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L147" title="All 2 branches covered.">		for (URI location : filesystemLocations) {</span>
+<span class="fc" id="L148">			Path path = Paths.get(location);</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">			if (!Files.isDirectory(path)) {</span>
+<span class="fc" id="L150">				LOGGER.log(Level.WARNING, &quot;Ignoring `{0}` (not a directory)&quot;, path);</span>
+<span class="fc" id="L151">				continue;</span>
+			}
+			try {
+<span class="fc" id="L154">				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor&lt;&gt;() {</span>
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+<span class="fc" id="L157">						String fullPath = file.toString();</span>
+<span class="pc bpc" id="L158" title="1 of 4 branches missed.">						if (attrs.isRegularFile() &amp;&amp; resourceFilter.test(fullPath)) {</span>
+<span class="fc" id="L159">							ResourceContext context = ResourceContext.of(file.toFile().toURI().toURL(), config);</span>
+<span class="fc" id="L160">							resources.addAll(mapper.apply(context));</span>
+<span class="fc" id="L161">							return FileVisitResult.CONTINUE;</span>
+						}
+<span class="fc" id="L163">						return super.visitFile(file, attrs);</span>
+					}
+				});
+<span class="nc" id="L166">			} catch (IOException e) {</span>
+<span class="nc" id="L167">				throw new UncheckedIOException(e);</span>
+<span class="fc" id="L168">			}</span>
+<span class="fc" id="L169">		}</span>
+
+<span class="fc" id="L171">		return resources;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

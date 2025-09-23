@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationResult.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ValidationResult.java</span></div><h1>ValidationResult.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * The result of the {@link Migrations#validate} operation.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Die Krupps - Paradise Now
+ * @since 1.2.0
+ */
+public final class ValidationResult implements DatabaseOperationResult {
+
+	/**
+	 * While {@link ValidationResult#isValid()} returns whether a database is in a valid state regarding migrations, the
+	 * outcome gives the actual details.
+	 *
+	 */
+<span class="fc" id="L42">	public enum Outcome {</span>
+
+		/**
+		 * The database is in an undefined state.
+		 */
+<span class="fc" id="L47">		UNDEFINED,</span>
+
+		/**
+		 * The combined state of migrations resolved and applied to the target database is valid.
+		 */
+<span class="fc" id="L52">		VALID,</span>
+
+		/**
+		 * The target database has not been fully migrated, meaning there are resolved migrations that have not been applied.
+		 * The database can be brought into a valid state via {@link Migrations#validate()}.
+		 */
+<span class="fc" id="L58">		INCOMPLETE_DATABASE,</span>
+
+		/**
+		 * Some migrations have been applied to the target database that cannot be resolved locally any longer. The database
+		 * must be repaired.
+		 */
+<span class="fc" id="L64">		INCOMPLETE_MIGRATIONS,</span>
+
+		/**
+		 * Some migrations have been changed since they have been applied to the target database or their version doesn't fit anymore.
+		 * The database must be repaired.
+		 */
+<span class="fc" id="L70">		DIFFERENT_CONTENT;</span>
+	}
+
+<span class="fc" id="L73">	private static final Set&lt;Outcome&gt; NEEDS_REPAIR = EnumSet.of(Outcome.INCOMPLETE_MIGRATIONS,</span>
+		Outcome.DIFFERENT_CONTENT, Outcome.UNDEFINED);
+
+	private final String affectedDatabase;
+
+	private final Outcome outcome;
+
+	private final List&lt;String&gt; warnings;
+
+<span class="fc" id="L82">	ValidationResult(Optional&lt;String&gt; affectedDatabase, Outcome outcome, List&lt;String&gt; warnings) {</span>
+
+<span class="fc" id="L84">		this.affectedDatabase = affectedDatabase.orElse(null);</span>
+<span class="fc" id="L85">		this.outcome = outcome;</span>
+<span class="fc" id="L86">		this.warnings = new ArrayList&lt;&gt;(warnings);</span>
+<span class="fc" id="L87">	}</span>
+
+	@Override
+	public Collection&lt;String&gt; getWarnings() {
+<span class="fc" id="L91">		return Collections.unmodifiableList(this.warnings);</span>
+	}
+
+	@Override
+	public String prettyPrint() {
+<span class="fc" id="L96">		String key = &quot;validation-result.outcome.&quot; + this.outcome.name().toLowerCase(Locale.ROOT);</span>
+<span class="fc" id="L97">		return MessageFormat.format(</span>
+<span class="fc" id="L98">			Messages.INSTANCE.get(key),</span>
+<span class="fc" id="L99">			this.getAffectedDatabase().map(v -&gt; &quot;`&quot; + v + &quot;`&quot;).orElse(&quot;the default database&quot;)</span>
+		);
+	}
+
+	@Override
+	public Optional&lt;String&gt; getAffectedDatabase() {
+<span class="fc" id="L105">		return Optional.ofNullable(affectedDatabase);</span>
+	}
+
+	/**
+	 * @return the outcome of the validation
+	 * @see #isValid
+	 */
+	public Outcome getOutcome() {
+<span class="fc" id="L113">		return outcome;</span>
+	}
+
+	/**
+	 * @return {@literal true} if the database is in a valid state
+	 */
+	public boolean isValid() {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		return this.outcome == Outcome.VALID;</span>
+	}
+
+	/**
+	 * If this method returns {@literal false}, the database is either valid or the resolved migrations can be applied
+	 * to bring the database into a valid state.
+	 *
+	 * @return {@literal true} if the database needs repair.
+	 */
+	public boolean needsRepair() {
+<span class="fc" id="L130">		return NEEDS_REPAIR.contains(this.outcome);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

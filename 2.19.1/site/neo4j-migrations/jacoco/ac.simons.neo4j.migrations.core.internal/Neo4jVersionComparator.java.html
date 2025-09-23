@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Neo4jVersionComparator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.internal</a> &gt; <span class="el_source">Neo4jVersionComparator.java</span></div><h1>Neo4jVersionComparator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.internal;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
+/**
+ * Compares two Neo4j versions strings.
+ *
+ * @author Michael J. Simons
+ * @since 1.5.0
+ */
+<span class="fc" id="L27">public final class Neo4jVersionComparator implements Comparator&lt;String&gt; {</span>
+
+	static String[] sanitize(String in) {
+<span class="fc" id="L30">		return in</span>
+<span class="fc" id="L31">			.replaceFirst(&quot;(?i)^Neo4j/&quot;, &quot;&quot;)</span>
+<span class="fc" id="L32">			.replaceFirst(&quot;-[\\w.]+$&quot;, &quot;&quot;)</span>
+<span class="fc" id="L33">			.split(&quot;\\.&quot;);</span>
+	}
+
+	@Override
+	public int compare(String o1, String o2) {
+<span class="fc" id="L38">		int c = o1.compareTo(o2);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">		if (c == 0) {</span>
+<span class="fc" id="L40">			return c;</span>
+		}
+
+<span class="fc" id="L43">		String[] a = sanitize(o1);</span>
+<span class="fc" id="L44">		String[] b = sanitize(o2);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">		if (a.length &lt; b.length) {</span>
+<span class="fc" id="L46">			a = Arrays.copyOf(a, b.length);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		} else if (a.length &gt; b.length) {</span>
+<span class="fc" id="L48">			b = Arrays.copyOf(b, a.length);</span>
+		}
+
+<span class="fc bfc" id="L51" title="All 2 branches covered.">		for (int i = 0; i &lt; a.length; ++i) {</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">			Integer d1 = Integer.valueOf(a[i] == null ? &quot;0&quot; : a[i]);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">			Integer d2 = Integer.valueOf(b[i] == null ? &quot;0&quot; : b[i]);</span>
+<span class="fc" id="L54">			c = d1.compareTo(d2);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">			if (c != 0) {</span>
+<span class="fc" id="L56">				return c;</span>
+			}
+		}
+
+<span class="fc" id="L60">		return 0;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

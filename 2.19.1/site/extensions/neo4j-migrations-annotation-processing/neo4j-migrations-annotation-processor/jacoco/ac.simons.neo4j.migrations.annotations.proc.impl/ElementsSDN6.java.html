@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ElementsSDN6.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">ElementsSDN6.java</span></div><h1>ElementsSDN6.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import java.util.Optional;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
+
+/**
+ * Value holder of SDN6 types.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Motörhead - Iron Fist
+ * @since 1.15.0
+ */
+<span class="fc" id="L31">record ElementsSDN6(</span>
+	TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels, TypeElement relationshipProperties,
+	ExecutableElement nodePrimaryLabel, TypeElement id, TypeElement generatedValue,
+	TypeElement commonsId, TypeElement property, TypeElement transientProperty) {
+
+	static Optional&lt;ElementsSDN6&gt; of(Elements elements) {
+<span class="fc" id="L37">		TypeElement sdn6Node = elements.getTypeElement(FullyQualifiedNames.SDN6_NODE);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">		if (sdn6Node == null) {</span>
+<span class="nc" id="L39">			return Optional.empty();</span>
+		}
+<span class="fc" id="L41">		TypeElement sdn6Relationship = elements.getTypeElement(FullyQualifiedNames.SDN6_RELATIONSHIP_PROPERTIES);</span>
+<span class="fc" id="L42">		ExecutableElement sdn6NodeValue = Attributes.get(sdn6Node, Attributes.VALUE).orElseThrow();</span>
+<span class="fc" id="L43">		ExecutableElement sdn6NodeLabels = Attributes.get(sdn6Node, Attributes.LABELS).orElseThrow();</span>
+<span class="fc" id="L44">		ExecutableElement sdn6NodePrimaryLabel = Attributes.get(sdn6Node, Attributes.PRIMARY_LABEL).orElseThrow();</span>
+
+<span class="fc" id="L46">		TypeElement sdn6Property = elements.getTypeElement(FullyQualifiedNames.SDN6_PROPERTY);</span>
+
+<span class="fc" id="L48">		TypeElement sdn6Id = elements.getTypeElement(FullyQualifiedNames.SDN6_ID);</span>
+<span class="fc" id="L49">		TypeElement sdn6GeneratedValue = elements.getTypeElement(FullyQualifiedNames.SDN6_GENERATED_VALUE);</span>
+<span class="fc" id="L50">		TypeElement commonsId = elements.getTypeElement(FullyQualifiedNames.COMMONS_ID);</span>
+<span class="fc" id="L51">		TypeElement transientProperty = elements.getTypeElement(FullyQualifiedNames.COMMONS_TRANSIENT);</span>
+
+<span class="fc" id="L53">		return Optional.of(new ElementsSDN6(sdn6Node, sdn6NodeValue, sdn6NodeLabels, sdn6Relationship, sdn6NodePrimaryLabel, sdn6Id, sdn6GeneratedValue, commonsId, sdn6Property, transientProperty));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

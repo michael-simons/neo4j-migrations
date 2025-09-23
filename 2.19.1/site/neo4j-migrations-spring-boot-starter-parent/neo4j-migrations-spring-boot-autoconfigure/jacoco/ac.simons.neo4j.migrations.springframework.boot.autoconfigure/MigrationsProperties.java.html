@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Spring Boot Autoconfiguration)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.springframework.boot.autoconfigure</a> &gt; <span class="el_source">MigrationsProperties.java</span></div><h1>MigrationsProperties.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
+
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
+
+import java.nio.charset.Charset;
+import java.time.Duration;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Configuration properties for a migration instance.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.6
+ */
+@ConfigurationProperties(prefix = &quot;org.neo4j.migrations&quot;)
+<span class="fc" id="L35">public class MigrationsProperties {</span>
+
+	/**
+	 * Whether to enable Neo4j migrations or not.
+	 */
+<span class="fc" id="L40">	private boolean enabled = true;</span>
+
+	/**
+	 * Whether to check that migration scripts location exists.
+	 */
+<span class="fc" id="L45">	private boolean checkLocation = true;</span>
+
+	/**
+	 * List of packages to scan for Java migrations.
+	 */
+<span class="fc" id="L50">	private String[] packagesToScan = new String[0];</span>
+
+	/**
+	 * Locations of migrations scripts.
+	 */
+<span class="fc" id="L55">	private String[] locationsToScan = new String[] { Defaults.LOCATIONS_TO_SCAN_VALUE };</span>
+
+	/**
+	 * The transaction mode in use (Defaults to &quot;per migration&quot;, meaning one script is run in one transaction).
+	 */
+<span class="fc" id="L60">	private TransactionMode transactionMode = Defaults.TRANSACTION_MODE;</span>
+
+	/**
+	 * Encoding of Cypher migrations.
+	 */
+<span class="fc" id="L65">	private Charset encoding = Defaults.CYPHER_SCRIPT_ENCODING;</span>
+
+	/**
+	 * The database that should be migrated (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+	 */
+	private String database;
+
+	/**
+	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+ only). Leave {@literal null} for using the default database.
+	 */
+	private String schemaDatabase;
+
+	/**
+	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
+	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+	 */
+	private String impersonatedUser;
+
+	/**
+	 * Username recorded as property {@literal by} on the MIGRATED_TO relationship.
+	 */
+	private String installedBy;
+
+	/**
+	 * Validating helps you verify that the migrations applied to the database match the ones available locally and is on by default.
+	 */
+<span class="fc" id="L91">	private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;</span>
+
+	/**
+	 * If you're programming on Windows and working with people who are not (or vice-versa), you'll probably run into
+	 * line-ending issues at some point. This is because Windows uses both a carriage-return character and a linefeed
+	 * character for newlines in its files, whereas macOS and Linux systems use only the linefeed character.
+	 * This is a subtle but incredibly annoying fact of cross-platform work; many editors on Windows silently replace
+	 * existing LF-style line endings with CRLF, or insert both line-ending characters when the user hits the enter key.
+	 *
+	 * Neo4j migrations can handle this by auto-converting CRLF line endings into LF before computing checksums of a
+	 * Cypher-based migration or applying it.
+	 */
+<span class="fc" id="L103">	private boolean autocrlf = Defaults.AUTOCRLF;</span>
+
+	/**
+	 * A configurable delay that will be applied in between applying two migrations.
+	 *
+	 * @since 2.3.2
+	 */
+	private Duration delayBetweenMigrations;
+
+	/**
+	 * Configures the sort order for migrations.
+	 *
+	 * @see VersionSortOrder
+	 * @since 2.9.0
+	 */
+<span class="fc" id="L118">	private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;</span>
+
+	/**
+	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends on {@link #transactionMode}).
+	 * {@literal null} is a valid value and make the driver apply the default timeout for the database.
+	 *
+	 * @since 2.13.0
+	 */
+	private Duration transactionTimeout;
+
+	/**
+	 * When this flag is set to {@literal true}, new migrations discovered that are &quot;out of order&quot;, such as a version 15
+	 * is to be found between 10 and 20, it will be accepted, integrated into the chain and then move on instead of throwing
+	 * an error.
+	 *
+	 * @since 2.14.0
+	 */
+<span class="fc" id="L135">	private boolean outOfOrder = Defaults.OUT_OF_ORDER;</span>
+
+	/**
+	 * When this flag is set to {@literal true}, checksums will be computed with the same algorithm Flyway uses.
+	 *
+	 * @since 2.17.0
+	 */
+<span class="fc" id="L142">	private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;</span>
+
+	/**
+	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
+	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
+	 * of letting the database decide.
+	 *
+	 * @since 2.19.0
+	 */
+<span class="fc" id="L151">	private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;</span>
+
+	/**
+	 * Configures the target version up to which migrations should be considered. This must be a valid migration version,
+	 * or one of the special values {@code current}, {@code latest} or {@code next}.
+	 *
+	 * @since 2.15.0
+	 */
+	private String target;
+
+	/**
+	 * @return see {@link #enabled}
+	 */
+	public boolean isEnabled() {
+<span class="nc" id="L165">		return enabled;</span>
+	}
+
+	/**
+	 * @param enabled A new value for {@link #enabled}
+	 */
+	public void setEnabled(boolean enabled) {
+<span class="fc" id="L172">		this.enabled = enabled;</span>
+<span class="fc" id="L173">	}</span>
+
+	/**
+	 * @return see {@link #checkLocation}
+	 */
+	public boolean isCheckLocation() {
+<span class="fc" id="L179">		return checkLocation;</span>
+	}
+
+	/**
+	 * @param checkLocation A new value for {@link #checkLocation}
+	 */
+	public void setCheckLocation(boolean checkLocation) {
+<span class="fc" id="L186">		this.checkLocation = checkLocation;</span>
+<span class="fc" id="L187">	}</span>
+
+	/**
+	 * @return see {@link #packagesToScan}
+	 */
+	public String[] getPackagesToScan() {
+<span class="fc" id="L193">		return packagesToScan;</span>
+	}
+
+	/**
+	 * @param packagesToScan A new value for {@link #packagesToScan}
+	 */
+	public void setPackagesToScan(String[] packagesToScan) {
+<span class="fc" id="L200">		this.packagesToScan = packagesToScan;</span>
+<span class="fc" id="L201">	}</span>
+
+	/**
+	 * @return see {@link #locationsToScan}
+	 */
+	public String[] getLocationsToScan() {
+<span class="fc" id="L207">		return locationsToScan;</span>
+	}
+
+	/**
+	 * @param locationsToScan A new value for {@link #locationsToScan}
+	 */
+	public void setLocationsToScan(String[] locationsToScan) {
+<span class="fc" id="L214">		this.locationsToScan = locationsToScan;</span>
+<span class="fc" id="L215">	}</span>
+
+	/**
+	 * @return see {@link #installedBy}
+	 */
+	public String getInstalledBy() {
+<span class="fc" id="L221">		return installedBy;</span>
+	}
+
+	/**
+	 * @param installedBy A new value for {@link #installedBy}
+	 */
+	public void setInstalledBy(String installedBy) {
+<span class="fc" id="L228">		this.installedBy = installedBy;</span>
+<span class="fc" id="L229">	}</span>
+
+	/**
+	 * @return see {@link #transactionMode}
+	 */
+	public TransactionMode getTransactionMode() {
+<span class="fc" id="L235">		return transactionMode;</span>
+	}
+
+	/**
+	 * @param transactionMode A new value for {@link #transactionMode}
+	 */
+	public void setTransactionMode(TransactionMode transactionMode) {
+<span class="fc" id="L242">		this.transactionMode = transactionMode;</span>
+<span class="fc" id="L243">	}</span>
+
+	/**
+	 * @return see {@link #encoding}
+	 */
+	public Charset getEncoding() {
+<span class="nc" id="L249">		return encoding;</span>
+	}
+
+	/**
+	 * @param encoding A new value for {@link #encoding}
+	 */
+	public void setEncoding(Charset encoding) {
+<span class="nc" id="L256">		this.encoding = encoding;</span>
+<span class="nc" id="L257">	}</span>
+
+	/**
+	 * @return see {@link #database}
+	 */
+	public String getDatabase() {
+<span class="fc" id="L263">		return database;</span>
+	}
+
+	/**
+	 * @param database A new value for {@link #database}
+	 */
+	public void setDatabase(String database) {
+<span class="fc" id="L270">		this.database = database;</span>
+<span class="fc" id="L271">	}</span>
+
+	/**
+	 * @return see {@link #schemaDatabase}
+	 */
+	public String getSchemaDatabase() {
+<span class="fc" id="L277">		return schemaDatabase;</span>
+	}
+
+	/**
+	 * @param schemaDatabase A new value for {@link #schemaDatabase}
+	 */
+	public void setSchemaDatabase(String schemaDatabase) {
+<span class="fc" id="L284">		this.schemaDatabase = schemaDatabase;</span>
+<span class="fc" id="L285">	}</span>
+
+	/**
+	 * @return see {@link #impersonatedUser}
+	 */
+	public String getImpersonatedUser() {
+<span class="fc" id="L291">		return impersonatedUser;</span>
+	}
+
+	/**
+	 * @param impersonatedUser A new value for {@link #impersonatedUser}
+	 */
+	public void setImpersonatedUser(String impersonatedUser) {
+<span class="fc" id="L298">		this.impersonatedUser = impersonatedUser;</span>
+<span class="fc" id="L299">	}</span>
+
+	/**
+	 * @return see {@link #validateOnMigrate}
+	 */
+	public boolean isValidateOnMigrate() {
+<span class="fc" id="L305">		return validateOnMigrate;</span>
+	}
+
+	/**
+	 * @param validateOnMigrate A new value for {@link #validateOnMigrate}
+	 */
+	public void setValidateOnMigrate(boolean validateOnMigrate) {
+<span class="fc" id="L312">		this.validateOnMigrate = validateOnMigrate;</span>
+<span class="fc" id="L313">	}</span>
+
+	/**
+	 * @return see {@link #autocrlf}
+	 */
+	public boolean isAutocrlf() {
+<span class="fc" id="L319">		return autocrlf;</span>
+	}
+
+	/**
+	 * @param autocrlf A new value for {@link #autocrlf}
+	 */
+	public void setAutocrlf(boolean autocrlf) {
+<span class="fc" id="L326">		this.autocrlf = autocrlf;</span>
+<span class="fc" id="L327">	}</span>
+
+	/**
+	 * @return see {@link #delayBetweenMigrations}
+	 */
+	public Duration getDelayBetweenMigrations() {
+<span class="fc" id="L333">		return delayBetweenMigrations;</span>
+	}
+
+	/**
+	 * @param delayBetweenMigrations A new value for {@link #delayBetweenMigrations}
+	 */
+	public void setDelayBetweenMigrations(Duration delayBetweenMigrations) {
+<span class="fc" id="L340">		this.delayBetweenMigrations = delayBetweenMigrations;</span>
+<span class="fc" id="L341">	}</span>
+
+	/**
+	 * @return see {@link #versionSortOrder}
+	 */
+	public VersionSortOrder getVersionSortOrder() {
+<span class="fc" id="L347">		return versionSortOrder;</span>
+	}
+
+	/**
+	 * @param versionSortOrder A new value for {@link #versionSortOrder}
+	 */
+	public void setVersionSortOrder(VersionSortOrder versionSortOrder) {
+<span class="fc" id="L354">		this.versionSortOrder = versionSortOrder;</span>
+<span class="fc" id="L355">	}</span>
+
+	/**
+	 * @return see {@link #transactionTimeout}
+	 */
+	public Duration getTransactionTimeout() {
+<span class="fc" id="L361">		return transactionTimeout;</span>
+	}
+
+	/**
+	 * @param transactionTimeout A new value for {@link #transactionTimeout}
+	 */
+	public void setTransactionTimeout(Duration transactionTimeout) {
+<span class="nc" id="L368">		this.transactionTimeout = transactionTimeout;</span>
+<span class="nc" id="L369">	}</span>
+
+	/**
+	 * {@return whether out-of-order migrations are allowed and integrated into the chain or not}
+	 */
+	public boolean isOutOfOrder() {
+<span class="fc" id="L375">		return outOfOrder;</span>
+	}
+
+	/**
+	 * {@return whether to use Flyway compatible checksums or not}
+	 * @since 2.17.0
+	 */
+	public boolean isUseFlywayCompatibleChecksums() {
+<span class="fc" id="L383">		return useFlywayCompatibleChecksums;</span>
+	}
+
+	/**
+	 * Configures whether Flyway compatible checksums should be used or not
+	 * @param useFlywayCompatibleChecksums the new value for the corresponding flag
+	 * @since 2.17.0
+	 */
+	public void setUseFlywayCompatibleChecksums(boolean useFlywayCompatibleChecksums) {
+<span class="fc" id="L392">		this.useFlywayCompatibleChecksums = useFlywayCompatibleChecksums;</span>
+<span class="fc" id="L393">	}</span>
+
+	/**
+	 * Configures whether migrations are allowed to be out-of-order or not
+	 * @param outOfOrder the new value for the out-of-order flag
+	 */
+	public void setOutOfOrder(boolean outOfOrder) {
+<span class="fc" id="L400">		this.outOfOrder = outOfOrder;</span>
+<span class="fc" id="L401">	}</span>
+
+	/**
+	 * {@return the version up-to which migrations should be considered}
+	 */
+	public String getTarget() {
+<span class="fc" id="L407">		return target;</span>
+	}
+
+	/**
+	 * Configures the target version to consider.
+	 * @param target the new value for the target version
+	 */
+	public void setTarget(String target) {
+<span class="fc" id="L415">		this.target = target;</span>
+<span class="fc" id="L416">	}</span>
+
+	/**
+	 * {@return the Cypher version to use for statements in Cypher based migrations}
+	 */
+	public CypherVersion getCypherVersion() {
+<span class="fc" id="L422">		return cypherVersion;</span>
+	}
+
+	/**
+	 * Configures the Cypher version to use for statements in Cypher based migrations.
+	 * @param cypherVersion set to {@literal null} or {@link CypherVersion#DATABASE_DEFAULT} to use the database default
+	 */
+	public void setCypherVersion(CypherVersion cypherVersion) {
+<span class="fc" id="L430">		this.cypherVersion = cypherVersion;</span>
+<span class="fc" id="L431">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

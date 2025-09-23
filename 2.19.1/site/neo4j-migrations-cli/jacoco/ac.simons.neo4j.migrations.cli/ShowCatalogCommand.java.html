@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShowCatalogCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CLI)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">ShowCatalogCommand.java</span></div><h1>ShowCatalogCommand.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.catalog.Renderer.Format;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.ParentCommand;
+
+/**
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+@Command(name = &quot;show-catalog&quot;, description = &quot;Gets the local or remote catalog and prints it to standard out in the given format.&quot;)
+<span class="fc" id="L34">final class ShowCatalogCommand extends ConnectedCommand {</span>
+
+<span class="fc" id="L36">	enum Mode {</span>
+<span class="fc" id="L37">		LOCAL,</span>
+<span class="fc" id="L38">		REMOTE</span>
+	}
+
+	@ParentCommand
+	private MigrationsCli parent;
+
+<span class="fc" id="L44">	@Option(names = &quot;mode&quot;,</span>
+		defaultValue = &quot;REMOTE&quot;,
+		description = &quot;REMOTE prints the database catalog, LOCAL prints the catalog based on the given migrations.&quot;
+	)
+	private Mode mode = Mode.REMOTE;
+
+<span class="fc" id="L50">	@Option(names = &quot;format&quot;, defaultValue = &quot;XML&quot;, description = &quot;The format in which to print the catalog.&quot;)</span>
+	private Format format = Format.XML;
+
+	@Option(names = &quot;version&quot;, description = &quot;Which Neo4j version should be assumed for rendering constraints and indexes as Cypher.&quot;)
+	private String version;
+
+	@Override
+	public MigrationsCli getParent() {
+<span class="nc" id="L58">		return parent;</span>
+	}
+
+	@Override
+	@SuppressWarnings(&quot;squid:S2629&quot;) // We definitely want to have the rendered outcome logged and INFO will be enabled.
+	Integer withMigrations(Migrations migrations) {
+
+<span class="fc" id="L65">		Renderer&lt;Catalog&gt; renderer = Renderer.get(format, Catalog.class);</span>
+		Catalog catalog;
+<span class="fc bfc" id="L67" title="All 2 branches covered.">		if (mode == Mode.LOCAL) {</span>
+<span class="fc" id="L68">			catalog = migrations.getLocalCatalog();</span>
+		} else {
+<span class="fc" id="L70">			catalog = migrations.getDatabaseCatalog();</span>
+		}
+
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		Neo4jVersion neo4jVersion = version == null ? Neo4jVersion.LATEST : Neo4jVersion.of(version);</span>
+<span class="fc" id="L74">		RenderConfig config = RenderConfig.create()</span>
+<span class="fc" id="L75">			.idempotent(neo4jVersion.hasIdempotentOperations())</span>
+<span class="fc" id="L76">			.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);</span>
+
+<span class="fc" id="L78">		MigrationsCli.LOGGER.info(renderer.render(catalog, config).trim());</span>
+<span class="fc" id="L79">		return 0;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

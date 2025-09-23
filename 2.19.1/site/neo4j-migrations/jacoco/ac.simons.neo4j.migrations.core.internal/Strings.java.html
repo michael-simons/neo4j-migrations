@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Strings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.internal</a> &gt; <span class="el_source">Strings.java</span></div><h1>Strings.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.internal;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Internally used String utilities. There are no guarantees on the stability of this API. It won't be available when
+ * run on the module path.
+ *
+ * @author Michael J. Simon
+ * @since 1.2.2
+ */
+public final class Strings {
+
+	/**
+	 * Single line comment indicator.
+	 */
+	public static final String CYPHER_SINGLE_LINE_COMMENT = &quot;//&quot;;
+
+	/**
+	 * Pattern used for splitting lines.
+	 */
+	public static final String LINE_DELIMITER = &quot;\r?\n|\r&quot;;
+
+	/**
+	 * Function for creating an MD5 representation of a byte array.
+	 */
+<span class="fc" id="L50">	public static final UnaryOperator&lt;byte[]&gt; MD5 = bytes -&gt; {</span>
+		try {
+			@SuppressWarnings(&quot;squid:S4790&quot;) // Definitely not at risk here.
+<span class="fc" id="L53">			MessageDigest md5 = MessageDigest.getInstance(&quot;MD5&quot;);</span>
+<span class="fc" id="L54">			return md5.digest(bytes);</span>
+<span class="nc" id="L55">		} catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L56">			throw new UncheckedNoSuchAlgorithmException(e);</span>
+		}
+	};
+
+	/**
+	 * A pattern representing valid Neo4j database names as described in
+	 * &lt;a href=&quot;https://neo4j.com/docs/cypher-manual/current/databases/#administration-databases-create-database&quot;&gt;Database management&lt;/a&gt;.
+	 */
+	public static final String VALID_DATABASE_NAME = &quot;([a-z][a-z\\d.\\-]{2,62})&quot;;
+
+<span class="fc" id="L66">	private static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();</span>
+
+	/**
+	 * A Base64 encoder.
+	 */
+<span class="fc" id="L71">	public static final Function&lt;byte[], String&gt; BASE64_ENCODING = HEX_FORMAT::formatHex;</span>
+
+	/**
+	 * Capitalizes a string
+	 *
+	 * @param value String to capitalize
+	 * @return Capitalized String or the original value if unchanged or if the value was {@literal null} or empty.
+	 */
+	public static String capitalize(String value) {
+<span class="pc bpc" id="L80" title="1 of 4 branches missed.">		if (value == null || value.isEmpty()) {</span>
+<span class="fc" id="L81">			return value;</span>
+		}
+
+<span class="fc" id="L84">		char baseChar = value.charAt(0);</span>
+<span class="fc" id="L85">		char updatedChar = Character.toUpperCase(baseChar);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">		if (baseChar == updatedChar) {</span>
+<span class="fc" id="L87">			return value;</span>
+		}
+
+<span class="fc" id="L90">		char[] chars = value.toCharArray();</span>
+<span class="fc" id="L91">		chars[0] = updatedChar;</span>
+<span class="fc" id="L92">		return new String(chars, 0, chars.length);</span>
+	}
+
+	/**
+	 * Transforms a string with words separated by {@literal _} into a camelCase string.
+	 *
+	 * @param value The value to transform
+	 * @return the value in camelCase
+	 */
+	public static String toCamelCase(String value) {
+<span class="fc" id="L102">		StringBuilder sb = new StringBuilder();</span>
+
+<span class="fc" id="L104">		int i = 0;</span>
+<span class="fc" id="L105">		final int u = '_';</span>
+		int codePoint;
+<span class="fc" id="L107">		Integer prev = null;</span>
+<span class="fc" id="L108">		boolean nextUpper = false;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		while (i &lt; value.length()) {</span>
+<span class="fc" id="L110">			codePoint = value.codePointAt(i);</span>
+<span class="fc" id="L111">			i += Character.charCount(codePoint);</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">			if (codePoint == u) {</span>
+<span class="fc" id="L113">				nextUpper = true;</span>
+			} else {
+<span class="fc" id="L115">				UnaryOperator&lt;Integer&gt; transform = Character::toLowerCase;</span>
+<span class="fc bfc" id="L116" title="All 8 branches covered.">				if (nextUpper || (prev != null &amp;&amp; Character.isLowerCase(prev) &amp;&amp; Character.isUpperCase(codePoint))) {</span>
+<span class="fc" id="L117">					transform = Character::toUpperCase;</span>
+				}
+<span class="fc" id="L119">				prev = codePoint;</span>
+<span class="fc" id="L120">				sb.append(Character.toChars(transform.apply(codePoint)));</span>
+<span class="fc" id="L121">				nextUpper = false;</span>
+<span class="fc" id="L122">			}</span>
+		}
+
+<span class="fc" id="L125">		return sb.toString();</span>
+	}
+
+	/**
+	 * This won't match a statement like
+	 * &lt;pre&gt;
+	 *     // Right at the start
+	 *     MATCH (n) RETURN count(n) AS n;
+	 * &lt;/pre&gt;
+	 * which will pe extracted from a Cypher file as one statement starting with a comment.
+	 * &lt;p&gt;
+	 * It would be nice to use the JavaCC Parser here as we do in Cypher-DSL, but that would require Java 11 for core.
+	 *
+	 * @param statement A statement to check
+	 * @return True if the statement is not null and is a single line comment
+	 */
+	public static boolean isSingleLineComment(String statement) {
+
+<span class="fc" id="L143">		Objects.requireNonNull(statement, &quot;Statement to check must not be null&quot;);</span>
+
+<span class="fc" id="L145">		String trimmed = statement.trim();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">		if (!trimmed.startsWith(CYPHER_SINGLE_LINE_COMMENT)) {</span>
+<span class="fc" id="L147">			return false;</span>
+		}
+
+<span class="pc bpc" id="L150" title="1 of 4 branches missed.">		return !(trimmed.contains(&quot;\n&quot;) || trimmed.contains(&quot;\r&quot;));</span>
+	}
+
+	private static boolean valueIsNotBlank(String value) {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">		return !value.trim().isEmpty();</span>
+	}
+
+	/**
+	 * Creates an optional value from a given string value, filtering additionally on blankness.
+	 *
+	 * @param value The value to create an optional from
+	 * @return An optional
+	 */
+	public static Optional&lt;String&gt; optionalOf(String value) {
+<span class="fc" id="L164">		return Optional.ofNullable(value)</span>
+<span class="fc" id="L165">			.filter(Strings::valueIsNotBlank)</span>
+<span class="fc" id="L166">			.map(String::trim);</span>
+	}
+
+	/**
+	 * @param value The value to check
+	 * @return {@literal true} if {@code value} is null or completely blank.
+	 */
+	public static boolean isBlank(String value) {
+<span class="fc bfc" id="L174" title="All 4 branches covered.">		return value == null || value.trim().isEmpty();</span>
+	}
+
+	/**
+	 * Replaces all calls to {@code elementId()} (A Neo4j 5 feature) with a combination of {@code toString(id())} so that
+	 * callers can reliably work on String based ids.
+	 *
+	 * @param query The query in which to replace calls to {@code elementId()}
+	 * @return An updated query
+	 */
+	public static String replaceElementIdCalls(String query) {
+
+<span class="fc" id="L186">		String prefix = &quot;toString(id(&quot;;</span>
+<span class="fc" id="L187">		String postfix = &quot;))&quot;;</span>
+<span class="fc" id="L188">		StringBuffer sb = new StringBuffer();</span>
+<span class="fc" id="L189">		Matcher m = Pattern.compile(&quot;([\\s(]?)elementId\\((.+?)\\)&quot;).matcher(query);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">		while (m.find()) {</span>
+<span class="fc" id="L191">			m.appendReplacement(sb, m.group(1) + prefix + m.group(2) + postfix);</span>
+		}
+<span class="fc" id="L193">		m.appendTail(sb);</span>
+<span class="fc" id="L194">		return sb.toString();</span>
+	}
+
+	private Strings() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

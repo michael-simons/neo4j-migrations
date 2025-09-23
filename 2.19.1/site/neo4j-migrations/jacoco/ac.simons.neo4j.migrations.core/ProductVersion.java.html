@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductVersion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">ProductVersion.java</span></div><h1>ProductVersion.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
+/**
+ * Utility class to retrieve the version of the core module aka the product version.
+ *
+ * @author Michael J. Simons
+ * @since 1.2.1
+ */
+final class ProductVersion {
+
+	private static volatile String value;
+
+	static String getValue() {
+
+<span class="fc" id="L36">		String computedVersion = value;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		if (computedVersion == null) {</span>
+<span class="fc" id="L38">			synchronized (ProductVersion.class) {</span>
+<span class="fc" id="L39">				computedVersion = value;</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">				if (computedVersion == null) {</span>
+<span class="fc" id="L41">					value = getVersionImpl();</span>
+<span class="fc" id="L42">					computedVersion = value;</span>
+				}
+<span class="fc" id="L44">			}</span>
+		}
+<span class="fc" id="L46">		return computedVersion;</span>
+	}
+
+	private static String getVersionImpl() {
+		try {
+<span class="fc" id="L51">			Enumeration&lt;URL&gt; resources = Migrations.class.getClassLoader().getResources(&quot;META-INF/MANIFEST.MF&quot;);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">			while (resources.hasMoreElements()) {</span>
+<span class="fc" id="L53">				URL url = resources.nextElement();</span>
+<span class="fc" id="L54">				Manifest manifest = new Manifest(url.openStream());</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">				if (isApplicableManifest(manifest)) {</span>
+<span class="nc" id="L56">					Attributes attr = manifest.getMainAttributes();</span>
+<span class="nc" id="L57">					return get(attr, &quot;Implementation-Version&quot;).toString();</span>
+				}
+<span class="fc" id="L59">			}</span>
+<span class="nc" id="L60">		} catch (IOException ex) {</span>
+<span class="nc" id="L61">			throw new MigrationsException(&quot;Unable to read from neo4j-migrations-core manifest.&quot;);</span>
+<span class="fc" id="L62">		}</span>
+
+<span class="fc" id="L64">		return &quot;unknown&quot;;</span>
+	}
+
+	private static boolean isApplicableManifest(Manifest manifest) {
+<span class="fc" id="L68">		Attributes attributes = manifest.getMainAttributes();</span>
+<span class="fc" id="L69">		return &quot;neo4j-migrations&quot;.equals(get(attributes, &quot;Artifact-Id&quot;));</span>
+	}
+
+	private static Object get(Attributes attributes, String key) {
+<span class="fc" id="L73">		return attributes.get(new Attributes.Name(key));</span>
+	}
+
+	private ProductVersion() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationVersion.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationVersion.java</span></div><h1>MigrationVersion.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * A migrations version.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+public final class MigrationVersion {
+
+	private static final String BASELINE_VALUE = &quot;BASELINE&quot;;
+<span class="fc" id="L34">	private static final MigrationVersion BASELINE = new MigrationVersion(BASELINE_VALUE, null, false);</span>
+	static final String VERSION_PATTERN_BASE = &quot;(?&lt;type&gt;[VR])(?&lt;version&gt;\\d+(?:_\\d+)*+|\\d+(?:\\.\\d+)*+)&quot;;
+	@SuppressWarnings(&quot;squid:S5843&quot;) // This is a fine regex
+<span class="fc" id="L37">	static final Pattern VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_BASE + &quot;__(?&lt;name&gt;[\\w ]+)(?:\\.(?&lt;ext&gt;\\w+))?&quot;);</span>
+<span class="fc" id="L38">	static final Pattern STOP_VERSION_PATTERN = Pattern.compile(VERSION_PATTERN_BASE + &quot;(?&lt;op&gt;\\?)?(__(?&lt;name&gt;[\\w ]+)(?:\\.(?&lt;ext&gt;\\w+))?)?&quot;);</span>
+
+	private final String value;
+	private final String description;
+	/**
+	 * A flag indicating that this version can be safely repeated, even on checksum changes.
+	 * @since 1.13.3
+	 */
+	private final boolean repeatable;
+
+	/**
+	 * @param pathOrUrl A string representing either a path or a URL.
+	 * @return {@literal true} when the given path or URL can be parsed into a valid {@link MigrationVersion}
+	 */
+	public static boolean canParse(String pathOrUrl) {
+<span class="nc" id="L53">		return VERSION_PATTERN.matcher(pathOrUrl).find();</span>
+	}
+
+	static MigrationVersion of(Class&lt;?&gt; clazz) {
+<span class="fc" id="L57">		return parse(clazz.getSimpleName());</span>
+	}
+
+	/**
+	 * Creates a {@link MigrationVersion} from the given class or file name
+	 *
+	 * @param name A class or file name
+	 * @return A {@link MigrationVersion}
+	 * @throws MigrationsException if the  name cannot be parsed.  You might check {{@link  #canParse(String)}} prior to
+	 *                             using this method
+	 * @since 2.2.0
+	 */
+	public static MigrationVersion parse(String name) {
+
+<span class="fc" id="L71">		Matcher matcher = VERSION_PATTERN.matcher(name);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		if (!matcher.matches()) {</span>
+<span class="fc" id="L73">			throw new MigrationsException(&quot;Invalid class name for a migration: &quot; + name);</span>
+		}
+
+<span class="fc" id="L76">		boolean repeatable = &quot;R&quot;.equalsIgnoreCase(matcher.group(&quot;type&quot;));</span>
+<span class="fc" id="L77">		return new MigrationVersion(matcher.group(&quot;version&quot;).replace(&quot;_&quot;, &quot;.&quot;), matcher.group(&quot;name&quot;).replace(&quot;_&quot;, &quot; &quot;), repeatable);</span>
+	}
+
+	/**
+	 * Finds an optional target version in a {@link MigrationChain}.
+	 *
+	 * @param chain The chain in which to look for the target version
+	 * @param value The value of the target version
+	 * @return an optional version to stop migrating at
+	 * @since 2.15.0
+	 */
+	static Optional&lt;StopVersion&gt; findTargetVersion(MigrationChain chain, String value) {
+
+<span class="fc bfc" id="L90" title="All 2 branches covered.">		if (value == null) {</span>
+<span class="fc" id="L91">			return Optional.empty();</span>
+		}
+
+		try {
+<span class="fc" id="L95">			var upperCaseValue = value.trim().toUpperCase();</span>
+			boolean optional;
+<span class="fc bfc" id="L97" title="All 2 branches covered.">			if (!upperCaseValue.endsWith(&quot;?&quot;)) {</span>
+<span class="fc" id="L98">				optional = false;</span>
+			} else {
+<span class="fc" id="L100">				optional = true;</span>
+<span class="fc" id="L101">				upperCaseValue = upperCaseValue.substring(0, upperCaseValue.length() - 1);</span>
+			}
+<span class="fc" id="L103">			var targetVersion = TargetVersion.valueOf(upperCaseValue);</span>
+<span class="fc" id="L104">			return chain.findTargetVersion(targetVersion).map(v -&gt; new StopVersion(v, optional));</span>
+<span class="fc" id="L105">		} catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L106">			return Optional.of(parseStopVersion(value));</span>
+		}
+	}
+
+	/**
+	 * Creates a {@link StopVersion} from the given class or file name in a more lenient way (the name for the migration
+	 * is optional) and an optional flag.
+	 *
+	 * @param name A class or file name
+	 * @return A {@link StopVersion}
+	 * @throws MigrationsException if the name cannot be parsed
+	 * @since 2.15.0
+	 */
+	private static StopVersion parseStopVersion(String name) {
+
+<span class="fc" id="L121">		Matcher matcher = STOP_VERSION_PATTERN.matcher(name);</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">		if (!matcher.matches()) {</span>
+<span class="nc" id="L123">			throw new MigrationsException(&quot;Invalid class or file name for a migration: &quot; + name);</span>
+		}
+
+<span class="fc" id="L126">		boolean repeatable = &quot;R&quot;.equalsIgnoreCase(matcher.group(&quot;type&quot;));</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">		String optionalName = matcher.group(&quot;name&quot;) == null ? &quot;n/a&quot; : matcher.group(&quot;name&quot;).replace(&quot;_&quot;, &quot; &quot;);</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">		return new StopVersion(new MigrationVersion(matcher.group(&quot;version&quot;).replace(&quot;_&quot;, &quot;.&quot;), optionalName, repeatable), matcher.group(&quot;op&quot;) != null);</span>
+	}
+
+	/**
+	 * Creates a {@link MigrationVersion} with a given value (the unique version identifier).
+	 *
+	 * @param value The unique version identifier
+	 * @return A {@link MigrationVersion}
+	 * @since 2.2.0
+	 */
+	public static MigrationVersion withValue(String value) {
+
+<span class="fc" id="L140">		return withValue(value, false);</span>
+	}
+
+	static MigrationVersion withValue(String value, boolean repeatable) {
+
+<span class="fc" id="L145">		return withValueAndDescription(value, null, repeatable);</span>
+	}
+
+	static MigrationVersion withValueAndDescription(String value, String description, boolean repeatable) {
+
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">		if (BASELINE_VALUE.equals(value)) {</span>
+<span class="nc" id="L151">			return MigrationVersion.baseline();</span>
+		}
+<span class="fc" id="L153">		return new MigrationVersion(value, description, repeatable);</span>
+	}
+
+	static MigrationVersion baseline() {
+
+<span class="fc" id="L158">		return BASELINE;</span>
+	}
+
+<span class="fc" id="L161">	private MigrationVersion(String value, String description, boolean repeatable) {</span>
+<span class="fc" id="L162">		this.value = value;</span>
+<span class="fc" id="L163">		this.description = description;</span>
+<span class="fc" id="L164">		this.repeatable = repeatable;</span>
+<span class="fc" id="L165">	}</span>
+
+	/**
+	 * @return the {@link String} value representing this version
+	 */
+	public String getValue() {
+<span class="fc" id="L171">		return value;</span>
+	}
+
+	/**
+	 * @return {@literal true} if this version can be safely applied multiple times, even on checksum changes
+	 * @since 1.13.3
+	 */
+	boolean isRepeatable() {
+<span class="fc" id="L179">		return repeatable;</span>
+	}
+
+	/**
+	 * @return The extracted description. Maybe null.
+	 */
+	Optional&lt;String&gt; getOptionalDescription() {
+<span class="fc" id="L186">		return Optional.ofNullable(description);</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L191">		return getValue();</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="fc bfc" id="L196" title="All 2 branches covered.">		if (this == o) {</span>
+<span class="fc" id="L197">			return true;</span>
+		}
+<span class="pc bpc" id="L199" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L200">			return false;</span>
+		}
+<span class="fc" id="L202">		MigrationVersion that = (MigrationVersion) o;</span>
+<span class="fc" id="L203">		return value.equals(that.value);</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="fc" id="L208">		return Objects.hash(value);</span>
+	}
+
+	static Comparator&lt;MigrationVersion&gt; getComparator(MigrationsConfig.VersionSortOrder versionSortOrder) {
+<span class="fc bfc" id="L212" title="All 2 branches covered.">		return switch (versionSortOrder) {</span>
+<span class="fc" id="L213">			case LEXICOGRAPHIC -&gt; new VersionComparator();</span>
+<span class="fc" id="L214">			case SEMANTIC -&gt; new SemanticVersionComparator();</span>
+		};
+	}
+
+	private static class SemanticVersionComparator implements Comparator&lt;MigrationVersion&gt; {
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+<span class="pc bpc" id="L222" title="3 of 4 branches missed.">			if (o1 == MigrationVersion.baseline() &amp;&amp; o2 == MigrationVersion.baseline()) {</span>
+<span class="nc" id="L223">				return 0;</span>
+			}
+
+<span class="pc bpc" id="L226" title="2 of 4 branches missed.">			if (o1 == MigrationVersion.baseline() || o2 == MigrationVersion.baseline()) {</span>
+<span class="nc" id="L227">				return 1;</span>
+			}
+
+<span class="fc" id="L230">			var lhs = Arrays.stream(o1.value.split(&quot;\\.&quot;)).map(Long::parseLong).toArray(Long[]::new);</span>
+<span class="fc" id="L231">			var rhs = Arrays.stream(o2.value.split(&quot;\\.&quot;)).map(Long::parseLong).toArray(Long[]::new);</span>
+<span class="fc" id="L232">			var max = Math.min(lhs.length, rhs.length);</span>
+
+<span class="fc" id="L234">			int i = 0;</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">			while (i &lt; max) {</span>
+<span class="fc" id="L236">				int result = Long.compare(lhs[i], rhs[i]);</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">				if (result != 0) {</span>
+<span class="fc" id="L238">					return result;</span>
+				}
+<span class="fc" id="L240">				++i;</span>
+<span class="fc" id="L241">			}</span>
+
+<span class="fc bfc" id="L243" title="All 2 branches covered.">			if (lhs.length &lt; rhs.length) {</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">				return rhs[i] == 0 ? 0 : -1;</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">			} else if (lhs.length &gt; rhs.length) {</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">				return lhs[i] == 0 ? 0 : 1;</span>
+			}
+<span class="fc" id="L248">			return 0;</span>
+		}
+	}
+
+	private static class VersionComparator implements Comparator&lt;MigrationVersion&gt; {
+
+		@Override
+		public int compare(MigrationVersion o1, MigrationVersion o2) {
+<span class="pc bpc" id="L256" title="1 of 4 branches missed.">			if (o1 == MigrationVersion.baseline() &amp;&amp; o2 == MigrationVersion.baseline()) {</span>
+<span class="fc" id="L257">				return 0;</span>
+			}
+
+<span class="pc bpc" id="L260" title="1 of 4 branches missed.">			if (o1 == MigrationVersion.baseline() || o2 == MigrationVersion.baseline()) {</span>
+<span class="fc" id="L261">				return 1;</span>
+			}
+
+<span class="fc" id="L264">			return o1.getValue().compareTo(o2.getValue());</span>
+		}
+	}
+
+	/**
+	 * Special values for some target versions. When migrating forwards, we will apply all migrations up to and including
+	 * the target version. Migrations with a higher version number will be ignored. If the target is current,
+	 * then no versioned migrations will be applied but repeatable migrations will be.
+	 *
+	 * @since 2.15.0
+	 */
+<span class="fc" id="L275">	public enum TargetVersion {</span>
+
+		/**
+		 * Designates the current version of the schema.
+		 */
+<span class="fc" id="L280">		CURRENT,</span>
+		/**
+		 * The latest version of the schema, as defined by the migration with the highest version.
+		 */
+<span class="fc" id="L284">		LATEST,</span>
+		/**
+		 * The next version of the schema, as defined by the first pending migration.
+		 */
+<span class="fc" id="L288">		NEXT</span>
+	}
+
+	/**
+	 * Marks a version as stop version. If the version is marked as optional, migrations  will go up to but not beyond the
+	 * specified version. Otherwise, it will fail, if the version does not exist.
+	 *
+	 * @param version  the version to stop at
+	 * @param optional set to {@code true} if the version is not required to be in the chain.
+	 */
+<span class="fc" id="L298">	record StopVersion(MigrationVersion version, boolean optional) {</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

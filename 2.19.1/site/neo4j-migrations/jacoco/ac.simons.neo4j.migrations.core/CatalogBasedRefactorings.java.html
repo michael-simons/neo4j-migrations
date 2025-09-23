@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogBasedRefactorings.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">CatalogBasedRefactorings.java</span></div><h1>CatalogBasedRefactorings.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
+import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Rename;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+/**
+ * Set of factory methods to read various refactorings from XML files validating against {@code migrations.xsd}.
+ *
+ * @author Michael J. Simons
+ * @soundtrack The Halo Effect - Days Of The Lost
+ * @since 1.10.0
+ */
+final class CatalogBasedRefactorings {
+
+	static Refactoring fromNode(Node node) {
+
+<span class="fc" id="L53">		String type = Optional.ofNullable(node.getAttributes().getNamedItem(&quot;type&quot;)).map(Node::getNodeValue).orElse(&quot;&quot;);</span>
+
+<span class="fc bfc" id="L55" title="All 2 branches covered.">		if (type.equals(&quot;merge.nodes&quot;)) {</span>
+<span class="fc" id="L56">			return createMerge(node, type);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">		} else if (type.equals(&quot;migrate.createFutureIndexes&quot;)) {</span>
+<span class="fc" id="L58">			return createMigrateBtreeIndexes(node, false);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">		} else if (type.equals(&quot;migrate.replaceBTreeIndexes&quot;)) {</span>
+<span class="fc" id="L60">			return createMigrateBtreeIndexes(node, true);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">		} else if (type.startsWith(&quot;rename.&quot;)) {</span>
+<span class="fc" id="L62">			return createRename(node, type);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">		} else if (type.equals(&quot;normalize.asBoolean&quot;)) {</span>
+<span class="fc" id="L64">			return createNormalizeAsBoolean(node, type);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">		} else if (type.startsWith(&quot;addSurrogateKeyTo.&quot;)) {</span>
+<span class="fc" id="L66">			return addSurrogateKey(node, type);</span>
+		}
+
+<span class="nc" id="L69">		throw createException(node, type, null);</span>
+	}
+
+	private static AddSurrogateKey addSurrogateKey(Node node, String type) {
+<span class="fc" id="L73">		String op = type.split(&quot;\\.&quot;)[1];</span>
+
+<span class="fc" id="L75">		NodeList parameterList = findParameterList(node).orElseThrow(() -&gt;</span>
+<span class="fc" id="L76">			createException(node, type, &quot;The addSurrogateKey refactoring requires several parameters&quot;)</span>
+		);
+
+<span class="fc" id="L79">		Optional&lt;String&gt; optionalCustomQuery = findParameter(node, &quot;customQuery&quot;, parameterList);</span>
+<span class="fc" id="L80">		AtomicReference&lt;AddSurrogateKey&gt; refactoring = new AtomicReference&lt;&gt;();</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">		if (&quot;nodes&quot;.equals(op)) {</span>
+<span class="fc" id="L82">			findParameterValues(parameterList, &quot;labels&quot;).filter(Predicate.not(List::isEmpty)).ifPresentOrElse(</span>
+<span class="fc" id="L83">				labels -&gt; refactoring.set(AddSurrogateKey.toNodes(labels.get(0), labels.subList(1, labels.size()).toArray(String[]::new))),</span>
+				() -&gt; {
+<span class="fc bfc" id="L85" title="All 2 branches covered.">					if (optionalCustomQuery.isPresent()) {</span>
+<span class="fc" id="L86">						refactoring.set(AddSurrogateKey.toNodesMatching(optionalCustomQuery.get().trim()));</span>
+					} else {
+<span class="fc" id="L88">						throw createException(node, type, &quot;No labels specified&quot;);</span>
+					}
+<span class="fc" id="L90">				}</span>
+			);
+<span class="fc bfc" id="L92" title="All 2 branches covered.">		} else if (&quot;relationships&quot;.equals(op)) {</span>
+<span class="fc" id="L93">			findParameter(node, &quot;type&quot;, parameterList).ifPresentOrElse(</span>
+<span class="fc" id="L94">				relationshipType -&gt; refactoring.set(AddSurrogateKey.toRelationships(relationshipType)),</span>
+				() -&gt; {
+<span class="fc bfc" id="L96" title="All 2 branches covered.">					if (optionalCustomQuery.isPresent()) {</span>
+<span class="fc" id="L97">						refactoring.set(AddSurrogateKey.toRelationshipsMatching(optionalCustomQuery.get().trim()));</span>
+					} else {
+<span class="fc" id="L99">						throw createException(node, type, &quot;No `type` parameter&quot;);</span>
+					}
+<span class="fc" id="L101">				});</span>
+		} else {
+<span class="fc" id="L103">			throw createException(node, type, String.format(&quot;`%s` is not a valid rename operation&quot;, op));</span>
+		}
+
+<span class="fc" id="L106">		refactoring.set(findParameter(node, &quot;property&quot;, parameterList)</span>
+<span class="fc" id="L107">			.map(p -&gt; refactoring.get().withProperty(p.trim())).orElse(refactoring.get()));</span>
+<span class="fc" id="L108">		refactoring.set(findParameter(node, &quot;generatorFunction&quot;, parameterList)</span>
+<span class="fc" id="L109">			.map(p -&gt; refactoring.get().withGeneratorFunction(p.trim())).orElse(refactoring.get()));</span>
+
+<span class="fc" id="L111">		return customize(refactoring.get(), node, type, parameterList);</span>
+	}
+
+	private static Refactoring createMigrateBtreeIndexes(Node node, boolean drop) {
+
+<span class="fc" id="L116">		Optional&lt;NodeList&gt; optionalParameters = findParameterList(node);</span>
+		MigrateBTreeIndexes migrateBTreeIndexes;
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if (drop) {</span>
+			migrateBTreeIndexes = MigrateBTreeIndexes
+<span class="fc" id="L120">				.replaceBTreeIndexes();</span>
+		} else {
+<span class="fc" id="L122">			String suffix = optionalParameters.flatMap(parameters -&gt; findParameter(node, &quot;suffix&quot;, parameters)).orElse(null);</span>
+<span class="fc" id="L123">			migrateBTreeIndexes = MigrateBTreeIndexes</span>
+<span class="fc" id="L124">				.createFutureIndexes(suffix);</span>
+		}
+
+<span class="fc" id="L127">		List&lt;String&gt; excludes = optionalParameters</span>
+<span class="fc" id="L128">			.flatMap(parameters -&gt; findParameterValues(parameters, &quot;excludes&quot;)).orElse(Collections.emptyList());</span>
+<span class="fc" id="L129">		List&lt;String&gt; includes = optionalParameters</span>
+<span class="fc" id="L130">			.flatMap(parameters -&gt; findParameterValues(parameters, &quot;includes&quot;)).orElse(Collections.emptyList());</span>
+<span class="fc" id="L131">		Map&lt;String, Index.Type&gt; typeMappings = optionalParameters</span>
+<span class="fc" id="L132">			.flatMap(parameters -&gt; findParameterNode(parameters, &quot;typeMapping&quot;))</span>
+<span class="fc" id="L133">			.map(typeMapping -&gt; findChildNodes(typeMapping, &quot;mapping&quot;))</span>
+<span class="fc" id="L134">			.map(mappings -&gt; mappings.stream().collect(Collectors.toMap(</span>
+<span class="fc" id="L135">				mapping -&gt; findChildNode(mapping, &quot;name&quot;).map(Node::getTextContent).map(String::trim).orElseThrow(() -&gt; new IllegalArgumentException(&quot;Index name is required when customizing type mappings&quot;)),</span>
+<span class="fc" id="L136">				mapping -&gt; findChildNode(mapping, &quot;type&quot;).map(Node::getTextContent).map(String::trim).map(Index.Type::valueOf).orElseThrow(() -&gt; new IllegalArgumentException(&quot;Type is required when customizing type mappings&quot;))</span>
+			)))
+<span class="fc" id="L138">			.orElse(Collections.emptyMap());</span>
+
+<span class="fc" id="L140">		return migrateBTreeIndexes</span>
+<span class="fc" id="L141">			.withExcludes(excludes)</span>
+<span class="fc" id="L142">			.withIncludes(includes)</span>
+<span class="fc" id="L143">			.withTypeMapping(typeMappings);</span>
+	}
+
+	private static Normalize createNormalizeAsBoolean(Node node, String type) {
+
+<span class="fc" id="L148">		NodeList parameterList = findParameterList(node).orElseThrow(() -&gt;</span>
+<span class="fc" id="L149">			createException(node, type, &quot;The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters&quot;)</span>
+		);
+
+<span class="fc" id="L152">		String property = findParameter(node, &quot;property&quot;, parameterList).orElseThrow(</span>
+<span class="fc" id="L153">			() -&gt; createException(node, type, &quot;No `property` parameter&quot;)</span>
+		);
+
+<span class="fc" id="L156">		Collection&lt;String&gt; rawTrueValues = findParameterValues(parameterList, &quot;trueValues&quot;)</span>
+<span class="fc" id="L157">			.orElseThrow(() -&gt; createException(node, type, &quot;No `trueValues` parameter&quot;));</span>
+
+<span class="fc" id="L159">		Collection&lt;String&gt; rawFalseValues = findParameterValues(parameterList, &quot;falseValues&quot;)</span>
+<span class="fc" id="L160">			.orElseThrow(() -&gt; createException(node, type, &quot;No `falseValues` parameter&quot;));</span>
+
+<span class="fc" id="L162">		Function&lt;String, Object&gt; mapToType = value -&gt; {</span>
+			try {
+<span class="fc bfc" id="L164" title="All 4 branches covered.">				if (value == null || &quot;null&quot;.equals(value)) {</span>
+<span class="fc" id="L165">					return null;</span>
+				}
+<span class="nc" id="L167">				return Long.parseLong(value);</span>
+<span class="fc" id="L168">			} catch (NumberFormatException e) {</span>
+<span class="fc" id="L169">				return value;</span>
+			}
+		};
+<span class="fc" id="L172">		List&lt;Object&gt; trueValues = rawTrueValues.stream().map(mapToType).toList();</span>
+<span class="fc" id="L173">		List&lt;Object&gt; falseValues = rawFalseValues.stream().map(mapToType).toList();</span>
+
+<span class="fc" id="L175">		Normalize normalize = Normalize.asBoolean(property, trueValues, falseValues);</span>
+<span class="fc" id="L176">		return customize(normalize, node, type, parameterList);</span>
+	}
+
+	private static &lt;T extends CustomizableRefactoring&lt;T&gt;&gt; T customize(T refactoring, Node node, String type, NodeList parameterList) {
+<span class="fc" id="L180">		Optional&lt;String&gt; batchSize = findParameter(node, &quot;batchSize&quot;, parameterList);</span>
+<span class="fc" id="L181">		T result = refactoring;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">		if (batchSize.isPresent()) {</span>
+			try {
+<span class="fc" id="L184">				result = result.inBatchesOf(Integer.parseInt(batchSize.get()));</span>
+<span class="fc" id="L185">			} catch (NumberFormatException nfe) {</span>
+<span class="fc" id="L186">				throw createException(node, type, &quot;Invalid value `&quot; + batchSize.get() + &quot;` for parameter `batchSize`&quot;,</span>
+					nfe);
+<span class="fc" id="L188">			}</span>
+		}
+<span class="fc" id="L190">		Optional&lt;String&gt; customQuery = findParameter(node, &quot;customQuery&quot;, parameterList);</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">		if (customQuery.isPresent()) {</span>
+<span class="fc" id="L192">			result = result.withCustomQuery(customQuery.get());</span>
+		}
+<span class="fc" id="L194">		return result;</span>
+	}
+
+	private static Merge createMerge(Node node, String type) {
+<span class="fc" id="L198">		String sourceQuery = findParameter(node, &quot;sourceQuery&quot;).orElseThrow(</span>
+<span class="fc" id="L199">			() -&gt; createException(node, type, &quot;No source query&quot;));</span>
+<span class="fc" id="L200">		List&lt;Merge.PropertyMergePolicy&gt; mergePolicies = findAllParameters(node, &quot;mergePolicy&quot;)</span>
+<span class="fc" id="L201">			.stream().map(p -&gt; {</span>
+<span class="fc" id="L202">				String pattern = null;</span>
+<span class="fc" id="L203">				Merge.PropertyMergePolicy.Strategy strategy = null;</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">				for (int i = 0; i &lt; p.getChildNodes().getLength(); ++i) {</span>
+<span class="fc" id="L205">					Node item = p.getChildNodes().item(i);</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">					if (&quot;pattern&quot;.equals(item.getNodeName())) {</span>
+<span class="fc" id="L207">						pattern = item.getTextContent().trim();</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">					} else if (&quot;strategy&quot;.equals(item.getNodeName())) {</span>
+<span class="fc" id="L209">						strategy = Merge.PropertyMergePolicy.Strategy.valueOf(item.getTextContent().trim());</span>
+					}
+				}
+<span class="pc bpc" id="L212" title="2 of 4 branches missed.">				if (pattern == null || strategy == null) {</span>
+<span class="nc" id="L213">					return null;</span>
+				}
+<span class="fc" id="L215">				return Merge.PropertyMergePolicy.of(pattern, strategy);</span>
+<span class="fc" id="L216">			}).filter(Objects::nonNull).toList();</span>
+<span class="fc" id="L217">		return Merge.nodes(sourceQuery, mergePolicies);</span>
+	}
+
+	private static Refactoring createRename(Node node, String type) {
+<span class="fc" id="L221">		String op = type.split(&quot;\\.&quot;)[1];</span>
+
+<span class="fc" id="L223">		NodeList parameterList = findParameterList(node).orElseThrow(() -&gt;</span>
+<span class="fc" id="L224">			createException(node, type, &quot;The rename refactoring requires `from` and `to` parameters&quot;)</span>
+		);
+
+<span class="fc" id="L227">		String from = findParameter(node, &quot;from&quot;, parameterList).orElseThrow(() -&gt; createException(node, type, &quot;No `from` parameter&quot;));</span>
+<span class="fc" id="L228">		String to = findParameter(node, &quot;to&quot;, parameterList).orElseThrow(() -&gt; createException(node, type, &quot;No `to` parameter&quot;));</span>
+
+		Rename rename;
+<span class="fc bfc" id="L231" title="All 2 branches covered.">		if (&quot;type&quot;.equals(op)) {</span>
+<span class="fc" id="L232">			rename = Rename.type(from, to);</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">		} else if (&quot;label&quot;.equals(op)) {</span>
+<span class="fc" id="L234">			rename = Rename.label(from, to);</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">		} else if (&quot;nodeProperty&quot;.equals(op)) {</span>
+<span class="fc" id="L236">			rename = Rename.nodeProperty(from, to);</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">		} else if (&quot;relationshipProperty&quot;.equals(op)) {</span>
+<span class="fc" id="L238">			rename = Rename.relationshipProperty(from, to);</span>
+		} else {
+<span class="fc" id="L240">			throw createException(node, type, String.format(&quot;`%s` is not a valid rename operation&quot;, op));</span>
+		}
+
+<span class="fc" id="L243">		return customize(rename, node, type, parameterList);</span>
+	}
+
+	private static IllegalArgumentException createException(Node node, String type, String optionalMessage) {
+<span class="fc" id="L247">		return createException(node, type, optionalMessage, null);</span>
+	}
+
+	private static IllegalArgumentException createException(Node node, String type, String optionalMessage, Exception cause) {
+		String typeAsAttribute =
+<span class="pc bpc" id="L252" title="2 of 4 branches missed.">			type == null || type.trim().isEmpty() ? &quot;&quot; : String.format(&quot; type=\&quot;%s\&quot;&quot;, type.trim());</span>
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">		String suffix = optionalMessage == null ? &quot;&quot; : &quot;: &quot; + optionalMessage;</span>
+<span class="fc" id="L254">		return new IllegalArgumentException(</span>
+<span class="fc" id="L255">			String.format(&quot;Cannot parse &lt;%s%s /&gt; into a supported refactoring%s&quot;, node.getNodeName(), typeAsAttribute,</span>
+				suffix), cause);
+	}
+
+	private static Optional&lt;NodeList&gt; findParameterList(Node refactoring) {
+<span class="fc" id="L260">		NodeList parameters = null;</span>
+<span class="fc" id="L261">		NodeList refactoringChildNodes = refactoring.getChildNodes();</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">		for (int i = 0; i &lt; refactoringChildNodes.getLength(); ++i) {</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">			if (&quot;parameters&quot;.equals(refactoringChildNodes.item(i).getNodeName())) {</span>
+<span class="fc" id="L264">				parameters = refactoringChildNodes.item(i).getChildNodes();</span>
+<span class="fc" id="L265">				break;</span>
+			}
+		}
+<span class="fc" id="L268">		return Optional.ofNullable(parameters);</span>
+	}
+
+	private static Optional&lt;String&gt; findParameter(Node refactoring, String name) {
+<span class="fc" id="L272">		return findParameter(refactoring, name, null);</span>
+	}
+
+	private static Optional&lt;Node&gt; findParameterNode(NodeList parameters, String name) {
+<span class="fc bfc" id="L276" title="All 2 branches covered.">		for (int i = 0; i &lt; parameters.getLength(); ++i) {</span>
+<span class="fc" id="L277">			Node parameter = parameters.item(i);</span>
+<span class="fc bfc" id="L278" title="All 4 branches covered.">			if (!(&quot;parameter&quot;.equals(parameter.getNodeName()) &amp;&amp; parameter.hasAttributes())) {</span>
+<span class="fc" id="L279">				continue;</span>
+			}
+<span class="fc" id="L281">			Node parameterName = parameter.getAttributes().getNamedItem(&quot;name&quot;);</span>
+<span class="pc bpc" id="L282" title="1 of 4 branches missed.">			if (parameterName != null &amp;&amp; name.equals(parameterName.getNodeValue())) {</span>
+<span class="fc" id="L283">				return Optional.of(parameter);</span>
+			}
+		}
+<span class="fc" id="L286">		return Optional.empty();</span>
+	}
+
+	private static Optional&lt;String&gt; findParameter(Node refactoring, String name, NodeList optionalParameters) {
+
+<span class="fc" id="L291">		return Optional.ofNullable(optionalParameters).or(() -&gt; findParameterList(refactoring))</span>
+<span class="fc" id="L292">			.flatMap(parameters -&gt; findParameterNode(parameters, name))</span>
+<span class="fc" id="L293">			.map(Node::getTextContent)</span>
+<span class="fc bfc" id="L294" title="All 2 branches covered.">			.map(String::trim).filter(v -&gt; !v.isEmpty());</span>
+	}
+
+	private static List&lt;Node&gt; findAllParameters(Node refactoring, String name) {
+
+<span class="fc" id="L299">		return findParameterList(refactoring).map(parameters -&gt; {</span>
+<span class="fc" id="L300">			List&lt;Node&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">			for (int i = 0; i &lt; parameters.getLength(); ++i) {</span>
+<span class="fc" id="L302">				Node parameter = parameters.item(i);</span>
+<span class="pc bpc" id="L303" title="1 of 4 branches missed.">				if (!(&quot;parameter&quot;.equals(parameter.getNodeName()) &amp;&amp; parameter.hasAttributes())) {</span>
+<span class="nc" id="L304">					continue;</span>
+				}
+<span class="fc" id="L306">				Node parameterName = parameter.getAttributes().getNamedItem(&quot;name&quot;);</span>
+<span class="pc bpc" id="L307" title="1 of 4 branches missed.">				if (parameterName != null &amp;&amp; name.equals(parameterName.getNodeValue())) {</span>
+<span class="fc" id="L308">					result.add(parameter);</span>
+				}
+			}
+<span class="fc" id="L311">			return result;</span>
+<span class="fc" id="L312">		}).orElseGet(Collections::emptyList);</span>
+	}
+
+	private static Optional&lt;List&lt;String&gt;&gt; findParameterValues(NodeList parametersNodeList, String parameterNameToFind) {
+
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">		if (parametersNodeList == null) {</span>
+<span class="nc" id="L318">			return Optional.empty();</span>
+		}
+
+<span class="fc" id="L321">		Function&lt;Node, List&lt;String&gt;&gt; aggregateValues = parameterNode -&gt; {</span>
+<span class="fc" id="L322">			List&lt;String&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L323">			NodeList childNodes = parameterNode.getChildNodes();</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">			for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L325">				Node childNode = childNodes.item(i);</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">				if (&quot;value&quot;.equals(childNode.getNodeName())) {</span>
+<span class="fc bfc" id="L327" title="All 2 branches covered.">					if (!childNode.hasChildNodes()) {</span>
+<span class="fc" id="L328">						values.add(null);</span>
+					} else {
+<span class="fc" id="L330">						values.add(childNode.getTextContent());</span>
+					}
+				}
+			}
+<span class="fc" id="L334">			return values;</span>
+		};
+
+<span class="fc" id="L337">		return findParameterNode(parametersNodeList, parameterNameToFind).map(aggregateValues);</span>
+	}
+
+	private static Optional&lt;Node&gt; findChildNode(Node node, String childNodeName) {
+<span class="fc" id="L341">		NodeList childNodes = node.getChildNodes();</span>
+<span class="fc" id="L342">		Optional&lt;Node&gt; result = Optional.empty();</span>
+<span class="fc bfc" id="L343" title="All 2 branches covered.">		for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L344">			Node childNode = childNodes.item(i);</span>
+<span class="fc bfc" id="L345" title="All 2 branches covered.">			if (!childNodeName.equals(childNode.getNodeName())) {</span>
+<span class="fc" id="L346">				continue;</span>
+			}
+<span class="fc bfc" id="L348" title="All 2 branches covered.">			if (result.isPresent()) {</span>
+<span class="fc" id="L349">				throw new IllegalArgumentException(&quot;Duplicate child node `&quot; + childNodeName + &quot;`&quot;);</span>
+			}
+<span class="fc" id="L351">			result = Optional.of(childNode);</span>
+		}
+<span class="fc" id="L353">		return result;</span>
+	}
+
+	private static List&lt;Node&gt; findChildNodes(Node node, String childNodeName) {
+<span class="fc" id="L357">		NodeList childNodes = node.getChildNodes();</span>
+<span class="fc" id="L358">		List&lt;Node&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">		for (int i = 0; i &lt; childNodes.getLength(); ++i) {</span>
+<span class="fc" id="L360">			Node childNode = childNodes.item(i);</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">			if (childNodeName.equals(childNode.getNodeName())) {</span>
+<span class="fc" id="L362">				result.add(childNode);</span>
+			}
+		}
+<span class="fc" id="L365">		return result;</span>
+	}
+
+	private CatalogBasedRefactorings() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

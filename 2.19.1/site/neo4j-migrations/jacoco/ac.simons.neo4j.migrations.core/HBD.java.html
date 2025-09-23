@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HBD.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">HBD.java</span></div><h1>HBD.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+
+import java.util.Locale;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+
+import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.Neo4jException;
+
+/**
+ * Some utilities to deal with Neo4j quirks. Stay away, here be dragons.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Guns n' Roses - Appetite For Democracy 3D
+ * @since 1.4.0
+ */
+final class HBD {
+
+	static boolean is4xSeries(ConnectionDetails connectionDetails) {
+<span class="fc bfc" id="L39" title="All 2 branches covered.">		return connectionDetails.getServerVersion() != null &amp;&amp; connectionDetails.getServerVersion()</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">			.replaceFirst(&quot;(?i)^Neo4j/&quot;, &quot;&quot;).matches(&quot;^4\\.?.*&quot;);</span>
+	}
+
+	static boolean is44OrHigher(ConnectionDetails connectionDetails) {
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">		if (connectionDetails.getServerVersion() == null) {</span>
+<span class="fc" id="L46">			return false;</span>
+		}
+
+<span class="fc" id="L49">		Neo4jVersionComparator versionComparator = new Neo4jVersionComparator();</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">		return versionComparator.compare(connectionDetails.getServerVersion(), &quot;4.4&quot;) &gt;= 0;</span>
+	}
+
+	static Integer silentCreateConstraintOrIndex(ConnectionDetails connectionDetails, Session session, String statement,
+		String name, Supplier&lt;String&gt; failureMessage) {
+
+		String finalStatement;
+<span class="fc" id="L57">		String replacement = &quot;&quot;;</span>
+<span class="pc bpc" id="L58" title="1 of 6 branches missed.">		if (is4xSeries(connectionDetails) &amp;&amp; name != null &amp;&amp; !name.trim().isEmpty()) {</span>
+<span class="fc" id="L59">			replacement = name.trim() + &quot; &quot;;</span>
+		}
+<span class="fc" id="L61">		finalStatement = statement.replace(&quot;$name &quot;, replacement);</span>
+
+		try {
+<span class="fc" id="L64">			return session.executeWrite(tx -&gt; tx.run(finalStatement).consume().counters().constraintsAdded());</span>
+<span class="fc" id="L65">		} catch (Neo4jException e) {</span>
+
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">			if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(e.code())) {</span>
+<span class="fc" id="L68">				throw new MigrationsException(failureMessage.get(), e);</span>
+			}
+		}
+
+<span class="nc" id="L72">		return 0;</span>
+	}
+
+	static Integer silentDropConstraint(ConnectionDetails connectionDetails, Session session, String statement,
+		String name) {
+
+		String finalStatement;
+<span class="pc bpc" id="L79" title="1 of 6 branches missed.">		if (is4xSeries(connectionDetails) &amp;&amp; name != null &amp;&amp; !name.trim().isEmpty()) {</span>
+<span class="fc" id="L80">			finalStatement = &quot;DROP CONSTRAINT &quot; + name.trim();</span>
+		} else {
+<span class="fc" id="L82">			finalStatement = statement;</span>
+		}
+
+		try {
+<span class="fc" id="L86">			return session.executeWrite(tx -&gt;</span>
+<span class="fc" id="L87">				tx.run(finalStatement).consume().counters().constraintsRemoved());</span>
+<span class="fc" id="L88">		} catch (Neo4jException e) {</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">			if (!Neo4jCodes.CONSTRAINT_DROP_FAILED.equals(e.code())) {</span>
+<span class="fc" id="L90">				throw new MigrationsException(&quot;Could not remove locks&quot;, e);</span>
+			}
+		}
+
+<span class="fc" id="L94">		return 0;</span>
+	}
+
+	static boolean constraintWithNameAlreadyExists(MigrationsException e) {
+<span class="pc bpc" id="L98" title="3 of 6 branches missed.">		return e != null &amp;&amp; e.getCause() instanceof ClientException ce &amp;&amp; Neo4jCodes.CONSTRAINT_WITH_NAME_ALREADY_EXISTS_CODE.equals(ce.code());</span>
+	}
+
+	/**
+	 * Checks whether the constraint creation might have failed because wrong edition.
+	 *
+	 * @param rawException      The exception to check for specific indicators that the wrong edition has been used
+	 * @param connectionDetails The connection details being used
+	 * @return {@literal true} when we are relatively sure that a constraint couldn't be created due to the wrong edition being used
+	 */
+	static boolean constraintProbablyRequiredEnterpriseEdition(Exception rawException, ConnectionDetails connectionDetails) {
+
+		Neo4jException e;
+<span class="fc bfc" id="L111" title="All 2 branches covered.">		if (rawException instanceof Neo4jException ne) {</span>
+<span class="fc" id="L112">			e = ne;</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">		} else if (rawException.getCause() instanceof Neo4jException ne) {</span>
+<span class="nc" id="L114">			e = ne;</span>
+		} else {
+<span class="fc" id="L116">			return false;</span>
+		}
+
+<span class="fc bfc" id="L119" title="All 2 branches covered.">		if (!Neo4jCodes.CONSTRAINT_CREATION_FAILED.equals(e.code())) {</span>
+<span class="fc" id="L120">			return false;</span>
+		}
+
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		if (Neo4jEdition.of(connectionDetails.getServerEdition()) == Neo4jEdition.ENTERPRISE) {</span>
+<span class="fc" id="L124">			return false;</span>
+		}
+
+<span class="fc" id="L127">		return e.getMessage().toLowerCase(Locale.ROOT)</span>
+<span class="fc" id="L128">			.contains(&quot;constraint requires Neo4j Enterprise Edition&quot;.toLowerCase(Locale.ROOT));</span>
+	}
+
+	/**
+	 * This will call {@code db.awaitIndexes()} if the result summary from any previous statement indicates that indexes
+	 * or constraints have been added.
+	 *
+	 * @param session  the session to wait in
+	 * @param counters relevant counters from one or more queries
+	 */
+	static void vladimirAndEstragonMayWait(Session session, Counters counters) {
+
+<span class="fc bfc" id="L140" title="All 4 branches covered.">		if (counters.indexesAdded() == 0 &amp;&amp; counters.constraintsAdded() == 0) {</span>
+<span class="fc" id="L141">			return;</span>
+		}
+
+<span class="fc" id="L144">		Migrations.LOGGER.log(Level.FINE, &quot;Waiting for new indexes to come online.&quot;);</span>
+<span class="fc" id="L145">		session.run(&quot;CALL db.awaitIndexes()&quot;).consume();</span>
+<span class="fc" id="L146">		Migrations.LOGGER.log(Level.FINE, &quot;Done.&quot;);</span>
+<span class="fc" id="L147">	}</span>
+
+	private HBD() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationChain.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">MigrationChain.java</span></div><h1>MigrationChain.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+
+import ac.simons.neo4j.migrations.core.MigrationVersion.TargetVersion;
+
+/**
+ * Public information about an applied migration. All migrations (applied and pending) form a chain of transformations
+ * to a database. The chain starts implicit with a baseline version. The baseline version is not contained in this chain.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Paul van Dyk - From Then On
+ * @since 0.0.4
+ */
+public sealed interface MigrationChain extends ConnectionDetails permits DefaultMigrationChain {
+
+	/**
+	 * Creates an empty instance of a {@link MigrationChain}. Can be useful for testing.
+	 *
+	 * @param connectionDetails required to initialize the chain
+	 * @return an empty migration chain
+	 * @since 2.3.0
+	 */
+	static MigrationChain empty(ConnectionDetails connectionDetails) {
+<span class="fc" id="L44">		return new DefaultMigrationChain(connectionDetails, Map.of());</span>
+	}
+
+	/**
+	 * Used for selecting how the {@link MigrationChain} should be computed.
+	 *
+	 * @see Migrations#info(ChainBuilderMode)
+	 * @since 1.4.0
+	 */
+<span class="fc" id="L53">	enum ChainBuilderMode {</span>
+
+		/**
+		 * Create the chain of applied and pending migrations by comparing the locally discovered migrations
+		 * and the migrations applied remotely. Validation will be performed (such as checking for the correct number of
+		 * migrations and checksum comparison).
+		 */
+<span class="fc" id="L60">		COMPARE,</span>
+		/**
+		 * Build a chain only based on locally discovered migrations and assume all migrations are pending. No validation
+		 * will be performed.
+		 */
+<span class="fc" id="L65">		LOCAL,</span>
+		/**
+		 * Build a chain only based on remotely applied migrations and assume all migrations are applied. No validation
+		 * will be performed.
+		 */
+<span class="fc" id="L70">		REMOTE</span>
+	}
+
+	/**
+	 * Pretty prints this chain as an ASCII table.
+	 *
+	 * @return A formatted string (an ASCII table representing the chain)
+	 * @since 0.0.11
+	 */
+	default String prettyPrint() {
+
+<span class="fc" id="L81">		StringBuilder sb = new StringBuilder(ConnectionDetailsFormatter.INSTANCE.format(this))</span>
+<span class="fc" id="L82">			.append(MigrationChainFormat.LS)</span>
+<span class="fc" id="L83">			.append(MigrationChainFormat.LS);</span>
+
+<span class="fc bfc" id="L85" title="All 2 branches covered.">		if (getElements().isEmpty()) {</span>
+<span class="fc" id="L86">			sb.append(MigrationChainFormat.LS).append(&quot;No migrations found.&quot;);</span>
+		} else {
+<span class="fc" id="L88">			MigrationChainFormat.formatElements(this, sb);</span>
+		}
+<span class="fc" id="L90">		return sb.toString();</span>
+	}
+
+	/**
+	 * @param version An arbitrary version string
+	 * @return True, if the version string maps to a migration that has been applied.
+	 */
+	boolean isApplied(String version);
+
+	/**
+	 * @return The elements of this migration
+	 */
+	Collection&lt;Element&gt; getElements();
+
+	/**
+	 * @return The length of this chain.
+	 * @since 2.2.0
+	 */
+	default int length() {
+<span class="nc" id="L109">		return getElements().size();</span>
+	}
+
+	/**
+	 * @return the last applied version
+	 * @since 1.11.0
+	 */
+	default Optional&lt;MigrationVersion&gt; getLastAppliedVersion() {
+<span class="nc" id="L117">		return Optional.empty();</span>
+	}
+
+	/**
+	 * Translates a target version into a concrete version
+	 *
+	 * @param targetVersion the target version to translate into a concrete version
+	 * @return the concrete version if any
+	 * @since 2.15.0
+	 */
+	Optional&lt;MigrationVersion&gt; findTargetVersion(TargetVersion targetVersion);
+
+	/**
+	 * A chain element describing a pending or applied migration.
+	 */
+	sealed interface Element permits DefaultMigrationChainElement {
+
+		/**
+		 * @return State of this migration.
+		 */
+		MigrationState getState();
+
+		/**
+		 * @return The type of the migration.
+		 */
+		MigrationType getType();
+
+		/**
+		 * @return The checksum of this migration if available.
+		 */
+		Optional&lt;String&gt; getChecksum();
+
+		/**
+		 * @return The schema version after the migration is complete.
+		 */
+		String getVersion();
+
+		/**
+		 * @return An optional description of the migration represented by this element.
+		 * @since 1.9.0
+		 */
+		Optional&lt;String&gt; getOptionalDescription();
+
+		/**
+		 * @return The name of the script or class on which this migration is based.
+		 */
+		String getSource();
+
+		/**
+		 * @return The timestamp when this migration was installed. (Only for applied migrations)
+		 */
+		Optional&lt;ZonedDateTime&gt; getInstalledOn();
+
+		/**
+		 * @return The user that installed this migration. (Only for applied migrations)
+		 */
+		Optional&lt;String&gt; getInstalledBy();
+
+		/**
+		 * @return The execution time of this migration. (Only for applied migrations)
+		 */
+		Optional&lt;Duration&gt; getExecutionTime();
+
+		/**
+		 * Creates a map representation of this element. Non-present elements will be represented as empty strings.
+		 *
+		 * @return A map containing all present information in this element
+		 * @since 2.3.0
+		 */
+		default Map&lt;String, String&gt; asMap() {
+
+<span class="fc" id="L188">			return Map.of(</span>
+<span class="fc" id="L189">				&quot;version&quot;, this.getVersion(),</span>
+<span class="fc" id="L190">				&quot;description&quot;, this.getOptionalDescription().orElse(&quot;&quot;),</span>
+<span class="fc" id="L191">				&quot;type&quot;, this.getType().name(),</span>
+<span class="fc" id="L192">				&quot;installedOn&quot;, this.getInstalledOn().map(ZonedDateTime::toString).orElse(&quot;&quot;),</span>
+<span class="fc" id="L193">				&quot;installedBy&quot;, this.getInstalledBy().orElse(&quot;&quot;),</span>
+<span class="fc" id="L194">				&quot;executionTime&quot;, this.getExecutionTime().map(Duration::toString).orElse(&quot;&quot;),</span>
+<span class="fc" id="L195">				&quot;state&quot;, this.getState().name(),</span>
+<span class="fc" id="L196">				&quot;source&quot;, this.getSource());</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

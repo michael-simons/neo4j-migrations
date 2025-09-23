@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ElementsOGM.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">ElementsOGM.java</span></div><h1>ElementsOGM.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import java.util.Optional;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
+
+/**
+ * Value holder of OGM types.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Motörhead - Iron Fist
+ * @since 1.15.0
+ */
+<span class="fc" id="L31">record ElementsOGM(TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabel,</span>
+	TypeElement relationshipEntity, ExecutableElement relationshipType,
+	ExecutableElement relationshipValue, TypeElement property, TypeElement id,
+	TypeElement generatedValue, TypeElement compositeIndexes,
+	ExecutableElement compositeIndexesValue, TypeElement compositeIndex,
+	ExecutableElement compositeIndexValue, ExecutableElement compositeIndexProperties,
+	ExecutableElement compositeIndexUnique, TypeElement index, ExecutableElement indexUnique,
+	TypeElement required,
+	TypeElement transientProperty) {
+
+	static Optional&lt;ElementsOGM&gt; of(Elements elements) {
+<span class="fc" id="L42">		TypeElement ogmNode = elements.getTypeElement(FullyQualifiedNames.OGM_NODE);</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">		if (ogmNode == null) {</span>
+<span class="nc" id="L44">			return Optional.empty();</span>
+		}
+
+<span class="fc" id="L47">		ExecutableElement ogmNodeValue = Attributes.get(ogmNode, Attributes.VALUE).orElseThrow();</span>
+<span class="fc" id="L48">		ExecutableElement ogmNodeLabel = Attributes.get(ogmNode, Attributes.LABEL).orElseThrow();</span>
+
+<span class="fc" id="L50">		TypeElement ogmRelationship = elements.getTypeElement(FullyQualifiedNames.OGM_RELATIONSHIP_ENTITY);</span>
+<span class="fc" id="L51">		ExecutableElement ogmRelationshipValue = Attributes.get(ogmRelationship, Attributes.VALUE).orElseThrow();</span>
+<span class="fc" id="L52">		ExecutableElement ogmRelationshipType = Attributes.get(ogmRelationship, Attributes.TYPE).orElseThrow();</span>
+
+<span class="fc" id="L54">		TypeElement ogmProperty = elements.getTypeElement(FullyQualifiedNames.OGM_PROPERTY);</span>
+<span class="fc" id="L55">		TypeElement ogmId = elements.getTypeElement(FullyQualifiedNames.OGM_ID);</span>
+<span class="fc" id="L56">		TypeElement ogmGeneratedValue = elements.getTypeElement(FullyQualifiedNames.OGM_GENERATED_VALUE);</span>
+
+<span class="fc" id="L58">		TypeElement ogmCompositeIndexes = elements.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEXES);</span>
+<span class="fc" id="L59">		ExecutableElement ogmCompositeIndexesValue = Attributes.get(ogmCompositeIndexes, Attributes.VALUE).orElseThrow();</span>
+
+<span class="fc" id="L61">		TypeElement ogmCompositeIndex = elements.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEX);</span>
+<span class="fc" id="L62">		ExecutableElement ogmCompositeIndexValue = Attributes.get(ogmCompositeIndex, Attributes.VALUE).orElseThrow();</span>
+<span class="fc" id="L63">		ExecutableElement ogmCompositeIndexProperties = Attributes.get(ogmCompositeIndex, Attributes.PROPERTIES).orElseThrow();</span>
+<span class="fc" id="L64">		ExecutableElement ogmCompositeIndexUnique = Attributes.get(ogmCompositeIndex, Attributes.UNIQUE).orElseThrow();</span>
+
+<span class="fc" id="L66">		TypeElement ogmIndex = elements.getTypeElement(FullyQualifiedNames.OGM_INDEX);</span>
+<span class="fc" id="L67">		ExecutableElement ogmIndexUnique = Attributes.get(ogmIndex, Attributes.UNIQUE).orElseThrow();</span>
+
+<span class="fc" id="L69">		TypeElement ogmRequired = elements.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);</span>
+<span class="fc" id="L70">		TypeElement transientProperty = elements.getTypeElement(FullyQualifiedNames.OGM_TRANSIENT);</span>
+
+<span class="fc" id="L72">		return Optional.of(new ElementsOGM(ogmNode, ogmNodeValue, ogmNodeLabel, ogmRelationship, ogmRelationshipType, ogmRelationshipValue, ogmProperty, ogmId, ogmGeneratedValue, ogmCompositeIndexes, ogmCompositeIndexesValue, ogmCompositeIndex, ogmCompositeIndexValue, ogmCompositeIndexProperties, ogmCompositeIndexUnique, ogmIndex, ogmIndexUnique, ogmRequired, transientProperty));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

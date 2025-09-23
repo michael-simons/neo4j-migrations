@@ -1,0 +1,22 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,ConnectedCommand,35,107,1,9,5,25,1,8,0,4
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,MigrationsCli,104,487,7,53,28,111,9,42,3,18
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,InitCommand,0,22,1,1,0,5,1,2,0,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,ManifestVersionProvider,0,10,0,0,0,2,0,2,0,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,CleanCommand,3,26,0,0,1,5,1,2,1,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,MigrateCommand,3,25,0,0,1,6,1,4,1,4
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,DeleteCommand,5,35,0,0,2,9,2,2,2,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,CommonEnvVarDefaultProvider,4,49,1,7,2,14,2,8,1,4
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,RepairCommand,3,24,0,0,1,5,1,2,1,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,ValidateCommand,3,43,0,6,1,10,1,5,1,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,ShowCatalogCommand.Mode,0,15,0,0,0,3,0,1,0,1
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,MigrationsCliExceptionMapper,0,20,0,4,0,7,0,4,0,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,OrderedCommandLineHelp,0,17,0,0,0,4,0,3,0,3
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,MigrateBTreeIndexesCommand.IndexType,0,21,0,0,0,2,0,1,0,1
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,RunCommand,5,21,0,0,2,5,2,2,2,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,InfoCommand,3,21,0,0,1,5,1,2,1,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,ShowCatalogCommand,3,52,0,4,1,13,1,4,1,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli,MigrateBTreeIndexesCommand,8,175,2,11,4,21,4,9,2,4
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli.internal,ImageInfo,0,5,0,0,0,1,0,1,0,1
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli.internal,MigrationsCliConsoleFormatter,0,9,0,0,0,2,0,2,0,2
+Neo4j Migrations (CLI),ac.simons.neo4j.migrations.cli.internal,MigrationsCliConsoleHandler,0,15,0,0,0,8,0,3,0,3

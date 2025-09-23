@@ -1,0 +1,1292 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogGeneratingProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">CatalogGeneratingProcessor.java</span></div><h1>CatalogGeneratingProcessor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+import ac.simons.neo4j.migrations.annotations.proc.CatalogNameGenerator;
+import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
+import ac.simons.neo4j.migrations.annotations.proc.ElementType;
+import ac.simons.neo4j.migrations.annotations.proc.IndexNameGenerator;
+import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
+import ac.simons.neo4j.migrations.annotations.proc.impl.DefaultSchemaName.Target;
+import ac.simons.neo4j.migrations.core.Neo4jEdition;
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.time.Clock;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.RecordComponentElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.AbstractAnnotationValueVisitor8;
+import javax.lang.model.util.ElementKindVisitor8;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+
+/**
+ * @author Michael J. Simons
+ * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @since 1.11.0
+ */
+@SupportedAnnotationTypes({
+	FullyQualifiedNames.SDN6_NODE,
+	FullyQualifiedNames.OGM_NODE,
+	FullyQualifiedNames.OGM_RELATIONSHIP_ENTITY,
+	FullyQualifiedNames.CATALOG_REQUIRED,
+	FullyQualifiedNames.CATALOG_UNIQUE,
+	FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
+	FullyQualifiedNames.CATALOG_INDEX
+})
+@SupportedOptions({
+	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CATALOG,
+	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CONSTRAINTS,
+	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_INDEXES,
+	CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_OPTIONS,
+	CatalogGeneratingProcessor.OPTION_OUTPUT_DIR,
+	CatalogGeneratingProcessor.OPTION_TIMESTAMP,
+	CatalogGeneratingProcessor.OPTION_DEFAULT_CATALOG_NAME,
+	CatalogGeneratingProcessor.OPTION_ADD_RESET,
+	CatalogGeneratingProcessor.OPTION_GENERATE_TYPE_CONSTRAINTS
+})
+public final class CatalogGeneratingProcessor extends AbstractProcessor {
+
+	static final String OPTION_NAME_GENERATOR_CATALOG = &quot;org.neo4j.migrations.catalog_generator.catalog_name_generator&quot;;
+	static final String OPTION_NAME_GENERATOR_CONSTRAINTS = &quot;org.neo4j.migrations.catalog_generator.constraint_name_generator&quot;;
+	static final String OPTION_NAME_GENERATOR_INDEXES = &quot;org.neo4j.migrations.catalog_generator.index_name_generator&quot;;
+	static final String OPTION_NAME_GENERATOR_OPTIONS = &quot;org.neo4j.migrations.catalog_generator.naming_options&quot;;
+	static final String OPTION_OUTPUT_DIR = &quot;org.neo4j.migrations.catalog_generator.output_dir&quot;;
+	static final String OPTION_TIMESTAMP = &quot;org.neo4j.migrations.catalog_generator.timestamp&quot;;
+	static final String OPTION_DEFAULT_CATALOG_NAME = &quot;org.neo4j.migrations.catalog_generator.default_catalog_name&quot;;
+	static final String OPTION_ADD_RESET = &quot;org.neo4j.migrations.catalog_generator.add_reset&quot;;
+	static final String OPTION_GENERATE_TYPE_CONSTRAINTS = &quot;org.neo4j.migrations.catalog_generator.generate_type_constraints&quot;;
+	static final String DEFAULT_MIGRATION_NAME = &quot;Create_schema_from_domain_objects.xml&quot;;
+	static final String DEFAULT_HEADER_FMT = &quot;This file was generated by Neo4j-Migrations at %s.&quot;;
+
+<span class="fc" id="L128">	static final Set&lt;String&gt; VALID_GENERATED_ID_TYPES = Set.of(Long.class.getName(), long.class.getName());</span>
+
+	private CatalogNameGenerator catalogNameGenerator;
+	private ConstraintNameGenerator constraintNameGenerator;
+	private IndexNameGenerator indexNameGenerator;
+
+	private Messager messager;
+	private Types typeUtils;
+
+	private ElementsSDN6 sdn6;
+	private ElementsOGM ogm;
+	private ElementsCatalog catalog;
+
+<span class="fc" id="L141">	private final Set&lt;CatalogItem&lt;?&gt;&gt; catalogItems = new LinkedHashSet&lt;&gt;();</span>
+
+	private boolean addReset;
+
+<span class="fc" id="L145">	private Clock clock = Clock.systemDefaultZone();</span>
+
+	private boolean generateTypeConstraints;
+
+	/**
+	 * Creates a new instance of this processor. It should not be necessary to call this directly, it will be done
+	 * automatically by Javac.
+	 */
+<span class="fc" id="L153">	public CatalogGeneratingProcessor() {</span>
+<span class="fc" id="L154">	}</span>
+
+<span class="fc" id="L156">	CatalogGeneratingProcessor(CatalogNameGenerator catalogNameGenerator, ConstraintNameGenerator constraintNameGenerator, IndexNameGenerator indexNameGenerator) {</span>
+<span class="fc" id="L157">		this.catalogNameGenerator = catalogNameGenerator;</span>
+<span class="fc" id="L158">		this.constraintNameGenerator = constraintNameGenerator;</span>
+<span class="fc" id="L159">		this.indexNameGenerator = indexNameGenerator;</span>
+<span class="fc" id="L160">	}</span>
+
+	@Override
+	public SourceVersion getSupportedSourceVersion() {
+<span class="fc" id="L164">		return SourceVersion.latestSupported();</span>
+	}
+
+	private &lt;T&gt; T nameGenerator(String optionName, Class&lt;T&gt; expectedType, Supplier&lt;T&gt; defaultSupplier, Map&lt;String, String&gt; options) {
+
+<span class="fc bfc" id="L169" title="All 2 branches covered.">		if (!options.containsKey(optionName)) {</span>
+<span class="fc" id="L170">			return defaultSupplier.get();</span>
+		}
+<span class="fc" id="L172">		String fqn = options.get(optionName);</span>
+<span class="fc" id="L173">		Map&lt;String, String&gt; generatorOptions = null;</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">		if (options.containsKey(OPTION_NAME_GENERATOR_OPTIONS)) {</span>
+<span class="fc" id="L175">			generatorOptions = Arrays.stream(options.get(OPTION_NAME_GENERATOR_OPTIONS).split(&quot;,&quot;))</span>
+<span class="fc" id="L176">				.map(String::trim)</span>
+<span class="fc" id="L177">				.map(s -&gt; s.split(&quot;=&quot;))</span>
+<span class="fc" id="L178">				.collect(Collectors.toMap(v -&gt; v[0].trim(), v -&gt; v[1].trim()));</span>
+		}
+
+		try {
+<span class="fc bfc" id="L182" title="All 2 branches covered.">			if (generatorOptions == null) {</span>
+<span class="nc" id="L183">				return expectedType.cast(Class.forName(fqn).getConstructor().newInstance());</span>
+			} else {
+<span class="fc" id="L185">				return expectedType.cast(Class.forName(fqn).getConstructor(Map.class).newInstance(generatorOptions));</span>
+			}
+<span class="fc" id="L187">		} catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {</span>
+<span class="fc" id="L188">			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, &quot;Could not load `&quot; + fqn + &quot;`, using default for &quot; + optionName);</span>
+<span class="fc" id="L189">			return defaultSupplier.get();</span>
+		}
+	}
+
+	@Override
+	public synchronized void init(ProcessingEnvironment processingEnv) {
+
+<span class="fc" id="L196">		super.init(processingEnv);</span>
+
+<span class="fc" id="L198">		this.messager = processingEnv.getMessager();</span>
+
+<span class="fc" id="L200">		Map&lt;String, String&gt; options = processingEnv.getOptions();</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">		if (this.catalogNameGenerator == null) {</span>
+<span class="fc" id="L202">			this.catalogNameGenerator = nameGenerator(OPTION_NAME_GENERATOR_CATALOG, CatalogNameGenerator.class,</span>
+				() -&gt; {
+<span class="fc" id="L204">					String defaultName = options.getOrDefault(OPTION_DEFAULT_CATALOG_NAME, DEFAULT_MIGRATION_NAME);</span>
+<span class="fc" id="L205">					return () -&gt; defaultName;</span>
+				}, options);
+		}
+
+<span class="fc bfc" id="L209" title="All 2 branches covered.">		if (this.constraintNameGenerator == null) {</span>
+<span class="fc" id="L210">			this.constraintNameGenerator = nameGenerator(OPTION_NAME_GENERATOR_CONSTRAINTS,</span>
+				ConstraintNameGenerator.class,
+				DefaultConstraintNameGenerator::new, options);
+		}
+
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">		if (this.indexNameGenerator == null) {</span>
+<span class="fc" id="L216">			this.indexNameGenerator = nameGenerator(OPTION_NAME_GENERATOR_INDEXES, IndexNameGenerator.class, DefaultIndexNameGenerator::new, options);</span>
+		}
+
+<span class="fc" id="L219">		Elements elementUtils = processingEnv.getElementUtils();</span>
+
+<span class="fc" id="L221">		this.sdn6 = ElementsSDN6.of(elementUtils).orElse(null);</span>
+<span class="fc" id="L222">		this.ogm = ElementsOGM.of(elementUtils).orElse(null);</span>
+<span class="fc" id="L223">		this.catalog = ElementsCatalog.of(elementUtils).orElse(null);</span>
+
+<span class="fc" id="L225">		this.typeUtils = processingEnv.getTypeUtils();</span>
+
+<span class="fc" id="L227">		this.addReset = Boolean.parseBoolean(options.getOrDefault(OPTION_ADD_RESET, &quot;false&quot;));</span>
+<span class="fc" id="L228">		this.generateTypeConstraints = Boolean.parseBoolean(options.getOrDefault(OPTION_GENERATE_TYPE_CONSTRAINTS, &quot;false&quot;));</span>
+
+<span class="fc" id="L230">		String timestamp = options.get(OPTION_TIMESTAMP);</span>
+<span class="pc bpc" id="L231" title="1 of 4 branches missed.">		if (timestamp != null &amp;&amp; !timestamp.isEmpty()) {</span>
+<span class="fc" id="L232">			ZonedDateTime z = ZonedDateTime.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(timestamp));</span>
+<span class="fc" id="L233">			this.clock = Clock.fixed(z.toInstant(), z.getZone());</span>
+		}
+<span class="fc" id="L235">	}</span>
+
+	@Override
+	public boolean process(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv) {
+
+<span class="fc bfc" id="L240" title="All 2 branches covered.">		if (roundEnv.processingOver()) {</span>
+			try {
+<span class="fc" id="L242">				FileObject fileObject = processingEnv.getFiler()</span>
+<span class="fc" id="L243">					.createResource(StandardLocation.SOURCE_OUTPUT, &quot;&quot;,</span>
+<span class="fc" id="L244">						getOutputDir() + catalogNameGenerator.getCatalogName());</span>
+<span class="fc" id="L245">				try (OutputStream out = new BufferedOutputStream(fileObject.openOutputStream())) {</span>
+<span class="fc" id="L246">					Renderer&lt;Catalog&gt; renderer = Renderer.get(Renderer.Format.XML, Catalog.class);</span>
+<span class="fc" id="L247">					Neo4jVersion neo4jVersion = Neo4jVersion.LATEST;</span>
+<span class="fc" id="L248">					XMLRenderingOptionsImpl o = new XMLRenderingOptionsImpl(true, addReset, String.format(</span>
+<span class="fc" id="L249">						DEFAULT_HEADER_FMT, ZonedDateTime.now(clock).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));</span>
+<span class="fc" id="L250">					RenderConfig config = RenderConfig.create()</span>
+<span class="fc" id="L251">						.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE)</span>
+<span class="fc" id="L252">						.withAdditionalOptions(Collections.singletonList(o));</span>
+
+<span class="fc" id="L254">					renderer.render(Catalog.of(catalogItems), config, out);</span>
+				}
+<span class="nc" id="L256">			} catch (IOException e) {</span>
+<span class="nc" id="L257">				processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());</span>
+<span class="pc" id="L258">			}</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">		} else if (!annotations.isEmpty()) {</span>
+
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">			if (sdn6 != null) {</span>
+<span class="fc" id="L262">				processSDN6IdAnnotations(roundEnv);</span>
+			}
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">			if (ogm != null) {</span>
+<span class="fc" id="L265">				processOGMIdAnnotations(roundEnv);</span>
+<span class="fc" id="L266">				processOGMIndexAnnotations(roundEnv, ogm.node());</span>
+<span class="fc" id="L267">				processOGMIndexAnnotations(roundEnv, ogm.relationshipEntity());</span>
+<span class="fc" id="L268">				processOGMCompositeIndexAnnotations(roundEnv);</span>
+<span class="fc" id="L269">				processOGMPropertyTypes(roundEnv);</span>
+			}
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">			if (catalog != null) {</span>
+<span class="fc" id="L272">				processCatalogAnnotations(roundEnv);</span>
+			}
+		}
+
+<span class="fc" id="L276">		return true;</span>
+	}
+
+	private void processOGMPropertyTypes(RoundEnvironment roundEnv) {
+
+<span class="fc bfc" id="L281" title="All 2 branches covered.">		if (!generateTypeConstraints) {</span>
+<span class="fc" id="L282">			return;</span>
+		}
+
+<span class="fc" id="L285">		roundEnv.getElementsAnnotatedWith(ogm.node())</span>
+<span class="fc" id="L286">			.stream()</span>
+<span class="fc" id="L287">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L288">			.forEach(t -&gt; {</span>
+<span class="fc" id="L289">				var labels = computeLabelsOGM(t);</span>
+<span class="fc" id="L290">				var owner = new DefaultNodeType(t.getQualifiedName().toString(), labels);</span>
+<span class="fc" id="L291">				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator&lt;&gt;(Mode.OGM, labels), owner));</span>
+<span class="fc" id="L292">			});</span>
+
+<span class="fc" id="L294">		roundEnv.getElementsAnnotatedWith(ogm.relationshipEntity())</span>
+<span class="fc" id="L295">			.stream()</span>
+<span class="fc" id="L296">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L297">			.forEach(t -&gt; {</span>
+<span class="fc" id="L298">				var type = computeTypeOGM(t);</span>
+<span class="fc" id="L299">				var owner = new DefaultRelationshipType(t.getQualifiedName().toString(), type);</span>
+<span class="fc" id="L300">				catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator&lt;&gt;(Mode.OGM, List.of(type)), owner));</span>
+<span class="fc" id="L301">			});</span>
+<span class="fc" id="L302">	}</span>
+
+	/**
+	 * Added as a simple indicator what set of annotations are processed.
+	 */
+<span class="fc" id="L307">	enum Mode {</span>
+<span class="fc" id="L308">		PURE, SDN6, OGM</span>
+	}
+
+	private void processCatalogAnnotations(RoundEnvironment roundEnv) {
+
+		// Keep them ordered by element
+<span class="fc" id="L314">		Map&lt;Element, Set&lt;CatalogItem&lt;?&gt;&gt;&gt; items = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L315">		Map&lt;Element, Set&lt;SchemaName&gt;&gt; existingLabelsAndTypes = new HashMap&lt;&gt;();</span>
+
+<span class="fc bfc" id="L317" title="All 2 branches covered.">		UnaryOperator&lt;Element&gt; enclosingOrSelf = element -&gt; element.getKind() == ElementKind.FIELD ? element.getEnclosingElement() : element;</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">		for (Element element : roundEnv.getElementsAnnotatedWithAny(catalog.unique(), catalog.uniqueWrapper())) {</span>
+<span class="fc" id="L319">			Element enclosingElement = enclosingOrSelf.apply(element);</span>
+<span class="fc" id="L320">			items.computeIfAbsent(enclosingElement, ignored -&gt; new LinkedHashSet&lt;&gt;())</span>
+<span class="fc" id="L321">				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.unique(), catalog.uniqueWrapper(), existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -&gt; new HashSet&lt;&gt;())));</span>
+<span class="fc" id="L322">		}</span>
+
+<span class="fc bfc" id="L324" title="All 2 branches covered.">		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.required())) {</span>
+<span class="fc" id="L325">			Element enclosingElement = enclosingOrSelf.apply(element);</span>
+<span class="fc" id="L326">			items.computeIfAbsent(enclosingElement, ignored -&gt; new LinkedHashSet&lt;&gt;())</span>
+<span class="fc" id="L327">				.addAll(processCatalogAnnotation(enclosingElement, element, catalog.required(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -&gt; new HashSet&lt;&gt;())));</span>
+<span class="fc" id="L328">		}</span>
+
+<span class="fc bfc" id="L330" title="All 2 branches covered.">		for (Element element : roundEnv.getElementsAnnotatedWith(catalog.index())) {</span>
+<span class="fc" id="L331">			Element enclosingElement = enclosingOrSelf.apply(element);</span>
+<span class="fc" id="L332">			items.computeIfAbsent(enclosingElement, ignored -&gt; new LinkedHashSet&lt;&gt;())</span>
+<span class="fc" id="L333">					.addAll(processCatalogAnnotation(enclosingElement, element, catalog.index(), null, existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -&gt; new HashSet&lt;&gt;())));</span>
+<span class="fc" id="L334">		}</span>
+
+<span class="fc" id="L336">		items.values().forEach(catalogItems::addAll);</span>
+<span class="fc" id="L337">	}</span>
+
+	private boolean isSDNOrOGMAnnotated(Element annotationType) {
+<span class="fc bfc" id="L340" title="All 4 branches covered.">		return annotationType.equals(sdn6.node()) || annotationType.equals(sdn6.relationshipProperties()) ||</span>
+<span class="fc bfc" id="L341" title="All 4 branches covered.">			annotationType.equals(ogm.node()) || annotationType.equals(ogm.relationshipEntity());</span>
+	}
+
+	private boolean isCatalogAnnotated(Element annotationType) {
+<span class="pc bpc" id="L345" title="1 of 6 branches missed.">		return annotationType.equals(catalog.unique()) || annotationType.equals(catalog.uniqueWrapper()) || annotationType.equals(catalog.required());</span>
+	}
+
+	/**
+	 * @param enclosingElement       The enclosing element of the annotated element
+	 * @param element                The element on which the annotation was found
+	 * @param existingLabelsAndTypes Labels and types that have been previously discovered for the enclosing element
+	 * @param annotationType         The annotation processed
+	 * @param wrapperType  Wrapper annotation if available
+	 * @return A collection of catalog items
+	 */
+	@SuppressWarnings({&quot;squid:S6204&quot;}) // toList vs Collectors.collect
+	private Collection&lt;CatalogItem&lt;?&gt;&gt; processCatalogAnnotation(
+		Element enclosingElement, Element element,
+		TypeElement annotationType, TypeElement wrapperType,
+		Set&lt;SchemaName&gt; existingLabelsAndTypes
+	) {
+
+		Mode mode;
+		Target target;
+
+<span class="fc" id="L366">		List&lt;? extends AnnotationMirror&gt; enclosingAnnotations = enclosingElement.getAnnotationMirrors();</span>
+<span class="fc" id="L367">		Predicate&lt;Element&gt; isCatalog = this::isCatalogAnnotated;</span>
+
+<span class="fc" id="L369">		Set&lt;Element&gt; annotationsPresent = enclosingAnnotations.stream()</span>
+<span class="fc" id="L370">			.map(am -&gt; am.getAnnotationType().asElement())</span>
+<span class="fc" id="L371">			.filter(isCatalog.negate())</span>
+<span class="fc" id="L372">			.collect(Collectors.toSet());</span>
+		List&lt;SchemaName&gt; labels;
+
+<span class="pc bpc" id="L375" title="3 of 6 branches missed.">		if ((ogm == null &amp;&amp; sdn6 == null) || annotationsPresent.stream().noneMatch(this::isSDNOrOGMAnnotated)) {</span>
+<span class="fc" id="L376">			labels = List.of(DefaultSchemaName.label(enclosingElement.getSimpleName().toString()));</span>
+<span class="fc" id="L377">			mode = Mode.PURE;</span>
+<span class="fc" id="L378">			target = Target.UNDEFINED;</span>
+<span class="pc bpc" id="L379" title="2 of 6 branches missed.">		} else if (ogm != null &amp;&amp; sdn6 != null &amp;&amp; annotationsPresent.containsAll(Set.of(sdn6.node(), ogm.node()))) {</span>
+<span class="fc" id="L380">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Mixing SDN and OGM annotations on the same class is not supported&quot;,
+				element
+			);
+<span class="fc" id="L385">			return Collections.emptyList();</span>
+<span class="pc bpc" id="L386" title="1 of 4 branches missed.">		} else if (sdn6 != null &amp;&amp; annotationsPresent.contains(sdn6.node())) {</span>
+<span class="fc" id="L387">			labels = computeLabelsSDN6((TypeElement) enclosingElement);</span>
+<span class="fc" id="L388">			mode = Mode.SDN6;</span>
+<span class="fc" id="L389">			target = Target.NODE;</span>
+<span class="pc bpc" id="L390" title="1 of 4 branches missed.">		} else if (sdn6 != null &amp;&amp; annotationsPresent.contains(sdn6.relationshipProperties())) {</span>
+<span class="fc" id="L391">			labels = List.of(DefaultSchemaName.type(Identifiers.deriveRelationshipType(enclosingElement.getSimpleName().toString())));</span>
+<span class="fc" id="L392">			mode = Mode.SDN6;</span>
+<span class="fc" id="L393">			target = Target.REL;</span>
+<span class="pc bpc" id="L394" title="1 of 4 branches missed.">		} else if (ogm != null &amp;&amp; annotationsPresent.contains(ogm.relationshipEntity())) {</span>
+<span class="fc" id="L395">			labels = List.of(computeTypeOGM((TypeElement) enclosingElement));</span>
+<span class="fc" id="L396">			mode = Mode.OGM;</span>
+<span class="fc" id="L397">			target = Target.REL;</span>
+		} else {
+<span class="fc" id="L399">			labels = computeLabelsOGM((TypeElement) enclosingElement);</span>
+<span class="fc" id="L400">			mode = Mode.OGM;</span>
+<span class="fc" id="L401">			target = Target.NODE;</span>
+		}
+
+<span class="fc bfc" id="L404" title="All 4 branches covered.">		if (target == Target.REL &amp;&amp; annotationType.equals(catalog.unique())) {</span>
+<span class="fc" id="L405">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Unique constraints on relationships are not supported&quot;,
+				enclosingElement
+			);
+<span class="fc" id="L410">			return Collections.emptyList();</span>
+		}
+
+<span class="fc" id="L413">		return element.getAnnotationMirrors()</span>
+<span class="fc" id="L414">			.stream()</span>
+<span class="fc" id="L415">			.flatMap(am -&gt; optionalUnwrapWrapper(annotationType, wrapperType, element, am))</span>
+<span class="fc" id="L416">			.map(annotationMirror -&gt; processCatalogAnnotation0(enclosingElement, element, annotationMirror, mode, target, labels, existingLabelsAndTypes))</span>
+<span class="fc" id="L417">			.filter(Objects::nonNull)</span>
+<span class="fc" id="L418">			.collect(Collectors.toList());</span>
+	}
+
+	private Stream&lt;AnnotationMirror&gt; optionalUnwrapWrapper(TypeElement annotationType, TypeElement wrapperType, Element element, AnnotationMirror am) {
+
+<span class="fc" id="L423">		Element annotationElement = am.getAnnotationType().asElement();</span>
+<span class="fc bfc" id="L424" title="All 2 branches covered.">		if (annotationElement.equals(annotationType)) {</span>
+<span class="fc" id="L425">			return Stream.of(am);</span>
+<span class="fc bfc" id="L426" title="All 2 branches covered.">		} else if (annotationElement.equals(wrapperType)) {</span>
+<span class="fc" id="L427">			return element.getAnnotationMirrors().stream().filter(nested -&gt; nested.getAnnotationType().asElement().equals(wrapperType))</span>
+<span class="fc" id="L428">				.flatMap(x -&gt; {</span>
+<span class="fc" id="L429">					Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = x.getElementValues();</span>
+<span class="fc" id="L430">					return attributes.get(Attributes.get(wrapperType, Attributes.VALUE).orElseThrow())</span>
+<span class="fc" id="L431">						.accept(new WrappedAnnotationExtractor(), null)</span>
+<span class="fc" id="L432">						.stream();</span>
+				});
+		}
+<span class="fc" id="L435">		return Stream.empty();</span>
+	}
+
+	@SuppressWarnings({&quot;squid:S6204&quot;, &quot;squid:S1452&quot;}) // toList vs Collectors.collect, generic wildcard
+	private CatalogItem&lt;?&gt; processCatalogAnnotation0(
+		Element enclosingElement, Element annotatedElement, AnnotationMirror annotation, Mode mode, Target target,
+		List&lt;SchemaName&gt; identifiersOfEnclosingElement, Set&lt;SchemaName&gt; existingIdentifiers
+	) {
+
+<span class="fc" id="L444">		TypeElement annotationType = (TypeElement) annotation.getAnnotationType().asElement();</span>
+<span class="fc" id="L445">		Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = annotation.getElementValues();</span>
+
+<span class="fc" id="L447">		Set&lt;String&gt; propertyNames = extractPropertyNames(annotatedElement, mode, annotationType, attributes);</span>
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">		if (propertyNames.isEmpty()) {</span>
+<span class="nc" id="L449">			return null;</span>
+		}
+
+<span class="fc" id="L452">		AnnotationValue annotationValueLabel =</span>
+<span class="fc" id="L453">			Attributes.get(annotationType, Attributes.LABEL).map(attributes::get).orElse(null);</span>
+<span class="fc" id="L454">		AnnotationValue annotationValueType =</span>
+<span class="fc" id="L455">			Attributes.get(annotationType, Attributes.TYPE).map(attributes::get).orElse(null);</span>
+<span class="fc bfc" id="L456" title="All 4 branches covered.">		if (annotationValueLabel != null &amp;&amp; annotationValueType != null) {</span>
+<span class="fc" id="L457">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Ambiguous annotation &quot; + annotation,
+				annotatedElement
+			);
+<span class="fc bfc" id="L462" title="All 4 branches covered.">		} else if (target == Target.REL &amp;&amp; annotationValueLabel != null) {</span>
+<span class="fc" id="L463">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Overwriting explicit type with a label is not supported&quot;,
+				annotatedElement
+			);
+<span class="fc bfc" id="L468" title="All 4 branches covered.">		} else if (target == Target.NODE &amp;&amp; annotationValueType != null) {</span>
+<span class="fc" id="L469">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Overwriting explicit label with a type is not supported&quot;,
+				annotatedElement
+			);
+		}
+<span class="fc bfc" id="L475" title="All 2 branches covered.">		AnnotationValue annotationValue = target == Target.REL ? annotationValueType : annotationValueLabel;</span>
+<span class="fc" id="L476">		List&lt;SchemaName&gt; labelsUsed = mergeIdentifier(enclosingElement, mode, target, identifiersOfEnclosingElement, existingIdentifiers, annotationValue);</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">		if (labelsUsed.isEmpty()) {</span>
+<span class="fc" id="L478">			return null;</span>
+		}
+<span class="fc" id="L480">		existingIdentifiers.addAll(labelsUsed);</span>
+
+<span class="fc" id="L482">		DefaultNodeType node = new DefaultNodeType(((TypeElement) enclosingElement).getQualifiedName().toString(), labelsUsed);</span>
+
+<span class="fc" id="L484">		List&lt;PropertyType&lt;?&gt;&gt; properties = propertyNames.stream()</span>
+<span class="fc" id="L485">			.map(node::addProperty)</span>
+<span class="fc" id="L486">			.collect(Collectors.toList());</span>
+
+<span class="fc" id="L488">		String firstIdentifier = labelsUsed.get(0).getValue();</span>
+<span class="fc bfc" id="L489" title="All 2 branches covered.">		if (annotationType == catalog.unique()) {</span>
+<span class="fc" id="L490">			String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE, properties);</span>
+<span class="fc" id="L491">			return Constraint.forNode(firstIdentifier).named(name).unique(propertyNames.toArray(String[]::new));</span>
+<span class="fc bfc" id="L492" title="All 2 branches covered.">		} else if (annotationType == catalog.required()) {</span>
+<span class="fc" id="L493">			String name = this.constraintNameGenerator.generateName(Constraint.Type.EXISTS, properties);</span>
+<span class="fc" id="L494">			String propertyName = propertyNames.stream().findFirst().orElseThrow();</span>
+<span class="fc bfc" id="L495" title="All 2 branches covered.">			return target == Target.REL ?</span>
+<span class="fc" id="L496">				Constraint.forRelationship(firstIdentifier).named(name).exists(propertyName) :</span>
+<span class="fc" id="L497">				Constraint.forNode(firstIdentifier).named(name).exists(propertyName);</span>
+<span class="pc bpc" id="L498" title="1 of 2 branches missed.">		} else if (annotationType == catalog.index()) {</span>
+<span class="fc" id="L499">			Index.Type type = Attributes.get(annotationType, Attributes.INDEX_TYPE).map(attributes::get)</span>
+<span class="fc" id="L500">					.map(AnnotationValue::getValue).map(Object::toString).map(Index.Type::valueOf).orElse(Index.Type.PROPERTY);</span>
+<span class="fc" id="L501">			String name = this.indexNameGenerator.generateName(type, properties);</span>
+<span class="pc bpc" id="L502" title="1 of 2 branches missed.">			Index.NamedSingleIdentifierBuilder builder = target == Target.REL ?</span>
+<span class="nc" id="L503">					Index.forRelationship(firstIdentifier).named(name) :</span>
+<span class="fc" id="L504">					Index.forNode(firstIdentifier).named(name);</span>
+<span class="pc bpc" id="L505" title="1 of 4 branches missed.">			Index index = switch (type) {</span>
+<span class="fc" id="L506">				case PROPERTY -&gt; builder.onProperties(propertyNames.toArray(String[]::new));</span>
+<span class="fc" id="L507">				case FULLTEXT -&gt; builder.fulltext(propertyNames.toArray(String[]::new));</span>
+<span class="fc" id="L508">				case TEXT -&gt; builder.text(propertyNames.stream().findFirst().orElseThrow());</span>
+<span class="nc" id="L509">				default -&gt; throw new UnsupportedOperationException(&quot;Unknown index type&quot;);</span>
+			};
+
+<span class="fc" id="L512">			AnnotationValue annotationOptionsType =</span>
+<span class="fc" id="L513">				Attributes.get(annotationType, Attributes.OPTIONS).map(attributes::get).orElse(null);</span>
+<span class="fc bfc" id="L514" title="All 2 branches covered.">			if (annotationOptionsType != null) {</span>
+<span class="fc" id="L515">				List&lt;?&gt; options = (List&lt;?&gt;) annotationOptionsType.getValue();</span>
+<span class="fc" id="L516">				String optionString = options.stream().map(AnnotationMirror.class::cast)</span>
+<span class="fc" id="L517">					.map(this::extractOption)</span>
+<span class="fc" id="L518">					.filter(Objects::nonNull)</span>
+<span class="fc" id="L519">					.collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L520">				index = index.withOptions(optionString);</span>
+			}
+<span class="fc" id="L522">			return index;</span>
+		}
+
+<span class="nc" id="L525">		return null;</span>
+	}
+
+	private String extractOption(AnnotationMirror annotation) {
+<span class="fc" id="L529">		TypeElement annotationType = (TypeElement) annotation.getAnnotationType().asElement();</span>
+<span class="fc" id="L530">		Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = annotation.getElementValues();</span>
+<span class="fc" id="L531">		AnnotationValue annotationKeyType =</span>
+<span class="fc" id="L532">				Attributes.get(annotationType, Attributes.KEY).map(attributes::get).orElse(null);</span>
+
+<span class="fc" id="L534">		AnnotationValue annotationValueType =</span>
+<span class="fc" id="L535">				Attributes.get(annotationType, Attributes.VALUE).map(attributes::get).orElse(null);</span>
+
+<span class="pc bpc" id="L537" title="2 of 4 branches missed.">		if (annotationKeyType == null || annotationValueType == null) {</span>
+<span class="nc" id="L538">			return null;</span>
+		}
+<span class="fc" id="L540">		String key = (String) annotationKeyType.getValue();</span>
+<span class="fc" id="L541">		String value = (String) annotationValueType.getValue();</span>
+
+<span class="fc" id="L543">		return key + &quot;: &quot; + value;</span>
+	}
+
+	private Set&lt;String&gt; extractPropertyNames(
+		Element annotatedElement, Mode mode,
+		TypeElement annotationType, Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes
+	) {
+
+<span class="fc" id="L551">		ExecutableElement propertiesAttribute = Attributes.get(annotationType, Attributes.PROPERTIES)</span>
+<span class="fc" id="L552">			.or(() -&gt; Attributes.get(annotationType, Attributes.PROPERTY)).orElseThrow();</span>
+<span class="fc bfc" id="L553" title="All 2 branches covered.">		String fieldName = annotatedElement.getKind() == ElementKind.FIELD ? annotatedElement.getSimpleName().toString() : null;</span>
+
+		// Extract the actual properties
+<span class="fc" id="L556">		Set&lt;String&gt; propertyNames = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L557" title="All 2 branches covered.">		if (attributes.containsKey(propertiesAttribute)) {</span>
+<span class="fc" id="L558">			var value = attributes.get(propertiesAttribute).getValue();</span>
+<span class="fc bfc" id="L559" title="All 2 branches covered.">			if (value instanceof List&lt;?&gt; annotationValues) {</span>
+<span class="fc" id="L560">				annotationValues.stream().map(AnnotationValue.class::cast)</span>
+<span class="fc" id="L561">					.map(AnnotationValue::getValue)</span>
+<span class="fc" id="L562">					.map(String.class::cast)</span>
+<span class="fc" id="L563">					.forEach(propertyNames::add);</span>
+<span class="pc bpc" id="L564" title="1 of 2 branches missed.">			} else if (value instanceof String stringValue) {</span>
+<span class="fc" id="L565">				propertyNames.add(stringValue);</span>
+			}
+		}
+
+<span class="fc bfc" id="L569" title="All 3 branches covered.">		Optional&lt;String&gt; additionalName = switch (mode) {</span>
+<span class="fc" id="L570">			case SDN6 -&gt; extractPropertyName(annotatedElement, sdn6.property());</span>
+<span class="fc" id="L571">			case OGM -&gt; extractPropertyName(annotatedElement, ogm.property());</span>
+<span class="fc" id="L572">			case PURE -&gt; Optional.empty();</span>
+		};
+
+<span class="fc bfc" id="L575" title="All 2 branches covered.">		if (propertyNames.isEmpty()) {</span>
+<span class="fc" id="L576">			propertyNames.add(additionalName.orElse(fieldName));</span>
+<span class="pc bpc" id="L577" title="1 of 4 branches missed.">		} else if (additionalName.isPresent() &amp;&amp; !propertyNames.contains(additionalName.get())) {</span>
+<span class="fc" id="L578">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+<span class="fc" id="L580">				String.format(&quot;Contradicting properties: %s vs %s&quot;, propertyNames.stream().collect(Collectors.joining(&quot;,&quot;, &quot;(&quot;, &quot;)&quot;)), additionalName.get()),</span>
+				annotatedElement
+			);
+<span class="fc bfc" id="L583" title="All 4 branches covered.">		} else if (annotatedElement.getKind() == ElementKind.FIELD &amp;&amp; propertyNames.size() &gt; 1) {</span>
+<span class="fc" id="L584">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+				&quot;Please annotate the class and not a field for composite constraints.&quot;,
+				annotatedElement
+			);
+		}
+
+<span class="fc" id="L591">		return propertyNames;</span>
+	}
+
+	private List&lt;SchemaName&gt; mergeIdentifier(Element enclosingElement, Mode mode, Target target, List&lt;SchemaName&gt; identifiersOfEnclosingElement, Set&lt;SchemaName&gt; existingIdentifiers, AnnotationValue annotationValue) {
+
+<span class="fc bfc" id="L596" title="All 4 branches covered.">		if (annotationValue == null &amp;&amp; mode != Mode.PURE) {</span>
+<span class="fc" id="L597">			return identifiersOfEnclosingElement;</span>
+		}
+
+		SchemaName explicitName;
+<span class="fc bfc" id="L601" title="All 2 branches covered.">		if (annotationValue == null) {</span>
+<span class="fc" id="L602">			explicitName = identifiersOfEnclosingElement.get(0);</span>
+		} else {
+<span class="fc" id="L604">			String value = (String) annotationValue.getValue();</span>
+<span class="fc bfc" id="L605" title="All 2 branches covered.">			explicitName = target == Target.NODE ? DefaultSchemaName.label(value) : DefaultSchemaName.type(value);</span>
+		}
+<span class="fc" id="L607">		SchemaName simpleName = DefaultSchemaName.label(enclosingElement.getSimpleName().toString());</span>
+<span class="fc bfc" id="L608" title="All 2 branches covered.">		if (target == Target.REL) {</span>
+<span class="fc" id="L609">			simpleName = DefaultSchemaName.type(Identifiers.deriveRelationshipType(simpleName.getValue()));</span>
+		}
+
+<span class="fc" id="L612">		List&lt;SchemaName&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L613" title="All 6 branches covered.">		if (mode == Mode.PURE &amp;&amp; !existingIdentifiers.isEmpty() &amp;&amp; !existingIdentifiers.contains(explicitName)) {</span>
+<span class="fc" id="L614">			String val1 = Stream.concat(existingIdentifiers.stream(), Stream.of(explicitName))</span>
+<span class="fc" id="L615">				.map(SchemaName::getValue)</span>
+<span class="fc" id="L616">				.map(v -&gt; String.format(&quot;`%s`&quot;, v))</span>
+<span class="fc" id="L617">				.collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L618">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+<span class="fc" id="L620">				String.format(&quot;Contradicting labels found: %s&quot;, val1),</span>
+				enclosingElement
+			);
+<span class="fc bfc" id="L623" title="All 4 branches covered.">		} else if (mode != Mode.PURE &amp;&amp; !simpleName.equals(identifiersOfEnclosingElement.get(0))) {</span>
+<span class="fc" id="L624">			messager.printMessage(</span>
+				Diagnostic.Kind.ERROR,
+<span class="fc" id="L626">				String.format(&quot;Explicit identifier `%s` on class contradicts identifier on annotation: `%s`&quot;, identifiersOfEnclosingElement.get(0).getValue(), explicitName.getValue()),</span>
+				enclosingElement
+			);
+		} else {
+<span class="fc" id="L630">			result.add(explicitName);</span>
+		}
+
+<span class="fc" id="L633">		return result;</span>
+	}
+
+	/**
+	 * Helper to extract values of wrapper annotations for repeatable ones
+	 */
+<span class="fc" id="L639">	static class WrappedAnnotationExtractor extends AbstractAnnotationValueVisitor8&lt;List&lt;AnnotationMirror&gt;, Void&gt; {</span>
+
+<span class="fc" id="L641">		private final List&lt;AnnotationMirror&gt; wrappedAnnotations = new ArrayList&lt;&gt;();</span>
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitBoolean(boolean b, Void unused) {
+<span class="nc" id="L645">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitByte(byte b, Void unused) {
+<span class="nc" id="L650">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitChar(char c, Void unused) {
+<span class="nc" id="L655">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitDouble(double d, Void unused) {
+<span class="nc" id="L660">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitFloat(float f, Void unused) {
+<span class="nc" id="L665">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitInt(int i, Void unused) {
+<span class="nc" id="L670">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitLong(long i, Void unused) {
+<span class="nc" id="L675">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitShort(short s, Void unused) {
+<span class="nc" id="L680">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitString(String s, Void unused) {
+<span class="nc" id="L685">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitType(TypeMirror t, Void unused) {
+<span class="nc" id="L690">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitEnumConstant(VariableElement c, Void unused) {
+<span class="nc" id="L695">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitAnnotation(AnnotationMirror a, Void unused) {
+<span class="fc" id="L700">			wrappedAnnotations.add(a);</span>
+<span class="fc" id="L701">			return wrappedAnnotations;</span>
+		}
+
+		@Override
+		public List&lt;AnnotationMirror&gt; visitArray(List&lt;? extends AnnotationValue&gt; vals, Void unused) {
+<span class="fc" id="L706">			vals.forEach(val -&gt; val.accept(this, null));</span>
+<span class="fc" id="L707">			return wrappedAnnotations;</span>
+		}
+	}
+
+	private Optional&lt;String&gt; extractPropertyName(Element annotatedElement, TypeElement annotation) {
+<span class="fc" id="L712">		List&lt;? extends AnnotationMirror&gt; annotations = annotatedElement.getAnnotationMirrors();</span>
+
+<span class="fc" id="L714">		return annotations.stream()</span>
+<span class="fc" id="L715">			.filter(am -&gt; am.getAnnotationType().asElement().equals(annotation))</span>
+<span class="fc" id="L716">			.findFirst()</span>
+<span class="fc" id="L717">			.flatMap(p -&gt; {</span>
+<span class="fc" id="L718">					Map&lt;String, ? extends AnnotationValue&gt; values = p</span>
+<span class="fc" id="L719">						.getElementValues().entrySet().stream()</span>
+<span class="fc" id="L720">						.collect(Collectors.toMap(entry -&gt; entry.getKey().getSimpleName().toString(), Map.Entry::getValue));</span>
+
+<span class="fc bfc" id="L722" title="All 2 branches covered.">					String nameValue = values.containsKey(Attributes.NAME) ?</span>
+<span class="fc" id="L723">						(String) values.get(Attributes.NAME).getValue() : null;</span>
+<span class="fc bfc" id="L724" title="All 2 branches covered.">					String valueValue = values.containsKey(Attributes.VALUE) ?</span>
+<span class="fc" id="L725">						(String) values.get(Attributes.VALUE).getValue() : null;</span>
+
+<span class="pc bpc" id="L727" title="1 of 6 branches missed.">					if (nameValue != null &amp;&amp; valueValue != null &amp;&amp; !nameValue.equals(valueValue)) {</span>
+<span class="fc" id="L728">						messager.printMessage(</span>
+							Diagnostic.Kind.ERROR,
+<span class="fc" id="L730">							String.format(&quot;Different @AliasFor or @ValueFor mirror values for annotation [%s]!&quot;, p.getAnnotationType()),</span>
+							annotatedElement
+						);
+<span class="fc bfc" id="L733" title="All 2 branches covered.">					} else if (nameValue != null) {</span>
+<span class="fc" id="L734">						return Optional.of(nameValue);</span>
+<span class="pc bpc" id="L735" title="1 of 2 branches missed.">					} else if (valueValue != null) {</span>
+<span class="fc" id="L736">						return Optional.of(valueValue);</span>
+					}
+<span class="fc" id="L738">					return Optional.empty();</span>
+				}
+			);
+	}
+
+	private void processSDN6IdAnnotations(RoundEnvironment roundEnv) {
+
+<span class="fc" id="L745">		Set&lt;Element&gt; supportedSDN6Annotations = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L746">		supportedSDN6Annotations.add(sdn6.id());</span>
+<span class="fc" id="L747">		supportedSDN6Annotations.add(sdn6.commonsId());</span>
+
+<span class="fc" id="L749">		roundEnv.getElementsAnnotatedWith(sdn6.node())</span>
+<span class="fc" id="L750">			.stream()</span>
+<span class="fc" id="L751">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L752">			.forEach(t -&gt; {</span>
+<span class="fc" id="L753">				List&lt;SchemaName&gt; labels = computeLabelsSDN6(t);</span>
+<span class="fc" id="L754">				DefaultNodeType owner = new DefaultNodeType(t.getQualifiedName().toString(), labels);</span>
+<span class="fc bfc" id="L755" title="All 2 branches covered.">				if (requiresPrimaryKeyConstraintSDN6(t)) {</span>
+<span class="fc" id="L756">					PropertyType&lt;NodeType&gt; idProperty = t.accept(new IdPropertySelector(Mode.SDN6, supportedSDN6Annotations),</span>
+						owner);
+<span class="fc" id="L758">					String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,</span>
+<span class="fc" id="L759">						Collections.singleton(idProperty));</span>
+<span class="fc" id="L760">					catalogItems.add(Constraint.forNode(labels.get(0).getValue()).named(name)</span>
+<span class="fc" id="L761">						.unique(idProperty.getName()));</span>
+				}
+<span class="fc bfc" id="L763" title="All 2 branches covered.">				if (generateTypeConstraints) {</span>
+<span class="fc" id="L764">					catalogItems.addAll(t.accept(new PropertyTypeConstraintGenerator&lt;&gt;(Mode.SDN6, labels), owner));</span>
+				}
+<span class="fc" id="L766">			});</span>
+<span class="fc" id="L767">	}</span>
+
+	@SuppressWarnings(&quot;squid:S110&quot;) // Not something we need or can do anything about (Number of parents)
+	class PropertyTypeConstraintGenerator&lt;E extends ElementType&lt;E&gt;&gt; extends ElementKindVisitor8&lt;List&lt;CatalogItem&lt;?&gt;&gt;, WriteableElementType&lt;E&gt;&gt; {
+
+		private final Mode mode;
+
+		private final List&lt;SchemaName&gt; labels;
+
+<span class="fc" id="L776">		PropertyTypeConstraintGenerator(Mode mode, List&lt;SchemaName&gt; labels) {</span>
+<span class="fc" id="L777">			this.mode = mode;</span>
+<span class="fc" id="L778">			this.labels = labels;</span>
+<span class="fc" id="L779">		}</span>
+
+		@Override
+		public List&lt;CatalogItem&lt;?&gt;&gt; visitType(TypeElement e, WriteableElementType&lt;E&gt; owner) {
+
+<span class="fc" id="L784">			return e.getEnclosedElements().stream()</span>
+<span class="fc" id="L785">				.map(ee -&gt; ee.accept(this, owner))</span>
+<span class="fc" id="L786">				.filter(Objects::nonNull)</span>
+<span class="fc" id="L787">				.flatMap(List::stream)</span>
+<span class="fc" id="L788">				.toList();</span>
+		}
+
+		@Override
+		public List&lt;CatalogItem&lt;?&gt;&gt; visitRecordComponent(RecordComponentElement e, WriteableElementType&lt;E&gt; owner) {
+
+<span class="nc" id="L794">			return checkIfEligibleForPropertyTypeConstraint(e, owner);</span>
+		}
+
+		@Override
+		public List&lt;CatalogItem&lt;?&gt;&gt; visitVariableAsField(VariableElement e, WriteableElementType&lt;E&gt; owner) {
+
+<span class="fc" id="L800">			return checkIfEligibleForPropertyTypeConstraint(e, owner);</span>
+		}
+
+		List&lt;CatalogItem&lt;?&gt;&gt; checkIfEligibleForPropertyTypeConstraint(Element e, WriteableElementType&lt;E&gt; owner) {
+<span class="fc" id="L804">			var type = e.asType();</span>
+<span class="fc bfc" id="L805" title="All 4 branches covered.">			if (isTransient(e) || !TypesEligibleForPropertyTypeConstraints.contains(type)) {</span>
+<span class="fc" id="L806">				return List.of();</span>
+			}
+
+<span class="pc bpc" id="L809" title="1 of 3 branches missed.">			Optional&lt;String&gt; additionalName = switch (mode) {</span>
+<span class="fc" id="L810">				case SDN6 -&gt; extractPropertyName(e, sdn6.property());</span>
+<span class="fc" id="L811">				case OGM -&gt; extractPropertyName(e, ogm.property());</span>
+<span class="nc" id="L812">				case PURE -&gt; Optional.empty();</span>
+			};
+<span class="fc" id="L814">			var property = owner.addProperty(additionalName.orElseGet(() -&gt; e.getSimpleName().toString()));</span>
+<span class="fc" id="L815">			var name = constraintNameGenerator.generateName(Constraint.Type.PROPERTY_TYPE, List.of(property));</span>
+<span class="fc" id="L816">			return List.of(Constraint.forNode(labels.get(0).getValue()).named(name).type(property.getName(), TypesEligibleForPropertyTypeConstraints.get(type)));</span>
+		}
+
+		boolean isTransient(Element e) {
+<span class="pc bpc" id="L820" title="1 of 2 branches missed.">			Predicate&lt;AnnotationMirror&gt; sdnTransient = sdn6 == null ? a -&gt; false : a -&gt; a.getAnnotationType().asElement().equals(sdn6.transientProperty());</span>
+<span class="pc bpc" id="L821" title="1 of 2 branches missed.">			Predicate&lt;AnnotationMirror&gt; ogmTransient = ogm == null ? a -&gt; false : a -&gt; a.getAnnotationType().asElement().equals(ogm.transientProperty());</span>
+<span class="pc bpc" id="L822" title="1 of 4 branches missed.">			return e.getAnnotationMirrors().stream().anyMatch(sdnTransient.or(ogmTransient)) || e.getModifiers().contains(Modifier.TRANSIENT);</span>
+		}
+	}
+
+	private void processOGMIdAnnotations(RoundEnvironment roundEnv) {
+<span class="fc" id="L827">		roundEnv.getElementsAnnotatedWith(ogm.node())</span>
+<span class="fc" id="L828">			.stream()</span>
+<span class="fc" id="L829">			.filter(this::requiresPrimaryKeyConstraintOGM)</span>
+<span class="fc" id="L830">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L831">			.forEach(t -&gt; {</span>
+<span class="fc" id="L832">				List&lt;SchemaName&gt; labels = computeLabelsOGM(t);</span>
+<span class="fc" id="L833">				PropertyType&lt;NodeType&gt; idProperty = t.accept(new IdPropertySelector(Mode.OGM, Collections.singleton(ogm.id())),</span>
+<span class="fc" id="L834">					new DefaultNodeType(t.getQualifiedName().toString(), labels));</span>
+<span class="fc" id="L835">				String name = this.constraintNameGenerator.generateName(Constraint.Type.UNIQUE,</span>
+<span class="fc" id="L836">					Collections.singleton(idProperty));</span>
+<span class="fc" id="L837">				catalogItems.add(Constraint.forNode(labels.stream().map(SchemaName::getValue).findFirst().orElseGet(() -&gt; t.getSimpleName().toString())).named(name)</span>
+<span class="fc" id="L838">					.unique(idProperty.getName()));</span>
+<span class="fc" id="L839">			});</span>
+<span class="fc" id="L840">	}</span>
+
+	private void processOGMIndexAnnotations(RoundEnvironment roundEnv, TypeElement processedAnnotation) {
+<span class="fc" id="L843">		roundEnv.getElementsAnnotatedWith(processedAnnotation)</span>
+<span class="fc" id="L844">			.stream()</span>
+<span class="fc" id="L845">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L846">			.forEach(t -&gt; {</span>
+<span class="fc bfc" id="L847" title="All 2 branches covered.">				List&lt;SchemaName&gt; labels = Optional.of(ogm).map(ElementsOGM::node).filter(v -&gt; v == processedAnnotation).map(v -&gt; computeLabelsOGM(t)).orElseGet(() -&gt; Collections.singletonList(computeTypeOGM(t)));</span>
+<span class="fc" id="L848">				catalogItems.addAll(t.accept(new OGMIndexVisitor&lt;&gt;(labels, processedAnnotation),</span>
+<span class="fc" id="L849">					new DefaultNodeType(t.getQualifiedName().toString(), labels)));</span>
+<span class="fc" id="L850">			});</span>
+<span class="fc" id="L851">	}</span>
+
+	private void processOGMCompositeIndexAnnotations(RoundEnvironment roundEnv) {
+
+<span class="pc bpc" id="L855" title="1 of 2 branches missed.">		if (ogm == null) {</span>
+<span class="nc" id="L856">			return;</span>
+		}
+
+<span class="fc" id="L859">		Set&lt;? extends Element&gt; nodes = roundEnv.getElementsAnnotatedWith(ogm.node());</span>
+<span class="fc" id="L860">		Set&lt;? extends Element&gt; composeIndexNodes = roundEnv.getElementsAnnotatedWith(ogm.compositeIndex());</span>
+<span class="fc" id="L861">		Set&lt;? extends Element&gt; composeIndexesNodes = roundEnv.getElementsAnnotatedWith(ogm.compositeIndexes());</span>
+<span class="fc" id="L862">		Predicate&lt;Element&gt; elementsAnnotatedWithCompositeIndex = composeIndexNodes::contains;</span>
+<span class="fc" id="L863">		elementsAnnotatedWithCompositeIndex = elementsAnnotatedWithCompositeIndex.or(composeIndexesNodes::contains);</span>
+<span class="fc" id="L864">		nodes</span>
+<span class="fc" id="L865">			.stream()</span>
+<span class="fc" id="L866">			.filter(elementsAnnotatedWithCompositeIndex)</span>
+<span class="fc" id="L867">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L868">			.forEach(t -&gt; catalogItems.addAll(computeOGMCompositeIndexes(t)));</span>
+<span class="fc" id="L869">	}</span>
+
+	@SuppressWarnings({&quot;unchecked&quot;, &quot;squid:S1452&quot;, &quot;squid:S6204&quot;})
+	private Collection&lt;CatalogItem&lt;?&gt;&gt; computeOGMCompositeIndexes(TypeElement typeElement) {
+
+<span class="fc" id="L874">		List&lt;SchemaName&gt; labels = computeLabelsOGM(typeElement);</span>
+<span class="fc" id="L875">		DefaultNodeType node = new DefaultNodeType(typeElement.getQualifiedName().toString(), labels);</span>
+<span class="fc" id="L876">		return typeElement.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L877">			.flatMap(m -&gt; {</span>
+<span class="fc bfc" id="L878" title="All 2 branches covered.">				if (m.getAnnotationType().asElement().equals(ogm.compositeIndex())) {</span>
+<span class="fc" id="L879">					return Stream.of(m);</span>
+<span class="fc bfc" id="L880" title="All 2 branches covered.">				} else if (m.getAnnotationType().asElement().equals(ogm.compositeIndexes())) {</span>
+<span class="fc" id="L881">					List&lt;AnnotationValue&gt; values = (List&lt;AnnotationValue&gt;) m.getElementValues()</span>
+<span class="fc" id="L882">						.get(ogm.compositeIndexesValue()).getValue();</span>
+<span class="fc" id="L883">					return values.stream().map(AnnotationValue::getValue).map(AnnotationMirror.class::cast);</span>
+				}
+<span class="fc" id="L885">				return Stream.empty();</span>
+			})
+<span class="fc" id="L887">			.map(t -&gt; {</span>
+<span class="fc" id="L888">				Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = t.getElementValues();</span>
+<span class="fc" id="L889">				List&lt;AnnotationValue&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L890" title="All 2 branches covered.">				if (attributes.containsKey(ogm.compositeIndexValue())) {</span>
+<span class="fc" id="L891">					values.addAll((List&lt;AnnotationValue&gt;) attributes.get(ogm.compositeIndexValue()).getValue());</span>
+				}
+<span class="fc bfc" id="L893" title="All 2 branches covered.">				if (attributes.containsKey(ogm.compositeIndexProperties())) {</span>
+<span class="fc" id="L894">					values.addAll((List&lt;AnnotationValue&gt;) attributes.get(ogm.compositeIndexProperties()).getValue());</span>
+				}
+
+<span class="fc" id="L897">				boolean isUnique =</span>
+<span class="pc bpc" id="L898" title="1 of 4 branches missed.">					attributes.containsKey(ogm.compositeIndexUnique()) &amp;&amp; (boolean) attributes.get(ogm.compositeIndexUnique())</span>
+<span class="fc" id="L899">						.getValue();</span>
+<span class="fc" id="L900">				List&lt;PropertyType&lt;?&gt;&gt; properties = values.stream()</span>
+<span class="fc" id="L901">					.map(v -&gt; node.addProperty((String) v.getValue()))</span>
+<span class="fc" id="L902">					.collect(Collectors.toList());</span>
+<span class="fc" id="L903">				String[] propertyNames = properties.stream().map(PropertyType::getName).toArray(String[]::new);</span>
+
+<span class="fc bfc" id="L905" title="All 2 branches covered.">				if (propertyNames.length == 0) {</span>
+<span class="fc" id="L906">					messager.printMessage(Diagnostic.Kind.ERROR, String.format(&quot;Cannot use %s without any properties on %s&quot;, FullyQualifiedNames.OGM_COMPOSITE_INDEX, typeElement), typeElement);</span>
+<span class="fc" id="L907">					return null;</span>
+				}
+
+				CatalogItem&lt;?&gt; item;
+<span class="fc bfc" id="L911" title="All 2 branches covered.">				if (isUnique) {</span>
+<span class="fc" id="L912">					String name = constraintNameGenerator.generateName(Constraint.Type.KEY, properties);</span>
+<span class="fc" id="L913">					item = Constraint.forNode(node.getLabels().get(0).getValue()).named(name).key(propertyNames);</span>
+<span class="fc" id="L914">				} else {</span>
+<span class="fc" id="L915">					String indexName = indexNameGenerator.generateName(Index.Type.PROPERTY, properties);</span>
+<span class="fc" id="L916">					item = Index.forNode(node.getLabels().get(0).getValue()).named(indexName).onProperties(propertyNames);</span>
+				}
+<span class="fc" id="L918">				return item;</span>
+			})
+<span class="fc" id="L920">			.filter(Objects::nonNull)</span>
+<span class="fc" id="L921">			.collect(Collectors.toList());</span>
+	}
+
+	private boolean requiresPrimaryKeyConstraintSDN6(Element e) {
+<span class="fc" id="L925">		Collection&lt;TypeElement&gt; idAnnotations = Arrays.asList(sdn6.id(), sdn6.commonsId());</span>
+<span class="fc" id="L926">		TypeElement generatedValueAnnotation = sdn6.generatedValue();</span>
+<span class="fc" id="L927">		String generatorAttributeName = &quot;generatorClass&quot;;</span>
+<span class="fc" id="L928">		String internalIdGeneratorClass = &quot;org.springframework.data.neo4j.core.schema.GeneratedValue.InternalIdGenerator&quot;;</span>
+<span class="fc" id="L929">		return e.accept(new RequiresPrimaryKeyConstraintPredicate(idAnnotations, generatedValueAnnotation, generatorAttributeName, internalIdGeneratorClass), false);</span>
+	}
+
+	private boolean requiresPrimaryKeyConstraintOGM(Element e) {
+<span class="fc" id="L933">		Collection&lt;TypeElement&gt; idAnnotations = Arrays.asList(ogm.id());</span>
+<span class="fc" id="L934">		TypeElement generatedValueAnnotation = ogm.generatedValue();</span>
+<span class="fc" id="L935">		String generatorAttributeName = &quot;strategy&quot;;</span>
+<span class="fc" id="L936">		String internalIdGeneratorClass = &quot;org.neo4j.ogm.id.InternalIdStrategy&quot;;</span>
+<span class="fc" id="L937">		return e.accept(new RequiresPrimaryKeyConstraintPredicate(idAnnotations, generatedValueAnnotation, generatorAttributeName, internalIdGeneratorClass), false);</span>
+	}
+
+	/**
+	 * @param typeElement The type element to process
+	 * @return An ordered list so that we can pass it to any API that requires the labels to be in order (primary first).
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	private List&lt;SchemaName&gt; computeLabelsSDN6(TypeElement typeElement) {
+
+<span class="fc" id="L947">		Set&lt;SchemaName&gt; result = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L948">		BiConsumer&lt;Boolean, AnnotationMirror&gt; computation = (addSimpleName, t) -&gt; {</span>
+<span class="fc" id="L949">			Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = t.getElementValues();</span>
+<span class="fc bfc" id="L950" title="All 2 branches covered.">			if (attributes.containsKey(sdn6.nodePrimaryLabel())) {</span>
+<span class="fc" id="L951">				result.add(DefaultSchemaName.label((String) attributes.get(sdn6.nodePrimaryLabel()).getValue()));</span>
+			}
+
+<span class="fc" id="L954">			List&lt;AnnotationValue&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L955" title="All 2 branches covered.">			if (attributes.containsKey(sdn6.nodeValue())) {</span>
+<span class="fc" id="L956">				values.addAll((List&lt;AnnotationValue&gt;) attributes.get(sdn6.nodeValue()).getValue());</span>
+			}
+<span class="fc bfc" id="L958" title="All 2 branches covered.">			if (attributes.containsKey(sdn6.nodeLabels())) {</span>
+<span class="fc" id="L959">				values.addAll((List&lt;AnnotationValue&gt;) attributes.get(sdn6.nodeLabels()).getValue());</span>
+			}
+<span class="fc" id="L961">			values.stream().map(v -&gt; DefaultSchemaName.label((String) v.getValue())).forEach(result::add);</span>
+
+<span class="pc bpc" id="L963" title="1 of 4 branches missed.">			if (result.isEmpty() &amp;&amp; Boolean.TRUE.equals(addSimpleName)) {</span>
+<span class="fc" id="L964">				result.add(DefaultSchemaName.label(typeElement.getSimpleName().toString()));</span>
+			}
+<span class="fc" id="L966">		};</span>
+<span class="fc" id="L967">		traverseClassHierarchy(sdn6.node(), typeElement, computation, true);</span>
+<span class="fc" id="L968">		return new ArrayList&lt;&gt;(result);</span>
+	}
+
+	private List&lt;SchemaName&gt; computeLabelsOGM(TypeElement typeElement) {
+<span class="fc" id="L972">		return computeOGMModel(ogm.node(), typeElement, DefaultSchemaName::label, UnaryOperator.identity(), ogm.nodeLabel(), ogm.nodeValue());</span>
+	}
+
+	private SchemaName computeTypeOGM(TypeElement typeElement) {
+<span class="fc" id="L976">		List&lt;SchemaName&gt; names = computeOGMModel(ogm.relationshipEntity(), typeElement, DefaultSchemaName::type, Identifiers::deriveRelationshipType, ogm.relationshipType(), ogm.relationshipValue());</span>
+<span class="pc bpc" id="L977" title="1 of 2 branches missed.">		if (names.size() != 1) {</span>
+<span class="nc" id="L978">			messager.printMessage(Diagnostic.Kind.ERROR, String.format(&quot;More than one relationship type found on %s&quot;, typeElement), typeElement);</span>
+		}
+<span class="fc" id="L980">		return names.get(0);</span>
+	}
+
+	/**
+	 * @param entityAnnotation   The entity type to travers
+	 * @param typeElement        The type element to process
+	 * @param schemaNameProvider Factory for schema names.
+	 * @param simpleNameFilter   Filter for the simple name
+	 * @param selectedAttributes the attributes of the annotation to process
+	 * @return An ordered list so that we can pass it to any API that requires the labels to be in order (primary first).
+	 */
+	private List&lt;SchemaName&gt; computeOGMModel(TypeElement entityAnnotation, TypeElement typeElement, Function&lt;String, SchemaName&gt; schemaNameProvider, UnaryOperator&lt;String&gt; simpleNameFilter, ExecutableElement... selectedAttributes) {
+
+<span class="fc" id="L993">		Set&lt;SchemaName&gt; result = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L994">		BiConsumer&lt;Boolean, AnnotationMirror&gt; labelComputation = (addSimpleName, t) -&gt; {</span>
+<span class="fc" id="L995">			Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = t.getElementValues();</span>
+<span class="fc bfc" id="L996" title="All 2 branches covered.">			for (ExecutableElement selectedAttribute : selectedAttributes) {</span>
+<span class="fc bfc" id="L997" title="All 2 branches covered.">				if (attributes.containsKey(selectedAttribute)) {</span>
+<span class="fc" id="L998">					result.add(schemaNameProvider.apply((String) attributes.get(selectedAttribute).getValue()));</span>
+				}
+			}
+
+<span class="fc bfc" id="L1002" title="All 4 branches covered.">			if (result.isEmpty() &amp;&amp; Boolean.TRUE.equals(addSimpleName)) {</span>
+<span class="fc" id="L1003">				result.add(schemaNameProvider.apply(simpleNameFilter.apply(typeElement.getSimpleName().toString())));</span>
+			}
+<span class="fc" id="L1005">		};</span>
+<span class="fc" id="L1006">		traverseClassHierarchy(entityAnnotation, typeElement, labelComputation, true);</span>
+<span class="fc" id="L1007">		return new ArrayList&lt;&gt;(result);</span>
+	}
+
+	private void traverseClassHierarchy(
+		TypeElement requiredAnnotation,
+		TypeElement typeElement,
+		BiConsumer&lt;Boolean, AnnotationMirror&gt; consumer,
+		boolean addSimpleName
+	) {
+<span class="fc" id="L1016">		typeElement.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L1017">			.filter(m -&gt; m.getAnnotationType().asElement().equals(requiredAnnotation))</span>
+<span class="fc" id="L1018">			.findFirst()</span>
+<span class="fc" id="L1019">			.ifPresent(v -&gt; consumer.accept(addSimpleName, v));</span>
+
+<span class="fc" id="L1021">		typeElement.getInterfaces()</span>
+<span class="fc" id="L1022">			.stream()</span>
+<span class="fc" id="L1023">			.map(i -&gt; typeUtils.asElement(i))</span>
+<span class="fc" id="L1024">			.map(TypeElement.class::cast)</span>
+<span class="fc" id="L1025">			.forEach(i -&gt; traverseClassHierarchy(requiredAnnotation, i, consumer, false));</span>
+
+<span class="fc" id="L1027">		findSuperclassOfInterest(typeElement).ifPresent(superclass -&gt; traverseClassHierarchy(requiredAnnotation, superclass, consumer, false));</span>
+<span class="fc" id="L1028">	}</span>
+
+	private Optional&lt;TypeElement&gt; findSuperclassOfInterest(TypeElement typeElement) {
+<span class="fc" id="L1031">		return Optional.ofNullable(typeElement.getSuperclass())</span>
+<span class="fc" id="L1032">			.map(typeUtils::asElement)</span>
+<span class="fc" id="L1033">			.map(TypeElement.class::cast)</span>
+<span class="fc bfc" id="L1034" title="All 2 branches covered.">			.filter(e -&gt; !e.getQualifiedName().contentEquals(&quot;java.lang.Object&quot;));</span>
+	}
+
+	private String getOutputDir() {
+
+<span class="fc" id="L1039">		String subDir = processingEnv.getOptions().getOrDefault(OPTION_OUTPUT_DIR, &quot;neo4j-migrations&quot;);</span>
+<span class="pc bpc" id="L1040" title="1 of 2 branches missed.">		if (!subDir.endsWith(&quot;/&quot;)) {</span>
+<span class="fc" id="L1041">			subDir += &quot;/&quot;;</span>
+		}
+<span class="fc" id="L1043">		return subDir;</span>
+	}
+
+	@SuppressWarnings(&quot;squid:S110&quot;) // Not something we need or can do anything about (Number of parents)
+	class OGMIndexVisitor&lt;E extends ElementType&lt;E&gt;&gt; extends ElementKindVisitor8&lt;List&lt;CatalogItem&lt;?&gt;&gt;, WriteableElementType&lt;E&gt;&gt; {
+
+		private final List&lt;SchemaName&gt; schemaNames;
+
+		private final boolean isRelationship;
+
+<span class="fc" id="L1053">		OGMIndexVisitor(List&lt;SchemaName&gt; schemaNames, TypeElement processedAnnotation) {</span>
+<span class="fc" id="L1054">			this.schemaNames = schemaNames;</span>
+<span class="fc bfc" id="L1055" title="All 2 branches covered.">			this.isRelationship = processedAnnotation == ogm.relationshipEntity();</span>
+<span class="fc" id="L1056">		}</span>
+
+		@Override
+		public List&lt;CatalogItem&lt;?&gt;&gt; visitType(TypeElement e, WriteableElementType&lt;E&gt; owner) {
+<span class="fc" id="L1060">			return e.getEnclosedElements().stream()</span>
+<span class="fc" id="L1061">				.map(ee -&gt; ee.accept(this, owner))</span>
+<span class="fc" id="L1062">				.filter(Objects::nonNull)</span>
+<span class="fc" id="L1063">				.flatMap(List::stream)</span>
+<span class="fc" id="L1064">				.toList();</span>
+		}
+
+		@Override
+		public List&lt;CatalogItem&lt;?&gt;&gt; visitVariableAsField(VariableElement e, WriteableElementType&lt;E&gt; owner) {
+
+<span class="fc" id="L1070">			List&lt;? extends AnnotationMirror&gt; indexAnnotations = e.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L1071">				.filter(a -&gt; {</span>
+<span class="fc" id="L1072">					Element element = a.getAnnotationType().asElement();</span>
+<span class="fc bfc" id="L1073" title="All 4 branches covered.">					return element.equals(ogm.index()) || element.equals(ogm.required());</span>
+				})
+<span class="fc" id="L1075">				.toList();</span>
+
+<span class="fc bfc" id="L1077" title="All 2 branches covered.">			if (indexAnnotations.isEmpty()) {</span>
+<span class="fc" id="L1078">				return Collections.emptyList();</span>
+			}
+
+<span class="fc" id="L1081">			boolean isUnique = indexAnnotations.stream()</span>
+<span class="fc" id="L1082">				.anyMatch(a -&gt; {</span>
+<span class="fc" id="L1083">					Map&lt;? extends ExecutableElement, ? extends AnnotationValue&gt; attributes = a.getElementValues();</span>
+<span class="fc bfc" id="L1084" title="All 2 branches covered.">					if (attributes.containsKey(ogm.indexUnique())) {</span>
+<span class="fc" id="L1085">						return (boolean) attributes.get(ogm.indexUnique()).getValue();</span>
+					}
+<span class="fc" id="L1087">					return false;</span>
+				});
+
+<span class="fc bfc" id="L1090" title="All 4 branches covered.">			if (isUnique &amp;&amp; isRelationship) {</span>
+<span class="fc" id="L1091">				messager.printMessage(Diagnostic.Kind.ERROR,</span>
+<span class="fc" id="L1092">					String.format(&quot;Unique constraints defined at %s are not allowed on relationships&quot;, e.getEnclosingElement()), e.getEnclosingElement());</span>
+<span class="fc" id="L1093">				return Collections.emptyList();</span>
+			}
+
+<span class="fc" id="L1096">			PropertyType&lt;E&gt; property = owner.addProperty(e.getSimpleName().toString());</span>
+<span class="fc bfc" id="L1097" title="All 2 branches covered.">			if (isUnique) {</span>
+<span class="fc" id="L1098">				String name = constraintNameGenerator.generateName(Constraint.Type.UNIQUE,</span>
+<span class="fc" id="L1099">					Collections.singleton(property));</span>
+<span class="fc" id="L1100">				return Collections.singletonList(</span>
+<span class="fc" id="L1101">					Constraint.forNode(schemaNames.get(0).getValue()).named(name).unique(property.getName()));</span>
+			}
+
+<span class="fc" id="L1104">			boolean isRequired = indexAnnotations.stream().anyMatch(a -&gt; a.getAnnotationType().asElement().equals(ogm.required()));</span>
+<span class="fc bfc" id="L1105" title="All 2 branches covered.">			if (isRelationship) {</span>
+<span class="fc" id="L1106">				return handleRelationship(property, isRequired);</span>
+			}
+<span class="fc" id="L1108">			return handleNode(property, isRequired);</span>
+		}
+
+		@SuppressWarnings(&quot;squid:S1452&quot;)
+		List&lt;CatalogItem&lt;?&gt;&gt; handleNode(PropertyType&lt;E&gt; property, boolean isRequired) {
+<span class="fc bfc" id="L1113" title="All 2 branches covered.">			if (isRequired) {</span>
+<span class="fc" id="L1114">				String name = constraintNameGenerator.generateName(Constraint.Type.EXISTS,</span>
+<span class="fc" id="L1115">					Collections.singleton(property));</span>
+<span class="fc" id="L1116">				return Collections.singletonList(</span>
+<span class="fc" id="L1117">					Constraint.forNode(schemaNames.get(0).getValue()).named(name).exists(property.getName()));</span>
+			}
+
+<span class="fc" id="L1120">			String name = indexNameGenerator.generateName(Index.Type.PROPERTY, Collections.singleton(property));</span>
+<span class="fc" id="L1121">			return Collections.singletonList(</span>
+<span class="fc" id="L1122">				Index.forNode(schemaNames.get(0).getValue()).named(name).onProperties(property.getName()));</span>
+		}
+
+		@SuppressWarnings({&quot;unchecked&quot;, &quot;squid:S1452&quot;})
+		List&lt;CatalogItem&lt;?&gt;&gt; handleRelationship(PropertyType&lt;E&gt; property, boolean isRequired) {
+<span class="fc bfc" id="L1127" title="All 2 branches covered.">			if (isRequired) {</span>
+<span class="fc" id="L1128">				String name = constraintNameGenerator.generateName(Constraint.Type.EXISTS,</span>
+<span class="fc" id="L1129">					Collections.singleton(property));</span>
+<span class="fc" id="L1130">				return Collections.singletonList(</span>
+<span class="fc" id="L1131">					Constraint.forRelationship(schemaNames.get(0).getValue()).named(name).exists(property.getName()));</span>
+			}
+
+<span class="fc" id="L1134">			String name = indexNameGenerator.generateName(Index.Type.PROPERTY, Collections.singleton(property));</span>
+<span class="fc" id="L1135">			return Collections.singletonList(</span>
+<span class="fc" id="L1136">				Index.forRelationship(schemaNames.get(0).getValue()).named(name).onProperties(property.getName()));</span>
+		}
+	}
+
+	@SuppressWarnings(&quot;squid:S110&quot;) // Not something we need or can do anything about (Number of parents)
+	class IdPropertySelector extends ElementKindVisitor8&lt;PropertyType&lt;NodeType&gt;, DefaultNodeType&gt; {
+
+		private final Mode mode;
+
+		private final Set&lt;Element&gt; requiredAnnotations;
+
+<span class="fc" id="L1147">		IdPropertySelector(Mode mode, Set&lt;Element&gt; requiredAnnotations) {</span>
+<span class="fc" id="L1148">			this.mode = mode;</span>
+<span class="fc" id="L1149">			this.requiredAnnotations = requiredAnnotations;</span>
+<span class="fc" id="L1150">		}</span>
+
+		@Override
+		public PropertyType&lt;NodeType&gt; visitType(TypeElement e, DefaultNodeType owner) {
+<span class="fc" id="L1154">			Optional&lt;PropertyType&lt;NodeType&gt;&gt; property = e.getEnclosedElements().stream()</span>
+<span class="fc bfc" id="L1155" title="All 2 branches covered.">				.filter(ee -&gt; ee.getKind() == ElementKind.FIELD)</span>
+<span class="fc" id="L1156">				.map(ee -&gt; ee.accept(this, owner))</span>
+<span class="fc" id="L1157">				.filter(Objects::nonNull)</span>
+<span class="fc" id="L1158">				.findFirst();</span>
+
+<span class="fc" id="L1160">			return property.orElseGet(</span>
+<span class="fc" id="L1161">				() -&gt; findSuperclassOfInterest(e).map(superclass -&gt; superclass.accept(this, owner))</span>
+<span class="fc" id="L1162">					.orElseThrow(() -&gt; {</span>
+<span class="nc" id="L1163">						String annotations = requiredAnnotations.stream()</span>
+<span class="nc" id="L1164">							.map(Element::asType).map(TypeMirror::toString)</span>
+<span class="nc" id="L1165">							.collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="nc" id="L1166">						String msg = String.format(&quot;No property with any of the required annotations (%s) was found on %s&quot;, annotations, e);</span>
+<span class="nc" id="L1167">						return new IllegalStateException(msg);</span>
+					}));
+		}
+
+		@SuppressWarnings(&quot;unchecked&quot;)
+		@Override
+		public PropertyType&lt;NodeType&gt; visitVariableAsField(VariableElement e, DefaultNodeType owner) {
+
+<span class="fc" id="L1175">			boolean requiredAnnotationPresent = e.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L1176">				.map(AnnotationMirror::getAnnotationType)</span>
+<span class="fc" id="L1177">				.map(DeclaredType::asElement)</span>
+<span class="fc" id="L1178">				.anyMatch(requiredAnnotations::contains);</span>
+
+<span class="fc bfc" id="L1180" title="All 2 branches covered.">			if (!requiredAnnotationPresent) {</span>
+<span class="fc" id="L1181">				return null;</span>
+			}
+
+<span class="pc bpc" id="L1184" title="1 of 3 branches missed.">			Optional&lt;String&gt; additionalName = switch (mode) {</span>
+<span class="fc" id="L1185">				case SDN6 -&gt; extractPropertyName(e, sdn6.property());</span>
+<span class="fc" id="L1186">				case OGM -&gt; extractPropertyName(e, ogm.property());</span>
+<span class="nc" id="L1187">				case PURE -&gt; Optional.empty();</span>
+			};
+
+<span class="fc" id="L1190">			return owner.addProperty(additionalName.orElseGet(() -&gt; e.getSimpleName().toString()));</span>
+		}
+	}
+
+	/**
+	 * Visitor that computes if an SDN 6 annotated type requires a primary key constraint.
+	 */
+	@SuppressWarnings(&quot;squid:S110&quot;) // Not something we need or can do anything about (Number of parents)
+	class RequiresPrimaryKeyConstraintPredicate extends ElementKindVisitor8&lt;Boolean, Boolean&gt; {
+
+		private final Collection&lt;TypeElement&gt; idAnnotations;
+
+		private final TypeElement generatedValueAnnotation;
+
+		private final String generatorAttributeName;
+
+		private final String internalIdGeneratorClass;
+
+<span class="fc" id="L1208">		private final Set&lt;TypeElement&gt; processed = new HashSet&lt;&gt;();</span>
+
+<span class="fc" id="L1210">		RequiresPrimaryKeyConstraintPredicate(Collection&lt;TypeElement&gt; idAnnotations, TypeElement generatedValueAnnotation, String generatorAttributeName, String internalIdGeneratorClass) {</span>
+<span class="fc" id="L1211">			this.idAnnotations = idAnnotations;</span>
+<span class="fc" id="L1212">			this.generatedValueAnnotation = generatedValueAnnotation;</span>
+<span class="fc" id="L1213">			this.generatorAttributeName = generatorAttributeName;</span>
+<span class="fc" id="L1214">			this.internalIdGeneratorClass = internalIdGeneratorClass;</span>
+<span class="fc" id="L1215">		}</span>
+
+		@Override
+		protected Boolean defaultAction(Element e, Boolean aBoolean) {
+<span class="fc" id="L1219">			return aBoolean;</span>
+		}
+
+		@Override
+		public Boolean visitType(TypeElement e, Boolean includeAbstractClasses) {
+<span class="fc bfc" id="L1224" title="All 2 branches covered.">			if (!processed.add(e)) {</span>
+<span class="fc" id="L1225">				return false;</span>
+			}
+
+<span class="fc bfc" id="L1228" title="All 4 branches covered.">			boolean isNonAbstractClass = e.getKind().isClass() &amp;&amp; !e.getModifiers().contains(Modifier.ABSTRACT);</span>
+<span class="fc bfc" id="L1229" title="All 4 branches covered.">			if (!isNonAbstractClass &amp;&amp; Boolean.FALSE.equals(includeAbstractClasses)) {</span>
+<span class="fc" id="L1230">				return false;</span>
+			}
+
+<span class="fc bfc" id="L1233" title="All 2 branches covered.">			if (e.getEnclosedElements().stream().noneMatch(ee -&gt; ee.accept(this, false))) {</span>
+<span class="fc" id="L1234">				return findSuperclassOfInterest(e).map(superclass -&gt; superclass.accept(this, true)).orElse(false);</span>
+			}
+<span class="fc" id="L1236">			return true;</span>
+		}
+
+		@Override
+		public Boolean visitRecordComponent(RecordComponentElement e, Boolean defaultValue) {
+
+<span class="fc" id="L1242">			return checkFieldOrRecordComponent(e, defaultValue);</span>
+		}
+
+		@Override
+		public Boolean visitVariableAsField(VariableElement e, Boolean defaultValue) {
+
+<span class="fc" id="L1248">			return checkFieldOrRecordComponent(e, defaultValue);</span>
+		}
+
+		private boolean checkFieldOrRecordComponent(Element e, Boolean defaultValue) {
+
+<span class="fc" id="L1253">			Set&lt;Element&gt; fieldAnnotations = e.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L1254">				.map(AnnotationMirror::getAnnotationType).map(DeclaredType::asElement).collect(Collectors.toSet());</span>
+<span class="fc bfc" id="L1255" title="All 2 branches covered.">			if (fieldAnnotations.stream().noneMatch(idAnnotations::contains)) {</span>
+<span class="fc" id="L1256">				return defaultValue;</span>
+			}
+<span class="fc" id="L1258">			return e.getAnnotationMirrors().stream()</span>
+<span class="fc" id="L1259">				.filter(m -&gt; m.getAnnotationType().asElement().equals(generatedValueAnnotation))</span>
+<span class="fc" id="L1260">				.noneMatch(generatedValue -&gt; isUsingInternalIdGenerator(e, generatedValue));</span>
+		}
+
+		private boolean isUsingInternalIdGenerator(Element e, AnnotationMirror generatedValue) {
+
+<span class="fc" id="L1265">			Map&lt;String, ? extends AnnotationValue&gt; values = generatedValue</span>
+<span class="fc" id="L1266">				.getElementValues().entrySet().stream()</span>
+<span class="fc" id="L1267">				.collect(Collectors.toMap(entry -&gt; entry.getKey().getSimpleName().toString(), Map.Entry::getValue));</span>
+
+<span class="fc bfc" id="L1269" title="All 2 branches covered.">			DeclaredType generatorClassValue = values.containsKey(generatorAttributeName) ?</span>
+<span class="fc" id="L1270">				(DeclaredType) values.get(generatorAttributeName).getValue() : null;</span>
+<span class="fc bfc" id="L1271" title="All 2 branches covered.">			DeclaredType valueValue = values.containsKey(Attributes.VALUE) ?</span>
+<span class="fc" id="L1272">				(DeclaredType) values.get(Attributes.VALUE).getValue() : null;</span>
+
+<span class="fc" id="L1274">			String name = null;</span>
+<span class="pc bpc" id="L1275" title="3 of 6 branches missed.">			if (generatorClassValue != null &amp;&amp; valueValue != null &amp;&amp; !generatorClassValue.equals(valueValue)) {</span>
+<span class="nc" id="L1276">				messager.printMessage(</span>
+					Diagnostic.Kind.ERROR,
+<span class="nc" id="L1278">					String.format(&quot;Different @AliasFor mirror values for annotation [%s]!&quot;, generatedValue.getAnnotationType()),</span>
+					e
+				);
+<span class="fc bfc" id="L1281" title="All 2 branches covered.">			} else if (generatorClassValue != null) {</span>
+<span class="fc" id="L1282">				name = generatorClassValue.toString();</span>
+<span class="fc bfc" id="L1283" title="All 2 branches covered.">			} else if (valueValue != null) {</span>
+<span class="fc" id="L1284">				name = valueValue.toString();</span>
+			}
+
+			// The defaults will not be materialized
+<span class="pc bpc" id="L1288" title="1 of 6 branches missed.">			return (name == null || internalIdGeneratorClass.equals(name)) &amp;&amp; VALID_GENERATED_ID_TYPES.contains(e.asType().toString());</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

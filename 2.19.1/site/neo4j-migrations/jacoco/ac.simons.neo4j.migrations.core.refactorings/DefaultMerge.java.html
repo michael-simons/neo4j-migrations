@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultMerge.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.refactorings</a> &gt; <span class="el_source">DefaultMerge.java</span></div><h1>DefaultMerge.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.refactorings;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Relationship;
+
+/**
+ * A refactoring that merges two or more nodes including their labels, properties and relationships.
+ *
+ * @author Michael J. Simons
+ * @since 1.10.0
+ */
+final class DefaultMerge implements Merge {
+
+	/**
+	 * The query representing the source nodes to be merged. This query must return one or more rows with one single element of type node per row.
+	 */
+	private final String query;
+
+	private final List&lt;PropertyMergePolicy&gt; mergePolicies;
+
+<span class="fc" id="L52">	DefaultMerge(String query, List&lt;PropertyMergePolicy&gt; mergePolicies) {</span>
+<span class="fc" id="L53">		this.query = query;</span>
+<span class="fc" id="L54">		this.mergePolicies = mergePolicies;</span>
+<span class="fc" id="L55">	}</span>
+
+<span class="fc" id="L57">	private record Ids(List&lt;String&gt; value, String first, List&lt;String&gt; tail) {</span>
+
+		static Ids of(List&lt;String&gt; ids) {
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			if (ids.isEmpty()) {</span>
+<span class="fc" id="L61">				return new Ids(Collections.emptyList(), null, Collections.emptyList());</span>
+			} else {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">				return new Ids(ids, ids.get(0), ids.size() == 1 ? Collections.emptyList() : ids.subList(1, ids.size()));</span>
+			}
+		}
+
+		int size() {
+<span class="fc" id="L68">				return value.size();</span>
+			}
+	}
+
+	@Override
+	public Counters apply(RefactoringContext context) {
+
+<span class="fc" id="L75">		try (QueryRunner tx = context.getQueryRunner(QueryRunner.defaultFeatureSet()</span>
+<span class="fc" id="L76">			.withElementIdSupport(true))) {</span>
+
+<span class="fc" id="L78">			String element = context.findSingleResultIdentifier(query).orElseThrow(IllegalArgumentException::new);</span>
+
+<span class="fc" id="L80">			Ids ids = Ids.of(tx.run(new Query(String.format(&quot;CALL { %s } WITH %s RETURN collect(elementId(%2$s)) AS ids&quot;, query, element))).single().get(0).asList(Value::asString));</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">			if (ids.size() &lt; 2) {</span>
+<span class="fc" id="L82">				return Counters.empty();</span>
+			}
+
+<span class="fc" id="L85">			Function&lt;Query, Counters&gt; runAndConsume = q -&gt; new DefaultCounters(tx.run(q).consume().counters());</span>
+
+<span class="fc" id="L87">			List&lt;Counters&gt; results = new ArrayList&lt;&gt;(4);</span>
+<span class="fc" id="L88">			generateLabelCopyQuery(context::sanitizeSchemaName, tx, ids).map(runAndConsume).ifPresent(results::add);</span>
+<span class="fc" id="L89">			generatePropertyCopyQuery(tx, ids, mergePolicies).map(runAndConsume).ifPresent(results::add);</span>
+<span class="fc" id="L90">			generateRelationshipCopyQuery(context::sanitizeSchemaName, tx, ids).map(runAndConsume).ifPresent(results::add);</span>
+<span class="fc" id="L91">			generateNodeDeletion(ids).map(runAndConsume).ifPresent(results::add);</span>
+
+<span class="fc" id="L93">			return results.stream().reduce(Counters.empty(), Counters::add);</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">		}</span>
+	}
+
+	private static Optional&lt;Query&gt; generateLabelCopyQuery(UnaryOperator&lt;String&gt; sanitizer, QueryRunner queryRunner, Ids ids) {
+
+<span class="fc" id="L99">		String queryForLabels = &quot;&quot;&quot;</span>
+			MATCH (n) WHERE elementId(n) IN $ids
+			UNWIND labels(n) AS label
+			WITH DISTINCT label
+			ORDER BY label ASC
+			RETURN collect(label) AS labels&quot;&quot;&quot;;
+
+<span class="fc" id="L106">		List&lt;String&gt; labels = queryRunner.run(new Query(queryForLabels, Collections.singletonMap(&quot;ids&quot;, ids.tail)))</span>
+<span class="fc" id="L107">			.single().get(&quot;labels&quot;).asList(Value::asString);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">		if (labels.isEmpty()) {</span>
+<span class="nc" id="L109">			return Optional.empty();</span>
+		}
+<span class="fc" id="L111">		String literals = labels.stream().map(sanitizer).collect(Collectors.joining(&quot;:&quot;, &quot;:&quot;, &quot;&quot;));</span>
+
+<span class="fc" id="L113">		return Optional.of(</span>
+<span class="fc" id="L114">			new Query(String.format(&quot;MATCH (n) WHERE elementId(n) = $id SET n%s&quot;, literals), Collections.singletonMap(&quot;id&quot;, ids.first)));</span>
+	}
+
+	private static Optional&lt;Query&gt; generatePropertyCopyQuery(QueryRunner queryRunner, Ids ids, List&lt;PropertyMergePolicy&gt; policies) {
+
+<span class="fc" id="L119">		String queryForProperties = &quot;&quot;&quot;</span>
+			UNWIND $ids AS id
+			MATCH (n) WHERE elementId(n) = id
+			UNWIND keys(n) AS key
+			WITH key, n[key] as value
+			 WITH key, collect(value) AS values
+			RETURN {key: key, values: values} AS property
+			ORDER BY property.key ASC&quot;&quot;&quot;;
+
+<span class="fc" id="L128">		List&lt;Map&lt;String, ?&gt;&gt; rows = queryRunner.run(new Query(queryForProperties, Collections.singletonMap(&quot;ids&quot;, ids.value))).list(MapAccessor::asMap);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">		if (rows.isEmpty()) {</span>
+<span class="fc" id="L130">			return Optional.empty();</span>
+		}
+		// using insertion order for maps so that query generation is deterministic
+<span class="fc" id="L133">		Map&lt;String, Object&gt; combinedProperties = new LinkedHashMap&lt;&gt;(rows.size());</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">		for (Map&lt;String, ?&gt; row : rows) {</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">			for (Map.Entry&lt;String, ?&gt; entry : row.entrySet()) {</span>
+				@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L137">				Map&lt;String, Object&gt; property = (Map&lt;String, Object&gt;) entry.getValue();</span>
+<span class="fc" id="L138">				String propertyName = (String) property.get(&quot;key&quot;);</span>
+				@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L140">				List&lt;Object&gt; aggregatedPropertyValues = (List&lt;Object&gt;) property.get(&quot;values&quot;);</span>
+<span class="fc" id="L141">				Object value = findPolicy(policies, propertyName)</span>
+<span class="fc" id="L142">					.orElseThrow(() -&gt; new IllegalStateException(</span>
+<span class="fc" id="L143">						String.format(&quot;Could not find merge policy for node property `%s`&quot;, propertyName)))</span>
+<span class="fc" id="L144">					.apply(aggregatedPropertyValues);</span>
+<span class="fc" id="L145">				combinedProperties.put(propertyName, value);</span>
+<span class="fc" id="L146">			}</span>
+<span class="fc" id="L147">		}</span>
+
+<span class="fc" id="L149">		return Optional.of(new Query(&quot;MATCH (n) WHERE elementId(n) = $id SET n = $properties&quot;,</span>
+<span class="fc" id="L150">			Values.parameters(&quot;id&quot;, ids.first, &quot;properties&quot;, combinedProperties)));</span>
+	}
+
+	private static Optional&lt;Query&gt; generateRelationshipCopyQuery(UnaryOperator&lt;String&gt; sanitizer, QueryRunner queryRunner, Ids ids) {
+
+<span class="fc" id="L155">		String queryForRels = &quot;&quot;&quot;</span>
+			MATCH (n) WHERE elementId(n) IN $ids
+			WITH [ (n)-[r]-() | r ] AS rels
+			UNWIND rels AS rel
+			RETURN DISTINCT rel, elementId(startNode(rel)) as startId, elementId(endNode(rel)) as endId
+			ORDER BY type(rel) ASC, elementId(rel) ASC&quot;&quot;&quot;;
+
+<span class="fc" id="L162">		List&lt;Record&gt; rows = queryRunner.run(new Query(queryForRels, Collections.singletonMap(&quot;ids&quot;, ids.tail))).list();</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">		if (rows.isEmpty()) {</span>
+<span class="fc" id="L164">			return Optional.empty();</span>
+		}
+
+<span class="fc" id="L167">		StringBuilder query = new StringBuilder(&quot;MATCH (target) WHERE elementId(target) = $0 &quot;);</span>
+
+<span class="fc" id="L169">		Map&lt;String, Object&gt; parameters = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L170">		int parameterIndex = 0;</span>
+<span class="fc" id="L171">		parameters.put(String.valueOf(parameterIndex++), ids.first);</span>
+<span class="fc" id="L172">		parameterIndex++;</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">		for (Record row : rows) {</span>
+<span class="fc" id="L174">			Relationship relation = row.get(&quot;rel&quot;).asRelationship();</span>
+<span class="fc" id="L175">			parameters.put(String.valueOf(parameterIndex), relation.asMap());</span>
+
+<span class="fc" id="L177">			String startId = row.get(&quot;startId&quot;).asString();</span>
+<span class="fc" id="L178">			String endId = row.get(&quot;endId&quot;).asString();</span>
+<span class="fc" id="L179">			String relationshipType = sanitizer.apply(relation.type());</span>
+<span class="fc bfc" id="L180" title="All 4 branches covered.">			if (ids.tail.contains(startId) &amp;&amp; ids.tail.contains(endId)) { // current or post-merge self-rel</span>
+<span class="fc" id="L181">				query.append(</span>
+<span class="fc" id="L182">					String.format(&quot;WITH target CREATE (target)-[rel_%1$d:%2$s]-&gt;(target) SET rel_%1$d = $%3$d &quot;, parameterIndex, relationshipType, parameterIndex));</span>
+<span class="fc" id="L183">				parameterIndex++;</span>
+<span class="fc" id="L184">				continue;</span>
+			}
+<span class="fc bfc" id="L186" title="All 2 branches covered.">			if (ids.tail.contains(endId)) { // incoming</span>
+<span class="fc" id="L187">				parameters.put(String.valueOf(parameterIndex + 1), startId);</span>
+<span class="fc" id="L188">				query.append(String.format(&quot;WITH target MATCH (n_%1$d) WHERE elementId(n_%1$d) = $%1$d &quot;, parameterIndex + 1));</span>
+<span class="fc" id="L189">				query.append(String.format(&quot;CREATE (n_%1$d)-[rel_%1$d:%2$s]-&gt;(target) SET rel_%1$d = $%3$d &quot;, parameterIndex + 1, relationshipType, parameterIndex));</span>
+			} else { // outgoing
+<span class="fc" id="L191">				parameters.put(String.valueOf(parameterIndex + 1), endId);</span>
+<span class="fc" id="L192">				query.append(String.format(&quot;WITH target MATCH (n_%1$d) WHERE elementId(n_%1$d) = $%1$d &quot;, parameterIndex + 1));</span>
+<span class="fc" id="L193">				query.append(String.format(&quot;CREATE (n_%1$d)&lt;-[rel_%1$d:%2$s]-(target) SET rel_%1$d = $%3$d &quot;, parameterIndex + 1, relationshipType, parameterIndex));</span>
+			}
+<span class="fc" id="L195">			parameterIndex += 2;</span>
+<span class="fc" id="L196">		}</span>
+
+<span class="fc" id="L198">		return Optional.of(new Query(query.toString(), parameters));</span>
+	}
+
+	private static Optional&lt;Query&gt; generateNodeDeletion(Ids ids) {
+<span class="fc" id="L202">		return Optional.of(new Query((&quot;MATCH (n) WHERE elementId(n) IN $ids DETACH DELETE n&quot;),</span>
+<span class="fc" id="L203">			Collections.singletonMap(&quot;ids&quot;, ids.tail)</span>
+		));
+	}
+
+	private static Optional&lt;PropertyMergePolicy&gt; findPolicy(List&lt;PropertyMergePolicy&gt; policies, String propertyName) {
+<span class="fc" id="L208">		return policies.stream().filter(policy -&gt; policy.pattern().matcher(propertyName).matches())</span>
+<span class="fc" id="L209">			.findFirst();</span>
+	}
+
+	@Override
+	public boolean equals(Object o) {
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">		if (this == o) {</span>
+<span class="nc" id="L215">			return true;</span>
+		}
+<span class="pc bpc" id="L217" title="2 of 4 branches missed.">		if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L218">			return false;</span>
+		}
+<span class="fc" id="L220">		DefaultMerge that = (DefaultMerge) o;</span>
+<span class="pc bpc" id="L221" title="2 of 4 branches missed.">		return query.equals(that.query) &amp;&amp; mergePolicies.equals(that.mergePolicies);</span>
+	}
+
+	@Override public int hashCode() {
+<span class="nc" id="L225">		return Objects.hash(query, mergePolicies);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

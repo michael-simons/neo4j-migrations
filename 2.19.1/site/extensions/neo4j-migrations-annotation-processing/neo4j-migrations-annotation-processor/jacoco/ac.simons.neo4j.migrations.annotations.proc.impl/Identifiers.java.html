@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Identifiers.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Annotation Processor)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.annotations.proc.impl</a> &gt; <span class="el_source">Identifiers.java</span></div><h1>Identifiers.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.annotations.proc.impl;
+
+/**
+ * Copy of {@code org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentProperty#deriveRelationshipType(String)}
+ * Originally licensed under Apache License, Version 2.0 (the &quot;License&quot;), written by Michael J. Simons
+ *
+ * @author Michael J. Simons
+ */
+final class Identifiers {
+
+	static String deriveRelationshipType(String name) {
+
+<span class="fc bfc" id="L28" title="All 4 branches covered.">		if (name == null || name.isBlank()) {</span>
+<span class="fc" id="L29">			throw new IllegalArgumentException();</span>
+		}
+
+<span class="fc" id="L32">		StringBuilder sb = new StringBuilder();</span>
+
+		int codePoint;
+<span class="fc" id="L35">		int previousIndex = 0;</span>
+<span class="fc" id="L36">		int i = 0;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		while (i &lt; name.length()) {</span>
+<span class="fc" id="L38">			codePoint = name.codePointAt(i);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">			if (Character.isLowerCase(codePoint)) {</span>
+<span class="fc bfc" id="L40" title="All 4 branches covered.">				if (i &gt; 0 &amp;&amp; !Character.isLetter(name.codePointAt(previousIndex))) {</span>
+<span class="fc" id="L41">					sb.append(&quot;_&quot;);</span>
+				}
+<span class="fc" id="L43">				codePoint = Character.toUpperCase(codePoint);</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">			} else if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L45">				sb.append(&quot;_&quot;);</span>
+			}
+<span class="fc" id="L47">			sb.append(Character.toChars(codePoint));</span>
+<span class="fc" id="L48">			previousIndex = i;</span>
+<span class="fc" id="L49">			i += Character.charCount(codePoint);</span>
+		}
+<span class="fc" id="L51">		return sb.toString();</span>
+	}
+
+	private Identifiers() {
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

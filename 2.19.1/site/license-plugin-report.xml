@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619267440">
+    <module artifactId="neo4j-migrations-parent" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="docs/antora.yml" result="PRESENT"/>
+        <file path="docs/modules/ROOT/examples/extensions/formats-csv/R050__LoadBookData.java" result="PRESENT"/>
+        <file path="docs/modules/ROOT/examples/migration.xsd" result="PRESENT"/>
+        <file path="etc/antora/antora-playbook.yml" result="PRESENT"/>
+        <file path="etc/antora/local-antora-playbook.yml" result="PRESENT"/>
+        <file path="etc/checkstyle/config.xml" result="PRESENT"/>
+        <file path="etc/checkstyle/suppressions.xml" result="PRESENT"/>
+        <file path="neo4j-migrations-test-results/pom.xml" result="PRESENT"/>
+        <file path="pom.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

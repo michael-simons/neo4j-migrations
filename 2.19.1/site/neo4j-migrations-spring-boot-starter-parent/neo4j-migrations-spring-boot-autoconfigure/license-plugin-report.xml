@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619273354">
+    <module artifactId="neo4j-migrations-spring-boot-autoconfigure" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/ApplicationContextAwareDiscoverer.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/ConfigBuilderCustomizer.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/MigrationsAutoConfiguration.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/MigrationsInitializer.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/MigrationsProperties.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/MigrationsAutoConfigurationIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/MigrationsAutoConfigurationTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/test_migrations/V0002__SomeOtherMigration.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/springframework/boot/autoconfigure/test_migrations/V0003__AFreshSpringMigration.java" result="PRESENT"/>
+        <file path="src/test/resources/logback-test.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

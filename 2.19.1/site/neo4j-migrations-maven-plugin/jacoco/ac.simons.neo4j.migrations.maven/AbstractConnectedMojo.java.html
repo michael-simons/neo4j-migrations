@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractConnectedMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Maven Plugin)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.maven</a> &gt; <span class="el_source">AbstractConnectedMojo.java</span></div><h1>AbstractConnectedMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.maven;
+
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+
+import java.net.URI;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Logging;
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
+/**
+ * Base class for Neo4j Migrations mojos.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.11
+ */
+<span class="fc" id="L50">abstract class AbstractConnectedMojo extends AbstractMojo {</span>
+
+	static {
+<span class="fc" id="L53">		SLF4JBridgeHandler.removeHandlersForRootLogger();</span>
+<span class="fc" id="L54">		SLF4JBridgeHandler.install();</span>
+	}
+
+<span class="fc" id="L57">	static final Logger LOGGER = Logger.getLogger(AbstractConnectedMojo.class.getName());</span>
+
+	/**
+	 * The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.
+	 */
+	@Parameter(required = true, defaultValue = &quot;bolt://localhost:7687&quot;)
+	private URI address;
+
+	/**
+	 * The login of the user connecting to the database.
+	 */
+	@Parameter(required = true, defaultValue = Defaults.DEFAULT_USER)
+	private String user;
+
+	/**
+	 * The password of the user connecting to the database.
+	 */
+	@Parameter(required = true)
+	private String password;
+
+	/**
+	 * Package to scan. Repeat for multiple packages.
+	 */
+<span class="fc" id="L80">	@Parameter</span>
+	private String[] packagesToScan = new String[0];
+
+	/**
+	 * Location to scan. Repeat for multiple locations.
+	 */
+	@Parameter(defaultValue = &quot;file://${project.build.outputDirectory}/neo4j/migrations&quot;)
+	private String[] locationsToScan;
+
+	/**
+	 * The transaction mode to use.
+	 */
+	@Parameter(defaultValue = Defaults.TRANSACTION_MODE_VALUE)
+	private TransactionMode transactionMode;
+
+	/**
+	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends
+	 * on {@link #transactionMode}). {@literal null} is a valid value and make the driver apply the default timeout for
+	 * the database.
+	 * &lt;p&gt;
+	 * The value must be a valid ISO-8601 duration representation.
+	 *
+	 * @since 2.13.0
+	 */
+	@Parameter
+	private String transactionTimeout;
+
+	/**
+	 * The database that should be migrated (Neo4j EE 4.0+).
+	 */
+	@Parameter
+	private String database;
+
+	/**
+	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+).
+	 */
+	@Parameter
+	private String schemaDatabase;
+
+	/**
+	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
+	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+	 */
+	@Parameter
+	private String impersonatedUser;
+
+	/**
+	 * Log the configuration and a couple of other things.
+	 */
+	@Parameter(defaultValue = &quot;false&quot;)
+	private boolean verbose;
+
+	/**
+	 * The sort order to use.
+	 */
+	@Parameter(defaultValue = Defaults.VERSION_SORT_ORDER_VALUE)
+	private VersionSortOrder versionSortOrder;
+
+	/**
+	 * Whether to allow out-of-order migrations or not.
+	 * @since 2.14.0
+	 */
+	@Parameter(defaultValue = Defaults.OUT_OF_ORDER_VALUE)
+	private boolean outOfOrder;
+
+	/**
+	 * Whether to use Flyway compatible checksums or not.
+	 * @since 2.17.0
+	 */
+	@Parameter(defaultValue = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE)
+	private boolean useFlywayCompatibleChecksums;
+
+	/**
+	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
+	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
+	 * of letting the database decide.
+	 *
+	 * @since 2.19.0
+	 */
+	@Parameter(defaultValue = Defaults.CYPHER_VERSION_VALUE)
+	private CypherVersion cypherVersion;
+
+	/**
+	 * Use this option to specify a valid target version up to which migrations
+	 * should be considered. Can also be one of current, latest or next.
+	 *
+	 * @since 2.15.0
+	 */
+	private String target;
+
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+
+<span class="nc" id="L173">		try (Driver driver = openConnection()) {</span>
+
+<span class="nc" id="L175">			MigrationsConfig config = getConfig();</span>
+<span class="nc" id="L176">			Migrations migrations = new Migrations(config, driver);</span>
+
+<span class="nc" id="L178">			withMigrations(migrations);</span>
+<span class="nc" id="L179">		} catch (MojoFailureException e) {</span>
+			// Don't add stack, but rethrow
+<span class="nc" id="L181">			throw e;</span>
+<span class="nc" id="L182">		} catch (MigrationsException e) {</span>
+<span class="nc" id="L183">			throw new MojoFailureException(&quot;Could not execute migrations&quot;, e);</span>
+<span class="nc" id="L184">		} catch (Exception e) {</span>
+<span class="nc" id="L185">			throw new MojoExecutionException(e.getMessage(), e);</span>
+<span class="nc" id="L186">		}</span>
+<span class="nc" id="L187">	}</span>
+
+	abstract void withMigrations(Migrations migrations) throws MojoFailureException;
+
+	/**
+	 * @return The migrations config based on the required options.
+	 */
+	MigrationsConfig getConfig() {
+
+<span class="fc" id="L196">		MigrationsConfig config = MigrationsConfig.builder()</span>
+<span class="fc" id="L197">			.withLocationsToScan(locationsToScan)</span>
+<span class="fc" id="L198">			.withPackagesToScan(packagesToScan)</span>
+<span class="fc" id="L199">			.withTransactionMode(transactionMode)</span>
+<span class="fc" id="L200">			.withTransactionTimeout(Optional.ofNullable(transactionTimeout).map(Duration::parse).orElse(null))</span>
+<span class="fc" id="L201">			.withDatabase(database)</span>
+<span class="fc" id="L202">			.withSchemaDatabase(schemaDatabase)</span>
+<span class="fc" id="L203">			.withImpersonatedUser(impersonatedUser)</span>
+<span class="fc" id="L204">			.withVersionSortOrder(versionSortOrder)</span>
+<span class="fc" id="L205">			.withOutOfOrderAllowed(outOfOrder)</span>
+<span class="fc" id="L206">			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)</span>
+<span class="fc" id="L207">			.withTarget(target)</span>
+<span class="fc" id="L208">			.withCypherVersion(cypherVersion)</span>
+<span class="fc" id="L209">			.build();</span>
+
+<span class="fc" id="L211">		config.logTo(LOGGER, verbose);</span>
+<span class="fc" id="L212">		return config;</span>
+	}
+
+	Driver openConnection() {
+
+<span class="nc" id="L217">		AuthToken authToken = AuthTokens.basic(user, password);</span>
+<span class="nc" id="L218">		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());</span>
+<span class="nc" id="L219">		boolean verified = false;</span>
+		try {
+<span class="nc" id="L221">			driver.verifyConnectivity();</span>
+<span class="nc" id="L222">			verified = true;</span>
+		} finally {
+			// Don't want to rethrow and adding another frame.
+<span class="nc bnc" id="L225" title="All 2 branches missed.">			if (!verified) {</span>
+<span class="nc" id="L226">				driver.close();</span>
+			}
+		}
+<span class="nc" id="L229">		return driver;</span>
+	}
+
+	static Config createDriverConfig() {
+
+<span class="fc" id="L234">		return Config.builder()</span>
+<span class="fc" id="L235">			.withLogging(Logging.console(Level.SEVERE))</span>
+<span class="fc" id="L236">			.withUserAgent(Migrations.getUserAgent())</span>
+<span class="fc" id="L237">			.build();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

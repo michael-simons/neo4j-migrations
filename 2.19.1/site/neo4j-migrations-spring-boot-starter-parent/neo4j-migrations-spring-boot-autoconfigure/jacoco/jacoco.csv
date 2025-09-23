@@ -1,0 +1,5 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Neo4j Migrations (Spring Boot Autoconfiguration),ac.simons.neo4j.migrations.springframework.boot.autoconfigure,ApplicationContextAwareDiscoverer,9,83,2,4,2,22,2,5,0,4
+Neo4j Migrations (Spring Boot Autoconfiguration),ac.simons.neo4j.migrations.springframework.boot.autoconfigure,MigrationsInitializer,0,22,0,0,0,9,0,3,0,3
+Neo4j Migrations (Spring Boot Autoconfiguration),ac.simons.neo4j.migrations.springframework.boot.autoconfigure,MigrationsAutoConfiguration,0,132,1,9,0,36,1,13,0,9
+Neo4j Migrations (Spring Boot Autoconfiguration),ac.simons.neo4j.migrations.springframework.boot.autoconfigure,MigrationsProperties,14,164,0,0,6,64,4,35,4,35

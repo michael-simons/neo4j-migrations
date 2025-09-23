@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultRefactoringContext.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DefaultRefactoringContext.java</span></div><h1>DefaultRefactoringContext.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
+import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
+
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
+
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.Plan;
+import org.neo4j.driver.summary.ResultSummary;
+
+/**
+ * Default implementation of the {@link RefactoringContext} for Neo4j-Migrations
+ *
+ * @author Michael J. Simons
+ * @since 1.10.0
+ */
+final class DefaultRefactoringContext implements RefactoringContext {
+
+	/**
+	 * A pattern matching the result producing operator as described in the manual &lt;a href=&quot;https://neo4j.com/docs/cypher-manual/current/execution-plans/operators/&quot;&gt;about Operators&lt;/a&gt;.
+	 */
+<span class="fc" id="L48">	static final Pattern OP_PRODUCE_RESULT_PATTERN = Pattern.compile(</span>
+		&quot;(?i)ProduceResults(@&quot; + Strings.VALID_DATABASE_NAME + &quot;)?&quot;);
+	static final String KEY_DETAILS = &quot;Details&quot;;
+
+	private final Supplier&lt;Session&gt; sessionSupplier;
+
+	private volatile Neo4jVersion version;
+
+	DefaultRefactoringContext(Supplier&lt;Session&gt; sessionSupplier) {
+<span class="fc" id="L57">		this(sessionSupplier, null);</span>
+<span class="fc" id="L58">	}</span>
+
+<span class="fc" id="L60">	DefaultRefactoringContext(Supplier&lt;Session&gt; sessionSupplier, Neo4jVersion neo4jVersion) {</span>
+<span class="fc" id="L61">		this.sessionSupplier = sessionSupplier;</span>
+<span class="fc" id="L62">		this.version = neo4jVersion;</span>
+<span class="fc" id="L63">	}</span>
+
+	/**
+	 * Adapts a query to the syntax supported by the underlying database, especially unifies all id calls to return strings,
+	 * so you might be extra careful when dealing with comparison on those.
+	 * @param query the query to adapt
+	 * @return an adapted query.
+	 */
+	Query adaptQuery(Query query) {
+
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">		if (getVersion().getMajorVersion() &gt;= 5) {</span>
+<span class="nc" id="L74">			return query;</span>
+		}
+<span class="fc" id="L76">		return query.withText(Strings.replaceElementIdCalls(query.text()));</span>
+	}
+
+	Neo4jVersion getVersion() {
+
+<span class="fc" id="L81">		Neo4jVersion availableVersion = this.version;</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		if (availableVersion == null) {</span>
+<span class="fc" id="L83">			synchronized (this) {</span>
+<span class="fc" id="L84">				availableVersion = this.version;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">				if (availableVersion == null) {</span>
+<span class="fc" id="L86">					String value = sessionSupplier.get()</span>
+<span class="fc" id="L87">						.executeRead(tx -&gt; tx.run(new Query(&quot;CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0] AS version&quot;)).single())</span>
+<span class="fc" id="L88">						.get(&quot;version&quot;).asString();</span>
+<span class="fc" id="L89">					this.version = Neo4jVersion.of(value);</span>
+<span class="fc" id="L90">					availableVersion = this.version;</span>
+				}
+<span class="fc" id="L92">			}</span>
+		}
+<span class="fc" id="L94">		return availableVersion;</span>
+	}
+
+	@Override
+	public QueryRunner getQueryRunner(QueryRunner.FeatureSet featureSet) {
+
+<span class="fc" id="L100">		Neo4jVersion currentVersion = getVersion();</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (currentVersion == Neo4jVersion.UNDEFINED) {</span>
+<span class="fc" id="L102">			throw new IllegalStateException(&quot;Cannot apply refactorings with an undefined version&quot;);</span>
+		}
+
+<span class="fc" id="L105">		boolean supportsBatching = true;</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">		if (currentVersion != Neo4jVersion.LATEST) {</span>
+<span class="fc" id="L107">			Neo4jVersion requiredVersion = Neo4jVersion.of(featureSet.requiredVersion());</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">			if (requiredVersion == Neo4jVersion.UNDEFINED) {</span>
+<span class="fc" id="L109">				throw new IllegalArgumentException(&quot;Undefined version requested&quot;);</span>
+			}
+<span class="fc bfc" id="L111" title="All 2 branches covered.">			if (currentVersion.compareTo(requiredVersion) &lt; 0) {</span>
+<span class="fc" id="L112">				throw new IllegalArgumentException(</span>
+					&quot;Supported version is &quot; + currentVersion + &quot; which is below the required value of &quot; + requiredVersion);
+			}
+<span class="fc bfc" id="L115" title="All 2 branches covered.">			supportsBatching = currentVersion.compareTo(Neo4jVersion.V4_4) &gt;= 0;</span>
+		}
+
+<span class="fc bfc" id="L118" title="All 4 branches covered.">		if (featureSet.hasBatchingSupport() &amp;&amp; !supportsBatching) {</span>
+<span class="fc" id="L119">			throw new IllegalArgumentException(&quot;Batching is supported only with Neo4j &gt;= 4.4&quot;);</span>
+		}
+
+<span class="fc" id="L122">		return new DefaultQueryRunner(</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">			featureSet, sessionSupplier.get(), featureSet.hasElementIdSupport() ? this::adaptQuery : UnaryOperator.identity());</span>
+	}
+
+	@Override
+	public Optional&lt;String&gt; findSingleResultIdentifier(String query) {
+
+<span class="fc" id="L129">		try (Session session = sessionSupplier.get()) {</span>
+<span class="fc" id="L130">			ResultSummary resultSummary = session.executeRead(tx -&gt; tx.run(new Query(&quot;EXPLAIN &quot; + query)).consume());</span>
+<span class="fc" id="L131">			Plan root = resultSummary.plan();</span>
+<span class="pc bpc" id="L132" title="2 of 4 branches missed.">			if (isProduceResultOperator(root) &amp;&amp; hasSingleElement(root)) {</span>
+<span class="fc" id="L133">				return Optional.of(root.arguments().get(KEY_DETAILS).asString());</span>
+			}
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">		}</span>
+
+<span class="nc" id="L137">		return Optional.empty();</span>
+	}
+
+	static boolean isProduceResultOperator(Plan plan) {
+<span class="fc" id="L141">		return OP_PRODUCE_RESULT_PATTERN.matcher(plan.operatorType()).matches();</span>
+	}
+
+	static boolean hasSingleElement(Plan plan) {
+
+<span class="fc" id="L146">		Value details = plan.arguments().getOrDefault(KEY_DETAILS, Values.NULL);</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">		if (details.isNull()) {</span>
+<span class="fc" id="L148">			return false;</span>
+		}
+
+<span class="fc bfc" id="L151" title="All 4 branches covered.">		Predicate&lt;String&gt; nullOrBlank = s -&gt; s == null || s.trim().isEmpty();</span>
+<span class="fc" id="L152">		Predicate&lt;String&gt; isExactlyDetails = s -&gt; details.asString().equals(s);</span>
+
+<span class="fc bfc" id="L154" title="All 2 branches covered.">		return plan.identifiers().stream().filter(nullOrBlank.negate().and(isExactlyDetails)).count() == 1L;</span>
+	}
+
+	static final class DefaultQueryRunner implements QueryRunner {
+
+		private final Session session;
+
+		private final Transaction transaction;
+
+		private final UnaryOperator&lt;Query&gt; filter;
+
+		private final org.neo4j.driver.QueryRunner delegate;
+
+<span class="fc" id="L167">		DefaultQueryRunner(FeatureSet featureSet, Session session, UnaryOperator&lt;Query&gt; filter) {</span>
+<span class="fc" id="L168">			this.session = session;</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">			this.transaction = featureSet.hasBatchingSupport() ? null : session.beginTransaction();</span>
+<span class="fc" id="L170">			this.filter = filter;</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">			this.delegate = transaction == null ? session : transaction;</span>
+<span class="fc" id="L172">		}</span>
+
+		@Override
+		public Result run(Query query) {
+<span class="fc" id="L176">			return this.delegate.run(filter.apply(query));</span>
+		}
+
+		@Override
+		public void close() {
+<span class="fc bfc" id="L181" title="All 2 branches covered.">			if (transaction != null) {</span>
+<span class="fc" id="L182">				transaction.commit();</span>
+<span class="fc" id="L183">				transaction.close();</span>
+			}
+<span class="fc" id="L185">			session.close();</span>
+<span class="fc" id="L186">		}</span>
+	}
+
+	@Override
+	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+<span class="fc" id="L191">		return this.getVersion().sanitizeSchemaName(potentiallyNonIdentifier);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

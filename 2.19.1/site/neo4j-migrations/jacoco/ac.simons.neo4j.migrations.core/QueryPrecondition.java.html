@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QueryPrecondition.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">QueryPrecondition.java</span></div><h1>QueryPrecondition.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.neo4j.driver.Session;
+
+/**
+ * @author Gerrit Meier
+ * @author Michael J. Simons
+ * @since 1.5.0
+ */
+final class QueryPrecondition extends AbstractPrecondition implements Precondition {
+
+<span class="fc" id="L33">	private static final Pattern CONDITION_PATTERN = Pattern.compile(</span>
+		&quot;(?i)^.*?(?&lt;database&gt; in (target|schema))? (?&lt;!that )q'(?&lt;query&gt;.++)?$&quot;);
+
+	/**
+	 * Enum to specify in which database the query should be executed
+	 */
+<span class="fc" id="L39">	enum Database {</span>
+
+		/**
+		 * Inside the database being migrated.
+		 */
+<span class="fc" id="L44">		TARGET,</span>
+		/**
+		 * Inside the schema database.
+		 */
+<span class="fc" id="L48">		SCHEMA,</span>
+	}
+
+	/**
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
+	 * a corresponding precondition.
+	 *
+	 * @param hint The complete hint
+	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
+	 */
+	static Optional&lt;Function&lt;Type, Precondition&gt;&gt; tryToParse(String hint) {
+
+<span class="fc" id="L60">		Matcher matcher = CONDITION_PATTERN.matcher(hint);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">		if (!matcher.matches()) {</span>
+<span class="fc" id="L62">			return Optional.empty();</span>
+		}
+<span class="fc" id="L64">		String query = matcher.group(&quot;query&quot;);</span>
+<span class="pc bpc" id="L65" title="1 of 4 branches missed.">		if (query == null || query.trim().length() == 0) {</span>
+<span class="fc" id="L66">			throw new IllegalArgumentException(</span>
+<span class="fc" id="L67">					String.format(</span>
+							&quot;Wrong Cypher precondition %s. Usage: `&lt;assume|assert&gt; [in &lt;target|schema&gt;] q' &lt;cypher statement&gt;`.&quot;,
+<span class="fc" id="L69">							Precondition.formattedHint(hint)));</span>
+		}
+		Database database;
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		if (matcher.group(&quot;database&quot;) != null) {</span>
+<span class="fc" id="L73">			database = Database.valueOf(matcher.group(2).toUpperCase(Locale.ROOT));</span>
+		} else {
+<span class="fc" id="L75">			database = Database.TARGET;</span>
+		}
+<span class="fc" id="L77">		return Optional.of(type -&gt; new QueryPrecondition(type, query.trim(), database));</span>
+	}
+
+	private final Database database;
+
+	private final String query;
+
+	private QueryPrecondition(Type type, String query, Database database) {
+<span class="fc" id="L85">		super(type);</span>
+<span class="fc" id="L86">		this.query = query;</span>
+<span class="fc" id="L87">		this.database = database;</span>
+<span class="fc" id="L88">	}</span>
+
+	@Override
+	public boolean isMet(MigrationContext migrationContext) {
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">		try (Session session = database == Database.SCHEMA ? migrationContext.getSchemaSession() :</span>
+<span class="fc" id="L93">			migrationContext.getSession()) {</span>
+<span class="fc" id="L94">			return session.executeRead(tx -&gt; tx.run(query).single().get(0).asBoolean());</span>
+		}
+	}
+
+	String getQuery() {
+<span class="fc" id="L99">		return query;</span>
+	}
+
+	Database getDatabase() {
+<span class="fc" id="L103">		return database;</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="fc" id="L108">		return String.format(&quot;// %s in %s q'%s&quot;, getType().keyword(), getDatabase(), query);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

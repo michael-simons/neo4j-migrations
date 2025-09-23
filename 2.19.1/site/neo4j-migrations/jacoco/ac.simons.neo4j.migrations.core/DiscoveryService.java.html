@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DiscoveryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DiscoveryService.java</span></div><h1>DiscoveryService.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Orchestrates {@link Discoverer discoverers}.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.3
+ */
+final class DiscoveryService {
+
+	private final List&lt;Discoverer&lt;? extends Migration&gt;&gt; migrationDiscoverers;
+
+	private final List&lt;Discoverer&lt;Callback&gt;&gt; callbackDiscoverers;
+
+	DiscoveryService() {
+<span class="fc" id="L42">		this(new JavaBasedMigrationDiscoverer(), new DefaultClasspathResourceScanner());</span>
+<span class="fc" id="L43">	}</span>
+
+<span class="fc" id="L45">	DiscoveryService(Discoverer&lt;? extends Migration&gt; migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {</span>
+
+<span class="fc" id="L47">		this.migrationDiscoverers = List.of(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner));</span>
+<span class="fc" id="L48">		this.callbackDiscoverers = List.of(ResourceDiscoverer.forCallbacks(resourceScanner));</span>
+<span class="fc" id="L49">	}</span>
+
+	/**
+	 * Finds all migrations in this context.
+	 * @param context the context in which the migrations run
+	 * @return an unmodifiable list of migrations sorted by version
+	 */
+	List&lt;Migration&gt; findMigrations(MigrationContext context) {
+
+<span class="fc" id="L58">		List&lt;Migration&gt; migrations = new ArrayList&lt;&gt;();</span>
+		try {
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			for (Discoverer&lt;? extends Migration&gt; discoverer : this.migrationDiscoverers) {</span>
+<span class="fc" id="L61">				migrations.addAll(discoverer.discover(context));</span>
+<span class="fc" id="L62">			}</span>
+<span class="nc" id="L63">		} catch (Exception e) {</span>
+<span class="nc" id="L64">			throw new MigrationsException(&quot;Unexpected error while scanning for migrations&quot;, e);</span>
+<span class="fc" id="L65">		}</span>
+
+<span class="fc" id="L67">		List&lt;MigrationWithPreconditions&gt; cypherBasedMigrations = migrations.stream().filter(MigrationWithPreconditions.class::isInstance)</span>
+<span class="fc" id="L68">			.map(MigrationWithPreconditions.class::cast)</span>
+<span class="fc" id="L69">			.toList();</span>
+<span class="fc" id="L70">		Map&lt;Migration, List&lt;Precondition&gt;&gt; migrationsAndPreconditions = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L71">		computeAlternativeChecksums(cypherBasedMigrations, migrationsAndPreconditions);</span>
+
+<span class="fc" id="L73">		migrations.removeIf(migration -&gt; hasUnmetPreconditions(migrationsAndPreconditions, migration, context));</span>
+<span class="fc" id="L74">		migrations.sort(Comparator.comparing(Migration::getVersion, context.getConfig().getVersionComparator()));</span>
+<span class="fc" id="L75">		Catalog catalog = context.getCatalog();</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">		if (catalog instanceof WriteableCatalog writeableSchema) {</span>
+<span class="fc" id="L77">			migrations.stream().filter(CatalogBasedMigration.class::isInstance)</span>
+<span class="fc" id="L78">				.map(CatalogBasedMigration.class::cast)</span>
+<span class="fc" id="L79">				.forEach(m -&gt; writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));</span>
+		}
+<span class="fc" id="L81">		Map&lt;MigrationVersion, List&lt;Migration&gt;&gt; groupedByVersion = migrations.stream()</span>
+<span class="fc" id="L82">			.collect(Collectors.groupingBy(Migration::getVersion));</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">		for (Map.Entry&lt;MigrationVersion, List&lt;Migration&gt;&gt; entry : groupedByVersion.entrySet()) {</span>
+<span class="fc" id="L84">			List&lt;Migration&gt; v = entry.getValue();</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">			if (v.size() &gt; 1) {</span>
+<span class="fc" id="L86">				MigrationVersion k = entry.getKey();</span>
+<span class="fc" id="L87">				String sources = v.stream().map(Migration::getSource)</span>
+<span class="fc" id="L88">					.sorted()</span>
+<span class="fc" id="L89">					.collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="fc" id="L90">				throw new MigrationsException(&quot;Duplicate version '&quot; + k.getValue() + &quot;' (&quot; + sources + &quot;)&quot;);</span>
+			}
+<span class="fc" id="L92">		}</span>
+<span class="fc" id="L93">		return List.copyOf(migrations);</span>
+	}
+
+	private void computeAlternativeChecksums(List&lt;MigrationWithPreconditions&gt; migrations,
+		Map&lt;Migration, List&lt;Precondition&gt;&gt; migrationsAndPreconditions) {
+<span class="fc" id="L98">		migrations.forEach(m -&gt; {</span>
+<span class="fc" id="L99">			List&lt;Precondition&gt; preconditions = m.getPreconditions();</span>
+<span class="fc" id="L100">			migrationsAndPreconditions.put(m, preconditions);</span>
+<span class="fc" id="L101">		});</span>
+
+<span class="fc" id="L103">		migrations.forEach(m -&gt; {</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">			if (migrationsAndPreconditions.get(m).isEmpty()) {</span>
+<span class="fc" id="L105">				return;</span>
+			}
+<span class="fc" id="L107">			List&lt;String&gt; alternativeChecksums = migrations.stream()</span>
+<span class="pc bpc" id="L108" title="1 of 6 branches missed.">				.filter(o -&gt; o != m &amp;&amp; o.getSource().equals(m.getSource()) &amp;&amp; !migrationsAndPreconditions.get(o).isEmpty())</span>
+<span class="fc" id="L109">				.flatMap(o -&gt; {</span>
+<span class="fc" id="L110">					Stream&lt;String&gt; checksum = o.getChecksum().stream();</span>
+<span class="fc" id="L111">					return Stream.concat(checksum, o.getAlternativeChecksums().stream()).distinct();</span>
+				})
+<span class="fc" id="L113">				.toList();</span>
+<span class="fc" id="L114">			m.setAlternativeChecksums(alternativeChecksums);</span>
+<span class="fc" id="L115">		});</span>
+<span class="fc" id="L116">	}</span>
+
+	boolean hasUnmetPreconditions(Map&lt;Migration, List&lt;Precondition&gt;&gt; migrationsAndPreconditions, Migration migration, MigrationContext context) {
+
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		if (!(migration instanceof MigrationWithPreconditions)) {</span>
+<span class="fc" id="L121">			return false;</span>
+		}
+
+<span class="fc" id="L124">		Map&lt;Precondition.Type, List&lt;Precondition&gt;&gt; preconditions = migrationsAndPreconditions.get(migration)</span>
+<span class="fc" id="L125">			.stream().collect(Collectors.groupingBy(Precondition::getType));</span>
+
+<span class="fc bfc" id="L127" title="All 2 branches covered.">		if (preconditions.isEmpty()) {</span>
+<span class="fc" id="L128">			return false;</span>
+		}
+
+<span class="fc bfc" id="L131" title="All 2 branches covered.">		for (Precondition assertion : preconditions.getOrDefault(Precondition.Type.ASSERTION, List.of())) {</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">			if (!assertion.isMet(context)) {</span>
+<span class="fc" id="L133">				throw new MigrationsException(&quot;Could not satisfy `&quot; + assertion + &quot;`.&quot;);</span>
+			}
+<span class="nc" id="L135">		}</span>
+
+<span class="fc" id="L137">		List&lt;Precondition&gt; unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, List.of())</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">			.stream().filter(precondition -&gt; !precondition.isMet(context)).toList();</span>
+
+<span class="fc bfc" id="L140" title="All 2 branches covered.">		if (unmet.isEmpty()) {</span>
+<span class="fc" id="L141">			return false;</span>
+		}
+
+<span class="fc" id="L144">		Migrations.LOGGER.log(Level.INFO,</span>
+<span class="fc" id="L145">			() -&gt; String.format(&quot;Skipping %s due to unmet preconditions:%n%s&quot;, Migrations.toString(migration),</span>
+<span class="fc" id="L146">				unmet.stream().map(Precondition::toString).collect(</span>
+<span class="fc" id="L147">					Collectors.joining(System.lineSeparator()))));</span>
+
+<span class="fc" id="L149">		return true;</span>
+	}
+
+	Map&lt;LifecyclePhase, List&lt;Callback&gt;&gt; findCallbacks(MigrationContext context) {
+
+<span class="fc" id="L154">		return this.callbackDiscoverers.stream()</span>
+<span class="fc" id="L155">			.flatMap(d -&gt; d.discover(context).stream())</span>
+<span class="fc" id="L156">			.collect(Collectors.collectingAndThen(Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -&gt; {</span>
+<span class="fc" id="L157">				l.sort(Comparator.comparing(c -&gt; c.getOptionalDescription().orElse(&quot;&quot;)));</span>
+<span class="fc" id="L158">				return List.copyOf(l);</span>
+			})), Map::copyOf));
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MigrationsAutoConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Spring Boot Autoconfiguration)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.springframework.boot.autoconfigure</a> &gt; <span class="el_source">MigrationsAutoConfiguration.java</span></div><h1>MigrationsAutoConfiguration.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
+
+import ac.simons.neo4j.migrations.core.Discoverer;
+import ac.simons.neo4j.migrations.core.JavaBasedMigration;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+
+import java.util.Arrays;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.neo4j.driver.Driver;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+
+/**
+ * {@link EnableAutoConfiguration Auto-configuration} for Neo4j migrations.
+ *
+ * @author Michael J. Simons
+ * @since 0.0.6
+ */
+@AutoConfiguration
+@ConditionalOnClass(Migrations.class)
+@ConditionalOnBean(Driver.class)
+@AutoConfigureAfter({ Neo4jAutoConfiguration.class })
+@AutoConfigureBefore({ Neo4jDataAutoConfiguration.class })
+@EnableConfigurationProperties({ MigrationsProperties.class })
+<span class="fc" id="L57">public class MigrationsAutoConfiguration {</span>
+
+<span class="fc" id="L59">	private static final Log LOG = LogFactory.getLog(MigrationsAutoConfiguration.class);</span>
+
+	@Bean
+	@ConditionalOnMissingBean({ MigrationsConfig.class, Migrations.class, MigrationsInitializer.class })
+	MigrationsConfig neo4jMigrationsConfig(ResourceLoader resourceLoader, MigrationsProperties migrationsProperties,
+		ObjectProvider&lt;ConfigBuilderCustomizer&gt; configBuilderCustomizers, ObjectProvider&lt;Discoverer&lt;JavaBasedMigration&gt;&gt; applicationContextAwareDiscoverer) {
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">		if (migrationsProperties.isCheckLocation()) {</span>
+<span class="fc" id="L67">			checkLocationExists(resourceLoader, migrationsProperties);</span>
+		}
+
+<span class="fc" id="L70">		var builder = MigrationsConfig.builder()</span>
+<span class="fc" id="L71">			.withLocationsToScan(migrationsProperties.getLocationsToScan())</span>
+<span class="fc" id="L72">			.withPackagesToScan(migrationsProperties.getPackagesToScan())</span>
+<span class="fc" id="L73">			.withTransactionMode(migrationsProperties.getTransactionMode())</span>
+<span class="fc" id="L74">			.withTransactionTimeout(migrationsProperties.getTransactionTimeout())</span>
+<span class="fc" id="L75">			.withDatabase(migrationsProperties.getDatabase())</span>
+<span class="fc" id="L76">			.withSchemaDatabase(migrationsProperties.getSchemaDatabase())</span>
+<span class="fc" id="L77">			.withImpersonatedUser(migrationsProperties.getImpersonatedUser())</span>
+<span class="fc" id="L78">			.withInstalledBy(migrationsProperties.getInstalledBy())</span>
+<span class="fc" id="L79">			.withValidateOnMigrate(migrationsProperties.isValidateOnMigrate())</span>
+<span class="fc" id="L80">			.withAutocrlf(migrationsProperties.isAutocrlf())</span>
+<span class="fc" id="L81">			.withDelayBetweenMigrations(migrationsProperties.getDelayBetweenMigrations())</span>
+<span class="fc" id="L82">			.withVersionSortOrder(migrationsProperties.getVersionSortOrder())</span>
+<span class="fc" id="L83">			.withMigrationClassesDiscoverer(applicationContextAwareDiscoverer.getIfAvailable())</span>
+<span class="fc" id="L84">			.withOutOfOrderAllowed(migrationsProperties.isOutOfOrder())</span>
+<span class="fc" id="L85">			.withFlywayCompatibleChecksums(migrationsProperties.isUseFlywayCompatibleChecksums())</span>
+<span class="fc" id="L86">			.withTarget(migrationsProperties.getTarget())</span>
+<span class="fc" id="L87">			.withCypherVersion(migrationsProperties.getCypherVersion());</span>
+<span class="fc" id="L88">		configBuilderCustomizers.orderedStream().forEach(customizer -&gt; customizer.customize(builder));</span>
+<span class="fc" id="L89">		return builder.build();</span>
+	}
+
+	@Bean
+	@ConditionalOnMissingBean({ Migrations.class, MigrationsInitializer.class })
+	Migrations neo4jMigrations(MigrationsConfig neo4jMigrationsConfig, Driver driver) {
+
+<span class="fc" id="L96">		return new Migrations(neo4jMigrationsConfig, driver);</span>
+	}
+
+	@Bean
+	@ConditionalOnMissingBean({ MigrationsInitializer.class })
+	@ConditionalOnProperty(prefix = &quot;org.neo4j.migrations&quot;, name = &quot;enabled&quot;, matchIfMissing = true)
+	MigrationsInitializer neo4jMigrationsInitializer(Migrations neo4jMigrations) {
+
+<span class="fc" id="L104">		return new MigrationsInitializer(neo4jMigrations);</span>
+	}
+
+	@Bean
+	@ConditionalOnMissingBean({ Discoverer.class })
+	@ConditionalOnProperty(prefix = &quot;org.neo4j.migrations&quot;, name = &quot;enabled&quot;, matchIfMissing = true)
+	Discoverer&lt;JavaBasedMigration&gt; applicationContextAwareDiscoverer(ObjectProvider&lt;JavaBasedMigration&gt; javaBasedMigrations) {
+
+<span class="fc" id="L112">		return new ApplicationContextAwareDiscoverer(javaBasedMigrations);</span>
+	}
+
+	private static void checkLocationExists(ResourceLoader resourceLoader, MigrationsProperties properties) {
+
+<span class="pc bpc" id="L117" title="1 of 4 branches missed.">		if (properties.getLocationsToScan().length == 0 &amp;&amp; properties.getPackagesToScan().length == 0) {</span>
+<span class="fc" id="L118">			throw new MigrationsException(&quot;Neither locations nor packages to scan are configured.&quot;);</span>
+		}
+
+<span class="fc bfc" id="L121" title="All 2 branches covered.">		if (properties.getPackagesToScan().length == 0 &amp;&amp;</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">			!hasAtLeastOneLocation(resourceLoader, properties.getLocationsToScan())) {</span>
+
+<span class="fc" id="L124">			LOG.warn(&quot;No package to scan is configured and none of the configured locations exists.&quot;);</span>
+		}
+<span class="fc" id="L126">	}</span>
+
+	private static boolean hasAtLeastOneLocation(ResourceLoader resourceLoader, String[] locations) {
+
+<span class="fc" id="L130">		return Arrays.stream(locations)</span>
+<span class="fc" id="L131">			.map(resourceLoader::getResource)</span>
+<span class="fc" id="L132">			.anyMatch(Resource::exists);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

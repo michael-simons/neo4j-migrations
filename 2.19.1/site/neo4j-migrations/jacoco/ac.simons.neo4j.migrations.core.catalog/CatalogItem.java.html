@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogItem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">CatalogItem.java</span></div><h1>CatalogItem.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+/**
+ * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ *
+ * @author Michael J. Simons
+ * @param &lt;T&gt; The concrete type of this item, either a constraint or an index.
+ * @soundtrack Anthrax - Spreading The Disease
+ * @since 1.7.0
+ */
+public sealed interface CatalogItem&lt;T extends ItemType&gt; permits AbstractCatalogItem {
+
+	/**
+	 * {@return A unique name for a catalog item}
+	 */
+	Name getName();
+
+	/**
+	 * {@return Type information for the given item, specialized to the item type itself}
+	 */
+	T getType();
+
+	/**
+	 * @param that The other item to check
+	 * @return {@literal true} if this item is equivalent to {@code that} item
+	 */
+	default boolean isEquivalentTo(CatalogItem&lt;?&gt; that) {
+<span class="fc" id="L43">		throw new UnsupportedOperationException();</span>
+	}
+
+	/**
+	 * {@return {@literal true} if this item has a generated name}
+	 */
+	boolean hasGeneratedName();
+
+	/**
+	 * Creates a copy of this item with the specific name. Will return {@literal this} instance if the name has not
+	 * changed.
+	 *
+	 * @param name The new name to use
+	 * @return A (potentially) new item
+	 * @since 1.13.0
+	 */
+	default CatalogItem&lt;T&gt; withName(String name) {
+<span class="fc" id="L60">		throw new UnsupportedOperationException();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

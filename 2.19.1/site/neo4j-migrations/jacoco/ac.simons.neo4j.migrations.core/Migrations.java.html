@@ -1,0 +1,918 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Migrations.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">Migrations.java</span></div><h1>Migrations.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
+import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionCallback;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Node;
+
+/**
+ * Main entry to Neo4j Migrations
+ *
+ * @author Michael J. Simons
+ * @since 0.0.1
+ */
+public final class Migrations {
+
+<span class="fc" id="L67">	static final Logger LOGGER = Logger.getLogger(Migrations.class.getName());</span>
+<span class="fc" id="L68">	static final Logger STARTUP_LOGGER = Logger.getLogger(Migrations.class.getName() + &quot;.Startup&quot;);</span>
+
+	static final String PROPERTY_MIGRATION_VERSION = &quot;version&quot;;
+	static final String PROPERTY_MIGRATION_TARGET = &quot;migrationTarget&quot;;
+	static final String PROPERTY_MIGRATION_DESCRIPTION = &quot;description&quot;;
+
+<span class="fc" id="L74">	static final Constraint UNIQUE_VERSION =</span>
+<span class="fc" id="L75">		Constraint.forNode(&quot;__Neo4jMigration&quot;)</span>
+<span class="fc" id="L76">			.named(&quot;unique_version___Neo4jMigration&quot;)</span>
+<span class="fc" id="L77">			.unique(PROPERTY_MIGRATION_VERSION, PROPERTY_MIGRATION_TARGET);</span>
+
+<span class="fc" id="L79">	static final Index REPEATED_AT =</span>
+<span class="fc" id="L80">		Index.forRelationship(&quot;REPEATED&quot;)</span>
+<span class="fc" id="L81">			.named(&quot;repeated_at__Neo4jMigration&quot;)</span>
+<span class="fc" id="L82">			.onProperties(&quot;at&quot;);</span>
+
+	// Used when rewiring relationships during out-of-order migrations
+	private static final String OLD_REL_ID = &quot;oldRelId&quot;;
+	private static final String INSERTED_ID = &quot;insertedId&quot;;
+
+	private final MigrationsConfig config;
+	private final Driver driver;
+	private final MigrationContext context;
+	private final DiscoveryService discoveryService;
+	private final ChainBuilder chainBuilder;
+
+	@SuppressWarnings(&quot;squid:S3077&quot;)
+	private volatile List&lt;Migration&gt; resolvedMigrations;
+	@SuppressWarnings(&quot;squid:S3077&quot;)
+	private volatile Map&lt;LifecyclePhase, List&lt;Callback&gt;&gt; resolvedCallbacks;
+
+<span class="fc" id="L99">	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);</span>
+
+	/**
+	 * Creates a {@link Migrations migrations instance} ready to used with the given configuration over the connection
+	 * defined by the {@link Driver driver}.
+	 *
+	 * @param config The configuration to use
+	 * @param driver The connection
+	 */
+<span class="fc" id="L108">	public Migrations(MigrationsConfig config, Driver driver) {</span>
+
+<span class="fc" id="L110">		this.config = config;</span>
+<span class="fc" id="L111">		this.driver = driver;</span>
+
+<span class="fc" id="L113">		this.discoveryService = new DiscoveryService(this.config.getMigrationClassesDiscoverer(), this.config.getResourceScanner());</span>
+<span class="fc" id="L114">		this.chainBuilder = new ChainBuilder();</span>
+
+<span class="fc" id="L116">		this.context = MigrationContext.of(this.config, this.driver);</span>
+<span class="fc" id="L117">	}</span>
+
+	private List&lt;Migration&gt; getMigrations() {
+
+<span class="fc" id="L121">		List&lt;Migration&gt; availableMigrations = this.resolvedMigrations;</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		if (availableMigrations == null) {</span>
+<span class="fc" id="L123">			synchronized (this) {</span>
+<span class="fc" id="L124">				availableMigrations = this.resolvedMigrations;</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">				if (availableMigrations == null) {</span>
+<span class="fc" id="L126">					this.resolvedMigrations = discoveryService.findMigrations(this.context);</span>
+<span class="fc" id="L127">					availableMigrations = this.resolvedMigrations;</span>
+				}
+<span class="fc" id="L129">			}</span>
+		}
+<span class="fc" id="L131">		return availableMigrations;</span>
+	}
+
+	private Map&lt;LifecyclePhase, List&lt;Callback&gt;&gt; getCallbacks() {
+
+<span class="fc" id="L136">		Map&lt;LifecyclePhase, List&lt;Callback&gt;&gt; availableCallbacks = this.resolvedCallbacks;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">		if (availableCallbacks == null) {</span>
+<span class="fc" id="L138">			synchronized (this) {</span>
+<span class="fc" id="L139">				availableCallbacks = this.resolvedCallbacks;</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">				if (availableCallbacks == null) {</span>
+<span class="fc" id="L141">					this.resolvedCallbacks = discoveryService.findCallbacks(this.context);</span>
+<span class="fc" id="L142">					availableCallbacks = this.resolvedCallbacks;</span>
+				}
+<span class="fc" id="L144">			}</span>
+		}
+<span class="fc" id="L146">		return availableCallbacks;</span>
+	}
+
+	/**
+	 * Clears the internal cache (discovered migrations and callbacks) which can be useful in certain testing scenarios.
+	 *
+	 * @since 2.2.0
+	 */
+	public void clearCache() {
+
+<span class="pc bpc" id="L156" title="3 of 4 branches missed.">		if (resolvedMigrations != null || resolvedCallbacks != null) {</span>
+<span class="fc" id="L157">			synchronized (this) {</span>
+<span class="fc" id="L158">				this.resolvedMigrations = null;</span>
+<span class="fc" id="L159">				this.resolvedCallbacks = null;</span>
+<span class="fc" id="L160">			}</span>
+		}
+<span class="fc" id="L162">	}</span>
+
+	/**
+	 * @return Information about the connection when migrations are applied, validated and so on.
+	 * @see MigrationContext#getConnectionDetails()
+	 * @since 1.4.0
+	 */
+	public ConnectionDetails getConnectionDetails() {
+<span class="fc" id="L170">		return context.getConnectionDetails();</span>
+	}
+
+	/**
+	 * Returns information about the context, the database, all applied and all pending applications.
+	 *
+	 * @return The chain of migrations.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @see #info(ChainBuilderMode)
+	 * @since 0.0.4
+	 */
+	public MigrationChain info() {
+
+<span class="fc" id="L184">		return info(true);</span>
+	}
+
+	/**
+	 * This is an overload for {@link #info()} ()} that allows skipping the locking mechanism. Use with care.
+	 *
+	 * @param doLock Use {@literal false} to skip the locking mechanism
+	 * @return The chain of migrations.
+	 * @see #info()
+	 * @since 2.16.0
+	 */
+	public MigrationChain info(boolean doLock) {
+
+<span class="fc" id="L197">		return executeWithinLock(() -&gt; chainBuilder.buildChain(context, this.getMigrations()),</span>
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO, doLock);
+	}
+
+	/**
+	 * Returns information about the context, the database, all applied and all pending applications.
+	 *
+	 * @param mode Specify how the chain should be computed
+	 * @return The chain of migrations.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @since 1.4.0
+	 */
+	public MigrationChain info(ChainBuilderMode mode) {
+
+<span class="fc" id="L212">		return executeWithinLock(() -&gt; chainBuilder.buildChain(context, this.getMigrations(), false, mode),</span>
+			LifecyclePhase.BEFORE_INFO, LifecyclePhase.AFTER_INFO, true);
+	}
+
+	/**
+	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
+	 * or Cypher script migrations that are on the classpath or filesystem.
+	 *
+	 * @return The last applied migration (if any)
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @see #apply(boolean)
+	 * @since 0.0.1
+	 */
+	public Optional&lt;MigrationVersion&gt; apply() {
+
+<span class="fc" id="L228">		return apply(false);</span>
+	}
+
+	/**
+	 * Applies all discovered Neo4j migrations. Migrations can either be classes implementing {@link JavaBasedMigration}
+	 * or Cypher script migrations that are on the classpath or filesystem.
+	 * &lt;p&gt;
+	 * The startup will be logged to  {@code ac.simons.neo4j.migrations.core.Migrations.Startup} and can be individually
+	 * disabled through that logger.
+	 *
+	 * @param log set to {@literal true} to log connection details prior to applying the migrations
+	 * @return The last applied migration (if any)
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused by failing migrations
+	 * @since 1.12.0
+	 */
+	public Optional&lt;MigrationVersion&gt; apply(boolean log) {
+
+<span class="fc bfc" id="L246" title="All 2 branches covered.">		if (config.getCypherVersion() != MigrationsConfig.CypherVersion.DATABASE_DEFAULT) {</span>
+<span class="fc" id="L247">			LOGGER.log(Level.INFO, &quot;All statements in all Cypher based migrations will be prefixed with {0}&quot;, config.getCypherVersion().getPrefix());</span>
+		}
+
+<span class="fc" id="L250">		return executeWithinLock(() -&gt; {</span>
+<span class="pc bpc" id="L251" title="3 of 4 branches missed.">			if (log &amp;&amp; STARTUP_LOGGER.isLoggable(Level.INFO)) {</span>
+<span class="nc" id="L252">				STARTUP_LOGGER.info(() -&gt; Messages.INSTANCE.format(&quot;startup_log&quot;, getUserAgent(), ConnectionDetailsFormatter.INSTANCE.format(this.getConnectionDetails())));</span>
+			}
+<span class="fc" id="L254">			apply0(this.getMigrations());</span>
+<span class="fc" id="L255">			return getLastAppliedVersion();</span>
+		}, LifecyclePhase.BEFORE_MIGRATE, LifecyclePhase.AFTER_MIGRATE, true);
+	}
+
+	/**
+	 * Applies one or more refactorings to the target (not the schema) database  without recording any metadata and also
+ 	 * without acquiring the lock.
+	 *
+	 * @param refactorings the refactorings to apply
+	 * @return summarized counters
+	 * @since 1.13.0
+	 */
+	public Counters apply(Refactoring... refactorings) {
+
+<span class="fc bfc" id="L269" title="All 4 branches covered.">		if (refactorings == null || refactorings.length == 0) {</span>
+<span class="fc" id="L270">			return Counters.empty();</span>
+		}
+
+<span class="fc" id="L273">		Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());</span>
+<span class="fc" id="L274">		Neo4jEdition neo4jEdition = Neo4jEdition.of(context.getConnectionDetails().getServerEdition());</span>
+
+<span class="fc" id="L276">		CatalogBasedMigration.OperationContext operationContext = new CatalogBasedMigration.OperationContext(</span>
+			neo4jVersion, neo4jEdition,
+<span class="fc" id="L278">			(VersionedCatalog) context.getCatalog(), config, context::getSession);</span>
+
+<span class="fc" id="L280">		return Arrays.stream(refactorings)</span>
+<span class="fc" id="L281">			.filter(Objects::nonNull)</span>
+<span class="fc" id="L282">			.sequential()</span>
+<span class="fc" id="L283">			.map(CatalogBasedMigration.Operation::refactorWith)</span>
+<span class="fc" id="L284">			.map(op -&gt; op.execute(operationContext))</span>
+<span class="fc" id="L285">			.reduce(Counters.empty(), Counters::add);</span>
+	}
+
+	/**
+	 * Applies one or  more migrations to the target (not  the schema) database without recording any metadata and also
+	 * without acquiring the lock.
+	 *
+	 * @param resources One or more resources pointing to parsable migration data
+	 * @return the number of migrations applied
+	 * @since 1.13.0
+	 */
+	public int apply(URL... resources) {
+
+<span class="fc" id="L298">		int cnt = 0;</span>
+<span class="fc bfc" id="L299" title="All 4 branches covered.">		if (resources == null || resources.length == 0) {</span>
+<span class="fc" id="L300">			return cnt;</span>
+		}
+
+<span class="fc" id="L303">		Map&lt;String, ResourceBasedMigrationProvider&gt; providers = ResourceBasedMigrationProvider.unique().stream()</span>
+<span class="fc" id="L304">			.collect(Collectors.toMap(ResourceBasedMigrationProvider::getExtension, Function.identity()));</span>
+
+<span class="fc" id="L306">		List&lt;Migration&gt; migrations = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">		for (URL resource : resources) {</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">			if (resource == null) {</span>
+<span class="fc" id="L309">				continue;</span>
+			}
+
+<span class="fc" id="L312">			String path = resource.getPath();</span>
+<span class="fc" id="L313">			Matcher matcher = MigrationVersion.VERSION_PATTERN.matcher(path);</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">			if (!matcher.find()) {</span>
+<span class="fc" id="L315">				throw new IllegalArgumentException(Messages.INSTANCE.format(&quot;errors.invalid_resource_name&quot;, path));</span>
+			}
+<span class="fc" id="L317">			String ext = matcher.group(&quot;ext&quot;);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">			if (!providers.containsKey(ext)) {</span>
+<span class="fc" id="L319">				throw new IllegalArgumentException(Messages.INSTANCE.format(&quot;errors.unsupported_extension&quot;, ext));</span>
+			}
+<span class="fc" id="L321">			ResourceBasedMigrationProvider provider = providers.get(ext);</span>
+<span class="fc" id="L322">			migrations.addAll(provider.handle(ResourceContext.of(resource, config)));</span>
+		}
+
+<span class="fc bfc" id="L325" title="All 2 branches covered.">		for (Migration migration : IterableMigrations.of(config, migrations)) {</span>
+<span class="fc" id="L326">			migration.apply(context);</span>
+<span class="fc" id="L327">			LOGGER.info(() -&gt; &quot;Applied &quot; + toString(migration));</span>
+<span class="fc" id="L328">			++cnt;</span>
+<span class="fc" id="L329">		}</span>
+
+<span class="fc" id="L331">		return cnt;</span>
+	}
+
+	/**
+	 * Cleans the {@link  MigrationsConfig#getOptionalSchemaDatabase() selected schema database}. If there  is no schema
+	 * database selected, the operation uses the {@link MigrationsConfig#getOptionalDatabase() target database.} If this
+	 * isn't configured as either, the users home database will be used. Items te be removed include:
+	 * &lt;ol&gt;
+	 * &lt;li&gt;Migration chains (those are the nodes containing information about the applied migrations&lt;/li&gt;
+	 * &lt;li&gt;Any log from this tool&lt;/li&gt;
+	 * &lt;li&gt;Any constraints created by this tool&lt;/li&gt;
+	 * &lt;/ol&gt;
+	 * and will  delete and  drop them in  that order. This  is a  &lt;strong&gt;destructive&lt;/strong&gt; operation, so  make sure
+	 * not  to  apply it  to  your  production database  without  thinking  at least  twice.  It  cannot be  undone  via
+	 * Neo4j-Migrations.
+	 *
+	 * @param all Set to {@literal true} to remove all constructs created by Neo4j-Migrations, set to {@literal false} to
+	 *            remove all the migration chain for the selected or automatically determined target database.
+	 * @return The result of cleaning the database.
+	 * @throws ServiceUnavailableException in case the driver is not connected
+	 * @throws MigrationsException         for everything caused due to schema objects not deletable
+	 * @since 1.1.0
+	 */
+	public CleanResult clean(boolean all) {
+
+<span class="fc" id="L356">		Optional&lt;String&gt; optionalMigrationTarget = config.getMigrationTargetIn(context);</span>
+<span class="fc" id="L357">		DeletedChainsWithCounters deletedChainsWithCounters</span>
+<span class="fc" id="L358">			= executeWithinLock(() -&gt; clean0(optionalMigrationTarget, all), LifecyclePhase.BEFORE_CLEAN, LifecyclePhase.AFTER_CLEAN, true);</span>
+
+<span class="fc" id="L360">		long nodesDeleted = deletedChainsWithCounters.counter.nodesDeleted();</span>
+<span class="fc" id="L361">		long relationshipsDeleted = deletedChainsWithCounters.counter.relationshipsDeleted();</span>
+<span class="fc" id="L362">		long constraintsRemoved = deletedChainsWithCounters.counter.constraintsRemoved() + deletedChainsWithCounters.additionalConstraintsRemoved;</span>
+<span class="fc" id="L363">		long indexesRemoved = 0;</span>
+<span class="fc bfc" id="L364" title="All 2 branches covered.">		if (all) {</span>
+<span class="fc" id="L365">			SummaryCounters additionalCounters = new MigrationsLock(context).clean();</span>
+<span class="fc" id="L366">			nodesDeleted += additionalCounters.nodesDeleted();</span>
+<span class="fc" id="L367">			relationshipsDeleted += additionalCounters.relationshipsDeleted();</span>
+<span class="fc" id="L368">			constraintsRemoved += additionalCounters.constraintsRemoved();</span>
+<span class="fc" id="L369">			indexesRemoved += additionalCounters.indexesRemoved();</span>
+		}
+
+<span class="fc" id="L372">		return new CleanResult(config.getOptionalSchemaDatabase(), deletedChainsWithCounters.chainsDeleted, nodesDeleted,</span>
+			relationshipsDeleted,
+			constraintsRemoved, indexesRemoved);
+	}
+
+	static class DeletedChainsWithCounters {
+
+		final List&lt;String&gt; chainsDeleted;
+		final SummaryCounters counter;
+		final long additionalConstraintsRemoved;
+<span class="fc" id="L382">		DeletedChainsWithCounters(List&lt;String&gt; chainsDeleted, SummaryCounters counter) {</span>
+<span class="fc" id="L383">			this.chainsDeleted = chainsDeleted;</span>
+<span class="fc" id="L384">			this.counter = counter;</span>
+<span class="fc" id="L385">			this.additionalConstraintsRemoved = 0L;</span>
+<span class="fc" id="L386">		}</span>
+
+<span class="fc" id="L388">		DeletedChainsWithCounters(DeletedChainsWithCounters source, long additionalConstraintsRemoved) {</span>
+<span class="fc" id="L389">			this.chainsDeleted = source.chainsDeleted;</span>
+<span class="fc" id="L390">			this.counter = source.counter;</span>
+<span class="fc" id="L391">			this.additionalConstraintsRemoved = additionalConstraintsRemoved;</span>
+<span class="fc" id="L392">		}</span>
+	}
+
+	private DeletedChainsWithCounters clean0(
+		@SuppressWarnings(&quot;OptionalUsedAsFieldOrParameterType&quot;) Optional&lt;String&gt; migrationTarget,
+		boolean all
+	) {
+
+<span class="fc" id="L400">		String query = &quot;&quot;&quot;</span>
+			MATCH (n:__Neo4jMigration)
+			WITH n, coalesce(n.migrationTarget, '&lt;default&gt;') as migrationTarget
+			WHERE (migrationTarget = coalesce($migrationTarget,'&lt;default&gt;') OR $all)
+			DETACH DELETE n
+			RETURN DISTINCT migrationTarget
+			ORDER BY migrationTarget ASC
+			&quot;&quot;&quot;;
+
+<span class="fc" id="L409">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L410">			DeletedChainsWithCounters deletedChainsWithCounters = session.executeWrite(tx -&gt; {</span>
+<span class="fc" id="L411">				Result result = tx.run(query, Values.parameters(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null), &quot;all&quot;, all));</span>
+<span class="fc" id="L412">				return new DeletedChainsWithCounters(</span>
+<span class="fc" id="L413">					result.list(r -&gt; r.get(PROPERTY_MIGRATION_TARGET).asString()),</span>
+<span class="fc" id="L414">					result.consume().counters()</span>
+				);
+			});
+<span class="fc" id="L417">			ConnectionDetails cd = context.getConnectionDetails();</span>
+<span class="pc bpc" id="L418" title="1 of 4 branches missed.">			if (all &amp;&amp; HBD.is44OrHigher(cd)) {</span>
+
+<span class="fc" id="L420">				Renderer&lt;Constraint&gt; renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);</span>
+<span class="fc" id="L421">				RenderConfig dropConfig = RenderConfig.drop()</span>
+<span class="fc" id="L422">					.ifExists()</span>
+<span class="fc" id="L423">					.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());</span>
+
+<span class="fc" id="L425">				return new DeletedChainsWithCounters(deletedChainsWithCounters,</span>
+<span class="fc" id="L426">					session.run(renderer.render(UNIQUE_VERSION, dropConfig)).consume().counters().constraintsRemoved());</span>
+			}
+
+<span class="fc" id="L429">			return deletedChainsWithCounters;</span>
+<span class="pc bpc" id="L430" title="1 of 2 branches missed.">		}</span>
+	}
+
+	/**
+	 * Deletes the specific version from  {@link MigrationsConfig#getOptionalSchemaDatabase() selected schema database}.
+	 * If there  is no schema  database selected, the  operation uses the  {@link MigrationsConfig#getOptionalDatabase()
+	 * target database.}. If this isn't  configured as either, the users home database will  be used. The migration will
+	 * be removed from the migration chain without being prior resolved from the filesystem or classpath. This operation
+	 * is useful for all scenarios  in which you would like to delete specific migrations  from your scripts which would
+	 * otherwise lead to  a {@link MigrationsException} indicating  that more migrations have been  applied than locally
+	 * resolved.
+	 *
+	 * @param version the version that should be deleted, must not be null.
+	 * @return the result of the operation
+	 * @since 2.2.0
+	 */
+	public DeleteResult delete(MigrationVersion version) {
+
+<span class="fc bfc" id="L448" title="All 2 branches covered.">		if (version == null) {</span>
+<span class="fc" id="L449">			throw new IllegalArgumentException(Messages.INSTANCE.get(&quot;errors.version_required&quot;));</span>
+		}
+
+<span class="fc" id="L452">		return executeWithinLock(() -&gt; {</span>
+<span class="fc" id="L453">			try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L454">				return session.executeWrite(tx -&gt; {</span>
+<span class="fc" id="L455">					var result = tx.run(ChainTool.generateMigrationDeletionQuery(config.getMigrationTargetIn(context).orElse(null), version));</span>
+<span class="fc" id="L456">					MigrationVersion deletedVersion = null;</span>
+<span class="fc bfc" id="L457" title="All 2 branches covered.">					if (result.hasNext()) {</span>
+<span class="fc" id="L458">						var properties = result.single().get(&quot;p&quot;);</span>
+<span class="fc" id="L459">						deletedVersion = MigrationVersion.parse(properties.get(&quot;source&quot;).asString());</span>
+					}
+<span class="fc" id="L461">					var counters = result.consume().counters();</span>
+<span class="fc" id="L462">					return new DeleteResult(config.getOptionalSchemaDatabase().orElse(null),</span>
+<span class="fc" id="L463">						counters.nodesDeleted(), counters.nodesCreated(),</span>
+<span class="fc" id="L464">						counters.relationshipsDeleted(), counters.relationshipsCreated(), counters.propertiesSet(),</span>
+						deletedVersion);
+				});
+			}
+		}, null, null, true);
+	}
+
+	/**
+	 * This command repairs databases  containing Neo4j-Migration chains. Those schema databases need  to be repaired if
+	 * the locally  discovered migrations have  diverged from the  ones applied to the  database. This can  have several
+	 * reasons: Local Cypher scripts have been edited after they  have been recorded with this tool, thus their checksum
+	 * doesn't match anymore, local scripts or classes have been deleted or scripts or classes have been inserted.
+	 * &lt;p&gt;
+	 * The repairment will  take the locally discovered set of  migrations (both Cypher files and classes)  as truth and
+	 * proceed as follows:
+	 *
+	 * &lt;ol&gt;
+	 *     &lt;li&gt;Check all the checksums (pairwise by migration version) and fix the recorded chain if necessary&lt;/li&gt;
+	 *     &lt;li&gt;Check for missing local migrations and delete the missing ones in the database&lt;/li&gt;
+	 *     &lt;li&gt;Check for inserted local migrations and create new chain entries with current time stamp&lt;/li&gt;
+	 * &lt;/ol&gt;
+	 *
+	 * The process  does never run  migrations, as there  is no proper way  of telling any  newly found script  has been
+	 * manually run or not.
+	 * &lt;p&gt;
+	 * This command will  throw a {@link MigrationsException}  if no local scripts  or classes are discovered  at all as
+	 * that would lead to the deletion of all applied migrations. In case that is the desired outcome, please use {@link
+	 * #clean(boolean)} and optionally specify whether Neo4j-Migration required infrastructure (read constraints etc).
+	 *
+	 * @return The result  of the  repair process,  containing detailed information  about the  outcome and  the changed
+	 *         database content
+	 * @since 2.2.0
+	 */
+	public RepairmentResult repair() {
+
+<span class="fc" id="L499">		return executeWithinLock(() -&gt; {</span>
+
+<span class="fc" id="L501">			var affectedDatabase = config.getOptionalSchemaDatabase().orElse(null);</span>
+
+<span class="fc" id="L503">			List&lt;Migration&gt; migrations = this.getMigrations();</span>
+<span class="fc bfc" id="L504" title="All 2 branches covered.">			if (migrations.isEmpty()) {</span>
+<span class="fc" id="L505">				throw new MigrationsException(&quot;Zero migrations have been discovered and repairing the database would lead to the deletion of all migrations recorded; if you want that, use the clean operation&quot;);</span>
+			}
+
+<span class="fc" id="L508">			var validationResult = validate0();</span>
+<span class="pc bpc" id="L509" title="1 of 4 branches missed.">			if (validationResult.isValid() || validationResult.getOutcome() == Outcome.INCOMPLETE_DATABASE) {</span>
+<span class="fc" id="L510">				return RepairmentResult.unnecessary(affectedDatabase);</span>
+			}
+
+<span class="fc" id="L513">			var nonVerifyingChainBuilder = new ChainBuilder(false);</span>
+<span class="fc" id="L514">			MigrationChain remoteChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.REMOTE);</span>
+<span class="fc" id="L515">			MigrationChain localChain = nonVerifyingChainBuilder.buildChain(context, migrations, true, ChainBuilderMode.LOCAL);</span>
+
+<span class="fc" id="L517">			var chainTool = new ChainTool(config.getVersionComparator(), migrations, localChain, remoteChain);</span>
+<span class="fc" id="L518">			var nodesDeleted = 0L;</span>
+<span class="fc" id="L519">			var nodesCreated = 0L;</span>
+<span class="fc" id="L520">			var relationshipsDeleted = 0L;</span>
+<span class="fc" id="L521">			var relationshipsCreated = 0L;</span>
+<span class="fc" id="L522">			var propertiesSet = 0L;</span>
+			try (
+<span class="fc" id="L524">				var session = context.getSchemaSession();</span>
+<span class="fc" id="L525">				var tx = session.beginTransaction(TransactionConfig.builder().build())</span>
+			) {
+<span class="fc bfc" id="L527" title="All 2 branches covered.">				for (Query query : chainTool.repair(config, context)) {</span>
+<span class="fc" id="L528">					var counters = tx.run(query).consume().counters();</span>
+<span class="fc" id="L529">					nodesDeleted += counters.nodesDeleted();</span>
+<span class="fc" id="L530">					nodesCreated += counters.nodesCreated();</span>
+<span class="fc" id="L531">					relationshipsDeleted += counters.relationshipsDeleted();</span>
+<span class="fc" id="L532">					relationshipsCreated += counters.relationshipsCreated();</span>
+<span class="fc" id="L533">					propertiesSet += counters.propertiesSet();</span>
+<span class="fc" id="L534">				}</span>
+<span class="fc" id="L535">				tx.commit();</span>
+			}
+
+<span class="fc" id="L538">			return RepairmentResult.repaired(affectedDatabase, nodesDeleted, nodesCreated,</span>
+				relationshipsDeleted, relationshipsCreated, propertiesSet);
+		}, null, null, true);
+	}
+
+	/**
+	 * Validates the database against the resolved migrations. A database  is considered to be in a valid state when all
+	 * resolved migrations  have been applied (there  are no more  pending migrations). If  a database is not  yet fully
+	 * migrated,  it  won't  identify  as  {@link  ValidationResult.Outcome#VALID}  but  it  will  indicate  via  {@link
+	 * ValidationResult#needsRepair()} that it doesn't need repair. Applying the pending migrations via {@link #apply()}
+	 * will bring the database  into a valid state. Most other  outcomes not valid need to be  manually fix. One radical
+	 * fix is calling {@link Migrations#clean(boolean)} with the same configuration.
+	 *
+	 * @return a validation result, with an outcome, a possible list  of warnings and indicators if the database is in a
+	 *         valid state
+	 * @since 1.2.0
+	 */
+	public ValidationResult validate() {
+
+<span class="fc" id="L557">		return validate(true);</span>
+	}
+
+	/**
+	 * This is an overload for {@link #validate()} that allows skipping the locking mechanism. Use with care.
+	 *
+	 * @param doLock Use {@literal false} to skip the locking mechanism
+	 * @return a validation result, with an outcome, a possible list  of warnings and indicators if the database is in a
+	 *         valid state
+	 * @see #validate()
+	 * @since 2.16.0
+	 */
+	public ValidationResult validate(boolean doLock) {
+
+<span class="fc" id="L571">		return executeWithinLock(this::validate0, LifecyclePhase.BEFORE_VALIDATE, LifecyclePhase.AFTER_VALIDATE, doLock);</span>
+	}
+
+	private ValidationResult validate0() {
+
+<span class="fc" id="L576">		List&lt;Migration&gt; migrations = this.getMigrations();</span>
+<span class="fc" id="L577">		Optional&lt;String&gt; targetDatabase = config.getOptionalSchemaDatabase();</span>
+		try {
+<span class="fc" id="L579">			MigrationChain migrationChain = new ChainBuilder(true).buildChain(context, migrations, true, ChainBuilderMode.COMPARE);</span>
+<span class="fc" id="L580">			int numberOfAppliedMigrations = (int) migrationChain.getElements()</span>
+<span class="fc bfc" id="L581" title="All 2 branches covered.">				.stream().filter(m -&gt; m.getState() == MigrationState.APPLIED)</span>
+<span class="fc" id="L582">				.count();</span>
+<span class="fc bfc" id="L583" title="All 2 branches covered.">			if (migrations.size() == numberOfAppliedMigrations) {</span>
+<span class="fc bfc" id="L584" title="All 2 branches covered.">				return new ValidationResult(targetDatabase, Outcome.VALID, numberOfAppliedMigrations == 0 ?</span>
+<span class="fc" id="L585">					Collections.singletonList(&quot;No migrations resolved.&quot;) :</span>
+<span class="fc" id="L586">					Collections.emptyList());</span>
+<span class="pc bpc" id="L587" title="1 of 2 branches missed.">			} else if (migrations.size() &gt; numberOfAppliedMigrations) {</span>
+<span class="fc" id="L588">				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_DATABASE, Collections.emptyList());</span>
+			}
+<span class="nc" id="L590">			return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());</span>
+<span class="fc" id="L591">		} catch (MigrationsException e) {</span>
+<span class="fc" id="L592">			List&lt;String&gt; warnings = Collections.singletonList(e.getMessage());</span>
+<span class="fc bfc" id="L593" title="All 2 branches covered.">			if (e.getCause() instanceof IndexOutOfBoundsException) {</span>
+<span class="fc" id="L594">				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);</span>
+			}
+<span class="fc" id="L596">			return new ValidationResult(targetDatabase, Outcome.DIFFERENT_CONTENT, warnings);</span>
+		}
+	}
+
+	/**
+	 * Retrieves the local catalog, containing constraints and indexes.
+	 *
+	 * @return the local catalog
+	 * @since 1.7.0
+	 */
+	public Catalog getLocalCatalog() {
+
+		// Retrieving the migrations will initialize the local catalog
+<span class="pc bpc" id="L609" title="1 of 2 branches missed.">		if (getMigrations().isEmpty()) {</span>
+<span class="nc" id="L610">			return Catalog.empty();</span>
+		}
+<span class="fc" id="L612">		return this.context.getCatalog();</span>
+	}
+
+	/**
+	 * Retrieves the database catalog
+	 *
+	 * @return the database catalog
+	 * @since 1.7.0
+	 */
+	public Catalog getDatabaseCatalog() {
+
+<span class="fc" id="L623">		return executeWithinLock(() -&gt; {</span>
+<span class="fc" id="L624">			try (Session session = context.getSession()) {</span>
+<span class="fc" id="L625">				Neo4jVersion neo4jVersion = Neo4jVersion.of(context.getConnectionDetails().getServerVersion());</span>
+<span class="fc" id="L626">				return DatabaseCatalog.of(neo4jVersion, session, true);</span>
+			}
+		}, null, null, true);
+	}
+
+	/**
+	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
+	 * @since 1.2.1
+	 */
+	public static String getUserAgent() {
+<span class="fc" id="L636">		return &quot;neo4j-migrations/&quot; + ProductVersion.getValue();</span>
+	}
+
+	private &lt;T&gt; T executeWithinLock(Supplier&lt;T&gt; executable, LifecyclePhase before, LifecyclePhase after, boolean doLock) {
+
+<span class="fc" id="L641">		driver.verifyConnectivity();</span>
+
+<span class="fc" id="L643">		MigrationsLock lock = new MigrationsLock(this.context);</span>
+		try {
+<span class="fc bfc" id="L645" title="All 2 branches covered.">			if (doLock) {</span>
+<span class="fc" id="L646">				lock.lock();</span>
+			}
+<span class="fc bfc" id="L648" title="All 2 branches covered.">			if (beforeFirstUseHasBeenCalled.compareAndSet(false, true)) {</span>
+<span class="fc" id="L649">				invokeCallbacks(LifecyclePhase.BEFORE_FIRST_USE);</span>
+			}
+			try {
+<span class="fc" id="L652">				invokeCallbacks(before);</span>
+<span class="fc" id="L653">				return executable.get();</span>
+			} finally {
+<span class="fc" id="L655">				invokeCallbacks(after);</span>
+			}
+		} finally {
+			try {
+<span class="fc bfc" id="L659" title="All 2 branches covered.">				if (lock.isLocked()) {</span>
+<span class="fc" id="L660">					lock.unlock();</span>
+				}
+<span class="fc" id="L662">			} catch (Exception e) {</span>
+<span class="fc" id="L663">				LOGGER.log(Level.SEVERE, &quot;Could not unlock… Please check for residues (Nodes labeled `__Neo4jMigrationsLock`).&quot;);</span>
+<span class="fc" id="L664">			}</span>
+		}
+	}
+
+	/**
+	 * @param phase can be {@literal null}, no callback will be involved then
+	 */
+	private void invokeCallbacks(LifecyclePhase phase) {
+
+<span class="fc bfc" id="L673" title="All 2 branches covered.">		if (phase == null) {</span>
+<span class="fc" id="L674">			return;</span>
+		}
+
+<span class="fc" id="L677">		LifecycleEvent event = new DefaultLifecycleEvent(phase, this.context);</span>
+<span class="fc" id="L678">		this.getCallbacks().getOrDefault(phase, Collections.emptyList())</span>
+<span class="fc" id="L679">			.forEach(callback -&gt; {</span>
+				try {
+<span class="fc" id="L681">					callback.on(event);</span>
+<span class="fc" id="L682">				} catch (Exception e) {</span>
+<span class="fc" id="L683">					throw new MigrationsException(&quot;Could not invoke &quot; + toString(callback, phase) + &quot;.&quot;, e);</span>
+<span class="fc" id="L684">				}</span>
+<span class="fc" id="L685">				LOGGER.log(Level.INFO, logMessageSupplier(callback, phase));</span>
+<span class="fc" id="L686">			});</span>
+<span class="fc" id="L687">	}</span>
+
+	static Supplier&lt;String&gt; logMessageSupplier(Callback callback, LifecyclePhase phase) {
+
+<span class="fc" id="L691">		return () -&gt; String.format(&quot;Invoked %s.&quot;, toString(callback, phase));</span>
+	}
+
+	static String toString(Callback callback, LifecyclePhase phase) {
+<span class="fc" id="L695">		Optional&lt;String&gt; optionalDescription = callback.getOptionalDescription();</span>
+<span class="fc" id="L696">		return optionalDescription</span>
+<span class="fc" id="L697">			.map(d -&gt; String.format(&quot;\&quot;%s\&quot; %s&quot;, d, phase.readable()))</span>
+<span class="fc" id="L698">			.orElseGet(() -&gt; String.format(&quot;%s callback&quot;, phase.toCamelCase()));</span>
+	}
+
+	private Optional&lt;MigrationVersion&gt; getLastAppliedVersion() {
+
+<span class="fc" id="L703">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L704">			Node lastMigration = session.executeRead(tx -&gt;</span>
+<span class="fc" id="L705">				tx.run(</span>
+					&quot;MATCH (l:__Neo4jMigration) WHERE coalesce(l.migrationTarget,'&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;') AND NOT (l)-[:MIGRATED_TO]-&gt;(:__Neo4jMigration) RETURN l&quot;,
+<span class="fc" id="L707">						Collections.singletonMap(PROPERTY_MIGRATION_TARGET, config.getMigrationTargetIn(context).orElse(null)))</span>
+<span class="fc" id="L708">				.single().get(0).asNode());</span>
+
+<span class="fc" id="L710">			String version = lastMigration.get(PROPERTY_MIGRATION_VERSION).asString();</span>
+<span class="fc" id="L711">			String description = lastMigration.get(PROPERTY_MIGRATION_DESCRIPTION).asString();</span>
+
+<span class="fc" id="L713">			return Optional.of(MigrationVersion.withValueAndDescription(version, description, lastMigration.get(&quot;repeatable&quot;).asBoolean(false)));</span>
+<span class="fc" id="L714">		} catch (NoSuchRecordException e) {</span>
+<span class="fc" id="L715">			return Optional.empty();</span>
+		}
+	}
+
+	static void ensureConstraints(MigrationContext context) {
+
+		// Composite unique constraints are not supported here
+<span class="pc bpc" id="L722" title="1 of 2 branches missed.">		if (!HBD.is44OrHigher(context.getConnectionDetails())) {</span>
+<span class="nc" id="L723">			return;</span>
+		}
+
+<span class="fc" id="L726">		ConnectionDetails cd = context.getConnectionDetails();</span>
+<span class="fc" id="L727">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L728">			RenderConfig createConfig = RenderConfig.create().ifNotExists()</span>
+<span class="fc" id="L729">				.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());</span>
+
+<span class="fc" id="L731">			var stmt = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(UNIQUE_VERSION, createConfig);</span>
+<span class="pc" id="L732">			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null, () -&gt; &quot;Could not create unique constraint for targeted migrations.&quot;);</span>
+
+<span class="fc" id="L734">			stmt = Renderer.get(Renderer.Format.CYPHER, Index.class).render(REPEATED_AT, createConfig);</span>
+<span class="pc" id="L735">			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null, () -&gt; &quot;Could not create index constraint for repeated migrations.&quot;);</span>
+		}
+<span class="fc" id="L737">	}</span>
+
+	boolean checksumOfRepeatableChanged(MigrationChain currentChain, Migration migration) {
+
+<span class="fc bfc" id="L741" title="All 2 branches covered.">		if (!migration.isRepeatable()) {</span>
+<span class="fc" id="L742">			return false;</span>
+		}
+
+<span class="fc" id="L745">		Optional&lt;String&gt; appliedChecksum = currentChain.getElements().stream()</span>
+<span class="fc" id="L746">			.filter(e -&gt; e.getVersion().equals(migration.getVersion().getValue()))</span>
+<span class="fc" id="L747">			.findFirst()</span>
+<span class="fc" id="L748">			.flatMap(MigrationChain.Element::getChecksum);</span>
+<span class="fc bfc" id="L749" title="All 2 branches covered.">		return !ChainBuilder.matches(appliedChecksum, migration);</span>
+	}
+
+	private void apply0(List&lt;Migration&gt; migrations) {
+
+<span class="fc" id="L754">		ensureConstraints(context);</span>
+
+		// Validate and build the chain of migrations
+<span class="fc" id="L757">		MigrationChain chain = chainBuilder.buildChain(context, migrations);</span>
+<span class="fc" id="L758">		StopVersion optionalStop = MigrationVersion.findTargetVersion(chain, config.getTarget()).orElse(null);</span>
+
+<span class="fc" id="L760">		StopWatch stopWatch = new StopWatch();</span>
+<span class="fc" id="L761">		MigrationVersion previousVersion = getLastAppliedVersion().orElseGet(MigrationVersion::baseline);</span>
+<span class="fc bfc" id="L762" title="All 2 branches covered.">		for (Migration migration : IterableMigrations.of(config, migrations, optionalStop)) {</span>
+<span class="fc" id="L763">			var isApplied = chain.isApplied(migration.getVersion().getValue());</span>
+<span class="fc" id="L764">			var isRepeated = false;</span>
+
+<span class="fc bfc" id="L766" title="All 4 branches covered.">			if (!isApplied &amp;&amp; config.getVersionComparator().compare(migration.getVersion(), previousVersion) &lt; 0) {</span>
+<span class="fc" id="L767">				previousVersion = MigrationVersion.baseline();</span>
+			}
+
+<span class="fc" id="L770">			Supplier&lt;String&gt; logMessage = () -&gt; String.format(&quot;Applied migration %s.&quot;, toString(migration));</span>
+<span class="pc bpc" id="L771" title="1 of 4 branches missed.">			if (isApplied &amp;&amp; previousVersion != MigrationVersion.baseline()) {</span>
+<span class="fc bfc" id="L772" title="All 2 branches covered.">				if (!checksumOfRepeatableChanged(chain, migration)) {</span>
+<span class="fc" id="L773">					LOGGER.log(Level.INFO, &quot;Skipping already applied migration {0}&quot;, toString(migration));</span>
+<span class="fc" id="L774">					previousVersion = migration.getVersion();</span>
+<span class="fc" id="L775">					continue;</span>
+				}
+
+<span class="fc" id="L778">				logMessage = () -&gt; String.format(&quot;Reapplied changed repeatable migration %s&quot;, toString(migration));</span>
+<span class="fc" id="L779">				isRepeated = true;</span>
+			}
+
+			try {
+<span class="fc" id="L783">				stopWatch.start();</span>
+<span class="fc" id="L784">				migration.apply(context);</span>
+<span class="fc" id="L785">				long executionTime = stopWatch.stop();</span>
+<span class="fc" id="L786">				previousVersion = recordApplication(chain.getUsername(), previousVersion, migration, executionTime, isRepeated);</span>
+
+<span class="fc" id="L788">				LOGGER.log(Level.INFO, logMessage);</span>
+<span class="fc" id="L789">			} catch (Exception e) {</span>
+<span class="fc bfc" id="L790" title="All 2 branches covered.">				if (HBD.constraintProbablyRequiredEnterpriseEdition(e, getConnectionDetails())) {</span>
+<span class="fc" id="L791">					throw new MigrationsException(Messages.INSTANCE.format(&quot;errors.edition_mismatch&quot;, toString(migration), getConnectionDetails().getServerEdition()));</span>
+				}
+<span class="fc" id="L793">				throw MigrationsException.of(e, () -&gt; &quot;Could not apply migration: &quot; + toString(migration) + &quot;.&quot;);</span>
+			} finally {
+<span class="fc" id="L795">				stopWatch.reset();</span>
+			}
+<span class="fc" id="L797">		}</span>
+<span class="fc" id="L798">	}</span>
+
+	private MigrationVersion recordApplication(String neo4jUser, MigrationVersion previousVersion, Migration appliedMigration, long executionTime, boolean repeated) {
+
+<span class="fc" id="L802">		Optional&lt;String&gt; migrationTarget = context.getConfig().getMigrationTargetIn(context);</span>
+<span class="fc" id="L803">		Map&lt;String, Object&gt; parameters = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L804">		parameters.put(&quot;neo4jUser&quot;, neo4jUser);</span>
+<span class="fc" id="L805">		parameters.put(&quot;previousVersion&quot;, previousVersion.getValue());</span>
+<span class="fc" id="L806">		parameters.put(&quot;appliedMigration&quot;, toProperties(appliedMigration));</span>
+<span class="fc" id="L807">		parameters.put(&quot;installedBy&quot;, config.getOptionalInstalledBy().map(Values::value).orElse(Values.NULL));</span>
+<span class="fc" id="L808">		parameters.put(&quot;executionTime&quot;, executionTime);</span>
+<span class="fc" id="L809">		parameters.put(PROPERTY_MIGRATION_TARGET, migrationTarget.orElse(null));</span>
+
+<span class="fc" id="L811">		record ReplacedMigration(long oldRelId, long newMigrationNodeId) {</span>
+		}
+
+		TransactionCallback&lt;Optional&lt;ReplacedMigration&gt;&gt; uow;
+<span class="fc bfc" id="L815" title="All 2 branches covered.">		if (repeated) {</span>
+<span class="fc" id="L816">			uow = t -&gt; {</span>
+<span class="fc" id="L817">				t.run(</span>
+					&quot;MATCH (l:__Neo4jMigration) WHERE l.version = $appliedMigration['version'] AND coalesce(l.migrationTarget,'&lt;default&gt;') = coalesce($migrationTarget,'&lt;default&gt;') WITH l &quot;
+					+ &quot;CREATE (l) - [:REPEATED {checksum: $appliedMigration['checksum'], at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -&gt; (l)&quot;,
+<span class="fc" id="L820">					parameters).consume();</span>
+<span class="fc" id="L821">				return Optional.empty();</span>
+			};
+		} else {
+<span class="fc" id="L824">			uow = t -&gt; {</span>
+				String mergePreviousMigration;
+<span class="fc bfc" id="L826" title="All 2 branches covered.">				if (migrationTarget.isPresent()) {</span>
+<span class="fc" id="L827">					mergePreviousMigration = &quot;MERGE (p:__Neo4jMigration {version: $previousVersion, migrationTarget: $migrationTarget}) WITH p &quot;;</span>
+				} else {
+<span class="fc" id="L829">					Result result = t.run(</span>
+						&quot;MATCH (p:__Neo4jMigration {version: $previousVersion}) WHERE p.migrationTarget IS NULL RETURN id(p) AS id&quot;,
+<span class="fc" id="L831">						Values.parameters(&quot;previousVersion&quot;, previousVersion.getValue()));</span>
+<span class="fc bfc" id="L832" title="All 2 branches covered.">					if (result.hasNext()) {</span>
+<span class="fc" id="L833">						parameters.put(&quot;id&quot;, result.single().get(&quot;id&quot;).asLong());</span>
+<span class="fc" id="L834">						mergePreviousMigration = &quot;MATCH (p) WHERE id(p) = $id WITH p &quot;;</span>
+					} else {
+<span class="fc" id="L836">						mergePreviousMigration = &quot;CREATE (p:__Neo4jMigration {version: $previousVersion}) WITH p &quot;;</span>
+					}
+				}
+
+<span class="fc" id="L840">				var createNewMigrationAndPath = &quot;&quot;&quot;</span>
+					OPTIONAL MATCH (p) -[om:MIGRATED_TO]-&gt; (ot)
+					CREATE (c:__Neo4jMigration) SET c = $appliedMigration, c.migrationTarget = $migrationTarget
+					MERGE (p) - [:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: $executionTime} ), by: $installedBy, connectedAs: $neo4jUser}] -&gt; (c)
+					RETURN id(c) AS insertedId, id(om) AS oldRelId, properties(om), id(ot) AS oldEndId
+					&quot;&quot;&quot;;
+
+<span class="fc" id="L847">				var result = t.run(mergePreviousMigration + &quot; &quot; + createNewMigrationAndPath, parameters).single();</span>
+<span class="fc bfc" id="L848" title="All 2 branches covered.">				if (!result.get(OLD_REL_ID).isNull()) {</span>
+<span class="fc" id="L849">					return Optional.of(new ReplacedMigration(result.get(OLD_REL_ID).asLong(), result.get(INSERTED_ID).asLong()));</span>
+				} else {
+<span class="fc" id="L851">					return Optional.empty();</span>
+				}
+			};
+		}
+
+<span class="fc" id="L856">		try (Session session = context.getSchemaSession()) {</span>
+<span class="fc" id="L857">			var optionalReplacedMigration = session.executeWrite(uow);</span>
+<span class="fc" id="L858">			Consumer&lt;ReplacedMigration&gt; rewire = replacedMigration -&gt; session.executeWriteWithoutResult(t -&gt; {</span>
+<span class="fc" id="L859">				var query = &quot;&quot;&quot;</span>
+					MATCH ()-[oldRel]-&gt;(oldEnd)
+					WHERE id(oldRel) = $oldRelId
+					MATCH (inserted) WHERE id(inserted) = $insertedId
+					MERGE (inserted) -[r:MIGRATED_TO]-&gt; (oldEnd)
+					SET r = properties(oldRel)
+					DELETE (oldRel)
+					&quot;&quot;&quot;;
+<span class="fc" id="L867">				var parameter = Map.&lt;String, Object&gt;of(OLD_REL_ID, replacedMigration.oldRelId(), INSERTED_ID, replacedMigration.newMigrationNodeId());</span>
+<span class="fc" id="L868">				t.run(query, parameter).consume();</span>
+<span class="fc" id="L869">			});</span>
+<span class="fc" id="L870">			optionalReplacedMigration.ifPresent(rewire);</span>
+		}
+
+<span class="fc" id="L873">		return appliedMigration.getVersion();</span>
+	}
+
+	private static Map&lt;String, Object&gt; toProperties(Migration migration) {
+
+<span class="fc" id="L878">		Map&lt;String, Object&gt; properties = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L880">		properties.put(PROPERTY_MIGRATION_VERSION, migration.getVersion().getValue());</span>
+<span class="fc" id="L881">		migration.getOptionalDescription().ifPresent(v -&gt; properties.put(PROPERTY_MIGRATION_DESCRIPTION, v));</span>
+<span class="fc" id="L882">		properties.put(&quot;type&quot;, getMigrationType(migration).name());</span>
+<span class="fc" id="L883">		properties.put(&quot;repeatable&quot;, migration.isRepeatable());</span>
+<span class="fc" id="L884">		properties.put(&quot;source&quot;, migration.getSource());</span>
+<span class="fc" id="L885">		migration.getChecksum().ifPresent(v -&gt; properties.put(&quot;checksum&quot;, v));</span>
+
+<span class="fc" id="L887">		return Collections.unmodifiableMap(properties);</span>
+	}
+
+	/**
+	 * Returns the type of the migration in question. It's not part of the API so that it is not possible to be
+	 * overwritten by classes implementing {@link JavaBasedMigration}.
+	 *
+	 * @param migration The migration whose type should be computed
+	 * @return The type of the migration.
+	 */
+	static MigrationType getMigrationType(Migration migration) {
+
+		MigrationType type;
+<span class="fc bfc" id="L900" title="All 2 branches covered.">		if (migration instanceof JavaBasedMigration) {</span>
+<span class="fc" id="L901">			type = MigrationType.JAVA;</span>
+<span class="fc bfc" id="L902" title="All 2 branches covered.">		} else if (migration instanceof AbstractCypherBasedMigration) {</span>
+<span class="fc" id="L903">			type = MigrationType.CYPHER;</span>
+<span class="pc bpc" id="L904" title="1 of 2 branches missed.">		} else if (migration instanceof CatalogBasedMigration) {</span>
+<span class="fc" id="L905">			type = MigrationType.CATALOG;</span>
+		} else {
+<span class="nc" id="L907">			throw new MigrationsException(&quot;Unknown migration type: &quot; + migration.getClass());</span>
+		}
+<span class="fc" id="L909">		return type;</span>
+	}
+
+	static String toString(Migration migration) {
+
+<span class="fc" id="L914">		return migration.getVersion().getValue()</span>
+<span class="fc" id="L915">			+ migration.getOptionalDescription().map(d -&gt; String.format(&quot; (\&quot;%s\&quot;)&quot;, d)).orElse(&quot;&quot;);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

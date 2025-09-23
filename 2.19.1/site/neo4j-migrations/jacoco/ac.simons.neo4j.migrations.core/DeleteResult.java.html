@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeleteResult.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">DeleteResult.java</span></div><h1>DeleteResult.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.Optional;
+
+/**
+ * A  {@link DeleteResult}  will be  created after  using {@link  Migrations#delete(MigrationVersion)} for  deleting one
+ * single migration. It  contains the number of deleted nodes  and relationships as well as the  number of newly created
+ * relationships.
+ *
+ * @author Michael J. Simons
+ * @since 2.2.0
+ */
+public final class DeleteResult extends AbstractRepairmentResult {
+
+	private final MigrationVersion version;
+
+	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, MigrationVersion version) {
+<span class="fc" id="L33">		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);</span>
+<span class="fc" id="L34">		this.version = version;</span>
+<span class="fc" id="L35">	}</span>
+
+	/**
+	 * @return {@literal true} if the database has been changed
+	 */
+	public boolean isDatabaseChanged() {
+<span class="fc bfc" id="L41" title="All 4 branches covered.">		return version != null &amp;&amp; getNodesDeleted() &gt; 0;</span>
+	}
+
+	/**
+	 * @return the deleted version (if any)
+	 */
+	public Optional&lt;MigrationVersion&gt; getVersion() {
+<span class="fc" id="L48">		return Optional.ofNullable(version);</span>
+	}
+
+	@Override
+	public String prettyPrint() {
+
+<span class="fc bfc" id="L54" title="All 2 branches covered.">		if (!isDatabaseChanged()) {</span>
+<span class="fc" id="L55">			return &quot;Database is unchanged, no version has been deleted.&quot;;</span>
+		}
+<span class="fc" id="L57">		return String.format(</span>
+			&quot;Migration %s has been removed (deleted %d nodes and %d relationships from %s).&quot;,
+<span class="fc" id="L59">			toString(this.version),</span>
+<span class="fc" id="L60">			this.getNodesDeleted(),</span>
+<span class="fc" id="L61">			this.getRelationshipsDeleted(),</span>
+<span class="fc" id="L62">			this.getAffectedDatabase().map(v -&gt; &quot;`&quot; + v + &quot;`&quot;).orElse(&quot;the default database&quot;)</span>
+		);
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

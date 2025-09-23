@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619272791">
+    <module artifactId="neo4j-migrations-cli" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/assembly/assembly-java.xml" result="PRESENT"/>
+        <file path="src/main/assembly/assembly-native-osx.xml" result="PRESENT"/>
+        <file path="src/main/assembly/assembly-native.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/CleanCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/CommonEnvVarDefaultProvider.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/ConnectedCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/DeleteCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/InfoCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/InitCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/ManifestVersionProvider.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrateBTreeIndexesCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrateCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCli.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/MigrationsCliExceptionMapper.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/OrderedCommandLineHelp.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/RepairCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/RunCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/ShowCatalogCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/ValidateCommand.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/internal/ImageInfo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/internal/MigrationsCliConsoleFormatter.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/cli/internal/MigrationsCliConsoleHandler.java" result="PRESENT"/>
+        <file path="src/main/resources/META-INF/native-image/eu.michael-simons.neo4j/neo4j-migrations-cli/native-image.properties" result="PRESENT"/>
+        <file path="src/main/resources/logging.properties" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/CleanCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/ConnectedCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/DeleteCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/EnvironmentVarIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/ExceptionHandlingTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/InfoCommandIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/InitCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/LoggingTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/ManifestVersionProviderTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrateBTreeIndexesCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrateCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrationsCliExceptionMapperTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/MigrationsCliTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/OrderedCommandLineHelpTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/RepairCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/RunCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/ShowCatalogCommandTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/cli/ValidateCommandTest.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

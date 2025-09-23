@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogDiff.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">CatalogDiff.java</span></div><h1>CatalogDiff.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+/**
+ * This represents a diff results between two catalogs. It offers a handful of convience methods to quickly check if two
+ * catalogs are identical or at least have equivalent content.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Pet Shop Boys - Fundamental
+ * @since 1.7.0
+ */
+public interface CatalogDiff {
+
+	/**
+	 * Creates a diff between to catalogs
+	 *
+	 * @param left  left catalog
+	 * @param right right catalog
+	 * @return a diff on the given catalogs
+	 */
+	static CatalogDiff between(Catalog left, Catalog right) {
+
+<span class="fc bfc" id="L43" title="All 4 branches covered.">		if (left.isEmpty() &amp;&amp; right.isEmpty()) {</span>
+<span class="fc" id="L44">			return new CatalogDiffImpl();</span>
+<span class="pc bpc" id="L45" title="1 of 4 branches missed.">		} else if (left.isEmpty() &amp;&amp; !right.isEmpty()) {</span>
+<span class="fc" id="L46">			Set&lt;CatalogItem&lt;?&gt;&gt; itemsOnlyInRight = new HashSet&lt;&gt;(right.getItems());</span>
+<span class="fc" id="L47">			return new CatalogDiffImpl(Collections.emptySet(), itemsOnlyInRight, Collections.emptySet());</span>
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">		} else if (!left.isEmpty() &amp;&amp; right.isEmpty()) {</span>
+<span class="fc" id="L49">			Set&lt;CatalogItem&lt;?&gt;&gt; itemsOnlyInLeft = new HashSet&lt;&gt;(left.getItems());</span>
+<span class="fc" id="L50">			return new CatalogDiffImpl(itemsOnlyInLeft, Collections.emptySet(), Collections.emptySet());</span>
+		}
+
+<span class="fc" id="L53">		Set&lt;CatalogItem&lt;?&gt;&gt; itemsOnlyInLeft = new HashSet&lt;&gt;(left.getItems());</span>
+<span class="fc" id="L54">		Set&lt;CatalogItem&lt;?&gt;&gt; itemsOnlyInRight = new HashSet&lt;&gt;(right.getItems());</span>
+<span class="fc" id="L55">		itemsOnlyInLeft.removeAll(right.getItems());</span>
+<span class="fc" id="L56">		itemsOnlyInRight.removeAll(left.getItems());</span>
+
+<span class="fc" id="L58">		Set&lt;CatalogItem&lt;?&gt;&gt; equivalentItems = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">		for (CatalogItem&lt;?&gt; catalogItem : itemsOnlyInLeft) {</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			if (right.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {</span>
+<span class="fc" id="L61">				equivalentItems.add(catalogItem);</span>
+			}
+<span class="fc" id="L63">		}</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		for (CatalogItem&lt;?&gt; catalogItem : itemsOnlyInRight) {</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">			if (left.getItems().stream().anyMatch(catalogItem::isEquivalentTo)) {</span>
+<span class="fc" id="L66">				equivalentItems.add(catalogItem);</span>
+			}
+<span class="fc" id="L68">		}</span>
+
+<span class="fc" id="L70">		return new CatalogDiffImpl(itemsOnlyInLeft, itemsOnlyInRight, equivalentItems);</span>
+	}
+
+	/**
+	 * @return {@literal true} if the catalogs are identical, {@literal false} otherwise
+	 */
+	boolean identical();
+
+	/**
+	 * Will always return {@literal true} when {@link #identical()} returns {@literal true}
+	 *
+	 * @return {@literal true} if the catalogs are equivalent, {@literal false} otherwise
+	 */
+	boolean equivalent();
+
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of items that are only in the left catalog
+	 */
+	@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+	Collection&lt;CatalogItem&lt;?&gt;&gt; getItemsOnlyInLeft();
+
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of items that are only in the right catalog
+	 */
+	@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+	Collection&lt;CatalogItem&lt;?&gt;&gt; getItemsOnlyInRight();
+
+	/**
+	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
+	 *
+	 * @return a collection of equivalent items
+	 */
+	@SuppressWarnings(&quot;squid:S1452&quot;) // Generic items, this is exactly what we want here
+	Collection&lt;CatalogItem&lt;?&gt;&gt; getEquivalentItems();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

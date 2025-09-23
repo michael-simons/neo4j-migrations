@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RepairmentResult.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">RepairmentResult.java</span></div><h1>RepairmentResult.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+/**
+ * A {@link  RepairmentResult} will  be available  after a  successful attempt of  repairing a  database. An  attempt is
+ * considered successful no repairing  was necessary or all errors in the remote  {@link MigrationChain migration chain}
+ * could be fixed.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Deichkind - Neues vom Dauerzustand
+ * @since 2.2.0
+ */
+public final class RepairmentResult extends AbstractRepairmentResult {
+
+	/**
+	 * The outcome of an attempt of repairing a {@link MigrationChain migration chain}.
+	 */
+<span class="fc" id="L32">	public enum Outcome {</span>
+
+		/**
+		 * This outcome indicates that no repairment was necessary. This is the case for example when no migrations have
+		 * been applied yet to the target database.
+		 */
+<span class="fc" id="L38">		NO_REPAIRMENT_NECESSARY,</span>
+
+		/**
+		 * This outcome indicates the database has been repaired and changes have been made. Check the additional data.
+		 */
+<span class="fc" id="L43">		REPAIRED</span>
+	}
+
+	static RepairmentResult unnecessary(String affectedDatabase) {
+<span class="fc" id="L47">		return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, Outcome.NO_REPAIRMENT_NECESSARY);</span>
+	}
+
+	static RepairmentResult repaired(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
+<span class="fc" id="L51">		return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet, Outcome.REPAIRED);</span>
+	}
+
+	private final Outcome outcome;
+
+	private RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
+<span class="fc" id="L57">		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);</span>
+<span class="fc" id="L58">		this.outcome = outcome;</span>
+<span class="fc" id="L59">	}</span>
+
+	/**
+	 * @return The outcome of the repairment attempt.
+	 */
+	public Outcome getOutcome() {
+<span class="fc" id="L65">		return outcome;</span>
+	}
+
+	@Override
+	public String prettyPrint() {
+
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		if (outcome == Outcome.NO_REPAIRMENT_NECESSARY) {</span>
+<span class="fc" id="L72">			return String.format(&quot;%s is in a valid state, missing or new migrations can be applied&quot;,</span>
+<span class="fc" id="L73">				this.getAffectedDatabase().map(v -&gt; &quot;`&quot; + v + &quot;`&quot;).orElse(&quot;The default database&quot;));</span>
+		}
+
+<span class="fc" id="L76">		return String.format(</span>
+			&quot;The migration chain in %s has been repaired: %d nodes and %d relationships have been deleted, %d nodes and %d relationships have been recreated.&quot;,
+<span class="fc" id="L78">			this.getAffectedDatabase().map(v -&gt; &quot;`&quot; + v + &quot;`&quot;).orElse(&quot;the default database&quot;),</span>
+<span class="fc" id="L79">			this.getNodesDeleted(),</span>
+<span class="fc" id="L80">			this.getRelationshipsDeleted(),</span>
+<span class="fc" id="L81">			this.getNodesCreated(),</span>
+<span class="fc" id="L82">			this.getRelationshipsCreated()</span>
+		);
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

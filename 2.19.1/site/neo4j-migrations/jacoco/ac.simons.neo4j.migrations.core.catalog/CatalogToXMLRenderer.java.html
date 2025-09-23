@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CatalogToXMLRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core.catalog</a> &gt; <span class="el_source">CatalogToXMLRenderer.java</span></div><h1>CatalogToXMLRenderer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core.catalog;
+
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig.XMLRenderingOptions;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import ac.simons.neo4j.migrations.core.internal.XMLUtils;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+/**
+ * @author Michael J. Simons
+ * @since 1.7.0
+ */
+<span class="fc" id="L42">enum CatalogToXMLRenderer implements Renderer&lt;Catalog&gt; {</span>
+
+<span class="fc" id="L44">	INSTANCE;</span>
+
+	@Override
+	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
+
+<span class="fc" id="L49">		List&lt;XMLRenderingOptions&gt; relevantOptions = config.getAdditionalOptions().stream()</span>
+<span class="fc" id="L50">			.filter(XMLRenderingOptions.class::isInstance)</span>
+<span class="fc" id="L51">			.map(XMLRenderingOptions.class::cast)</span>
+<span class="fc" id="L52">			.toList();</span>
+<span class="fc" id="L53">		boolean withApply = relevantOptions</span>
+<span class="fc" id="L54">			.stream().map(XMLRenderingOptions::withApply)</span>
+<span class="pc bpc" id="L55" title="1 of 6 branches missed.">			.reduce(!relevantOptions.isEmpty(), (v1, v2) -&gt; v1 &amp;&amp; v2);</span>
+<span class="fc" id="L56">		boolean withReset = relevantOptions</span>
+<span class="fc" id="L57">			.stream().map(XMLRenderingOptions::withReset)</span>
+<span class="pc bpc" id="L58" title="1 of 6 branches missed.">			.reduce(!relevantOptions.isEmpty(), (v1, v2) -&gt; v1 &amp;&amp; v2);</span>
+
+<span class="fc" id="L60">		String header = relevantOptions.stream()</span>
+<span class="fc" id="L61">			.map(XMLRenderingOptions::optionalHeader)</span>
+<span class="fc" id="L62">			.filter(Optional::isPresent)</span>
+<span class="fc" id="L63">			.map(Optional::get)</span>
+<span class="fc" id="L64">			.collect(Collectors.joining(System.lineSeparator(), &quot; &quot;, &quot; &quot;));</span>
+
+<span class="fc" id="L66">		DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();</span>
+		try {
+<span class="fc" id="L68">			DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();</span>
+<span class="fc" id="L69">			Document document = documentBuilder.newDocument();</span>
+
+<span class="fc" id="L71">			Element migrationElement = document.createElementNS(XMLSchemaConstants.MIGRATION_NS,</span>
+				XMLSchemaConstants.MIGRATION);
+
+<span class="fc bfc" id="L74" title="All 2 branches covered.">			if (!header.trim().isEmpty()) {</span>
+<span class="fc" id="L75">				migrationElement.appendChild(document.createComment(header));</span>
+			}
+<span class="fc" id="L77">			document.appendChild(migrationElement);</span>
+
+<span class="fc" id="L79">			Element catalogElement = document.createElement(XMLSchemaConstants.CATALOG);</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">			if (withReset) {</span>
+<span class="fc" id="L81">				catalogElement.setAttribute(XMLSchemaConstants.RESET, Boolean.toString(true));</span>
+			}
+
+<span class="fc" id="L84">			Element indexesElement = document.createElement(XMLSchemaConstants.INDEXES);</span>
+<span class="fc" id="L85">			migrationElement.appendChild(catalogElement);</span>
+<span class="fc" id="L86">			catalogElement.appendChild(indexesElement);</span>
+
+<span class="fc" id="L88">			Element constraintsElement = document.createElement(XMLSchemaConstants.CONSTRAINTS);</span>
+<span class="fc" id="L89">			catalogElement.appendChild(constraintsElement);</span>
+
+<span class="fc bfc" id="L91" title="All 2 branches covered.">			for (CatalogItem&lt;?&gt; item : catalog.getItems()) {</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">				if (item instanceof Constraint constraint) {</span>
+<span class="fc" id="L93">					constraintsElement.appendChild(constraint.toXML(document));</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">				} else if (item instanceof Index index) {</span>
+<span class="fc" id="L95">					indexesElement.appendChild(index.toXML(document));</span>
+				}
+<span class="fc" id="L97">			}</span>
+
+<span class="fc bfc" id="L99" title="All 2 branches covered.">			if (withApply) {</span>
+<span class="fc" id="L100">				Element apply = document.createElement(XMLSchemaConstants.APPLY);</span>
+<span class="fc" id="L101">				migrationElement.appendChild(apply);</span>
+			}
+
+<span class="fc" id="L104">			XMLUtils.getIndentingTransformer().transform(new DOMSource(document), new StreamResult(target));</span>
+<span class="nc" id="L105">		} catch (ParserConfigurationException | TransformerException e) {</span>
+<span class="nc" id="L106">			throw new IOException(e);</span>
+<span class="fc" id="L107">		}</span>
+<span class="fc" id="L108">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

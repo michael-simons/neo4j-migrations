@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CleanResult.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">CleanResult.java</span></div><h1>CleanResult.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * Result of a clean operation. The result is immutable.
+ *
+ * @author Michael J. Simons
+ * @since 1.1.0
+ */
+public final class CleanResult implements DatabaseOperationResult {
+
+	private final String affectedDatabase;
+
+	private final List&lt;String&gt; chainsDeleted;
+
+	private final long nodesDeleted;
+
+	private final long relationshipsDeleted;
+
+	private final long constraintsRemoved;
+
+	private final long indexesRemoved;
+
+	CleanResult(Optional&lt;String&gt; affectedDatabase, List&lt;String&gt; chainsDeleted, long nodesDeleted, long relationshipsDeleted,
+		long constraintsRemoved,
+<span class="fc" id="L44">		long indexesRemoved) {</span>
+<span class="fc" id="L45">		this.affectedDatabase = affectedDatabase.orElse(null);</span>
+<span class="fc" id="L46">		this.chainsDeleted = List.copyOf(chainsDeleted);</span>
+<span class="fc" id="L47">		this.nodesDeleted = nodesDeleted;</span>
+<span class="fc" id="L48">		this.relationshipsDeleted = relationshipsDeleted;</span>
+<span class="fc" id="L49">		this.constraintsRemoved = constraintsRemoved;</span>
+<span class="fc" id="L50">		this.indexesRemoved = indexesRemoved;</span>
+<span class="fc" id="L51">	}</span>
+
+	@Override
+	public Optional&lt;String&gt; getAffectedDatabase() {
+<span class="fc" id="L55">		return Optional.ofNullable(affectedDatabase);</span>
+	}
+
+	/**
+	 * The list of chains deleted.
+	 *
+	 * @return the name of the chains' migration targets
+	 */
+	public List&lt;String&gt; getChainsDeleted() {
+<span class="fc" id="L64">		return chainsDeleted;</span>
+	}
+
+	/**
+	 * @return how many nodes have been deleted.
+	 */
+	public long getNodesDeleted() {
+<span class="fc" id="L71">		return nodesDeleted;</span>
+	}
+
+	/**
+	 * @return how many relationships have been deleted
+	 */
+	public long getRelationshipsDeleted() {
+<span class="fc" id="L78">		return relationshipsDeleted;</span>
+	}
+
+	/**
+	 * @return how many constraints have been removed
+	 */
+	public long getConstraintsRemoved() {
+<span class="fc" id="L85">		return constraintsRemoved;</span>
+	}
+
+	/**
+	 * @return how many indexes have been removed
+	 */
+	public long getIndexesRemoved() {
+<span class="fc" id="L92">		return indexesRemoved;</span>
+	}
+
+	@Override
+	public String prettyPrint() {
+
+<span class="fc bfc" id="L98" title="All 2 branches covered.">		String prefix = &quot;chain&quot; + (getChainsDeleted().size() &gt; 1 ? &quot;s &quot; : &quot; &quot;);</span>
+<span class="fc" id="L99">		return String.format(</span>
+			&quot;Deleted %s (%d nodes and %d relationships in total) and %d constraints from %s.&quot;,
+<span class="fc bfc" id="L101" title="All 2 branches covered.">			getChainsDeleted().isEmpty() ?</span>
+<span class="fc" id="L102">				&quot;no chains&quot; :</span>
+<span class="fc" id="L103">				getChainsDeleted().stream().collect(Collectors.joining(&quot;, &quot;, prefix, &quot;&quot;)),</span>
+<span class="fc" id="L104">			this.getNodesDeleted(),</span>
+<span class="fc" id="L105">			this.getRelationshipsDeleted(),</span>
+<span class="fc" id="L106">			this.getConstraintsRemoved(),</span>
+<span class="fc" id="L107">			this.getAffectedDatabase().map(v -&gt; &quot;`&quot; + v + &quot;`&quot;).orElse(&quot;the default database&quot;)</span>
+		);
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

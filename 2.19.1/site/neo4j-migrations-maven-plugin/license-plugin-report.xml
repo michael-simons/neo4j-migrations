@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619278341">
+    <module artifactId="neo4j-migrations-maven-plugin" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/it/settings.xml" result="PRESENT"/>
+        <file path="src/it/simple-it/pom.xml" result="PRESENT"/>
+        <file path="src/it/simple-it/prepare.groovy" result="PRESENT"/>
+        <file path="src/it/simple-it/verify.groovy" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/AbstractConnectedMojo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/CleanMojo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/InfoMojo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/MigrateMojo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/RepairMojo.java" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/maven/ValidateMojo.java" result="PRESENT"/>
+        <file path="src/site/site.xml" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/maven/AbstractConnectedMojoTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/maven/InfoMojoIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/maven/RepairMojoTest.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/maven/ValidateMojoTest.java" result="PRESENT"/>
+        <file path="src/test/resources/cypher-version/pom.xml" result="PRESENT"/>
+        <file path="src/test/resources/out-of-order/pom.xml" result="PRESENT"/>
+        <file path="src/test/resources/project-to-test/pom.xml" result="PRESENT"/>
+        <file path="src/test/resources/with-imp-and-schema/pom.xml" result="PRESENT"/>
+    </files>
+</licensePluginReport>

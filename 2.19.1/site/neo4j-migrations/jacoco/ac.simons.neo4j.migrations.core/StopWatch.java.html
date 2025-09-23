@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StopWatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (Core)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.core</a> &gt; <span class="el_source">StopWatch.java</span></div><h1>StopWatch.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.core;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author Michael J. Simons
+ * @since 0.0.4
+ */
+<span class="fc" id="L24">final class StopWatch {</span>
+
+	/**
+	 * The timestamp at which the stopwatch was started.
+	 */
+<span class="fc" id="L29">	private long start = -1L;</span>
+
+	/**
+	 * The timestamp at which the stopwatch was stopped.
+	 */
+<span class="fc" id="L34">	private long stop = -1L;</span>
+
+	/**
+	 * Starts the stop watch.
+	 */
+	public void start() {
+<span class="fc bfc" id="L40" title="All 2 branches covered.">		if (start != -1L) {</span>
+<span class="fc" id="L41">			throw new IllegalStateException(&quot;Stopwatch already started.&quot;);</span>
+		}
+<span class="fc" id="L43">		start = nanoTime();</span>
+<span class="fc" id="L44">	}</span>
+
+	/**
+	 * Stops the stop watch.
+	 *
+	 * @return The total run time in millis of the stop watch between the start and stop calls.
+	 */
+	public long stop() {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (start == -1L) {</span>
+<span class="fc" id="L53">			throw new IllegalStateException(&quot;Stopwatch not started.&quot;);</span>
+		}
+
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		if (stop != -1L) {</span>
+<span class="fc" id="L57">			throw new IllegalStateException(&quot;Stopwatch already stopped.&quot;);</span>
+		}
+<span class="fc" id="L59">		stop = nanoTime();</span>
+
+<span class="fc" id="L61">		return getTotalTimeMillis();</span>
+	}
+
+	/**
+	 * Resets this stop watch.
+	 */
+	public void reset() {
+<span class="fc" id="L68">		this.start = -1L;</span>
+<span class="fc" id="L69">		this.stop = -1L;</span>
+<span class="fc" id="L70">	}</span>
+
+	private long nanoTime() {
+<span class="fc" id="L73">		return System.nanoTime();</span>
+	}
+
+	/**
+	 * @return The total run time in millis of the stop watch between start and stop calls.
+	 */
+	private long getTotalTimeMillis() {
+
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">		if (start == -1) {</span>
+<span class="nc" id="L82">			throw new IllegalStateException(&quot;Stopwatch not started.&quot;);</span>
+		}
+
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">		if (stop == -1) {</span>
+<span class="nc" id="L86">			throw new IllegalStateException(&quot;Stopwatch not stopped.&quot;);</span>
+		}
+
+<span class="fc" id="L89">		long duration = stop - start;</span>
+<span class="fc" id="L90">		return TimeUnit.NANOSECONDS.toMillis(duration);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

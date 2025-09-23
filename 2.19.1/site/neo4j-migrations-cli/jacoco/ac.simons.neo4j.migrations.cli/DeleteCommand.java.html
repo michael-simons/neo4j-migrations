@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="de"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeleteCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Neo4j Migrations (CLI)</a> &gt; <a href="index.source.html" class="el_package">ac.simons.neo4j.migrations.cli</a> &gt; <span class="el_source">DeleteCommand.java</span></div><h1>DeleteCommand.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ac.simons.neo4j.migrations.cli;
+
+import ac.simons.neo4j.migrations.core.DeleteResult;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsException;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
+import picocli.CommandLine.ParentCommand;
+
+/**
+ * This command can  be used to delete individual migrations  from the chain of applied migrations.  This is useful when
+ * migration scripts or classes have been deleted.
+ *
+ * @author Michael J. Simons
+ * @soundtrack Antilopen Gang - Anarchie und Alltag
+ * @since 2.2.0
+ */
+@Command(name = &quot;delete&quot;, description = &quot;Deletes a migration from the chain of applied migrations.&quot;)
+<span class="fc" id="L35">public class DeleteCommand extends ConnectedCommand {</span>
+
+	@ParentCommand
+	private MigrationsCli parent;
+
+	@Parameters(paramLabel = &quot;version&quot;, description = &quot;The full name of the version or the unique name of the version that should be deleted&quot;)
+	private String versionValue;
+
+	@Override
+	public MigrationsCli getParent() {
+<span class="nc" id="L45">		return parent;</span>
+	}
+
+	@Override
+	boolean forceSilence() {
+<span class="nc" id="L50">		return true;</span>
+	}
+
+	@Override
+	Integer withMigrations(Migrations migrations) {
+
+		MigrationVersion version;
+		try {
+<span class="fc" id="L58">			version = MigrationVersion.parse(versionValue);</span>
+<span class="fc" id="L59">		} catch (MigrationsException e) {</span>
+<span class="fc" id="L60">			version = MigrationVersion.withValue(versionValue);</span>
+<span class="fc" id="L61">		}</span>
+
+<span class="fc" id="L63">		DeleteResult result = migrations.delete(version);</span>
+<span class="fc" id="L64">		MigrationsCli.LOGGER.info(result::prettyPrint);</span>
+<span class="fc" id="L65">		result.getWarnings().forEach(MigrationsCli.LOGGER::warning);</span>
+<span class="fc" id="L66">		return 0;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

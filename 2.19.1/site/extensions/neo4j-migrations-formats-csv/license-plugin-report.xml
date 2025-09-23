@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<licensePluginReport goal="CHECK" timestamp="1758619277723">
+    <module artifactId="neo4j-migrations-formats-csv" groupId="eu.michael-simons.neo4j" version="2.19.3-SNAPSHOT"/>
+    <files>
+        <file path="pom.xml" result="PRESENT"/>
+        <file path="src/main/java/ac/simons/neo4j/migrations/formats/csv/AbstractLoadCSVMigration.java" result="PRESENT"/>
+        <file path="src/main/java/module-info.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/csv/LoadCSVMigrationIT.java" result="PRESENT"/>
+        <file path="src/test/java/ac/simons/neo4j/migrations/formats/csv/test_migrations/R050__LoadBookData.java" result="PRESENT"/>
+    </files>
+</licensePluginReport>

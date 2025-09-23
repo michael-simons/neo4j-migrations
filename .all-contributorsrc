@@ -347,6 +347,16 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "ivu-mawi",
+      "name": "ivu-mawi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/150349238?v=4",
+      "profile": "https://github.com/ivu-mawi",
+      "contributions": [
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,

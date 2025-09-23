@@ -30,7 +30,7 @@ asciidoc:
     sectlink: ''
     sectanchors: ''
     xrefstyle: short
-    fullVersion: "2.19.1"
+    fullVersion: "2.19.2"
     page-product: Migrations
     page-type: Neo4j Migrations Manual
     page-canonical-root: /labs

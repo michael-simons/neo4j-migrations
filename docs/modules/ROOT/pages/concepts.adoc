@@ -75,6 +75,36 @@ This instance needs to be passed than to the Neo4j-Migrations Core API in case y
 Mostly everything else than can be done via Cypher scripts alone.
 If you need more control about what happens in a migration, have a look at our xref:concepts.adoc#concepts_migrations_java-based[Java-based migration support].
 
+[[concepts_locations]]
+== Locations
+
+You need to store migrations somewhere. Essentially, Neo4j-Migrations offers three categories:
+
+* class- or module-path based packages
+* classpath based locations
+* file based locations
+
+The former does support Java (and Kotlin) classes, the two latter only supports Cypher (and XML) based scripts, for obvious reasons: Neo4j-Migrations won't pick up external Java files and compile them for you.
+
+Packages are configured through `packagesToScan` in `MigrationConfig`. A corresponding property is available in all framework integrations and in the CLI.
+
+Locations for resources must be configured through `locationsToScan`. Again, a corresponding property is available in all framework integrations and in the CLI. Additionally, the xref:usage.adoc#usage_quarkus[Quarkus integration] offers `externalLocations`. Why? Because `locationsToScan` will be treated by Quarkus as build-time properties and be resolved during built-time, becoming part of the Jar-file or native image. Hence, you wouldn't be able to change them later. `externalLocations` will stay flexible, the semantics however are the same.
+
+=== `classpath:` or `file:` protocol?
+
+Neo4j-Migrations differentiates for the `locationsToScan` option between the `classpath:` and the `file:` protocol with the following syntax and semantics:
+
+`a/b/c`:: Implicitly assuming `classpath:`, treating the value `a/b/c` as the package `a.b.c`.
+`/a/b/c`:: Implicitly assuming `classpath:`, treating the value `a/b/c` as the package `a.b.c`, the leading forward-slash is superfluous and will be stripped.
+`classpath:a/b/c` respectively `classpath:/a/b/c`:: Same as the above, but explicitly enabling classpath scanning in the given package.
+`./whatever/../a/b/c`:: Implicitly assuming `file:`, indicated by the leading dot (`.`), which has the same semantics as in a filesystem. Neo4j-Migrations will resolve the given relative path against the current working directory and look there for a directory structure of `a/b/c`.
+`../migrations/a/b/c`:: Implicitly assuming `file:`, indicated by the leading dots (`..`), which have the same semantics as in a filesystem. Neo4j-Migrations will resolve the given relative path against the current working directory and look in its parent directory for a directory structure of `migrations/a/b/c`.
+Using the `file:` uri scheme:: This one is a bit tricky, and you might want to read up about it https://en.wikipedia.org/wiki/File_URI_scheme[here]. Neo4j-Migrations is strict about the number of forward slashes here: A valid file URI must begin with either `file:/path` (no hostname), `file:///path` (empty hostname), or `file://hostname/path`. Neo4j-Migrations will strip away any hostname, relative paths are not allowed within the `file:` uri scheme and will be stripped away.
+
+Note: Scanning the root package is not supported, as it might become slow and sometimes dangerous, too. In the end, you would not want to bring in a dependency that might contain a Cypher resource that fit the naming conventions of Neo4j-Migrations and truncate your database, would you?
+
+Any configured file-system location that does not exist or isn't a directory will be logged on `WARNING` level.
+
 [[concepts_migrations]]
 == Migrations
 

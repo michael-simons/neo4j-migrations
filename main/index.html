@@ -557,15 +557,16 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <li><a href="#concepts">3. Concepts</a>
 <ul class="sectlevel2">
 <li><a href="#concepts_connectivity">3.1. Connectivity</a></li>
-<li><a href="#concepts_migrations">3.2. Migrations</a></li>
-<li><a href="#concepts_callbacks">3.3. Callbacks</a></li>
-<li><a href="#concepts_catalog">3.4. Using a catalog of items</a></li>
-<li><a href="#concepts_naming-conventions">3.5. Naming conventions</a></li>
-<li><a href="#concepts_chain">3.6. Chain of applied migrations</a></li>
-<li><a href="#concepts_separate-databases">3.7. Separate schema databases</a></li>
-<li><a href="#concepts_transactions">3.8. Transactions</a></li>
-<li><a href="#concepts_preconditions">3.9. Preconditions</a></li>
-<li><a href="#concepts_repairing_broken_chains">3.10. Repairing migrations</a></li>
+<li><a href="#concepts_locations">3.2. Locations</a></li>
+<li><a href="#concepts_migrations">3.3. Migrations</a></li>
+<li><a href="#concepts_callbacks">3.4. Callbacks</a></li>
+<li><a href="#concepts_catalog">3.5. Using a catalog of items</a></li>
+<li><a href="#concepts_naming-conventions">3.6. Naming conventions</a></li>
+<li><a href="#concepts_chain">3.7. Chain of applied migrations</a></li>
+<li><a href="#concepts_separate-databases">3.8. Separate schema databases</a></li>
+<li><a href="#concepts_transactions">3.9. Transactions</a></li>
+<li><a href="#concepts_preconditions">3.10. Preconditions</a></li>
+<li><a href="#concepts_repairing_broken_chains">3.11. Repairing migrations</a></li>
 </ul>
 </li>
 <li><a href="#usage">4. Usage</a>
@@ -600,7 +601,7 @@ table.CodeRay td.code{padding:0 0 0 .75em}
 <div class="quoteblock abstract">
 <blockquote>
 <div class="paragraph">
-<p>This is the Neo4j-Migrations manual version 2.19.2-SNAPSHOT.</p>
+<p>This is the Neo4j-Migrations manual version 2.19.3-SNAPSHOT.</p>
 </div>
 </blockquote>
 </div>
@@ -765,7 +766,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT-linux-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT-linux-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -776,7 +777,7 @@ Arm binaries are not yet available.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT-windows-x86_64.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT-windows-x86_64.zip</code></pre>
 </div>
 </div>
 </div>
@@ -789,7 +790,7 @@ Get this version here:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip</code></pre>
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -822,7 +823,7 @@ Here are the coordinates:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -833,7 +834,7 @@ Here are the coordinates:</p>
 <div class="title">Listing 2. Core API as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:2.19.2-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations:2.19.3-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -852,7 +853,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -864,7 +865,7 @@ This starter here has a custom namespace, please refer to <a href="#usage_spring
 <div class="title">Listing 4. Neo4j-Migrations-Spring-Boot-Starter as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="gradle">dependencies {
-    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:2.19.2-SNAPSHOT'
+    implementation 'eu.michael-simons.neo4j:neo4j-migrations-spring-boot-starter:2.19.3-SNAPSHOT'
 }</code></pre>
 </div>
 </div>
@@ -884,7 +885,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;dependency&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;/dependency&gt;</span>
 <span class="tag">&lt;/dependencies&gt;</span></code></pre>
 </div>
@@ -901,7 +902,7 @@ The namespace for this extension is also <code>org.neo4j.migrations.*</code>.</p
     <span class="tag">&lt;plugin&gt;</span>
         <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
         <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-        <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
         <span class="tag">&lt;configuration&gt;</span>
             <span class="tag">&lt;user&gt;</span>neo4j<span class="tag">&lt;/user&gt;</span>
             <span class="tag">&lt;password&gt;</span>secret<span class="tag">&lt;/password&gt;</span>
@@ -1051,7 +1052,75 @@ If you need more control about what happens in a migration, have a look at our <
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_migrations"><a class="anchor" href="#concepts_migrations"></a>3.2. Migrations</h3>
+<h3 id="concepts_locations"><a class="anchor" href="#concepts_locations"></a>3.2. Locations</h3>
+<div class="paragraph">
+<p>You need to store migrations somewhere. Essentially, Neo4j-Migrations offers three categories:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>class- or module-path based packages</p>
+</li>
+<li>
+<p>classpath based locations</p>
+</li>
+<li>
+<p>file based locations</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The former does support Java (and Kotlin) classes, the two latter only supports Cypher (and XML) based scripts, for obvious reasons: Neo4j-Migrations won&#8217;t pick up external Java files and compile them for you.</p>
+</div>
+<div class="paragraph">
+<p>Packages are configured through <code>packagesToScan</code> in <code>MigrationConfig</code>. A corresponding property is available in all framework integrations and in the CLI.</p>
+</div>
+<div class="paragraph">
+<p>Locations for resources must be configured through <code>locationsToScan</code>. Again, a corresponding property is available in all framework integrations and in the CLI. Additionally, the <a href="#usage_quarkus">Quarkus integration</a> offers <code>externalLocations</code>. Why? Because <code>locationsToScan</code> will be treated by Quarkus as build-time properties and be resolved during built-time, becoming part of the Jar-file or native image. Hence, you wouldn&#8217;t be able to change them later. <code>externalLocations</code> will stay flexible, the semantics however are the same.</p>
+</div>
+<div class="sect3">
+<h4 id="classpathorfileprotocol"><a class="anchor" href="#classpathorfileprotocol"></a>3.2.1. <code>classpath:</code> or <code>file:</code> protocol?</h4>
+<div class="paragraph">
+<p>Neo4j-Migrations differentiates for the <code>locationsToScan</code> option between the <code>classpath:</code> and the <code>file:</code> protocol with the following syntax and semantics:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>a/b/c</code></dt>
+<dd>
+<p>Implicitly assuming <code>classpath:</code>, treating the value <code>a/b/c</code> as the package <code>a.b.c</code>.</p>
+</dd>
+<dt class="hdlist1"><code>/a/b/c</code></dt>
+<dd>
+<p>Implicitly assuming <code>classpath:</code>, treating the value <code>a/b/c</code> as the package <code>a.b.c</code>, the leading forward-slash is superfluous and will be stripped.</p>
+</dd>
+<dt class="hdlist1"><code>classpath:a/b/c</code> respectively <code>classpath:/a/b/c</code></dt>
+<dd>
+<p>Same as the above, but explicitly enabling classpath scanning in the given package.</p>
+</dd>
+<dt class="hdlist1"><code>./whatever/../a/b/c</code></dt>
+<dd>
+<p>Implicitly assuming <code>file:</code>, indicated by the leading dot (<code>.</code>), which has the same semantics as in a filesystem. Neo4j-Migrations will resolve the given relative path against the current working directory and look there for a directory structure of <code>a/b/c</code>.</p>
+</dd>
+<dt class="hdlist1"><code>../migrations/a/b/c</code></dt>
+<dd>
+<p>Implicitly assuming <code>file:</code>, indicated by the leading dots (<code>..</code>), which have the same semantics as in a filesystem. Neo4j-Migrations will resolve the given relative path against the current working directory and look in its parent directory for a directory structure of <code>migrations/a/b/c</code>.</p>
+</dd>
+<dt class="hdlist1">Using the <code>file:</code> uri scheme</dt>
+<dd>
+<p>This one is a bit tricky, and you might want to read up about it <a href="https://en.wikipedia.org/wiki/File_URI_scheme">here</a>. Neo4j-Migrations is strict about the number of forward slashes here: A valid file URI must begin with either <code>file:/path</code> (no hostname), <code><a href="file:///path" class="bare">file:///path</a></code> (empty hostname), or <code><a href="file://hostname/path" class="bare">file://hostname/path</a></code>. Neo4j-Migrations will strip away any hostname, relative paths are not allowed within the <code>file:</code> uri scheme and will be stripped away.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Note: Scanning the root package is not supported, as it might become slow and sometimes dangerous, too. In the end, you would not want to bring in a dependency that might contain a Cypher resource that fit the naming conventions of Neo4j-Migrations and truncate your database, would you?</p>
+</div>
+<div class="paragraph">
+<p>Any configured file-system location that does not exist or isn&#8217;t a directory will be logged on <code>WARNING</code> level.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="concepts_migrations"><a class="anchor" href="#concepts_migrations"></a>3.3. Migrations</h3>
 <div class="paragraph">
 <p>Migrations are all operations or refactorings you apply to a database.
 These operations might be creating, changing, or dropping indexes and constraints or altering data.
@@ -1089,7 +1158,7 @@ convention to be recognized:</p>
 <p>Exceptions are made for callbacks (see <a href="#concepts_naming-conventions">naming conventions</a>) and some <a href="#">extensions</a> supported by Neo4j-Migrations.</p>
 </div>
 <div class="sect3">
-<h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.2.1. Cypher-based</h4>
+<h4 id="concepts_migrations_cypher-based"><a class="anchor" href="#concepts_migrations_cypher-based"></a>3.3.1. Cypher-based</h4>
 <div class="paragraph">
 <p>Cypher-based migrations can be mostly anything you can write down as <a href="https://neo4j.com/docs/cypher-refcard/current/">Cypher statement</a>.
 A Cypher-based migration can contain one or more statements with multiple lines separated by a <code>;</code> followed by a new line.
@@ -1113,7 +1182,7 @@ RETURN n
 </div>
 <div class="paragraph">
 <p>Neo4j-Migrations will by default look in <code>classpath:neo4j/migrations</code> for all <code>*.cypher</code> files matching the name described in
-<a href="#concepts_naming-conventions">Section 3.5</a>. You can change (or add to this default) with the Core API or the appropriate properties in
+<a href="#concepts_naming-conventions">Section 3.6</a>. You can change (or add to this default) with the Core API or the appropriate properties in
 Spring-Boot-Starter or the Maven-Plugin like this:</p>
 </div>
 <div class="listingblock">
@@ -1171,7 +1240,7 @@ There are a couple of things to remember, though:</p>
 </li>
 <li>
 <p>If you have more than one statement per script (which is completely not a problem) and one of them should use <code>USE</code> you must
-configure Neo4j-Migrations to use <code>TransactionMode#PER_STATEMENT</code> (see <a href="#concepts_transactions">Section 3.8</a>, meaning to run each statement of a script in a separate transaction.
+configure Neo4j-Migrations to use <code>TransactionMode#PER_STATEMENT</code> (see <a href="#concepts_transactions">Section 3.9</a>, meaning to run each statement of a script in a separate transaction.
 This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
 before has already been committed.</p>
 </li>
@@ -1181,7 +1250,7 @@ before has already been committed.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="concepts_migrations_catalog-based"><a class="anchor" href="#concepts_migrations_catalog-based"></a>3.2.2. Based on a catalog</h4>
+<h4 id="concepts_migrations_catalog-based"><a class="anchor" href="#concepts_migrations_catalog-based"></a>3.3.2. Based on a catalog</h4>
 <div class="paragraph">
 <p>Migrations can be used to define a local catalog in an iterative fashion. Each migration discovered will contribute to a catalog
 known in the context of a <code>Migration</code> instance.</p>
@@ -1366,7 +1435,7 @@ While both elements - <code>constraint</code> and <code>index</code> - do suppor
 </div>
 </div>
 <div class="sect3">
-<h4 id="concepts_migrations_java-based"><a class="anchor" href="#concepts_migrations_java-based"></a>3.2.3. Java-based</h4>
+<h4 id="concepts_migrations_java-based"><a class="anchor" href="#concepts_migrations_java-based"></a>3.3.3. Java-based</h4>
 <div class="paragraph">
 <p>Neo4j-Migrations provides the interface <code>ac.simons.neo4j.migrations.core.JavaBasedMigration</code> for you to implement.
 Based on that interface you can do much more than just migrate things via adding or changing data:
@@ -1412,7 +1481,7 @@ The transaction handling inside Java-based migrations is completely up to you.</
 <div class="paragraph">
 <p>You don&#8217;t have to annotate your Java-based migrations in any way.
 Neo4j-Migrations will find them on the classpath as is.
-The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <a href="#concepts_naming-conventions">Section 3.5</a>.</p>
+The same naming requirements that apply to Cypher scripts apply to Java-based migrations as well, see <a href="#concepts_naming-conventions">Section 3.6</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1439,7 +1508,7 @@ Please use only <code>JavaBasedMigration</code> as the base interface for your p
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_callbacks"><a class="anchor" href="#concepts_callbacks"></a>3.3. Callbacks</h3>
+<h3 id="concepts_callbacks"><a class="anchor" href="#concepts_callbacks"></a>3.4. Callbacks</h3>
 <div class="paragraph">
 <p>Callbacks are part of a refactoring or a chain of migration that lives outside the chain of things.
 As such these callbacks can be used to make sure certain data, constructs or other preconditions are available or fulfilled before anything else happens.
@@ -1480,7 +1549,7 @@ Be aware that for this to work you <strong>must</strong> specify both <strong>ta
 </table>
 </div>
 <div class="sect3">
-<h4 id="concepts_lifecycle-phases"><a class="anchor" href="#concepts_lifecycle-phases"></a>3.3.1. Lifecycle phases</h4>
+<h4 id="concepts_lifecycle-phases"><a class="anchor" href="#concepts_lifecycle-phases"></a>3.4.1. Lifecycle phases</h4>
 <div class="paragraph">
 <p>The following phases are supported:</p>
 </div>
@@ -1532,7 +1601,7 @@ This can be used to create the target database before any migrations or validati
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_catalog"><a class="anchor" href="#concepts_catalog"></a>3.4. Using a catalog of items</h3>
+<h3 id="concepts_catalog"><a class="anchor" href="#concepts_catalog"></a>3.5. Using a catalog of items</h3>
 <div class="paragraph">
 <p>Neo4j is schema free or a database with little schema. There are labels for nodes, types for relationships and both can
 have properties. Hence, property graph. But there&#8217;s no "hard" schema determining that all nodes have all the same properties
@@ -1566,7 +1635,7 @@ Why the heck XML? While XML has been badmouthed for a while now, it has a couple
 <p>A catalog is also used to represent predefined or built-in <a href="#appendix_refactorings">refactorings</a>, such as renaming all occurrences of types or labels.</p>
 </div>
 <div class="sect3">
-<h4 id="whatisacatalog"><a class="anchor" href="#whatisacatalog"></a>3.4.1. What is a catalog?</h4>
+<h4 id="whatisacatalog"><a class="anchor" href="#whatisacatalog"></a>3.5.1. What is a catalog?</h4>
 <div class="paragraph">
 <p>Inside Neo4j-Migrations the concept of a catalog has been introduced. A catalog holds the same type of entities as a schema
 and migrations can pick up elements from the catalog to define the final schema.</p>
@@ -1604,7 +1673,7 @@ Resetting means either being replaced with an empty catalog (<code>&lt;catalog r
 </div>
 </div>
 <div class="sect3">
-<h4 id="catalog_operations"><a class="anchor" href="#catalog_operations"></a>3.4.2. Operations working with a catalog</h4>
+<h4 id="catalog_operations"><a class="anchor" href="#catalog_operations"></a>3.5.2. Operations working with a catalog</h4>
 <div class="paragraph">
 <p>Operations available to catalog based migrations are</p>
 </div>
@@ -1720,7 +1789,7 @@ Have a look at the general <a href="#concepts_migrations_catalog-based">catalog 
 </div>
 </div>
 <div class="sect3">
-<h4 id="createacatalogfromtheactualdatabaseschema"><a class="anchor" href="#createacatalogfromtheactualdatabaseschema"></a>3.4.3. Create a catalog from the actual database schema</h4>
+<h4 id="createacatalogfromtheactualdatabaseschema"><a class="anchor" href="#createacatalogfromtheactualdatabaseschema"></a>3.5.3. Create a catalog from the actual database schema</h4>
 <div class="paragraph">
 <p>The API provides <code>getDatabaseCatalog</code> and <code>getLocalCatalog</code> methods.
 The former reads all supported items in the Neo4j schema and creates a catalog view on them, the latter provides access
@@ -1740,9 +1809,9 @@ diff two catalogs and evaluate whether they are identical, equivalent or differe
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_naming-conventions"><a class="anchor" href="#concepts_naming-conventions"></a>3.5. Naming conventions</h3>
+<h3 id="concepts_naming-conventions"><a class="anchor" href="#concepts_naming-conventions"></a>3.6. Naming conventions</h3>
 <div class="sect3">
-<h4 id="cypher-basedresources"><a class="anchor" href="#cypher-basedresources"></a>3.5.1. Cypher-based resources</h4>
+<h4 id="cypher-basedresources"><a class="anchor" href="#cypher-basedresources"></a>3.6.1. Cypher-based resources</h4>
 <div class="paragraph">
 <p>All Cypher-based resources (especially migration and callback scripts) require <code>.cypher</code> as extension.
 The Core API, the Spring-Boot-Starter and the Maven-Plugin will by default search for such Cypher scripts in <code>classpath:neo4j/migrations</code>.
@@ -1808,7 +1877,7 @@ nameOfTheLifecyclePhase__optional_description.cypher</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>nameOfTheLifecyclePhase</code> must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <a href="#concepts_lifecycle-phases">Section 3.3.1</a>),
+<p><code>nameOfTheLifecyclePhase</code> must match exactly (case-sensitive) the name of one of the supported lifecycle phases (see <a href="#concepts_lifecycle-phases">Section 3.4.1</a>),
 followed by an optional description and the suffix <code>.cypher</code>, separated from the name of the phase by two underscores (<code>__</code>).
 The description is used to order different callback scripts for the same lifecycle phase.
 If you use more than one script in the same lifecycle phase without a description, the order is undefined.</p>
@@ -1830,14 +1899,14 @@ option in your desired clause so that these statements become idempotent.
 </div>
 </div>
 <div class="sect3">
-<h4 id="catalog-basedmigrations"><a class="anchor" href="#catalog-basedmigrations"></a>3.5.2. Catalog-based migrations</h4>
+<h4 id="catalog-basedmigrations"><a class="anchor" href="#catalog-basedmigrations"></a>3.6.2. Catalog-based migrations</h4>
 <div class="paragraph">
-<p>Catalog-based migrations (See <a href="#concepts_catalog">Section 3.4</a>) are XML files based on the <code>migration.xsd</code> scheme. As such they require
+<p>Catalog-based migrations (See <a href="#concepts_catalog">Section 3.5</a>) are XML files based on the <code>migration.xsd</code> scheme. As such they require
 the extension <code>.xml</code> and otherwise follow the same naming conventions as <a href="#concepts_naming-conventions_migration_scripts">Cypher-based resources</a>.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="java-basedmigrations"><a class="anchor" href="#java-basedmigrations"></a>3.5.3. Java-based migrations</h4>
+<h4 id="java-basedmigrations"><a class="anchor" href="#java-basedmigrations"></a>3.6.3. Java-based migrations</h4>
 <div class="paragraph">
 <p>For Java (or actually anything that can be compiled to a valid Java class) based migrations, the same naming conventions apply as for
 <a href="#concepts_naming-conventions_migration_scripts">Cypher-based scripts</a> apart from the extension.
@@ -1873,7 +1942,7 @@ or in source form, <code>V1_2_3__Add_last_name_index.java</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_chain"><a class="anchor" href="#concepts_chain"></a>3.6. Chain of applied migrations</h3>
+<h3 id="concepts_chain"><a class="anchor" href="#concepts_chain"></a>3.7. Chain of applied migrations</h3>
 <div class="paragraph">
 <p>All migrations applied to a target database are stored in the schema database.
 The target and the schema database can be the same database.
@@ -1899,7 +1968,7 @@ In case you want to get rid of it, please use the <a href="#usage_common_clean">
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_separate-databases"><a class="anchor" href="#concepts_separate-databases"></a>3.7. Separate schema databases</h3>
+<h3 id="concepts_separate-databases"><a class="anchor" href="#concepts_separate-databases"></a>3.8. Separate schema databases</h3>
 <div class="paragraph">
 <p>Since version 1.1.0 you can use a different database for storing information about migrations.
 You need to run a Neo4j 4+ Enterprise Edition.
@@ -1944,7 +2013,7 @@ It is usually a good idea to separate management data (like in this case the cha
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.8. Transactions</h3>
+<h3 id="concepts_transactions"><a class="anchor" href="#concepts_transactions"></a>3.9. Transactions</h3>
 <div class="paragraph">
 <p>All operations that are managed by Neo4j-Migrations directly, except catalog-based migrations, are executed
 inside transactional functions. This is essentially a scope around one or more statements which will be retried on
@@ -1991,7 +2060,7 @@ databases might not be run together with DML operations in the same transaction.
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_preconditions"><a class="anchor" href="#concepts_preconditions"></a>3.9. Preconditions</h3>
+<h3 id="concepts_preconditions"><a class="anchor" href="#concepts_preconditions"></a>3.10. Preconditions</h3>
 <div class="paragraph">
 <p>Our <a href="#concepts_migrations_cypher-based">Cypher based migrations</a> support a set of simple assertions and assumptions as preconditions
 prior to execution.</p>
@@ -2031,7 +2100,7 @@ before and therefore changing the chain of applied migrations.
 </table>
 </div>
 <div class="sect3">
-<h4 id="requireacertainedition"><a class="anchor" href="#requireacertainedition"></a>3.9.1. Require a certain edition</h4>
+<h4 id="requireacertainedition"><a class="anchor" href="#requireacertainedition"></a>3.10.1. Require a certain edition</h4>
 <div class="paragraph">
 <p>The Neo4j edition can be required with either</p>
 </div>
@@ -2050,7 +2119,7 @@ before and therefore changing the chain of applied migrations.
 </div>
 </div>
 <div class="sect3">
-<h4 id="requireacertainversion"><a class="anchor" href="#requireacertainversion"></a>3.9.2. Require a certain version</h4>
+<h4 id="requireacertainversion"><a class="anchor" href="#requireacertainversion"></a>3.10.2. Require a certain version</h4>
 <div class="paragraph">
 <p>The Neo4j version can be required with</p>
 </div>
@@ -2102,7 +2171,7 @@ with it and wont fail, even though the new script has a different checksum.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="preconditionsbasedoncypherqueries"><a class="anchor" href="#preconditionsbasedoncypherqueries"></a>3.9.3. Preconditions based on Cypher queries</h4>
+<h4 id="preconditionsbasedoncypherqueries"><a class="anchor" href="#preconditionsbasedoncypherqueries"></a>3.10.3. Preconditions based on Cypher queries</h4>
 <div class="paragraph">
 <p>You can require a precondition based on a query that must return a single, <code>boolean</code> value via</p>
 </div>
@@ -2131,7 +2200,7 @@ and will be ignored when there are already nodes labeled <code>Library</code>.</
 </div>
 </div>
 <div class="sect3">
-<h4 id="whyonlypreconditionsforscripts"><a class="anchor" href="#whyonlypreconditionsforscripts"></a>3.9.4. Why only preconditions for scripts?</h4>
+<h4 id="whyonlypreconditionsforscripts"><a class="anchor" href="#whyonlypreconditionsforscripts"></a>3.10.4. Why only preconditions for scripts?</h4>
 <div class="paragraph">
 <p>Since we offer <a href="#concepts_migrations_java-based">full programmatic access</a> to migrations
 together with the context that has information about the Neo4j version, edition and access to both target and schema database,
@@ -2140,7 +2209,7 @@ not to do anything in a given context. The migration will be dutifully recorded 
 </div>
 </div>
 <div class="sect3">
-<h4 id="upgradingolderdatabase"><a class="anchor" href="#upgradingolderdatabase"></a>3.9.5. Upgrading older database</h4>
+<h4 id="upgradingolderdatabase"><a class="anchor" href="#upgradingolderdatabase"></a>3.10.5. Upgrading older database</h4>
 <div class="paragraph">
 <p>Given that your application needs to support multiple versions of Neo4j, including versions that didn&#8217;t exist when you created
 your application originally and you might have invalid Cypher now in potentially already applied migrations you can do the following</p>
@@ -2183,7 +2252,7 @@ your application originally and you might have invalid Cypher now in potentially
 </div>
 </div>
 <div class="sect2">
-<h3 id="concepts_repairing_broken_chains"><a class="anchor" href="#concepts_repairing_broken_chains"></a>3.10. Repairing migrations</h3>
+<h3 id="concepts_repairing_broken_chains"><a class="anchor" href="#concepts_repairing_broken_chains"></a>3.11. Repairing migrations</h3>
 <div class="paragraph">
 <p>Sometimes things will break, either on purpose or by accident. When a migration chain is broken, it will fail to validate. This can happen for various reasons:</p>
 </div>
@@ -2248,7 +2317,7 @@ The <code>repair</code> operation will <strong>never</strong> apply any migratio
 <p>As the <code>repair</code> command won&#8217;t apply migrations itself, it will stop after the last applied migration. An example: You have 3 local migrations, v1*, v3 and v4. The chain recorded however is  <code>(v1) &#8594; (v2) &#8594; (v3)</code>. This means, v1 has changed, it&#8217;s checksum doesn&#8217;t match, v2 has been deleted and v4 is new. The repair command will now fix the checksum, delete v2 and then stop, so that the chain now is this: <code>(v1*) &#8594; (v3)</code>. v4 can be applied now with the standard <code>apply</code> operation.</p>
 </div>
 <div class="sect3">
-<h4 id="example"><a class="anchor" href="#example"></a>3.10.1. Example</h4>
+<h4 id="example"><a class="anchor" href="#example"></a>3.11.1. Example</h4>
 <div class="paragraph">
 <p>Given the following scenario:</p>
 </div>
@@ -2487,9 +2556,9 @@ For that version to work, you need to have JDK 17 or higher installed:</p>
 <div class="title">Listing 20. Download and extraction of the JVM based version</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="console">java -version
-curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip
-unzip neo4j-migrations-2.19.2-SNAPSHOT.zip
-cd neo4j-migrations-2.19.2-SNAPSHOT
+curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip
+unzip neo4j-migrations-2.19.3-SNAPSHOT.zip
+cd neo4j-migrations-2.19.3-SNAPSHOT
 ./bin/neo4j-migrations -V</code></pre>
 </div>
 </div>
@@ -2883,9 +2952,9 @@ Follow those steps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="bash">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip
-unzip neo4j-migrations-2.19.2-SNAPSHOT.zip
-cd neo4j-migrations-2.19.2-SNAPSHOT
+<pre class="CodeRay highlight"><code data-lang="bash">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip
+unzip neo4j-migrations-2.19.3-SNAPSHOT.zip
+cd neo4j-migrations-2.19.3-SNAPSHOT
 mkdir -p my-migrations/some/migrations
 cat &lt;&lt;EOT &gt;&gt; my-migrations/some/migrations/V001__MyFirstMigration.java
 package some.migrations;
@@ -2928,7 +2997,7 @@ We do add this here for completeness, but we do think that Java-based migrations
 <div class="sect2">
 <h3 id="usage_core"><a class="anchor" href="#usage_core"></a>4.3. Core API</h3>
 <div class="paragraph">
-<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 2.19.2-SNAPSHOT API</a>.
+<p>We publish the Java-API-Docs here: <a href="https://michael-simons.github.io/neo4j-migrations/main/site/neo4j-migrations/apidocs/index.html">Neo4j Migrations (Core) 2.19.3-SNAPSHOT API</a>.
 Follow the instructions for your favorite dependency management tool to get hold of the core API as described in <a href="#download_core">download</a>.</p>
 </div>
 <div class="paragraph">
@@ -3068,7 +3137,7 @@ Declare the following dependency in your Spring Boot application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-spring-boot-starter<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3450,7 +3519,7 @@ Declare the following dependency in your Quarkus application:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-quarkus<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -3549,7 +3618,7 @@ a detailed list of all goals and configuration option as well as the default lif
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-maven-plugin<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
     <span class="tag">&lt;executions&gt;</span>
         <span class="tag">&lt;execution&gt;</span>
             <span class="tag">&lt;configuration&gt;</span>
@@ -4792,7 +4861,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-processor<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -4810,7 +4879,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
             <span class="tag">&lt;annotationProcessorPath&gt;</span>
                 <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
                 <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-processor<span class="tag">&lt;/artifactId&gt;</span>
-                <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+                <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
             <span class="tag">&lt;/annotationProcessorPath&gt;</span>
         <span class="tag">&lt;/annotationProcessorPaths&gt;</span>
         <span class="tag">&lt;compilerArgs&gt;</span>
@@ -4928,7 +4997,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-annotation-catalog<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -4969,15 +5038,15 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 </div>
 <div class="dlist">
 <dl>
-<dt class="hdlist1"><code>neo4j-migrations-2.19.2-SNAPSHOT.jar</code></dt>
+<dt class="hdlist1"><code>neo4j-migrations-2.19.3-SNAPSHOT.jar</code></dt>
 <dd>
 <p>Needed to generate the catalogs</p>
 </dd>
-<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-api-2.19.2-SNAPSHOT.jar</code></dt>
+<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-api-2.19.3-SNAPSHOT.jar</code></dt>
 <dd>
 <p>Contains the API and built-in annotations</p>
 </dd>
-<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-2.19.2-SNAPSHOT.jar</code> </dt>
+<dt class="hdlist1"><code>neo4j-migrations-annotation-processor-2.19.3-SNAPSHOT.jar</code> </dt>
 <dd>
 <p>The processor itself</p>
 </dd>
@@ -4995,7 +5064,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <div class="title">Listing 54. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.2-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.3-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_OGM_schema.xml \
 -cp neo4j-ogm-core-4.0.0.jar \
@@ -5012,7 +5081,7 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <div class="title">Listing 55. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.2-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.3-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=V01__Create_SDN6_schema.xml \
 -cp apiguardian-api-1.1.2.jar:spring-data-commons-2.7.2.jar:spring-data-neo4j-6.3.2.jar \
@@ -5029,10 +5098,10 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <div class="title">Listing 56. Generating a catalog from plain annotated classes</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
--processorpath neo4j-migrations-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.2-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.2-SNAPSHOT.jar \
+-processorpath neo4j-migrations-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-2.19.3-SNAPSHOT.jar:neo4j-migrations-annotation-processor-2.19.3-SNAPSHOT.jar \
 -Aorg.neo4j.migrations.catalog_generator.output_dir=output \
 -Aorg.neo4j.migrations.catalog_generator.default_catalog_name=R01__Create_annotated_schema.xml \
--cp neo4j-migrations-annotation-catalog-2.19.2-SNAPSHOT \
+-cp neo4j-migrations-annotation-catalog-2.19.3-SNAPSHOT \
 extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/simons/neo4j/migrations/annotations/proc/catalog/valid/CoffeeBeanPure*</code></pre>
 </div>
 </div>
@@ -5285,7 +5354,7 @@ dependency:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-adoc<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -5296,7 +5365,7 @@ dependency:</p>
 <div class="title">Listing 59. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.19.2-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:2.19.3-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -5304,19 +5373,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.19.2-SNAPSHOT/neo4j-migrations-formats-adoc-2.19.2-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-2.19.2-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.19.3-SNAPSHOT/neo4j-migrations-formats-adoc-2.19.3-SNAPSHOT-all.jar">neo4j-migrations-formats-adoc-2.19.3-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.19.2-SNAPSHOT/neo4j-migrations-formats-adoc-2.19.2-SNAPSHOT-all.jar
-unzip neo4j-migrations-2.19.2-SNAPSHOT.zip
-cd neo4j-migrations-2.19.2-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-2.19.2-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-adoc/2.19.3-SNAPSHOT/neo4j-migrations-formats-adoc-2.19.3-SNAPSHOT-all.jar
+unzip neo4j-migrations-2.19.3-SNAPSHOT.zip
+cd neo4j-migrations-2.19.3-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-adoc-2.19.3-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/adoc-migrations \
   info</code></pre>
@@ -5377,7 +5446,7 @@ dependency:</p>
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span>neo4j-migrations-formats-markdown<span class="tag">&lt;/artifactId&gt;</span>
-    <span class="tag">&lt;version&gt;</span>2.19.2-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.19.3-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></code></pre>
 </div>
 </div>
@@ -5388,7 +5457,7 @@ dependency:</p>
 <div class="title">Listing 61. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.19.2-SNAPSHOT</span><span class="delimiter">'</span></span>
+    implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:2.19.3-SNAPSHOT</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
@@ -5396,19 +5465,19 @@ dependency:</p>
 <p>And that&#8217;s all.</p>
 </div>
 <div class="paragraph">
-<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.19.2-SNAPSHOT/neo4j-migrations-formats-markdown-2.19.2-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-2.19.2-SNAPSHOT-all.jar</a>
-This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip">here</a>.</p>
+<p>For the CLI, you should download the <code>-all</code> artifact from Maven Central: <a href="https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.19.3-SNAPSHOT/neo4j-migrations-formats-markdown-2.19.3-SNAPSHOT-all.jar">neo4j-migrations-formats-markdown-2.19.3-SNAPSHOT-all.jar</a>
+This will work only with the JVM based CLI version, which is available <a href="https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>A full example looks like this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.2-SNAPSHOT/neo4j-migrations-2.19.2-SNAPSHOT.zip
-curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.19.2-SNAPSHOT/neo4j-migrations-formats-markdown-2.19.2-SNAPSHOT-all.jar
-unzip neo4j-migrations-2.19.2-SNAPSHOT.zip
-cd neo4j-migrations-2.19.2-SNAPSHOT
-CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-2.19.2-SNAPSHOT-all.jar \
+<pre class="CodeRay highlight"><code data-lang="console">curl -LO https://github.com/michael-simons/neo4j-migrations/releases/download/2.19.3-SNAPSHOT/neo4j-migrations-2.19.3-SNAPSHOT.zip
+curl -LO https://repo.maven.apache.org/maven2/eu/michael-simons/neo4j/neo4j-migrations-formats-markdown/2.19.3-SNAPSHOT/neo4j-migrations-formats-markdown-2.19.3-SNAPSHOT-all.jar
+unzip neo4j-migrations-2.19.3-SNAPSHOT.zip
+cd neo4j-migrations-2.19.3-SNAPSHOT
+CLASSPATH_PREFIX=../neo4j-migrations-formats-markdown-2.19.3-SNAPSHOT-all.jar \
   bin/neo4j-migrations --password secret \
   --location file:///path/to/neo4j/markdown-migrations \
   info</code></pre>
@@ -5442,7 +5511,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-09-22 07:49:07 UTC
+Last updated 2025-09-29 08:31:55 UTC
 </div>
 </div>
 </body>

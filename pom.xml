@@ -105,7 +105,7 @@
 		<byte-buddy.version>1.17.7</byte-buddy.version>
 		<central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
 		<checker-qual.version>3.51.0</checker-qual.version>
-		<checkstyle.version>11.0.1</checkstyle.version>
+		<checkstyle.version>11.1.0</checkstyle.version>
 		<classgraph.version>4.8.180</classgraph.version>
 		<compile-testing.version>0.23.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>

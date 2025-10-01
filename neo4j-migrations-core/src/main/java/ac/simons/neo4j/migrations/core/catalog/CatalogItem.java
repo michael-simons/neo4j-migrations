@@ -36,6 +36,7 @@ public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogI
 	T getType();
 
 	/**
+	 * Returns the {@literal true} if this item is equivalent to {@code that} item.
 	 * @param that The other item to check
 	 * @return {@literal true} if this item is equivalent to {@code that} item
 	 */

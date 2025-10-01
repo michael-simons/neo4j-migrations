@@ -68,12 +68,12 @@ public final class MigrationsConfig {
 	public enum VersionSortOrder {
 
 		/**
-		 * Sort version numbers in lexicographic order (the default in 1.x and 2.x).
+		 * Sort version numbers in lexicographic order (was the default in 1.x and 2.x).
 		 */
 		LEXICOGRAPHIC,
 
 		/**
-		 * Sort version numbers in semantic order (will be the default in 3.x)
+		 * Sort version numbers in semantic order (default since 3.0.0)
 		 */
 		SEMANTIC
 	}

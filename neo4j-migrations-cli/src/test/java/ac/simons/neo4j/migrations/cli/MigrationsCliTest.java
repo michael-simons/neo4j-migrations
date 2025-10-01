@@ -122,13 +122,13 @@ class MigrationsCliTest {
 	}
 
 	@Test
-	void shouldDefaultToLexicographicOrder() {
+	void shouldDefaultToSemanticOrder() {
 
 		MigrationsCli cli = new MigrationsCli();
 		CommandLine commandLine = new CommandLine(cli);
 		commandLine.parseArgs();
 
-		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.LEXICOGRAPHIC);
+		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
 	}
 
 	@Test
@@ -136,9 +136,9 @@ class MigrationsCliTest {
 
 		MigrationsCli cli = new MigrationsCli();
 		CommandLine commandLine = new CommandLine(cli);
-		commandLine.parseArgs("--version-sort-order", "SEMANTIC");
+		commandLine.parseArgs("--version-sort-order", "LEXICOGRAPHIC");
 
-		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.SEMANTIC);
+		assertThat(cli.getConfig().getVersionSortOrder()).isEqualTo(MigrationsConfig.VersionSortOrder.LEXICOGRAPHIC);
 	}
 
 	@Test // GH-1213

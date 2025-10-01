@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.io.ByteArrayInputStream;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -27,30 +26,6 @@ import java.util.List;
  * @since 1.8.0
  */
 public sealed interface CypherResource permits DefaultCypherResource {
-
-	/**
-	 * Creates a new resource for the given URL, using the default settings for autocrlf.
-	 *
-	 * @param url The url to create the resource from
-	 * @return a new Cypher resource
-	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
-	 */
-	@Deprecated(forRemoval = true)
-	static CypherResource of(URL url) {
-		return of(url, Defaults.AUTOCRLF);
-	}
-
-	/**
-	 * Creates a new resource for the given URL.
-	 * @param url The url to create the resource from
-	 * @param autocrlf Setting for autocrlf.
-	 * @return a new Cypher resource
-	 * @deprecated since 1.9.2, please use {@link CypherResource#of(ResourceContext)}
-	 */
-	@Deprecated(forRemoval = true)
-	static CypherResource of(URL url, boolean autocrlf) {
-		return of(ResourceContext.of(url, MigrationsConfig.builder().withAutocrlf(autocrlf).build()));
-	}
 
 	/**
 	 * Creates a new resource for the given URL.

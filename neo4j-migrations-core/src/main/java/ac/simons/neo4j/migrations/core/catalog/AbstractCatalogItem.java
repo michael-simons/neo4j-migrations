@@ -148,21 +148,21 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	}
 
 	/**
-	 * @return Identifier of this item to be used in create statements
+	 * {@return Identifier of this item to be used in create statements}
 	 */
 	public String getIdentifier() {
 		return identifier;
 	}
 
 	/**
-	 * @return Set of properties to be included with the item
+	 * {@return Set of properties to be included with the item}
 	 */
 	public Set<String> getProperties() {
 		return properties;
 	}
 
 	/**
-	 * @return Optional options to be passed down during creation of the item
+	 * {@return Optional options to be passed down during creation of the item}
 	 */
 	public Optional<String> getOptionalOptions() {
 		return Strings.optionalOf(options);

@@ -91,18 +91,19 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	}
 
 	/**
+	 * Returns true, if the version string maps to a migration that has been applied.
 	 * @param version An arbitrary version string
-	 * @return True, if the version string maps to a migration that has been applied.
+	 * @return true, if the version string maps to a migration that has been applied.
 	 */
 	boolean isApplied(String version);
 
 	/**
-	 * @return The elements of this migration
+	 * {@return the elements of this migration}
 	 */
 	Collection<Element> getElements();
 
 	/**
-	 * @return The length of this chain.
+	 * {@return the length of this chain.}
 	 * @since 2.2.0
 	 */
 	default int length() {
@@ -110,7 +111,7 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	}
 
 	/**
-	 * @return the last applied version
+	 * {@return the last applied version}
 	 * @since 1.11.0
 	 */
 	default Optional<MigrationVersion> getLastAppliedVersion() {
@@ -118,7 +119,7 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	}
 
 	/**
-	 * Translates a target version into a concrete version
+	 * Translates a target version into a concrete version.
 	 *
 	 * @param targetVersion the target version to translate into a concrete version
 	 * @return the concrete version if any
@@ -132,48 +133,48 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	sealed interface Element permits DefaultMigrationChainElement {
 
 		/**
-		 * @return State of this migration.
+		 * {@return the state of this migration}
 		 */
 		MigrationState getState();
 
 		/**
-		 * @return The type of the migration.
+		 * {@return the type of the migration}
 		 */
 		MigrationType getType();
 
 		/**
-		 * @return The checksum of this migration if available.
+		 * {@return the checksum of this migration if available}
 		 */
 		Optional<String> getChecksum();
 
 		/**
-		 * @return The schema version after the migration is complete.
+		 * {@return the schema version after the migration is complete}
 		 */
 		String getVersion();
 
 		/**
-		 * @return An optional description of the migration represented by this element.
+		 * {@return an optional description of the migration represented by this element}
 		 * @since 1.9.0
 		 */
 		Optional<String> getOptionalDescription();
 
 		/**
-		 * @return The name of the script or class on which this migration is based.
+		 * {@return the name of the script or class on which this migration is based}
 		 */
 		String getSource();
 
 		/**
-		 * @return The timestamp when this migration was installed. (Only for applied migrations)
+		 * {@return the timestamp when this migration was installed. (Only for applied migrations)}
 		 */
 		Optional<ZonedDateTime> getInstalledOn();
 
 		/**
-		 * @return The user that installed this migration. (Only for applied migrations)
+		 * {@return the user that installed this migration. (Only for applied migrations)}
 		 */
 		Optional<String> getInstalledBy();
 
 		/**
-		 * @return The execution time of this migration. (Only for applied migrations)
+		 * {@return the execution time of this migration. (Only for applied migrations)}
 		 */
 		Optional<Duration> getExecutionTime();
 

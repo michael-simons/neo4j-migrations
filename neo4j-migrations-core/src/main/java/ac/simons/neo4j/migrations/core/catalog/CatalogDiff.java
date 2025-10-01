@@ -71,6 +71,7 @@ public interface CatalogDiff {
 	}
 
 	/**
+	 * Returns the {@literal true} if the catalogs are identical, {@literal false} otherwise.
 	 * @return {@literal true} if the catalogs are identical, {@literal false} otherwise
 	 */
 	boolean identical();

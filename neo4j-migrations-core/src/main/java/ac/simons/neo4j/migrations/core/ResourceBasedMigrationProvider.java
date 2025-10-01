@@ -32,7 +32,7 @@ import java.util.ServiceLoader;
 public interface ResourceBasedMigrationProvider extends Ordered {
 
 	/**
-	 * @return a collection containing unique providers (only one for each extension)
+	 * {@return a collection containing unique providers (only one for each extension)}
 	 */
 	static Collection<ResourceBasedMigrationProvider> unique() {
 
@@ -50,7 +50,7 @@ public interface ResourceBasedMigrationProvider extends Ordered {
 	}
 
 	/**
-	 * @return the file extension this resource based migration provider deals with
+	 * {@return the file extension this resource based migration provider deals with}
 	 */
 	String getExtension();
 

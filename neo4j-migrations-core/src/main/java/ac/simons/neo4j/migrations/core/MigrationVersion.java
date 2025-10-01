@@ -165,13 +165,14 @@ public final class MigrationVersion {
 	}
 
 	/**
-	 * @return the {@link String} value representing this version
+	 * {@return the String value representing this version}
 	 */
 	public String getValue() {
 		return value;
 	}
 
 	/**
+	 * Returns the {@literal true} if this version can be safely applied multiple times, even on checksum changes.
 	 * @return {@literal true} if this version can be safely applied multiple times, even on checksum changes
 	 * @since 1.13.3
 	 */
@@ -180,7 +181,7 @@ public final class MigrationVersion {
 	}
 
 	/**
-	 * @return The extracted description. Maybe null.
+	 * {@return the extracted description, maybe empty}
 	 */
 	Optional<String> getOptionalDescription() {
 		return Optional.ofNullable(description);

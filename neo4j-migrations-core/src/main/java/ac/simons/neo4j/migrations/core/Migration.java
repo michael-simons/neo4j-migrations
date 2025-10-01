@@ -56,6 +56,7 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 	void apply(MigrationContext context);
 
 	/**
+	 * Retunrs the {@literal true} if this migration can be safely repeated.
 	 * @return {@literal true} if this migration can be safely repeated
 	 * @since 2.0.0
 	 */

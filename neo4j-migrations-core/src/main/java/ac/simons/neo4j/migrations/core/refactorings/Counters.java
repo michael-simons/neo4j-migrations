@@ -40,7 +40,7 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 	}
 
 	/**
-	 * @return An empty instance
+	 * {@return an empty instance}
 	 */
 	static Counters empty() {
 		return Empty.INSTANCE;
@@ -70,57 +70,57 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 	}
 
 	/**
-	 * @return Number of nodes created
+	 * {@return the number of nodes created}
 	 */
 	int nodesCreated();
 
 	/**
-	 * @return Number of nodes deleted
+	 * {@return the number of nodes deleted}
 	 */
 	int nodesDeleted();
 
 	/**
-	 * @return Number of labels added
+	 * {@return the number of labels added}
 	 */
 	int labelsAdded();
 
 	/**
-	 * @return Number of labels removed
+	 * {@return the number of labels removed}
 	 */
 	int labelsRemoved();
 
 	/**
-	 * @return Number of types added
+	 * {@return the number of types added}
 	 */
 	int typesAdded();
 
 	/**
-	 * @return Number types removed
+	 * {@return the number types removed}
 	 */
 	int typesRemoved();
 
 	/**
-	 * @return Number of properties changed
+	 * {@return the number of properties changed}
 	 */
 	int propertiesSet();
 
 	/**
-	 * @return number of indexes added to the schema.
+	 * {@return the number of indexes added to the schema}
 	 */
 	int indexesAdded();
 
 	/**
-	 * @return number of indexes removed from the schema.
+	 * {@return the number of indexes removed from the schema}
 	 */
 	int indexesRemoved();
 
 	/**
-	 * @return number of constraints added to the schema.
+	 * {@return the number of constraints added to the schema}
 	 */
 	int constraintsAdded();
 
 	/**
-	 * @return number of constraints removed from the schema.
+	 * {@return the number of constraints removed from the schema}
 	 */
 	int constraintsRemoved();
 

@@ -103,14 +103,14 @@ public final class Defaults {
 	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used in configuration that requires
 	 * defaults given as string.
 	 */
-	public static final String VERSION_SORT_ORDER_VALUE = "LEXICOGRAPHIC";
+	public static final String VERSION_SORT_ORDER_VALUE = "SEMANTIC";
 
 	/**
 	 * The sort order used for version numbers. Please
 	 * @see VersionSortOrder
 	 * @since 2.9.0
 	 */
-	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.LEXICOGRAPHIC;
+	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.SEMANTIC;
 
 	/**
 	 * Default setting for {@code outOfOrder}.

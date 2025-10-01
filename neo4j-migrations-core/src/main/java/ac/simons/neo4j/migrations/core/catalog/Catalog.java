@@ -87,14 +87,14 @@ public interface Catalog {
 	}
 
 	/**
-	 * @return an empty catalog
+	 * {@return an empty catalog}
 	 */
 	static Catalog empty() {
 		return EmptyCatalog.INSTANCE;
 	}
 
 	/**
-	 * @return the list of all items in this catalog
+	 * {@return the list of all items in this catalog}
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItems();
@@ -110,7 +110,8 @@ public interface Catalog {
 	}
 
 	/**
-	 * @return {@literal true} if this catalog is empty.
+	 * Returns the {@literal true} if this catalog is empty.
+	 * @return {@literal true} if this catalog is empty
 	 */
 	default boolean isEmpty() {
 		return this.getItems().isEmpty();

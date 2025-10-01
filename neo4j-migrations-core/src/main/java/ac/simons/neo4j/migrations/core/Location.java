@@ -54,7 +54,7 @@ public final class Location {
 		}
 
 		/**
-		 * @return the prefix / protocol under which the location is recognized
+		 * {@return the prefix / protocol under which the location is recognized}
 		 */
 		public String getPrefix() {
 			return prefix;

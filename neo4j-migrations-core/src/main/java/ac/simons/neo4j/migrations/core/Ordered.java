@@ -36,7 +36,7 @@ public interface Ordered {
 	int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
 
 	/**
-	 * @return the order value of this object.
+	 * {@return the order value of this object}
 	 */
 	int getOrder();
 }

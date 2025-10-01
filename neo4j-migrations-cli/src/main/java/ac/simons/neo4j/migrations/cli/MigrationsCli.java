@@ -47,7 +47,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 
 import ac.simons.neo4j.migrations.cli.internal.ImageInfo;
 import ac.simons.neo4j.migrations.core.Defaults;
@@ -434,8 +433,7 @@ public final class MigrationsCli implements Runnable {
 
 		return Config.builder()
 			.withMaxConnectionPoolSize(maxConnectionPoolSize)
-			.withUserAgent(Migrations.getUserAgent())
-			.withLogging(Logging.console(Level.SEVERE)).build();
+			.withUserAgent(Migrations.getUserAgent()).build();
 	}
 
 	Properties toProperties() {

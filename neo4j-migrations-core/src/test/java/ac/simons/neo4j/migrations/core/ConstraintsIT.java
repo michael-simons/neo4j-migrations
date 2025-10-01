@@ -35,7 +35,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
@@ -55,7 +54,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class ConstraintsIT {
 
-	public static final Config NO_DRIVER_LOGGING_CONFIG = Config.builder().withLogging(Logging.none()).build();
+	public static final Config NO_DRIVER_LOGGING_CONFIG = Config.builder().build();
 
 	@ParameterizedTest
 	@CsvSource(
@@ -132,7 +131,7 @@ class ConstraintsIT {
 		final String s2 = "CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE";
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -182,7 +181,7 @@ class ConstraintsIT {
 		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -214,7 +213,7 @@ class ConstraintsIT {
 	void shouldThrowExceptionWhenConstraintsWithSameNameExists(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 

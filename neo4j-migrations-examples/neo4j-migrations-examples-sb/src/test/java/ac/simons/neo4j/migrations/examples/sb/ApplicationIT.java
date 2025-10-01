@@ -91,7 +91,7 @@ class ApplicationIT {
 
 		assertThat(p.exitValue()).isZero();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
-			Config.builder().withLogging(Logging.console(Level.OFF)).build());
+			Config.builder().build());
 			Session session = driver.session()
 		) {
 			long cnt = session.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());

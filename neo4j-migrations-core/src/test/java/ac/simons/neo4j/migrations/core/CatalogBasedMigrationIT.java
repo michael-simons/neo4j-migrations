@@ -46,7 +46,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
@@ -79,7 +78,7 @@ class CatalogBasedMigrationIT {
 
 		// Unclosed on purpose, otherwise reuse is without use.
 		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 			Session session = driver.session()) {
@@ -103,7 +102,7 @@ class CatalogBasedMigrationIT {
 	void verificationShouldFailHard(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -132,7 +131,7 @@ class CatalogBasedMigrationIT {
 	void shouldApplyResources(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -159,7 +158,7 @@ class CatalogBasedMigrationIT {
 	void catalogBasedMigrationShouldWork(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
 		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -219,7 +218,7 @@ class CatalogBasedMigrationIT {
 	void optionsCanBeIncluded() throws IOException {
 
 		Neo4jContainer<?> neo4j = getNeo4j(Neo4jVersion.V4_4, true, false);
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 			try (Session session = driver.session()) {
 				session.run("MATCH (n) DETACH DELETE n").consume();

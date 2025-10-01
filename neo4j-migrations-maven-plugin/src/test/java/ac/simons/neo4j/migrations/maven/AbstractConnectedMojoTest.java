@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.internal.logging.ConsoleLogging;
 
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.Migrations;
@@ -148,7 +147,6 @@ public class AbstractConnectedMojoTest {
 	public void createDriverConfigShouldSetCorrectValues() {
 
 		Config config = AbstractConnectedMojo.createDriverConfig();
-		assertThat(config.logging()).isInstanceOf(ConsoleLogging.class);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
 

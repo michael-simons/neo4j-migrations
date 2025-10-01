@@ -21,7 +21,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.containers.Neo4jContainer;
@@ -49,7 +48,7 @@ abstract class AbstractRefactoringsITTestBase {
 
 		neo4j.start();
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session()) {
 			version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());

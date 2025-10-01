@@ -26,7 +26,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -47,7 +46,7 @@ class LoadCSVMigrationIT {
 
 	@BeforeAll
 	void initDriver() {
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 
 		neo4j.start();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);

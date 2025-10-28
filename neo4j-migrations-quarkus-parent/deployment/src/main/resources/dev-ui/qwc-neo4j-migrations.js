@@ -46,7 +46,7 @@ export class QwcNeo4jMigrations extends LitElement {
         };
         this._elements = [];
         this._confirmOpened = false;
-        this.rpc.getAll().then(jsonRpcResponse => {
+        this.rpc.getAllMigrations().then(jsonRpcResponse => {
             this._elements = jsonRpcResponse.result;
         });
         this.rpc.getConnectionDetails().then(jsonRpcResponse => {

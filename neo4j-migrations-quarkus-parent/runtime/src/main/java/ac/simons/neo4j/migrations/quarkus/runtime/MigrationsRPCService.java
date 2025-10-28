@@ -19,6 +19,8 @@ import java.util.Map;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
+import io.quarkus.runtime.annotations.DevMCPEnableByDefault;
+import io.quarkus.runtime.annotations.JsonRpcDescription;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
@@ -41,6 +43,8 @@ public final class MigrationsRPCService {
 		return String.format("%s (%s)", migrations.getConnectionDetails().getServerAddress(), migrations.getConnectionDetails().getOptionalDatabaseName().orElse("default database"));
 	}
 
+	@JsonRpcDescription("Returns the server-address and -version against which Neo4j-Migrations is connected and the databases being used.")
+	@DevMCPEnableByDefault
 	public JsonObject getConnectionDetails() {
 
 		var connectionDetails = migrations.getConnectionDetails();
@@ -53,7 +57,9 @@ public final class MigrationsRPCService {
 		return result;
 	}
 
-	public JsonArray getAll() {
+	@JsonRpcDescription("Returns a list of all migrations that are known to this instance, including their status.")
+	@DevMCPEnableByDefault
+	public JsonArray getAllMigrations() {
 
 		var result = new JsonArray();
 		var elements = migrations.info().getElements();
@@ -63,21 +69,24 @@ public final class MigrationsRPCService {
 		return result;
 	}
 
+	@JsonRpcDescription("Applies all pending migrations to the target database and returns the status of the database afterwards.")
+	@DevMCPEnableByDefault
 	public JsonObject migrate() {
 
 		var result = new JsonObject();
 		var message = this.migrations.apply().map(version -> "Database migrated to  " + version.getValue())
 			.orElse("No change");
 		result.put("message", message);
-		result.put("elements", getAll());
+		result.put("elements", getAllMigrations());
 		return result;
 	}
 
+	@JsonRpcDescription("Cleans all applied migrations from the schema database (This won't affect any user data, but only the recorded chain of applied migrations).")
 	public JsonObject clean() {
 
 		var result = new JsonObject();
 		result.put("message", this.migrations.clean(false).prettyPrint());
-		result.put("elements", getAll());
+		result.put("elements", getAllMigrations());
 		return result;
 	}
 }

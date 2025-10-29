@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//JAVA 24
+//JAVA 25
 //DEPS org.testcontainers:testcontainers-neo4j:2.0.1
 //DEPS org.slf4j:slf4j-simple:1.7.36
 //DEPS org.neo4j.driver:neo4j-java-driver:5.28.10

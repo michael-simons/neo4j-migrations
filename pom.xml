@@ -150,7 +150,7 @@
 		<maven.compiler.debug>true</maven.compiler.debug>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<maven.version>3.9.0</maven.version>
+		<maven.version>3.9.11</maven.version>
 		<mavengem-wagon.version>1.0.3</mavengem-wagon.version>
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.2.0</mockito.version>
@@ -826,10 +826,10 @@
 						<phase>validate</phase>
 						<configuration>
 							<rules>
-								<requireJavaVersion>
-									<version>21</version>
-								</requireJavaVersion>
 								<DependencyConvergence />
+								<requireJavaVersion>
+									<version>25</version>
+								</requireJavaVersion>
 								<requireMavenVersion>
 									<version>${maven.version}</version>
 								</requireMavenVersion>

@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: 21
+          java-version: 25
       - name: Run docs generation
         run: ./bin/generate-site.sh target/gh-pages/${refName} ${refName}
       - name: Update index

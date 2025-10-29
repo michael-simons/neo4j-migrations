@@ -1,3 +1,15 @@
+# 2.20.1
+
+## 🐛 Bug Fixes
+- 45792ba fix: Fix invalid method name in the Neo4jMigrations widget.
+
+## 📝 Documentation
+- 54649b7 docs: Update local changelog.
+
+## 🧹 Housekeeping
+- d6036be Upgrade testcontainers.version to 2.0.1
+
+
 # 2.20.0
 
 I can now finally call myself an AI developer: The Quarkus extension of Neo4j-Migrations now hooks into the [Dev MCP](https://quarkus.io/guides/dev-mcp) available since Quarkus 3.26 and provides several tools, such as listing all migrations and applying them. There's a session log from within Cursor using Claude Sonnet 4.5 after the release notes, making use of those features in a locally running Quarkus application. Take note that all of those features have been previously available in the Quarkus Dev UI, too.

@@ -3206,7 +3206,7 @@ you have to manually import our autoconfiguration like this:</p>
 
 <span class="keyword">import</span> <span class="include">org.springframework.test.context.DynamicPropertyRegistry</span>;
 <span class="keyword">import</span> <span class="include">org.springframework.test.context.DynamicPropertySource</span>;
-<span class="keyword">import</span> <span class="include">org.testcontainers.containers.Neo4jContainer</span>;
+<span class="keyword">import</span> <span class="include">org.testcontainers.neo4j.Neo4jContainer</span>;
 <span class="keyword">import</span> <span class="include">org.testcontainers.junit.jupiter.Container</span>;
 <span class="keyword">import</span> <span class="include">org.testcontainers.junit.jupiter.Testcontainers</span>;
 <span class="keyword">import</span> <span class="include">org.testcontainers.utility.TestcontainersConfiguration</span>;
@@ -3217,7 +3217,7 @@ you have to manually import our autoconfiguration like this:</p>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">UsingDataNeo4jTest</span> {
 
     <span class="annotation">@Container</span>
-    <span class="directive">private</span> <span class="directive">static</span> Neo4jContainer&lt;?&gt; neo4j = <span class="keyword">new</span> Neo4jContainer&lt;&gt;(<span class="string"><span class="delimiter">&quot;</span><span class="content">neo4j:4.4</span><span class="delimiter">&quot;</span></span>)
+    <span class="directive">private</span> <span class="directive">static</span> Neo4jContainer neo4j = <span class="keyword">new</span> Neo4jContainer(<span class="string"><span class="delimiter">&quot;</span><span class="content">neo4j:4.4</span><span class="delimiter">&quot;</span></span>)
         .withReuse(TestcontainersConfiguration.getInstance().environmentSupportsReuse()); <i class="conum" data-value="3"></i><b>(3)</b>
 
     <span class="annotation">@DynamicPropertySource</span>
@@ -5511,7 +5511,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-28 12:43:34 UTC
+Last updated 2025-10-29 09:47:12 UTC
 </div>
 </div>
 </body>

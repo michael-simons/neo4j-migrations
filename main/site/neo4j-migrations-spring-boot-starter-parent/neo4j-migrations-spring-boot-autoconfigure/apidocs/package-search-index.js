@@ -1,1 +1,1 @@
-packageSearchIndex = [{"m":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure","l":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();
+packageSearchIndex = [{"m":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure","l":"ac.simons.neo4j.migrations.springframework.boot.autoconfigure"},{"l":"All Packages","u":"allpackages-index.html","k":"18"}];updateSearchResults();

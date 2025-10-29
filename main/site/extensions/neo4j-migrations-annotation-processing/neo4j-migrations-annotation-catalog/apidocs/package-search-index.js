@@ -1,1 +1,1 @@
-packageSearchIndex = [{"m":"ac.simons.neo4j.migrations.annotations.catalog","l":"ac.simons.neo4j.migrations.annotations.catalog"},{"l":"All Packages","u":"allpackages-index.html"}];updateSearchResults();
+packageSearchIndex = [{"m":"ac.simons.neo4j.migrations.annotations.catalog","l":"ac.simons.neo4j.migrations.annotations.catalog"},{"l":"All Packages","u":"allpackages-index.html","k":"18"}];updateSearchResults();

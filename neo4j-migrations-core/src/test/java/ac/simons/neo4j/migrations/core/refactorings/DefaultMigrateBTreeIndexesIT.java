@@ -40,7 +40,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * @author Michael J. Simons
@@ -55,7 +55,7 @@ class DefaultMigrateBTreeIndexesIT {
 	private static final Function<Record, String> EXTRACT_NAME = r -> r.get("name").asString();
 
 	@SuppressWarnings("resource")
-	protected final Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.4-enterprise")
+	protected final Neo4jContainer neo4j = new Neo4jContainer("neo4j:4.4-enterprise")
 		.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 		.withReuse(true);
 

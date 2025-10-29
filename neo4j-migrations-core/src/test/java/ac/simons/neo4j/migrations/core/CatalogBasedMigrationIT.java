@@ -50,8 +50,8 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 /**
@@ -78,7 +78,7 @@ class CatalogBasedMigrationIT {
 		), false);
 
 		// Unclosed on purpose, otherwise reuse is without use.
-		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
+		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, true);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
@@ -102,7 +102,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void verificationShouldFailHard(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, true);
+		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, true);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -131,7 +131,7 @@ class CatalogBasedMigrationIT {
 	@MethodSource
 	void shouldApplyResources(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
+		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, false);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
@@ -158,7 +158,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void catalogBasedMigrationShouldWork(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.value, version.enterprise, false);
+		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, false);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -218,7 +218,7 @@ class CatalogBasedMigrationIT {
 	@Test
 	void optionsCanBeIncluded() throws IOException {
 
-		Neo4jContainer<?> neo4j = getNeo4j(Neo4jVersion.V4_4, true, false);
+		Neo4jContainer neo4j = getNeo4j(Neo4jVersion.V4_4, true, false);
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 			try (Session session = driver.session()) {
@@ -237,13 +237,13 @@ class CatalogBasedMigrationIT {
 		}
 	}
 
-	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, boolean enterprise, boolean createDefaultConstraints) throws IOException {
+	private Neo4jContainer getNeo4j(Neo4jVersion version, boolean enterprise, boolean createDefaultConstraints) throws IOException {
 		return getNeo4j(version, null, enterprise, createDefaultConstraints);
 	}
 
-	private Neo4jContainer<?> getNeo4j(Neo4jVersion version, String versionValue, boolean enterprise, boolean createDefaultConstraints) throws IOException {
+	private Neo4jContainer getNeo4j(Neo4jVersion version, String versionValue, boolean enterprise, boolean createDefaultConstraints) throws IOException {
 		String theVersion = versionValue == null ? version.toString() : versionValue;
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), theVersion))
+		Neo4jContainer neo4j = new Neo4jContainer(String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), theVersion))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(version.hasIdempotentOperations());
 		neo4j.start();

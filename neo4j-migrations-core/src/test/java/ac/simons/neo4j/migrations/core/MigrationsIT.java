@@ -57,7 +57,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.types.Node;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
@@ -699,7 +699,7 @@ class MigrationsIT extends TestBase {
 	@Test
 	void shouldNotFailOnDisabledAuth() {
 
-		try (Neo4jContainer<?> containerWithoutAuth = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE).withoutAuthentication()) {
+		try (Neo4jContainer containerWithoutAuth = new Neo4jContainer(TestBase.DEFAULT_NEO4J_IMAGE).withoutAuthentication()) {
 			containerWithoutAuth.start();
 
 			try (Driver driverWithoutAuth = GraphDatabase.driver(containerWithoutAuth.getBoltUrl())) {

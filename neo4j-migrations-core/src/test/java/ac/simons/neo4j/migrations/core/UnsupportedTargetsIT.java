@@ -29,7 +29,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.exceptions.ClientException;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * @author Michael J. Simons
@@ -40,7 +40,7 @@ class UnsupportedTargetsIT {
 	@ParameterizedTest
 	@CsvSource({"neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0"})
 	void migrationTargetDeterminationMustNotFailWithOlderEnterprise(String databaseVersion) {
-		Neo4jContainer<?> neo4jWithoutMultiDB = new Neo4jContainer<>(databaseVersion)
+		Neo4jContainer neo4jWithoutMultiDB = new Neo4jContainer(databaseVersion)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4jWithoutMultiDB.start();
@@ -68,7 +68,7 @@ class UnsupportedTargetsIT {
 	@ParameterizedTest
 	@CsvSource("neo4j:4.3-enterprise")
 	void impersonationOnOldDBShouldFail(String databaseVersion) {
-		Neo4jContainer<?> neo4j43 = new Neo4jContainer<>(databaseVersion)
+		Neo4jContainer neo4j43 = new Neo4jContainer(databaseVersion)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j43.start();

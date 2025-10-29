@@ -31,8 +31,8 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.Neo4jException;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * Very specific tests for detecting capabilities and error conditions.
@@ -47,7 +47,7 @@ class EnterpriseRequiredDetectionIT {
 	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch(
 		SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(String.format("neo4j:%s", version.value.toString()))
+		Neo4jContainer neo4j = new Neo4jContainer(String.format("neo4j:%s", version.value.toString()))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();

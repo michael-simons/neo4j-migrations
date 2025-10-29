@@ -26,8 +26,8 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * @author Michael J. Simons
@@ -41,7 +41,7 @@ class DefaultMigrationContextIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldUseShowProceduresIfNecessary(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		try (Neo4jContainer<?> neo4j = getNeo4j(version.asTag())) {
+		try (Neo4jContainer neo4j = getNeo4j(version.asTag())) {
 
 			Config config = Config.builder().withLogging(Logging.none()).build();
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
@@ -54,8 +54,8 @@ class DefaultMigrationContextIT {
 		}
 	}
 
-	private Neo4jContainer<?> getNeo4j(String tag) {
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
+	private Neo4jContainer getNeo4j(String tag) {
+		Neo4jContainer neo4j = new Neo4jContainer(tag)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();

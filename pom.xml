@@ -180,7 +180,7 @@
 		<spring-boot.version>3.5.6</spring-boot.version>
 		<spring-data-neo4j.version>7.5.4</spring-data-neo4j.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
-		<testcontainers.version>1.21.3</testcontainers.version>
+		<testcontainers.version>2.0.1</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
@@ -342,11 +342,6 @@
 				<groupId>org.springframework.data</groupId>
 				<artifactId>spring-data-neo4j</artifactId>
 				<version>${spring-data-neo4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>junit-jupiter</artifactId>
-				<version>${testcontainers.version}</version>
 			</dependency>
 			<dependency>
 				<!-- compile-testing depends on several versions of this -->

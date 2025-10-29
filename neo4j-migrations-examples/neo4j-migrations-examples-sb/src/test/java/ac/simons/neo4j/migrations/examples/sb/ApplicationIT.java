@@ -36,7 +36,7 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -53,7 +53,7 @@ class ApplicationIT {
 	Logger logger = LoggerFactory.getLogger(ApplicationIT.class);
 
 	@Container
-	private static final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"));
+	private static final Neo4jContainer neo4j = new Neo4jContainer(System.getProperty("migrations.default-neo4j-image"));
 
 	/**
 	 * I didn't find any better way to make sure failsafe actually is able to run Spring Boot's fat jar.

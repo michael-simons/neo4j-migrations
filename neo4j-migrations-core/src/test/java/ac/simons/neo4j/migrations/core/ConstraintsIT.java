@@ -40,8 +40,8 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.SummaryCounters;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * Those tests here are unrelated to anything catalog based. They existed before and ensure that the constraints needed by
@@ -131,7 +131,7 @@ class ConstraintsIT {
 		final String s1 = "CREATE CONSTRAINT ON ( person:Person ) ASSERT person.name IS UNIQUE";
 		final String s2 = "CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
+		Neo4jContainer neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -181,7 +181,7 @@ class ConstraintsIT {
 
 		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
+		Neo4jContainer neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -213,7 +213,7 @@ class ConstraintsIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldThrowExceptionWhenConstraintsWithSameNameExists(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
+		Neo4jContainer neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -245,7 +245,7 @@ class ConstraintsIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldPreventDuplicateVersionsWithTarget(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer<?> neo4j = getNeo4j(version.asTag());
+		Neo4jContainer neo4j = getNeo4j(version.asTag());
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 			AuthTokens.basic("neo4j", neo4j.getAdminPassword()), NO_DRIVER_LOGGING_CONFIG)) {
 
@@ -284,9 +284,9 @@ class ConstraintsIT {
 		}
 	}
 
-	private Neo4jContainer<?> getNeo4j(String tag) {
+	private Neo4jContainer getNeo4j(String tag) {
 
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(tag)
+		Neo4jContainer neo4j = new Neo4jContainer(tag)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();

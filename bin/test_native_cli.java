@@ -1,8 +1,8 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA 24
-//DEPS org.testcontainers:neo4j:1.21.3
+//DEPS org.testcontainers:testcontainers-neo4j:2.0.1
 //DEPS org.slf4j:slf4j-simple:1.7.36
-//DEPS org.neo4j.driver:neo4j-java-driver:5.28.9
+//DEPS org.neo4j.driver:neo4j-java-driver:5.28.10
 //DEPS org.assertj:assertj-core:3.27.4
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * Needs to be called from the root of the project.
@@ -43,7 +43,7 @@ public class test_native_cli {
 		var location2 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/catalogbased_changesets").toAbsolutePath().normalize().toUri().toString();
 
 		// Let Ryuk take care of it, so no try/catch with autoclose
-		var neo4j = new Neo4jContainer<>(imageName).withReuse(true);
+		var neo4j = new Neo4jContainer(imageName).withReuse(true);
 		neo4j.start();
 
 		try (var driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()));

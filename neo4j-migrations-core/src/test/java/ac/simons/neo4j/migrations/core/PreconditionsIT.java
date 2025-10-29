@@ -27,8 +27,8 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * @author Michael J. Simons
@@ -52,7 +52,7 @@ class PreconditionsIT {
 	void assumptionsShouldWork() {
 
 		@SuppressWarnings("resource")
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.3-enterprise")
+		Neo4jContainer neo4j = new Neo4jContainer("neo4j:4.3-enterprise")
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
@@ -81,7 +81,7 @@ class PreconditionsIT {
 	void assertionsShouldWork() {
 
 		@SuppressWarnings("resource")
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>(TestBase.DEFAULT_NEO4J_IMAGE)
+		Neo4jContainer neo4j = new Neo4jContainer(TestBase.DEFAULT_NEO4J_IMAGE)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
@@ -107,7 +107,7 @@ class PreconditionsIT {
 	void thingsShouldNotFailWhenAssumptionsChangeDueToVersionUpgrade() {
 
 		@SuppressWarnings("resource")
-		Neo4jContainer<?> neo4j = new Neo4jContainer<>("neo4j:4.0")
+		Neo4jContainer neo4j = new Neo4jContainer("neo4j:4.0")
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();

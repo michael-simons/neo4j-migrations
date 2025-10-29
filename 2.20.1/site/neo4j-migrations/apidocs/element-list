@@ -1,0 +1,4 @@
+module:ac.simons.neo4j.migrations.core
+ac.simons.neo4j.migrations.core
+ac.simons.neo4j.migrations.core.catalog
+ac.simons.neo4j.migrations.core.refactorings

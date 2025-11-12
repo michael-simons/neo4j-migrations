@@ -185,7 +185,7 @@ public final class Migrations {
 	}
 
 	/**
-	 * This is an overload for {@link #info()} ()} that allows skipping the locking mechanism. Use with care.
+	 * This is an overload for {@link #info()} that allows skipping the locking mechanism. Use with care.
 	 *
 	 * @param doLock Use {@literal false} to skip the locking mechanism
 	 * @return The chain of migrations.
@@ -488,7 +488,7 @@ public final class Migrations {
 	 * <p>
 	 * This command will  throw a {@link MigrationsException}  if no local scripts  or classes are discovered  at all as
 	 * that would lead to the deletion of all applied migrations. In case that is the desired outcome, please use {@link
-	 * #clean(boolean)} and optionally specify whether Neo4j-Migration required infrastructure (read constraints etc).
+	 * #clean(boolean)} and optionally specify whether Neo4j-Migration required infrastructure (read constraints etc.).
 	 *
 	 * @return The result  of the  repair process,  containing detailed information  about the  outcome and  the changed
 	 *         database content
@@ -629,7 +629,8 @@ public final class Migrations {
 	}
 
 	/**
-	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
+	 * Returns the user agent for Neo4j-Migrations (given in the form {@literal name/version}).
+	 * @return the user agent for Neo4j-Migrations (given in the form {@literal name/version})
 	 * @since 1.2.1
 	 */
 	public static String getUserAgent() {

@@ -19,7 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -58,14 +57,15 @@ public final class ResourceContext {
 	}
 
 	/**
-	 * @return the resources {@link URL}
+	 * {@return the resources URL}
 	 */
 	public URL getUrl() {
 		return url;
 	}
 
 	/**
-	 * @return The identifier of the underlying resource
+	 * Returns the identifier of the underlying resource.
+	 * @return the identifier of the underlying resource
 	 * @since 1.8.0
 	 */
 	public String getIdentifier() {
@@ -76,21 +76,16 @@ public final class ResourceContext {
 	 * Helper method to extract an optional last element from a URL path. If no such element exists, returns the full path.
 	 *
 	 * @param url The url containing a path
-	 * @return The last path element or if such an element does not exists, the full path
+	 * @return The last path element or if such an element does not exist, the full path
 	 */
 	static String generateIdentifierOf(URL url) {
-		String path = url.getPath();
-		try {
-			path = URLDecoder.decode(path, Defaults.CYPHER_SCRIPT_ENCODING.name());
-		} catch (UnsupportedEncodingException e) {
-			throw new MigrationsException("Somethings broken: UTF-8 encoding not supported.");
-		}
-		int lastIndexOf = path.lastIndexOf("/");
+		var path = URLDecoder.decode(url.getPath(), Defaults.CYPHER_SCRIPT_ENCODING);
+		var lastIndexOf = path.lastIndexOf("/");
 		return lastIndexOf < 0 ? path : path.substring(lastIndexOf + 1);
 	}
 
 	/**
-	 * @return the configuration with which the resource has been discovered
+	 * {@return the configuration with which the resource has been discovered}
 	 */
 	public MigrationsConfig getConfig() {
 		return config;

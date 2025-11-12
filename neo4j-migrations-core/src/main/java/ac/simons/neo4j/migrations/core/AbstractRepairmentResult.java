@@ -53,35 +53,35 @@ abstract sealed class AbstractRepairmentResult implements DatabaseOperationResul
 	}
 
 	/**
-	 * @return how many nodes have been deleted.
+	 * {@return how many nodes have been deleted}
 	 */
 	public long getNodesDeleted() {
 		return nodesDeleted;
 	}
 
 	/**
-	 * @return how many nodes have been created.
+	 * {@return how many nodes have been created}
 	 */
 	public long getNodesCreated() {
 		return nodesCreated;
 	}
 
 	/**
-	 * @return how many relationships have been deleted
+	 * {@return how many relationships have been deleted}
 	 */
 	public long getRelationshipsDeleted() {
 		return relationshipsDeleted;
 	}
 
 	/**
-	 * @return how many relationships have been created
+	 * {@return how many relationships have been created}
 	 */
 	public long getRelationshipsCreated() {
 		return relationshipsCreated;
 	}
 
 	/**
-	 * @return the number of properties set
+	 * {@return the number of properties set}
 	 */
 	public long getPropertiesSet() {
 		return propertiesSet;

@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * A location for migration scripts, can be either on the classpath or the filesystem.
  * @author Michael J. Simons
  * @since 0.0.2
  */
@@ -139,14 +140,14 @@ public final class Location {
 	}
 
 	/**
-	 * @return the type of this location
+	 * {@return the type of this location}
 	 */
 	public LocationType getType() {
 		return type;
 	}
 
 	/**
-	 * @return the name of this location
+	 * {@return the name of this location}
 	 */
 	public String getName() {
 		return name;

@@ -5146,9 +5146,8 @@ To enable that feature, configure the processor with <code>-Aorg.neo4j.migration
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">java.net.URI</span>;
 
-<span class="keyword">import</span> <span class="include">org.neo4j.driver.Query</span>;
-
 <span class="keyword">import</span> <span class="include">ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration</span>;
+<span class="keyword">import</span> <span class="include">org.neo4j.driver.Query</span>;
 
 <span class="directive">public</span> <span class="type">class</span> <span class="class">R050__LoadBookData</span> <span class="directive">extends</span> AbstractLoadCSVMigration {
 
@@ -5160,20 +5159,21 @@ To enable that feature, configure the processor with <code>-Aorg.neo4j.migration
     <span class="directive">public</span> <span class="predefined-type">Query</span> getQuery() {
         <span class="comment">// language=cypher</span>
         <span class="keyword">return</span> <span class="keyword">new</span> <span class="predefined-type">Query</span>(<span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="content">
-            LOAD CSV WITH HEADERS FROM '%s' AS row FIELDTERMINATOR ','
-            MERGE (b:Book {title: trim(row.Title)})
-            SET b.type = row.Type, b.state = row.State
-            WITH b, row
-            UNWIND split(row.Author, '&amp;') AS author
-            WITH b, split(author, ',') AS author
-            WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
-            MERGE (a:Person {name: trim(author)})
-            MERGE (a)-[r:WROTE]-&gt;(b)
-            WITH b, a
-            WITH b, collect(a) AS authors
-            RETURN b.title, b.state, authors
-            </span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span>);
+                LOAD CSV WITH HEADERS FROM '%s' AS row FIELDTERMINATOR ','
+                MERGE (b:Book {title: trim(row.Title)})
+                SET b.type = row.Type, b.state = row.State
+                WITH b, row
+                UNWIND split(row.Author, '&amp;') AS author
+                WITH b, split(author, ',') AS author
+                WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
+                MERGE (a:Person {name: trim(author)})
+                MERGE (a)-[r:WROTE]-&gt;(b)
+                WITH b, a
+                WITH b, collect(a) AS authors
+                RETURN b.title, b.state, authors
+                </span><span class="delimiter">&quot;</span></span><span class="string"><span class="delimiter">&quot;</span><span class="delimiter">&quot;</span></span>);
     }
+
 }</code></pre>
 </div>
 </div>
@@ -5511,7 +5511,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-12 16:08:33 UTC
+Last updated 2025-11-13 15:08:35 UTC
 </div>
 </div>
 </body>

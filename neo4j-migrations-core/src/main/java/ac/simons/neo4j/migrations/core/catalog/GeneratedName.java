@@ -26,4 +26,5 @@ final class GeneratedName extends AbstractName {
 	GeneratedName(String value) {
 		super(value);
 	}
+
 }

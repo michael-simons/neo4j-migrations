@@ -15,16 +15,17 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.net.URL;
+import java.util.List;
+
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.Resource;
 import io.github.classgraph.ResourceList;
 import io.github.classgraph.ScanResult;
 
-import java.net.URL;
-import java.util.List;
-
 /**
- * A {@link ClasspathResourceScanner} that scans the class path for cypher resources on demand.
+ * A {@link ClasspathResourceScanner} that scans the class path for cypher resources on
+ * demand.
  *
  * @author Michael J. Simons
  * @since 1.3.0
@@ -36,12 +37,9 @@ final class DefaultClasspathResourceScanner implements ClasspathResourceScanner 
 
 		String[] paths = locations.toArray(new String[0]);
 		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan();
-			ResourceList allResources = scanResult.getAllResources().nonClassFilesOnly()
-		) {
-			return allResources
-				.stream()
-				.map(Resource::getURL)
-				.toList();
+				ResourceList allResources = scanResult.getAllResources().nonClassFilesOnly()) {
+			return allResources.stream().map(Resource::getURL).toList();
 		}
 	}
+
 }

@@ -27,4 +27,5 @@ import org.neo4j.ogm.annotation.NodeEntity;
 public class Entity {
 
 	Long id;
+
 }

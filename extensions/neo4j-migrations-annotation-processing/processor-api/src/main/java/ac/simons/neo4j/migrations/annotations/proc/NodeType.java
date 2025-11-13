@@ -21,16 +21,15 @@ import java.util.List;
  * Describing a node.
  *
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
  * @since 1.11.0
  */
 public interface NodeType extends ElementType<NodeType> {
 
 	/**
-	 * The returned list will be sorted, first label is the primary label (the most explicit one declared in with any supported
-	 * means in a class).
-	 *
+	 * The returned list will be sorted, first label is the primary label (the most
+	 * explicit one declared in with any supported means in a class).
 	 * @return the list of labels of this type.
 	 */
 	List<SchemaName> getLabels();
+
 }

@@ -21,35 +21,46 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * A precondation preventing unwanted editions.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.5.0
  */
 final class EditionPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that edition is *(?<edition>\\w++)?$");
+	private static final Pattern CONDITION_PATTERN = Pattern
+		.compile("(?i)^ *+// *+(?:assume|assert) that edition is *(?<edition>\\w++)?$");
+
+	private final Neo4jEdition edition;
+
+	private EditionPrecondition(Type type, Neo4jEdition edition) {
+		super(type);
+		this.edition = edition;
+	}
 
 	/**
-	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
-	 * a corresponding precondition.
-	 *
-	 * @param hint The complete hint
-	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so,
+	 * tries to build a factory for a corresponding precondition.
+	 * @param hint the complete hint
+	 * @return a factory for a precondition or an empty optional if this factory doesn't
+	 * match the hint
 	 */
 	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
 
 		Matcher matcher = CONDITION_PATTERN.matcher(hint);
 		if (!matcher.matches()) {
 			return Optional.empty();
-		} else {
+		}
+		else {
 			try {
 				Neo4jEdition edition = Neo4jEdition.of(matcher.group("edition"), false);
 				return Optional.of(type -> new EditionPrecondition(type, edition));
-			} catch (Exception e) {
-				throw new IllegalArgumentException(
-					String.format(
-							"Wrong edition precondition %s. Usage: `<assume|assert> that edition is <enterprise|community>`.",
-							Precondition.formattedHint(hint)));
+			}
+			catch (Exception ex) {
+				throw new IllegalArgumentException(String.format(
+						"Wrong edition precondition %s. Usage: `<assume|assert> that edition is <enterprise|community>`.",
+						Precondition.formattedHint(hint)));
 			}
 		}
 	}
@@ -59,24 +70,18 @@ final class EditionPrecondition extends AbstractPrecondition implements Precondi
 		return Neo4jEdition.of(connectionDetails.getServerEdition());
 	}
 
-	private final Neo4jEdition edition;
-
-	private EditionPrecondition(Type type, Neo4jEdition edition) {
-		super(type);
-		this.edition = edition;
-	}
-
 	@Override
 	public boolean isMet(MigrationContext migrationContext) {
-		return getEdition(migrationContext.getConnectionDetails()).equals(edition);
+		return getEdition(migrationContext.getConnectionDetails()).equals(this.edition);
 	}
 
 	Neo4jEdition getEdition() {
-		return edition;
+		return this.edition;
 	}
 
 	@Override
 	public String toString() {
 		return String.format("// %s that edition is %s", getType().keyword(), getEdition().name());
 	}
+
 }

@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 
 /**
- * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the patches).
+ * Simplified Neo4j version, fuzzy if you want so (just looking at Major.Minor, not the
+ * patches).
  *
  * @author Michael J. Simons
  * @since 1.7.0
@@ -60,7 +61,7 @@ public enum Neo4jVersion {
 	 */
 	V4_4,
 	/**
-	 * Constant for everything Neo4j 5
+	 * Constant for everything Neo4j 5.
 	 */
 	V5,
 	/**
@@ -69,9 +70,11 @@ public enum Neo4jVersion {
 	LATEST;
 
 	private static final String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
+
 	private static final String NEW_SHOW_CONSTRAINTS = "SHOW CONSTRAINTS YIELD *";
 
 	private static final String OLD_SHOW_INDEXES = "CALL db.indexes()";
+
 	private static final String NEW_SHOW_INDEXES = "SHOW INDEXES YIELD *";
 
 	/**
@@ -79,49 +82,23 @@ public enum Neo4jVersion {
 	 */
 	private static final Set<Neo4jVersion> WITH_IDEM_POTENCY = EnumSet.complementOf(EnumSet.of(V3_5, V4_0));
 
-	private static final Set<Neo4jVersion> WITH_TEXT_INDEXES = EnumSet.complementOf(EnumSet.of(V3_5, V4_0, V4_1, V4_2, V4_3, UNDEFINED));
+	private static final Set<Neo4jVersion> WITH_TEXT_INDEXES = EnumSet
+		.complementOf(EnumSet.of(V3_5, V4_0, V4_1, V4_2, V4_3, UNDEFINED));
 
 	private static final Set<Neo4jVersion> SERIES_3 = EnumSet.of(V3_5);
 
-	private static final Set<Neo4jVersion> SERIES_4 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V4_")).collect(
-		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
+	private static final Set<Neo4jVersion> SERIES_4 = Arrays.stream(Neo4jVersion.values())
+		.filter(v -> v.name().startsWith("V4_"))
+		.collect(Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
 
-	private static final Set<Neo4jVersion> SERIES_5 = Arrays.stream(Neo4jVersion.values()).filter(v -> v.name().startsWith("V5")).collect(
-		Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
-
-	/**
-	 * Parses a version string in a lenient way. Only Major and Minor versions are looked at.
-	 *
-	 * @param version A version string
-	 * @return A version
-	 */
-	public static Neo4jVersion of(String version) {
-
-		String value = version == null ? null : version.replaceFirst("(?i)Neo4j[/:]", "");
-		if (value == null) {
-			return UNDEFINED;
-		} else if (value.startsWith("3.5")) {
-			return V3_5;
-		} else if (value.startsWith("4.0")) {
-			return V4_0;
-		} else if (value.startsWith("4.1")) {
-			return V4_1;
-		} else if (value.startsWith("4.2")) {
-			return V4_2;
-		} else if (value.startsWith("4.3")) {
-			return V4_3;
-		} else if (value.startsWith("4.4")) {
-			return V4_4;
-		} else if (value.startsWith("5.")) {
-			return V5;
-		} else {
-			return LATEST;
-		}
-	}
+	private static final Set<Neo4jVersion> SERIES_5 = Arrays.stream(Neo4jVersion.values())
+		.filter(v -> v.name().startsWith("V5"))
+		.collect(Collectors.collectingAndThen(Collectors.toSet(), EnumSet::copyOf));
 
 	private final boolean priorTo44;
 
 	private final String showConstraints;
+
 	private final String showIndexes;
 
 	Neo4jVersion() {
@@ -134,36 +111,78 @@ public enum Neo4jVersion {
 		this.showIndexes = showIndexes;
 	}
 
+	/**
+	 * Parses a version string in a lenient way. Only Major and Minor versions are looked
+	 * at.
+	 * @param version a version string
+	 * @return a version
+	 */
+	public static Neo4jVersion of(String version) {
+
+		String value = (version != null) ? version.replaceFirst("(?i)Neo4j[/:]", "") : null;
+		if (value == null) {
+			return UNDEFINED;
+		}
+		else if (value.startsWith("3.5")) {
+			return V3_5;
+		}
+		else if (value.startsWith("4.0")) {
+			return V4_0;
+		}
+		else if (value.startsWith("4.1")) {
+			return V4_1;
+		}
+		else if (value.startsWith("4.2")) {
+			return V4_2;
+		}
+		else if (value.startsWith("4.3")) {
+			return V4_3;
+		}
+		else if (value.startsWith("4.4")) {
+			return V4_4;
+		}
+		else if (value.startsWith("5.")) {
+			return V5;
+		}
+		else {
+			return LATEST;
+		}
+	}
+
 	@Override
 	public String toString() {
 		return name().replace("V", "").replace("_", ".");
 	}
 
 	/**
-	 * @return true if this is a version prior to 4.4.
+	 * {@return true if this is a version prior to 4.4}
 	 */
 	public boolean isPriorTo44() {
-		return priorTo44;
+		return this.priorTo44;
 	}
 
 	/**
-	 * @return true if this version has idempotent operations
+	 * {@return true if this version has idempotent operations}
 	 */
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer readability
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer
+														// readability
 	public boolean hasIdempotentOperations() {
 		return WITH_IDEM_POTENCY.contains(this);
 	}
 
 	/**
-	 * @return true if this version has text indexes
+	 * {@return true if this version has text indexes}
 	 */
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer readability
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer
+														// readability
 	public boolean hasTextIndexes() {
 		return WITH_TEXT_INDEXES.contains(this);
 	}
 
 	/**
-	 * @return true if this version supports specifying options on constraints and indexes.
+	 * Returns true if this version supports specifying options on constraints and
+	 * indexes.
+	 * @return true if this version supports specifying options on constraints and indexes
 	 * @since 1.13.0
 	 */
 	public boolean supportsSchemaOptions() {
@@ -171,37 +190,47 @@ public enum Neo4jVersion {
 	}
 
 	/**
-	 * @return The command recommended for this specific version to get a list of all known constraints
+	 * Returns the command recommended for this specific version to get a list of all
+	 * known constraints.
+	 * @return a cypher command retrieving constraints
 	 */
 	public String getShowConstraints() {
-		return showConstraints;
-	}
-	/**
-	 * @return The command recommended for this specific version to get a list of all known indexes
-	 */
-	public String getShowIndexes() {
-		return showIndexes;
+		return this.showConstraints;
 	}
 
 	/**
-	 * @return The major version of the database.
+	 * Returns the command recommended for this specific version to get a list of all
+	 * known indexes.
+	 * @return a cypher command retrieving indexes
+	 */
+	public String getShowIndexes() {
+		return this.showIndexes;
+	}
+
+	/**
+	 * Returns the major version of the database.
+	 * @return the major version of the database
 	 * @since 1.10.0
 	 */
 	public int getMajorVersion() {
 		if (this == LATEST) {
 			return -1;
-		} else if (SERIES_3.contains(this)) {
+		}
+		else if (SERIES_3.contains(this)) {
 			return 3;
-		} else if (SERIES_4.contains(this)) {
+		}
+		else if (SERIES_4.contains(this)) {
 			return 4;
-		} else if (SERIES_5.contains(this)) {
+		}
+		else if (SERIES_5.contains(this)) {
 			return 5;
 		}
 		throw new IllegalStateException("Unknown major version");
 	}
 
 	/**
-	 * @return The minor version or {@code -1} if it can be determined
+	 * Returns the minor version or {@code -1} if it can be determined.
+	 * @return the minor version or {@code -1} if it can be determined
 	 * @since 1.11.0
 	 */
 	public int getMinorVersion() {
@@ -216,10 +245,11 @@ public enum Neo4jVersion {
 	}
 
 	/**
-	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier, fitting the given version
-	 *
-	 * @param potentiallyNonIdentifier A value to escape, must not be {@literal null} or blank
-	 * @return The sanitized and quoted value or the same value if no change is necessary.
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a
+	 * valid Cypher identifier, fitting the given version.
+	 * @param potentiallyNonIdentifier a value to escape, must not be {@literal null} or
+	 * blank
+	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
 	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
@@ -231,7 +261,8 @@ public enum Neo4jVersion {
 		int major;
 		try {
 			major = getMajorVersion();
-		} catch (IllegalStateException e) {
+		}
+		catch (IllegalStateException ex) {
 			major = -1;
 		}
 		int minor = getMinorVersion();
@@ -239,4 +270,5 @@ public enum Neo4jVersion {
 		return SchemaNames.sanitize(potentiallyNonIdentifier, false, major, minor)
 			.orElseThrow(NoSuchElementException::new);
 	}
+
 }

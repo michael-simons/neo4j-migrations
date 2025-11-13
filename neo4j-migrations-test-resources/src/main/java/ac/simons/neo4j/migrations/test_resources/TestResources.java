@@ -16,11 +16,15 @@
 package ac.simons.neo4j.migrations.test_resources;
 
 /**
- * Entrypoint to the test resources, needed on the module path to access the resources in <strong>this</strong> module.
+ * Entrypoint to the test resources, needed on the module path to access the resources in
+ * <strong>this</strong> module.
+ *
  * @author Michael J. Simons
  * @since 2.0.0
  */
 public final class TestResources {
+
 	private TestResources() {
 	}
+
 }

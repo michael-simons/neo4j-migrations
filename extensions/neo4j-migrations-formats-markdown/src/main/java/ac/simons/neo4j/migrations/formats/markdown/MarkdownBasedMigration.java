@@ -19,9 +19,7 @@ import ac.simons.neo4j.migrations.core.AbstractCypherBasedMigration;
 import ac.simons.neo4j.migrations.core.CypherResource;
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.ResourceContext;
-
 import org.commonmark.node.FencedCodeBlock;
-
 
 /**
  * A Cypher based migration that extract its content from Markdown fenced code blocks.
@@ -29,6 +27,13 @@ import org.commonmark.node.FencedCodeBlock;
  * @author Gerrit Meier
  */
 final class MarkdownBasedMigration extends AbstractCypherBasedMigration {
+
+	private final String document;
+
+	private MarkdownBasedMigration(String document, String id, String content) {
+		super(CypherResource.withContent(content).identifiedBy(id));
+		this.document = document;
+	}
 
 	static Migration of(ResourceContext ctx, FencedCodeBlock codeBlock) {
 		return new MarkdownBasedMigration(ctx.getIdentifier(), extractId(codeBlock.getInfo()), codeBlock.getLiteral());
@@ -38,15 +43,9 @@ final class MarkdownBasedMigration extends AbstractCypherBasedMigration {
 		return info.replace("id=", "");
 	}
 
-	private final String document;
-
-	private MarkdownBasedMigration(String document, String id, String content) {
-		super(CypherResource.withContent(content).identifiedBy(id));
-		this.document = document;
-	}
-
 	@Override
 	public String getSource() {
-		return document + "#" + cypherResource.getIdentifier();
+		return this.document + "#" + this.cypherResource.getIdentifier();
 	}
+
 }

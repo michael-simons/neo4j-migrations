@@ -39,9 +39,8 @@ public final class CleanResult implements DatabaseOperationResult {
 
 	private final long indexesRemoved;
 
-	CleanResult(Optional<String> affectedDatabase, List<String> chainsDeleted, long nodesDeleted, long relationshipsDeleted,
-		long constraintsRemoved,
-		long indexesRemoved) {
+	CleanResult(Optional<String> affectedDatabase, List<String> chainsDeleted, long nodesDeleted,
+			long relationshipsDeleted, long constraintsRemoved, long indexesRemoved) {
 		this.affectedDatabase = affectedDatabase.orElse(null);
 		this.chainsDeleted = List.copyOf(chainsDeleted);
 		this.nodesDeleted = nodesDeleted;
@@ -52,59 +51,54 @@ public final class CleanResult implements DatabaseOperationResult {
 
 	@Override
 	public Optional<String> getAffectedDatabase() {
-		return Optional.ofNullable(affectedDatabase);
+		return Optional.ofNullable(this.affectedDatabase);
 	}
 
 	/**
 	 * The list of chains deleted.
-	 *
 	 * @return the name of the chains' migration targets
 	 */
 	public List<String> getChainsDeleted() {
-		return chainsDeleted;
+		return this.chainsDeleted;
 	}
 
 	/**
 	 * {@return how many nodes have been deleted}
 	 */
 	public long getNodesDeleted() {
-		return nodesDeleted;
+		return this.nodesDeleted;
 	}
 
 	/**
 	 * {@return how many relationships have been deleted}
 	 */
 	public long getRelationshipsDeleted() {
-		return relationshipsDeleted;
+		return this.relationshipsDeleted;
 	}
 
 	/**
 	 * {@return how many constraints have been removed}
 	 */
 	public long getConstraintsRemoved() {
-		return constraintsRemoved;
+		return this.constraintsRemoved;
 	}
 
 	/**
 	 * {@return how many indexes have been removed}
 	 */
 	public long getIndexesRemoved() {
-		return indexesRemoved;
+		return this.indexesRemoved;
 	}
 
 	@Override
 	public String prettyPrint() {
 
-		String prefix = "chain" + (getChainsDeleted().size() > 1 ? "s " : " ");
-		return String.format(
-			"Deleted %s (%d nodes and %d relationships in total) and %d constraints from %s.",
-			getChainsDeleted().isEmpty() ?
-				"no chains" :
-				getChainsDeleted().stream().collect(Collectors.joining(", ", prefix, "")),
-			this.getNodesDeleted(),
-			this.getRelationshipsDeleted(),
-			this.getConstraintsRemoved(),
-			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
-		);
+		String prefix = "chain" + ((getChainsDeleted().size() > 1) ? "s " : " ");
+		return String.format("Deleted %s (%d nodes and %d relationships in total) and %d constraints from %s.",
+				getChainsDeleted().isEmpty() ? "no chains"
+						: getChainsDeleted().stream().collect(Collectors.joining(", ", prefix, "")),
+				this.getNodesDeleted(), this.getRelationshipsDeleted(), this.getConstraintsRemoved(),
+				this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database"));
 	}
+
 }

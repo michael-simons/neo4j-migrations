@@ -24,7 +24,9 @@ import org.springframework.data.neo4j.core.schema.Property;
  */
 @Node
 public class RenamedIdProperty {
+
 	@Id
 	@Property("myOtherIdName")
 	private String myId;
+
 }

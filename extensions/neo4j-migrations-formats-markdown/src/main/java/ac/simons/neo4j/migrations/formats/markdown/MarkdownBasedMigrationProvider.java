@@ -15,13 +15,6 @@
  */
 package ac.simons.neo4j.migrations.formats.markdown;
 
-import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.Defaults;
-import ac.simons.neo4j.migrations.core.Migration;
-import ac.simons.neo4j.migrations.core.Ordered;
-import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.ResourceContext;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,22 +24,28 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migration;
+import ac.simons.neo4j.migrations.core.Ordered;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.ResourceContext;
 import org.commonmark.node.AbstractVisitor;
 import org.commonmark.node.FencedCodeBlock;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 
 /**
- * Implementation of a {@link ResourceBasedMigrationProvider} that deals with Markdown files under the extension
- * of {@code .md}.
+ * Implementation of a {@link ResourceBasedMigrationProvider} that deals with Markdown
+ * files under the extension of {@code .md}.
  *
  * @author Gerrit Meier
  */
 public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
 
 	/**
-	 * Creates a new instance of this provider. It should not be necessary to call this directly, it will be done by the
-	 * service loader.
+	 * Creates a new instance of this provider. It should not be necessary to call this
+	 * directly, it will be done by the service loader.
 	 */
 	public MarkdownBasedMigrationProvider() {
 		super(Ordered.LOWEST_PRECEDENCE, "md", true);
@@ -58,13 +57,14 @@ public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedM
 		StringBuilder content = new StringBuilder();
 		CharBuffer buffer = CharBuffer.allocate(1024);
 		try (BufferedReader in = new BufferedReader(
-			new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
+				new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
 			while (in.read(buffer) != -1) {
 				buffer.flip();
 				content.append(buffer);
 			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 
 		Parser markdownParser = Parser.builder().build();
@@ -89,8 +89,9 @@ public final class MarkdownBasedMigrationProvider extends AbstractResourceBasedM
 
 		@Override
 		public void visit(FencedCodeBlock fencedCodeBlock) {
-			migrations.add(MarkdownBasedMigration.of(ctx, fencedCodeBlock));
+			this.migrations.add(MarkdownBasedMigration.of(this.ctx, fencedCodeBlock));
 		}
 
 	}
+
 }

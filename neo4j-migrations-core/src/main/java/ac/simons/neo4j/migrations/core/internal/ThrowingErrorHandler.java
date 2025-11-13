@@ -20,12 +20,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * A throwing error handler used when building {@link org.w3c.dom.Document documents} for which a scheme is available.
- * We do skip error {@literal cvc-id.1}, which indicates unresolvable ids. This is on purpose, as we usually can resolve
- * them in older migrations and if not, we still can throw things around.
+ * A throwing error handler used when building {@link org.w3c.dom.Document documents} for
+ * which a scheme is available. We do skip error {@literal cvc-id.1}, which indicates
+ * unresolvable ids. This is on purpose, as we usually can resolve them in older
+ * migrations and if not, we still can throw things around.
  *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Please
  * @since 1.7.0
  */
 public final class ThrowingErrorHandler implements ErrorHandler {
@@ -48,4 +48,5 @@ public final class ThrowingErrorHandler implements ErrorHandler {
 	public void fatalError(SAXParseException exception) throws SAXException {
 		throw exception;
 	}
+
 }

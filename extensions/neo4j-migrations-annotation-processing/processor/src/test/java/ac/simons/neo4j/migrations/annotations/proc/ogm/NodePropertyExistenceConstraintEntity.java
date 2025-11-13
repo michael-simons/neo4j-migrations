@@ -31,4 +31,5 @@ public class NodePropertyExistenceConstraintEntity {
 
 	@Required
 	String login;
+
 }

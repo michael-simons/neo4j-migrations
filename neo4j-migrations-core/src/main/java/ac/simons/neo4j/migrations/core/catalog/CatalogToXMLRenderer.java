@@ -15,10 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.catalog.RenderConfig.XMLRenderingOptions;
-import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-import ac.simons.neo4j.migrations.core.internal.XMLUtils;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -32,10 +28,15 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig.XMLRenderingOptions;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import ac.simons.neo4j.migrations.core.internal.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * Renders a catalog into XML.
+ *
  * @author Michael J. Simons
  * @since 1.7.0
  */
@@ -46,15 +47,16 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 	@Override
 	public void render(Catalog catalog, RenderConfig config, OutputStream target) throws IOException {
 
-		List<XMLRenderingOptions> relevantOptions = config.getAdditionalOptions().stream()
+		List<XMLRenderingOptions> relevantOptions = config.getAdditionalOptions()
+			.stream()
 			.filter(XMLRenderingOptions.class::isInstance)
 			.map(XMLRenderingOptions.class::cast)
 			.toList();
-		boolean withApply = relevantOptions
-			.stream().map(XMLRenderingOptions::withApply)
+		boolean withApply = relevantOptions.stream()
+			.map(XMLRenderingOptions::withApply)
 			.reduce(!relevantOptions.isEmpty(), (v1, v2) -> v1 && v2);
-		boolean withReset = relevantOptions
-			.stream().map(XMLRenderingOptions::withReset)
+		boolean withReset = relevantOptions.stream()
+			.map(XMLRenderingOptions::withReset)
 			.reduce(!relevantOptions.isEmpty(), (v1, v2) -> v1 && v2);
 
 		String header = relevantOptions.stream()
@@ -69,7 +71,7 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			Document document = documentBuilder.newDocument();
 
 			Element migrationElement = document.createElementNS(XMLSchemaConstants.MIGRATION_NS,
-				XMLSchemaConstants.MIGRATION);
+					XMLSchemaConstants.MIGRATION);
 
 			if (!header.trim().isEmpty()) {
 				migrationElement.appendChild(document.createComment(header));
@@ -91,7 +93,8 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			for (CatalogItem<?> item : catalog.getItems()) {
 				if (item instanceof Constraint constraint) {
 					constraintsElement.appendChild(constraint.toXML(document));
-				} else if (item instanceof Index index) {
+				}
+				else if (item instanceof Index index) {
 					indexesElement.appendChild(index.toXML(document));
 				}
 			}
@@ -102,8 +105,10 @@ enum CatalogToXMLRenderer implements Renderer<Catalog> {
 			}
 
 			XMLUtils.getIndentingTransformer().transform(new DOMSource(document), new StreamResult(target));
-		} catch (ParserConfigurationException | TransformerException e) {
-			throw new IOException(e);
+		}
+		catch (ParserConfigurationException | TransformerException ex) {
+			throw new IOException(ex);
 		}
 	}
+
 }

@@ -28,5 +28,7 @@ public abstract class Fun {
 	String uuid;
 
 	static class FunFun extends Fun {
+
 	}
+
 }

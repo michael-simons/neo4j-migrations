@@ -27,8 +27,9 @@ import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
 
 /**
+ * Implements the {@link Normalize normalize-refactoring}.
+ *
  * @author Michael J. Simons
- * @soundtrack Soilwork - Natural Born Chaos
  * @since 1.10.0
  */
 final class DefaultNormalize extends AbstractCustomizableRefactoring implements Normalize {
@@ -45,7 +46,8 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		this(property, trueValues, falseValues, null, null);
 	}
 
-	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues, String customQuery, Integer batchSize) {
+	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues, String customQuery,
+			Integer batchSize) {
 		super(customQuery, batchSize);
 
 		boolean nullIsTrue = trueValues.stream().anyMatch(DefaultNormalize::isNull);
@@ -55,22 +57,19 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			throw new IllegalArgumentException("Both true and false values contain the literal value null");
 		}
 
-		trueValues.stream().filter(falseValues::contains)
-			.findFirst().ifPresent(v -> {
-				throw new IllegalArgumentException("Both true and false values contain `" + v + "`");
-			});
+		trueValues.stream().filter(falseValues::contains).findFirst().ifPresent(v -> {
+			throw new IllegalArgumentException("Both true and false values contain `" + v + "`");
+		});
 
 		this.property = property;
 		this.trueValues = trueValues;
 		this.falseValues = falseValues;
 
 		if (this.batchSize != null) {
-			this.featureSet = QueryRunner.defaultFeatureSet()
-				.withRequiredVersion("4.4")
-				.withBatchingSupport(true);
-		} else {
-			this.featureSet = QueryRunner.defaultFeatureSet()
-				.withRequiredVersion("4.1");
+			this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.4").withBatchingSupport(true);
+		}
+		else {
+			this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.1");
 		}
 	}
 
@@ -79,84 +78,84 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 	}
 
 	QueryRunner.FeatureSet getFeatures() {
-		return featureSet;
+		return this.featureSet;
 	}
 
 	@Override
 	public Normalize inBatchesOf(Integer newBatchSize) {
 
-		return inBatchesOf0(
-			newBatchSize, DefaultNormalize.class, v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, this.customQuery, v));
+		return inBatchesOf0(newBatchSize, DefaultNormalize.class,
+				v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, this.customQuery, v));
 	}
 
 	@Override
 	public Normalize withCustomQuery(String newCustomQuery) {
 
-		return withCustomQuery0(newCustomQuery,
-			Normalize.class,
-			v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, v, this.batchSize));
+		return withCustomQuery0(newCustomQuery, Normalize.class,
+				v -> new DefaultNormalize(this.property, this.trueValues, this.falseValues, v, this.batchSize));
 	}
 
 	@Override
 	public Counters apply(RefactoringContext context) {
-		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {
-			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());
+		try (QueryRunner queryRunner = context.getQueryRunner(this.featureSet)) {
+			return new DefaultCounters(
+					queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier))
+						.consume()
+						.counters());
 		}
 	}
 
 	Query generateQuery(UnaryOperator<String> sanitizer, Function<String, Optional<String>> elementExtractor) {
 
-		List<Object> tv = trueValues;
-		List<Object> fv = falseValues;
+		List<Object> tv = this.trueValues;
+		List<Object> fv = this.falseValues;
 		Boolean nullValue = null;
 		Predicate<Object> isNull = DefaultNormalize::isNull;
-		if (trueValues.stream().anyMatch(isNull)) {
+		if (this.trueValues.stream().anyMatch(isNull)) {
 			nullValue = true;
-			tv = trueValues.stream().filter(isNull.negate()).toList();
-		} else if (falseValues.stream().anyMatch(DefaultNormalize::isNull)) {
+			tv = this.trueValues.stream().filter(isNull.negate()).toList();
+		}
+		else if (this.falseValues.stream().anyMatch(DefaultNormalize::isNull)) {
 			nullValue = false;
-			fv = falseValues.stream().filter(isNull.negate()).toList();
+			fv = this.falseValues.stream().filter(isNull.negate()).toList();
 		}
 
 		String varName;
 		String innerQuery;
-		if (customQuery == null) {
+		if (this.customQuery == null) {
 			varName = "t";
 			innerQuery = "MATCH (n) RETURN n AS t UNION ALL MATCH ()-[r]->() RETURN r AS t";
-		} else {
-			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);
-			innerQuery = customQuery;
+		}
+		else {
+			varName = elementExtractor.apply(this.customQuery).orElseThrow(IllegalArgumentException::new);
+			innerQuery = this.customQuery;
 		}
 
 		String quotedProperty = sanitizer.apply(this.property);
 		String formatString = """
-			CALL { %2$s } WITH %3$s AS e
-			<FILTER />
-			<BATCH>SET e.%1$s = CASE
-			  WHEN e.%1$s IN $trueValues THEN true
-			  WHEN e.%1$s IN $falseValues THEN false
-			  WHEN e.%1$s IN [true, false] THEN e.%1$s
-			  ELSE $nullValue
-			END</BATCH>""";
+				CALL { %2$s } WITH %3$s AS e
+				<FILTER />
+				<BATCH>SET e.%1$s = CASE
+				  WHEN e.%1$s IN $trueValues THEN true
+				  WHEN e.%1$s IN $falseValues THEN false
+				  WHEN e.%1$s IN [true, false] THEN e.%1$s
+				  ELSE $nullValue
+				END</BATCH>""";
 
-		if (batchSize == null) {
+		if (this.batchSize == null) {
 			formatString = formatString.replaceAll("<BATCH>|</BATCH>", "");
-		} else {
-			formatString = formatString
-				.replace("<BATCH>", "CALL { WITH e ")
+		}
+		else {
+			formatString = formatString.replace("<BATCH>", "CALL { WITH e ")
 				.replace("</BATCH>", " } IN TRANSACTIONS OF %4$d ROWS");
 		}
-		// If the property does not exist and the value for non-existing properties is undefined, we can reduce the
-		// number of touched entities.
-		formatString = formatString
-			.replace("<FILTER />\n", nullValue == null ? "WHERE e.%1$s IS NOT NULL\n" : "");
+		// If the property does not exist and the value for non-existing properties is
+		// undefined, we can reduce the number of touched entities.
+		formatString = formatString.replace("<FILTER />\n", (nullValue != null) ? "" : "WHERE e.%1$s IS NOT NULL\n");
 
-		Map<String, Object> parameters = Map.of(
-			"trueValues", Values.value(tv),
-			"falseValues", Values.value(fv),
-			"nullValue", Values.value(nullValue)
-		);
-		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, batchSize), parameters);
+		Map<String, Object> parameters = Map.of("trueValues", Values.value(tv), "falseValues", Values.value(fv),
+				"nullValue", Values.value(nullValue));
+		return new Query(String.format(formatString, quotedProperty, innerQuery, varName, this.batchSize), parameters);
 	}
 
 	@Override
@@ -168,12 +167,14 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 			return false;
 		}
 		DefaultNormalize that = (DefaultNormalize) o;
-		return property.equals(that.property) && trueValues.equals(that.trueValues) && falseValues.equals(that.falseValues)
-				&& Objects.equals(customQuery, that.customQuery) && Objects.equals(batchSize, that.batchSize);
+		return this.property.equals(that.property) && this.trueValues.equals(that.trueValues)
+				&& this.falseValues.equals(that.falseValues) && Objects.equals(this.customQuery, that.customQuery)
+				&& Objects.equals(this.batchSize, that.batchSize);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(property, trueValues, falseValues, customQuery, batchSize);
+		return Objects.hash(this.property, this.trueValues, this.falseValues, this.customQuery, this.batchSize);
 	}
+
 }

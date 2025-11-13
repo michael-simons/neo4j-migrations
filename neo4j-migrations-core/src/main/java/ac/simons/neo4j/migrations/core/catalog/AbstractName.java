@@ -18,8 +18,8 @@ package ac.simons.neo4j.migrations.core.catalog;
 import java.util.Objects;
 
 /**
- * Value holder for a names value. Default and generated names are different classes on purpose, even though they could
- * be the same one, with the generator on the interface.
+ * Value holder for a names value. Default and generated names are different classes on
+ * purpose, even though they could be the same one, with the generator on the interface.
  *
  * @author Michael J. Simons
  * @since 1.7.0
@@ -37,10 +37,11 @@ abstract non-sealed class AbstractName implements Name {
 
 	@Override
 	public String getValue() {
-		return value;
+		return this.value;
 	}
 
-	@Override public boolean equals(Object o) {
+	@Override
+	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
@@ -48,16 +49,17 @@ abstract non-sealed class AbstractName implements Name {
 			return false;
 		}
 		AbstractName that = (AbstractName) o;
-		return Objects.equals(value, that.value);
+		return Objects.equals(this.value, that.value);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value);
+		return Objects.hash(this.value);
 	}
 
 	@Override
 	public String toString() {
-		return value;
+		return this.value;
 	}
+
 }

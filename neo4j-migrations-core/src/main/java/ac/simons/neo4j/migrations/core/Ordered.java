@@ -16,11 +16,11 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
- * Same semantics as  {@code org.springframework.core.Ordered}: The actual order can be interpreted as prioritization,
- * with the first object (with the lowest order value) having the highest priority.
+ * Same semantics as {@code org.springframework.core.Ordered}: The actual order can be
+ * interpreted as prioritization, with the first object (with the lowest order value)
+ * having the highest priority.
  *
  * @author Michael J. Simons
- * @soundtrack Fatoni - Andorra
  * @since 1.7.0
  */
 public interface Ordered {
@@ -39,4 +39,5 @@ public interface Ordered {
 	 * {@return the order value of this object}
 	 */
 	int getOrder();
+
 }

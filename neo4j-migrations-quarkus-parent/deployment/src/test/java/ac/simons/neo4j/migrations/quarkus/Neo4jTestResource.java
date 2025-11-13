@@ -15,10 +15,9 @@
  */
 package ac.simons.neo4j.migrations.quarkus;
 
-import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-
 import java.util.Map;
 
+import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import org.testcontainers.containers.Neo4jContainer;
 
 /**
@@ -32,16 +31,14 @@ public class Neo4jTestResource implements QuarkusTestResourceLifecycleManager {
 
 	@Override
 	public Map<String, String> start() {
-		neo4j.start();
-		return Map.of(
-			"quarkus.neo4j.uri", neo4j.getBoltUrl(),
-			"quarkus.neo4j.authentication.username", "neo4j",
-			"quarkus.neo4j.authentication.password", neo4j.getAdminPassword()
-		);
+		this.neo4j.start();
+		return Map.of("quarkus.neo4j.uri", this.neo4j.getBoltUrl(), "quarkus.neo4j.authentication.username", "neo4j",
+				"quarkus.neo4j.authentication.password", this.neo4j.getAdminPassword());
 	}
 
 	@Override
 	public void stop() {
-		neo4j.stop();
+		this.neo4j.stop();
 	}
+
 }

@@ -20,23 +20,25 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Abstract base class to hold state that many refactorings have, such as custom queries or a batch-size.
+ * Abstract base class to hold state that many refactorings have, such as custom queries
+ * or a batch-size.
  *
  * @author Michael J. Simons
- * @soundtrack Black Sabbath - Black Sabbath
  * @since 1.10.0
  */
 abstract class AbstractCustomizableRefactoring {
 
 	/**
-	 * An optional, custom query to generate the list of nodes or relationships whose labels or types should be renamed.
-	 * This query must return rows with one single element per row. This is checked upon before executing.
+	 * An optional, custom query to generate the list of nodes or relationships whose
+	 * labels or types should be renamed. This query must return rows with one single
+	 * element per row. This is checked upon before executing.
 	 */
 	protected final String customQuery;
 
 	/**
-	 * The batch size to perform renaming. If {@literal null}, no batching is attempted and the refactoring will use one
-	 * a transactional function when applied. Setting this to a value different from {@literal null} also requires Neo4j >= 4.4
+	 * The batch size to perform renaming. If {@literal null}, no batching is attempted
+	 * and the refactoring will use one a transactional function when applied. Setting
+	 * this to a value different from {@literal null} also requires Neo4j >= 4.4
 	 */
 	protected final Integer batchSize;
 
@@ -46,30 +48,24 @@ abstract class AbstractCustomizableRefactoring {
 	}
 
 	protected final String filterCustomQuery(String newCustomQuery) {
-		return Optional.ofNullable(newCustomQuery).map(String::trim)
-			.filter(s -> !s.isEmpty())
-			.orElse(null);
+		return Optional.ofNullable(newCustomQuery).map(String::trim).filter(s -> !s.isEmpty()).orElse(null);
 	}
 
-	protected final <T extends CustomizableRefactoring<?>> T inBatchesOf0(
-		Integer newBatchSize, Class<T> type,
-		@SuppressWarnings("squid:S4276") // The new batchsize might as well be null
-		Function<Integer, ? extends T> newInstanceSupplier
-	) {
+	protected final <T extends CustomizableRefactoring<?>> T inBatchesOf0(Integer newBatchSize, Class<T> type,
+			@SuppressWarnings("squid:S4276") // The new batchsize might as well be null
+			Function<Integer, ? extends T> newInstanceSupplier) {
 		if (newBatchSize != null && newBatchSize < 1) {
 			throw new IllegalArgumentException("Batch size must be either null or equal or greater one");
 		}
 
-		return Objects.equals(this.batchSize, newBatchSize) ?
-			type.cast(this) : newInstanceSupplier.apply(newBatchSize);
+		return Objects.equals(this.batchSize, newBatchSize) ? type.cast(this) : newInstanceSupplier.apply(newBatchSize);
 	}
 
-	protected final <T extends CustomizableRefactoring<?>> T withCustomQuery0(
-		String newCustomQuery, Class<T> type, Function<String, ? extends T> newInstanceSupplier
-	) {
+	protected final <T extends CustomizableRefactoring<?>> T withCustomQuery0(String newCustomQuery, Class<T> type,
+			Function<String, ? extends T> newInstanceSupplier) {
 		String value = filterCustomQuery(newCustomQuery);
 
-		return Objects.equals(this.customQuery, value) ?
-			type.cast(this) : newInstanceSupplier.apply(newCustomQuery);
+		return Objects.equals(this.customQuery, value) ? type.cast(this) : newInstanceSupplier.apply(newCustomQuery);
 	}
+
 }

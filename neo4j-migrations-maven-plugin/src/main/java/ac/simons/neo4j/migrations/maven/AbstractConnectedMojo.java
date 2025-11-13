@@ -15,6 +15,12 @@
  */
 package ac.simons.neo4j.migrations.maven;
 
+import java.net.URI;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
@@ -22,13 +28,6 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-
-import java.net.URI;
-import java.time.Duration;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -49,15 +48,16 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
  */
 abstract class AbstractConnectedMojo extends AbstractMojo {
 
+	static final Logger LOGGER = Logger.getLogger(AbstractConnectedMojo.class.getName());
+
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
 	}
 
-	static final Logger LOGGER = Logger.getLogger(AbstractConnectedMojo.class.getName());
-
 	/**
-	 * The address this migration should connect to. The driver supports bolt, bolt+routing or neo4j as schemes.
+	 * The address this migration should connect to. The driver supports bolt,
+	 * bolt+routing or neo4j as schemes.
 	 */
 	@Parameter(required = true, defaultValue = "bolt://localhost:7687")
 	private URI address;
@@ -93,9 +93,9 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private TransactionMode transactionMode;
 
 	/**
-	 * Configures the transaction timeout that should be applied for each migration or each statement (the latter depends
-	 * on {@link #transactionMode}). {@literal null} is a valid value and make the driver apply the default timeout for
-	 * the database.
+	 * Configures the transaction timeout that should be applied for each migration or
+	 * each statement (the latter depends on {@link #transactionMode}). {@literal null} is
+	 * a valid value and make the driver apply the default timeout for the database.
 	 * <p>
 	 * The value must be a valid ISO-8601 duration representation.
 	 *
@@ -111,14 +111,16 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private String database;
 
 	/**
-	 * The database that should be used for storing informations about migrations (Neo4j EE 4.0+).
+	 * The database that should be used for storing informations about migrations (Neo4j
+	 * EE 4.0+).
 	 */
 	@Parameter
 	private String schemaDatabase;
 
 	/**
-	 * An alternative user to impersonate during migration. Might have higher privileges than the user connected, which
-	 * will be dropped again after migration. Requires Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
+	 * An alternative user to impersonate during migration. Might have higher privileges
+	 * than the user connected, which will be dropped again after migration. Requires
+	 * Neo4j EE 4.4+. Leave {@literal null} for using the connected user.
 	 */
 	@Parameter
 	private String impersonatedUser;
@@ -150,9 +152,10 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private boolean useFlywayCompatibleChecksums;
 
 	/**
-	 * Use this property to configure a Cypher version that will be prepended to every statement in every migration found.
-	 * Leave it {@literal null} or use {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing behaviour
-	 * of letting the database decide.
+	 * Use this property to configure a Cypher version that will be prepended to every
+	 * statement in every migration found. Leave it {@literal null} or use
+	 * {@link CypherVersion#DATABASE_DEFAULT} (the default), the keep the existing
+	 * behaviour of letting the database decide.
 	 *
 	 * @since 2.19.0
 	 */
@@ -160,12 +163,20 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	private CypherVersion cypherVersion;
 
 	/**
-	 * Use this option to specify a valid target version up to which migrations
-	 * should be considered. Can also be one of current, latest or next.
+	 * Use this option to specify a valid target version up to which migrations should be
+	 * considered. Can also be one of current, latest or next.
 	 *
 	 * @since 2.15.0
 	 */
 	private String target;
+
+	static Config createDriverConfig() {
+
+		return Config.builder()
+			.withLogging(Logging.console(Level.SEVERE))
+			.withUserAgent(Migrations.getUserAgent())
+			.build();
+	}
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
@@ -176,51 +187,55 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			Migrations migrations = new Migrations(config, driver);
 
 			withMigrations(migrations);
-		} catch (MojoFailureException e) {
+		}
+		catch (MojoFailureException ex) {
 			// Don't add stack, but rethrow
-			throw e;
-		} catch (MigrationsException e) {
-			throw new MojoFailureException("Could not execute migrations", e);
-		} catch (Exception e) {
-			throw new MojoExecutionException(e.getMessage(), e);
+			throw ex;
+		}
+		catch (MigrationsException ex) {
+			throw new MojoFailureException("Could not execute migrations", ex);
+		}
+		catch (Exception ex) {
+			throw new MojoExecutionException(ex.getMessage(), ex);
 		}
 	}
 
 	abstract void withMigrations(Migrations migrations) throws MojoFailureException;
 
 	/**
-	 * @return The migrations config based on the required options.
+	 * {@return the migrations config based on the required options}
 	 */
 	MigrationsConfig getConfig() {
 
 		MigrationsConfig config = MigrationsConfig.builder()
-			.withLocationsToScan(locationsToScan)
-			.withPackagesToScan(packagesToScan)
-			.withTransactionMode(transactionMode)
-			.withTransactionTimeout(Optional.ofNullable(transactionTimeout).map(Duration::parse).orElse(null))
-			.withDatabase(database)
-			.withSchemaDatabase(schemaDatabase)
-			.withImpersonatedUser(impersonatedUser)
-			.withVersionSortOrder(versionSortOrder)
-			.withOutOfOrderAllowed(outOfOrder)
-			.withFlywayCompatibleChecksums(useFlywayCompatibleChecksums)
-			.withTarget(target)
-			.withCypherVersion(cypherVersion)
+			.withLocationsToScan(this.locationsToScan)
+			.withPackagesToScan(this.packagesToScan)
+			.withTransactionMode(this.transactionMode)
+			.withTransactionTimeout(Optional.ofNullable(this.transactionTimeout).map(Duration::parse).orElse(null))
+			.withDatabase(this.database)
+			.withSchemaDatabase(this.schemaDatabase)
+			.withImpersonatedUser(this.impersonatedUser)
+			.withVersionSortOrder(this.versionSortOrder)
+			.withOutOfOrderAllowed(this.outOfOrder)
+			.withFlywayCompatibleChecksums(this.useFlywayCompatibleChecksums)
+			.withTarget(this.target)
+			.withCypherVersion(this.cypherVersion)
 			.build();
 
-		config.logTo(LOGGER, verbose);
+		config.logTo(LOGGER, this.verbose);
 		return config;
 	}
 
 	Driver openConnection() {
 
-		AuthToken authToken = AuthTokens.basic(user, password);
-		Driver driver = GraphDatabase.driver(address, authToken, createDriverConfig());
+		AuthToken authToken = AuthTokens.basic(this.user, this.password);
+		Driver driver = GraphDatabase.driver(this.address, authToken, createDriverConfig());
 		boolean verified = false;
 		try {
 			driver.verifyConnectivity();
 			verified = true;
-		} finally {
+		}
+		finally {
 			// Don't want to rethrow and adding another frame.
 			if (!verified) {
 				driver.close();
@@ -229,11 +244,4 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 		return driver;
 	}
 
-	static Config createDriverConfig() {
-
-		return Config.builder()
-			.withLogging(Logging.console(Level.SEVERE))
-			.withUserAgent(Migrations.getUserAgent())
-			.build();
-	}
 }

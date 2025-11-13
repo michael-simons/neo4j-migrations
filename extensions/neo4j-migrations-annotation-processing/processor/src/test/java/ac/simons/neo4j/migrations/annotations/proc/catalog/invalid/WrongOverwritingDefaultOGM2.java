@@ -17,9 +17,8 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
+import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * @author Michael J. Simons
@@ -29,4 +28,5 @@ public class WrongOverwritingDefaultOGM2 {
 
 	@Required(type = "whatever")
 	public UUID uuid;
+
 }

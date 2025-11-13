@@ -20,7 +20,8 @@ import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.runtime.RuntimeValue;
 
 /**
- * A Neo4j-Migrations built-time item to be consumed by interested parties during their deployment.
+ * A Neo4j-Migrations built-time item to be consumed by interested parties during their
+ * deployment.
  *
  * @author Michael J. Simons
  * @since 1.2.2
@@ -34,9 +35,10 @@ final class MigrationsBuildItem extends SimpleBuildItem {
 	}
 
 	/**
-	 * @return The runtime value containing the instance of {@link Migrations}.
+	 * {@return the runtime value containing the migration instance}
 	 */
 	RuntimeValue<Migrations> getValue() {
-		return value;
+		return this.value;
 	}
+
 }

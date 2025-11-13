@@ -53,14 +53,15 @@ final class TypesEligibleForPropertyTypeConstraints {
 		VALUES = Map.copyOf(tmp);
 	}
 
-	public static boolean contains(TypeMirror key) {
+	private TypesEligibleForPropertyTypeConstraints() {
+	}
+
+	static boolean contains(TypeMirror key) {
 		return VALUES.containsKey(key.toString());
 	}
 
-	public static PropertyType get(TypeMirror key) {
+	static PropertyType get(TypeMirror key) {
 		return VALUES.get(key.toString());
 	}
 
-	private TypesEligibleForPropertyTypeConstraints() {
-	}
 }

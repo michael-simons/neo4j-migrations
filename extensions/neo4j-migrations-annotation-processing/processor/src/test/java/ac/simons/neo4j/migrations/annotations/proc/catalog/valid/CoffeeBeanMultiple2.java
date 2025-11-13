@@ -22,8 +22,8 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Unique(properties = {"unique"})
-@Unique(properties = {"a", "b", "c"})
+@Unique(properties = { "unique" })
+@Unique(properties = { "a", "b", "c" })
 public class CoffeeBeanMultiple2 {
 
 	public UUID uuid;
@@ -33,4 +33,5 @@ public class CoffeeBeanMultiple2 {
 	public String b;
 
 	public String d;
+
 }

@@ -15,14 +15,6 @@
  */
 package ac.simons.neo4j.migrations.formats.adoc;
 
-import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.Defaults;
-import ac.simons.neo4j.migrations.core.Migration;
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-import ac.simons.neo4j.migrations.core.Ordered;
-import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
-import ac.simons.neo4j.migrations.core.ResourceContext;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,6 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import ac.simons.neo4j.migrations.core.AbstractResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.Defaults;
+import ac.simons.neo4j.migrations.core.Migration;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Ordered;
+import ac.simons.neo4j.migrations.core.ResourceBasedMigrationProvider;
+import ac.simons.neo4j.migrations.core.ResourceContext;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
 import org.asciidoctor.ast.Block;
@@ -44,11 +43,10 @@ import org.asciidoctor.extension.PreprocessorReader;
 import org.asciidoctor.extension.Treeprocessor;
 
 /**
- * Implementation of a {@link ResourceBasedMigrationProvider} that deals with AsciiDoctor files under the extension
- * of {@code .adoc}.
+ * Implementation of a {@link ResourceBasedMigrationProvider} that deals with AsciiDoctor
+ * files under the extension of {@code .adoc}.
  *
  * @author Michael J. Simons
- * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
 public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBasedMigrationProvider {
@@ -56,8 +54,8 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 	private static final String INCLUDED_IGNORED_MARKER = "$NEO4J_MIGRATIONS_CHOSE_TO_IGNORE_THIS_INCLUDE$";
 
 	/**
-	 * Creates a new instance of this provider. It should not be necessary to call this directly, it will be done by the
-	 * service loader.
+	 * Creates a new instance of this provider. It should not be necessary to call this
+	 * directly, it will be done by the service loader.
 	 */
 	public AsciiDoctorBasedMigrationProvider() {
 		super(Ordered.LOWEST_PRECEDENCE, "adoc", true);
@@ -68,15 +66,17 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 
 		StringBuilder content = new StringBuilder();
 		CharBuffer buffer = CharBuffer.allocate(1024);
-		try (Asciidoctor asciidoctor = Asciidoctor.Factory.create(); BufferedReader in = new BufferedReader(
-			new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
+		try (Asciidoctor asciidoctor = Asciidoctor.Factory.create();
+				BufferedReader in = new BufferedReader(
+						new InputStreamReader(ctx.openStream(), Defaults.CYPHER_SCRIPT_ENCODING))) {
 			while (in.read(buffer) != -1) {
 				buffer.flip();
 				content.append(buffer);
 			}
 			asciidoctor.load(content.toString(), Options.builder().build());
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 
 		try (Asciidoctor asciidoctor = Asciidoctor.Factory.create()) {
@@ -90,7 +90,8 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 				}
 
 				@Override
-				public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
+				public void process(Document document, PreprocessorReader reader, String target,
+						Map<String, Object> attributes) {
 					reader.pushInclude(INCLUDED_IGNORED_MARKER, target, target, 1, attributes);
 				}
 			});
@@ -116,15 +117,16 @@ public final class AsciiDoctorBasedMigrationProvider extends AbstractResourceBas
 			Predicate<Block> includedBlocks = b -> "cypher".equals(b.getAttribute("language"));
 			includedBlocks = includedBlocks.and(b -> MigrationVersion.canParse(b.getId()));
 			includedBlocks = includedBlocks.and(b -> !b.getSource().contains(INCLUDED_IGNORED_MARKER));
-			document
-				.findBy(selector)
+			document.findBy(selector)
 				.stream()
 				.map(Block.class::cast)
 				.filter(includedBlocks)
-				.map(b -> AsciiDoctorBasedMigration.of(ctx, b))
-				.forEach(migrations::add);
+				.map(b -> AsciiDoctorBasedMigration.of(this.ctx, b))
+				.forEach(this.migrations::add);
 
 			return document;
 		}
+
 	}
+
 }

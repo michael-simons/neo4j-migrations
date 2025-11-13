@@ -31,7 +31,7 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 	MigrationVersion getVersion();
 
 	/**
-	 * {@return An optional description of this migration}
+	 * {@return an optional description of this migration}
 	 */
 	Optional<String> getOptionalDescription();
 
@@ -49,9 +49,9 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 
 	/**
 	 * Implement your migration code here.
-	 *
-	 * @param context The migrations' context.
-	 * @throws MigrationsException In case anything happens, wrap your exception or create a new one
+	 * @param context the migrations' context.
+	 * @throws MigrationsException in case anything happens, wrap your exception or create
+	 * a new one
 	 */
 	void apply(MigrationContext context);
 
@@ -61,4 +61,5 @@ public sealed interface Migration permits AbstractCypherBasedMigration, Migratio
 	 * @since 2.0.0
 	 */
 	boolean isRepeatable();
+
 }

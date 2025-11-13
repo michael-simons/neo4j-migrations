@@ -24,11 +24,10 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
 /**
- * This command can  be used to delete individual migrations  from the chain of applied migrations.  This is useful when
- * migration scripts or classes have been deleted.
+ * This command can be used to delete individual migrations from the chain of applied
+ * migrations. This is useful when migration scripts or classes have been deleted.
  *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Anarchie und Alltag
  * @since 2.2.0
  */
 @Command(name = "delete", description = "Deletes a migration from the chain of applied migrations.")
@@ -37,12 +36,13 @@ public class DeleteCommand extends ConnectedCommand {
 	@ParentCommand
 	private MigrationsCli parent;
 
-	@Parameters(paramLabel = "version", description = "The full name of the version or the unique name of the version that should be deleted")
+	@Parameters(paramLabel = "version",
+			description = "The full name of the version or the unique name of the version that should be deleted")
 	private String versionValue;
 
 	@Override
 	public MigrationsCli getParent() {
-		return parent;
+		return this.parent;
 	}
 
 	@Override
@@ -55,9 +55,10 @@ public class DeleteCommand extends ConnectedCommand {
 
 		MigrationVersion version;
 		try {
-			version = MigrationVersion.parse(versionValue);
-		} catch (MigrationsException e) {
-			version = MigrationVersion.withValue(versionValue);
+			version = MigrationVersion.parse(this.versionValue);
+		}
+		catch (MigrationsException ex) {
+			version = MigrationVersion.withValue(this.versionValue);
 		}
 
 		DeleteResult result = migrations.delete(version);
@@ -65,4 +66,5 @@ public class DeleteCommand extends ConnectedCommand {
 		result.getWarnings().forEach(MigrationsCli.LOGGER::warning);
 		return 0;
 	}
+
 }

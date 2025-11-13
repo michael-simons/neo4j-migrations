@@ -16,10 +16,12 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
+ * Default implementation to contain {@link LifecycleEvent lifecycle events}.
+ *
  * @author Michael J. Simons
  * @since 1.2.2
  */
-@SuppressWarnings({"squid:S6206", "ClassCanBeRecord"}) // No, but thanks
+@SuppressWarnings({ "squid:S6206", "ClassCanBeRecord" }) // No, but thanks
 final class DefaultLifecycleEvent implements LifecycleEvent {
 
 	private final LifecyclePhase phase;
@@ -33,11 +35,12 @@ final class DefaultLifecycleEvent implements LifecycleEvent {
 
 	@Override
 	public LifecyclePhase getPhase() {
-		return phase;
+		return this.phase;
 	}
 
 	@Override
 	public MigrationContext getContext() {
-		return context;
+		return this.context;
 	}
+
 }

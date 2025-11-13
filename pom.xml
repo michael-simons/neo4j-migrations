@@ -179,6 +179,7 @@
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
 		<spring-boot.version>3.5.7</spring-boot.version>
 		<spring-data-neo4j.version>7.5.4</spring-data-neo4j.version>
+		<spring-javaformat.version>0.0.47</spring-javaformat.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>2.0.1</testcontainers.version>
 	</properties>
@@ -465,13 +466,6 @@
 						<detectOfflineLinks>false</detectOfflineLinks>
 						<detectJavaApiLink>true</detectJavaApiLink>
 						<release>${java.version}</release>
-						<tags>
-							<tag>
-								<name>soundtrack</name>
-								<placement>a</placement>
-								<head>Soundtrack</head>
-							</tag>
-						</tags>
 						<additionalOptions>
 							<option>--add-modules</option>
 							<option>java.compiler</option>
@@ -486,25 +480,34 @@
 					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 				<plugin>
+					<groupId>io.spring.javaformat</groupId>
+					<artifactId>spring-javaformat-maven-plugin</artifactId>
+					<version>${spring-javaformat.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
 					<version>${maven-checkstyle-plugin.version}</version>
 					<configuration>
+						<excludes>**/module-info.java</excludes>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
 						<configLocation>etc/checkstyle/config.xml</configLocation>
 						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
-						<headerLocation>etc/checkstyle/java-header.txt</headerLocation>
 						<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
 						<consoleOutput>true</consoleOutput>
 						<failsOnError>true</failsOnError>
 						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-						<sourceDirectories>
-							<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-						</sourceDirectories>
 					</configuration>
 					<dependencies>
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
 							<artifactId>checkstyle</artifactId>
 							<version>${checkstyle.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>io.spring.javaformat</groupId>
+							<artifactId>spring-javaformat-checkstyle</artifactId>
+							<version>${spring-javaformat.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
@@ -839,6 +842,19 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+						<phase>validate</phase>
+						<inherited>true</inherited>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<executions>
@@ -1148,6 +1164,7 @@
 				<skipITs>true</skipITs>
 				<skipNativeBuild>true</skipNativeBuild>
 				<skipTests>true</skipTests>
+				<spring-javaformat.skip>true</spring-javaformat.skip>
 			</properties>
 		</profile>
 		<profile>
@@ -1188,7 +1205,9 @@
 											<format>- {{commitShortHash}} {{commitTitle}}</format>
 											<preset>conventional-commits</preset>
 											<contributors>
-												<format>- {{^contributorUsername}}{{contributorName}}{{/contributorUsername}}{{#contributorUsername}}@{{contributorUsername}}{{/contributorUsername}}</format>
+												<format>-
+													{{^contributorUsername}}{{contributorName}}{{/contributorUsername}}{{#contributorUsername}}@{{contributorUsername}}{{/contributorUsername}}
+												</format>
 											</contributors>
 											<labelers>
 												<labeler>
@@ -1298,15 +1317,21 @@
 										<type>BINARY</type>
 										<artifacts>
 											<artifact>
-												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-linux-x86_64.zip</path>
+												<path>
+													{{artifactsDir}}/{{projectName}}-{{projectVersion}}-linux-x86_64.zip
+												</path>
 												<platform>linux-x86_64</platform>
 											</artifact>
 											<artifact>
-												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-windows-x86_64.zip</path>
+												<path>
+													{{artifactsDir}}/{{projectName}}-{{projectVersion}}-windows-x86_64.zip
+												</path>
 												<platform>windows-x86_64</platform>
 											</artifact>
 											<artifact>
-												<path>{{artifactsDir}}/{{projectName}}-{{projectVersion}}-osx-aarch_64.zip</path>
+												<path>
+													{{artifactsDir}}/{{projectName}}-{{projectVersion}}-osx-aarch_64.zip
+												</path>
 												<platform>osx-aarch_64</platform>
 											</artifact>
 										</artifacts>
@@ -1339,8 +1364,8 @@
 								</distributions>
 								<announce>
 									<bluesky>
-											<active>RELEASE</active>
-											<host>https://bsky.social</host>
+										<active>RELEASE</active>
+										<host>https://bsky.social</host>
 									</bluesky>
 								</announce>
 							</jreleaser>

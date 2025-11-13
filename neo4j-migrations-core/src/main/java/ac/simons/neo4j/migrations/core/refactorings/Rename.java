@@ -15,60 +15,62 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
-import ac.simons.neo4j.migrations.core.refactorings.DefaultRename.Target;
-
 import java.util.Objects;
+
+import ac.simons.neo4j.migrations.core.refactorings.DefaultRename.Target;
 
 /**
  * Renames entities or properties of entities.
+ *
  * @author Michael J. Simons
  * @since 1.10.0
  */
 public sealed interface Rename extends CustomizableRefactoring<Rename> permits DefaultRename {
 
 	/**
-	 * Provides a refactoring renaming a given node label. Any customization can be done directly on the {@link Rename} instance.
-	 *
-	 * @param from The label to rename
-	 * @param to   The new label
-	 * @return The refactoring ready to use
+	 * Provides a refactoring renaming a given node label. Any customization can be done
+	 * directly on the {@link Rename} instance.
+	 * @param from the label to rename
+	 * @param to the new label
+	 * @return the refactoring ready to use
 	 */
 	static Rename label(String from, String to) {
 		return new DefaultRename(Target.LABEL, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
-	 * Provides a refactoring renaming a given relationship type. Any customization can be done directly on the {@link Rename} instance.
-	 *
-	 * @param from The type to rename
-	 * @param to   The new type
-	 * @return The refactoring ready to use
+	 * Provides a refactoring renaming a given relationship type. Any customization can be
+	 * done directly on the {@link Rename} instance.
+	 * @param from the type to rename
+	 * @param to the new type
+	 * @return the refactoring ready to use
 	 */
 	static Rename type(String from, String to) {
 		return new DefaultRename(Target.TYPE, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
-	 * Provides a refactoring renaming a property on a node. Any customization can be done directly on the {@link Rename} instance.
-	 * If the property does not exist on the given node, nothing changes.
-	 *
-	 * @param from The property to rename
-	 * @param to   The new name of the property
-	 * @return The refactoring ready to use
+	 * Provides a refactoring renaming a property on a node. Any customization can be done
+	 * directly on the {@link Rename} instance. If the property does not exist on the
+	 * given node, nothing changes.
+	 * @param from the property to rename
+	 * @param to the new name of the property
+	 * @return the refactoring ready to use
 	 */
 	static Rename nodeProperty(String from, String to) {
 		return new DefaultRename(Target.NODE_PROPERTY, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
 
 	/**
-	 * Provides a refactoring renaming a property on a relationship. Any customization can be done directly on the {@link Rename} instance.
-	 * If the property does not exist on the given relationship, nothing changes.
-	 *
-	 * @param from The property to rename
-	 * @param to   The new name of the property
-	 * @return The refactoring ready to use
+	 * Provides a refactoring renaming a property on a relationship. Any customization can
+	 * be done directly on the {@link Rename} instance. If the property does not exist on
+	 * the given relationship, nothing changes.
+	 * @param from the property to rename
+	 * @param to the new name of the property
+	 * @return the refactoring ready to use
 	 */
 	static Rename relationshipProperty(String from, String to) {
 		return new DefaultRename(Target.REL_PROPERTY, Objects.requireNonNull(from), Objects.requireNonNull(to));
 	}
+
 }

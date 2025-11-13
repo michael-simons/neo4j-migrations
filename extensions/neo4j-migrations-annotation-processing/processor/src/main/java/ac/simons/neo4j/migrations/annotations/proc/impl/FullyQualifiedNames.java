@@ -16,11 +16,10 @@
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 /**
- * Constants for various external annotations. We decided to not depend on the actual classes in the processor to keep its
- * dependencies as small as possible.
+ * Constants for various external annotations. We decided to not depend on the actual
+ * classes in the processor to keep its dependencies as small as possible.
  *
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
  * @since 1.11.0
  */
 final class FullyQualifiedNames {
@@ -52,4 +51,5 @@ final class FullyQualifiedNames {
 
 	private FullyQualifiedNames() {
 	}
+
 }

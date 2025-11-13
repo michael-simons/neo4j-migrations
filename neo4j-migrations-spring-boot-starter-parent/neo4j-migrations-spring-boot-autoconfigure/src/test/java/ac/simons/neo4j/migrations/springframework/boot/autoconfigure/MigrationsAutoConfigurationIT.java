@@ -15,14 +15,18 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Map;
 import java.util.Optional;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.Migrations;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -32,12 +36,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.neo4j.Neo4jContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import ac.simons.neo4j.migrations.core.MigrationChain;
-import ac.simons.neo4j.migrations.core.Migrations;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -46,40 +46,20 @@ import ac.simons.neo4j.migrations.core.Migrations;
 @Testcontainers(disabledWithoutDocker = true)
 class MigrationsAutoConfigurationIT {
 
+	@Container
+	private static final Neo4jContainer neo4j = new Neo4jContainer(
+			System.getProperty("migrations.default-neo4j-image"));
+
 	static {
 
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "INFO");
 	}
 
-	@Container
-	private static final Neo4jContainer neo4j = new Neo4jContainer(System.getProperty("migrations.default-neo4j-image"));
-
 	private final Driver driver;
 
-	@Autowired MigrationsAutoConfigurationIT(Driver driver) {
+	@Autowired
+	MigrationsAutoConfigurationIT(Driver driver) {
 		this.driver = driver;
-	}
-
-	@Test
-	void shouldApplyMigrations(@Autowired Migrations migrations, @Value("${spring.application.name}") String appName) {
-
-		MigrationChain migrationChain = migrations.info();
-
-		assertThat(migrationChain.getElements())
-			.extracting(MigrationChain.Element::getOptionalDescription)
-			.filteredOn(Optional::isPresent)
-			.extracting(Optional::get)
-			.hasSize(3)
-			.containsExactly("KeepMe", "SomeOtherMigration", "AFreshSpringMigration");
-
-		try (Session session = driver.session()) {
-
-			long cnt = session.run("MATCH (w:WALL) RETURN count(w)").single().get(0).asLong();
-			assertThat(cnt).isEqualTo(2L);
-
-			cnt = session.run("MATCH (w:WALL) WHERE w.appName = $appName RETURN count(w)", Map.of("appName", appName)).single().get(0).asLong();
-			assertThat(cnt).isEqualTo(1L);
-		}
 	}
 
 	@DynamicPropertySource
@@ -87,13 +67,40 @@ class MigrationsAutoConfigurationIT {
 		registry.add("spring.neo4j.uri", neo4j::getBoltUrl);
 		registry.add("spring.neo4j.authentication.username", () -> "neo4j");
 		registry.add("spring.neo4j.authentication.password", () -> "password");
-		registry.add("org.neo4j.migrations.packages-to-scan", () -> "ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations");
+		registry.add("org.neo4j.migrations.packages-to-scan",
+				() -> "ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations");
 		registry.add("spring.application.name", () -> "MigrationIT");
+	}
+
+	@Test
+	void shouldApplyMigrations(@Autowired Migrations migrations, @Value("${spring.application.name}") String appName) {
+
+		MigrationChain migrationChain = migrations.info();
+
+		assertThat(migrationChain.getElements()).extracting(MigrationChain.Element::getOptionalDescription)
+			.filteredOn(Optional::isPresent)
+			.extracting(Optional::get)
+			.hasSize(3)
+			.containsExactly("KeepMe", "SomeOtherMigration", "AFreshSpringMigration");
+
+		try (Session session = this.driver.session()) {
+
+			long cnt = session.run("MATCH (w:WALL) RETURN count(w)").single().get(0).asLong();
+			assertThat(cnt).isEqualTo(2L);
+
+			cnt = session.run("MATCH (w:WALL) WHERE w.appName = $appName RETURN count(w)", Map.of("appName", appName))
+				.single()
+				.get(0)
+				.asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
 	@ComponentScan("ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migrations")
 	@ImportAutoConfiguration({ Neo4jAutoConfiguration.class, MigrationsAutoConfiguration.class })
 	static class TestConfiguration {
+
 	}
+
 }

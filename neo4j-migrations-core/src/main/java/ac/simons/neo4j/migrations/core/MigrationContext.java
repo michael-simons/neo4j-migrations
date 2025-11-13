@@ -15,10 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.catalog.Catalog;
-
 import java.util.function.UnaryOperator;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
@@ -32,11 +31,13 @@ import org.neo4j.driver.SessionConfig;
 public interface MigrationContext {
 
 	/**
-	 * This creates a {@link MigrationContext migration context} outside of an otherwise configured {@link Migrations migration instance}.
-	 * It will behave exactly as the context handed out by migrations to {@link JavaBasedMigration class based migrations},
-	 * @param config The configuration to use
-	 * @param driver The instance of the driver to use, might as well be a mock
-	 * @return A new context, independent of any other migration instance or configuration
+	 * This creates a {@link MigrationContext migration context} outside of an otherwise
+	 * configured {@link Migrations migration instance}. It will behave exactly as the
+	 * context handed out by migrations to {@link JavaBasedMigration class based
+	 * migrations},
+	 * @param config the configuration to use
+	 * @param driver the instance of the driver to use, might as well be a mock
+	 * @return a new context, independent of any other migration instance or configuration
 	 * @since 1.16.0
 	 */
 	static MigrationContext of(MigrationsConfig config, Driver driver) {
@@ -44,36 +45,35 @@ public interface MigrationContext {
 	}
 
 	/**
-	 * @return The configuration of this migration instance.
+	 * {@return the configuration of this migration instance}
 	 */
 	MigrationsConfig getConfig();
 
 	/**
-	 * @return The driver to be used inside migrations.
+	 * {@return the driver to be used inside migrations}
 	 */
 	Driver getDriver();
 
 	/**
-	 * Use this session config in your Java-based migration to make sure you use the same database as the migration tool itself.
-	 *
-	 * @return A correctly configured write access session config.
+	 * Use this session config in your Java-based migration to make sure you use the same
+	 * database as the migration tool itself.
+	 * @return a correctly configured write access session config.
 	 */
 	SessionConfig getSessionConfig();
 
 	/**
-	 * This method provides a callback that will be applied to the {@link SessionConfig.Builder} just before a {@link SessionConfig}
-	 * is created.
-	 *
-	 * @param configCustomizer Customization callback for the builder.
-	 * @return The final session config.
+	 * This method provides a callback that will be applied to the
+	 * {@link SessionConfig.Builder} just before a {@link SessionConfig} is created.
+	 * @param configCustomizer customization callback for the builder.
+	 * @return the final session config.
 	 * @since 1.1.0
 	 */
 	SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer);
 
 	/**
-	 * Convenience method to return an imperative session against the configured server and database.
-	 *
-	 * @return A session configured to use the migration context's database name.
+	 * Convenience method to return an imperative session against the configured server
+	 * and database.
+	 * @return a session configured to use the migration context's database name
 	 */
 	default Session getSession() {
 
@@ -81,24 +81,26 @@ public interface MigrationContext {
 	}
 
 	/**
-	 * The schema database might or might not be identical with the database that is to be migrated. The schema database
-	 * contains the objects that neo4j-migrations requires to work.
-	 *
-	 * @return A session accessing the configured schema database if any or the default database.
+	 * The schema database might or might not be identical with the database that is to be
+	 * migrated. The schema database contains the objects that neo4j-migrations requires
+	 * to work.
+	 * @return a session accessing the configured schema database if any or the default
+	 * database
 	 */
 	Session getSchemaSession();
 
 	/**
-	 * The details will give detailed information about the user being connected, server address and which databases - if available -
-	 * are being migrated and which are used to store the schema.
-	 *
-	 * @return Details about the connection being used within the context of migrations.
+	 * The details will give detailed information about the user being connected, server
+	 * address and which databases - if available - are being migrated and which are used
+	 * to store the schema.
+	 * @return details about the connection being used within the context of migrations
 	 * @since 1.4.0
 	 */
 	ConnectionDetails getConnectionDetails();
 
 	/**
-	 * @return the catalog known to this context.
+	 * {@return the catalog known to this context}
 	 */
 	Catalog getCatalog();
+
 }

@@ -19,6 +19,8 @@ import ac.simons.neo4j.migrations.quarkus.runtime.StaticClasspathResourceScanner
 import io.quarkus.builder.item.SimpleBuildItem;
 
 /**
+ * Contains a static classpath resource scanner.
+ *
  * @author Michael J. Simons
  * @since 1.3.0
  */
@@ -31,9 +33,10 @@ final class ClasspathResourceScannerBuildItem extends SimpleBuildItem {
 	}
 
 	/**
-	 * @return The actual scanner (created at build-time)
+	 * {@return the actual scanner (created at build-time)}
 	 */
 	StaticClasspathResourceScanner getScanner() {
-		return resourceScanner;
+		return this.resourceScanner;
 	}
+
 }

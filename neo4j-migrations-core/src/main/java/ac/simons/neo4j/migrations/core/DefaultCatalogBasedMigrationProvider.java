@@ -32,7 +32,8 @@ public final class DefaultCatalogBasedMigrationProvider implements ResourceBased
 		return Ordered.LOWEST_PRECEDENCE;
 	}
 
-	@Override public String getExtension() {
+	@Override
+	public String getExtension() {
 		return "xml";
 	}
 
@@ -41,4 +42,5 @@ public final class DefaultCatalogBasedMigrationProvider implements ResourceBased
 
 		return Collections.singletonList(CatalogBasedMigration.from(ctx));
 	}
+
 }

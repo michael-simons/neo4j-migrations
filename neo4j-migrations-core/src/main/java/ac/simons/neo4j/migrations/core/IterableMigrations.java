@@ -25,7 +25,8 @@ import java.util.logging.Level;
 import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
 
 /**
- * A helper class that can be used to delay the iteration of migrations by a configurable amount of time.
+ * A helper class that can be used to delay the iteration of migrations by a configurable
+ * amount of time.
  *
  * @author Michael J. Simons
  * @since 2.3.2
@@ -38,6 +39,12 @@ final class IterableMigrations implements Iterable<Migration> {
 
 	private final MigrationVersion optionalStop;
 
+	private IterableMigrations(MigrationsConfig config, List<Migration> migrations, MigrationVersion optionalStop) {
+		this.config = config;
+		this.migrations = migrations;
+		this.optionalStop = optionalStop;
+	}
+
 	static IterableMigrations of(MigrationsConfig config, List<Migration> migrations) {
 		return of(config, migrations, null);
 	}
@@ -46,28 +53,25 @@ final class IterableMigrations implements Iterable<Migration> {
 		MigrationVersion optionalStop;
 		if (stopVersion == null) {
 			optionalStop = null;
-		} else {
+		}
+		else {
 			optionalStop = stopVersion.version();
-			if (!stopVersion.optional() && migrations.stream().filter(m -> m.getVersion().equals(optionalStop)).findFirst().isEmpty()) {
+			if (!stopVersion.optional()
+					&& migrations.stream().filter(m -> m.getVersion().equals(optionalStop)).findFirst().isEmpty()) {
 				throw new MigrationsException("Target version %s is not available".formatted(optionalStop.getValue()));
 			}
 		}
 		return new IterableMigrations(config, migrations, optionalStop);
 	}
 
-	private IterableMigrations(MigrationsConfig config, List<Migration> migrations, MigrationVersion optionalStop) {
-		this.config = config;
-		this.migrations = migrations;
-		this.optionalStop = optionalStop;
-	}
-
 	@Override
 	public Iterator<Migration> iterator() {
-		var iterator = migrations.iterator();
-		if (optionalStop != null) {
-			Migrations.LOGGER.log(Level.INFO, "Will stop at target version {0}", optionalStop);
+		var iterator = this.migrations.iterator();
+		if (this.optionalStop != null) {
+			Migrations.LOGGER.log(Level.INFO, "Will stop at target version {0}", this.optionalStop);
 		}
-		return new DelayingIterator(iterator, config.getOptionalDelayBetweenMigrations().orElse(null), config.getVersionComparator(), optionalStop);
+		return new DelayingIterator(iterator, this.config.getOptionalDelayBetweenMigrations().orElse(null),
+				this.config.getVersionComparator(), this.optionalStop);
 	}
 
 	private static final class DelayingIterator implements Iterator<Migration> {
@@ -82,7 +86,8 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		private Migration next;
 
-		DelayingIterator(Iterator<Migration> delegate, Duration optionalDelay, Comparator<MigrationVersion> comparator, MigrationVersion optionalStop) {
+		DelayingIterator(Iterator<Migration> delegate, Duration optionalDelay, Comparator<MigrationVersion> comparator,
+				MigrationVersion optionalStop) {
 			this.delegate = delegate;
 			this.optionalDelay = optionalDelay;
 			this.comparator = comparator;
@@ -91,11 +96,13 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		@Override
 		public boolean hasNext() {
-			var hasNext = delegate.hasNext();
+			var hasNext = this.delegate.hasNext();
 			if (hasNext) {
-				this.next = delegate.next();
-				hasNext = this.optionalStop == null || comparator.compare(next.getVersion(), optionalStop) <= 0;
-			} else {
+				this.next = this.delegate.next();
+				hasNext = this.optionalStop == null
+						|| this.comparator.compare(this.next.getVersion(), this.optionalStop) <= 0;
+			}
+			else {
 				this.next = null;
 			}
 			return hasNext;
@@ -103,18 +110,21 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		@Override
 		public Migration next() throws NoSuchElementException {
-			if (next == null) {
+			if (this.next == null) {
 				throw new NoSuchElementException();
 			}
 
-			if (optionalDelay != null) {
+			if (this.optionalDelay != null) {
 				try {
-					Thread.sleep(optionalDelay.toMillis());
-				} catch (InterruptedException e) {
+					Thread.sleep(this.optionalDelay.toMillis());
+				}
+				catch (InterruptedException ex) {
 					Thread.currentThread().interrupt();
 				}
 			}
-			return next;
+			return this.next;
 		}
+
 	}
+
 }

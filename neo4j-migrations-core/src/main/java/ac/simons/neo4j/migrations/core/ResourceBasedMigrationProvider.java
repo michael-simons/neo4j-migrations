@@ -22,11 +22,11 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
- * An interface defining a provider with a set of supported extension and a mapper from resource to {@link Migration}.
- * The interface is ordered so that we can pick accordingly when one provider maps to the same extension.
+ * An interface defining a provider with a set of supported extension and a mapper from
+ * resource to {@link Migration}. The interface is ordered so that we can pick accordingly
+ * when one provider maps to the same extension.
  *
  * @author Michael J. Simons
- * @soundtrack Fatoni - Andorra
  * @since 1.7.0
  */
 public interface ResourceBasedMigrationProvider extends Ordered {
@@ -56,20 +56,19 @@ public interface ResourceBasedMigrationProvider extends Ordered {
 
 	/**
 	 * Handles the resource of the given context and produces one or more new migrations.
-	 *
-	 * @param ctx The context containing the resource and other information
-	 * @return The migrations contained in the resource
+	 * @param ctx the context containing the resource and other information
+	 * @return the migrations contained in the resource
 	 */
 	Collection<Migration> handle(ResourceContext ctx);
 
 	/**
-	 * Return {@literal true} if the provider has different ways how to map from file / resource names to a valid
-	 * {@link MigrationVersion version}.
-	 *
+	 * Return {@literal true} if the provider has different ways how to map from file /
+	 * resource names to a valid {@link MigrationVersion version}.
 	 * @return {@literal true} if this provider can deal with non versioned file names
 	 * @since 1.8.0
 	 */
 	default boolean supportsArbitraryResourceNames() {
 		return false;
 	}
+
 }

@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc;
 
-import ac.simons.neo4j.migrations.core.catalog.Index;
-
 import java.util.Collection;
+
+import ac.simons.neo4j.migrations.core.catalog.Index;
 
 /**
  * Generator for index names.
@@ -29,12 +29,14 @@ import java.util.Collection;
 public interface IndexNameGenerator {
 
 	/**
-	 * Generates a name for an index with the given {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the
-	 * given list of {@link PropertyType properties}.
-	 *
-	 * @param type       The type of the index
-	 * @param properties The properties to create the index for. All properties will have the same owner.
-	 * @return A valid index name
+	 * Generates a name for an index with the given
+	 * {@link ac.simons.neo4j.migrations.core.catalog.Index.Type type} for the given list
+	 * of {@link PropertyType properties}.
+	 * @param type the type of the index
+	 * @param properties the properties to create the index for. All properties will have
+	 * the same owner.
+	 * @return a valid index name
 	 */
 	String generateName(Index.Type type, Collection<PropertyType<?>> properties);
+
 }

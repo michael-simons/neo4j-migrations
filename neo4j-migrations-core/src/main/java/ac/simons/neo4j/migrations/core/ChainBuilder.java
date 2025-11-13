@@ -22,20 +22,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
+import ac.simons.neo4j.migrations.core.MigrationChain.Element;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Relationship;
 
-import ac.simons.neo4j.migrations.core.MigrationChain.ChainBuilderMode;
-import ac.simons.neo4j.migrations.core.MigrationChain.Element;
-
 /**
- * Builder for retrieving information about a database and creating a chain containing applied and pending migrations.
+ * Builder for retrieving information about a database and creating a chain containing
+ * applied and pending migrations.
  *
  * @author Michael J. Simons
- * @soundtrack Kettcar - Ich vs. wir
  * @since 0.0.4
  */
 final class ChainBuilder {
@@ -53,11 +52,27 @@ final class ChainBuilder {
 		this.alwaysVerify = alwaysVerify;
 	}
 
+	static boolean matches(Optional<String> expectedChecksum, Migration newMigration) {
+
+		if (expectedChecksum.equals(newMigration.getChecksum())) {
+			return true;
+		}
+
+		if (!(newMigration instanceof MigrationWithPreconditions) || !expectedChecksum.isPresent()) {
+			return false;
+		}
+
+		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
+	}
+
 	/**
-	 * @param context              The current context
-	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
-	 *                             It is not yet known whether those are pending or not.
-	 * @return The full migration chain.
+	 * Builds a chain for the given context with the discovered migrations in
+	 * {@link ChainBuilderMode#COMPARE compare mode}.
+	 * @param context the current context
+	 * @param discoveredMigrations a list of migrations sorted by
+	 * {@link Migration#getVersion()}. It is not yet known whether those are pending or
+	 * not.
+	 * @return the full migration chain.
 	 * @see #buildChain(MigrationContext, List, boolean, ChainBuilderMode)
 	 */
 	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations) {
@@ -65,24 +80,30 @@ final class ChainBuilder {
 	}
 
 	/**
-	 * @param context              The current context
-	 * @param discoveredMigrations A list of migrations sorted by {@link Migration#getVersion()}.
-	 *                             It is not yet known whether those are pending or not.
-	 * @param detailedCauses       set to {@literal true} to add causes to possible exceptions
-	 * @param mode                 local, remote or combined chain
-	 * @return The full migration chain.
+	 * Builds a chain for the given context with the discovered migrations.
+	 * @param context the current context
+	 * @param discoveredMigrations a list of migrations sorted by
+	 * {@link Migration#getVersion()}. It is not yet known whether those are pending or
+	 * not.
+	 * @param detailedCauses set to {@literal true} to add causes to possible exceptions
+	 * @param mode local, remote or combined chain
+	 * @return the full migration chain.
 	 */
-	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
+	MigrationChain buildChain(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses,
+			ChainBuilderMode mode) {
 
-		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses, mode);
+		final Map<MigrationVersion, Element> elements = buildChain0(context, discoveredMigrations, detailedCauses,
+				mode);
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
-	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still fits on one screen
-	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations, boolean detailedCauses, ChainBuilderMode mode) {
+	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still
+										// fits on one screen
+	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations,
+			boolean detailedCauses, ChainBuilderMode mode) {
 
-		Map<MigrationVersion, Element> appliedMigrations =
-			mode == ChainBuilderMode.LOCAL ? Collections.emptyMap() : getChainOfAppliedMigrations(context);
+		Map<MigrationVersion, Element> appliedMigrations = (mode == ChainBuilderMode.LOCAL) ? Map.of()
+				: getChainOfAppliedMigrations(context);
 		if (mode == ChainBuilderMode.REMOTE) {
 			// Only looking at remote, assume everything is applied
 			return Collections.unmodifiableMap(appliedMigrations);
@@ -102,9 +123,10 @@ final class ChainBuilder {
 				Migration newMigration;
 				try {
 					newMigration = discoveredMigrations.get(i++);
-				} catch (IndexOutOfBoundsException e) {
+				}
+				catch (IndexOutOfBoundsException ex) {
 					if (detailedCauses) {
-						throw new MigrationsException(incompleteMigrationsMessage, e);
+						throw new MigrationsException(incompleteMigrationsMessage, ex);
 					}
 					throw new MigrationsException(incompleteMigrationsMessage);
 				}
@@ -114,19 +136,25 @@ final class ChainBuilder {
 						throw new MigrationsException(incompleteMigrationsMessage, new IndexOutOfBoundsException());
 					}
 					if (outOfOrderAllowed) {
-						fullMigrationChain.put(newMigration.getVersion(), DefaultMigrationChainElement.pendingElement(newMigration));
+						fullMigrationChain.put(newMigration.getVersion(),
+								DefaultMigrationChainElement.pendingElement(newMigration));
 						checkNext = true;
 						continue;
-					} else {
-						throw new MigrationsException("Unexpected migration at index " + (i - 1) + ": " + Migrations.toString(newMigration) + ".");
+					}
+					else {
+						throw new MigrationsException("Unexpected migration at index " + (i - 1) + ": "
+								+ Migrations.toString(newMigration) + ".");
 					}
 				}
 
 				if (newMigration.isRepeatable() != expectedVersion.isRepeatable()) {
-					throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from " + (expectedVersion.isRepeatable() ? "repeatable to non-repeatable" : "non-repeatable to repeatable"));
+					throw new MigrationsException("State of " + Migrations.toString(newMigration) + " changed from "
+							+ (expectedVersion.isRepeatable() ? "repeatable to non-repeatable"
+									: "non-repeatable to repeatable"));
 				}
 
-				if ((context.getConfig().isValidateOnMigrate() || alwaysVerify) && !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
+				if ((context.getConfig().isValidateOnMigrate() || this.alwaysVerify)
+						&& !(matches(expectedChecksum, newMigration) || expectedVersion.isRepeatable())) {
 					throw new MigrationsException("Checksum of " + Migrations.toString(newMigration) + " changed!");
 				}
 
@@ -145,30 +173,20 @@ final class ChainBuilder {
 		return Collections.unmodifiableMap(fullMigrationChain);
 	}
 
-	static boolean matches(Optional<String> expectedChecksum, Migration newMigration) {
-
-		if (expectedChecksum.equals(newMigration.getChecksum())) {
-			return true;
-		}
-
-		if (!(newMigration instanceof MigrationWithPreconditions) || !expectedChecksum.isPresent()) {
-			return false;
-		}
-
-		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
-	}
-
 	private int getNumberOfAppliedMigrations(MigrationContext context) {
 		var query = """
-			MATCH (n:__Neo4jMigration)
-			WHERE n.version <> 'BASELINE' AND coalesce(n.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>')
-			RETURN count(n)
-			""";
+				MATCH (n:__Neo4jMigration)
+				WHERE n.version <> 'BASELINE' AND coalesce(n.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>')
+				RETURN count(n)
+				""";
 
 		try (Session session = context.getSchemaSession()) {
 			return session.executeRead(tx -> {
 				var migrationTarget = context.getConfig().getMigrationTargetIn(context).orElse(null);
-				return tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget)).single().get(0).asInt();
+				return tx.run(query, Collections.singletonMap("migrationTarget", migrationTarget))
+					.single()
+					.get(0)
+					.asInt();
 			});
 		}
 	}
@@ -176,13 +194,13 @@ final class ChainBuilder {
 	private Map<MigrationVersion, Element> getChainOfAppliedMigrations(MigrationContext context) {
 
 		var query = """
-			MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)
-			WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
-			WITH p
-			OPTIONAL MATCH (n:__Neo4jMigration) - [r:REPEATED] -> (n)
-			WITH p, r order by r.at DESC
-			RETURN p, collect(r) AS repetitions
-			""";
+				MATCH p=(b:__Neo4jMigration {version:'BASELINE'}) - [r:MIGRATED_TO*] -> (l:__Neo4jMigration)
+				WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
+				WITH p
+				OPTIONAL MATCH (n:__Neo4jMigration) - [r:REPEATED] -> (n)
+				WITH p, r order by r.at DESC
+				RETURN p, collect(r) AS repetitions
+				""";
 
 		try (Session session = context.getSchemaSession()) {
 			return session.executeRead(tx -> {
@@ -195,15 +213,18 @@ final class ChainBuilder {
 					List<Relationship> repetitions = row.get("repetitions").asList(Value::asRelationship);
 					row.get("p").asPath().forEach(segment -> {
 						var end = segment.end();
-						if (end.get("flyway_failed").asBoolean(false) || !end.containsKey("version") || end.get("type").asString().equals("DELETE")) {
+						if (end.get("flyway_failed").asBoolean(false) || !end.containsKey("version")
+								|| end.get("type").asString().equals("DELETE")) {
 							return;
 						}
 						Element chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);
-						chain.put(MigrationVersion.withValue(chainElement.getVersion(), end.get("repeatable").asBoolean(false)), chainElement);
+						chain.put(MigrationVersion.withValue(chainElement.getVersion(),
+								end.get("repeatable").asBoolean(false)), chainElement);
 					});
 				}
 				return chain;
 			});
 		}
 	}
+
 }

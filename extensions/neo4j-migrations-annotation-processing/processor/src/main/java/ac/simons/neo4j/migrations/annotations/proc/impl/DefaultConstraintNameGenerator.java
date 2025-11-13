@@ -15,15 +15,16 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
+import java.util.Collection;
+
 import ac.simons.neo4j.migrations.annotations.proc.ConstraintNameGenerator;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 
-import java.util.Collection;
-
 /**
+ * Default constraint name generator.
+ *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Verliebt
  * @since 1.11.0
  */
 final class DefaultConstraintNameGenerator implements ConstraintNameGenerator, AbstractNameGeneratorForCatalogItems {
@@ -33,4 +34,5 @@ final class DefaultConstraintNameGenerator implements ConstraintNameGenerator, A
 
 		return generateName(type.name(), properties);
 	}
+
 }

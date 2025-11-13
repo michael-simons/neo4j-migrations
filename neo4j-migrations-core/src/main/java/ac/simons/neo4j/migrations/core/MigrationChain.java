@@ -24,18 +24,17 @@ import java.util.Optional;
 import ac.simons.neo4j.migrations.core.MigrationVersion.TargetVersion;
 
 /**
- * Public information about an applied migration. All migrations (applied and pending) form a chain of transformations
- * to a database. The chain starts implicit with a baseline version. The baseline version is not contained in this chain.
+ * Public information about an applied migration. All migrations (applied and pending)
+ * form a chain of transformations to a database. The chain starts implicit with a
+ * baseline version. The baseline version is not contained in this chain.
  *
  * @author Michael J. Simons
- * @soundtrack Paul van Dyk - From Then On
  * @since 0.0.4
  */
 public sealed interface MigrationChain extends ConnectionDetails permits DefaultMigrationChain {
 
 	/**
 	 * Creates an empty instance of a {@link MigrationChain}. Can be useful for testing.
-	 *
 	 * @param connectionDetails required to initialize the chain
 	 * @return an empty migration chain
 	 * @since 2.3.0
@@ -45,35 +44,8 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 	}
 
 	/**
-	 * Used for selecting how the {@link MigrationChain} should be computed.
-	 *
-	 * @see Migrations#info(ChainBuilderMode)
-	 * @since 1.4.0
-	 */
-	enum ChainBuilderMode {
-
-		/**
-		 * Create the chain of applied and pending migrations by comparing the locally discovered migrations
-		 * and the migrations applied remotely. Validation will be performed (such as checking for the correct number of
-		 * migrations and checksum comparison).
-		 */
-		COMPARE,
-		/**
-		 * Build a chain only based on locally discovered migrations and assume all migrations are pending. No validation
-		 * will be performed.
-		 */
-		LOCAL,
-		/**
-		 * Build a chain only based on remotely applied migrations and assume all migrations are applied. No validation
-		 * will be performed.
-		 */
-		REMOTE
-	}
-
-	/**
 	 * Pretty prints this chain as an ASCII table.
-	 *
-	 * @return A formatted string (an ASCII table representing the chain)
+	 * @return a formatted string (an ASCII table representing the chain)
 	 * @since 0.0.11
 	 */
 	default String prettyPrint() {
@@ -84,7 +56,8 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 
 		if (getElements().isEmpty()) {
 			sb.append(MigrationChainFormat.LS).append("No migrations found.");
-		} else {
+		}
+		else {
 			MigrationChainFormat.formatElements(this, sb);
 		}
 		return sb.toString();
@@ -92,7 +65,7 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 
 	/**
 	 * Returns true, if the version string maps to a migration that has been applied.
-	 * @param version An arbitrary version string
+	 * @param version an arbitrary version string
 	 * @return true, if the version string maps to a migration that has been applied.
 	 */
 	boolean isApplied(String version);
@@ -120,12 +93,39 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 
 	/**
 	 * Translates a target version into a concrete version.
-	 *
 	 * @param targetVersion the target version to translate into a concrete version
 	 * @return the concrete version if any
 	 * @since 2.15.0
 	 */
 	Optional<MigrationVersion> findTargetVersion(TargetVersion targetVersion);
+
+	/**
+	 * Used for selecting how the {@link MigrationChain} should be computed.
+	 *
+	 * @since 1.4.0
+	 * @see Migrations#info(ChainBuilderMode)
+	 */
+	enum ChainBuilderMode {
+
+		/**
+		 * Create the chain of applied and pending migrations by comparing the locally
+		 * discovered migrations and the migrations applied remotely. Validation will be
+		 * performed (such as checking for the correct number of migrations and checksum
+		 * comparison).
+		 */
+		COMPARE,
+		/**
+		 * Build a chain only based on locally discovered migrations and assume all
+		 * migrations are pending. No validation will be performed.
+		 */
+		LOCAL,
+		/**
+		 * Build a chain only based on remotely applied migrations and assume all
+		 * migrations are applied. No validation will be performed.
+		 */
+		REMOTE
+
+	}
 
 	/**
 	 * A chain element describing a pending or applied migration.
@@ -164,7 +164,8 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 		String getSource();
 
 		/**
-		 * {@return the timestamp when this migration was installed. (Only for applied migrations)}
+		 * {@return the timestamp when this migration was installed. (Only for applied
+		 * migrations)}
 		 */
 		Optional<ZonedDateTime> getInstalledOn();
 
@@ -179,22 +180,20 @@ public sealed interface MigrationChain extends ConnectionDetails permits Default
 		Optional<Duration> getExecutionTime();
 
 		/**
-		 * Creates a map representation of this element. Non-present elements will be represented as empty strings.
-		 *
-		 * @return A map containing all present information in this element
+		 * Creates a map representation of this element. Non-present elements will be
+		 * represented as empty strings.
+		 * @return a map containing all present information in this element
 		 * @since 2.3.0
 		 */
 		default Map<String, String> asMap() {
 
-			return Map.of(
-				"version", this.getVersion(),
-				"description", this.getOptionalDescription().orElse(""),
-				"type", this.getType().name(),
-				"installedOn", this.getInstalledOn().map(ZonedDateTime::toString).orElse(""),
-				"installedBy", this.getInstalledBy().orElse(""),
-				"executionTime", this.getExecutionTime().map(Duration::toString).orElse(""),
-				"state", this.getState().name(),
-				"source", this.getSource());
+			return Map.of("version", this.getVersion(), "description", this.getOptionalDescription().orElse(""), "type",
+					this.getType().name(), "installedOn", this.getInstalledOn().map(ZonedDateTime::toString).orElse(""),
+					"installedBy", this.getInstalledBy().orElse(""), "executionTime",
+					this.getExecutionTime().map(Duration::toString).orElse(""), "state", this.getState().name(),
+					"source", this.getSource());
 		}
+
 	}
+
 }

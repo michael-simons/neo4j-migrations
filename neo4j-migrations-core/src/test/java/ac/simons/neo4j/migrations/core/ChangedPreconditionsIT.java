@@ -33,14 +33,12 @@ class ChangedPreconditionsIT extends TestBase {
 	void adaptingToCypherChangesAfterTheFactShouldBePossible() {
 
 		// First use old syntax, whatever. No assumptions in place
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder()
-			.withLocationsToScan("classpath:preconditions3/old")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("classpath:preconditions3/old").build(), this.driver);
 		Optional<MigrationVersion> lastVersion = migrations.apply();
 		Assertions.assertThat(lastVersion).hasValue(MigrationVersion.withValue("02"));
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			Set<String> allLabels = new HashSet<>();
 			session.run("MATCH (n) WHERE NOT n:__Neo4jMigration return labels(n)").forEachRemaining(r -> {
 				allLabels.addAll(r.get(0).asList(Value::asString));
@@ -49,14 +47,14 @@ class ChangedPreconditionsIT extends TestBase {
 		}
 
 		// Run a second time, with the changed folder structure.
-		// Here, it is a different one, to make up for both test, but in reality, it would be the same
+		// Here, it is a different one, to make up for both test, but in reality, it would
+		// be the same
 		// Migrations must not fail
-		// We will see the old migration being skipped (moved into the compat subfolder), its checksum changed
+		// We will see the old migration being skipped (moved into the compat subfolder),
+		// its checksum changed
 		// but the new one (in current subfolder) will match with its alternative checksum
-		migrations = new Migrations(MigrationsConfig
-			.builder()
-			.withLocationsToScan("classpath:preconditions3/new")
-			.build(), driver);
+		migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("classpath:preconditions3/new").build(), this.driver);
 
 		lastVersion = migrations.apply();
 		Assertions.assertThat(lastVersion).hasValue(MigrationVersion.withValue("02"));
@@ -64,14 +62,12 @@ class ChangedPreconditionsIT extends TestBase {
 		// On a fresh database, the new one will be applied
 		clearDatabase();
 
-		migrations = new Migrations(MigrationsConfig
-			.builder()
-			.withLocationsToScan("classpath:preconditions3/new")
-			.build(), driver);
+		migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("classpath:preconditions3/new").build(), this.driver);
 
 		lastVersion = migrations.apply();
 		Assertions.assertThat(lastVersion).hasValue(MigrationVersion.withValue("02"));
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			Set<String> allLabels = new HashSet<>();
 			session.run("MATCH (n) WHERE NOT n:__Neo4jMigration return labels(n)").forEachRemaining(r -> {
 				allLabels.addAll(r.get(0).asList(Value::asString));
@@ -79,4 +75,5 @@ class ChangedPreconditionsIT extends TestBase {
 			Assertions.assertThat(allLabels).containsExactlyInAnyOrder("New", "Both");
 		}
 	}
+
 }

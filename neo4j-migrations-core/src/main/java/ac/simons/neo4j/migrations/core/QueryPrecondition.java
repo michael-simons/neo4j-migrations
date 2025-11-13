@@ -24,58 +24,16 @@ import java.util.regex.Pattern;
 import org.neo4j.driver.Session;
 
 /**
+ * A precondition evaluating a query.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.5.0
  */
 final class QueryPrecondition extends AbstractPrecondition implements Precondition {
 
-	private static final Pattern CONDITION_PATTERN = Pattern.compile(
-		"(?i)^.*?(?<database> in (target|schema))? (?<!that )q'(?<query>.++)?$");
-
-	/**
-	 * Enum to specify in which database the query should be executed
-	 */
-	enum Database {
-
-		/**
-		 * Inside the database being migrated.
-		 */
-		TARGET,
-		/**
-		 * Inside the schema database.
-		 */
-		SCHEMA,
-	}
-
-	/**
-	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to build a factory  for
-	 * a corresponding precondition.
-	 *
-	 * @param hint The complete hint
-	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
-	 */
-	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
-
-		Matcher matcher = CONDITION_PATTERN.matcher(hint);
-		if (!matcher.matches()) {
-			return Optional.empty();
-		}
-		String query = matcher.group("query");
-		if (query == null || query.trim().length() == 0) {
-			throw new IllegalArgumentException(
-					String.format(
-							"Wrong Cypher precondition %s. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.",
-							Precondition.formattedHint(hint)));
-		}
-		Database database;
-		if (matcher.group("database") != null) {
-			database = Database.valueOf(matcher.group(2).toUpperCase(Locale.ROOT));
-		} else {
-			database = Database.TARGET;
-		}
-		return Optional.of(type -> new QueryPrecondition(type, query.trim(), database));
-	}
+	private static final Pattern CONDITION_PATTERN = Pattern
+		.compile("(?i)^.*?(?<database> in (target|schema))? (?<!that )q'(?<query>.++)?$");
 
 	private final Database database;
 
@@ -87,24 +45,70 @@ final class QueryPrecondition extends AbstractPrecondition implements Preconditi
 		this.database = database;
 	}
 
+	/**
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so,
+	 * tries to build a factory for a corresponding precondition.
+	 * @param hint the complete hint
+	 * @return a factory for a precondition or an empty optional if this factory doesn't
+	 * match the hint
+	 */
+	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
+
+		Matcher matcher = CONDITION_PATTERN.matcher(hint);
+		if (!matcher.matches()) {
+			return Optional.empty();
+		}
+		String query = matcher.group("query");
+		if (query == null || query.isBlank()) {
+			throw new IllegalArgumentException(String.format(
+					"Wrong Cypher precondition %s. Usage: `<assume|assert> [in <target|schema>] q' <cypher statement>`.",
+					Precondition.formattedHint(hint)));
+		}
+		Database database;
+		if (matcher.group("database") != null) {
+			database = Database.valueOf(matcher.group(2).toUpperCase(Locale.ROOT));
+		}
+		else {
+			database = Database.TARGET;
+		}
+		return Optional.of(type -> new QueryPrecondition(type, query.trim(), database));
+	}
+
 	@Override
 	public boolean isMet(MigrationContext migrationContext) {
-		try (Session session = database == Database.SCHEMA ? migrationContext.getSchemaSession() :
-			migrationContext.getSession()) {
-			return session.executeRead(tx -> tx.run(query).single().get(0).asBoolean());
+		try (Session session = (this.database == Database.SCHEMA) ? migrationContext.getSchemaSession()
+				: migrationContext.getSession()) {
+			return session.executeRead(tx -> tx.run(this.query).single().get(0).asBoolean());
 		}
 	}
 
 	String getQuery() {
-		return query;
+		return this.query;
 	}
 
 	Database getDatabase() {
-		return database;
+		return this.database;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("// %s in %s q'%s", getType().keyword(), getDatabase(), query);
+		return String.format("// %s in %s q'%s", getType().keyword(), getDatabase(), this.query);
 	}
+
+	/**
+	 * Enum to specify in which database the query should be executed.
+	 */
+	enum Database {
+
+		/**
+		 * Inside the database being migrated.
+		 */
+		TARGET,
+		/**
+		 * Inside the schema database.
+		 */
+		SCHEMA,
+
+	}
+
 }

@@ -29,13 +29,14 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public final class Actor {
 
-	@Id @GeneratedValue
-	private Long id;
-
 	@TargetNode
 	private final Person person;
 
 	private final List<String> roles;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	public Actor(Person person, List<String> roles) {
 		this.person = person;
@@ -43,14 +44,15 @@ public final class Actor {
 	}
 
 	public Person getPerson() {
-		return person;
+		return this.person;
 	}
 
 	public String getName() {
-		return person.getName();
+		return this.person.getName();
 	}
 
 	public List<String> getRoles() {
-		return Collections.unmodifiableList(roles);
+		return Collections.unmodifiableList(this.roles);
 	}
+
 }

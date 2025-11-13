@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.quarkus;
 
 import ac.simons.neo4j.migrations.core.MigrationState;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,4 +30,5 @@ class MigrationsIT extends AbstractITTestBase {
 
 		assertStateOfMigrations(MigrationState.APPLIED);
 	}
+
 }

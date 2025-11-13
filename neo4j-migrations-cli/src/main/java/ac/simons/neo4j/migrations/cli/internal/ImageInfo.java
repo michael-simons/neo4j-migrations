@@ -23,16 +23,14 @@ package ac.simons.neo4j.migrations.cli.internal;
  */
 public final class ImageInfo {
 
-	private ImageInfo() {
-	}
-
 	/**
-	 * Holds the string that is the name of the system property providing information about the
-	 * context in which code is currently executing. If the property returns the string given by
-	 * {@literal buildtime} the code is executing in the context of image
-	 * building (e.g. in a static initializer of a class that will be contained in the image). If
-	 * the property returns the string given by {@link #PROPERTY_IMAGE_CODE_VALUE_RUNTIME} the code
-	 * is executing at image runtime. Otherwise, the property is not set.
+	 * Holds the string that is the name of the system property providing information
+	 * about the context in which code is currently executing. If the property returns the
+	 * string given by {@literal buildtime} the code is executing in the context of image
+	 * building (e.g. in a static initializer of a class that will be contained in the
+	 * image). If the property returns the string given by
+	 * {@link #PROPERTY_IMAGE_CODE_VALUE_RUNTIME} the code is executing at image runtime.
+	 * Otherwise, the property is not set.
 	 */
 	public static final String PROPERTY_IMAGE_CODE_KEY = "org.graalvm.nativeimage.imagecode";
 
@@ -42,13 +40,17 @@ public final class ImageInfo {
 	 */
 	public static final String PROPERTY_IMAGE_CODE_VALUE_RUNTIME = "runtime";
 
+	private ImageInfo() {
+	}
+
 	/**
-	 * Returns true if (at the time of the call) code is executing at image runtime. This method
-	 * will be const-folded. It can be used to hide parts of an application that only work when
-	 * running as native image.
+	 * Returns true if (at the time of the call) code is executing at image runtime. This
+	 * method will be const-folded. It can be used to hide parts of an application that
+	 * only work when running as native image.
 	 * @return {@literal true} if this app runs in a native image runtime
 	 */
 	public static boolean inImageRuntimeCode() {
 		return PROPERTY_IMAGE_CODE_VALUE_RUNTIME.equals(System.getProperty(PROPERTY_IMAGE_CODE_KEY));
 	}
+
 }

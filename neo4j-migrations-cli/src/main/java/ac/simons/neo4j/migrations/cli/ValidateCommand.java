@@ -25,10 +25,10 @@ import picocli.CommandLine.ParentCommand;
  * The validate command.
  *
  * @author Michael J. Simons
- * @soundtrack Sugarcubes - Life's Too Good
  * @since 1.2.0
  */
-@Command(name = "validate", description = "Resolves all local migrations and validates the state of the configured database with them.")
+@Command(name = "validate",
+		description = "Resolves all local migrations and validates the state of the configured database with them.")
 final class ValidateCommand extends ConnectedCommand {
 
 	@ParentCommand
@@ -36,7 +36,7 @@ final class ValidateCommand extends ConnectedCommand {
 
 	@Override
 	public MigrationsCli getParent() {
-		return parent;
+		return this.parent;
 	}
 
 	@Override
@@ -47,10 +47,10 @@ final class ValidateCommand extends ConnectedCommand {
 		boolean isValid = validationResult.isValid();
 		if (!isValid) {
 			validationResult.getWarnings().forEach(MigrationsCli.LOGGER::info);
-			MigrationsCli.LOGGER.info(Messages.INSTANCE.get(validationResult.needsRepair() ?
-				"validation.database_needs_repair" :
-				"validation.database_is_invalid"));
+			MigrationsCli.LOGGER.info(Messages.INSTANCE.get(validationResult.needsRepair()
+					? "validation.database_needs_repair" : "validation.database_is_invalid"));
 		}
 		return isValid ? 0 : 1;
 	}
+
 }

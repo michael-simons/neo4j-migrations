@@ -24,12 +24,13 @@ package ac.simons.neo4j.migrations.core;
 interface LifecycleEvent {
 
 	/**
-	 * @return the phase in which the event happened
+	 * {@return the phase in which the event happened}
 	 */
 	LifecyclePhase getPhase();
 
 	/**
-	 * @return the global migration context
+	 * {@return the global migration context}
 	 */
 	MigrationContext getContext();
+
 }

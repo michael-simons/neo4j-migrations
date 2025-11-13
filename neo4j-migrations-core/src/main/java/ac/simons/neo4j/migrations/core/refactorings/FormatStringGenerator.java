@@ -16,25 +16,15 @@
 package ac.simons.neo4j.migrations.core.refactorings;
 
 /**
- * Generates format strings for refactorings, depending on targets and / or custom queries.
+ * Generates format strings for refactorings, depending on targets and / or custom
+ * queries.
  *
  * @author Michael J. Simons
  */
 interface FormatStringGenerator {
 
 	/**
-	 * Value class for the fragments of a format string
-	 *
-	 * @param source                The fragment used to select the source
-	 * @param sourceWithCustomQuery The fragment used to select the source by a custom query
-	 * @param action                The action to deal with elements
-	 * @param actionWithBatchSize   The action to deal with elements in batches
-	 */
-	record Fragments(String source, String sourceWithCustomQuery, String action, String actionWithBatchSize) {
-	}
-
-	/**
-	 * @return The fragments making up the format string
+	 * {@return the fragments making up the format string}
 	 */
 	Fragments getFragments();
 
@@ -46,17 +36,31 @@ interface FormatStringGenerator {
 
 		if (customQuery == null) {
 			ptSource = fragments.source();
-		} else {
+		}
+		else {
 			ptSource = fragments.sourceWithCustomQuery();
 		}
 
 		if (batchSize == null) {
 			ptAction = fragments.action();
-		} else {
+		}
+		else {
 			ptAction = fragments.actionWithBatchSize();
 		}
 
 		return ptSource + " " + ptAction;
+	}
+
+	/**
+	 * Value class for the fragments of a format string.
+	 *
+	 * @param source the fragment used to select the source
+	 * @param sourceWithCustomQuery the fragment used to select the source by a custom
+	 * query
+	 * @param action the action to deal with elements
+	 * @param actionWithBatchSize the action to deal with elements in batches
+	 */
+	record Fragments(String source, String sourceWithCustomQuery, String action, String actionWithBatchSize) {
 	}
 
 }

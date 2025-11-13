@@ -20,7 +20,8 @@ import io.smallrye.config.SmallRyeConfigBuilder;
 import io.smallrye.config.SmallRyeConfigBuilderCustomizer;
 
 /**
- * Config customizer to ignore validation of unmapped properties between build-time and runtime.
+ * Config customizer to ignore validation of unmapped properties between build-time and
+ * runtime.
  *
  * @author Michael J. Simons
  * @author Roberto Cortez
@@ -34,4 +35,5 @@ public final class MigrationsConfigCustomizer implements SmallRyeConfigBuilderCu
 	public void configBuilder(final SmallRyeConfigBuilder builder) {
 		builder.withMappingIgnore("org.neo4j.migrations.**");
 	}
+
 }

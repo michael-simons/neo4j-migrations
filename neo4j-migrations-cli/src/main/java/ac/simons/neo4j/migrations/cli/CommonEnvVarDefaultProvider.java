@@ -15,17 +15,17 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import java.util.Optional;
+import java.util.Properties;
+
 import picocli.CommandLine;
 import picocli.CommandLine.IDefaultValueProvider;
 import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.PropertiesDefaultProvider;
 
-import java.util.Optional;
-import java.util.Properties;
-
 /**
- * Neo4j seems to have settled on a common set of env variables across docs. This value provider
- * uses them if present for defaults.
+ * Neo4j seems to have settled on a common set of env variables across docs. This value
+ * provider uses them if present for defaults.
  *
  * @author Michael J. Simons
  * @since 1.9.0
@@ -33,14 +33,30 @@ import java.util.Properties;
 final class CommonEnvVarDefaultProvider extends PropertiesDefaultProvider implements IDefaultValueProvider {
 
 	private static final String ENV_ADDRESS = "NEO4J_URI";
+
 	private static final String ENV_USERNAME = "NEO4J_USERNAME";
+
 	private static final String ENV_PASSWORD = "NEO4J_PASSWORD";
 
-	@SuppressWarnings("unused") CommonEnvVarDefaultProvider() {
+	@SuppressWarnings("unused")
+	CommonEnvVarDefaultProvider() {
 	}
 
 	CommonEnvVarDefaultProvider(Properties properties) {
 		super(properties);
+	}
+
+	static Optional<String> getFromEnv(OptionSpec optionSpec) {
+		return switch (optionSpec.shortestName()) {
+			case MigrationsCli.OPTION_ADDRESS -> getOptionalEnv(ENV_ADDRESS);
+			case MigrationsCli.OPTION_USERNAME -> getOptionalEnv(ENV_USERNAME);
+			case MigrationsCli.OPTION_PASSWORD -> getOptionalEnv(ENV_PASSWORD);
+			default -> Optional.empty();
+		};
+	}
+
+	static Optional<String> getOptionalEnv(String name) {
+		return Optional.ofNullable(System.getenv(name));
 	}
 
 	@Override
@@ -57,16 +73,4 @@ final class CommonEnvVarDefaultProvider extends PropertiesDefaultProvider implem
 		return super.defaultValue(argSpec);
 	}
 
-	static Optional<String> getFromEnv(OptionSpec optionSpec) {
-		return switch (optionSpec.shortestName()) {
-			case MigrationsCli.OPTION_ADDRESS -> getOptionalEnv(ENV_ADDRESS);
-			case MigrationsCli.OPTION_USERNAME -> getOptionalEnv(ENV_USERNAME);
-			case MigrationsCli.OPTION_PASSWORD -> getOptionalEnv(ENV_PASSWORD);
-			default -> Optional.empty();
-		};
-	}
-
-	static Optional<String> getOptionalEnv(String name) {
-		return Optional.ofNullable(System.getenv(name));
-	}
 }

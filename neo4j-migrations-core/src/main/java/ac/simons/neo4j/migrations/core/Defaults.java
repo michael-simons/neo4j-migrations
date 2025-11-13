@@ -15,14 +15,14 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
-import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
-import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+
+import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
+import ac.simons.neo4j.migrations.core.MigrationsConfig.VersionSortOrder;
 
 /**
  * Defaults for Migrations configuration.
@@ -48,12 +48,8 @@ public final class Defaults {
 	public static final Charset CYPHER_SCRIPT_ENCODING = StandardCharsets.UTF_8;
 
 	/**
-	 * Default packages to scan.
-	 */
-	static final List<String> PACKAGES_TO_SCAN = Collections.emptyList();
-
-	/**
-	 * Default package or folder name for locations to scan, agnostic to classpath or filesystem.
+	 * Default package or folder name for locations to scan, agnostic to classpath or
+	 * filesystem.
 	 */
 	public static final String LOCATIONS_TO_SCAN_WITHOUT_PREFIX = "neo4j/migrations";
 
@@ -68,7 +64,8 @@ public final class Defaults {
 	public static final List<String> LOCATIONS_TO_SCAN = Collections.singletonList(LOCATIONS_TO_SCAN_VALUE);
 
 	/**
-	 * Same as {@link #LOCATIONS_TO_SCAN} but as {@link String string value} to be used in configuration that requires defaults given as string.
+	 * Same as {@link #LOCATIONS_TO_SCAN} but as {@link String string value} to be used in
+	 * configuration that requires defaults given as string.
 	 */
 	public static final String TRANSACTION_MODE_VALUE = "PER_MIGRATION";
 
@@ -83,8 +80,8 @@ public final class Defaults {
 	public static final boolean VALIDATE_ON_MIGRATE = true;
 
 	/**
-	 * Same as {@link #VALIDATE_ON_MIGRATE} but as {@link String string value} to be used in configuration that requires
-	 * defaults given as string.
+	 * Same as {@link #VALIDATE_ON_MIGRATE} but as {@link String string value} to be used
+	 * in configuration that requires defaults given as string.
 	 */
 	public static final String VALIDATE_ON_MIGRATE_VALUE = "true";
 
@@ -94,20 +91,19 @@ public final class Defaults {
 	public static final boolean AUTOCRLF = false;
 
 	/**
-	 * Same as {@link #AUTOCRLF} but as {@link String string value} to be used in configuration that requires defaults
-	 * given as string.
+	 * Same as {@link #AUTOCRLF} but as {@link String string value} to be used in
+	 * configuration that requires defaults given as string.
 	 */
 	public static final String AUTOCRLF_VALUE = "false";
 
 	/**
-	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used in configuration that requires
-	 * defaults given as string.
+	 * Same as {@link #VERSION_SORT_ORDER} but as {@link String string value} to be used
+	 * in configuration that requires defaults given as string.
 	 */
 	public static final String VERSION_SORT_ORDER_VALUE = "SEMANTIC";
 
 	/**
-	 * The sort order used for version numbers. Please
-	 * @see VersionSortOrder
+	 * The sort order used for version numbers, please see {@link VersionSortOrder}.
 	 * @since 2.9.0
 	 */
 	public static final VersionSortOrder VERSION_SORT_ORDER = VersionSortOrder.SEMANTIC;
@@ -119,8 +115,8 @@ public final class Defaults {
 	public static final boolean OUT_OF_ORDER = false;
 
 	/**
-	 * Same as {@link #OUT_OF_ORDER} but as a {@link String string value} to be used in configuration that requires
-	 * defaults given as string.
+	 * Same as {@link #OUT_OF_ORDER} but as a {@link String string value} to be used in
+	 * configuration that requires defaults given as string.
 	 */
 	public static final String OUT_OF_ORDER_VALUE = "false";
 
@@ -131,8 +127,8 @@ public final class Defaults {
 	public static final boolean USE_FLYWAY_COMPATIBLE_CHECKSUMS = false;
 
 	/**
-	 * Default setting for {@code useFlywayCompatibleChecksums} but as a {@link String string value} to be used in
-	 * configuration that requires defaults given as string.
+	 * Default setting for {@code useFlywayCompatibleChecksums} but as a {@link String
+	 * string value} to be used in configuration that requires defaults given as string.
 	 * @since 2.17.0
 	 */
 	public static final String USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE = "false";
@@ -144,12 +140,18 @@ public final class Defaults {
 	public static final CypherVersion CYPHER_VERSION = CypherVersion.DATABASE_DEFAULT;
 
 	/**
-	 * Default setting for {@code cypherVersion} but as a {@link String string value} to be used in
-	 * configuration that requires defaults given as string.
+	 * Default setting for {@code cypherVersion} but as a {@link String string value} to
+	 * be used in configuration that requires defaults given as string.
 	 * @since 2.19.0
 	 */
 	public static final String CYPHER_VERSION_VALUE = "DATABASE_DEFAULT";
 
+	/**
+	 * Default packages to scan.
+	 */
+	static final List<String> PACKAGES_TO_SCAN = Collections.emptyList();
+
 	private Defaults() {
 	}
+
 }

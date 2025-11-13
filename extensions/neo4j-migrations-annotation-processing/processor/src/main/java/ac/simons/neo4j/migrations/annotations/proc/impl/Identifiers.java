@@ -16,12 +16,17 @@
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
 /**
- * Copy of {@code org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentProperty#deriveRelationshipType(String)}
- * Originally licensed under Apache License, Version 2.0 (the "License"), written by Michael J. Simons
+ * Copy of
+ * {@code org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentProperty#deriveRelationshipType(String)}
+ * Originally licensed under Apache License, Version 2.0 (the "License"), written by
+ * Michael J. Simons
  *
  * @author Michael J. Simons
  */
 final class Identifiers {
+
+	private Identifiers() {
+	}
 
 	static String deriveRelationshipType(String name) {
 
@@ -41,7 +46,8 @@ final class Identifiers {
 					sb.append("_");
 				}
 				codePoint = Character.toUpperCase(codePoint);
-			} else if (sb.length() > 0) {
+			}
+			else if (!sb.isEmpty()) {
 				sb.append("_");
 			}
 			sb.append(Character.toChars(codePoint));
@@ -51,6 +57,4 @@ final class Identifiers {
 		return sb.toString();
 	}
 
-	private Identifiers() {
-	}
 }

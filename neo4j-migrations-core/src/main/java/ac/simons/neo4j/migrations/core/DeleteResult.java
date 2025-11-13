@@ -18,9 +18,10 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * A  {@link DeleteResult}  will be  created after  using {@link  Migrations#delete(MigrationVersion)} for  deleting one
- * single migration. It  contains the number of deleted nodes  and relationships as well as the  number of newly created
- * relationships.
+ * A {@link DeleteResult} will be created after using
+ * {@link Migrations#delete(MigrationVersion)} for deleting one single migration. It
+ * contains the number of deleted nodes and relationships as well as the number of newly
+ * created relationships.
  *
  * @author Michael J. Simons
  * @since 2.2.0
@@ -29,23 +30,24 @@ public final class DeleteResult extends AbstractRepairmentResult {
 
 	private final MigrationVersion version;
 
-	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, MigrationVersion version) {
+	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
+			long relationshipsCreated, long propertiesSet, MigrationVersion version) {
 		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.version = version;
 	}
 
 	/**
-	 * @return {@literal true} if the database has been changed
+	 * {@return true if the database has been changed}
 	 */
 	public boolean isDatabaseChanged() {
-		return version != null && getNodesDeleted() > 0;
+		return this.version != null && getNodesDeleted() > 0;
 	}
 
 	/**
-	 * @return the deleted version (if any)
+	 * {@return the deleted version (if any)}
 	 */
 	public Optional<MigrationVersion> getVersion() {
-		return Optional.ofNullable(version);
+		return Optional.ofNullable(this.version);
 	}
 
 	@Override
@@ -54,12 +56,9 @@ public final class DeleteResult extends AbstractRepairmentResult {
 		if (!isDatabaseChanged()) {
 			return "Database is unchanged, no version has been deleted.";
 		}
-		return String.format(
-			"Migration %s has been removed (deleted %d nodes and %d relationships from %s).",
-			toString(this.version),
-			this.getNodesDeleted(),
-			this.getRelationshipsDeleted(),
-			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database")
-		);
+		return String.format("Migration %s has been removed (deleted %d nodes and %d relationships from %s).",
+				toString(this.version), this.getNodesDeleted(), this.getRelationshipsDeleted(),
+				this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database"));
 	}
+
 }

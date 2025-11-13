@@ -19,20 +19,20 @@ import ac.simons.neo4j.migrations.annotations.proc.ElementType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
- * Helper for creating properties on element types
+ * Helper for creating properties on element types.
  *
+ * @param <ET> the concrete element type
  * @author Michael J. Simons
- * @param <ET> The concrete element type
  * @since 1.11.0
  */
 @SuppressWarnings("squid:S119") // I like the generic parameter name.
 interface WriteableElementType<ET extends ElementType<ET>> {
 
 	/**
-	 * Adds the given property
-	 *
-	 * @param property The property to add
-	 * @return The new property created, with {@literal this} as the owner
+	 * Adds the given property.
+	 * @param property the property to add
+	 * @return the new property created, with {@literal this} as the owner
 	 */
 	PropertyType<ET> addProperty(String property);
+
 }

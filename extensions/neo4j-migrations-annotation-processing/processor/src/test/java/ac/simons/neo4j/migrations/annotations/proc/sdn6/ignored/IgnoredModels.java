@@ -21,35 +21,48 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Models that are ignored because they have no id or only internally generated ids.
+ *
  * @author Michael J. Simons
  */
 public final class IgnoredModels {
 
-	@Node
-	static class NoId {
-	}
-
-	@Node
-	static class InternalId {
-		@Id @GeneratedValue long id;
-	}
-
-	@Node
-	static abstract class IdButAbstract {
-		@Id String id;
+	private IgnoredModels() {
 	}
 
 	@Node
 	interface Whatever {
+
+	}
+
+	@Node
+	static class NoId {
+
+	}
+
+	@Node
+	static class InternalId {
+
+		@Id
+		@GeneratedValue
+		long id;
+
+	}
+
+	@Node
+	abstract static class IdButAbstract {
+
+		@Id
+		String id;
+
 	}
 
 	static class Someclass {
+
 	}
 
 	@Node
 	static class NoIdInHierarchy extends Someclass implements Whatever {
+
 	}
 
-	private IgnoredModels() {
-	}
 }

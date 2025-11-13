@@ -18,17 +18,20 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * A specialization of the {@link OperationResult} that always affects a database, either the default one
- * or a named other.
+ * A specialization of the {@link OperationResult} that always affects a database, either
+ * the default one or a named other.
  *
  * @author Michael J. Simons
- * @soundtrack Die Krupps - Paradise Now
  * @since 1.2.0
  */
-public sealed interface DatabaseOperationResult extends OperationResult permits CleanResult, ValidationResult, AbstractRepairmentResult {
+public sealed interface DatabaseOperationResult extends OperationResult
+		permits CleanResult, ValidationResult, AbstractRepairmentResult {
 
 	/**
-	 * {@return the optional name of the database clean, an empty optional indicates the default database}
+	 * Returns the optional name of the database clean, an empty optional indicates the
+	 * default database.
+	 * @return the optional name of the database clean
 	 */
 	Optional<String> getAffectedDatabase();
+
 }

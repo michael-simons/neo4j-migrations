@@ -20,11 +20,12 @@ import ac.simons.neo4j.migrations.annotations.catalog.Index;
 /**
  * @author Michael J. Simons
  */
-@Index(properties = {"nameA"})
+@Index(properties = { "nameA" })
 public class ContradictingLabels3 {
 
 	@Index(label = "foo")
 	public String name;
 
 	public String nameA;
+
 }

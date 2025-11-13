@@ -27,18 +27,25 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 public final class MultipleExplicitLabels {
 
+	private MultipleExplicitLabels() {
+	}
+
 	@Node({ "l1", "l2", "l3" })
 	static class MultipleValues {
 
-		@org.springframework.data.annotation.Id @GeneratedValue(UUIDStringGenerator.class) String uuid;
+		@org.springframework.data.annotation.Id
+		@GeneratedValue(UUIDStringGenerator.class)
+		String uuid;
+
 	}
 
 	@Node(primaryLabel = "pl", value = { "l1", "l2", "l3" })
 	static class PrimaryAndValuesCombined {
 
-		@Id @GeneratedValue(GeneratedValue.UUIDGenerator.class) UUID uuid;
+		@Id
+		@GeneratedValue(GeneratedValue.UUIDGenerator.class)
+		UUID uuid;
+
 	}
 
-	private MultipleExplicitLabels() {
-	}
 }

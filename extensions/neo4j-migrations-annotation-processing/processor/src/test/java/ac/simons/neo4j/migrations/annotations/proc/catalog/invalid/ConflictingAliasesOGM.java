@@ -17,17 +17,16 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Property;
 
 /**
  * @author Michael J. Simons
  */
 @NodeEntity("CBOGM")
-@Unique(properties = {"a", "b", "c"})
+@Unique(properties = { "a", "b", "c" })
 public class ConflictingAliasesOGM {
 
 	@Unique
@@ -51,4 +50,5 @@ public class ConflictingAliasesOGM {
 	public String b;
 
 	public String d;
+
 }

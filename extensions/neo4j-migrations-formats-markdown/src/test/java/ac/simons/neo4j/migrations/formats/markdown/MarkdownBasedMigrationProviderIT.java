@@ -15,15 +15,12 @@
  */
 package ac.simons.neo4j.migrations.formats.markdown;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-
-import java.util.Optional;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +34,8 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -53,13 +52,14 @@ class MarkdownBasedMigrationProviderIT {
 	void initDriver() {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 
-		neo4j.start();
-		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
+		this.neo4j.start();
+		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), config);
 	}
 
 	@BeforeEach
 	void clearDatabase() {
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
 		}
 	}
@@ -67,23 +67,21 @@ class MarkdownBasedMigrationProviderIT {
 	@AfterAll
 	void closeDriver() {
 
-		driver.close();
+		this.driver.close();
 	}
 
 	@Test
 	void example1ShouldWork() {
-		Migrations migrations = new Migrations(MigrationsConfig.builder()
-			.withLocationsToScan("/neo4j/markdown-migrations").build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/neo4j/markdown-migrations").build(), this.driver);
 
 		Optional<MigrationVersion> migrationVersion = migrations.apply();
-		assertThat(migrationVersion)
-			.map(MigrationVersion::getValue)
-			.hasValue("1.3");
+		assertThat(migrationVersion).map(MigrationVersion::getValue).hasValue("1.3");
 
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements()).hasSize(3);
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			Long cnt = session.run("MATCH (f:Foo {name: 'fighters'}) RETURN count(f)").single().get(0).asLong();
 			assertThat(cnt).isOne();
 		}

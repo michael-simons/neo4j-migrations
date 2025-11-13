@@ -15,12 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ScanResult;
-
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
+
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 
 /**
  * Discovers all Java-based migrations.
@@ -38,23 +38,25 @@ final class JavaBasedMigrationDiscoverer implements Discoverer<JavaBasedMigratio
 			return Collections.emptyList();
 		}
 
-		try (ScanResult scanResult = new ClassGraph()
-				.enableAllInfo()
-				.acceptPackages(config.getPackagesToScan())
-				.enableExternalClasses()
-				.scan()) {
+		try (ScanResult scanResult = new ClassGraph().enableAllInfo()
+			.acceptPackages(config.getPackagesToScan())
+			.enableExternalClasses()
+			.scan()) {
 
-			return scanResult
-					.getClassesImplementing(JavaBasedMigration.class.getName()).loadClasses(JavaBasedMigration.class)
-					.stream()
-					.filter(c -> !Modifier.isAbstract(c.getModifiers()))
-					.map(c -> {
-						try {
-							return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();
-						} catch (Exception e) {
-							throw new MigrationsException("Could not instantiate migration " + c.getName(), e);
-						}
-					}).toList();
+			return scanResult.getClassesImplementing(JavaBasedMigration.class.getName())
+				.loadClasses(JavaBasedMigration.class)
+				.stream()
+				.filter(c -> !Modifier.isAbstract(c.getModifiers()))
+				.map(c -> {
+					try {
+						return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();
+					}
+					catch (Exception ex) {
+						throw new MigrationsException("Could not instantiate migration " + c.getName(), ex);
+					}
+				})
+				.toList();
 		}
 	}
+
 }

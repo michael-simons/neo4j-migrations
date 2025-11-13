@@ -26,7 +26,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public final class Person {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private final Long id;
 
 	private final String name;
@@ -45,18 +46,19 @@ public final class Person {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Integer getBorn() {
-		return born;
+		return this.born;
 	}
 
 	public void setBorn(Integer born) {
 		this.born = born;
 	}
+
 }

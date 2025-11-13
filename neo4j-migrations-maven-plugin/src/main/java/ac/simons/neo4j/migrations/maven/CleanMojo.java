@@ -17,31 +17,22 @@ package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.CleanResult;
 import ac.simons.neo4j.migrations.core.Migrations;
-
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * Goal that cleans the configured database. Can be configured with {@code all} set to {@literal true} for removing everything
- * Neo4j-Migrations created in a schema database. Binds to the clean phase by default
+ * Goal that cleans the configured database. Can be configured with {@code all} set to
+ * {@literal true} for removing everything Neo4j-Migrations created in a schema database.
+ * Binds to the clean phase by default
  *
  * @author Michael J. Simons
  * @since 1.1.0
  */
-@Mojo(name = "clean",
-	requiresDependencyResolution = ResolutionScope.TEST,
-	defaultPhase = LifecyclePhase.CLEAN,
-	threadSafe = true)
+@Mojo(name = "clean", requiresDependencyResolution = ResolutionScope.TEST, defaultPhase = LifecyclePhase.CLEAN,
+		threadSafe = true)
 public class CleanMojo extends AbstractConnectedMojo {
-
-	/**
-	 * The default constructor is primarily used by the Maven machinery.
-	 */
-	public CleanMojo() {
-		// Make both JDK 21 JavaDoc and Maven happy
-	}
 
 	/**
 	 * Set to true to delete all migration chains as well as all Neo4j-Migration
@@ -50,11 +41,19 @@ public class CleanMojo extends AbstractConnectedMojo {
 	@Parameter(defaultValue = "false")
 	private boolean all;
 
+	/**
+	 * The default constructor is primarily used by the Maven machinery.
+	 */
+	public CleanMojo() {
+		// Make both JDK 21 JavaDoc and Maven happy
+	}
+
 	@Override
 	void withMigrations(Migrations migrations) {
 
-		CleanResult result = migrations.clean(all);
+		CleanResult result = migrations.clean(this.all);
 		LOGGER.info(result::prettyPrint);
 		result.getWarnings().forEach(LOGGER::warning);
 	}
+
 }

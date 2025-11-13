@@ -16,15 +16,54 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
- * A {@link  RepairmentResult} will  be available  after a  successful attempt of  repairing a  database. An  attempt is
- * considered successful no repairing  was necessary or all errors in the remote  {@link MigrationChain migration chain}
- * could be fixed.
+ * A {@link RepairmentResult} will be available after a successful attempt of repairing a
+ * database. An attempt is considered successful no repairing was necessary or all errors
+ * in the remote {@link MigrationChain migration chain} could be fixed.
  *
  * @author Michael J. Simons
- * @soundtrack Deichkind - Neues vom Dauerzustand
  * @since 2.2.0
  */
 public final class RepairmentResult extends AbstractRepairmentResult {
+
+	private final Outcome outcome;
+
+	private RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
+			long relationshipsCreated, long propertiesSet, Outcome outcome) {
+		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
+		this.outcome = outcome;
+	}
+
+	static RepairmentResult unnecessary(String affectedDatabase) {
+		return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, Outcome.NO_REPAIRMENT_NECESSARY);
+	}
+
+	static RepairmentResult repaired(String affectedDatabase, long nodesDeleted, long nodesCreated,
+			long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
+		return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted,
+				relationshipsCreated, propertiesSet, Outcome.REPAIRED);
+	}
+
+	/**
+	 * {@return the outcome of the repairment attempt}
+	 */
+	public Outcome getOutcome() {
+		return this.outcome;
+	}
+
+	@Override
+	public String prettyPrint() {
+
+		if (this.outcome == Outcome.NO_REPAIRMENT_NECESSARY) {
+			return String.format("%s is in a valid state, missing or new migrations can be applied",
+					this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("The default database"));
+		}
+
+		return String.format(
+				"The migration chain in %s has been repaired: %d nodes and %d relationships have been deleted, %d nodes and %d relationships have been recreated.",
+				this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database"),
+				this.getNodesDeleted(), this.getRelationshipsDeleted(), this.getNodesCreated(),
+				this.getRelationshipsCreated());
+	}
 
 	/**
 	 * The outcome of an attempt of repairing a {@link MigrationChain migration chain}.
@@ -32,54 +71,17 @@ public final class RepairmentResult extends AbstractRepairmentResult {
 	public enum Outcome {
 
 		/**
-		 * This outcome indicates that no repairment was necessary. This is the case for example when no migrations have
-		 * been applied yet to the target database.
+		 * This outcome indicates that no repairment was necessary. This is the case for
+		 * example when no migrations have been applied yet to the target database.
 		 */
 		NO_REPAIRMENT_NECESSARY,
 
 		/**
-		 * This outcome indicates the database has been repaired and changes have been made. Check the additional data.
+		 * This outcome indicates the database has been repaired and changes have been
+		 * made. Check the additional data.
 		 */
 		REPAIRED
+
 	}
 
-	static RepairmentResult unnecessary(String affectedDatabase) {
-		return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, Outcome.NO_REPAIRMENT_NECESSARY);
-	}
-
-	static RepairmentResult repaired(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
-		return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet, Outcome.REPAIRED);
-	}
-
-	private final Outcome outcome;
-
-	private RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
-		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
-		this.outcome = outcome;
-	}
-
-	/**
-	 * @return The outcome of the repairment attempt.
-	 */
-	public Outcome getOutcome() {
-		return outcome;
-	}
-
-	@Override
-	public String prettyPrint() {
-
-		if (outcome == Outcome.NO_REPAIRMENT_NECESSARY) {
-			return String.format("%s is in a valid state, missing or new migrations can be applied",
-				this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("The default database"));
-		}
-
-		return String.format(
-			"The migration chain in %s has been repaired: %d nodes and %d relationships have been deleted, %d nodes and %d relationships have been recreated.",
-			this.getAffectedDatabase().map(v -> "`" + v + "`").orElse("the default database"),
-			this.getNodesDeleted(),
-			this.getRelationshipsDeleted(),
-			this.getNodesCreated(),
-			this.getRelationshipsCreated()
-		);
-	}
 }

@@ -37,4 +37,5 @@ public sealed interface OperationResult permits DatabaseOperationResult {
 	 * {@return a sensible string applicable in a log or info message}
 	 */
 	String prettyPrint();
+
 }

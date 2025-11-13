@@ -38,7 +38,9 @@ final class OrderedCommandLineHelp extends CommandLine.Help {
 		return new TreeMap<>(super.subcommands());
 	}
 
+	@Override
 	public Map<String, CommandLine.Help> allSubcommands() {
 		return new TreeMap<>(super.allSubcommands());
 	}
+
 }

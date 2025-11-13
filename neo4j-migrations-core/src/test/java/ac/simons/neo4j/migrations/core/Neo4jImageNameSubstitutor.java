@@ -36,7 +36,7 @@ public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 		// don't change ryuk and neo4j 4.4+ coordinates
 		var isNeo4jRepo = dockerImageName.getRepository().startsWith("neo4j");
 		var versionPart = dockerImageName.getVersionPart();
-		if (!isNeo4jRepo || OFFICIALLY_SUPPORTED_ON_ARM.stream().anyMatch(versionPart::startsWith)) {
+		if (!isNeo4jRepo || this.OFFICIALLY_SUPPORTED_ON_ARM.stream().anyMatch(versionPart::startsWith)) {
 			return dockerImageName;
 		}
 		if (versionPart.startsWith("LATEST")) {
@@ -58,4 +58,5 @@ public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 	protected String getDescription() {
 		return "Neo4j Image name substitutor";
 	}
+
 }

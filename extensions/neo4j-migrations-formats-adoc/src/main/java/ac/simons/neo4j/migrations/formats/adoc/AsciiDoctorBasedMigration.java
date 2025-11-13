@@ -19,21 +19,15 @@ import ac.simons.neo4j.migrations.core.AbstractCypherBasedMigration;
 import ac.simons.neo4j.migrations.core.CypherResource;
 import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.ResourceContext;
-
 import org.asciidoctor.ast.Block;
 
 /**
  * A Cypher based migration that extract its content from AsciiDoctor source blocks.
  *
  * @author Michael J. Simons
- * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
 final class AsciiDoctorBasedMigration extends AbstractCypherBasedMigration {
-
-	static Migration of(ResourceContext ctx, Block block) {
-		return new AsciiDoctorBasedMigration(ctx.getIdentifier(), block.getId(), block.getSource());
-	}
 
 	private final String document;
 
@@ -42,8 +36,13 @@ final class AsciiDoctorBasedMigration extends AbstractCypherBasedMigration {
 		this.document = document;
 	}
 
+	static Migration of(ResourceContext ctx, Block block) {
+		return new AsciiDoctorBasedMigration(ctx.getIdentifier(), block.getId(), block.getSource());
+	}
+
 	@Override
 	public String getSource() {
-		return document + "#" + cypherResource.getIdentifier();
+		return this.document + "#" + this.cypherResource.getIdentifier();
 	}
+
 }

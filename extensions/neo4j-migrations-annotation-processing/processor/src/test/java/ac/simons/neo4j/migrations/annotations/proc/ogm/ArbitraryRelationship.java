@@ -29,4 +29,5 @@ public class ArbitraryRelationship {
 
 	@Id
 	private Long id;
+
 }

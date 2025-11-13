@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.XMLUtils;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -27,6 +25,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import ac.simons.neo4j.migrations.core.internal.XMLUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -49,8 +48,10 @@ enum ConstraintToXMLRenderer implements Renderer<Constraint> {
 			document.appendChild(item.toXML(document));
 
 			XMLUtils.getIndentingTransformer().transform(new DOMSource(document), new StreamResult(target));
-		} catch (ParserConfigurationException | TransformerException e) {
-			throw new IOException(e);
+		}
+		catch (ParserConfigurationException | TransformerException ex) {
+			throw new IOException(ex);
 		}
 	}
+
 }

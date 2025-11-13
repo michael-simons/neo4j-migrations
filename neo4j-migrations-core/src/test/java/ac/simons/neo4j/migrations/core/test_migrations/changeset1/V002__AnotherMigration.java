@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.core.test_migrations.changeset1;
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
-
 import org.neo4j.driver.Session;
 
 /**
@@ -31,4 +30,5 @@ public class V002__AnotherMigration implements JavaBasedMigration {
 			session.run("CREATE (n:IWasHere)");
 		}
 	}
+
 }

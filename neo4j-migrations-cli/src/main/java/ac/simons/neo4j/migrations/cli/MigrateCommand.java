@@ -15,13 +15,13 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import java.util.Optional;
+import java.util.logging.Level;
+
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
-
-import java.util.Optional;
-import java.util.logging.Level;
 
 /**
  * The migrate command.
@@ -29,7 +29,8 @@ import java.util.logging.Level;
  * @author Michael J. Simons
  * @since 0.0.5
  */
-@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.", aliases = "apply")
+@Command(name = "migrate", description = "Retrieves all pending migrations, verify and applies them.",
+		aliases = "apply")
 final class MigrateCommand extends ConnectedCommand {
 
 	@ParentCommand
@@ -38,7 +39,7 @@ final class MigrateCommand extends ConnectedCommand {
 	@Override
 	public MigrationsCli getParent() {
 
-		return parent;
+		return this.parent;
 	}
 
 	@Override
@@ -46,9 +47,9 @@ final class MigrateCommand extends ConnectedCommand {
 
 		Optional<MigrationVersion> lastAppliedMigration = migrations.apply();
 		lastAppliedMigration.ifPresentOrElse(
-			v -> MigrationsCli.LOGGER.log(Level.INFO, "Database migrated to version {0}.", v.getValue()),
-			() -> MigrationsCli.LOGGER.log(Level.INFO, "No migrations have been applied.")
-		);
+				v -> MigrationsCli.LOGGER.log(Level.INFO, "Database migrated to version {0}.", v.getValue()),
+				() -> MigrationsCli.LOGGER.log(Level.INFO, "No migrations have been applied."));
 		return 0;
 	}
+
 }

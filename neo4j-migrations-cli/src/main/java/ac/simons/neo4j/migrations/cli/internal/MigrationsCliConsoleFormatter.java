@@ -25,8 +25,10 @@ import java.util.logging.LogRecord;
  * @since 1.7.0
  */
 public final class MigrationsCliConsoleFormatter extends Formatter {
+
 	@Override
 	public String format(LogRecord logRecord) {
 		return formatMessage(logRecord) + System.lineSeparator();
 	}
+
 }

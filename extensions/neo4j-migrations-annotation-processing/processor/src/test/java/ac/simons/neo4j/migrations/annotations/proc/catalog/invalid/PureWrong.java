@@ -26,4 +26,5 @@ public class PureWrong {
 
 	@Required(label = "foo", type = "bar")
 	public UUID uuid;
+
 }

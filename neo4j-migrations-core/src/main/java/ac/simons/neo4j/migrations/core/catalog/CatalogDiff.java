@@ -22,19 +22,18 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * This represents a diff results between two catalogs. It offers a handful of convience methods to quickly check if two
- * catalogs are identical or at least have equivalent content.
+ * This represents a diff results between two catalogs. It offers a handful of convince
+ * methods to quickly check if two catalogs are identical or at least have equivalent
+ * content.
  *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Fundamental
  * @since 1.7.0
  */
 public interface CatalogDiff {
 
 	/**
-	 * Creates a diff between to catalogs
-	 *
-	 * @param left  left catalog
+	 * Creates a diff between to catalogs.
+	 * @param left left catalog
 	 * @param right right catalog
 	 * @return a diff on the given catalogs
 	 */
@@ -42,10 +41,12 @@ public interface CatalogDiff {
 
 		if (left.isEmpty() && right.isEmpty()) {
 			return new CatalogDiffImpl();
-		} else if (left.isEmpty() && !right.isEmpty()) {
+		}
+		else if (left.isEmpty() && !right.isEmpty()) {
 			Set<CatalogItem<?>> itemsOnlyInRight = new HashSet<>(right.getItems());
 			return new CatalogDiffImpl(Collections.emptySet(), itemsOnlyInRight, Collections.emptySet());
-		} else if (!left.isEmpty() && right.isEmpty()) {
+		}
+		else if (!left.isEmpty() && right.isEmpty()) {
 			Set<CatalogItem<?>> itemsOnlyInLeft = new HashSet<>(left.getItems());
 			return new CatalogDiffImpl(itemsOnlyInLeft, Collections.emptySet(), Collections.emptySet());
 		}
@@ -71,39 +72,41 @@ public interface CatalogDiff {
 	}
 
 	/**
-	 * Returns the {@literal true} if the catalogs are identical, {@literal false} otherwise.
+	 * Returns the {@literal true} if the catalogs are identical, {@literal false}
+	 * otherwise.
 	 * @return {@literal true} if the catalogs are identical, {@literal false} otherwise
 	 */
 	boolean identical();
 
 	/**
-	 * Will always return {@literal true} when {@link #identical()} returns {@literal true}
-	 *
+	 * Will always return {@literal true} when {@link #identical()} returns
+	 * {@literal true}.
 	 * @return {@literal true} if the catalogs are equivalent, {@literal false} otherwise
 	 */
 	boolean equivalent();
 
 	/**
-	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
-	 *
+	 * Will always return an empty collection when {@link #identical()} returns
+	 * {@literal true}.
 	 * @return a collection of items that are only in the left catalog
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItemsOnlyInLeft();
 
 	/**
-	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
-	 *
+	 * Will always return an empty collection when {@link #identical()} returns
+	 * {@literal true}.
 	 * @return a collection of items that are only in the right catalog
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getItemsOnlyInRight();
 
 	/**
-	 * Will always return an empty collection when {@link #identical()} returns {@literal true}
-	 *
+	 * Will always return an empty collection when {@link #identical()} returns
+	 * {@literal true}.
 	 * @return a collection of equivalent items
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
 	Collection<CatalogItem<?>> getEquivalentItems();
+
 }

@@ -15,30 +15,31 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
-
 import java.util.Objects;
 
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
+
 /**
+ * Default {@link SchemaName} implementation.
+ *
  * @author Michael J. Simons
- * @soundtrack Ralf "Ralle" Petersen - Album wird aus Hack gemacht 2016
  * @since 1.11.0
  */
 final class DefaultSchemaName implements SchemaName {
-
-	enum Target {
-		NODE, REL, UNDEFINED
-	}
 
 	private final String value;
 
 	private final Target target;
 
+	private DefaultSchemaName(String value, Target target) {
+		this.value = value;
+		this.target = target;
+	}
+
 	/**
 	 * Creates a label with the given value.
-	 *
-	 * @param value The value of this label, must not be null.
-	 * @return A label with the given value.
+	 * @param value the value of this label, must not be null.
+	 * @return a label with the given value.
 	 */
 	static SchemaName label(String value) {
 
@@ -47,31 +48,17 @@ final class DefaultSchemaName implements SchemaName {
 
 	/**
 	 * Creates a type with the given value.
-	 *
-	 * @param value The value of this label, must not be null.
-	 * @return A type with the given value.
+	 * @param value the value of this label, must not be null.
+	 * @return a type with the given value.
 	 */
 	static SchemaName type(String value) {
 
 		return new DefaultSchemaName(value, Target.REL);
 	}
 
-	private DefaultSchemaName(String value, Target target) {
-		this.value = value;
-		this.target = target;
-	}
-
 	@Override
 	public String getValue() {
-		return value;
-	}
-
-	@Override
-	public String toString() {
-		return "DefaultSchemaName{" +
-			"value='" + value + '\'' +
-			", target=" + target +
-		'}';
+		return this.value;
 	}
 
 	@Override
@@ -83,11 +70,23 @@ final class DefaultSchemaName implements SchemaName {
 			return false;
 		}
 		DefaultSchemaName that = (DefaultSchemaName) o;
-		return value.equals(that.value) && target == that.target;
+		return this.value.equals(that.value) && this.target == that.target;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value, target);
+		return Objects.hash(this.value, this.target);
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultSchemaName{" + "value='" + this.value + '\'' + ", target=" + this.target + '}';
+	}
+
+	enum Target {
+
+		NODE, REL, UNDEFINED
+
+	}
+
 }

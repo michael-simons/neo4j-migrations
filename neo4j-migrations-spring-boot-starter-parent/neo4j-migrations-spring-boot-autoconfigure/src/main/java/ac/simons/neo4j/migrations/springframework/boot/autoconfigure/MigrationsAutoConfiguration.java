@@ -15,17 +15,17 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
+import java.util.Arrays;
+
 import ac.simons.neo4j.migrations.core.Discoverer;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsException;
-
-import java.util.Arrays;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -58,10 +58,29 @@ public class MigrationsAutoConfiguration {
 
 	private static final Log LOG = LogFactory.getLog(MigrationsAutoConfiguration.class);
 
+	private static void checkLocationExists(ResourceLoader resourceLoader, MigrationsProperties properties) {
+
+		if (properties.getLocationsToScan().length == 0 && properties.getPackagesToScan().length == 0) {
+			throw new MigrationsException("Neither locations nor packages to scan are configured.");
+		}
+
+		if (properties.getPackagesToScan().length == 0
+				&& !hasAtLeastOneLocation(resourceLoader, properties.getLocationsToScan())) {
+
+			LOG.warn("No package to scan is configured and none of the configured locations exists.");
+		}
+	}
+
+	private static boolean hasAtLeastOneLocation(ResourceLoader resourceLoader, String[] locations) {
+
+		return Arrays.stream(locations).map(resourceLoader::getResource).anyMatch(Resource::exists);
+	}
+
 	@Bean
 	@ConditionalOnMissingBean({ MigrationsConfig.class, Migrations.class, MigrationsInitializer.class })
 	MigrationsConfig neo4jMigrationsConfig(ResourceLoader resourceLoader, MigrationsProperties migrationsProperties,
-		ObjectProvider<ConfigBuilderCustomizer> configBuilderCustomizers, ObjectProvider<Discoverer<JavaBasedMigration>> applicationContextAwareDiscoverer) {
+			ObjectProvider<ConfigBuilderCustomizer> configBuilderCustomizers,
+			ObjectProvider<Discoverer<JavaBasedMigration>> applicationContextAwareDiscoverer) {
 
 		if (migrationsProperties.isCheckLocation()) {
 			checkLocationExists(resourceLoader, migrationsProperties);
@@ -107,28 +126,10 @@ public class MigrationsAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean({ Discoverer.class })
 	@ConditionalOnProperty(prefix = "org.neo4j.migrations", name = "enabled", matchIfMissing = true)
-	Discoverer<JavaBasedMigration> applicationContextAwareDiscoverer(ObjectProvider<JavaBasedMigration> javaBasedMigrations) {
+	Discoverer<JavaBasedMigration> applicationContextAwareDiscoverer(
+			ObjectProvider<JavaBasedMigration> javaBasedMigrations) {
 
 		return new ApplicationContextAwareDiscoverer(javaBasedMigrations);
 	}
 
-	private static void checkLocationExists(ResourceLoader resourceLoader, MigrationsProperties properties) {
-
-		if (properties.getLocationsToScan().length == 0 && properties.getPackagesToScan().length == 0) {
-			throw new MigrationsException("Neither locations nor packages to scan are configured.");
-		}
-
-		if (properties.getPackagesToScan().length == 0 &&
-			!hasAtLeastOneLocation(resourceLoader, properties.getLocationsToScan())) {
-
-			LOG.warn("No package to scan is configured and none of the configured locations exists.");
-		}
-	}
-
-	private static boolean hasAtLeastOneLocation(ResourceLoader resourceLoader, String[] locations) {
-
-		return Arrays.stream(locations)
-			.map(resourceLoader::getResource)
-			.anyMatch(Resource::exists);
-	}
 }

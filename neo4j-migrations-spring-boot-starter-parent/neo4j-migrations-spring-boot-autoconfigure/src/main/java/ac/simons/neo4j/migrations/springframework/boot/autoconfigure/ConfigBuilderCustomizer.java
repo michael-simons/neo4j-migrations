@@ -19,8 +19,8 @@ import ac.simons.neo4j.migrations.core.MigrationsConfig;
 
 /**
  * Callback interface that can be implemented by beans wishing to customize the
- * {@link MigrationsConfig} through a {@link MigrationsConfig.Builder} whilst retaining default
- * autoconfiguration.
+ * {@link MigrationsConfig} through a {@link MigrationsConfig.Builder} whilst retaining
+ * default autoconfiguration.
  *
  * @author Michael J. Simons
  * @since 2.8.2
@@ -30,8 +30,8 @@ public interface ConfigBuilderCustomizer {
 
 	/**
 	 * Customize the {@link MigrationsConfig.Builder}.
-	 *
 	 * @param configBuilder the {@link MigrationsConfig.Builder} to customize
 	 */
 	void customize(MigrationsConfig.Builder configBuilder);
+
 }

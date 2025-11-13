@@ -39,4 +39,5 @@ public class RelPropertyExistenceConstraintEntity {
 
 	@Required
 	String description;
+
 }

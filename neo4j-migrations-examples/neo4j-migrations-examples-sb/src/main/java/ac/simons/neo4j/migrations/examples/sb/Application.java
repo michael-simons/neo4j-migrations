@@ -20,6 +20,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.neo4j.Neo4jReactiveDataAutoConfiguration;
 
 /**
+ * Default Spring Boot application.
+ *
  * @author Michael J. Simons
  */
 @SpringBootApplication(exclude = Neo4jReactiveDataAutoConfiguration.class)
@@ -28,4 +30,5 @@ public class Application {
 	public static void main(String... args) {
 		SpringApplication.run(Application.class, args);
 	}
+
 }

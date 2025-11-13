@@ -19,8 +19,9 @@ import ac.simons.neo4j.migrations.quarkus.runtime.StaticJavaBasedMigrationDiscov
 import io.quarkus.builder.item.SimpleBuildItem;
 
 /**
+ * Adds a static discoverer for Java based migration to the build items.
+ *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Anarchie und Alltag
  * @since 1.3.0
  */
 final class DiscovererBuildItem extends SimpleBuildItem {
@@ -32,9 +33,10 @@ final class DiscovererBuildItem extends SimpleBuildItem {
 	}
 
 	/**
-	 * @return The actual discoverer (created at build-time)
+	 * {@return the actual discoverer (created at build-time)}
 	 */
 	StaticJavaBasedMigrationDiscoverer getDiscoverer() {
-		return discoverer;
+		return this.discoverer;
 	}
+
 }

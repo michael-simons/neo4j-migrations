@@ -15,11 +15,11 @@
  */
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
+import java.util.function.Supplier;
+
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
-
-import java.util.function.Supplier;
 
 /**
  * Triggered during development mode for contributing to the dev console.
@@ -30,10 +30,9 @@ import java.util.function.Supplier;
 public class MigrationsDevConsoleRecorder {
 
 	/**
-	 * Used to expose the migrations runtime value to the dev console
-	 *
-	 * @param migrationsRv The runtime value containing the migrations
-	 * @return A supplier of a runtime object
+	 * Used to expose the migrations runtime value to the dev console.
+	 * @param migrationsRv the runtime value containing the migrations
+	 * @return a supplier of a runtime object
 	 */
 	public Supplier<Migrations> recordMigrationsSupplier(RuntimeValue<Migrations> migrationsRv) {
 
@@ -41,4 +40,5 @@ public class MigrationsDevConsoleRecorder {
 		migrationDetailsSupplier.setValue(migrationsRv.getValue());
 		return migrationDetailsSupplier;
 	}
+
 }

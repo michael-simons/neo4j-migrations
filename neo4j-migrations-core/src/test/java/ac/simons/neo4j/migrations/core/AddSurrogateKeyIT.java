@@ -15,17 +15,16 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.neo4j.driver.Session;
 
-import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
-import ac.simons.neo4j.migrations.core.refactorings.Counters;
-import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -36,9 +35,10 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 	@BeforeEach
 	void clearDatabase() {
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			CypherResource.of(ResourceContext.of(AddSurrogateKeyIT.class.getResource("/moviegraph/movies.cypher"))).getExecutableStatements()
+			CypherResource.of(ResourceContext.of(AddSurrogateKeyIT.class.getResource("/moviegraph/movies.cypher")))
+				.getExecutableStatements()
 				.forEach(session::run);
 		}
 	}
@@ -48,12 +48,15 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 
 		AddSurrogateKey addSurrogateKey = AddSurrogateKey.toNodes("Movie");
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = addSurrogateKey.apply(refactoringContext);
 
 			assertThat(counters.propertiesSet()).isEqualTo(38);
-			Long moviesWithoutIds = session.run("MATCH (n:Movie) WHERE n.id IS NULL return count(*)").single().get(0).asLong();
+			Long moviesWithoutIds = session.run("MATCH (n:Movie) WHERE n.id IS NULL return count(*)")
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(moviesWithoutIds).isZero();
 		}
 	}
@@ -63,12 +66,15 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 
 		AddSurrogateKey addSurrogateKey = AddSurrogateKey.toRelationships("WROTE").withProperty("leId");
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = addSurrogateKey.apply(refactoringContext);
 
 			assertThat(counters.propertiesSet()).isEqualTo(10);
-			Long moviesWithoutIds = session.run("MATCH () -[r:WROTE] ->() WHERE r.leId IS NULL return count(*)").single().get(0).asLong();
+			Long moviesWithoutIds = session.run("MATCH () -[r:WROTE] ->() WHERE r.leId IS NULL return count(*)")
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(moviesWithoutIds).isZero();
 		}
 	}
@@ -80,13 +86,17 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 		AddSurrogateKey addSurrogateKey = AddSurrogateKey
 			.toNodesMatching("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n");
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 
 			Counters counters = addSurrogateKey.apply(refactoringContext);
 			assertThat(counters.propertiesSet()).isEqualTo(3);
 
-			Long moviesWithoutIds = session.run("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' AND n.id IS NULL return count(*)").single().get(0).asLong();
+			Long moviesWithoutIds = session
+				.run("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' AND n.id IS NULL return count(*)")
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(moviesWithoutIds).isZero();
 		}
 	}
@@ -99,14 +109,19 @@ class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 			.toNodesMatching("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' RETURN n")
 			.inBatchesOf(23);
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 
 			Counters counters = addSurrogateKey.apply(refactoringContext);
 			assertThat(counters.propertiesSet()).isEqualTo(3);
 
-			Long moviesWithoutIds = session.run("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' AND n.id IS NULL return count(*)").single().get(0).asLong();
+			Long moviesWithoutIds = session
+				.run("MATCH (n:Movie) WHERE n.title =~ '.*Matrix.*' AND n.id IS NULL return count(*)")
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(moviesWithoutIds).isZero();
 		}
 	}
+
 }

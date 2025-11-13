@@ -29,42 +29,11 @@ import org.neo4j.driver.types.Relationship;
 
 /**
  * Only implementation of a {@link MigrationChain.Element}.
+ *
  * @author Michael J. Simons
  * @since 2.0.0
  */
 final class DefaultMigrationChainElement implements MigrationChain.Element {
-
-	record InstallationInfo(ZonedDateTime installedOn, String installedBy, Duration executionTime) {
-	}
-
-	static MigrationChain.Element appliedElement(Path.Segment appliedMigration, List<Relationship> repetitions) {
-
-		Node targetMigration = appliedMigration.end();
-		Map<String, Object> properties = targetMigration.asMap();
-
-		Relationship migrationProperties = repetitions.stream()
-			.filter(relationship -> relationship.endNodeElementId().equals(targetMigration.elementId()))
-			.max(Comparator.comparing((Relationship r) -> r.get("at").asZonedDateTime()))
-			.orElse(appliedMigration.relationship());
-
-		ZonedDateTime installedOn = migrationProperties.get("at").asZonedDateTime();
-		String installedBy = String.format("%s/%s", migrationProperties.get("by").asString(),
-			migrationProperties.get("connectedAs").asString());
-		IsoDuration storedExecutionTime = migrationProperties.get("in").asIsoDuration();
-		Duration executionTime = Duration.ofSeconds(storedExecutionTime.seconds())
-			.plusNanos(storedExecutionTime.nanoseconds());
-
-		return new DefaultMigrationChainElement(MigrationState.APPLIED,
-			MigrationType.valueOf((String) properties.get("type")), migrationProperties.get("checksum").asString((String) properties.get("checksum")),
-			(String) properties.get("version"), (String) properties.get("description"),
-			(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
-	}
-
-	static MigrationChain.Element pendingElement(Migration pendingMigration) {
-		return new DefaultMigrationChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
-			pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
-			pendingMigration.getOptionalDescription().orElse(null), pendingMigration.getSource(), null);
-	}
 
 	private final MigrationState state;
 
@@ -80,8 +49,8 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 
 	private final InstallationInfo installationInfo;
 
-	private DefaultMigrationChainElement(MigrationState state, MigrationType type, String checksum,
-		String version, String description, String source, InstallationInfo installationInfo) {
+	private DefaultMigrationChainElement(MigrationState state, MigrationType type, String checksum, String version,
+			String description, String source, InstallationInfo installationInfo) {
 		this.state = state;
 		this.type = type;
 		this.checksum = checksum;
@@ -91,57 +60,88 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 		this.installationInfo = installationInfo;
 	}
 
+	static MigrationChain.Element appliedElement(Path.Segment appliedMigration, List<Relationship> repetitions) {
+
+		Node targetMigration = appliedMigration.end();
+		Map<String, Object> properties = targetMigration.asMap();
+
+		Relationship migrationProperties = repetitions.stream()
+			.filter(relationship -> relationship.endNodeElementId().equals(targetMigration.elementId()))
+			.max(Comparator.comparing((Relationship r) -> r.get("at").asZonedDateTime()))
+			.orElse(appliedMigration.relationship());
+
+		ZonedDateTime installedOn = migrationProperties.get("at").asZonedDateTime();
+		String installedBy = String.format("%s/%s", migrationProperties.get("by").asString(),
+				migrationProperties.get("connectedAs").asString());
+		IsoDuration storedExecutionTime = migrationProperties.get("in").asIsoDuration();
+		Duration executionTime = Duration.ofSeconds(storedExecutionTime.seconds())
+			.plusNanos(storedExecutionTime.nanoseconds());
+
+		return new DefaultMigrationChainElement(MigrationState.APPLIED,
+				MigrationType.valueOf((String) properties.get("type")),
+				migrationProperties.get("checksum").asString((String) properties.get("checksum")),
+				(String) properties.get("version"), (String) properties.get("description"),
+				(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
+	}
+
+	static MigrationChain.Element pendingElement(Migration pendingMigration) {
+		return new DefaultMigrationChainElement(MigrationState.PENDING, Migrations.getMigrationType(pendingMigration),
+				pendingMigration.getChecksum().orElse(null), pendingMigration.getVersion().getValue(),
+				pendingMigration.getOptionalDescription().orElse(null), pendingMigration.getSource(), null);
+	}
+
 	@Override
 	public MigrationState getState() {
-		return state;
+		return this.state;
 	}
 
 	@Override
 	public MigrationType getType() {
-		return type;
+		return this.type;
 	}
 
 	@Override
 	public Optional<String> getChecksum() {
-		return Optional.ofNullable(checksum);
+		return Optional.ofNullable(this.checksum);
 	}
 
 	@Override
 	public String getVersion() {
-		return version;
+		return this.version;
 	}
 
 	@Override
 	public Optional<String> getOptionalDescription() {
-		return Optional.ofNullable(description);
+		return Optional.ofNullable(this.description);
 	}
 
 	@Override
 	public String getSource() {
-		return source;
+		return this.source;
 	}
 
 	@Override
 	public Optional<ZonedDateTime> getInstalledOn() {
-		return Optional.ofNullable(installationInfo).map(InstallationInfo::installedOn);
+		return Optional.ofNullable(this.installationInfo).map(InstallationInfo::installedOn);
 	}
 
 	@Override
 	public Optional<String> getInstalledBy() {
-		return Optional.ofNullable(installationInfo).map(InstallationInfo::installedBy);
+		return Optional.ofNullable(this.installationInfo).map(InstallationInfo::installedBy);
 	}
 
 	@Override
 	public Optional<Duration> getExecutionTime() {
-		return Optional.ofNullable(installationInfo).map(InstallationInfo::executionTime);
+		return Optional.ofNullable(this.installationInfo).map(InstallationInfo::executionTime);
 	}
 
 	@Override
 	public String toString() {
-		return "DefaultMigrationChainElement{" +
-			"type=" + type +
-			", checksum='" + checksum + '\'' +
-			", version='" + version + '\'' +
-			'}';
+		return "DefaultMigrationChainElement{" + "type=" + this.type + ", checksum='" + this.checksum + '\''
+				+ ", version='" + this.version + '\'' + '}';
 	}
+
+	record InstallationInfo(ZonedDateTime installedOn, String installedBy, Duration executionTime) {
+	}
+
 }

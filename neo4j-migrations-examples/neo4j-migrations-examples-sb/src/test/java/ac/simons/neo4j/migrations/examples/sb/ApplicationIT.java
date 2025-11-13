@@ -15,18 +15,15 @@
  */
 package ac.simons.neo4j.migrations.examples.sb;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import ac.simons.neo4j.migrations.core.MigrationChain;
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-import ac.simons.neo4j.migrations.core.Migrations;
-import ac.simons.neo4j.migrations.core.MigrationsConfig;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -36,9 +33,11 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.neo4j.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -46,30 +45,27 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 class ApplicationIT {
 
+	@Container
+	private static final Neo4jContainer neo4j = new Neo4jContainer(
+			System.getProperty("migrations.default-neo4j-image"));
+
 	static {
 		System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "INFO");
 	}
 
 	Logger logger = LoggerFactory.getLogger(ApplicationIT.class);
 
-	@Container
-	private static final Neo4jContainer neo4j = new Neo4jContainer(System.getProperty("migrations.default-neo4j-image"));
-
 	/**
-	 * I didn't find any better way to make sure failsafe actually is able to run Spring Boot's fat jar.
-	 *
+	 * I didn't find any better way to make sure failsafe actually is able to run Spring
+	 * Boot's fat jar.
 	 * @throws Exception Everything that goes wrong.
 	 */
 	@Test
 	void migrationsShouldHaveRun() throws Exception {
 
-		ProcessBuilder pb = new ProcessBuilder("java", "-jar",
-			System.getProperty("artifact"),
-			"--spring.neo4j.uri=" + neo4j.getBoltUrl(),
-			"--spring.neo4j.authentication.username=neo4j",
-			"--spring.neo4j.authentication.password=" + neo4j.getAdminPassword()
-		);
-
+		ProcessBuilder pb = new ProcessBuilder("java", "-jar", System.getProperty("artifact"),
+				"--spring.neo4j.uri=" + neo4j.getBoltUrl(), "--spring.neo4j.authentication.username=neo4j",
+				"--spring.neo4j.authentication.password=" + neo4j.getAdminPassword());
 
 		pb.redirectErrorStream(true);
 		CountDownLatch latch = new CountDownLatch(1);
@@ -82,7 +78,7 @@ class ApplicationIT {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				logger.info(line);
+				this.logger.info(line);
 			}
 		}
 
@@ -90,10 +86,9 @@ class ApplicationIT {
 		latch.await();
 
 		assertThat(p.exitValue()).isZero();
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
-			Config.builder().withLogging(Logging.console(Level.OFF)).build());
-			Session session = driver.session()
-		) {
+		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
+				Config.builder().withLogging(Logging.console(Level.OFF)).build()); Session session = driver.session()) {
 			long cnt = session.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(2L);
 
@@ -107,4 +102,5 @@ class ApplicationIT {
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
+
 }

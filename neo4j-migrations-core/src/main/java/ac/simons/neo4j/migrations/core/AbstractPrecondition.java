@@ -31,6 +31,7 @@ abstract class AbstractPrecondition implements Precondition {
 
 	@Override
 	public final Type getType() {
-		return type;
+		return this.type;
 	}
+
 }

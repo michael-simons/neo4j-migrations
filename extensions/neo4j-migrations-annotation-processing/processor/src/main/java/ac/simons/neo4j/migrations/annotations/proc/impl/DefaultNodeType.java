@@ -15,17 +15,18 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.NodeType;
-import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
-import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ac.simons.neo4j.migrations.annotations.proc.NodeType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
+
 /**
+ * Default {@link NodeType}.
+ *
  * @author Michael J. Simons
- * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
  * @since 1.11.0
  */
 final class DefaultNodeType implements NodeType, WriteableElementType<NodeType> {
@@ -42,8 +43,9 @@ final class DefaultNodeType implements NodeType, WriteableElementType<NodeType> 
 		this.properties = new ArrayList<>();
 	}
 
-	@Override public String getOwningTypeName() {
-		return owningTypeName;
+	@Override
+	public String getOwningTypeName() {
+		return this.owningTypeName;
 	}
 
 	@Override
@@ -62,4 +64,5 @@ final class DefaultNodeType implements NodeType, WriteableElementType<NodeType> 
 		this.properties.add(propertyType);
 		return propertyType;
 	}
+
 }

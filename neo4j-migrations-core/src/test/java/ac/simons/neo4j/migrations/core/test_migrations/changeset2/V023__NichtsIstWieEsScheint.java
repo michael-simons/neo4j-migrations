@@ -26,4 +26,5 @@ public class V023__NichtsIstWieEsScheint implements JavaBasedMigration {
 	@Override
 	public void apply(MigrationContext context) {
 	}
+
 }

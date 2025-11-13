@@ -23,7 +23,7 @@ import ac.simons.neo4j.migrations.core.MigrationContext;
  *
  * @author Michael J. Simons
  */
-public class SomeService {
+public final class SomeService {
 
 	private SomeService() {
 	}
@@ -35,5 +35,7 @@ public class SomeService {
 		public void apply(MigrationContext context) {
 			// Left empty in purpose
 		}
+
 	}
+
 }

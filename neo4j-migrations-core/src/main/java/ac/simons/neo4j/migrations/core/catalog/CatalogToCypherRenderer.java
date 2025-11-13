@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Renders a catalog into Cypher.
+ *
  * @author Michael J. Simons
  * @since 1.7.0
  */
@@ -37,10 +39,11 @@ enum CatalogToCypherRenderer implements Renderer<Catalog> {
 		for (CatalogItem<?> item : catalog.getItems()) {
 			@SuppressWarnings("unchecked")
 			Renderer<CatalogItem<?>> renderer = cachedRenderer.computeIfAbsent((Class<CatalogItem<?>>) item.getClass(),
-				type -> Renderer.get(Format.CYPHER, type));
+					type -> Renderer.get(Format.CYPHER, type));
 			renderer.render(item, config, target);
 			target.write(separator);
 		}
 		target.flush();
 	}
+
 }

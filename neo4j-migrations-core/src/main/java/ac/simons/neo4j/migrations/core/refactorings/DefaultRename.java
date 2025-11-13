@@ -23,66 +23,12 @@ import java.util.function.UnaryOperator;
 import org.neo4j.driver.Query;
 
 /**
+ * Implements the {@link Rename rename-refactoring}.
+ *
  * @author Michael J. Simons
- * @soundtrack Nightwish - Decades: Live In Buenos Aires
  * @since 1.10.0
  */
 final class DefaultRename extends AbstractCustomizableRefactoring implements Rename {
-
-	/**
-	 * Target of the renaming
-	 */
-	enum Target implements FormatStringGenerator {
-
-		/**
-		 * Targets labels.
-		 */
-		LABEL(
-			"MATCH (s:%1$s)",
-			"CALL { %4$s } WITH %5$s AS s",
-			"REMOVE s:%1$s SET s:%2$s",
-			"CALL { WITH s REMOVE s:%1$s SET s:%2$s } IN TRANSACTIONS OF %3$d ROWS"
-		),
-		/**
-		 * Targets types
-		 */
-		TYPE(
-			"MATCH (a)-[old:%1$s]->(b)",
-			"CALL { %4$s } WITH %5$s AS old, startNode(%5$s) AS a, endNode(%5$s) AS b",
-			"CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old",
-			"CALL { WITH old, a, b CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF %3$d ROWS"
-		),
-		/**
-		 * Targets node properties.
-		 */
-		NODE_PROPERTY(
-			"MATCH (s) WHERE s.%1$s IS NOT NULL",
-			"CALL { %4$s } WITH %5$s AS s WHERE s.%1$s IS NOT NULL",
-			"SET s.%2$s = s.%1$s REMOVE s.%1$s",
-			"CALL { WITH s SET s.%2$s = s.%1$s REMOVE s.%1$s } IN TRANSACTIONS OF %3$d ROWS"
-		),
-		/**
-		 * Targets relationship properties
-		 */
-		REL_PROPERTY(
-			"MATCH (a)-[r]->(b) WHERE r.%1$s IS NOT NULL",
-			"CALL { %4$s } WITH %5$s AS r WHERE r.%1$s IS NOT NULL",
-			"SET r.%2$s = r.%1$s REMOVE r.%1$s",
-			"CALL { WITH r SET r.%2$s = r.%1$s REMOVE r.%1$s } IN TRANSACTIONS OF %3$d ROWS"
-		);
-
-		private final Fragments fragments;
-
-		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment, String actionFragmentWithBatchSize) {
-
-			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment, actionFragmentWithBatchSize);
-		}
-
-		@Override
-		public Fragments getFragments() {
-			return fragments;
-		}
-	}
 
 	/**
 	 * The target of this refactoring.
@@ -113,50 +59,55 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 		this.newValue = newValue;
 
 		if (this.batchSize != null) {
-			this.featureSet = QueryRunner.defaultFeatureSet()
-				.withRequiredVersion("4.4")
-				.withBatchingSupport(true);
-		} else if (this.customQuery != null) {
-			this.featureSet = QueryRunner.defaultFeatureSet()
-				.withRequiredVersion("4.1");
-		} else {
-			this.featureSet = QueryRunner.defaultFeatureSet()
-				.withRequiredVersion("3.5");
+			this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.4").withBatchingSupport(true);
+		}
+		else if (this.customQuery != null) {
+			this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.1");
+		}
+		else {
+			this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("3.5");
 		}
 	}
 
 	QueryRunner.FeatureSet getFeatures() {
-		return featureSet;
+		return this.featureSet;
 	}
 
 	@Override
 	public Counters apply(RefactoringContext context) {
-		try (QueryRunner queryRunner = context.getQueryRunner(featureSet)) {
-			return new DefaultCounters(queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier)).consume().counters());
+		try (QueryRunner queryRunner = context.getQueryRunner(this.featureSet)) {
+			return new DefaultCounters(
+					queryRunner.run(generateQuery(context::sanitizeSchemaName, context::findSingleResultIdentifier))
+						.consume()
+						.counters());
 		}
 	}
 
 	@Override
 	public Rename inBatchesOf(Integer newBatchSize) {
-		return inBatchesOf0(newBatchSize, Rename.class, v -> new DefaultRename(this.target, this.oldValue, this.newValue, this.customQuery, v));
+		return inBatchesOf0(newBatchSize, Rename.class,
+				v -> new DefaultRename(this.target, this.oldValue, this.newValue, this.customQuery, v));
 	}
 
 	@Override
 	public Rename withCustomQuery(String newCustomQuery) {
-		return withCustomQuery0(newCustomQuery, Rename.class, v -> new DefaultRename(this.target, this.oldValue, this.newValue, v, this.batchSize));
+		return withCustomQuery0(newCustomQuery, Rename.class,
+				v -> new DefaultRename(this.target, this.oldValue, this.newValue, v, this.batchSize));
 	}
 
 	Query generateQuery(UnaryOperator<String> sanitizer, Function<String, Optional<String>> elementExtractor) {
 
 		String varName;
-		if (customQuery == null) {
+		if (this.customQuery == null) {
 			varName = "";
-		} else {
-			varName = elementExtractor.apply(customQuery).orElseThrow(IllegalArgumentException::new);
+		}
+		else {
+			varName = elementExtractor.apply(this.customQuery).orElseThrow(IllegalArgumentException::new);
 		}
 
-		return new Query(String.format(target.generateFormatString(customQuery, batchSize), sanitizer.apply(oldValue),
-			sanitizer.apply(newValue), batchSize, customQuery, varName));
+		return new Query(String.format(this.target.generateFormatString(this.customQuery, this.batchSize),
+				sanitizer.apply(this.oldValue), sanitizer.apply(this.newValue), this.batchSize, this.customQuery,
+				varName));
 	}
 
 	@Override
@@ -168,12 +119,58 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 			return false;
 		}
 		DefaultRename that = (DefaultRename) o;
-		return target == that.target && oldValue.equals(that.oldValue) && newValue.equals(that.newValue)
-			&& Objects.equals(customQuery, that.customQuery) && Objects.equals(batchSize, that.batchSize);
+		return this.target == that.target && this.oldValue.equals(that.oldValue) && this.newValue.equals(that.newValue)
+				&& Objects.equals(this.customQuery, that.customQuery) && Objects.equals(this.batchSize, that.batchSize);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(target, oldValue, newValue, customQuery, batchSize);
+		return Objects.hash(this.target, this.oldValue, this.newValue, this.customQuery, this.batchSize);
 	}
+
+	/**
+	 * Target of the renaming.
+	 */
+	enum Target implements FormatStringGenerator {
+
+		/**
+		 * Targets labels.
+		 */
+		LABEL("MATCH (s:%1$s)", "CALL { %4$s } WITH %5$s AS s", "REMOVE s:%1$s SET s:%2$s",
+				"CALL { WITH s REMOVE s:%1$s SET s:%2$s } IN TRANSACTIONS OF %3$d ROWS"),
+		/**
+		 * Targets types.
+		 */
+		TYPE("MATCH (a)-[old:%1$s]->(b)", "CALL { %4$s } WITH %5$s AS old, startNode(%5$s) AS a, endNode(%5$s) AS b",
+				"CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old",
+				"CALL { WITH old, a, b CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF %3$d ROWS"),
+		/**
+		 * Targets node properties.
+		 */
+		NODE_PROPERTY("MATCH (s) WHERE s.%1$s IS NOT NULL", "CALL { %4$s } WITH %5$s AS s WHERE s.%1$s IS NOT NULL",
+				"SET s.%2$s = s.%1$s REMOVE s.%1$s",
+				"CALL { WITH s SET s.%2$s = s.%1$s REMOVE s.%1$s } IN TRANSACTIONS OF %3$d ROWS"),
+		/**
+		 * Targets relationship properties.
+		 */
+		REL_PROPERTY("MATCH (a)-[r]->(b) WHERE r.%1$s IS NOT NULL",
+				"CALL { %4$s } WITH %5$s AS r WHERE r.%1$s IS NOT NULL", "SET r.%2$s = r.%1$s REMOVE r.%1$s",
+				"CALL { WITH r SET r.%2$s = r.%1$s REMOVE r.%1$s } IN TRANSACTIONS OF %3$d ROWS");
+
+		private final Fragments fragments;
+
+		Target(String sourceFragment, String sourceFragmentWithCustomQuery, String actionFragment,
+				String actionFragmentWithBatchSize) {
+
+			this.fragments = new Fragments(sourceFragment, sourceFragmentWithCustomQuery, actionFragment,
+					actionFragmentWithBatchSize);
+		}
+
+		@Override
+		public Fragments getFragments() {
+			return this.fragments;
+		}
+
+	}
+
 }

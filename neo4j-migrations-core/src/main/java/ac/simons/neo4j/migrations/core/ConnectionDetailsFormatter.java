@@ -18,39 +18,40 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * Utility for formatting a {@link ConnectionDetails connection details object} in a uniform way.
+ * Utility for formatting a {@link ConnectionDetails connection details object} in a
+ * uniform way.
  *
  * @author Michael J. Simons
  * @since 1.12.0
  */
 enum ConnectionDetailsFormatter {
+
 	INSTANCE;
 
 	String format(ConnectionDetails cd) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(MigrationChainFormat.LS)
-			.append(cd.getUsername()).append("@").append(cd.getServerAddress())
+			.append(cd.getUsername())
+			.append("@")
+			.append(cd.getServerAddress())
 			.append(" (")
 			.append(cd.getServerVersion());
 		if (cd.getServerEdition() != null) {
-			sb.append(" ")
-				.append(cd.getServerEdition())
-				.append(" Edition)");
-		} else {
+			sb.append(" ").append(cd.getServerEdition()).append(" Edition)");
+		}
+		else {
 			sb.append(")");
 		}
 
 		Optional<String> optionalDatabase = cd.getOptionalDatabaseName();
-		optionalDatabase.ifPresent(name ->
-			sb.append(MigrationChainFormat.LS).append("Database: ").append(name)
-		);
+		optionalDatabase.ifPresent(name -> sb.append(MigrationChainFormat.LS).append("Database: ").append(name));
 
 		Optional<String> optionalSchemaDatabase = cd.getOptionalSchemaDatabaseName();
 		if (!optionalSchemaDatabase.equals(optionalDatabase)) {
-			optionalSchemaDatabase.ifPresent(name ->
-				sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name)
-			);
+			optionalSchemaDatabase
+				.ifPresent(name -> sb.append(MigrationChainFormat.LS).append("Schema database: ").append(name));
 		}
 		return sb.toString();
 	}
+
 }

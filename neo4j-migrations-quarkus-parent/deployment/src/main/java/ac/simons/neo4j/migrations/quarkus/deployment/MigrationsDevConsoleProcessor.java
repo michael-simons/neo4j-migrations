@@ -26,7 +26,6 @@ import io.quarkus.devui.spi.page.Page;
  * Provides the necessary RPC items to fill toe web-ui, including the corresponding cards.
  *
  * @author Michael J. Simons
- * @soundtrack Dr. Dre - The Chronic
  * @since 1.4.0
  */
 public class MigrationsDevConsoleProcessor {
@@ -36,13 +35,11 @@ public class MigrationsDevConsoleProcessor {
 	CardPageBuildItem createMigrationsCard(MigrationsBuildItem migrationsBuildItem) {
 
 		var card = new CardPageBuildItem();
-		card.addPage(
-			Page.webComponentPageBuilder()
-				.title("All migrations")
-				.componentLink("qwc-neo4j-migrations.js")
-				.icon("font-awesome-solid:database")
-				.dynamicLabelJsonRPCMethodName("getLabel")
-		);
+		card.addPage(Page.webComponentPageBuilder()
+			.title("All migrations")
+			.componentLink("qwc-neo4j-migrations.js")
+			.icon("font-awesome-solid:database")
+			.dynamicLabelJsonRPCMethodName("getLabel"));
 
 		return card;
 	}
@@ -52,4 +49,5 @@ public class MigrationsDevConsoleProcessor {
 	JsonRPCProvidersBuildItem createMigrationsRPCService() {
 		return new JsonRPCProvidersBuildItem(MigrationsRPCService.class);
 	}
+
 }

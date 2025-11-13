@@ -14,6 +14,47 @@ member, sign up!
 We love our community and wouldn't be where we are without you. Please remember:
 Many things are contributions, among them issues, code, documentation and examples.
 
+== Tasks
+
+=== Keep the build descriptor (`pom.xml`) sorted
+
+[source,bash]
+----
+./mvnw sortpom:sort
+----
+
+=== Formatting sources / adding headers
+
+When you add new files, you can run
+
+[source,bash]
+----
+./mvnw license:format
+----
+
+to add required headers automatically.
+
+We use https://github.com/spring-io/spring-javaformat[spring-javaformat] to format the source files.
+
+[source,bash]
+----
+./mvnw spring-javaformat:apply
+----
+
+TIP: The Spring Developers write: "The source formatter does not fundamentally change your code. For example, it will not change the order of import statements. It is effectively limited to adding or removing whitespace and line feeds."
+This means the following checkstyle check might still fail.
+Some common errors:
++
+Static imports, import `javax.*` and `java.*` before others
++
+Static imports are helpful, yes, but when working with 2 builders in the same project (here jOOQ and Cypher-DSL), they can be quite confusing.
+
+There are plugins for https://github.com/spring-io/spring-javaformat#eclipse[Eclipse] and https://github.com/spring-io/spring-javaformat#intellij-idea[IntelliJ IDEA] and the Checkstyle settings https://github.com/spring-io/spring-javaformat#checkstyle-idea-plugin[can be imported as well].
+We took those "as is" and just disabled the lambda check (requiring even single parameters to have parenthesis).
+
+Public classes do require an author tag.
+Please add yourself as an `@author` to the `.java` files you added or that modified substantially (more than cosmetic changes).
+
 == Building and compiling Neo4j-Migrations
 
 WARNING: As of writing a loose list of how things needs to be run, not exhaustive.

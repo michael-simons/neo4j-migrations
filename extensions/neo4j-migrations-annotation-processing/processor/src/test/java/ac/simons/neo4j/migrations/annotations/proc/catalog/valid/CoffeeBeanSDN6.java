@@ -17,17 +17,17 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 /**
  * @author Michael J. Simons
  */
 @Node("CBSDN6")
-@Unique(properties = {"a", "b", "c"})
+@Unique(properties = { "a", "b", "c" })
 @SuppressWarnings("unused")
 public class CoffeeBeanSDN6 {
 
@@ -52,4 +52,5 @@ public class CoffeeBeanSDN6 {
 	public String b;
 
 	public String d;
+
 }

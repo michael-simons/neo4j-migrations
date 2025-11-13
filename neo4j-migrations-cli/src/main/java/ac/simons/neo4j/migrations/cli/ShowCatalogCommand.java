@@ -27,50 +27,49 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
 /**
+ * Prints any given catalog.
+ *
  * @author Michael J. Simons
  * @since 1.7.0
  */
-@Command(name = "show-catalog", description = "Gets the local or remote catalog and prints it to standard out in the given format.")
+@Command(name = "show-catalog",
+		description = "Gets the local or remote catalog and prints it to standard out in the given format.")
 final class ShowCatalogCommand extends ConnectedCommand {
-
-	enum Mode {
-		LOCAL,
-		REMOTE
-	}
 
 	@ParentCommand
 	private MigrationsCli parent;
 
-	@Option(names = "mode",
-		defaultValue = "REMOTE",
-		description = "REMOTE prints the database catalog, LOCAL prints the catalog based on the given migrations."
-	)
+	@Option(names = "mode", defaultValue = "REMOTE",
+			description = "REMOTE prints the database catalog, LOCAL prints the catalog based on the given migrations.")
 	private Mode mode = Mode.REMOTE;
 
 	@Option(names = "format", defaultValue = "XML", description = "The format in which to print the catalog.")
 	private Format format = Format.XML;
 
-	@Option(names = "version", description = "Which Neo4j version should be assumed for rendering constraints and indexes as Cypher.")
+	@Option(names = "version",
+			description = "Which Neo4j version should be assumed for rendering constraints and indexes as Cypher.")
 	private String version;
 
 	@Override
 	public MigrationsCli getParent() {
-		return parent;
+		return this.parent;
 	}
 
 	@Override
-	@SuppressWarnings("squid:S2629") // We definitely want to have the rendered outcome logged and INFO will be enabled.
+	@SuppressWarnings("squid:S2629") // We definitely want to have the rendered outcome
+										// logged and INFO will be enabled.
 	Integer withMigrations(Migrations migrations) {
 
-		Renderer<Catalog> renderer = Renderer.get(format, Catalog.class);
+		Renderer<Catalog> renderer = Renderer.get(this.format, Catalog.class);
 		Catalog catalog;
-		if (mode == Mode.LOCAL) {
+		if (this.mode == Mode.LOCAL) {
 			catalog = migrations.getLocalCatalog();
-		} else {
+		}
+		else {
 			catalog = migrations.getDatabaseCatalog();
 		}
 
-		Neo4jVersion neo4jVersion = version == null ? Neo4jVersion.LATEST : Neo4jVersion.of(version);
+		Neo4jVersion neo4jVersion = (this.version != null) ? Neo4jVersion.of(this.version) : Neo4jVersion.LATEST;
 		RenderConfig config = RenderConfig.create()
 			.idempotent(neo4jVersion.hasIdempotentOperations())
 			.forVersionAndEdition(neo4jVersion, Neo4jEdition.ENTERPRISE);
@@ -78,4 +77,11 @@ final class ShowCatalogCommand extends ConnectedCommand {
 		MigrationsCli.LOGGER.info(renderer.render(catalog, config).trim());
 		return 0;
 	}
+
+	enum Mode {
+
+		LOCAL, REMOTE
+
+	}
+
 }

@@ -15,20 +15,18 @@
  */
 package ac.simons.neo4j.migrations.quarkus;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.WithTestResource;
-
 import jakarta.inject.Inject;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -38,8 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class WithDefaultLocationIT {
 
 	@RegisterExtension
-	static QuarkusUnitTest test = new QuarkusUnitTest()
-		.withConfigurationResource("application.properties")
+	static QuarkusUnitTest test = new QuarkusUnitTest().withConfigurationResource("application.properties")
 		.withApplicationRoot(archive -> {
 			archive.addAsResource("neo4j/migrations");
 			archive.addAsResource("neo4j/secondary-migrations");
@@ -53,10 +50,12 @@ class WithDefaultLocationIT {
 
 	@Test
 	void migrationsShouldHaveBeenApplied() {
-		try (Session session = driver.session()) {
-			var lastNode = session.run(
-					"MATCH (n:__Neo4jMigration) WHERE NOT (n)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN n").single()
-				.get("n").asNode();
+		try (Session session = this.driver.session()) {
+			var lastNode = session
+				.run("MATCH (n:__Neo4jMigration) WHERE NOT (n)-[:MIGRATED_TO]->(:__Neo4jMigration) RETURN n")
+				.single()
+				.get("n")
+				.asNode();
 			assertThat(lastNode.get("version").asString()).isEqualTo("0001");
 			assertThat(lastNode.get("description").asString()).isEqualTo("Default Location");
 		}
@@ -64,6 +63,7 @@ class WithDefaultLocationIT {
 
 	@AfterEach
 	void clean() {
-		migrations.clean(true);
+		this.migrations.clean(true);
 	}
+
 }

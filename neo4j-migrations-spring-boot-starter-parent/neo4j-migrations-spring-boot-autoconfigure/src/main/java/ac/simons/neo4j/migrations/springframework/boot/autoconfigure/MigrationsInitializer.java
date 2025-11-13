@@ -16,14 +16,15 @@
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import ac.simons.neo4j.migrations.core.Migrations;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * {@link InitializingBean} used to trigger a {@link ac.simons.neo4j.migrations.core.Migrations Neo4j migration}.
+ * {@link InitializingBean} used to trigger a
+ * {@link ac.simons.neo4j.migrations.core.Migrations Neo4j migration}.
  *
  * @author Michael J. Simons
  * @since 0.0.6
@@ -42,9 +43,11 @@ final class MigrationsInitializer implements InitializingBean {
 	public void afterPropertiesSet() {
 
 		try {
-			migrations.apply(true);
-		} catch (ServiceUnavailableException e) {
-			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.", e);
+			this.migrations.apply(true);
+		}
+		catch (ServiceUnavailableException ex) {
+			LOG.error("Cannot apply Neo4j migrations, driver instance cannot reach any database.", ex);
 		}
 	}
+
 }

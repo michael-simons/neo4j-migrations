@@ -23,46 +23,43 @@ import java.util.regex.Pattern;
 
 /**
  * Refactoring that allows merging of entities.
+ *
  * @author Michael J. Simons
  * @since 1.10.0
  */
 public sealed interface Merge extends Refactoring permits DefaultMerge {
 
 	/**
-	 * A {@link PropertyMergePolicy property merge policy} defines how properties with the same name defined on several
-	 * nodes to be merged should be handled. A policy consists of a pattern that matches the names of properties and a
-	 * strategy how to deal with them.
+	 * Provides a refactoring merging a set of nodes. The custom query must return nodes
+	 * as one node per record. The returned refactoring won't provide any policies how do
+	 * deal with duplicate properties. If you are in doubt, specify one via
+	 * {@link #nodes(String, List)}
+	 * @param sourceQuery the source query identifying the set of nodes to be merged.
+	 * @return the refactoring ready to use
 	 */
-	class PropertyMergePolicy {
+	static Merge nodes(String sourceQuery) {
+		return new DefaultMerge(sourceQuery, Collections.emptyList());
+	}
 
-		/**
-		 * The strategy how to deal with multiple properties of the same name.
-		 */
-		public enum Strategy {
-			/**
-			 * Keep all of them and collect them into an array on the target node. An array will also be created
-			 * if only a single property exists on all matched nodes.
-			 */
-			KEEP_ALL,
-			/**
-			 * Keep only the first one. When using this strategy, you should make sure you order the nodes you want to merge precisely.
-			 */
-			KEEP_FIRST,
-			/**
-			 * Keep only the last one. When using this strategy, you should make sure you order the nodes you want to merge precisely.
-			 */
-			KEEP_LAST
-		}
+	/**
+	 * Provides a refactoring merging a set of nodes. The custom query must return nodes
+	 * as one node per record.
+	 * @param sourceQuery the source query identifying the set of nodes to be merged.
+	 * @param mergePolicies the policies that describe how to deal with duplicated
+	 * properties.
+	 * @return the refactoring ready to use
+	 */
+	static Merge nodes(String sourceQuery, List<PropertyMergePolicy> mergePolicies) {
+		return new DefaultMerge(sourceQuery, new ArrayList<>(Objects.requireNonNull(mergePolicies)));
+	}
 
-		/**
-		 * Create a new policy.
-		 * @param pattern The pattern that should match the property name
-		 * @param strategy A strategy.
-		 * @return The new policy.
-		 */
-		public static PropertyMergePolicy of(String pattern, Strategy strategy) {
-			return new PropertyMergePolicy(Objects.requireNonNull(pattern), Objects.requireNonNull(strategy));
-		}
+	/**
+	 * A {@link PropertyMergePolicy property merge policy} defines how properties with the
+	 * same name defined on several nodes to be merged should be handled. A policy
+	 * consists of a pattern that matches the names of properties and a strategy how to
+	 * deal with them.
+	 */
+	final class PropertyMergePolicy {
 
 		private final Pattern pattern;
 
@@ -74,17 +71,31 @@ public sealed interface Merge extends Refactoring permits DefaultMerge {
 		}
 
 		/**
-		 * @return A strategy describing who to deal with any property that matched this policy
+		 * Create a new policy.
+		 * @param pattern the pattern that should match the property name
+		 * @param strategy a strategy.
+		 * @return the new policy.
 		 */
-		public Strategy strategy() {
-			return strategy;
+		public static PropertyMergePolicy of(String pattern, Strategy strategy) {
+			return new PropertyMergePolicy(Objects.requireNonNull(pattern), Objects.requireNonNull(strategy));
 		}
 
 		/**
-		 * @return The pattern that is used to check if a graph property matches this policy
+		 * Returns the merge strategy describing how to deal with any property that
+		 * matched this policy.
+		 * @return the merge strategy
+		 */
+		public Strategy strategy() {
+			return this.strategy;
+		}
+
+		/**
+		 * Returns the pattern that is used to check if a graph property matches this
+		 * policy.
+		 * @return the pattern being used
 		 */
 		public Pattern pattern() {
-			return pattern;
+			return this.pattern;
 		}
 
 		Object apply(List<Object> values) {
@@ -107,35 +118,38 @@ public sealed interface Merge extends Refactoring permits DefaultMerge {
 				return false;
 			}
 			PropertyMergePolicy that = (PropertyMergePolicy) o;
-			return pattern.pattern().equals(that.pattern.pattern()) && strategy == that.strategy;
+			return this.pattern.pattern().equals(that.pattern.pattern()) && this.strategy == that.strategy;
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(pattern, strategy);
+			return Objects.hash(this.pattern, this.strategy);
 		}
+
+		/**
+		 * The strategy how to deal with multiple properties of the same name.
+		 */
+		public enum Strategy {
+
+			/**
+			 * Keep all of them and collect them into an array on the target node. An
+			 * array will also be created if only a single property exists on all matched
+			 * nodes.
+			 */
+			KEEP_ALL,
+			/**
+			 * Keep only the first one. When using this strategy, you should make sure you
+			 * order the nodes you want to merge precisely.
+			 */
+			KEEP_FIRST,
+			/**
+			 * Keep only the last one. When using this strategy, you should make sure you
+			 * order the nodes you want to merge precisely.
+			 */
+			KEEP_LAST
+
+		}
+
 	}
 
-	/**
-	 * Provides a refactoring merging a set of nodes. The custom query must return nodes as one node per record. The returned
-	 * refactoring won't provide any policies how do deal with duplicate properties. If you are in doubt, specify one via
-	 * {@link #nodes(String, List)}
-	 *
-	 * @param sourceQuery The source query identifying the set of nodes to be merged.
-	 * @return The refactoring ready to use
-	 */
-	static Merge nodes(String sourceQuery) {
-		return new DefaultMerge(sourceQuery, Collections.emptyList());
-	}
-
-	/**
-	 * Provides a refactoring merging a set of nodes. The custom query must return nodes as one node per record.
-	 *
-	 * @param sourceQuery   The source query identifying the set of nodes to be merged.
-	 * @param mergePolicies The policies that describe how to deal with duplicated properties.
-	 * @return The refactoring ready to use
-	 */
-	static Merge nodes(String sourceQuery, List<PropertyMergePolicy> mergePolicies) {
-		return new DefaultMerge(sourceQuery, new ArrayList<>(Objects.requireNonNull(mergePolicies)));
-	}
 }

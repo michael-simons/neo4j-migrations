@@ -15,12 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +31,8 @@ import org.neo4j.driver.exceptions.Neo4jException;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Very specific tests for detecting capabilities and error conditions.
  */
@@ -45,30 +44,24 @@ class EnterpriseRequiredDetectionIT {
 	@ParameterizedTest // GH-647
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch(
-		SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
+			SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
 		Neo4jContainer neo4j = new Neo4jContainer(String.format("neo4j:%s", version.value.toString()))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
 
-		Constraint[] exists = new Constraint[] {
-			Constraint.forNode("Book")
-				.named("x")
-				.exists("isbn"),
-			Constraint.forNode("Book")
-				.named("y")
-				.key("title"),
-			Constraint.forRelationship("PUBLISHED")
-				.named("z")
-				.exists("on")
-		};
+		Constraint[] exists = new Constraint[] { Constraint.forNode("Book").named("x").exists("isbn"),
+				Constraint.forNode("Book").named("y").key("title"),
+				Constraint.forRelationship("PUBLISHED").named("z").exists("on") };
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		// Force the renderer to enterprise
-		RenderConfig cfg = RenderConfig.create().forVersionAndEdition(version.value, Neo4jEdition.ENTERPRISE).ignoreName();
+		RenderConfig cfg = RenderConfig.create()
+			.forVersionAndEdition(version.value, Neo4jEdition.ENTERPRISE)
+			.ignoreName();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()))) {
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()))) {
 			MigrationsConfig configuration = MigrationsConfig.builder()
 				.withLocationsToScan("classpath:ee")
 				.withAutocrlf(true)
@@ -81,17 +74,20 @@ class EnterpriseRequiredDetectionIT {
 				try (Session session = driver.session()) {
 					session.run(statement);
 					Assertions.fail("An exception was expected");
-				} catch (Neo4jException e) {
-					assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isTrue();
+				}
+				catch (Neo4jException ex) {
+					assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(ex, connectionDetails)).isTrue();
 				}
 			}
 
 			try (Session session = driver.session()) {
 				session.run("CREATE CONSTRAINT");
 				Assertions.fail("An exception was expected");
-			} catch (Neo4jException e) {
-				assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(e, connectionDetails)).isFalse();
+			}
+			catch (Neo4jException ex) {
+				assertThat(HBD.constraintProbablyRequiredEnterpriseEdition(ex, connectionDetails)).isFalse();
 			}
 		}
 	}
+
 }

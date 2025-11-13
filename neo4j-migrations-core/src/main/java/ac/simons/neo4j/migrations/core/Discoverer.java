@@ -21,9 +21,8 @@ import java.util.logging.Logger;
 /**
  * Discoverer of migrations.
  *
+ * @param <T> the type of things to discover
  * @author Michael J. Simons
- * @param <T> The type of things to discover
- * @soundtrack Motörhead - 1916
  * @since 0.0.3
  */
 public interface Discoverer<T> {
@@ -35,9 +34,9 @@ public interface Discoverer<T> {
 
 	/**
 	 * Discover migrations within the given context.
-	 *
-	 * @param context The context of the ongoing migration.
-	 * @return A collection of migrations.
+	 * @param context the context of the ongoing migration.
+	 * @return a collection of migrations.
 	 */
 	Collection<T> discover(MigrationContext context);
+
 }

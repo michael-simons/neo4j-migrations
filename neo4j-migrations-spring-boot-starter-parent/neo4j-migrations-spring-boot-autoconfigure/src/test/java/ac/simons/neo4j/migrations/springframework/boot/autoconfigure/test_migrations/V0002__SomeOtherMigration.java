@@ -17,7 +17,6 @@ package ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migra
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
-
 import org.neo4j.driver.Session;
 
 /**
@@ -33,4 +32,5 @@ public class V0002__SomeOtherMigration implements JavaBasedMigration {
 			session.run("CREATE (onA:WALL{graffito: 'I was here'})");
 		}
 	}
+
 }

@@ -26,13 +26,14 @@ import ac.simons.neo4j.migrations.core.catalog.Catalog;
 interface WriteableCatalog extends Catalog {
 
 	/**
-	 * Adds all entries of the given {@link Catalog catalog} received in a specific {@link MigrationVersion} throwing a
-	 * {@link MigrationsException} if a given {@link ac.simons.neo4j.migrations.core.catalog.CatalogItem} is already
-	 * present in that version
-	 *
-	 * @param version The version in which the {@literal catalog} was received
-	 * @param other   The catalog to add
-	 * @param reset   use {@literal true} to reset the catalog in this version
+	 * Adds all entries of the given {@link Catalog catalog} received in a specific
+	 * {@link MigrationVersion} throwing a {@link MigrationsException} if a given
+	 * {@link ac.simons.neo4j.migrations.core.catalog.CatalogItem} is already present in
+	 * that version.
+	 * @param version the version in which the {@literal catalog} was received
+	 * @param other the catalog to add
+	 * @param reset use {@literal true} to reset the catalog in this version
 	 */
 	void addAll(MigrationVersion version, Catalog other, boolean reset);
+
 }

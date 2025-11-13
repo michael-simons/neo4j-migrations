@@ -34,6 +34,9 @@ final class MigrationChainFormat {
 
 	static final String LS = System.lineSeparator();
 
+	private MigrationChainFormat() {
+	}
+
 	static void formatElements(MigrationChain chain, StringBuilder target) {
 
 		Map<String, List<String>> table = buildMigrationTable(chain);
@@ -44,8 +47,8 @@ final class MigrationChainFormat {
 		for (Map.Entry<String, List<String>> entry : table.entrySet()) {
 			String k = entry.getKey();
 			List<String> v = entry.getValue();
-			columnWidths[columnm++] = Math
-				.max(k.length(), v.stream().map(String::length).max(Integer::compareTo).orElse(0));
+			columnWidths[columnm++] = Math.max(k.length(),
+					v.stream().map(String::length).max(Integer::compareTo).orElse(0));
 		}
 		String[] columnFormats = Arrays.stream(columnWidths).mapToObj(w -> "| %-" + w + "s ").toArray(String[]::new);
 
@@ -121,6 +124,4 @@ final class MigrationChainFormat {
 		return sb.append("+").append(LS).toString();
 	}
 
-	private MigrationChainFormat() {
-	}
 }

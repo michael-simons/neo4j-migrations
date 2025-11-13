@@ -28,20 +28,22 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 @Node
 public class Person {
 
-	@Id @GeneratedValue(UUIDStringGenerator.class)
-	private String id;
-
 	private final String name;
+
+	@Id
+	@GeneratedValue(UUIDStringGenerator.class)
+	private String id;
 
 	public Person(String name) {
 		this.name = name;
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 }

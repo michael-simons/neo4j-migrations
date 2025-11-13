@@ -15,10 +15,9 @@
  */
 package ac.simons.neo4j.migrations.quarkus.it;
 
-import ac.simons.neo4j.migrations.core.Migrations;
-
 import java.util.List;
 
+import ac.simons.neo4j.migrations.core.Migrations;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -38,14 +37,17 @@ public class MigrationsResource {
 	Migrations migrations;
 
 	/**
-	 * {@return The list of migrations given by the info command}
+	 * {@return the list of migrations given by the info command}
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> get() {
-		return migrations.info().getElements().stream()
+		return this.migrations.info()
+			.getElements()
+			.stream()
 			.map(e -> e.getVersion() + ": " + e.getOptionalDescription().orElse("n/a") + " (" + e.getState() + ")")
 			.toList();
 
 	}
+
 }

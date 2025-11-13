@@ -15,16 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
-import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
-
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
+import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
@@ -35,7 +34,7 @@ import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
 
 /**
- * Default implementation of the {@link RefactoringContext} for Neo4j-Migrations
+ * Default implementation of the {@link RefactoringContext} for Neo4j-Migrations.
  *
  * @author Michael J. Simons
  * @since 1.10.0
@@ -43,10 +42,13 @@ import org.neo4j.driver.summary.ResultSummary;
 final class DefaultRefactoringContext implements RefactoringContext {
 
 	/**
-	 * A pattern matching the result producing operator as described in the manual <a href="https://neo4j.com/docs/cypher-manual/current/execution-plans/operators/">about Operators</a>.
+	 * A pattern matching the result producing operator as described in the manual
+	 * <a href=
+	 * "https://neo4j.com/docs/cypher-manual/current/execution-plans/operators/">about
+	 * Operators</a>.
 	 */
-	static final Pattern OP_PRODUCE_RESULT_PATTERN = Pattern.compile(
-		"(?i)ProduceResults(@" + Strings.VALID_DATABASE_NAME + ")?");
+	static final Pattern OP_PRODUCE_RESULT_PATTERN = Pattern
+		.compile("(?i)ProduceResults(@" + Strings.VALID_DATABASE_NAME + ")?");
 	static final String KEY_DETAILS = "Details";
 
 	private final Supplier<Session> sessionSupplier;
@@ -62,9 +64,27 @@ final class DefaultRefactoringContext implements RefactoringContext {
 		this.version = neo4jVersion;
 	}
 
+	static boolean isProduceResultOperator(Plan plan) {
+		return OP_PRODUCE_RESULT_PATTERN.matcher(plan.operatorType()).matches();
+	}
+
+	static boolean hasSingleElement(Plan plan) {
+
+		Value details = plan.arguments().getOrDefault(KEY_DETAILS, Values.NULL);
+		if (details.isNull()) {
+			return false;
+		}
+
+		Predicate<String> nullOrBlank = s -> s == null || s.trim().isEmpty();
+		Predicate<String> isExactlyDetails = s -> details.asString().equals(s);
+
+		return plan.identifiers().stream().filter(nullOrBlank.negate().and(isExactlyDetails)).count() == 1L;
+	}
+
 	/**
-	 * Adapts a query to the syntax supported by the underlying database, especially unifies all id calls to return strings,
-	 * so you might be extra careful when dealing with comparison on those.
+	 * Adapts a query to the syntax supported by the underlying database, especially
+	 * unifies all id calls to return strings, so you might be extra careful when dealing
+	 * with comparison on those.
 	 * @param query the query to adapt
 	 * @return an adapted query.
 	 */
@@ -83,9 +103,12 @@ final class DefaultRefactoringContext implements RefactoringContext {
 			synchronized (this) {
 				availableVersion = this.version;
 				if (availableVersion == null) {
-					String value = sessionSupplier.get()
-						.executeRead(tx -> tx.run(new Query("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0] AS version")).single())
-						.get("version").asString();
+					String value = this.sessionSupplier.get()
+						.executeRead(tx -> tx.run(new Query(
+								"CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0] AS version"))
+							.single())
+						.get("version")
+						.asString();
 					this.version = Neo4jVersion.of(value);
 					availableVersion = this.version;
 				}
@@ -109,8 +132,8 @@ final class DefaultRefactoringContext implements RefactoringContext {
 				throw new IllegalArgumentException("Undefined version requested");
 			}
 			if (currentVersion.compareTo(requiredVersion) < 0) {
-				throw new IllegalArgumentException(
-					"Supported version is " + currentVersion + " which is below the required value of " + requiredVersion);
+				throw new IllegalArgumentException("Supported version is " + currentVersion
+						+ " which is below the required value of " + requiredVersion);
 			}
 			supportsBatching = currentVersion.compareTo(Neo4jVersion.V4_4) >= 0;
 		}
@@ -119,14 +142,14 @@ final class DefaultRefactoringContext implements RefactoringContext {
 			throw new IllegalArgumentException("Batching is supported only with Neo4j >= 4.4");
 		}
 
-		return new DefaultQueryRunner(
-			featureSet, sessionSupplier.get(), featureSet.hasElementIdSupport() ? this::adaptQuery : UnaryOperator.identity());
+		return new DefaultQueryRunner(featureSet, this.sessionSupplier.get(),
+				featureSet.hasElementIdSupport() ? this::adaptQuery : UnaryOperator.identity());
 	}
 
 	@Override
 	public Optional<String> findSingleResultIdentifier(String query) {
 
-		try (Session session = sessionSupplier.get()) {
+		try (Session session = this.sessionSupplier.get()) {
 			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query)).consume());
 			Plan root = resultSummary.plan();
 			if (isProduceResultOperator(root) && hasSingleElement(root)) {
@@ -137,21 +160,9 @@ final class DefaultRefactoringContext implements RefactoringContext {
 		return Optional.empty();
 	}
 
-	static boolean isProduceResultOperator(Plan plan) {
-		return OP_PRODUCE_RESULT_PATTERN.matcher(plan.operatorType()).matches();
-	}
-
-	static boolean hasSingleElement(Plan plan) {
-
-		Value details = plan.arguments().getOrDefault(KEY_DETAILS, Values.NULL);
-		if (details.isNull()) {
-			return false;
-		}
-
-		Predicate<String> nullOrBlank = s -> s == null || s.trim().isEmpty();
-		Predicate<String> isExactlyDetails = s -> details.asString().equals(s);
-
-		return plan.identifiers().stream().filter(nullOrBlank.negate().and(isExactlyDetails)).count() == 1L;
+	@Override
+	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+		return this.getVersion().sanitizeSchemaName(potentiallyNonIdentifier);
 	}
 
 	static final class DefaultQueryRunner implements QueryRunner {
@@ -168,26 +179,23 @@ final class DefaultRefactoringContext implements RefactoringContext {
 			this.session = session;
 			this.transaction = featureSet.hasBatchingSupport() ? null : session.beginTransaction();
 			this.filter = filter;
-			this.delegate = transaction == null ? session : transaction;
+			this.delegate = (this.transaction != null) ? this.transaction : session;
 		}
 
 		@Override
 		public Result run(Query query) {
-			return this.delegate.run(filter.apply(query));
+			return this.delegate.run(this.filter.apply(query));
 		}
 
 		@Override
 		public void close() {
-			if (transaction != null) {
-				transaction.commit();
-				transaction.close();
+			if (this.transaction != null) {
+				this.transaction.commit();
+				this.transaction.close();
 			}
-			session.close();
+			this.session.close();
 		}
+
 	}
 
-	@Override
-	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
-		return this.getVersion().sanitizeSchemaName(potentiallyNonIdentifier);
-	}
 }

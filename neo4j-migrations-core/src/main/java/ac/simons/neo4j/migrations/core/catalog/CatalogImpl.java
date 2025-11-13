@@ -22,7 +22,6 @@ import java.util.List;
  * A catalog that is local to a migration.
  *
  * @author Michael J. Simons
- * @soundtrack Carcass - Surgical Steel
  * @since 1.7.0
  */
 final class CatalogImpl implements Catalog {
@@ -35,6 +34,7 @@ final class CatalogImpl implements Catalog {
 
 	@Override
 	public Collection<CatalogItem<?>> getItems() {
-		return items;
+		return this.items;
 	}
+
 }

@@ -38,9 +38,11 @@ final class AnonymousCatalogItem implements Formattable {
 	@Override
 	public void formatTo(Formatter formatter, int flags, int width, int precision) {
 		try {
-			formatter.out().append(delegate.getClass().getSimpleName().toUpperCase(Locale.ROOT));
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			formatter.out().append(this.delegate.getClass().getSimpleName().toUpperCase(Locale.ROOT));
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
+
 }

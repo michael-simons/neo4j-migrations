@@ -19,7 +19,6 @@ package ac.simons.neo4j.migrations.core.catalog;
  * The operator to an operation.
  *
  * @author Michael J. Simons
- * @soundtrack Anthrax - Spreading The Disease
  * @since 1.7.0
  */
 public enum Operator {
@@ -30,7 +29,8 @@ public enum Operator {
 	CREATE,
 
 	/**
-	 * The operand should be dropped;
+	 * The operand should be dropped.
 	 */
 	DROP
+
 }

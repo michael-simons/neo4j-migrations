@@ -24,19 +24,34 @@ import javax.lang.model.util.Elements;
 /**
  * Value holder of OGM types.
  *
+ * @param node corresponding field in the class
+ * @param nodeValue corresponding field in the class
+ * @param nodeLabel corresponding field in the class
+ * @param relationshipEntity corresponding field in the class
+ * @param relationshipType corresponding field in the class
+ * @param relationshipValue corresponding field in the class
+ * @param property corresponding field in the class
+ * @param id corresponding field in the class
+ * @param generatedValue corresponding field in the class
+ * @param compositeIndexes corresponding field in the class
+ * @param compositeIndexesValue corresponding field in the class
+ * @param compositeIndex corresponding field in the class
+ * @param compositeIndexValue corresponding field in the class
+ * @param compositeIndexProperties corresponding field in the class
+ * @param compositeIndexUnique corresponding field in the class
+ * @param index corresponding field in the class
+ * @param indexUnique corresponding field in the class
+ * @param required corresponding field in the class
+ * @param transientProperty corresponding field in the class
  * @author Michael J. Simons
- * @soundtrack Motörhead - Iron Fist
  * @since 1.15.0
  */
 record ElementsOGM(TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabel,
-	TypeElement relationshipEntity, ExecutableElement relationshipType,
-	ExecutableElement relationshipValue, TypeElement property, TypeElement id,
-	TypeElement generatedValue, TypeElement compositeIndexes,
-	ExecutableElement compositeIndexesValue, TypeElement compositeIndex,
-	ExecutableElement compositeIndexValue, ExecutableElement compositeIndexProperties,
-	ExecutableElement compositeIndexUnique, TypeElement index, ExecutableElement indexUnique,
-	TypeElement required,
-	TypeElement transientProperty) {
+		TypeElement relationshipEntity, ExecutableElement relationshipType, ExecutableElement relationshipValue,
+		TypeElement property, TypeElement id, TypeElement generatedValue, TypeElement compositeIndexes,
+		ExecutableElement compositeIndexesValue, TypeElement compositeIndex, ExecutableElement compositeIndexValue,
+		ExecutableElement compositeIndexProperties, ExecutableElement compositeIndexUnique, TypeElement index,
+		ExecutableElement indexUnique, TypeElement required, TypeElement transientProperty) {
 
 	static Optional<ElementsOGM> of(Elements elements) {
 		TypeElement ogmNode = elements.getTypeElement(FullyQualifiedNames.OGM_NODE);
@@ -56,11 +71,13 @@ record ElementsOGM(TypeElement node, ExecutableElement nodeValue, ExecutableElem
 		TypeElement ogmGeneratedValue = elements.getTypeElement(FullyQualifiedNames.OGM_GENERATED_VALUE);
 
 		TypeElement ogmCompositeIndexes = elements.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEXES);
-		ExecutableElement ogmCompositeIndexesValue = Attributes.get(ogmCompositeIndexes, Attributes.VALUE).orElseThrow();
+		ExecutableElement ogmCompositeIndexesValue = Attributes.get(ogmCompositeIndexes, Attributes.VALUE)
+			.orElseThrow();
 
 		TypeElement ogmCompositeIndex = elements.getTypeElement(FullyQualifiedNames.OGM_COMPOSITE_INDEX);
 		ExecutableElement ogmCompositeIndexValue = Attributes.get(ogmCompositeIndex, Attributes.VALUE).orElseThrow();
-		ExecutableElement ogmCompositeIndexProperties = Attributes.get(ogmCompositeIndex, Attributes.PROPERTIES).orElseThrow();
+		ExecutableElement ogmCompositeIndexProperties = Attributes.get(ogmCompositeIndex, Attributes.PROPERTIES)
+			.orElseThrow();
 		ExecutableElement ogmCompositeIndexUnique = Attributes.get(ogmCompositeIndex, Attributes.UNIQUE).orElseThrow();
 
 		TypeElement ogmIndex = elements.getTypeElement(FullyQualifiedNames.OGM_INDEX);
@@ -69,6 +86,9 @@ record ElementsOGM(TypeElement node, ExecutableElement nodeValue, ExecutableElem
 		TypeElement ogmRequired = elements.getTypeElement(FullyQualifiedNames.OGM_REQUIRED);
 		TypeElement transientProperty = elements.getTypeElement(FullyQualifiedNames.OGM_TRANSIENT);
 
-		return Optional.of(new ElementsOGM(ogmNode, ogmNodeValue, ogmNodeLabel, ogmRelationship, ogmRelationshipType, ogmRelationshipValue, ogmProperty, ogmId, ogmGeneratedValue, ogmCompositeIndexes, ogmCompositeIndexesValue, ogmCompositeIndex, ogmCompositeIndexValue, ogmCompositeIndexProperties, ogmCompositeIndexUnique, ogmIndex, ogmIndexUnique, ogmRequired, transientProperty));
+		return Optional.of(new ElementsOGM(ogmNode, ogmNodeValue, ogmNodeLabel, ogmRelationship, ogmRelationshipType,
+				ogmRelationshipValue, ogmProperty, ogmId, ogmGeneratedValue, ogmCompositeIndexes,
+				ogmCompositeIndexesValue, ogmCompositeIndex, ogmCompositeIndexValue, ogmCompositeIndexProperties,
+				ogmCompositeIndexUnique, ogmIndex, ogmIndexUnique, ogmRequired, transientProperty));
 	}
 }

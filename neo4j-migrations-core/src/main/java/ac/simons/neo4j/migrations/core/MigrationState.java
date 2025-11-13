@@ -24,11 +24,12 @@ package ac.simons.neo4j.migrations.core;
 public enum MigrationState {
 
 	/**
-	 * A pending migration (available as Java or Cypher-based migration)
+	 * A pending migration (available as Java or Cypher-based migration).
 	 */
 	PENDING,
 	/**
-	 * A migration already applied
+	 * A migration already applied.
 	 */
 	APPLIED
+
 }

@@ -23,7 +23,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Unique(properties = {"a", "b", "c"})
+@Unique(properties = { "a", "b", "c" })
 public class ContradictingLabels2 {
 
 	@Unique(label = "foo")
@@ -34,4 +34,5 @@ public class ContradictingLabels2 {
 
 	@Required(label = "foo", property = "theName")
 	public String nameA;
+
 }

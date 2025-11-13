@@ -16,11 +16,11 @@
 package ac.simons.neo4j.migrations.formats.csv.test_migrations;
 
 // tag::content[]
+
 import java.net.URI;
 
-import org.neo4j.driver.Query;
-
 import ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration;
+import org.neo4j.driver.Query;
 
 // end::content[]
 /**
@@ -37,19 +37,20 @@ public class R050__LoadBookData extends AbstractLoadCSVMigration {
 	public Query getQuery() {
 		// language=cypher
 		return new Query("""
-			LOAD CSV WITH HEADERS FROM '%s' AS row FIELDTERMINATOR ','
-			MERGE (b:Book {title: trim(row.Title)})
-			SET b.type = row.Type, b.state = row.State
-			WITH b, row
-			UNWIND split(row.Author, '&') AS author
-			WITH b, split(author, ',') AS author
-			WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
-			MERGE (a:Person {name: trim(author)})
-			MERGE (a)-[r:WROTE]->(b)
-			WITH b, a
-			WITH b, collect(a) AS authors
-			RETURN b.title, b.state, authors
-			""");
+				LOAD CSV WITH HEADERS FROM '%s' AS row FIELDTERMINATOR ','
+				MERGE (b:Book {title: trim(row.Title)})
+				SET b.type = row.Type, b.state = row.State
+				WITH b, row
+				UNWIND split(row.Author, '&') AS author
+				WITH b, split(author, ',') AS author
+				WITH b, ((trim(coalesce(author[1], '')) + ' ') + trim(author[0])) AS author
+				MERGE (a:Person {name: trim(author)})
+				MERGE (a)-[r:WROTE]->(b)
+				WITH b, a
+				WITH b, collect(a) AS authors
+				RETURN b.title, b.state, authors
+				""");
 	}
+
 }
 // end::content[]

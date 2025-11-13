@@ -15,8 +15,8 @@
  */
 package ac.simons.neo4j.migrations.formats.csv;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,8 +31,7 @@ import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
 
-import ac.simons.neo4j.migrations.core.Migrations;
-import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -49,14 +48,15 @@ class LoadCSVMigrationIT {
 	void initDriver() {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 
-		neo4j.start();
-		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
+		this.neo4j.start();
+		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), config);
 	}
 
 	@BeforeEach
 	void clearDatabase() {
-		new Migrations(MigrationsConfig.defaultConfig(), driver).clean(true);
-		try (Session session = driver.session()) {
+		new Migrations(MigrationsConfig.defaultConfig(), this.driver).clean(true);
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
 		}
 	}
@@ -64,7 +64,7 @@ class LoadCSVMigrationIT {
 	@AfterAll
 	void closeDriver() {
 
-		driver.close();
+		this.driver.close();
 	}
 
 	@Test
@@ -73,13 +73,18 @@ class LoadCSVMigrationIT {
 		Migrations migrations = new Migrations(MigrationsConfig.builder()
 			.withPackagesToScan("ac.simons.neo4j.migrations.formats.csv")
 			.withLocationsToScan("classpath:books")
-			.build(), driver);
+			.build(), this.driver);
 		migrations.apply();
 
-		try (var session = driver.session()) {
-			var author = session.run("MATCH (a)-[r:WROTE]->(b:Book {title: 'Designing Data-Intensive Applications'}) RETURN a")
-				.single().get("a").get("name").asString();
+		try (var session = this.driver.session()) {
+			var author = session
+				.run("MATCH (a)-[r:WROTE]->(b:Book {title: 'Designing Data-Intensive Applications'}) RETURN a")
+				.single()
+				.get("a")
+				.get("name")
+				.asString();
 			assertThat(author).isEqualTo("Martin Kleppmann");
 		}
 	}
+
 }

@@ -31,4 +31,5 @@ public enum TargetEntityType {
 	 * The target entity is a relationship, the identifier is used as a type.
 	 */
 	RELATIONSHIP
+
 }

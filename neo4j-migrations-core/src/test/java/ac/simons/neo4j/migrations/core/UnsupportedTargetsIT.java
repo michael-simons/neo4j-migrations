@@ -15,9 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +28,9 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.neo4j.Neo4jContainer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 /**
  * @author Michael J. Simons
  */
@@ -38,7 +38,7 @@ import org.testcontainers.neo4j.Neo4jContainer;
 class UnsupportedTargetsIT {
 
 	@ParameterizedTest
-	@CsvSource({"neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0"})
+	@CsvSource({ "neo4j:3.5-enterprise", "neo4j:3.5", "neo4j:4.0" })
 	void migrationTargetDeterminationMustNotFailWithOlderEnterprise(String databaseVersion) {
 		Neo4jContainer neo4jWithoutMultiDB = new Neo4jContainer(databaseVersion)
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
@@ -47,7 +47,7 @@ class UnsupportedTargetsIT {
 
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
+				AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
 
 			MigrationsConfig migrationsConfig = MigrationsConfig.builder()
 				.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
@@ -59,7 +59,8 @@ class UnsupportedTargetsIT {
 
 			if (databaseVersion.contains("3.5")) {
 				assertThat(migrationTarget).isEmpty();
-			} else {
+			}
+			else {
 				assertThat(migrationTarget).hasValue("neo4j");
 			}
 		}
@@ -68,14 +69,13 @@ class UnsupportedTargetsIT {
 	@ParameterizedTest
 	@CsvSource("neo4j:4.3-enterprise")
 	void impersonationOnOldDBShouldFail(String databaseVersion) {
-		Neo4jContainer neo4j43 = new Neo4jContainer(databaseVersion)
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+		Neo4jContainer neo4j43 = new Neo4jContainer(databaseVersion).withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j43.start();
 
 		Config config = Config.builder().withLogging(Logging.none()).build();
 		try (Driver localDriver = GraphDatabase.driver(neo4j43.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
+				AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
 
 			Migrations migrations = new Migrations(MigrationsConfig.builder()
 				.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
@@ -84,7 +84,8 @@ class UnsupportedTargetsIT {
 
 			assertThatExceptionOfType(ClientException.class).isThrownBy(migrations::info)
 				.withMessageStartingWith(
-					"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
+						"Detected connection that does not support impersonation, please make sure to have all servers running 4.4 version or above and communicating over Bolt version 4.4");
 		}
 	}
+
 }

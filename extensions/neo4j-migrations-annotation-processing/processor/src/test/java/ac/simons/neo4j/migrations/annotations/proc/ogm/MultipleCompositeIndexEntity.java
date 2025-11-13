@@ -36,4 +36,5 @@ public class MultipleCompositeIndexEntity {
 	int age;
 
 	String email;
+
 }

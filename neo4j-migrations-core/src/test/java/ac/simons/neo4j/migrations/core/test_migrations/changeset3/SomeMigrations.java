@@ -23,13 +23,15 @@ import ac.simons.neo4j.migrations.core.MigrationContext;
  */
 public final class SomeMigrations {
 
+	private SomeMigrations() {
+	}
+
 	static class V003__InnerMigration implements JavaBasedMigration {
 
 		@Override
 		public void apply(MigrationContext context) {
 		}
+
 	}
 
-	private SomeMigrations() {
-	}
 }

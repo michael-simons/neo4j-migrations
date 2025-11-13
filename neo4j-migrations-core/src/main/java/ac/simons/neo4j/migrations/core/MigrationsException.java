@@ -19,8 +19,8 @@ import java.io.Serial;
 import java.util.function.Supplier;
 
 /**
- * An unchecked exception that is thrown when something didn't work as expected. Most of the time, mitigation from the
- * call won't be possible.
+ * An unchecked exception that is thrown when something didn't work as expected. Most of
+ * the time, mitigation from the call won't be possible.
  *
  * @author Michael J. Simons
  * @since 0.0.1
@@ -31,10 +31,26 @@ public final class MigrationsException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * If {@code cause} is already a {@link MigrationsException}, {@code cause} will be returned, otherwise
-	 * a new {@link  MigrationsException} will be created
-	 *
-	 * @param cause           original cause
+	 * Constructs a new exception with the given message.
+	 * @param message the detail message
+	 */
+	public MigrationsException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Constructs a new exception with the given message and cause.
+	 * @param message the detail message
+	 * @param cause the cause of the exception
+	 */
+	public MigrationsException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * If {@code cause} is already a {@link MigrationsException}, {@code cause} will be
+	 * returned, otherwise a new {@link MigrationsException} will be created.
+	 * @param cause original cause
 	 * @param messageSupplier message supplier for the new exception to be created
 	 * @return a {@link MigrationsException}
 	 */
@@ -45,22 +61,4 @@ public final class MigrationsException extends RuntimeException {
 		return new MigrationsException(messageSupplier.get(), cause);
 	}
 
-	/**
-	 * Constructs a new exception with the given message.
-	 *
-	 * @param message the detail message
-	 */
-	public MigrationsException(String message) {
-		super(message);
-	}
-
-	/**
-	 * Constructs a new exception with the given message and cause.
-	 *
-	 * @param message the detail message
-	 * @param cause   the cause of the exception
-	 */
-	public MigrationsException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

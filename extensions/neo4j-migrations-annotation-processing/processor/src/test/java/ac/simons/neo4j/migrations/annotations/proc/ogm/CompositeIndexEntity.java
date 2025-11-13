@@ -33,4 +33,5 @@ public class CompositeIndexEntity {
 	String name;
 
 	int age;
+
 }

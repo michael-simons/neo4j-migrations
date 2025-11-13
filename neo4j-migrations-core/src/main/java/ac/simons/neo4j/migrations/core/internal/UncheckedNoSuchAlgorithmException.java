@@ -19,7 +19,6 @@ package ac.simons.neo4j.migrations.core.internal;
  * Unchecked analogue to {@link java.io.UncheckedIOException}.
  *
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - Powerslave
  * @since 1.7.0
  */
 public final class UncheckedNoSuchAlgorithmException extends RuntimeException {
@@ -29,4 +28,5 @@ public final class UncheckedNoSuchAlgorithmException extends RuntimeException {
 	UncheckedNoSuchAlgorithmException(Throwable cause) {
 		super(cause);
 	}
+
 }

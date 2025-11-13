@@ -15,15 +15,17 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
-import ac.simons.neo4j.migrations.annotations.proc.RelationshipType;
-import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
+import ac.simons.neo4j.migrations.annotations.proc.RelationshipType;
+import ac.simons.neo4j.migrations.annotations.proc.SchemaName;
+
 /**
+ * Default {@link RelationshipType}.
+ *
  * @author Michael J. Simons
  * @since 1.11.0
  */
@@ -41,8 +43,9 @@ final class DefaultRelationshipType implements RelationshipType, WriteableElemen
 		this.properties = new ArrayList<>();
 	}
 
-	@Override public String getOwningTypeName() {
-		return owningTypeName;
+	@Override
+	public String getOwningTypeName() {
+		return this.owningTypeName;
 	}
 
 	@Override
@@ -52,7 +55,7 @@ final class DefaultRelationshipType implements RelationshipType, WriteableElemen
 
 	@Override
 	public SchemaName getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
@@ -61,4 +64,5 @@ final class DefaultRelationshipType implements RelationshipType, WriteableElemen
 		this.properties.add(propertyType);
 		return propertyType;
 	}
+
 }

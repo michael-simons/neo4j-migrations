@@ -17,21 +17,19 @@ package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
-
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * Goal that retrieves information from the configured database about the migrations including applied, pending and current migrations.
+ * Goal that retrieves information from the configured database about the migrations
+ * including applied, pending and current migrations.
  *
  * @author Michael J. Simons
  * @since 0.0.11
  */
-@Mojo(name = "info",
-	requiresDependencyResolution = ResolutionScope.TEST,
-	defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST,
-	threadSafe = true)
+@Mojo(name = "info", requiresDependencyResolution = ResolutionScope.TEST,
+		defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, threadSafe = true)
 public class InfoMojo extends AbstractConnectedMojo {
 
 	/**
@@ -47,4 +45,5 @@ public class InfoMojo extends AbstractConnectedMojo {
 		MigrationChain migrationChain = migrations.info();
 		LOGGER.info(migrationChain::prettyPrint);
 	}
+
 }

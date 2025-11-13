@@ -15,12 +15,15 @@
  */
 package ac.simons.neo4j.migrations.cluster_tests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 
+import ac.simons.neo4j.migrations.core.MigrationChain;
+import ac.simons.neo4j.migrations.core.MigrationState;
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import com.sun.security.auth.module.UnixSystem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -35,11 +38,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import ac.simons.neo4j.migrations.core.MigrationChain;
-import ac.simons.neo4j.migrations.core.MigrationState;
-import ac.simons.neo4j.migrations.core.Migrations;
-import ac.simons.neo4j.migrations.core.MigrationsConfig;
-import com.sun.security.auth.module.UnixSystem;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -48,27 +47,27 @@ import com.sun.security.auth.module.UnixSystem;
 @Disabled("Only run if needed")
 class ClusterTestIT {
 
-	static final String USERNAME = "neo4j";
-	static final String PASSWORD = "verysecret";
-
 	protected static final UnixSystem unixSystem = new UnixSystem();
 
 	@SuppressWarnings("resource")
 	@Container
-	protected static final ComposeContainer environment =
-		new ComposeContainer(new File("src/test/resources/cc/docker-compose.yml"))
-			.withEnv(Map.of("USER_ID", Long.toString(unixSystem.getUid()), "GROUP_ID", Long.toString(unixSystem.getGid())))
-			.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
-			.withExposedService("server2", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
-			.withExposedService("server3", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
-			.withExposedService("server4", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)));
+	protected static final ComposeContainer environment = new ComposeContainer(
+			new File("src/test/resources/cc/docker-compose.yml"))
+		.withEnv(Map.of("USER_ID", Long.toString(unixSystem.getUid()), "GROUP_ID", Long.toString(unixSystem.getGid())))
+		.withExposedService("server1", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+		.withExposedService("server2", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+		.withExposedService("server3", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)))
+		.withExposedService("server4", 7687, Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5)));
+	static final String USERNAME = "neo4j";
+	static final String PASSWORD = "verysecret";
 
 	private static Driver driver;
 
 	@BeforeAll
 	static void initDriver() {
 		Config config = Config.builder().withLogging(Logging.none()).build();
-		driver = GraphDatabase.driver("neo4j://localhost:%d".formatted(environment.getServicePort("server1", 7687)), AuthTokens.basic(USERNAME, PASSWORD), config);
+		driver = GraphDatabase.driver("neo4j://localhost:%d".formatted(environment.getServicePort("server1", 7687)),
+				AuthTokens.basic(USERNAME, PASSWORD), config);
 	}
 
 	@AfterAll
@@ -87,17 +86,23 @@ class ClusterTestIT {
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements()).hasSize(2);
 
-		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1", "/change2").build(), driver);
+		migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/change1", "/change2").build(),
+				driver);
 		migrations.apply();
 
 		migrationChain = migrations.info();
-		assertThat(migrationChain.getElements())
-			.hasSize(5)
+		assertThat(migrationChain.getElements()).hasSize(5)
 			.allMatch(element -> element.getState() == MigrationState.APPLIED);
 
 		try (var session = driver.session()) {
-			var cnt = session.executeRead(tx -> tx.run("MATCH (n:Node) WHERE n.name IN ['M1', 'M2', 'M3', 'M4', 'M5'] RETURN count(n)").single().get(0)).asLong();
+			var cnt = session
+				.executeRead(
+						tx -> tx.run("MATCH (n:Node) WHERE n.name IN ['M1', 'M2', 'M3', 'M4', 'M5'] RETURN count(n)")
+							.single()
+							.get(0))
+				.asLong();
 			assertThat(cnt).isEqualTo(5);
 		}
 	}
+
 }

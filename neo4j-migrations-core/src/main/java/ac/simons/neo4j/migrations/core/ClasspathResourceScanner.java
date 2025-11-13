@@ -19,10 +19,11 @@ import java.net.URL;
 import java.util.List;
 
 /**
- * A scanner for Cypher resources (resources ending with {@link Defaults#CYPHER_SCRIPT_EXTENSION}) available in the classpath.
+ * A scanner for Cypher resources (resources ending with
+ * {@link Defaults#CYPHER_SCRIPT_EXTENSION}) available in the classpath.
  * <p>
- * This is an interface that you would not normally implement. It is needed in scenarios where resources must be enumerated
- * upfront (i.e. in a GraalVM native image).
+ * This is an interface that you would not normally implement. It is needed in scenarios
+ * where resources must be enumerated upfront (i.e. in a GraalVM native image).
  *
  * @author Michael J. Simons
  * @since 1.3.0
@@ -30,10 +31,11 @@ import java.util.List;
 public interface ClasspathResourceScanner {
 
 	/**
-	 * Scan the given locations for resources matching the criteria of this scanner. The resources might be filtered later again.
-	 *
-	 * @param locations The locations to scan
-	 * @return The resources found
+	 * Scan the given locations for resources matching the criteria of this scanner. The
+	 * resources might be filtered later again.
+	 * @param locations the locations to scan
+	 * @return the resources found
 	 */
 	List<URL> scan(List<String> locations);
+
 }

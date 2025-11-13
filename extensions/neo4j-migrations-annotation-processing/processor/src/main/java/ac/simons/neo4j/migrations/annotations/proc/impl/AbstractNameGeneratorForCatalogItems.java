@@ -15,12 +15,12 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.annotations.proc.ElementType;
-import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
-
 import java.util.Collection;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import ac.simons.neo4j.migrations.annotations.proc.ElementType;
+import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
  * Utility mixin.
@@ -31,24 +31,23 @@ interface AbstractNameGeneratorForCatalogItems {
 
 	/**
 	 * Generate a name for this item.
-	 *
-	 * @param type       The type of the item
-	 * @param properties The items properties
-	 * @return A generated, stable name
+	 * @param type the type of the item
+	 * @param properties the items properties
+	 * @return a generated, stable name
 	 */
 	default String generateName(String type, Collection<PropertyType<?>> properties) {
 
 		ElementType<?> owner = properties.stream()
-			.findFirst().map(PropertyType::getOwner)
+			.findFirst()
+			.map(PropertyType::getOwner)
 			.orElseThrow(
-				() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));
+					() -> new IllegalArgumentException("Empty collection of properties passed to the name generator"));
 
-		String propertyNames = properties.stream()
-			.map(PropertyType::getName).collect(Collectors.joining("_"));
+		String propertyNames = properties.stream().map(PropertyType::getName).collect(Collectors.joining("_"));
 
 		// Basically the OGM approach
-		return String.format("%s_%s_%s",
-			owner.getOwningTypeName().toLowerCase(Locale.ROOT).replace(".", "_"),
-			propertyNames, type.toLowerCase(Locale.ROOT));
+		return String.format("%s_%s_%s", owner.getOwningTypeName().toLowerCase(Locale.ROOT).replace(".", "_"),
+				propertyNames, type.toLowerCase(Locale.ROOT));
 	}
+
 }

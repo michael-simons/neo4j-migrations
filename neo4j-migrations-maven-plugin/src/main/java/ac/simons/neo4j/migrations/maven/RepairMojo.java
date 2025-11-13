@@ -27,10 +27,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * @author Gerrit Meier
  * @since 2.2.0
  */
-@Mojo(name = "repair",
-	requiresDependencyResolution = ResolutionScope.TEST,
-	defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST,
-	threadSafe = true)
+@Mojo(name = "repair", requiresDependencyResolution = ResolutionScope.TEST,
+		defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, threadSafe = true)
 public class RepairMojo extends AbstractConnectedMojo {
 
 	/**
@@ -47,4 +45,5 @@ public class RepairMojo extends AbstractConnectedMojo {
 		LOGGER.info(result::prettyPrint);
 		result.getWarnings().forEach(LOGGER::warning);
 	}
+
 }

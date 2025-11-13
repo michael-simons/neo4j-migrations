@@ -19,16 +19,15 @@ package ac.simons.neo4j.migrations.core.refactorings;
  * Executable definition of a refactoring.
  *
  * @author Michael J. Simons
- * @soundtrack Nightwish - Decades: Live In Buenos Aires
  * @since 1.10.0
  */
 public interface Refactoring {
 
 	/**
-	 * Applies this refactoring in the given context
-	 *
-	 * @param refactoringContext The context in which the refactoring is to be applied
-	 * @return Statistics about modified schema content
+	 * Applies this refactoring in the given context.
+	 * @param refactoringContext the context in which the refactoring is to be applied
+	 * @return statistics about modified schema content
 	 */
 	Counters apply(RefactoringContext refactoringContext);
+
 }

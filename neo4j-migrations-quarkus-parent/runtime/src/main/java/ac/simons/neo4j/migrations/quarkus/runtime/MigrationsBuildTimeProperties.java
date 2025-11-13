@@ -15,20 +15,19 @@
  */
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
+import java.util.List;
+import java.util.Optional;
+
 import ac.simons.neo4j.migrations.core.Defaults;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
-import java.util.List;
-import java.util.Optional;
-
 /**
  * Part of the {@link MigrationsProperties} that can only be changed during build time.
  *
  * @author Michael J. Simons
- * @soundtrack Bad Religion - The Gray Race
  * @since 1.3.0
  */
 @ConfigMapping(prefix = "org.neo4j.migrations")
@@ -37,16 +36,15 @@ public interface MigrationsBuildTimeProperties {
 
 	/**
 	 * This is a build time configuration option and can't be changed during runtime.
-	 *
 	 * @return the list of packages to scan for Java migrations.
 	 */
 	Optional<List<String>> packagesToScan();
 
 	/**
 	 * This is a build time configuration option and can't be changed during runtime.
-	 *
 	 * @return the list of locations of migrations scripts
 	 */
 	@WithDefault(Defaults.LOCATIONS_TO_SCAN_VALUE)
 	List<String> locationsToScan();
+
 }

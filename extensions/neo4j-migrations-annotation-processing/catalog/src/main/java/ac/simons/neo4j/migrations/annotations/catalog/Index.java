@@ -22,27 +22,30 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author shanon84
+ * Annotation for defining indexes in types.
+ *
+ * @author shanon84 and Michael Simons
  * @since 2.8.2
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ ElementType.TYPE, ElementType.FIELD })
 @Documented
 public @interface Index {
+
 	/**
-	 * If this is not {@literal null} it has precedence over an implicit label (either no class annotations or one without
-	 * a dedicated label) but not over OGM or SDN6 annotations specifying the label or type explicitly.
-	 * Its use must be consistent throughout the class.
-	 *
-	 * @return The target label
+	 * If this is not {@literal null} it has precedence over an implicit label (either no
+	 * class annotations or one without a dedicated label) but not over OGM or SDN6
+	 * annotations specifying the label or type explicitly. Its use must be consistent
+	 * throughout the class.
+	 * @return the target label
 	 */
 	String label() default "";
 
 	/**
-	 * Use this if you want to define composite, Index when using {@link Index} on the class level.
-	 * Leave it empty when using on field level, otherwise an exception will be thrown.
-	 *
-	 * @return The list of properties to include in the composite.
+	 * Use this if you want to define composite, Index when using {@link Index} on the
+	 * class level. Leave it empty when using on field level, otherwise an exception will
+	 * be thrown.
+	 * @return the list of properties to include in the composite.
 	 */
 	String[] properties() default {};
 
@@ -53,12 +56,9 @@ public @interface Index {
 	Type indexType() default Type.PROPERTY;
 
 	/**
-	 * Use this if you want to have more configured options for your index.
-	 * Be aware to activate the option to allow further options on index creation.
-	 * Example:
-	 * "`fulltext.analyzer`:whitespace"
-	 * to set the fulltext analyzer for your index.
-	 *
+	 * Use this if you want to have more configured options for your index. Be aware to
+	 * activate the option to allow further options on index creation. Example:
+	 * "`fulltext.analyzer`:whitespace" to set the fulltext analyzer for your index.
 	 * @return array of options
 	 */
 	Option[] options() default {};
@@ -67,6 +67,7 @@ public @interface Index {
 	 * An enumeration of possible index types.
 	 */
 	enum Type {
+
 		/**
 		 * An index on properties. The actual type depends on the options.
 		 */
@@ -79,22 +80,26 @@ public @interface Index {
 		 * Text indexes for 4.4 and later.
 		 */
 		TEXT
+
 	}
 
 	/**
-	 * key value based option for index creation.
+	 * A key value based option for index creation.
 	 */
 	@interface Option {
+
 		/**
-		 * key string for the option
+		 * The key string for the option.
 		 * @return key string
 		 */
 		String key() default "";
 
 		/**
-		 * value string for the option
+		 * The value string for the option.
 		 * @return value string
 		 */
 		String value() default "";
+
 	}
+
 }

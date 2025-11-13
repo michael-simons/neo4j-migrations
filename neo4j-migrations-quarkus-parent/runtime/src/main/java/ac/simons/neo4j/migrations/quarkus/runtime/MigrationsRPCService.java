@@ -26,7 +26,8 @@ import io.vertx.core.json.JsonObject;
 import jakarta.inject.Inject;
 
 /**
- * A service delegating to an instance of {@link Migrations migrations} for various tasks in the dev-ui.
+ * A service delegating to an instance of {@link Migrations migrations} for various tasks
+ * in the dev-ui.
  *
  * @author Michael J. Simons
  */
@@ -40,14 +41,15 @@ public final class MigrationsRPCService {
 	}
 
 	public String getLabel() {
-		return String.format("%s (%s)", migrations.getConnectionDetails().getServerAddress(), migrations.getConnectionDetails().getOptionalDatabaseName().orElse("default database"));
+		return String.format("%s (%s)", this.migrations.getConnectionDetails().getServerAddress(),
+				this.migrations.getConnectionDetails().getOptionalDatabaseName().orElse("default database"));
 	}
 
 	@JsonRpcDescription("Returns the server-address and -version against which Neo4j-Migrations is connected and the databases being used.")
 	@DevMCPEnableByDefault
 	public JsonObject getConnectionDetails() {
 
-		var connectionDetails = migrations.getConnectionDetails();
+		var connectionDetails = this.migrations.getConnectionDetails();
 		var result = new JsonObject();
 		result.put("username", connectionDetails.getUsername());
 		result.put("serverAddress", connectionDetails.getServerAddress());
@@ -62,7 +64,7 @@ public final class MigrationsRPCService {
 	public JsonArray getAllMigrations() {
 
 		var result = new JsonArray();
-		var elements = migrations.info().getElements();
+		var elements = this.migrations.info().getElements();
 		for (MigrationChain.Element element : elements) {
 			result.add(new JsonObject(Map.copyOf(element.asMap())));
 		}
@@ -74,7 +76,8 @@ public final class MigrationsRPCService {
 	public JsonObject migrate() {
 
 		var result = new JsonObject();
-		var message = this.migrations.apply().map(version -> "Database migrated to  " + version.getValue())
+		var message = this.migrations.apply()
+			.map(version -> "Database migrated to  " + version.getValue())
 			.orElse("No change");
 		result.put("message", message);
 		result.put("elements", getAllMigrations());
@@ -89,4 +92,5 @@ public final class MigrationsRPCService {
 		result.put("elements", getAllMigrations());
 		return result;
 	}
+
 }

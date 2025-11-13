@@ -36,9 +36,10 @@ final class AggregatingMigrationDiscoverer implements Discoverer<Migration> {
 	@Override
 	public Collection<Migration> discover(MigrationContext context) {
 		List<Migration> result = new ArrayList<>();
-		for (Discoverer<Migration> discoverer : delegates) {
+		for (Discoverer<Migration> discoverer : this.delegates) {
 			result.addAll(discoverer.discover(context));
 		}
 		return result;
 	}
+
 }

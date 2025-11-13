@@ -15,16 +15,17 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.Neo4jVersion;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Formattable;
 import java.util.Formatter;
 import java.util.Locale;
 
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
+
 /**
- * A helper class keeping the rendering code stable while getting the {@link  Formattable} trait out of {@link CatalogItem catalog items} in 2.0 and higher.
+ * A helper class keeping the rendering code stable while getting the {@link Formattable}
+ * trait out of {@link CatalogItem catalog items} in 2.0 and higher.
  *
  * @author Michael J. Simons
  * @since 2.0.0
@@ -45,13 +46,15 @@ final class FormattableCatalogItem implements Formattable {
 
 		Appendable out = formatter.out();
 		try {
-			out.append(delegate.getClass().getSimpleName().toUpperCase(Locale.ROOT));
-			var name = delegate.getName();
+			out.append(this.delegate.getClass().getSimpleName().toUpperCase(Locale.ROOT));
+			var name = this.delegate.getName();
 			if (!(name instanceof GeneratedName)) {
-				out.append(' ').append(version.sanitizeSchemaName(name.getValue()));
+				out.append(' ').append(this.version.sanitizeSchemaName(name.getValue()));
 			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
+
 }

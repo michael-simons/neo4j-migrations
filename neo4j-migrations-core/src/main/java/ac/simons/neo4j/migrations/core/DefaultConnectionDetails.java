@@ -15,13 +15,14 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.Optional;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 /**
+ * Implementation of {@link ConnectionDetails}.
+ *
  * @author Michael J. Simons
- * @soundtrack Snoop Dogg - Doggystyle
  * @since 1.4.0
  */
 final class DefaultConnectionDetails implements ConnectionDetails {
@@ -39,7 +40,7 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 	private final String schemaDatabaseName;
 
 	DefaultConnectionDetails(String serverAddress, String serverVersion, String edition, String username,
-		String databaseName, String schemaDatabaseName) {
+			String databaseName, String schemaDatabaseName) {
 		this.serverAddress = serverAddress;
 		this.serverVersion = serverVersion;
 		this.edition = Strings.capitalize(edition);
@@ -50,31 +51,32 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	@Override
 	public String getServerAddress() {
-		return serverAddress;
+		return this.serverAddress;
 	}
 
 	@Override
 	public String getServerVersion() {
-		return serverVersion;
+		return this.serverVersion;
 	}
 
 	@Override
 	public String getServerEdition() {
-		return edition;
+		return this.edition;
 	}
 
 	@Override
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	@Override
 	public Optional<String> getOptionalDatabaseName() {
-		return Optional.ofNullable(databaseName);
+		return Optional.ofNullable(this.databaseName);
 	}
 
 	@Override
 	public Optional<String> getOptionalSchemaDatabaseName() {
-		return Optional.ofNullable(schemaDatabaseName);
+		return Optional.ofNullable(this.schemaDatabaseName);
 	}
+
 }

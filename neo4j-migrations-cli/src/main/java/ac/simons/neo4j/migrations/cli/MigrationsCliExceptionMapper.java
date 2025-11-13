@@ -15,16 +15,15 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import java.util.logging.Level;
+
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import picocli.CommandLine;
-
-import java.util.logging.Level;
 
 /**
  * Define some more or less sane exit codes.
  *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Introspective
  * @since 0.0.5
  */
 final class MigrationsCliExceptionMapper implements CommandLine.IExitCodeExceptionMapper {
@@ -34,11 +33,14 @@ final class MigrationsCliExceptionMapper implements CommandLine.IExitCodeExcepti
 
 		if (exception instanceof org.neo4j.driver.exceptions.ServiceUnavailableException) {
 			return CommandLine.ExitCode.SOFTWARE;
-		} else if (exception instanceof MigrationsException) {
+		}
+		else if (exception instanceof MigrationsException) {
 			return CommandLine.ExitCode.USAGE;
-		} else {
+		}
+		else {
 			MigrationsCli.LOGGER.log(Level.WARNING, "Uncaught exception.", exception);
 			return CommandLine.ExitCode.USAGE;
 		}
 	}
+
 }

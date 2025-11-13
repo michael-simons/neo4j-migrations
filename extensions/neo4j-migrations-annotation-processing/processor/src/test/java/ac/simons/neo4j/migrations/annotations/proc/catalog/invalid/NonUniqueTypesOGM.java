@@ -15,16 +15,16 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
+import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Required;
 
 /**
  * @author Michael J. Simons
  */
-@RelationshipEntity(value = "BAR")
+@RelationshipEntity("BAR")
 public final class NonUniqueTypesOGM {
 
 	@Id
@@ -33,4 +33,5 @@ public final class NonUniqueTypesOGM {
 
 	@Required(type = "FOO")
 	private String x;
+
 }

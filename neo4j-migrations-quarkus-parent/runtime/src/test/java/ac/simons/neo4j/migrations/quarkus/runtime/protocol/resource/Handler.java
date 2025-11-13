@@ -20,7 +20,8 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 /**
- * Don't ask. What a "beautiful" API. See <a href="https://stackoverflow.com/a/9253634/1547989">this SO</a>.
+ * Don't ask. What a "beautiful" API. See
+ * <a href="https://stackoverflow.com/a/9253634/1547989">this SO</a>.
  *
  * @author Michael J. Simons
  */
@@ -30,4 +31,5 @@ public final class Handler extends URLStreamHandler {
 	protected URLConnection openConnection(URL u) {
 		throw new UnsupportedOperationException("This is just a stub handler.");
 	}
+
 }

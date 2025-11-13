@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * A simple stop watch.
+ *
  * @author Michael J. Simons
  * @since 0.0.4
  */
@@ -36,27 +38,27 @@ final class StopWatch {
 	/**
 	 * Starts the stop watch.
 	 */
-	public void start() {
-		if (start != -1L) {
+	void start() {
+		if (this.start != -1L) {
 			throw new IllegalStateException("Stopwatch already started.");
 		}
-		start = nanoTime();
+		this.start = nanoTime();
 	}
 
 	/**
 	 * Stops the stop watch.
-	 *
-	 * @return The total run time in millis of the stop watch between the start and stop calls.
+	 * @return the total run time in millis of the stop watch between the start and stop
+	 * calls.
 	 */
-	public long stop() {
-		if (start == -1L) {
+	long stop() {
+		if (this.start == -1L) {
 			throw new IllegalStateException("Stopwatch not started.");
 		}
 
-		if (stop != -1L) {
+		if (this.stop != -1L) {
 			throw new IllegalStateException("Stopwatch already stopped.");
 		}
-		stop = nanoTime();
+		this.stop = nanoTime();
 
 		return getTotalTimeMillis();
 	}
@@ -64,7 +66,7 @@ final class StopWatch {
 	/**
 	 * Resets this stop watch.
 	 */
-	public void reset() {
+	void reset() {
 		this.start = -1L;
 		this.stop = -1L;
 	}
@@ -74,19 +76,22 @@ final class StopWatch {
 	}
 
 	/**
-	 * @return The total run time in millis of the stop watch between start and stop calls.
+	 * Returns the total run time in millis of the stop watch between start and stop
+	 * calls.
+	 * @return the total time this watch measured
 	 */
 	private long getTotalTimeMillis() {
 
-		if (start == -1) {
+		if (this.start == -1) {
 			throw new IllegalStateException("Stopwatch not started.");
 		}
 
-		if (stop == -1) {
+		if (this.stop == -1) {
 			throw new IllegalStateException("Stopwatch not stopped.");
 		}
 
-		long duration = stop - start;
+		long duration = this.stop - this.start;
 		return TimeUnit.NANOSECONDS.toMillis(duration);
 	}
+
 }

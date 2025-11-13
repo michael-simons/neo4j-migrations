@@ -18,21 +18,21 @@ package ac.simons.neo4j.migrations.annotations.proc;
 /**
  * Describes the property of a {@link NodeType node} or relationship.
  *
- * @author Michael J. Simons
  * @param <OT> the owning type
- * @soundtrack Moonbootica - ...And Then We Started To Dance
+ * @author Michael J. Simons
  * @since 1.11.0
  */
 @SuppressWarnings("squid:S119") // I like the generic parameter name.
 public interface PropertyType<OT extends ElementType<OT>> {
 
 	/**
-	 * @return the owner of the property.
+	 * {@return the owner of the property}
 	 */
 	OT getOwner();
 
 	/**
-	 * @return the name of the property
+	 * {@return the name of the property}
 	 */
 	String getName();
+
 }

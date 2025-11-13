@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.catalog.Catalog;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,6 +23,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 
 /**
  * Orchestrates {@link Discoverer discoverers}.
@@ -42,9 +42,11 @@ final class DiscoveryService {
 		this(new JavaBasedMigrationDiscoverer(), new DefaultClasspathResourceScanner());
 	}
 
-	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer, ClasspathResourceScanner resourceScanner) {
+	DiscoveryService(Discoverer<? extends Migration> migrationClassesDiscoverer,
+			ClasspathResourceScanner resourceScanner) {
 
-		this.migrationDiscoverers = List.of(migrationClassesDiscoverer, ResourceDiscoverer.forMigrations(resourceScanner));
+		this.migrationDiscoverers = List.of(migrationClassesDiscoverer,
+				ResourceDiscoverer.forMigrations(resourceScanner));
 		this.callbackDiscoverers = List.of(ResourceDiscoverer.forCallbacks(resourceScanner));
 	}
 
@@ -60,11 +62,13 @@ final class DiscoveryService {
 			for (Discoverer<? extends Migration> discoverer : this.migrationDiscoverers) {
 				migrations.addAll(discoverer.discover(context));
 			}
-		} catch (Exception e) {
-			throw new MigrationsException("Unexpected error while scanning for migrations", e);
+		}
+		catch (Exception ex) {
+			throw new MigrationsException("Unexpected error while scanning for migrations", ex);
 		}
 
-		List<MigrationWithPreconditions> cypherBasedMigrations = migrations.stream().filter(MigrationWithPreconditions.class::isInstance)
+		List<MigrationWithPreconditions> cypherBasedMigrations = migrations.stream()
+			.filter(MigrationWithPreconditions.class::isInstance)
 			.map(MigrationWithPreconditions.class::cast)
 			.toList();
 		Map<Migration, List<Precondition>> migrationsAndPreconditions = new HashMap<>();
@@ -74,7 +78,8 @@ final class DiscoveryService {
 		migrations.sort(Comparator.comparing(Migration::getVersion, context.getConfig().getVersionComparator()));
 		Catalog catalog = context.getCatalog();
 		if (catalog instanceof WriteableCatalog writeableSchema) {
-			migrations.stream().filter(CatalogBasedMigration.class::isInstance)
+			migrations.stream()
+				.filter(CatalogBasedMigration.class::isInstance)
 				.map(CatalogBasedMigration.class::cast)
 				.forEach(m -> writeableSchema.addAll(m.getVersion(), m.getCatalog(), m.isResetCatalog()));
 		}
@@ -84,9 +89,7 @@ final class DiscoveryService {
 			List<Migration> v = entry.getValue();
 			if (v.size() > 1) {
 				MigrationVersion k = entry.getKey();
-				String sources = v.stream().map(Migration::getSource)
-					.sorted()
-					.collect(Collectors.joining(", "));
+				String sources = v.stream().map(Migration::getSource).sorted().collect(Collectors.joining(", "));
 				throw new MigrationsException("Duplicate version '" + k.getValue() + "' (" + sources + ")");
 			}
 		}
@@ -94,7 +97,7 @@ final class DiscoveryService {
 	}
 
 	private void computeAlternativeChecksums(List<MigrationWithPreconditions> migrations,
-		Map<Migration, List<Precondition>> migrationsAndPreconditions) {
+			Map<Migration, List<Precondition>> migrationsAndPreconditions) {
 		migrations.forEach(m -> {
 			List<Precondition> preconditions = m.getPreconditions();
 			migrationsAndPreconditions.put(m, preconditions);
@@ -105,7 +108,8 @@ final class DiscoveryService {
 				return;
 			}
 			List<String> alternativeChecksums = migrations.stream()
-				.filter(o -> o != m && o.getSource().equals(m.getSource()) && !migrationsAndPreconditions.get(o).isEmpty())
+				.filter(o -> o != m && o.getSource().equals(m.getSource())
+						&& !migrationsAndPreconditions.get(o).isEmpty())
 				.flatMap(o -> {
 					Stream<String> checksum = o.getChecksum().stream();
 					return Stream.concat(checksum, o.getAlternativeChecksums().stream()).distinct();
@@ -115,14 +119,16 @@ final class DiscoveryService {
 		});
 	}
 
-	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration, MigrationContext context) {
+	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration,
+			MigrationContext context) {
 
 		if (!(migration instanceof MigrationWithPreconditions)) {
 			return false;
 		}
 
 		Map<Precondition.Type, List<Precondition>> preconditions = migrationsAndPreconditions.get(migration)
-			.stream().collect(Collectors.groupingBy(Precondition::getType));
+			.stream()
+			.collect(Collectors.groupingBy(Precondition::getType));
 
 		if (preconditions.isEmpty()) {
 			return false;
@@ -135,16 +141,17 @@ final class DiscoveryService {
 		}
 
 		List<Precondition> unmet = preconditions.getOrDefault(Precondition.Type.ASSUMPTION, List.of())
-			.stream().filter(precondition -> !precondition.isMet(context)).toList();
+			.stream()
+			.filter(precondition -> !precondition.isMet(context))
+			.toList();
 
 		if (unmet.isEmpty()) {
 			return false;
 		}
 
-		Migrations.LOGGER.log(Level.INFO,
-			() -> String.format("Skipping %s due to unmet preconditions:%n%s", Migrations.toString(migration),
-				unmet.stream().map(Precondition::toString).collect(
-					Collectors.joining(System.lineSeparator()))));
+		Migrations.LOGGER.log(Level.INFO, () -> String.format("Skipping %s due to unmet preconditions:%n%s",
+				Migrations.toString(migration),
+				unmet.stream().map(Precondition::toString).collect(Collectors.joining(System.lineSeparator()))));
 
 		return true;
 	}
@@ -153,9 +160,11 @@ final class DiscoveryService {
 
 		return this.callbackDiscoverers.stream()
 			.flatMap(d -> d.discover(context).stream())
-			.collect(Collectors.collectingAndThen(Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -> {
-				l.sort(Comparator.comparing(c -> c.getOptionalDescription().orElse("")));
-				return List.copyOf(l);
-			})), Map::copyOf));
+			.collect(Collectors.collectingAndThen(
+					Collectors.groupingBy(Callback::getPhase, Collectors.collectingAndThen(Collectors.toList(), l -> {
+						l.sort(Comparator.comparing(c -> c.getOptionalDescription().orElse("")));
+						return List.copyOf(l);
+					})), Map::copyOf));
 	}
+
 }

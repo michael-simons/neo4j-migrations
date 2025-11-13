@@ -15,29 +15,32 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import java.util.Optional;
+import java.util.Set;
+
 /**
- * An item in the catalog (of either a single migration or the whole context with the merged catalog).
+ * An item in the catalog (of either a single migration or the whole context with the
+ * merged catalog).
  *
+ * @param <T> the concrete type of this item, either a constraint or an index
  * @author Michael J. Simons
- * @param <T> The concrete type of this item, either a constraint or an index.
- * @soundtrack Anthrax - Spreading The Disease
  * @since 1.7.0
  */
 public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogItem {
 
 	/**
-	 * {@return A unique name for a catalog item}
+	 * {@return a unique name for a catalog item}
 	 */
 	Name getName();
 
 	/**
-	 * {@return Type information for the given item, specialized to the item type itself}
+	 * {@return type information for the given item, specialized to the item type itself}
 	 */
 	T getType();
 
 	/**
 	 * Returns the {@literal true} if this item is equivalent to {@code that} item.
-	 * @param that The other item to check
+	 * @param that the other item to check
 	 * @return {@literal true} if this item is equivalent to {@code that} item
 	 */
 	default boolean isEquivalentTo(CatalogItem<?> that) {
@@ -50,14 +53,31 @@ public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogI
 	boolean hasGeneratedName();
 
 	/**
-	 * Creates a copy of this item with the specific name. Will return {@literal this} instance if the name has not
-	 * changed.
-	 *
-	 * @param name The new name to use
-	 * @return A (potentially) new item
+	 * Creates a copy of this item with the specific name. Will return {@literal this}
+	 * instance if the name has not changed.
+	 * @param name the new name to use
+	 * @return a (potentially) new item
 	 * @since 1.13.0
 	 */
 	default CatalogItem<T> withName(String name) {
 		throw new UnsupportedOperationException();
 	}
+
+	/**
+	 * {@return the target entity of this item}
+	 */
+	TargetEntityType getTargetEntityType();
+
+	/**
+	 * {@return set of properties to be included with the item}
+	 */
+	Set<String> getProperties();
+
+	/**
+	 * {@return the optional options to be passed down during creation of the item}
+	 */
+	default Optional<String> getOptionalOptions() {
+		return Optional.empty();
+	}
+
 }

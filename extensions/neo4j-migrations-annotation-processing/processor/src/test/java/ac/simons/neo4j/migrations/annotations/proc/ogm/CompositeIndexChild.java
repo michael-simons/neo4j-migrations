@@ -19,9 +19,11 @@ import org.neo4j.ogm.annotation.NodeEntity;
 
 /**
  * Verbatim copy from Neo4j-OGM.
+ *
  * @author Frantisek Hartman
  * @author Michael J. Simons
  */
 @NodeEntity(label = "EntityChild")
 public class CompositeIndexChild extends CompositeIndexEntity {
+
 }

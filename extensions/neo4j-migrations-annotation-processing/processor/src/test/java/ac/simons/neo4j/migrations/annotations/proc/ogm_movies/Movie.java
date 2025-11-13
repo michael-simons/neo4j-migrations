@@ -50,6 +50,8 @@ public final class Movie {
 
 	private transient LocalDate meToo;
 
+	private Integer released;
+
 	public Movie(String title) {
 		this.title = title;
 	}
@@ -60,14 +62,12 @@ public final class Movie {
 	Movie() {
 	}
 
-	private Integer released;
-
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public List<Actor> getActors() {
@@ -79,10 +79,11 @@ public final class Movie {
 	}
 
 	public Integer getReleased() {
-		return released;
+		return this.released;
 	}
 
 	public void setReleased(Integer released) {
 		this.released = released;
 	}
+
 }

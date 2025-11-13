@@ -32,7 +32,8 @@ public enum MigrationType {
 	 */
 	CYPHER,
 	/**
-	 * Indicates a catalog based migration
+	 * Indicates a catalog based migration.
 	 */
 	CATALOG
+
 }

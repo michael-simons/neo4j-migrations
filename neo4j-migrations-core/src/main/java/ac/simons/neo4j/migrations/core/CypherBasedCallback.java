@@ -52,7 +52,7 @@ final class CypherBasedCallback implements Callback {
 
 		this.phase = LifecyclePhase.fromCamelCase(matcher.group(1));
 		String optionalDescription = matcher.group(2);
-		this.description = optionalDescription == null ? null : optionalDescription.trim().replace("_", " ");
+		this.description = (optionalDescription != null) ? optionalDescription.trim().replace("_", " ") : null;
 	}
 
 	@Override
@@ -74,10 +74,11 @@ final class CypherBasedCallback implements Callback {
 	public void on(LifecycleEvent event) {
 
 		LOGGER.log(Level.FINE, "Invoking \"{0}\" on {1}",
-			new Object[] { this.cypherResource.getIdentifier(), event.getPhase() });
+				new Object[] { this.cypherResource.getIdentifier(), event.getPhase() });
 
-		UnaryOperator<SessionConfig.Builder> sessionCustomizer = event.getPhase() == LifecyclePhase.BEFORE_FIRST_USE ?
-			builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE) : UnaryOperator.identity();
-		DefaultCypherResource.executeIn(cypherResource, event.getContext(), sessionCustomizer);
+		UnaryOperator<SessionConfig.Builder> sessionCustomizer = (event.getPhase() != LifecyclePhase.BEFORE_FIRST_USE)
+				? UnaryOperator.identity() : builder -> SessionConfig.builder().withDefaultAccessMode(AccessMode.WRITE);
+		DefaultCypherResource.executeIn(this.cypherResource, event.getContext(), sessionCustomizer);
 	}
+
 }

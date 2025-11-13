@@ -15,11 +15,10 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.ogm_movies;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
  * @author Michael J. Simons
@@ -27,7 +26,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 @NodeEntity
 public final class Person {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;
@@ -47,18 +47,19 @@ public final class Person {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Integer getBorn() {
-		return born;
+		return this.born;
 	}
 
 	public void setBorn(Integer born) {
 		this.born = born;
 	}
+
 }

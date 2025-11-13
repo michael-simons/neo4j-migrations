@@ -30,4 +30,5 @@ public class NoPropertyCompositeIndexEntity {
 	String name;
 
 	int age;
+
 }

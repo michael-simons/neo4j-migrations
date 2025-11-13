@@ -18,10 +18,9 @@ package ac.simons.neo4j.migrations.core.test_migrations.changeset5;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.neo4j.driver.Session;
-
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
+import org.neo4j.driver.Session;
 
 /**
  * @author Michael J. Simons
@@ -40,22 +39,22 @@ public class V003__Repeatable implements JavaBasedMigration {
 		}
 	}
 
+	@Override
+	public Optional<String> getChecksum() {
+		return Optional.of(this.checksum);
+	}
+
 	public void setChecksum(String checksum) {
 		this.checksum = checksum;
 	}
 
 	@Override
-	public Optional<String> getChecksum() {
-		return Optional.of(checksum);
-	}
-
-	@Override
 	public boolean isRepeatable() {
-		return repeatable;
+		return this.repeatable;
 	}
 
 	public void setRepeatable(boolean repeatable) {
 		this.repeatable = repeatable;
 	}
-}
 
+}

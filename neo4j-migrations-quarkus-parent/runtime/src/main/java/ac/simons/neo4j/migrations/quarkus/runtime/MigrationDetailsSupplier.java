@@ -15,15 +15,14 @@
  */
 package ac.simons.neo4j.migrations.quarkus.runtime;
 
-import ac.simons.neo4j.migrations.core.Migrations;
-
 import java.util.function.Supplier;
+
+import ac.simons.neo4j.migrations.core.Migrations;
 
 /**
  * Needed to record the bytecode for the {@link Supplier supplier of migrations}.
  *
  * @author Michael J. Simons
- * @soundtrack Dr. Dre - The Chronic
  * @since 1.4.0
  */
 class MigrationDetailsSupplier implements Supplier<Migrations> {
@@ -38,4 +37,5 @@ class MigrationDetailsSupplier implements Supplier<Migrations> {
 	public Migrations get() {
 		return this.value;
 	}
+
 }

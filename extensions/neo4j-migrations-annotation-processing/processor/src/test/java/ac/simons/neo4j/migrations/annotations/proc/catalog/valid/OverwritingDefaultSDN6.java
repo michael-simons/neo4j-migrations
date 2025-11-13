@@ -17,9 +17,9 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 
 import java.util.UUID;
 
-import org.springframework.data.neo4j.core.schema.Node;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
@@ -29,4 +29,5 @@ public class OverwritingDefaultSDN6 {
 
 	@Unique(label = "whatever")
 	public UUID uuid;
+
 }

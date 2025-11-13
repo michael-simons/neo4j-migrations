@@ -17,12 +17,12 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.issues;
 
 import java.util.UUID;
 
+import ac.simons.neo4j.migrations.annotations.catalog.Required;
+import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Required;
-import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
  * @author Maurizio Casciano

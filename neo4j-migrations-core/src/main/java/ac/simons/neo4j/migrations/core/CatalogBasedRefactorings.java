@@ -15,15 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.catalog.Index;
-import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
-import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
-import ac.simons.neo4j.migrations.core.refactorings.Merge;
-import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
-import ac.simons.neo4j.migrations.core.refactorings.Normalize;
-import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
-import ac.simons.neo4j.migrations.core.refactorings.Rename;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,17 +27,28 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ac.simons.neo4j.migrations.core.catalog.Index;
+import ac.simons.neo4j.migrations.core.refactorings.AddSurrogateKey;
+import ac.simons.neo4j.migrations.core.refactorings.CustomizableRefactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Merge;
+import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import ac.simons.neo4j.migrations.core.refactorings.Rename;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Set of factory methods to read various refactorings from XML files validating against {@code migrations.xsd}.
+ * Set of factory methods to read various refactorings from XML files validating against
+ * {@code migrations.xsd}.
  *
  * @author Michael J. Simons
- * @soundtrack The Halo Effect - Days Of The Lost
  * @since 1.10.0
  */
 final class CatalogBasedRefactorings {
+
+	private CatalogBasedRefactorings() {
+	}
 
 	static Refactoring fromNode(Node node) {
 
@@ -54,15 +56,20 @@ final class CatalogBasedRefactorings {
 
 		if (type.equals("merge.nodes")) {
 			return createMerge(node, type);
-		} else if (type.equals("migrate.createFutureIndexes")) {
+		}
+		else if (type.equals("migrate.createFutureIndexes")) {
 			return createMigrateBtreeIndexes(node, false);
-		} else if (type.equals("migrate.replaceBTreeIndexes")) {
+		}
+		else if (type.equals("migrate.replaceBTreeIndexes")) {
 			return createMigrateBtreeIndexes(node, true);
-		} else if (type.startsWith("rename.")) {
+		}
+		else if (type.startsWith("rename.")) {
 			return createRename(node, type);
-		} else if (type.equals("normalize.asBoolean")) {
+		}
+		else if (type.equals("normalize.asBoolean")) {
 			return createNormalizeAsBoolean(node, type);
-		} else if (type.startsWith("addSurrogateKeyTo.")) {
+		}
+		else if (type.startsWith("addSurrogateKeyTo.")) {
 			return addSurrogateKey(node, type);
 		}
 
@@ -72,41 +79,44 @@ final class CatalogBasedRefactorings {
 	private static AddSurrogateKey addSurrogateKey(Node node, String type) {
 		String op = type.split("\\.")[1];
 
-		NodeList parameterList = findParameterList(node).orElseThrow(() ->
-			createException(node, type, "The addSurrogateKey refactoring requires several parameters")
-		);
+		NodeList parameterList = findParameterList(node).orElseThrow(
+				() -> createException(node, type, "The addSurrogateKey refactoring requires several parameters"));
 
 		Optional<String> optionalCustomQuery = findParameter(node, "customQuery", parameterList);
 		AtomicReference<AddSurrogateKey> refactoring = new AtomicReference<>();
 		if ("nodes".equals(op)) {
-			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty)).ifPresentOrElse(
-				labels -> refactoring.set(AddSurrogateKey.toNodes(labels.get(0), labels.subList(1, labels.size()).toArray(String[]::new))),
-				() -> {
-					if (optionalCustomQuery.isPresent()) {
-						refactoring.set(AddSurrogateKey.toNodesMatching(optionalCustomQuery.get().trim()));
-					} else {
-						throw createException(node, type, "No labels specified");
-					}
-				}
-			);
-		} else if ("relationships".equals(op)) {
+			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty))
+				.ifPresentOrElse(labels -> refactoring.set(AddSurrogateKey.toNodes(labels.get(0),
+						labels.subList(1, labels.size()).toArray(String[]::new))), () -> {
+							if (optionalCustomQuery.isPresent()) {
+								refactoring.set(AddSurrogateKey.toNodesMatching(optionalCustomQuery.get().trim()));
+							}
+							else {
+								throw createException(node, type, "No labels specified");
+							}
+						});
+		}
+		else if ("relationships".equals(op)) {
 			findParameter(node, "type", parameterList).ifPresentOrElse(
-				relationshipType -> refactoring.set(AddSurrogateKey.toRelationships(relationshipType)),
-				() -> {
-					if (optionalCustomQuery.isPresent()) {
-						refactoring.set(AddSurrogateKey.toRelationshipsMatching(optionalCustomQuery.get().trim()));
-					} else {
-						throw createException(node, type, "No `type` parameter");
-					}
-				});
-		} else {
+					relationshipType -> refactoring.set(AddSurrogateKey.toRelationships(relationshipType)), () -> {
+						if (optionalCustomQuery.isPresent()) {
+							refactoring.set(AddSurrogateKey.toRelationshipsMatching(optionalCustomQuery.get().trim()));
+						}
+						else {
+							throw createException(node, type, "No `type` parameter");
+						}
+					});
+		}
+		else {
 			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
 		}
 
-		refactoring.set(findParameter(node, "property", parameterList)
-			.map(p -> refactoring.get().withProperty(p.trim())).orElse(refactoring.get()));
+		refactoring
+			.set(findParameter(node, "property", parameterList).map(p -> refactoring.get().withProperty(p.trim()))
+				.orElse(refactoring.get()));
 		refactoring.set(findParameter(node, "generatorFunction", parameterList)
-			.map(p -> refactoring.get().withGeneratorFunction(p.trim())).orElse(refactoring.get()));
+			.map(p -> refactoring.get().withGeneratorFunction(p.trim()))
+			.orElse(refactoring.get()));
 
 		return customize(refactoring.get(), node, type, parameterList);
 	}
@@ -116,42 +126,44 @@ final class CatalogBasedRefactorings {
 		Optional<NodeList> optionalParameters = findParameterList(node);
 		MigrateBTreeIndexes migrateBTreeIndexes;
 		if (drop) {
-			migrateBTreeIndexes = MigrateBTreeIndexes
-				.replaceBTreeIndexes();
-		} else {
-			String suffix = optionalParameters.flatMap(parameters -> findParameter(node, "suffix", parameters)).orElse(null);
-			migrateBTreeIndexes = MigrateBTreeIndexes
-				.createFutureIndexes(suffix);
+			migrateBTreeIndexes = MigrateBTreeIndexes.replaceBTreeIndexes();
+		}
+		else {
+			String suffix = optionalParameters.flatMap(parameters -> findParameter(node, "suffix", parameters))
+				.orElse(null);
+			migrateBTreeIndexes = MigrateBTreeIndexes.createFutureIndexes(suffix);
 		}
 
-		List<String> excludes = optionalParameters
-			.flatMap(parameters -> findParameterValues(parameters, "excludes")).orElse(Collections.emptyList());
-		List<String> includes = optionalParameters
-			.flatMap(parameters -> findParameterValues(parameters, "includes")).orElse(Collections.emptyList());
+		List<String> excludes = optionalParameters.flatMap(parameters -> findParameterValues(parameters, "excludes"))
+			.orElse(Collections.emptyList());
+		List<String> includes = optionalParameters.flatMap(parameters -> findParameterValues(parameters, "includes"))
+			.orElse(Collections.emptyList());
 		Map<String, Index.Type> typeMappings = optionalParameters
 			.flatMap(parameters -> findParameterNode(parameters, "typeMapping"))
 			.map(typeMapping -> findChildNodes(typeMapping, "mapping"))
-			.map(mappings -> mappings.stream().collect(Collectors.toMap(
-				mapping -> findChildNode(mapping, "name").map(Node::getTextContent).map(String::trim).orElseThrow(() -> new IllegalArgumentException("Index name is required when customizing type mappings")),
-				mapping -> findChildNode(mapping, "type").map(Node::getTextContent).map(String::trim).map(Index.Type::valueOf).orElseThrow(() -> new IllegalArgumentException("Type is required when customizing type mappings"))
-			)))
+			.map(mappings -> mappings.stream()
+				.collect(Collectors.toMap(
+						mapping -> findChildNode(mapping, "name").map(Node::getTextContent)
+							.map(String::trim)
+							.orElseThrow(() -> new IllegalArgumentException(
+									"Index name is required when customizing type mappings")),
+						mapping -> findChildNode(mapping, "type").map(Node::getTextContent)
+							.map(String::trim)
+							.map(Index.Type::valueOf)
+							.orElseThrow(() -> new IllegalArgumentException(
+									"Type is required when customizing type mappings")))))
 			.orElse(Collections.emptyMap());
 
-		return migrateBTreeIndexes
-			.withExcludes(excludes)
-			.withIncludes(includes)
-			.withTypeMapping(typeMappings);
+		return migrateBTreeIndexes.withExcludes(excludes).withIncludes(includes).withTypeMapping(typeMappings);
 	}
 
 	private static Normalize createNormalizeAsBoolean(Node node, String type) {
 
-		NodeList parameterList = findParameterList(node).orElseThrow(() ->
-			createException(node, type, "The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters")
-		);
+		NodeList parameterList = findParameterList(node).orElseThrow(() -> createException(node, type,
+				"The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters"));
 
-		String property = findParameter(node, "property", parameterList).orElseThrow(
-			() -> createException(node, type, "No `property` parameter")
-		);
+		String property = findParameter(node, "property", parameterList)
+			.orElseThrow(() -> createException(node, type, "No `property` parameter"));
 
 		Collection<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
 			.orElseThrow(() -> createException(node, type, "No `trueValues` parameter"));
@@ -165,7 +177,8 @@ final class CatalogBasedRefactorings {
 					return null;
 				}
 				return Long.parseLong(value);
-			} catch (NumberFormatException e) {
+			}
+			catch (NumberFormatException ex) {
 				return value;
 			}
 		};
@@ -176,15 +189,17 @@ final class CatalogBasedRefactorings {
 		return customize(normalize, node, type, parameterList);
 	}
 
-	private static <T extends CustomizableRefactoring<T>> T customize(T refactoring, Node node, String type, NodeList parameterList) {
+	private static <T extends CustomizableRefactoring<T>> T customize(T refactoring, Node node, String type,
+			NodeList parameterList) {
 		Optional<String> batchSize = findParameter(node, "batchSize", parameterList);
 		T result = refactoring;
 		if (batchSize.isPresent()) {
 			try {
 				result = result.inBatchesOf(Integer.parseInt(batchSize.get()));
-			} catch (NumberFormatException nfe) {
+			}
+			catch (NumberFormatException nfe) {
 				throw createException(node, type, "Invalid value `" + batchSize.get() + "` for parameter `batchSize`",
-					nfe);
+						nfe);
 			}
 		}
 		Optional<String> customQuery = findParameter(node, "customQuery", parameterList);
@@ -195,48 +210,53 @@ final class CatalogBasedRefactorings {
 	}
 
 	private static Merge createMerge(Node node, String type) {
-		String sourceQuery = findParameter(node, "sourceQuery").orElseThrow(
-			() -> createException(node, type, "No source query"));
-		List<Merge.PropertyMergePolicy> mergePolicies = findAllParameters(node, "mergePolicy")
-			.stream().map(p -> {
-				String pattern = null;
-				Merge.PropertyMergePolicy.Strategy strategy = null;
-				for (int i = 0; i < p.getChildNodes().getLength(); ++i) {
-					Node item = p.getChildNodes().item(i);
-					if ("pattern".equals(item.getNodeName())) {
-						pattern = item.getTextContent().trim();
-					} else if ("strategy".equals(item.getNodeName())) {
-						strategy = Merge.PropertyMergePolicy.Strategy.valueOf(item.getTextContent().trim());
-					}
+		String sourceQuery = findParameter(node, "sourceQuery")
+			.orElseThrow(() -> createException(node, type, "No source query"));
+		List<Merge.PropertyMergePolicy> mergePolicies = findAllParameters(node, "mergePolicy").stream().map(p -> {
+			String pattern = null;
+			Merge.PropertyMergePolicy.Strategy strategy = null;
+			for (int i = 0; i < p.getChildNodes().getLength(); ++i) {
+				Node item = p.getChildNodes().item(i);
+				if ("pattern".equals(item.getNodeName())) {
+					pattern = item.getTextContent().trim();
 				}
-				if (pattern == null || strategy == null) {
-					return null;
+				else if ("strategy".equals(item.getNodeName())) {
+					strategy = Merge.PropertyMergePolicy.Strategy.valueOf(item.getTextContent().trim());
 				}
-				return Merge.PropertyMergePolicy.of(pattern, strategy);
-			}).filter(Objects::nonNull).toList();
+			}
+			if (pattern == null || strategy == null) {
+				return null;
+			}
+			return Merge.PropertyMergePolicy.of(pattern, strategy);
+		}).filter(Objects::nonNull).toList();
 		return Merge.nodes(sourceQuery, mergePolicies);
 	}
 
 	private static Refactoring createRename(Node node, String type) {
 		String op = type.split("\\.")[1];
 
-		NodeList parameterList = findParameterList(node).orElseThrow(() ->
-			createException(node, type, "The rename refactoring requires `from` and `to` parameters")
-		);
+		NodeList parameterList = findParameterList(node).orElseThrow(
+				() -> createException(node, type, "The rename refactoring requires `from` and `to` parameters"));
 
-		String from = findParameter(node, "from", parameterList).orElseThrow(() -> createException(node, type, "No `from` parameter"));
-		String to = findParameter(node, "to", parameterList).orElseThrow(() -> createException(node, type, "No `to` parameter"));
+		String from = findParameter(node, "from", parameterList)
+			.orElseThrow(() -> createException(node, type, "No `from` parameter"));
+		String to = findParameter(node, "to", parameterList)
+			.orElseThrow(() -> createException(node, type, "No `to` parameter"));
 
 		Rename rename;
 		if ("type".equals(op)) {
 			rename = Rename.type(from, to);
-		} else if ("label".equals(op)) {
+		}
+		else if ("label".equals(op)) {
 			rename = Rename.label(from, to);
-		} else if ("nodeProperty".equals(op)) {
+		}
+		else if ("nodeProperty".equals(op)) {
 			rename = Rename.nodeProperty(from, to);
-		} else if ("relationshipProperty".equals(op)) {
+		}
+		else if ("relationshipProperty".equals(op)) {
 			rename = Rename.relationshipProperty(from, to);
-		} else {
+		}
+		else {
 			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
 		}
 
@@ -247,13 +267,13 @@ final class CatalogBasedRefactorings {
 		return createException(node, type, optionalMessage, null);
 	}
 
-	private static IllegalArgumentException createException(Node node, String type, String optionalMessage, Exception cause) {
-		String typeAsAttribute =
-			type == null || type.trim().isEmpty() ? "" : String.format(" type=\"%s\"", type.trim());
-		String suffix = optionalMessage == null ? "" : ": " + optionalMessage;
-		return new IllegalArgumentException(
-			String.format("Cannot parse <%s%s /> into a supported refactoring%s", node.getNodeName(), typeAsAttribute,
-				suffix), cause);
+	private static IllegalArgumentException createException(Node node, String type, String optionalMessage,
+			Exception cause) {
+		String typeAsAttribute = (type == null || type.trim().isEmpty()) ? ""
+				: String.format(" type=\"%s\"", type.trim());
+		String suffix = (optionalMessage != null) ? (": " + optionalMessage) : "";
+		return new IllegalArgumentException(String.format("Cannot parse <%s%s /> into a supported refactoring%s",
+				node.getNodeName(), typeAsAttribute, suffix), cause);
 	}
 
 	private static Optional<NodeList> findParameterList(Node refactoring) {
@@ -288,10 +308,12 @@ final class CatalogBasedRefactorings {
 
 	private static Optional<String> findParameter(Node refactoring, String name, NodeList optionalParameters) {
 
-		return Optional.ofNullable(optionalParameters).or(() -> findParameterList(refactoring))
+		return Optional.ofNullable(optionalParameters)
+			.or(() -> findParameterList(refactoring))
 			.flatMap(parameters -> findParameterNode(parameters, name))
 			.map(Node::getTextContent)
-			.map(String::trim).filter(v -> !v.isEmpty());
+			.map(String::trim)
+			.filter(v -> !v.isEmpty());
 	}
 
 	private static List<Node> findAllParameters(Node refactoring, String name) {
@@ -326,7 +348,8 @@ final class CatalogBasedRefactorings {
 				if ("value".equals(childNode.getNodeName())) {
 					if (!childNode.hasChildNodes()) {
 						values.add(null);
-					} else {
+					}
+					else {
 						values.add(childNode.getTextContent());
 					}
 				}
@@ -365,6 +388,4 @@ final class CatalogBasedRefactorings {
 		return result;
 	}
 
-	private CatalogBasedRefactorings() {
-	}
 }

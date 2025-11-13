@@ -15,12 +15,11 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -28,26 +27,28 @@ import org.w3c.dom.NodeList;
 /**
  * Represents a schema of
  * <ul>
- *     <li>Constraints</li>
- *     <li>Indizes</li>
+ * <li>Constraints</li>
+ * <li>Indizes</li>
  * </ul>
- * and probably other things in the future to come. The complete schema of a {@link ac.simons.neo4j.migrations.core.MigrationContext migration context}
- * will be made up of all schema entries found in the migrations discovered. schema entries of the same type and with the
- * same id will all live up in the corresponding bucket so that for example a drop operation can refer to an older version
- * of a constraint to be dropped, either explicitly or implicit.
+ * and probably other things in the future to come. The complete schema of a
+ * {@link ac.simons.neo4j.migrations.core.MigrationContext migration context} will be made
+ * up of all schema entries found in the migrations discovered. schema entries of the same
+ * type and with the same id will all live up in the corresponding bucket so that for
+ * example a drop operation can refer to an older version of a constraint to be dropped,
+ * either explicitly or implicit.
  *
  * @author Michael J. Simons
- * @soundtrack Metallica - Ride The Lightning
  * @since 1.7.0
  */
 @FunctionalInterface
 public interface Catalog {
 
 	/**
-	 * Creates a catalog based on a document following the schema of {@literal /ac/simons/neo4j/migrations/core/migration.xsd}.
-	 *
-	 * @param document A document containing a catalog element and / or one or more nested catalog item elements.
-	 * @return A new catalog, containing all items that can be extracted from the document
+	 * Creates a catalog based on a document following the schema of
+	 * {@literal /ac/simons/neo4j/migrations/core/migration.xsd}.
+	 * @param document a document containing a catalog element and / or one or more nested
+	 * catalog item elements.
+	 * @return a new catalog, containing all items that can be extracted from the document
 	 */
 	static Catalog of(Document document) {
 
@@ -78,9 +79,8 @@ public interface Catalog {
 
 	/**
 	 * Creates a catalog based on the given collection.
-	 *
-	 * @param items A collection of items
-	 * @return A new catalog
+	 * @param items a collection of items
+	 * @return a new catalog
 	 */
 	static Catalog of(Collection<CatalogItem<?>> items) {
 		return new CatalogImpl(items);
@@ -100,10 +100,9 @@ public interface Catalog {
 	Collection<CatalogItem<?>> getItems();
 
 	/**
-	 * Helper method to check weather this catalog contains an equivalent item
-	 *
-	 * @param other The item for which an equivalent is search
-	 * @return True if an equivalent item exists
+	 * Helper method to check weather this catalog contains an equivalent item.
+	 * @param other the item for which an equivalent is search
+	 * @return true if an equivalent item exists
 	 */
 	default boolean containsEquivalentItem(CatalogItem<?> other) {
 		return this.getItems().stream().anyMatch(item -> item.isEquivalentTo(other));
@@ -116,4 +115,5 @@ public interface Catalog {
 	default boolean isEmpty() {
 		return this.getItems().isEmpty();
 	}
+
 }

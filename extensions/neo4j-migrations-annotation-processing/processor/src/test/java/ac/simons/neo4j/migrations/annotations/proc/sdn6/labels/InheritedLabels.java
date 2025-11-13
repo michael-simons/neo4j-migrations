@@ -23,39 +23,53 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 public final class InheritedLabels {
 
-	@Node(primaryLabel = "Base", labels = { "Bases" })
-	private static abstract class BaseClass {
-		@Id private Long id;
-	}
-
-	@Node(primaryLabel = "Child", labels = { "Person" })
-	private static class Child extends BaseClass {
-		private String name;
-	}
-
-	@Node
-	private static abstract class A {
-		@Id private Long id;
-	}
-
-	private static abstract class B extends A {
-	}
-
-	@Node
-	private static abstract class C extends B {
+	private InheritedLabels() {
 	}
 
 	private interface X {
+
 	}
 
 	@Node
 	private interface Y {
+
+	}
+
+	@Node(primaryLabel = "Base", labels = { "Bases" })
+	private abstract static class BaseClass {
+
+		@Id
+		private Long id;
+
+	}
+
+	@Node(primaryLabel = "Child", labels = { "Person" })
+	private static final class Child extends BaseClass {
+
+		private String name;
+
+	}
+
+	@Node
+	private abstract static class A {
+
+		@Id
+		private Long id;
+
+	}
+
+	private abstract static class B extends A {
+
+	}
+
+	@Node
+	private abstract static class C extends B {
+
 	}
 
 	@Node(primaryLabel = "Foo")
-	private static class Foo extends C implements X, Y {
+	private static final class Foo extends C implements X, Y {
+
 	}
 
-	private InheritedLabels() {
-	}
 }

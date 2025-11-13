@@ -23,16 +23,14 @@ import org.neo4j.driver.summary.SummaryCounters;
  * Represents the available changes to the Graph done by a refactoring.
  *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Adrenochrom
  * @since 1.10.0
  */
 public sealed interface Counters permits DefaultCounters, Counters.Empty {
 
 	/**
-	 * Turns drivers {@link  SummaryCounters} into a standardized counters facade.
-	 *
-	 * @param summaryCounters The drivers counter
-	 * @return A new facade
+	 * Turns drivers {@link SummaryCounters} into a standardized counters facade.
+	 * @param summaryCounters the drivers counter
+	 * @return a new facade
 	 * @since 2.4.0
 	 */
 	static Counters of(SummaryCounters summaryCounters) {
@@ -47,26 +45,18 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 	}
 
 	/**
-	 * Creates a new {@link Counters} instance from the values inside a map. If a required value is not present, {@literal 0}
-	 * will be assumed.
-	 *
-	 * @param values The values to be used
-	 * @return Counters, never {@literal null}
+	 * Creates a new {@link Counters} instance from the values inside a map. If a required
+	 * value is not present, {@literal 0} will be assumed.
+	 * @param values the values to be used
+	 * @return counters, never {@literal null}
 	 */
 	static Counters of(Map<String, Integer> values) {
-		return new DefaultCounters(
-			values.getOrDefault("nodesCreated", 0),
-			values.getOrDefault("nodesDeleted", 0),
-			values.getOrDefault("labelsAdded", 0),
-			values.getOrDefault("labelsRemoved", 0),
-			values.getOrDefault("typesAdded", 0),
-			values.getOrDefault("typesRemoved", 0),
-			values.getOrDefault("propertiesSet", 0),
-			values.getOrDefault("indexesAdded", 0),
-			values.getOrDefault("indexesRemoved", 0),
-			values.getOrDefault("constraintsAdded", 0),
-			values.getOrDefault("constraintsRemoved", 0)
-		);
+		return new DefaultCounters(values.getOrDefault("nodesCreated", 0), values.getOrDefault("nodesDeleted", 0),
+				values.getOrDefault("labelsAdded", 0), values.getOrDefault("labelsRemoved", 0),
+				values.getOrDefault("typesAdded", 0), values.getOrDefault("typesRemoved", 0),
+				values.getOrDefault("propertiesSet", 0), values.getOrDefault("indexesAdded", 0),
+				values.getOrDefault("indexesRemoved", 0), values.getOrDefault("constraintsAdded", 0),
+				values.getOrDefault("constraintsRemoved", 0));
 	}
 
 	/**
@@ -125,9 +115,8 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 	int constraintsRemoved();
 
 	/**
-	 * Add {@code rhs} to this instance, creating a new one
-	 *
-	 * @param rhs The counters to add to this instance
+	 * Add {@code rhs} to this instance, creating a new one.
+	 * @param rhs the counters to add to this instance
 	 * @return a new set of counters
 	 */
 	Counters add(Counters rhs);
@@ -203,19 +192,11 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 			if (rhs == INSTANCE) {
 				return this;
 			}
-			return new DefaultCounters(
-				rhs.nodesCreated(),
-				rhs.nodesDeleted(),
-				rhs.labelsAdded(),
-				rhs.labelsRemoved(),
-				rhs.typesAdded(),
-				rhs.typesRemoved(),
-				rhs.propertiesSet(),
-				rhs.indexesAdded(),
-				rhs.indexesRemoved(),
-				rhs.constraintsAdded(),
-				rhs.constraintsRemoved()
-			);
+			return new DefaultCounters(rhs.nodesCreated(), rhs.nodesDeleted(), rhs.labelsAdded(), rhs.labelsRemoved(),
+					rhs.typesAdded(), rhs.typesRemoved(), rhs.propertiesSet(), rhs.indexesAdded(), rhs.indexesRemoved(),
+					rhs.constraintsAdded(), rhs.constraintsRemoved());
 		}
+
 	}
+
 }

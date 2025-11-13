@@ -15,15 +15,11 @@
  */
 package ac.simons.neo4j.migrations.quarkus;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import ac.simons.neo4j.migrations.core.MigrationState;
 import ac.simons.neo4j.migrations.core.Migrations;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.WithTestResource;
-
 import jakarta.inject.Inject;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -31,15 +27,17 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
 @WithTestResource(Neo4jTestResource.class)
 class WithMigrationsDisabledIT {
+
 	@RegisterExtension
-	static QuarkusUnitTest test = new QuarkusUnitTest()
-		.withConfigurationResource("application.properties")
+	static QuarkusUnitTest test = new QuarkusUnitTest().withConfigurationResource("application.properties")
 		.overrideConfigKey("org.neo4j.migrations.enabled", "false")
 		.withApplicationRoot(archive -> {
 			archive.addAsResource("neo4j/migrations");
@@ -54,19 +52,17 @@ class WithMigrationsDisabledIT {
 
 	@Test
 	void migrationsShouldNotHaveBeenApplied() {
-		try (Session session = driver.session()) {
-			var cnt = session.run(
-					"MATCH (n:__Neo4jMigration) RETURN count(n) AS cnt").single()
-				.get("cnt").asLong();
+		try (Session session = this.driver.session()) {
+			var cnt = session.run("MATCH (n:__Neo4jMigration) RETURN count(n) AS cnt").single().get("cnt").asLong();
 			assertThat(cnt).isZero();
 		}
-		assertThat(migrations.info().getElements())
-			.filteredOn(m -> m.getState() == MigrationState.PENDING)
+		assertThat(this.migrations.info().getElements()).filteredOn(m -> m.getState() == MigrationState.PENDING)
 			.hasSize(1);
 	}
 
 	@AfterEach
 	void clean() {
-		migrations.clean(true);
+		this.migrations.clean(true);
 	}
+
 }

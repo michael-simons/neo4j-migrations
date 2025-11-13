@@ -23,7 +23,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 /**
  * @author Michael J. Simons
  */
-@Unique(label = "foo", properties = {"a", "b", "c"})
+@Unique(label = "foo", properties = { "a", "b", "c" })
 public class CoffeeBeanPureExplicitLabel {
 
 	@Unique(label = "foo")
@@ -34,4 +34,5 @@ public class CoffeeBeanPureExplicitLabel {
 
 	@Required(label = "foo", property = "theName")
 	public String nameA;
+
 }

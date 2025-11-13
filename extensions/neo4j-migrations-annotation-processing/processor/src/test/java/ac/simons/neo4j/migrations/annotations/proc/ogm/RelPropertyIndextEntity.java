@@ -36,4 +36,5 @@ public class RelPropertyIndextEntity {
 
 	@Index
 	String description;
+
 }

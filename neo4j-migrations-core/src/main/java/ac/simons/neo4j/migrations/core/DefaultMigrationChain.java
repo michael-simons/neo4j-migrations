@@ -22,6 +22,7 @@ import java.util.Optional;
 
 /**
  * Only implementation of a {@link MigrationChain}.
+ *
  * @author Michael J. Simons
  * @since 2.0.0
  */
@@ -38,32 +39,32 @@ final class DefaultMigrationChain implements MigrationChain {
 
 	@Override
 	public String getServerAddress() {
-		return connectionDetailsDelegate.getServerAddress();
+		return this.connectionDetailsDelegate.getServerAddress();
 	}
 
 	@Override
 	public String getServerVersion() {
-		return connectionDetailsDelegate.getServerVersion();
+		return this.connectionDetailsDelegate.getServerVersion();
 	}
 
 	@Override
 	public String getServerEdition() {
-		return connectionDetailsDelegate.getServerEdition();
+		return this.connectionDetailsDelegate.getServerEdition();
 	}
 
 	@Override
 	public String getUsername() {
-		return connectionDetailsDelegate.getUsername();
+		return this.connectionDetailsDelegate.getUsername();
 	}
 
 	@Override
 	public Optional<String> getOptionalDatabaseName() {
-		return connectionDetailsDelegate.getOptionalDatabaseName();
+		return this.connectionDetailsDelegate.getOptionalDatabaseName();
 	}
 
 	@Override
 	public Optional<String> getOptionalSchemaDatabaseName() {
-		return connectionDetailsDelegate.getOptionalSchemaDatabaseName();
+		return this.connectionDetailsDelegate.getOptionalSchemaDatabaseName();
 	}
 
 	@Override
@@ -87,10 +88,11 @@ final class DefaultMigrationChain implements MigrationChain {
 		return switch (targetVersion) {
 			case CURRENT -> getLastAppliedVersion();
 			case LATEST -> this.elements.keySet().stream().skip(this.elements.size() - 1L).findFirst();
-			case NEXT ->
-				this.elements.entrySet().stream().dropWhile(e -> e.getValue().getState() == MigrationState.APPLIED)
-					.map(Map.Entry::getKey)
-					.findFirst();
+			case NEXT -> this.elements.entrySet()
+				.stream()
+				.dropWhile(e -> e.getValue().getState() == MigrationState.APPLIED)
+				.map(Map.Entry::getKey)
+				.findFirst();
 		};
 	}
 
@@ -102,10 +104,12 @@ final class DefaultMigrationChain implements MigrationChain {
 			var next = it.next();
 			if (next.getValue().getState() == MigrationState.APPLIED) {
 				version = next.getKey();
-			} else {
+			}
+			else {
 				break;
 			}
 		}
 		return Optional.ofNullable(version);
 	}
+
 }

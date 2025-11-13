@@ -26,8 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Internally used String utilities. There are no guarantees on the stability of this API. It won't be available when
- * run on the module path.
+ * Internally used String utilities. There are no guarantees on the stability of this API.
+ * It won't be available when run on the module path.
  *
  * @author Michael J. Simon
  * @since 1.2.2
@@ -52,14 +52,16 @@ public final class Strings {
 			@SuppressWarnings("squid:S4790") // Definitely not at risk here.
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
 			return md5.digest(bytes);
-		} catch (NoSuchAlgorithmException e) {
-			throw new UncheckedNoSuchAlgorithmException(e);
+		}
+		catch (NoSuchAlgorithmException ex) {
+			throw new UncheckedNoSuchAlgorithmException(ex);
 		}
 	};
 
 	/**
-	 * A pattern representing valid Neo4j database names as described in
-	 * <a href="https://neo4j.com/docs/cypher-manual/current/databases/#administration-databases-create-database">Database management</a>.
+	 * A pattern representing valid Neo4j database names as described in <a href=
+	 * "https://neo4j.com/docs/cypher-manual/current/databases/#administration-databases-create-database">Database
+	 * management</a>.
 	 */
 	public static final String VALID_DATABASE_NAME = "([a-z][a-z\\d.\\-]{2,62})";
 
@@ -70,11 +72,14 @@ public final class Strings {
 	 */
 	public static final Function<byte[], String> BASE64_ENCODING = HEX_FORMAT::formatHex;
 
+	private Strings() {
+	}
+
 	/**
-	 * Capitalizes a string
-	 *
-	 * @param value String to capitalize
-	 * @return Capitalized String or the original value if unchanged or if the value was {@literal null} or empty.
+	 * Capitalizes a string.
+	 * @param value string to capitalize
+	 * @return capitalized String or the original value if unchanged or if the value was
+	 * {@literal null} or empty.
 	 */
 	public static String capitalize(String value) {
 		if (value == null || value.isEmpty()) {
@@ -94,8 +99,7 @@ public final class Strings {
 
 	/**
 	 * Transforms a string with words separated by {@literal _} into a camelCase string.
-	 *
-	 * @param value The value to transform
+	 * @param value the value to transform
 	 * @return the value in camelCase
 	 */
 	public static String toCamelCase(String value) {
@@ -111,7 +115,8 @@ public final class Strings {
 			i += Character.charCount(codePoint);
 			if (codePoint == u) {
 				nextUpper = true;
-			} else {
+			}
+			else {
 				UnaryOperator<Integer> transform = Character::toLowerCase;
 				if (nextUpper || (prev != null && Character.isLowerCase(prev) && Character.isUpperCase(codePoint))) {
 					transform = Character::toUpperCase;
@@ -126,17 +131,16 @@ public final class Strings {
 	}
 
 	/**
-	 * This won't match a statement like
-	 * <pre>
+	 * This won't match a statement like <pre>
 	 *     // Right at the start
 	 *     MATCH (n) RETURN count(n) AS n;
-	 * </pre>
-	 * which will pe extracted from a Cypher file as one statement starting with a comment.
+	 * </pre> which will pe extracted from a Cypher file as one statement starting with a
+	 * comment.
 	 * <p>
-	 * It would be nice to use the JavaCC Parser here as we do in Cypher-DSL, but that would require Java 11 for core.
-	 *
-	 * @param statement A statement to check
-	 * @return True if the statement is not null and is a single line comment
+	 * It would be nice to use the JavaCC Parser here as we do in Cypher-DSL, but that
+	 * would require Java 11 for core.
+	 * @param statement a statement to check
+	 * @return true if the statement is not null and is a single line comment
 	 */
 	public static boolean isSingleLineComment(String statement) {
 
@@ -155,31 +159,29 @@ public final class Strings {
 	}
 
 	/**
-	 * Creates an optional value from a given string value, filtering additionally on blankness.
-	 *
-	 * @param value The value to create an optional from
-	 * @return An optional
+	 * Creates an optional value from a given string value, filtering additionally on
+	 * blankness.
+	 * @param value the value to create an optional from
+	 * @return an optional
 	 */
 	public static Optional<String> optionalOf(String value) {
-		return Optional.ofNullable(value)
-			.filter(Strings::valueIsNotBlank)
-			.map(String::trim);
+		return Optional.ofNullable(value).filter(Strings::valueIsNotBlank).map(String::trim);
 	}
 
 	/**
-	 * @param value The value to check
+	 * Checks whether a string is blank or not.
+	 * @param value the value to check
 	 * @return {@literal true} if {@code value} is null or completely blank.
 	 */
 	public static boolean isBlank(String value) {
-		return value == null || value.trim().isEmpty();
+		return value == null || value.isBlank();
 	}
 
 	/**
-	 * Replaces all calls to {@code elementId()} (A Neo4j 5 feature) with a combination of {@code toString(id())} so that
-	 * callers can reliably work on String based ids.
-	 *
-	 * @param query The query in which to replace calls to {@code elementId()}
-	 * @return An updated query
+	 * Replaces all calls to {@code elementId()} (A Neo4j 5 feature) with a combination of
+	 * {@code toString(id())} so that callers can reliably work on String based ids.
+	 * @param query the query in which to replace calls to {@code elementId()}
+	 * @return an updated query
 	 */
 	public static String replaceElementIdCalls(String query) {
 
@@ -194,6 +196,4 @@ public final class Strings {
 		return sb.toString();
 	}
 
-	private Strings() {
-	}
 }

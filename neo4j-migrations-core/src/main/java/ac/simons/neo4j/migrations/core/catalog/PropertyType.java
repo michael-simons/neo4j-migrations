@@ -18,8 +18,9 @@ package ac.simons.neo4j.migrations.core.catalog;
 import java.util.Locale;
 
 /**
- * Cypher types applicable as property types in constraints.
- * See <a href="https://neo4j.com/docs/cypher-manual/current/constraints/syntax/">Constraint Syntax</a>.
+ * Cypher types applicable as property types in constraints. See
+ * <a href="https://neo4j.com/docs/cypher-manual/current/constraints/syntax/">Constraint
+ * Syntax</a>.
  *
  * @author Michael J. Simons
  * @since 2.5.0
@@ -78,4 +79,5 @@ public enum PropertyType {
 	String getName() {
 		return name().replace("_", " ");
 	}
+
 }

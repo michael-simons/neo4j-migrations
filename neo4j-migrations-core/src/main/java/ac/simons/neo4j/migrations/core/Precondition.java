@@ -21,10 +21,12 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * A precondition can be needs to be met after discovering migrations and prior to building changes. If it isn't met, the
- * outcome depends on its {@link Precondition#getType()}: If it's an unmet {@link Type#ASSERTION}, discovering of migrations will
- * stop and not check any migrations or preconditions further. If it's an unmet {@link Type#ASSUMPTION}, the migration
- * to which the precondition belongs, will be discarded.
+ * A precondition can be needs to be met after discovering migrations and prior to
+ * building changes. If it isn't met, the outcome depends on its
+ * {@link Precondition#getType()}: If it's an unmet {@link Type#ASSERTION}, discovering of
+ * migrations will stop and not check any migrations or preconditions further. If it's an
+ * unmet {@link Type#ASSUMPTION}, the migration to which the precondition belongs, will be
+ * discarded.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -33,48 +35,12 @@ import java.util.regex.Pattern;
 interface Precondition {
 
 	/**
-	 * Type describing how a precondition is dealt with (assumed or asserted).
-	 */
-	enum Type {
-		/**
-		 * Preconditions that are assumed and are not satisfied will lead to migrations being skipped.
-		 */
-		ASSUMPTION("assume"),
-		/**
-		 * Preconditions that are asserted and are not satisfied will halt the migrations at the given migration.
-		 */
-		ASSERTION("assert");
-
-		private final String keyword;
-
-		private final Pattern pattern;
-
-		Type(String keyword) {
-			this.keyword = keyword;
-			this.pattern = Pattern.compile("(?i)// *" + keyword + "(?: in (?:schema|target))? (that|q').*");
-		}
-
-		String keyword() {
-			return keyword;
-		}
-
-		static Optional<Type> of(String value) {
-			if (ASSUMPTION.pattern.matcher(value).find()) {
-				return Optional.of(Type.ASSUMPTION);
-			} else if (ASSERTION.pattern.matcher(value).find()) {
-				return Optional.of(Type.ASSERTION);
-			} else {
-				return Optional.empty();
-			}
-		}
-	}
-
-	/**
 	 * Tries to parse a precondition.
-	 *
-	 * @param in The single line comment
-	 * @return An empty optional if it's not something that is meant to be a precondition or a precondition
-	 * @throws IllegalArgumentException if {@literal in} looks like a precondition but cannot be successfully parsed
+	 * @param in the single line comment
+	 * @return an empty optional if it's not something that is meant to be a precondition
+	 * or a precondition
+	 * @throws IllegalArgumentException if {@literal in} looks like a precondition but
+	 * cannot be successfully parsed
 	 */
 	static Optional<Precondition> parse(String in) {
 
@@ -96,40 +62,86 @@ interface Precondition {
 				return producer.map(f -> f.apply(type));
 			}
 
-			throw new IllegalArgumentException(
-				"Wrong precondition " + formattedHint(in) + ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
+			throw new IllegalArgumentException("Wrong precondition " + formattedHint(in)
+					+ ". Supported are `<assume|assert> (that <edition|version>)|q' <cypherQuery>)`.");
 		});
 	}
 
 	/**
-	 * @param cypherResource The resource to extract preconditions from
-	 * @return A list of preconditions
+	 * Gets all conditions in the given resource.
+	 * @param cypherResource the resource to extract preconditions from
+	 * @return a list of preconditions
 	 */
 	static List<Precondition> in(CypherResource cypherResource) {
-		return cypherResource.getSingleLineComments().stream().map(Precondition::parse)
+		return cypherResource.getSingleLineComments()
+			.stream()
+			.map(Precondition::parse)
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.toList();
 	}
 
+	static String formattedHint(String hint) {
+		return "`" + hint.replace("//", "").trim() + "`";
+	}
+
 	/**
 	 * Checks whether this precondition is satisfied in the given context.
-	 *
-	 * @param migrationContext The context in which this condition should be satisfied
-	 * @return True, if the precondition can be satisfied in the given context.
+	 * @param migrationContext the context in which this condition should be satisfied
+	 * @return true, if the precondition can be satisfied in the given context.
 	 */
 	boolean isMet(MigrationContext migrationContext);
 
 	/**
-	 * Every precondition must either be an {@link Type#ASSUMPTION assumption} or an {@link Type#ASSERTION}, and will
-	 * be treated accordingly (if an assumption is not satisfied, a given migration will be skipped, if an assertion is
-	 * not satisfied, it will halt the chain of migration at the given migration).
-	 *
-	 * @return The type of the precondition.
+	 * Every precondition must either be an {@link Type#ASSUMPTION assumption} or an
+	 * {@link Type#ASSERTION}, and will be treated accordingly (if an assumption is not
+	 * satisfied, a given migration will be skipped, if an assertion is not satisfied, it
+	 * will halt the chain of migration at the given migration).
+	 * @return the type of the precondition.
 	 */
 	Type getType();
 
-	static String formattedHint(String hint) {
-		return "`" + hint.replace("//", "").trim() + "`";
+	/**
+	 * Type describing how a precondition is dealt with (assumed or asserted).
+	 */
+	enum Type {
+
+		/**
+		 * Preconditions that are assumed and are not satisfied will lead to migrations
+		 * being skipped.
+		 */
+		ASSUMPTION("assume"),
+		/**
+		 * Preconditions that are asserted and are not satisfied will halt the migrations
+		 * at the given migration.
+		 */
+		ASSERTION("assert");
+
+		private final String keyword;
+
+		private final Pattern pattern;
+
+		Type(String keyword) {
+			this.keyword = keyword;
+			this.pattern = Pattern.compile("(?i)// *" + keyword + "(?: in (?:schema|target))? (that|q').*");
+		}
+
+		static Optional<Type> of(String value) {
+			if (ASSUMPTION.pattern.matcher(value).find()) {
+				return Optional.of(Type.ASSUMPTION);
+			}
+			else if (ASSERTION.pattern.matcher(value).find()) {
+				return Optional.of(Type.ASSERTION);
+			}
+			else {
+				return Optional.empty();
+			}
+		}
+
+		String keyword() {
+			return this.keyword;
+		}
+
 	}
+
 }

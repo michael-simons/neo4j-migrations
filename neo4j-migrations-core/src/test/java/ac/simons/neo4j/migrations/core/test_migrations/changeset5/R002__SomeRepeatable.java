@@ -15,10 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core.test_migrations.changeset5;
 
-import org.neo4j.driver.Session;
-
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
+import org.neo4j.driver.Session;
 
 /**
  * @author Michael J. Simons
@@ -32,5 +31,5 @@ public class R002__SomeRepeatable implements JavaBasedMigration {
 			session.run("CREATE (n:FromRepeatedMig)").consume();
 		}
 	}
-}
 
+}

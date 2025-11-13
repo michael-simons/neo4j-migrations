@@ -20,21 +20,21 @@ import java.util.List;
 /**
  * The type of an element inside a graph.
  *
+ * @param <ET> the concrete element type
  * @author Michael J. Simons
- * @param <ET> The concrete element type
- * @soundtrack Kraftklub - KARGO
  * @since 1.11.0
  */
 @SuppressWarnings("squid:S119") // I like the generic parameter name.
 public interface ElementType<ET extends ElementType<ET>> {
 
 	/**
-	 * @return The canonical name of the (Java) type that "owns" this graph element
+	 * {@return the canonical name of the (Java) type that "owns" this graph element}
 	 */
 	String getOwningTypeName();
 
 	/**
-	 * @return the properties of this entity.
+	 * {@return the properties of this entity}
 	 */
 	List<PropertyType<ET>> getProperties();
+
 }

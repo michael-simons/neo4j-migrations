@@ -15,12 +15,11 @@
  */
 package ac.simons.neo4j.migrations.maven;
 
-import ac.simons.neo4j.migrations.core.MigrationVersion;
-import ac.simons.neo4j.migrations.core.Migrations;
-
 import java.util.Optional;
 import java.util.logging.Level;
 
+import ac.simons.neo4j.migrations.core.MigrationVersion;
+import ac.simons.neo4j.migrations.core.Migrations;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -31,10 +30,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * @author Michael J. Simons
  * @since 0.0.11
  */
-@Mojo(name = "migrate",
-	requiresDependencyResolution = ResolutionScope.TEST,
-	defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST,
-	threadSafe = true)
+@Mojo(name = "migrate", requiresDependencyResolution = ResolutionScope.TEST,
+		defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, threadSafe = true)
 public class MigrateMojo extends AbstractConnectedMojo {
 
 	/**
@@ -51,4 +48,5 @@ public class MigrateMojo extends AbstractConnectedMojo {
 		lastAppliedMigration.map(MigrationVersion::getValue)
 			.ifPresent(version -> LOGGER.log(Level.INFO, "Database migrated to version {0}.", version));
 	}
+
 }

@@ -15,9 +15,9 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -25,24 +25,26 @@ import org.junit.jupiter.api.Test;
 class ChainBuilderIT extends TestBase {
 
 	@Test
-	@SuppressWarnings({ "squid:S5961", "deprecation" }) // Pretty happy with the number of assertions.
+	@SuppressWarnings({ "squid:S5961", "deprecation" }) // Pretty happy with the number of
+														// assertions.
 	void migrationInfoShouldWork() {
 
 		// Apply some migrations
-		Migrations migrations = new Migrations(MigrationsConfig.builder().withPackagesToScan(
-			"ac.simons.neo4j.migrations.core.test_migrations.changeset1").build(), driver);
+		Migrations migrations = new Migrations(MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1")
+			.build(), this.driver);
 		assertThat(migrations.getConnectionDetails()).isNotNull();
 		migrations.apply();
 
 		// Now use only the chain service
-		MigrationsConfig config = MigrationsConfig.builder().withPackagesToScan(
-			"ac.simons.neo4j.migrations.core.test_migrations.changeset1",
-			"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
+		MigrationsConfig config = MigrationsConfig.builder()
+			.withPackagesToScan("ac.simons.neo4j.migrations.core.test_migrations.changeset1",
+					"ac.simons.neo4j.migrations.core.test_migrations.changeset2")
 			.withLocationsToScan("classpath:my/awesome/migrations/moreStuff")
 			.build();
-		MigrationContext context = new DefaultMigrationContext(config, driver);
-		MigrationChain migrationChain = new ChainBuilder()
-			.buildChain(context, new DiscoveryService().findMigrations(context));
+		MigrationContext context = new DefaultMigrationContext(config, this.driver);
+		MigrationChain migrationChain = new ChainBuilder().buildChain(context,
+				new DiscoveryService().findMigrations(context));
 
 		assertThat(migrationChain.getServerAddress()).isEqualTo(getServerAddress());
 		assertThat(migrationChain.getServerVersion()).matches("Neo4j/(\\d\\.\\d{1,2}\\.\\d+|20\\d{2}.\\d{2}.*)");
@@ -120,10 +122,11 @@ class ChainBuilderIT extends TestBase {
 			assertThat(element.getVersion()).isEqualTo("023");
 			assertThat(element.getOptionalDescription()).hasValue("NichtsIstWieEsScheint");
 			assertThat(element.getSource())
-					.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset2.V023__NichtsIstWieEsScheint");
+				.isEqualTo("ac.simons.neo4j.migrations.core.test_migrations.changeset2.V023__NichtsIstWieEsScheint");
 			assertThat(element.getInstalledOn()).isEmpty();
 			assertThat(element.getInstalledBy()).isEmpty();
 			assertThat(element.getExecutionTime()).isEmpty();
 		});
 	}
+
 }

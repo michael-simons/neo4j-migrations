@@ -25,12 +25,13 @@ public final class Testgenerators {
 	/**
 	 * Not visible.
 	 */
-	private static class HiddenA implements CatalogNameGenerator {
+	private static final class HiddenA implements CatalogNameGenerator {
 
 		@Override
 		public String getCatalogName() {
 			return null;
 		}
+
 	}
 
 	/**
@@ -42,12 +43,13 @@ public final class Testgenerators {
 		public String getCatalogName() {
 			return null;
 		}
+
 	}
 
 	/**
 	 * Missing constructor.
 	 */
-	public static class NoDefaultCtor implements CatalogNameGenerator {
+	public static final class NoDefaultCtor implements CatalogNameGenerator {
 
 		private NoDefaultCtor() {
 		}
@@ -56,6 +58,7 @@ public final class Testgenerators {
 		public String getCatalogName() {
 			return null;
 		}
+
 	}
 
 	/**
@@ -71,11 +74,14 @@ public final class Testgenerators {
 		public String getCatalogName() {
 			return null;
 		}
+
 	}
 
 	/**
 	 * Completely derailed.
 	 */
 	public static class WrongType {
+
 	}
+
 }

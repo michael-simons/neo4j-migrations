@@ -26,16 +26,20 @@ import org.neo4j.ogm.id.IdStrategy;
 @NodeEntity(label = "EntityWithExternallyGeneratedId")
 public class EntityWithExternallyGeneratedId {
 
+	@Id
+	@GeneratedValue(strategy = MyGeneration.class)
+	String id;
+
 	/**
 	 * Non-functional id generation for testing purpose.
 	 */
 	public static class MyGeneration implements IdStrategy {
+
 		@Override
 		public Object generateId(Object entity) {
 			return "People tried to put us down…";
 		}
+
 	}
 
-	@Id @GeneratedValue(strategy = MyGeneration.class)
-	String id;
 }

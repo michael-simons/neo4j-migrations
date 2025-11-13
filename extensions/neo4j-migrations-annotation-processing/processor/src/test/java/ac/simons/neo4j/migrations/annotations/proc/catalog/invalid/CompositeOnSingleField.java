@@ -24,7 +24,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Unique;
  */
 public class CompositeOnSingleField {
 
-	@Unique(properties = {"a", "b"})
+	@Unique(properties = { "a", "b" })
 	public UUID uuid;
 
 }

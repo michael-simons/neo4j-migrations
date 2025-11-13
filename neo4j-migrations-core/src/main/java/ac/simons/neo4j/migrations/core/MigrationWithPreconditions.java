@@ -19,33 +19,34 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Internal marker interface for migrations allowing preconditions. In case preconditions change the checksum of a migration,
- * alternative checksums can be recognized for a given migration as well.
+ * Internal marker interface for migrations allowing preconditions. In case preconditions
+ * change the checksum of a migration, alternative checksums can be recognized for a given
+ * migration as well.
  *
  * @author Michael J. Simons
- * @soundtrack Motörhead - Iron Fist
  * @since 1.7.0
  */
 non-sealed interface MigrationWithPreconditions extends Migration {
 
 	/**
-	 * @return a list of preconditions
+	 * {@return a list of preconditions}
 	 */
 	List<Precondition> getPreconditions();
 
 	/**
-	 * @return potentially alternative checksums caused by the content being different due to the way the specific resource
-	 * handles preconditions
+	 * Returns potentially alternative checksums caused by the content being different due
+	 * to the way the specific resource handles preconditions.
+	 * @return a list of alternative checksums
 	 */
 	default List<String> getAlternativeChecksums() {
 		return Collections.emptyList();
 	}
 
 	/**
-	 * Defaults to a no-op
-	 *
+	 * Defaults to a no-op.
 	 * @param alternativeChecksums a list of alternative checksums
 	 */
 	default void setAlternativeChecksums(List<String> alternativeChecksums) {
 	}
+
 }

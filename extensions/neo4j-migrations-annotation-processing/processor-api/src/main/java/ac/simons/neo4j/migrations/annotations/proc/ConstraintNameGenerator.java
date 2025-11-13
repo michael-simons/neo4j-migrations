@@ -15,28 +15,28 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc;
 
+import java.util.Collection;
+
 import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
 
-import java.util.Collection;
-
 /**
- * Generator for constraint names
+ * Generator for constraint names.
  *
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
  * @since 1.11.0
  */
 @FunctionalInterface
 public interface ConstraintNameGenerator {
 
 	/**
-	 * Generates a name for an index with the given {@link Type type} for the
-	 * given list of {@link PropertyType properties}.
-	 *
-	 * @param type       The type of the constraint
-	 * @param properties The properties to create the constraint for. All properties will have the same owner.
-	 * @return A valid constraint name
+	 * Generates a name for an index with the given {@link Type type} for the given list
+	 * of {@link PropertyType properties}.
+	 * @param type the type of the constraint
+	 * @param properties the properties to create the constraint for. All properties will
+	 * have the same owner.
+	 * @return a valid constraint name
 	 */
 	String generateName(Constraint.Type type, Collection<PropertyType<?>> properties);
+
 }

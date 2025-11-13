@@ -23,7 +23,9 @@ import java.util.Collections;
  * @author Michael J. Simons
  */
 public final class SomeCatalogItem extends AbstractCatalogItem<ItemType> {
+
 	public SomeCatalogItem() {
 		super("name", null, TargetEntityType.NODE, "x", Collections.singleton("p"), null);
 	}
+
 }

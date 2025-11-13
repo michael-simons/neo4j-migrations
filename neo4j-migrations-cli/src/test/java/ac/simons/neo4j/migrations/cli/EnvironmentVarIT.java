@@ -15,10 +15,6 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import picocli.CommandLine;
-
 import java.lang.reflect.Field;
 import java.net.URI;
 
@@ -26,6 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.security.InternalAuthToken;
+import picocli.CommandLine;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Checks if known Neo4j environment variables work.
@@ -33,6 +32,12 @@ import org.neo4j.driver.internal.security.InternalAuthToken;
  * @author Michael J. Simons
  */
 class EnvironmentVarIT {
+
+	static void assertAuthToken(AuthToken authToken) {
+		assertThat(authToken).isInstanceOf(InternalAuthToken.class);
+		assertThat(((InternalAuthToken) authToken).toMap()).containsEntry("principal", Values.value("foo"))
+			.containsEntry("credentials", Values.value("bar"));
+	}
 
 	@Test
 	void shouldUseNeo4jAuraDefaultEnv() throws NoSuchFieldException, IllegalAccessException {
@@ -50,10 +55,4 @@ class EnvironmentVarIT {
 		assertThat(addressValue).hasToString("bolt://aura-nicht-ok:1234");
 	}
 
-	static void assertAuthToken(AuthToken authToken) {
-		assertThat(authToken).isInstanceOf(InternalAuthToken.class);
-		assertThat(((InternalAuthToken) authToken).toMap())
-			.containsEntry("principal", Values.value("foo"))
-			.containsEntry("credentials", Values.value("bar"));
-	}
 }

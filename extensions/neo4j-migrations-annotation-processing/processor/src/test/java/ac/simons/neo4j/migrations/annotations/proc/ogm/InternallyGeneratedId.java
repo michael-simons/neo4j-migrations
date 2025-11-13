@@ -25,6 +25,8 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @NodeEntity(label = "InternallyGeneratedId")
 public class InternallyGeneratedId {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	Long id;
+
 }

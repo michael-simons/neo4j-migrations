@@ -17,11 +17,11 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
 import java.util.UUID;
 
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.springframework.data.neo4j.core.schema.Node;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+import org.neo4j.ogm.annotation.NodeEntity;
+
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
@@ -35,4 +35,5 @@ public class MixingSDNAndOgm {
 
 	@Required
 	public String name;
+
 }

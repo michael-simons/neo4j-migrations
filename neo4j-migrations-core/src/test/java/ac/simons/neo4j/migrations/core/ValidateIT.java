@@ -15,16 +15,15 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
-
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
+import ac.simons.neo4j.migrations.core.ValidationResult.Outcome;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -34,7 +33,7 @@ class ValidateIT extends TestBase {
 	@Test
 	void noResolvedMigrationsShouldResultInValidWithWarning() {
 
-		Migrations migrations = new Migrations(MigrationsConfig.builder().build(), driver);
+		Migrations migrations = new Migrations(MigrationsConfig.builder().build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.VALID);
 		assertThat(result.getWarnings()).containsExactly("No migrations resolved.");
@@ -43,9 +42,8 @@ class ValidateIT extends TestBase {
 	@Test
 	void actuallyValid() {
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		migrations.apply();
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.VALID);
@@ -55,9 +53,8 @@ class ValidateIT extends TestBase {
 	@Test
 	void noMigrationsThereAtAll() {
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.INCOMPLETE_DATABASE);
 	}
@@ -65,16 +62,15 @@ class ValidateIT extends TestBase {
 	@Test
 	void partiallyApplied() {
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run(
 					"CREATE (n:`__Neo4jMigration` {version:\"BASELINE\"}) -[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> (m:`__Neo4jMigration` {checksum:\"1100083332\",description:\"delete old data\",source:\"V0001__delete_old_data.cypher\",type:\"CYPHER\",version:\"0001\"})",
 					Values.parameters("when", ZonedDateTime.now(), "duration", Duration.ofSeconds(23)))
 				.consume();
 		}
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.INCOMPLETE_DATABASE);
 	}
@@ -82,9 +78,8 @@ class ValidateIT extends TestBase {
 	@Test
 	void incompleteLocal() {
 
-		try (Session session = driver.session()) {
-			session.run(
-					"CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
+		try (Session session = this.driver.session()) {
+			session.run("CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
 					+ "     (:`__Neo4jMigration` {checksum:\"1100083332\",description:\"delete old data\",source:\"V0001__delete_old_data.cypher\",type:\"CYPHER\",version:\"0001\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
@@ -95,9 +90,8 @@ class ValidateIT extends TestBase {
 				.consume();
 		}
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.INCOMPLETE_MIGRATIONS);
 	}
@@ -105,9 +99,8 @@ class ValidateIT extends TestBase {
 	@Test
 	void wrongChecksum() {
 
-		try (Session session = driver.session()) {
-			session.run(
-					"CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
+		try (Session session = this.driver.session()) {
+			session.run("CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
 					+ "     (:`__Neo4jMigration` {checksum:\"1100083332\",description:\"delete old data\",source:\"V0001__delete_old_data.cypher\",type:\"CYPHER\",version:\"0001\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
@@ -116,9 +109,8 @@ class ValidateIT extends TestBase {
 				.consume();
 		}
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.DIFFERENT_CONTENT);
 	}
@@ -126,9 +118,8 @@ class ValidateIT extends TestBase {
 	@Test
 	void wrongVersion() {
 
-		try (Session session = driver.session()) {
-			session.run(
-					"CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
+		try (Session session = this.driver.session()) {
+			session.run("CREATE (:`__Neo4jMigration` {version:\"BASELINE\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
 					+ "     (:`__Neo4jMigration` {checksum:\"1100083332\",description:\"delete old data\",source:\"V0001__delete_old_data.cypher\",type:\"CYPHER\",version:\"0001\"}) "
 					+ "-[:MIGRATED_TO {connectedAs:\"neo4j\",at:$when,in:$duration,by:\"msimons\"}]-> "
@@ -137,10 +128,10 @@ class ValidateIT extends TestBase {
 				.consume();
 		}
 
-		Migrations migrations = new Migrations(MigrationsConfig
-			.builder().withLocationsToScan("/some/changeset")
-			.build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(), this.driver);
 		ValidationResult result = migrations.validate();
 		assertThat(result.getOutcome()).isEqualTo(Outcome.DIFFERENT_CONTENT);
 	}
+
 }

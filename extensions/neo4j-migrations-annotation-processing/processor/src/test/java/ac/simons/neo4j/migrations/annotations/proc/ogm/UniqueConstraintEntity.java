@@ -31,4 +31,5 @@ public class UniqueConstraintEntity {
 
 	@Index(unique = true)
 	String login;
+
 }

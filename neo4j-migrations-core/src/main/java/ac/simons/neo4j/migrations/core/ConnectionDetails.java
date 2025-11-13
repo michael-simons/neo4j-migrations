@@ -18,28 +18,29 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * Provides detailed information about the connection being used when invoking any method that talks to the database.
+ * Provides detailed information about the connection being used when invoking any method
+ * that talks to the database.
  *
  * @author Michael J. Simons
- * @soundtrack Snoop Dogg - Doggystyle
  * @since 1.4.0
  */
 public sealed interface ConnectionDetails permits MigrationChain, DefaultConnectionDetails {
 
 	/**
 	 * Creates an instance of {@link ConnectionDetails}. Can be useful for testing.
-	 *
-	 * @param serverAddress              the address of the server used
-	 * @param serverVersion              the Neo4j version the server is running
-	 * @param serverEdition              the Neo4j edition the server is running
-	 * @param userName                   the Neo4j user that ran the migrations
-	 * @param optionalDatabaseName       the database if applicable (Neo4j 4.0 and up)
+	 * @param serverAddress the address of the server used
+	 * @param serverVersion the neo4j version the server is running
+	 * @param serverEdition the neo4j edition the server is running
+	 * @param userName the neo4j user that ran the migrations
+	 * @param optionalDatabaseName the database if applicable (Neo4j 4.0 and up)
 	 * @param optionalSchemaDatabaseName the database if applicable (Neo4j 4.0 and up)
-	 * @return A new, unmodifiable instance
+	 * @return a new, unmodifiable instance
 	 * @since 2.3.0
 	 */
-	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName, String optionalDatabaseName, String optionalSchemaDatabaseName) {
-		return new DefaultConnectionDetails(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName, optionalSchemaDatabaseName);
+	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName,
+			String optionalDatabaseName, String optionalSchemaDatabaseName) {
+		return new DefaultConnectionDetails(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName,
+				optionalSchemaDatabaseName);
 	}
 
 	/**
@@ -54,7 +55,6 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 
 	/**
 	 * {@return the Neo4j edition the server is running}
-	 *
 	 * @since 1.5.0
 	 */
 	String getServerEdition();
@@ -73,4 +73,5 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 	 * {@return the database if applicable (Neo4j 4.0 and up)}
 	 */
 	Optional<String> getOptionalSchemaDatabaseName();
+
 }

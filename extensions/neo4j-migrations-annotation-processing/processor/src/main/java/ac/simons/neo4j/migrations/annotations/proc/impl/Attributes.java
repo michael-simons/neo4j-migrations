@@ -21,10 +21,9 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Access to commonly used attribute names and their values
+ * Access to commonly used attribute names and their values.
  *
  * @author Michael J. Simons
- * @soundtrack Motörhead - Iron Fist
  * @since 1.15.0
  */
 final class Attributes {
@@ -42,15 +41,19 @@ final class Attributes {
 	static final String OPTIONS = "options";
 	static final String KEY = "key";
 
+	private Attributes() {
+
+	}
+
 	static Optional<ExecutableElement> get(TypeElement annotation, String name) {
 		if (annotation == null) {
 			return Optional.empty();
 		}
-		return annotation.getEnclosedElements().stream()
-			.filter(e -> e.getSimpleName().contentEquals(name)).map(ExecutableElement.class::cast).findFirst();
+		return annotation.getEnclosedElements()
+			.stream()
+			.filter(e -> e.getSimpleName().contentEquals(name))
+			.map(ExecutableElement.class::cast)
+			.findFirst();
 	}
 
-	private Attributes() {
-
-	}
 }

@@ -41,4 +41,5 @@ public final class CypherResourceBasedMigrationProvider implements ResourceBased
 	public int getOrder() {
 		return Ordered.HIGHEST_PRECEDENCE;
 	}
+
 }

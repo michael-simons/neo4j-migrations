@@ -15,11 +15,11 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.catalog.invalid;
 
+import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 
 /**
  * @author Michael J. Simons
@@ -33,4 +33,5 @@ public final class UniqueOnRelSDN {
 
 	@Unique
 	private String y;
+
 }

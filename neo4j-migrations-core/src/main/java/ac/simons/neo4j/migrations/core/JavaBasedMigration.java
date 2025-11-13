@@ -26,6 +26,23 @@ import java.util.Optional;
  */
 public non-sealed interface JavaBasedMigration extends Migration {
 
+	/**
+	 * Helper method for retrieving the default constructor of a given class. When such a
+	 * constructor exist, it will be made accessible.
+	 * @param c the class whose constructor should be returned
+	 * @param <T> the type of the class
+	 * @return the default constructor
+	 * @throws NoSuchMethodException if there is no such default constructor
+	 * @since 1.13.0
+	 */
+	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
+	static <T extends JavaBasedMigration> Constructor<T> getDefaultConstructorFor(Class<T> c)
+			throws NoSuchMethodException {
+		Constructor<T> ctr = c.getDeclaredConstructor();
+		ctr.setAccessible(true);
+		return ctr;
+	}
+
 	@Override
 	default MigrationVersion getVersion() {
 		return MigrationVersion.of(getClass());
@@ -42,13 +59,13 @@ public non-sealed interface JavaBasedMigration extends Migration {
 	}
 
 	/**
-	 * Return {@literal true} to mark this Java based migration explicitly as repeatable. By default, a Java based
-	 * migration will be repeatable when it's name matches the repeatable version pattern {@literal Rxzy__Something_something.java},
-	 * it will always be repeated as the default checksum is empty.
+	 * Return {@literal true} to mark this Java based migration explicitly as repeatable.
+	 * By default, a Java based migration will be repeatable when it's name matches the
+	 * repeatable version pattern {@literal Rxzy__Something_something.java}, it will
+	 * always be repeated as the default checksum is empty.
 	 * <p>
-	 * You can take full control over this by overwriting this method and in addition, {@link #getChecksum()} and react in that
-	 * according to your needs.
-	 *
+	 * You can take full control over this by overwriting this method and in addition,
+	 * {@link #getChecksum()} and react in that according to your needs.
 	 * @return {@literal true} if this is a repeatable migration
 	 * @since 2.0.0
 	 */
@@ -56,20 +73,4 @@ public non-sealed interface JavaBasedMigration extends Migration {
 		return getVersion().isRepeatable();
 	}
 
-	/**
-	 * Helper method for retrieving the default constructor of a given class. When such a constructor exist, it will be
-	 * made accessible.
-	 *
-	 * @param c   The class whose constructor should be returned
-	 * @param <T> The type of the class
-	 * @return The default constructor
-	 * @throws NoSuchMethodException If there is no such default constructor
-	 * @since 1.13.0
-	 */
-	@SuppressWarnings("squid:S3011") // Very much the point of the whole thing
-	static <T extends JavaBasedMigration> Constructor<T> getDefaultConstructorFor(Class<T> c) throws NoSuchMethodException {
-		Constructor<T> ctr = c.getDeclaredConstructor();
-		ctr.setAccessible(true);
-		return ctr;
-	}
 }

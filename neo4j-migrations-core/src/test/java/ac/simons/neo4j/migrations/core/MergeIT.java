@@ -15,8 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
@@ -25,14 +29,6 @@ import ac.simons.neo4j.migrations.core.refactorings.Merge.PropertyMergePolicy;
 import ac.simons.neo4j.migrations.core.refactorings.Merge.PropertyMergePolicy.Strategy;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
 import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,35 +41,53 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+
 /**
-* @author Michael J. Simons
-*/
+ * @author Michael J. Simons
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MergeIT extends AbstractRefactoringsITTestBase {
+
+	static Stream<Arguments> shouldMergePropertiesAccordingToTheRespectivePolicy() {
+		return Stream.of(
+				Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_ALL), Arrays.asList("Anastasia", "Zouheir")),
+				Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_FIRST),
+						Collections.singletonList("Anastasia")),
+				Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_LAST), Collections.singletonList("Zouheir")),
+				Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_ALL), Arrays.asList("Anastasia", "Zouheir")),
+				Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST), Collections.singletonList("Anastasia")),
+				Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_LAST), Collections.singletonList("Zouheir")));
+	}
 
 	@BeforeEach
 	void clearDatabase() {
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 		}
 	}
 
 	@ParameterizedTest
 	@CsvSource(nullValues = "n/a", delimiterString = "|", textBlock = """
-		                      | MATCH (n) RETURN n
-		CREATE (:Foo)         | MATCH (n:Bar) RETURN n
-		CREATE (:Foo)         | MATCH (n) RETURN n
-		CREATE (:Foo)         | MATCH (n:Foo) RETURN n
-		CREATE (:Foo), (:Bar) | MATCH (n:Foo) RETURN n
-		CREATE (:Foo), (:Bar) | MATCH (n:Bar) RETURN n
-		""")
+			                      | MATCH (n) RETURN n
+			CREATE (:Foo)         | MATCH (n:Bar) RETURN n
+			CREATE (:Foo)         | MATCH (n) RETURN n
+			CREATE (:Foo)         | MATCH (n:Foo) RETURN n
+			CREATE (:Foo), (:Bar) | MATCH (n:Foo) RETURN n
+			CREATE (:Foo), (:Bar) | MATCH (n:Bar) RETURN n
+			""")
 	void shouldNotGenerateAnyStatementsWhenLessThan2NodesMatch(String initQuery, String selectionQuery) {
 
 		Merge merge = Merge.nodes(selectionQuery.trim());
 
-		try (Session session = driver.session()) {
-			Neo4jVersion version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());
+		try (Session session = this.driver.session()) {
+			Neo4jVersion version = Neo4jVersion.of(session
+				.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]")
+				.single()
+				.get(0)
+				.asString());
 
 			List<String> queries = new ArrayList<>();
 			if (!(initQuery == null || initQuery.trim().isEmpty())) {
@@ -90,15 +104,17 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 				public QueryRunner getQueryRunner(QueryRunner.FeatureSet featureSet) {
 					return query -> {
 						queries.add(query.text());
-						return driver.session().run(version.getMajorVersion() < 5 ? query.withText(Strings.replaceElementIdCalls(
-							query.text())) : query);
+						return MergeIT.this.driver.session()
+							.run((version.getMajorVersion() < 5)
+									? query.withText(Strings.replaceElementIdCalls(query.text())) : query);
 					};
 				}
 			};
 
 			Counters counters = merge.apply(refactoringContext);
 			assertThat(counters).isSameAs(Counters.empty());
-			assertThat(queries).containsExactly("CALL { " + selectionQuery + " } WITH n RETURN collect(elementId(n)) AS ids");
+			assertThat(queries)
+				.containsExactly("CALL { " + selectionQuery + " } WITH n RETURN collect(elementId(n)) AS ids");
 		}
 	}
 
@@ -107,8 +123,8 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 
 		Merge merge = Merge.nodes("MATCH (p) RETURN p");
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 
 			session.run("CREATE (:Label1:Label3), (:Label2:`Label Oops`), (:Label1:`Label Oops`)").consume();
 
@@ -121,23 +137,11 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.typesAdded()).isZero();
 			assertThat(counters.typesRemoved()).isZero();
 			List<String> labels = session.run("""
-				MATCH (n) UNWIND labels(n) AS label
-				WITH label ORDER BY label ASC
-				RETURN collect(label) AS labels"""
-			).single().get("labels").asList(Value::asString);
+					MATCH (n) UNWIND labels(n) AS label
+					WITH label ORDER BY label ASC
+					RETURN collect(label) AS labels""").single().get("labels").asList(Value::asString);
 			assertThat(labels).containsExactly("Label Oops", "Label1", "Label2", "Label3");
 		}
-	}
-
-	static Stream<Arguments> shouldMergePropertiesAccordingToTheRespectivePolicy() {
-		return Stream.of(
-			Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_ALL), Arrays.asList("Anastasia", "Zouheir")),
-			Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_FIRST), Collections.singletonList("Anastasia")),
-			Arguments.of(PropertyMergePolicy.of("name", Strategy.KEEP_LAST), Collections.singletonList("Zouheir")),
-			Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_ALL), Arrays.asList("Anastasia", "Zouheir")),
-			Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST), Collections.singletonList("Anastasia")),
-			Arguments.of(PropertyMergePolicy.of(".*", Strategy.KEEP_LAST), Collections.singletonList("Zouheir"))
-		);
 	}
 
 	@ParameterizedTest
@@ -146,21 +150,21 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Collections.singletonList(policy));
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 
-			session.run("CREATE (:Person), (:Person {name: 'Anastasia'}), (:Unmatched {name: 'X'}), (:Person {name: 'Zouheir'}), (:Person)").consume();
+			session.run(
+					"CREATE (:Person), (:Person {name: 'Anastasia'}), (:Unmatched {name: 'X'}), (:Person {name: 'Zouheir'}), (:Person)")
+				.consume();
 
 			merge.apply(refactoringContext);
 
 			Record properties = session.run("MATCH (n:Person) RETURN n {.*}").single();
 			if (policy.strategy() != Strategy.KEEP_ALL) {
-				assertThat(properties.get("n").get("name").asString())
-					.isEqualTo(result.get(0));
-			} else {
-				assertThat(properties.get("n").get("name")
-					.asList(Value::asString)
-				).containsExactlyElementsOf(result);
+				assertThat(properties.get("n").get("name").asString()).isEqualTo(result.get(0));
+			}
+			else {
+				assertThat(properties.get("n").get("name").asList(Value::asString)).containsExactlyElementsOf(result);
 			}
 		}
 	}
@@ -168,12 +172,15 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	@Test
 	void singlePropertiesShouldBeMergedIntoArraysToo() {
 
-		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Collections.singletonList(PropertyMergePolicy.of(".*", Strategy.KEEP_ALL)));
+		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC",
+				Collections.singletonList(PropertyMergePolicy.of(".*", Strategy.KEEP_ALL)));
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (:Person), (:Person {name: 'Anastasia', a:'b'}), (:Unmatched {name: 'X'}), (:Person {name: 'Zouheir'}), (:Person)").consume();
+		try (Session session = this.driver.session()) {
+			session.run(
+					"CREATE (:Person), (:Person {name: 'Anastasia', a:'b'}), (:Unmatched {name: 'X'}), (:Person {name: 'Zouheir'}), (:Person)")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			merge.apply(refactoringContext);
 
 			Record properties = session.run("MATCH (n:Person) RETURN n {.*}").single();
@@ -186,10 +193,10 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Collections.emptyList());
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("CREATE (:Person {name: 'Anastasia'}), (:Person {name: 'Zouheir'})").consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			assertThatIllegalStateException().isThrownBy(() -> merge.apply(refactoringContext))
 				.withMessage("Could not find merge policy for node property `name`");
 		}
@@ -199,14 +206,14 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	void shouldGenerateStatementsForMergingIncomingRelationships() {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Arrays.asList(
-			PropertyMergePolicy.of("name", Strategy.KEEP_LAST),
-			PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)
-		));
+				PropertyMergePolicy.of("name", Strategy.KEEP_LAST), PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)));
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (:Person {name: 'Anastasia', age: 22})<-[:MAINTAINED_BY]-(:Project {name: 'Secret'}), (:Person {name: 'Zouheir'})<-[:FOUNDED_BY {year: 2012}]-(:Conference {name: 'Devoxx France'})").consume();
+		try (Session session = this.driver.session()) {
+			session.run(
+					"CREATE (:Person {name: 'Anastasia', age: 22})<-[:MAINTAINED_BY]-(:Project {name: 'Secret'}), (:Person {name: 'Zouheir'})<-[:FOUNDED_BY {year: 2012}]-(:Conference {name: 'Devoxx France'})")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = merge.apply(refactoringContext);
 
 			assertThat(counters.nodesDeleted()).isEqualTo(1);
@@ -214,22 +221,20 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.typesAdded()).isEqualTo(1);
 			assertThat(counters.typesRemoved()).isEqualTo(1);
 			Record row = session.run("""
-				MATCH (p:Person)
-				WITH p, [ (p)<-[incoming]-() | incoming ] AS allIncoming
-				UNWIND allIncoming AS incoming
-				WITH p, incoming
-				ORDER BY type(incoming) ASC
-				RETURN p, collect(incoming) AS allIncoming""").single();
+					MATCH (p:Person)
+					WITH p, [ (p)<-[incoming]-() | incoming ] AS allIncoming
+					UNWIND allIncoming AS incoming
+					WITH p, incoming
+					ORDER BY type(incoming) ASC
+					RETURN p, collect(incoming) AS allIncoming""").single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Zouheir");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(22);
-			assertThat(row.get("allIncoming").asList(Value::asRelationship))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("FOUNDED_BY");
-					assertThat(relationship.get("year").asInt()).isEqualTo(2012);
-				}, Index.atIndex(0))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("MAINTAINED_BY");
-				}, Index.atIndex(1));
+			assertThat(row.get("allIncoming").asList(Value::asRelationship)).satisfies(relationship -> {
+				assertThat(relationship.type()).isEqualTo("FOUNDED_BY");
+				assertThat(relationship.get("year").asInt()).isEqualTo(2012);
+			}, Index.atIndex(0))
+				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("MAINTAINED_BY"),
+						Index.atIndex(1));
 		}
 	}
 
@@ -237,14 +242,14 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	void shouldEscapeTypes() {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Arrays.asList(
-			PropertyMergePolicy.of("name", Strategy.KEEP_LAST),
-			PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)
-		));
+				PropertyMergePolicy.of("name", Strategy.KEEP_LAST), PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)));
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (:Person {name: 'Anastasia', age: 42})<-[:MAINTAINED_BY]-(:Project {name: 'Secret'}), (:Conference {name: 'JavaLand'}) <-[:`HAT BESUCHT`]- (m:Person {name: 'Michael'})<-[:`FOUNDED BY` {year: 2015}]-(:JUG {name: 'EuregJUG'}), (m)-[:`DAS IST` {offensichtlich: true}]->(m)").consume();
+		try (Session session = this.driver.session()) {
+			session.run(
+					"CREATE (:Person {name: 'Anastasia', age: 42})<-[:MAINTAINED_BY]-(:Project {name: 'Secret'}), (:Conference {name: 'JavaLand'}) <-[:`HAT BESUCHT`]- (m:Person {name: 'Michael'})<-[:`FOUNDED BY` {year: 2015}]-(:JUG {name: 'EuregJUG'}), (m)-[:`DAS IST` {offensichtlich: true}]->(m)")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = merge.apply(refactoringContext);
 
 			assertThat(counters.nodesDeleted()).isEqualTo(1);
@@ -253,24 +258,23 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 			assertThat(counters.typesRemoved()).isEqualTo(3);
 
 			Record row = session.run("""
-				MATCH (p:Person)
-				WITH p, [ (p)-[rel]-() | rel ] AS rels
-				UNWIND rels AS rel
-				WITH p, rel
-				ORDER BY type(rel) ASC
-				RETURN p, collect(rel) AS rels"""
-			).single();
+					MATCH (p:Person)
+					WITH p, [ (p)-[rel]-() | rel ] AS rels
+					UNWIND rels AS rel
+					WITH p, rel
+					ORDER BY type(rel) ASC
+					RETURN p, collect(rel) AS rels""").single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Michael");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(42);
-			assertThat(row.get("rels").asList(Value::asRelationship))
-				.hasSize(4)
+			assertThat(row.get("rels").asList(Value::asRelationship)).hasSize(4)
 				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("DAS IST"), Index.atIndex(0))
-				.satisfies(relationship ->  {
+				.satisfies(relationship -> {
 					assertThat(relationship.type()).isEqualTo("FOUNDED BY");
 					assertThat(relationship.get("year").asInt()).isEqualTo(2015);
 				}, Index.atIndex(1))
 				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("HAT BESUCHT"), Index.atIndex(2))
-				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("MAINTAINED_BY"), Index.atIndex(3));
+				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("MAINTAINED_BY"),
+						Index.atIndex(3));
 		}
 	}
 
@@ -278,34 +282,30 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	void shouldGenerateStatementsForMergingOutgoingRelationships() {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Arrays.asList(
-			PropertyMergePolicy.of("name", Strategy.KEEP_LAST),
-			PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)
-		));
+				PropertyMergePolicy.of("name", Strategy.KEEP_LAST), PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)));
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (:Person {name: 'Anastasia', age: 22})-[:MAINTAINS]->(:Project {name: 'Secret'}), (:Person {name: 'Zouheir'})-[:FOUNDED {year: 2012}]->(:Conference {name: 'Devoxx France'})").consume();
+		try (Session session = this.driver.session()) {
+			session.run(
+					"CREATE (:Person {name: 'Anastasia', age: 22})-[:MAINTAINS]->(:Project {name: 'Secret'}), (:Person {name: 'Zouheir'})-[:FOUNDED {year: 2012}]->(:Conference {name: 'Devoxx France'})")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			merge.apply(refactoringContext);
 
 			Record row = session.run("""
-				MATCH (p:Person)
-				WITH p, [ (p)-[outgoing]->() | outgoing ] AS allOutgoing
-				UNWIND allOutgoing AS outgoing
-				WITH p, outgoing
-				ORDER BY type(outgoing) ASC
-				RETURN p, collect(outgoing) AS allOutgoing"""
-			).single();
+					MATCH (p:Person)
+					WITH p, [ (p)-[outgoing]->() | outgoing ] AS allOutgoing
+					UNWIND allOutgoing AS outgoing
+					WITH p, outgoing
+					ORDER BY type(outgoing) ASC
+					RETURN p, collect(outgoing) AS allOutgoing""").single();
 			assertThat(row.get("p").get("name").asString()).isEqualTo("Zouheir");
 			assertThat(row.get("p").get("age").asInt()).isEqualTo(22);
-			assertThat(row.get("allOutgoing").asList(Value::asRelationship))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("FOUNDED");
-					assertThat(relationship.get("year").asInt()).isEqualTo(2012);
-				}, Index.atIndex(0))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("MAINTAINS");
-				}, Index.atIndex(1));
+			assertThat(row.get("allOutgoing").asList(Value::asRelationship)).satisfies(relationship -> {
+				assertThat(relationship.type()).isEqualTo("FOUNDED");
+				assertThat(relationship.get("year").asInt()).isEqualTo(2012);
+			}, Index.atIndex(0))
+				.satisfies(relationship -> assertThat(relationship.type()).isEqualTo("MAINTAINS"), Index.atIndex(1));
 		}
 	}
 
@@ -313,31 +313,28 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	void shouldGenerateStatementsThatPreserveExistingSelfRelationships() {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Arrays.asList(
-			PropertyMergePolicy.of("name", Strategy.KEEP_LAST),
-			PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)
-		));
+				PropertyMergePolicy.of("name", Strategy.KEEP_LAST), PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)));
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (anastasia:Person {name: 'Anastasia', age: 22})-[:IS {obviously: true}]->(anastasia), (zouheir:Person {name: 'Zouheir'})-[:IS_SAME_AS {evidently: true}]->(zouheir)").consume();
+		try (Session session = this.driver.session()) {
+			session.run(
+					"CREATE (anastasia:Person {name: 'Anastasia', age: 22})-[:IS {obviously: true}]->(anastasia), (zouheir:Person {name: 'Zouheir'})-[:IS_SAME_AS {evidently: true}]->(zouheir)")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			merge.apply(refactoringContext);
 
 			Record row = session.run("""
-				MATCH (p:Person)-[r]->(p)
-				WITH r\s
-				ORDER BY type(r) ASC
-				RETURN collect(r) AS rels"""
-			).single();
-			assertThat(row.get("rels").asList(Value::asRelationship))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("IS");
-					assertThat(relationship.get("obviously").asBoolean()).isTrue();
-				}, Index.atIndex(0))
-				.satisfies(relationship ->  {
-					assertThat(relationship.type()).isEqualTo("IS_SAME_AS");
-					assertThat(relationship.get("evidently").asBoolean()).isTrue();
-				}, Index.atIndex(1));
+					MATCH (p:Person)-[r]->(p)
+					WITH r\s
+					ORDER BY type(r) ASC
+					RETURN collect(r) AS rels""").single();
+			assertThat(row.get("rels").asList(Value::asRelationship)).satisfies(relationship -> {
+				assertThat(relationship.type()).isEqualTo("IS");
+				assertThat(relationship.get("obviously").asBoolean()).isTrue();
+			}, Index.atIndex(0)).satisfies(relationship -> {
+				assertThat(relationship.type()).isEqualTo("IS_SAME_AS");
+				assertThat(relationship.get("evidently").asBoolean()).isTrue();
+			}, Index.atIndex(1));
 		}
 	}
 
@@ -345,35 +342,28 @@ class MergeIT extends AbstractRefactoringsITTestBase {
 	void shouldGenerateStatementsThatYieldsSelfRelationships() {
 
 		Merge merge = Merge.nodes("MATCH (p:Person) RETURN p ORDER BY p.name ASC", Arrays.asList(
-			PropertyMergePolicy.of("name", Strategy.KEEP_LAST),
-			PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)
-		));
+				PropertyMergePolicy.of("name", Strategy.KEEP_LAST), PropertyMergePolicy.of(".*", Strategy.KEEP_FIRST)));
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run(""
-				+ "CREATE (anastasia:Person {name: 'Anastasia', age: 22})-[:FOLLOWS_1 {direction: 'a to z'}]->(zouheir:Person {name: 'Zouheir'}), "
-				+ "(zouheir)-[:FOLLOWS_2 {direction: 'z to a'}]->(anastasia),"
-				+ "(zouheir)-[:FOLLOWS_3 {direction: 'z to z'}]->(zouheir),"
-				+ "(zouheir)-[:FOLLOWS_4 {direction: 'z to m'}]->(:Person {name: 'Marouane'})"
-			).consume();
+					+ "CREATE (anastasia:Person {name: 'Anastasia', age: 22})-[:FOLLOWS_1 {direction: 'a to z'}]->(zouheir:Person {name: 'Zouheir'}), "
+					+ "(zouheir)-[:FOLLOWS_2 {direction: 'z to a'}]->(anastasia),"
+					+ "(zouheir)-[:FOLLOWS_3 {direction: 'z to z'}]->(zouheir),"
+					+ "(zouheir)-[:FOLLOWS_4 {direction: 'z to m'}]->(:Person {name: 'Marouane'})")
+				.consume();
 
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			merge.apply(refactoringContext);
 
 			Record row = session.run("""
-				MATCH (p:Person)-[r]->(p)
-				WITH r
-				ORDER BY type(r) ASC
-				RETURN collect(r) AS rels"""
-			).single();
+					MATCH (p:Person)-[r]->(p)
+					WITH r
+					ORDER BY type(r) ASC
+					RETURN collect(r) AS rels""").single();
 			assertThat(row.get("rels").asList(Value::asRelationship))
 				.map(r -> r.type() + " " + r.get("direction").asString())
-				.containsExactly(
-					"FOLLOWS_1 a to z",
-					"FOLLOWS_2 z to a",
-					"FOLLOWS_3 z to z",
-					"FOLLOWS_4 z to m"
-				);
+				.containsExactly("FOLLOWS_1 a to z", "FOLLOWS_2 z to a", "FOLLOWS_3 z to z", "FOLLOWS_4 z to m");
 		}
 	}
+
 }

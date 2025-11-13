@@ -18,17 +18,15 @@ package ac.simons.neo4j.migrations.core.catalog;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import ac.simons.neo4j.migrations.core.internal.XMLUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -49,18 +47,15 @@ enum IndexToXMLRenderer implements Renderer<Index> {
 
 			document.appendChild(item.toXML(document));
 
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-
-			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			Transformer transformer = XMLUtils.getIndentingTransformer();
 			DOMSource domSource = new DOMSource(document);
 			StreamResult streamResult = new StreamResult(target);
 
 			transformer.transform(domSource, streamResult);
-		} catch (ParserConfigurationException | TransformerException e) {
-			throw new IOException(e);
+		}
+		catch (ParserConfigurationException | TransformerException ex) {
+			throw new IOException(ex);
 		}
 	}
+
 }

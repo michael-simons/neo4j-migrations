@@ -26,11 +26,10 @@ import picocli.CommandLine.ParentCommand;
  * @author Gerrit Meier
  * @since 2.2.0
  */
-@Command(name = "repair", description = "" +
-	"Compares locally discovered migrations with the remote chain and repairs the remote chain if necessary; " +
-	"no migrations will be applied during this process, only the migration chain will be manipulated. " +
-	"This command requires at least one local migration."
-)
+@Command(name = "repair", description = ""
+		+ "Compares locally discovered migrations with the remote chain and repairs the remote chain if necessary; "
+		+ "no migrations will be applied during this process, only the migration chain will be manipulated. "
+		+ "This command requires at least one local migration.")
 final class RepairCommand extends ConnectedCommand {
 
 	@ParentCommand
@@ -38,7 +37,7 @@ final class RepairCommand extends ConnectedCommand {
 
 	@Override
 	public MigrationsCli getParent() {
-		return parent;
+		return this.parent;
 	}
 
 	@Override
@@ -49,4 +48,5 @@ final class RepairCommand extends ConnectedCommand {
 		result.getWarnings().forEach(MigrationsCli.LOGGER::warning);
 		return 0;
 	}
+
 }

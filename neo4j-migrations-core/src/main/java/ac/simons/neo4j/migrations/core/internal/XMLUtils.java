@@ -22,13 +22,19 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 
 /**
- * Shared factories and other utilities around XML processing
+ * Shared factories and other utilities around XML processing.
+ *
+ * @author Michael J. Simons
  */
 public final class XMLUtils {
 
+	private XMLUtils() {
+	}
+
 	/**
+	 * Provides a new, indenting transformer.
 	 * @return an indenting transformer
-	 * @throws TransformerConfigurationException In case we couldn't get a transformer
+	 * @throws TransformerConfigurationException in case we couldn't get a transformer
 	 */
 	public static Transformer getIndentingTransformer() throws TransformerConfigurationException {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -41,6 +47,4 @@ public final class XMLUtils {
 		return transformer;
 	}
 
-	private XMLUtils() {
-	}
 }

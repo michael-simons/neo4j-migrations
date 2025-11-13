@@ -26,4 +26,5 @@ public class EntityWithAssignedId {
 
 	@Id
 	Long id;
+
 }

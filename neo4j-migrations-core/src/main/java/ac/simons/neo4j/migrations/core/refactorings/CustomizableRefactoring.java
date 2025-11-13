@@ -16,29 +16,30 @@
 package ac.simons.neo4j.migrations.core.refactorings;
 
 /**
- * A customizable refactoring. Customizations here include providing a custom query as source for entities and a batch size.
+ * A customizable refactoring. Customizations here include providing a custom query as
+ * source for entities and a batch size.
  *
+ * @param <T> the type of the refactoring after customization has been applied
  * @author Michael J. Simons
- * @param <T> The type of the refactoring after customization has been applied
- * @soundtrack Nightwish - Nemo
  * @since 1.10.0
  */
 public interface CustomizableRefactoring<T extends CustomizableRefactoring<T>> extends Refactoring {
 
 	/**
-	 * Creates a new {@link Rename refactoring} that may use batching (if the new batch size is not null and greater than 1
-	 *
-	 * @param newBatchSize Use {@literal null} to disable batching or any value >= 1 to use batches.
-	 * @return A new refactoring.
+	 * Creates a new {@link Rename refactoring} that may use batching (if the new batch
+	 * size is not null and greater than 1.
+	 * @param newBatchSize use {@literal null} to disable batching or any value >= 1 to
+	 * use batches.
+	 * @return a new refactoring.
 	 */
 	T inBatchesOf(Integer newBatchSize);
 
 	/**
-	 * Creates a new {@link Rename refactoring} that may use a custom query
-	 *
-	 * @param newCustomQuery Use {@literal null} to disable any custom query or a valid Cypher statement returning a single
-	 *                       entity column to enable custom query
-	 * @return A new refactoring.
+	 * Creates a new {@link Rename refactoring} that may use a custom query.
+	 * @param newCustomQuery use {@literal null} to disable any custom query or a valid
+	 * Cypher statement returning a single entity column to enable custom query
+	 * @return a new refactoring.
 	 */
 	T withCustomQuery(String newCustomQuery);
+
 }

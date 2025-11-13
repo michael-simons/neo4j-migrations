@@ -23,27 +23,17 @@ import javax.xml.crypto.NodeSetData;
 import org.w3c.dom.Node;
 
 /**
- * A simple implementation of {@link NodeSetData}, working on a flat list of {@link Node nodes}. {@link NodeSetData} does
- * not have any type parameters on JDK 8, it does have type parameters on JDK 17. This project needs JDK 17 to compile
- * but still targets JDK 8. At least IntelliJ gets this wrong (even with {@literal --release 8} for the main source) and
- * issues wrong warnings.
+ * A simple implementation of {@link NodeSetData}, working on a flat list of {@link Node
+ * nodes}. {@link NodeSetData} does not have any type parameters on JDK 8, it does have
+ * type parameters on JDK 17. This project needs JDK 17 to compile but still targets JDK
+ * 8. At least IntelliJ gets this wrong (even with {@literal --release 8} for the main
+ * source) and issues wrong warnings.
  *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Please
  * @since 1.7.0
  */
 @SuppressWarnings("rawtypes") // See JavaDoc comment above…
 public final class NodeSetDataImpl implements NodeSetData {
-
-	/**
-	 * Build a {@link NodeSetData} from the given list of elements.
-	 *
-	 * @param elements The actual nodes
-	 * @return An instance of {@link NodeSetData}
-	 */
-	public static NodeSetData of(List<Node> elements) {
-		return new NodeSetDataImpl(elements);
-	}
 
 	private final List<Node> elements;
 
@@ -51,8 +41,18 @@ public final class NodeSetDataImpl implements NodeSetData {
 		this.elements = elements;
 	}
 
+	/**
+	 * Build a {@link NodeSetData} from the given list of elements.
+	 * @param elements the actual nodes
+	 * @return an instance of {@link NodeSetData}
+	 */
+	public static NodeSetData of(List<Node> elements) {
+		return new NodeSetDataImpl(elements);
+	}
+
 	@Override
 	public Iterator<Node> iterator() {
 		return this.elements.iterator();
 	}
+
 }

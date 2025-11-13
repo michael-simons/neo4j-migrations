@@ -31,6 +31,7 @@ import org.testcontainers.neo4j.Neo4jContainer;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractRefactoringsITTestBase {
+
 	static {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
@@ -42,33 +43,40 @@ abstract class AbstractRefactoringsITTestBase {
 		.withReuse(true);
 
 	protected Driver driver;
+
 	protected Neo4jVersion version;
 
 	@BeforeAll
 	void initDriver() {
 
-		neo4j.start();
+		this.neo4j.start();
 
 		Config config = Config.builder().withLogging(Logging.none()).build();
-		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
-		try (Session session = driver.session()) {
-			version = Neo4jVersion.of(session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]").single().get(0).asString());
+		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), config);
+		try (Session session = this.driver.session()) {
+			this.version = Neo4jVersion.of(session
+				.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN versions[0]")
+				.single()
+				.get(0)
+				.asString());
 		}
 	}
 
 	boolean connectionSupportsSubqueries() {
-		return version.compareTo(Neo4jVersion.V3_5) >= 0;
+		return this.version.compareTo(Neo4jVersion.V3_5) >= 0;
 	}
 
 	boolean connectionSupportsCallInTx() {
-		return version.compareTo(Neo4jVersion.V4_4) >= 0;
+		return this.version.compareTo(Neo4jVersion.V4_4) >= 0;
 	}
 
 	boolean supportsIdentifyingElements() {
-		return version.compareTo(Neo4jVersion.V4_1) >= 0;
+		return this.version.compareTo(Neo4jVersion.V4_1) >= 0;
 	}
 
 	boolean customQueriesSupported() {
 		return connectionSupportsSubqueries() && supportsIdentifyingElements();
 	}
+
 }

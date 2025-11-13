@@ -33,24 +33,22 @@ final class InfoCommand extends ConnectedCommand {
 	@ParentCommand
 	private MigrationsCli parent;
 
-	@Option(names = "mode",
-		defaultValue = "COMPARE",
-		description =
-			"Controls how the information should be computed. Valid options are ${COMPLETION-CANDIDATES} with ${DEFAULT-VALUE} being the default. "
-			+ "${DEFAULT-VALUE} will always compare locally discovered and remotely applied migrations, while the other options just check what's there."
-	)
+	@Option(names = "mode", defaultValue = "COMPARE",
+			description = "Controls how the information should be computed. Valid options are ${COMPLETION-CANDIDATES} with ${DEFAULT-VALUE} being the default. "
+					+ "${DEFAULT-VALUE} will always compare locally discovered and remotely applied migrations, while the other options just check what's there.")
 	private MigrationChain.ChainBuilderMode mode = MigrationChain.ChainBuilderMode.COMPARE;
 
 	@Override
 	public MigrationsCli getParent() {
-		return parent;
+		return this.parent;
 	}
 
 	@Override
 	Integer withMigrations(Migrations migrations) {
 
-		MigrationChain migrationChain = migrations.info(mode);
+		MigrationChain migrationChain = migrations.info(this.mode);
 		MigrationsCli.LOGGER.info(migrationChain::prettyPrint);
 		return 0;
 	}
+
 }

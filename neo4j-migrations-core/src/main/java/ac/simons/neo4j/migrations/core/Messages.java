@@ -22,7 +22,6 @@ import java.util.ResourceBundle;
  * Accessor to messages shared between the core module and extensions.
  *
  * @author Michael J. Simons
- * @soundtrack Kid Rock - Devil Without A Cause
  * @since 1.2.0
  */
 public enum Messages {
@@ -32,28 +31,27 @@ public enum Messages {
 	 */
 	INSTANCE;
 
-	private final ResourceBundle defaultBundle = ResourceBundle.getBundle(
-		"ac.simons.neo4j.migrations.core.messages");
+	private final ResourceBundle defaultBundle = ResourceBundle.getBundle("ac.simons.neo4j.migrations.core.messages");
 
 	/**
 	 * Retrieves the message with the given key.
-	 *
-	 * @param key The key in the bundle
-	 * @return A messsage
+	 * @param key the key in the bundle
+	 * @return a messsage
 	 */
 	public String get(String key) {
-		return defaultBundle.getString(key);
+		return this.defaultBundle.getString(key);
 	}
 
 	/**
-	 * Creates a {@link MessageFormat message format} from the value of the given key and uses the arguments to format it.
-	 *
-	 * @param key  The key of the message
-	 * @param args The arguments to the format
-	 * @return A formatted message
+	 * Creates a {@link MessageFormat message format} from the value of the given key and
+	 * uses the arguments to format it.
+	 * @param key the key of the message
+	 * @param args the arguments to the format
+	 * @return a formatted message
 	 * @since 1.11.1
 	 */
 	public String format(String key, Object... args) {
-		return MessageFormat.format(defaultBundle.getString(key), args);
+		return MessageFormat.format(this.defaultBundle.getString(key), args);
 	}
+
 }

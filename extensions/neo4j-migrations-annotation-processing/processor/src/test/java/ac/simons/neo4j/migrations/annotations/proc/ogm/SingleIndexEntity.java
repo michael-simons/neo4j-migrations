@@ -31,4 +31,5 @@ public class SingleIndexEntity {
 
 	@Index
 	String login;
+
 }

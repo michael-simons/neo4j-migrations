@@ -17,11 +17,10 @@ package ac.simons.neo4j.migrations.quarkus.it.migrations;
 
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
-
 import org.neo4j.driver.Session;
 
 /**
- * A sample migration
+ * A sample migration.
  *
  * @author Michael J. Simons
  */
@@ -36,4 +35,5 @@ public class V0002__SomethingJava implements JavaBasedMigration {
 			session.run("CREATE (onA:WALL{graffito: 'I was here'})");
 		}
 	}
+
 }

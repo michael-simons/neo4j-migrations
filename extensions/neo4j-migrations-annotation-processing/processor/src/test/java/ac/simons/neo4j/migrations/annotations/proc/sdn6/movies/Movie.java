@@ -67,16 +67,16 @@ public final class Movie {
 	public Movie(String title, String description, List<Actor> actors, List<Person> directors) {
 		this.title = title;
 		this.description = description;
-		this.actors = actors == null ? Collections.emptyList() : new ArrayList<>(actors);
-		this.directors = directors == null ? Collections.emptyList() : new ArrayList<>(directors);
+		this.actors = (actors != null) ? List.copyOf(actors) : List.of();
+		this.directors = (directors != null) ? List.copyOf(directors) : List.of();
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public List<Actor> getActors() {
@@ -88,7 +88,7 @@ public final class Movie {
 	}
 
 	public Integer getReleased() {
-		return released;
+		return this.released;
 	}
 
 	public void setReleased(Integer released) {
@@ -104,4 +104,5 @@ public final class Movie {
 		this.directors.addAll(newDirectors);
 		return this;
 	}
+
 }

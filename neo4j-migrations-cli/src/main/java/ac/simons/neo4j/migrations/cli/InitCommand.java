@@ -15,18 +15,19 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.concurrent.Callable;
+
 import ac.simons.neo4j.migrations.core.Defaults;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.concurrent.Callable;
-
 /**
+ * Initializes a new directory containing migrations.
+ *
  * @author Michael J. Simons
- * @soundtrack Guns n' Roses - Appetite For Democracy 3D
  * @since 1.4.0
  */
 @Command(name = "init", description = "Creates a migration project inside the current folder.")
@@ -38,11 +39,12 @@ final class InitCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 
-		if (!parent.hasLocationsToScan()) {
+		if (!this.parent.hasLocationsToScan()) {
 			Files.createDirectories(Paths.get(Defaults.LOCATIONS_TO_SCAN_WITHOUT_PREFIX));
 		}
 
-		parent.storeProperties(MigrationsCli.MIGRATIONS_PROPERTIES_FILENAME);
+		this.parent.storeProperties(MigrationsCli.MIGRATIONS_PROPERTIES_FILENAME);
 		return CommandLine.ExitCode.OK;
 	}
+
 }

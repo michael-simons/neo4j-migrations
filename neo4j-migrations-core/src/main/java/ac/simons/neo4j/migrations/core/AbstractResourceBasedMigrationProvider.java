@@ -16,7 +16,8 @@
 package ac.simons.neo4j.migrations.core;
 
 /**
- * A utility class to avoid duplication of common characteristics of {@link ResourceBasedMigrationProvider migration providers}.
+ * A utility class to avoid duplication of common characteristics of
+ * {@link ResourceBasedMigrationProvider migration providers}.
  *
  * @author Michael J. Simons
  * @since 1.9.0
@@ -31,13 +32,13 @@ public abstract class AbstractResourceBasedMigrationProvider implements Resource
 
 	/**
 	 * The given parameters are all required.
-	 *
-	 * @param order                          The order in which this provider should be consulted
-	 * @param extension                      The file extension that this provider can deal with
-	 * @param supportsArbitraryResourceNames A flag if arbitrary resource names are supported in contrast to names that match {@link MigrationVersion#VERSION_PATTERN}
+	 * @param order the order in which this provider should be consulted
+	 * @param extension the file extension that this provider can deal with
+	 * @param supportsArbitraryResourceNames a flag if arbitrary resource names are
+	 * supported in contrast to names that match {@link MigrationVersion#VERSION_PATTERN}
 	 */
 	protected AbstractResourceBasedMigrationProvider(int order, String extension,
-		boolean supportsArbitraryResourceNames) {
+			boolean supportsArbitraryResourceNames) {
 		this.order = order;
 		this.extension = extension;
 		this.supportsArbitraryResourceNames = supportsArbitraryResourceNames;
@@ -45,16 +46,17 @@ public abstract class AbstractResourceBasedMigrationProvider implements Resource
 
 	@Override
 	public final int getOrder() {
-		return order;
+		return this.order;
 	}
 
 	@Override
 	public final String getExtension() {
-		return extension;
+		return this.extension;
 	}
 
 	@Override
 	public final boolean supportsArbitraryResourceNames() {
-		return supportsArbitraryResourceNames;
+		return this.supportsArbitraryResourceNames;
 	}
+
 }

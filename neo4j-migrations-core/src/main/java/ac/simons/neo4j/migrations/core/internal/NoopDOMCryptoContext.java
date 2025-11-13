@@ -18,12 +18,13 @@ package ac.simons.neo4j.migrations.core.internal;
 import javax.xml.crypto.dom.DOMCryptoContext;
 
 /**
- * This no-operation context is used while computing checksums of XML. We are only interested in checksumming the normalized
- * structure, not in computing any hashes on top of it.
+ * This no-operation context is used while computing checksums of XML. We are only
+ * interested in checksumming the normalized structure, not in computing any hashes on top
+ * of it.
  *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Please
  * @since 1.7.0
  */
 public final class NoopDOMCryptoContext extends DOMCryptoContext {
+
 }

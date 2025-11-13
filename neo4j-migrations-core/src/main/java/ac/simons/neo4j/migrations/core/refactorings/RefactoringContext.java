@@ -15,51 +15,53 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
+import java.util.Optional;
+
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner.FeatureSet;
 
-import java.util.Optional;
-
 /**
- * A wrapper around access to a Neo4j database. It requires an implementation of a simplified {@see org.neo4j.driver.QueryRunner}
- * based on official Neo4j driver types.
+ * A wrapper around access to a Neo4j database. It requires an implementation of a
+ * simplified {@see org.neo4j.driver.QueryRunner} based on official Neo4j driver types.
  *
  * @author Michael J. Simons
- * @soundtrack FiNCH - Rummelbums
  * @since 1.10.0
  */
 public interface RefactoringContext {
 
 	/**
-	 * Looks if the query would potentially return a single, identifiable element that can be used as a source element in a
-	 * refactoring. Implementing classes can use EXPLAIN but also tooling like <a href="https://github.com/neo4j-contrib/cypher-dsl">Cypher-DSL</a>
-	 * to evaluate the query.
-	 *
-	 * @param query The query to evaluate
-	 * @return An optional containing the single result of a query if any
+	 * Looks if the query would potentially return a single, identifiable element that can
+	 * be used as a source element in a refactoring. Implementing classes can use EXPLAIN
+	 * but also tooling like
+	 * <a href="https://github.com/neo4j-contrib/cypher-dsl">Cypher-DSL</a> to evaluate
+	 * the query.
+	 * @param query the query to evaluate
+	 * @return an optional containing the single result of a query if any
 	 */
 	Optional<String> findSingleResultIdentifier(String query);
 
 	/**
-	 * Returns a simplified query runner with the given feature set. If a context cannot satisfy the feature set it is
-	 * supposed to throw an {@link IllegalArgumentException}.
-	 *
-	 * @param featureSet Required feature set
-	 * @return A query runner supporting the given feature set
-	 * @throws IllegalArgumentException In case feature set cannot be satisfied
-	 * @throws IllegalStateException In case there is no defined version in this context
+	 * Returns a simplified query runner with the given feature set. If a context cannot
+	 * satisfy the feature set it is supposed to throw an
+	 * {@link IllegalArgumentException}.
+	 * @param featureSet required feature set
+	 * @return a query runner supporting the given feature set
+	 * @throws IllegalArgumentException in case feature set cannot be satisfied
+	 * @throws IllegalStateException in case there is no defined version in this context
 	 */
 	QueryRunner getQueryRunner(FeatureSet featureSet);
 
 	/**
-	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a valid Cypher identifier in the given context
-	 *
-	 * @param potentiallyNonIdentifier A value to escape, must not be {@literal null} or blank
-	 * @return The sanitized and quoted value or the same value if no change is necessary.
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a
+	 * valid Cypher identifier in the given context.
+	 * @param potentiallyNonIdentifier a value to escape, must not be {@literal null} or
+	 * blank
+	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
 	default String sanitizeSchemaName(String potentiallyNonIdentifier) {
 
 		return Neo4jVersion.LATEST.sanitizeSchemaName(potentiallyNonIdentifier);
 	}
+
 }

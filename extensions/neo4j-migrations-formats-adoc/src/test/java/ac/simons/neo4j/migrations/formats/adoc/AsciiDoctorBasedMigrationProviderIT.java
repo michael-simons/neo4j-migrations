@@ -15,16 +15,13 @@
  */
 package ac.simons.neo4j.migrations.formats.adoc;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +37,8 @@ import org.neo4j.driver.exceptions.Neo4jException;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Testcontainers(disabledWithoutDocker = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AsciiDoctorBasedMigrationProviderIT {
@@ -51,19 +50,37 @@ class AsciiDoctorBasedMigrationProviderIT {
 
 	Driver driver;
 
+	static void dropConstraint(Driver driver, String constraint) {
+		try (Session session = driver.session()) {
+			assertThat(session.executeWrite(t -> t.run(constraint).consume()).counters().constraintsRemoved())
+				.isNotZero();
+		}
+		catch (Neo4jException ignored) {
+		}
+	}
+
+	static void dropIndex(Driver driver, String index) {
+		try (Session session = driver.session()) {
+			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
+		}
+		catch (Neo4jException ignored) {
+		}
+	}
+
 	@BeforeAll
 	void initDriver() {
 		Config config = Config.builder().withLogging(Logging.none()).build();
 
-		neo4j.start();
-		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
+		this.neo4j.start();
+		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), config);
 	}
 
 	@BeforeEach
 	void clearDatabase() {
 		List<String> constraintsToBeDropped;
 		List<String> indexesToBeDropped;
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
 			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD name RETURN 'DROP CONSTRAINT ' + name as cmd")
 				.list(r -> r.get("cmd").asString());
@@ -71,45 +88,28 @@ class AsciiDoctorBasedMigrationProviderIT {
 				.list(r -> r.get("cmd").asString());
 		}
 
-		constraintsToBeDropped.forEach(cmd -> dropConstraint(driver, cmd));
-		indexesToBeDropped.forEach(cmd -> dropIndex(driver, cmd));
-	}
-
-	static void dropConstraint(Driver driver, String constraint) {
-		try (Session session = driver.session()) {
-			assertThat(
-				session.executeWrite(t -> t.run(constraint).consume()).counters().constraintsRemoved()).isNotZero();
-		} catch (Neo4jException ignored) {
-		}
-	}
-
-	static void dropIndex(Driver driver, String index) {
-		try (Session session = driver.session()) {
-			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
-		} catch (Neo4jException ignored) {
-		}
+		constraintsToBeDropped.forEach(cmd -> dropConstraint(this.driver, cmd));
+		indexesToBeDropped.forEach(cmd -> dropIndex(this.driver, cmd));
 	}
 
 	@AfterAll
 	void closeDriver() {
 
-		driver.close();
+		this.driver.close();
 	}
 
 	@Test
 	void example1ShouldWork() {
-		Migrations migrations = new Migrations(MigrationsConfig.builder()
-			.withLocationsToScan("/neo4j/adoc-migrations").build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/neo4j/adoc-migrations").build(), this.driver);
 
 		Optional<MigrationVersion> migrationVersion = migrations.apply();
-		assertThat(migrationVersion)
-			.map(MigrationVersion::getValue)
-			.hasValue("4.0");
+		assertThat(migrationVersion).map(MigrationVersion::getValue).hasValue("4.0");
 
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements()).hasSize(5);
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			Long cnt = session.run("MATCH (f:Foo {name: 'fighters'}) RETURN count(f)").single().get(0).asLong();
 			assertThat(cnt).isOne();
 		}
@@ -117,21 +117,22 @@ class AsciiDoctorBasedMigrationProviderIT {
 
 	@Test
 	void readmeExampleShouldWork() {
-		Migrations migrations = new Migrations(MigrationsConfig.builder()
-			.withLocationsToScan("/neo4j/migrations-with-includes").build(), driver);
+		Migrations migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/neo4j/migrations-with-includes").build(), this.driver);
 
 		Optional<MigrationVersion> migrationVersion = migrations.apply();
-		assertThat(migrationVersion)
-			.map(MigrationVersion::getValue)
-			.hasValue("2.0");
+		assertThat(migrationVersion).map(MigrationVersion::getValue).hasValue("2.0");
 
 		MigrationChain migrationChain = migrations.info();
 		assertThat(migrationChain.getElements()).hasSize(4);
 
-		try (Session session = driver.session()) {
-			Long cnt = session.run("MATCH (u:User {name: 'Michael'}) -[r:LIKES] -> () RETURN count(r)").single().get(0)
+		try (Session session = this.driver.session()) {
+			Long cnt = session.run("MATCH (u:User {name: 'Michael'}) -[r:LIKES] -> () RETURN count(r)")
+				.single()
+				.get(0)
 				.asLong();
 			assertThat(cnt).isEqualTo(3L);
 		}
 	}
+
 }

@@ -15,11 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.catalog.Catalog;
-import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
-import ac.simons.neo4j.migrations.core.catalog.Constraint;
-import ac.simons.neo4j.migrations.core.catalog.Index;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +25,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
+import ac.simons.neo4j.migrations.core.catalog.Constraint;
+import ac.simons.neo4j.migrations.core.catalog.Index;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.Value;
@@ -37,16 +36,71 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 
 /**
- * Catalog based on the items discoverable inside a Neo4j instance at a given point in time.
+ * Catalog based on the items discoverable inside a Neo4j instance at a given point in
+ * time.
  *
  * @author Michael J. Simons
- * @soundtrack The Prodigy - Music For The Jilted Generation
  * @since 1.7.0
  */
 final class DatabaseCatalog implements Catalog {
 
+	private final Collection<CatalogItem<?>> items;
+
+	private DatabaseCatalog(Set<CatalogItem<?>> items) {
+		this.items = items;
+	}
+
+	static Catalog full(Neo4jVersion version, SimpleQueryRunner queryRunner) {
+		return of(version, queryRunner, true, false);
+	}
+
+	static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions) {
+		return of(version, queryRunner, readOptions, true);
+	}
+
+	private static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions,
+			boolean filterInternalConstraints) {
+
+		Set<CatalogItem<?>> items = new LinkedHashSet<>();
+		Function<Record, MapAccessor> mapAccessorMapper = r -> readOptions ? r
+				: new FilteredMapAccessor(r, Collections.singleton("options"));
+
+		Predicate<Constraint> internalConstraints = c -> true;
+		if (filterInternalConstraints) {
+			internalConstraints = constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS)
+				.noneMatch(constraint::isEquivalentTo);
+			internalConstraints = internalConstraints.and(c -> !Migrations.UNIQUE_VERSION.isEquivalentTo(c));
+		}
+		queryRunner.run(version.getShowConstraints())
+			.stream()
+			.map(mapAccessorMapper)
+			.map(Constraint::parse)
+			.filter(internalConstraints)
+			.forEach(items::add);
+
+		Predicate<Index> internalIndexes = index -> index.getType() != Index.Type.LOOKUP
+				&& index.getType() != Index.Type.CONSTRAINT_BACKING_INDEX;
+		if (filterInternalConstraints) {
+			internalIndexes = internalIndexes.and(i -> !Migrations.REPEATED_AT.isEquivalentTo(i));
+		}
+		queryRunner.run(version.getShowIndexes())
+			.stream()
+			.map(mapAccessorMapper)
+			.map(Index::parse)
+			.filter(internalIndexes)
+			.forEach(items::add);
+
+		return new DatabaseCatalog(items);
+	}
+
+	@Override
+	public Collection<CatalogItem<?>> getItems() {
+		return this.items;
+	}
+
 	/**
-	 * A map accessor that can filter other map-accessors. It does not support iterating over elements.
+	 * A map accessor that can filter other map-accessors. It does not support iterating
+	 * over elements.
 	 */
 	private static final class FilteredMapAccessor implements MapAccessor {
 
@@ -63,17 +117,17 @@ final class DatabaseCatalog implements Catalog {
 
 		@Override
 		public Iterable<String> keys() {
-			return filteredKeys;
+			return this.filteredKeys;
 		}
 
 		@Override
 		public boolean containsKey(String key) {
-			return filteredKeys.contains(key);
+			return this.filteredKeys.contains(key);
 		}
 
 		@Override
 		public Value get(String key) {
-			return filteredKeys.contains(key) ?  delegate.get(key) : Values.NULL;
+			return this.filteredKeys.contains(key) ? this.delegate.get(key) : Values.NULL;
 		}
 
 		@Override
@@ -100,55 +154,7 @@ final class DatabaseCatalog implements Catalog {
 		public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
 			throw new UnsupportedOperationException();
 		}
+
 	}
 
-	static Catalog full(Neo4jVersion version, SimpleQueryRunner queryRunner) {
-		return of(version, queryRunner, true, false);
-	}
-
-	static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions) {
-		return of(version, queryRunner, readOptions, true);
-	}
-
-	private static Catalog of(Neo4jVersion version, SimpleQueryRunner queryRunner, boolean readOptions, boolean filterInternalConstraints) {
-
-		Set<CatalogItem<?>> items = new LinkedHashSet<>();
-		Function<Record, MapAccessor> mapAccessorMapper = r -> readOptions ? r : new FilteredMapAccessor(r, Collections.singleton("options"));
-
-		Predicate<Constraint> internalConstraints = c -> true;
-		if (filterInternalConstraints) {
-			internalConstraints = constraint -> Arrays.stream(MigrationsLock.REQUIRED_CONSTRAINTS).noneMatch(constraint::isEquivalentTo);
-			internalConstraints = internalConstraints.and(c -> !Migrations.UNIQUE_VERSION.isEquivalentTo(c));
-		}
-		queryRunner.run(version.getShowConstraints())
-			.stream()
-			.map(mapAccessorMapper)
-			.map(Constraint::parse)
-			.filter(internalConstraints)
-			.forEach(items::add);
-
-		Predicate<Index> internalIndexes = index -> index.getType() != Index.Type.LOOKUP && index.getType() != Index.Type.CONSTRAINT_BACKING_INDEX;
-		if (filterInternalConstraints) {
-			internalIndexes = internalIndexes.and(i -> !Migrations.REPEATED_AT.isEquivalentTo(i));
-		}
-		queryRunner.run(version.getShowIndexes())
-			.stream()
-			.map(mapAccessorMapper)
-			.map(Index::parse)
-			.filter(internalIndexes)
-			.forEach(items::add);
-
-		return new DatabaseCatalog(items);
-	}
-
-	private final Collection<CatalogItem<?>> items;
-
-	private DatabaseCatalog(Set<CatalogItem<?>> items) {
-		this.items = items;
-	}
-
-	@Override
-	public Collection<CatalogItem<?>> getItems() {
-		return items;
-	}
 }

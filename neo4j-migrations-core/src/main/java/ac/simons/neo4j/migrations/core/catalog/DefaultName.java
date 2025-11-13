@@ -28,4 +28,5 @@ final class DefaultName extends AbstractName {
 	DefaultName(String value) {
 		super(value);
 	}
+
 }

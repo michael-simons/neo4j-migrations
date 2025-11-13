@@ -19,6 +19,9 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * Just for demo purposes.
+ *
+ * @author Michael J. Simons
  */
 public interface PersonRepository extends Neo4jRepository<Person, String> {
+
 }

@@ -15,22 +15,21 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import ac.simons.neo4j.migrations.core.refactorings.Counters;
-import ac.simons.neo4j.migrations.core.refactorings.Normalize;
-import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import ac.simons.neo4j.migrations.core.refactorings.Normalize;
+import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -41,9 +40,10 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 	@BeforeEach
 	void clearDatabase() {
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			CypherResource.of(ResourceContext.of(RenameIT.class.getResource("/moviegraph/movies.cypher"))).getExecutableStatements()
+			CypherResource.of(ResourceContext.of(RenameIT.class.getResource("/moviegraph/movies.cypher")))
+				.getExecutableStatements()
 				.forEach(session::run);
 			session.run("MATCH (n:Movie {title:'The Matrix'}) SET n.watched = 'ja'").consume();
 			session.run("MATCH (n:Movie {title:'The Matrix Reloaded'}) SET n.watched = 'n'").consume();
@@ -63,8 +63,8 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 			.withCustomQuery("MATCH (m:Movie) RETURN m")
 			.inBatchesOf(10);
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = normalize.apply(refactoringContext);
 
 			assertThat(counters.propertiesSet()).isEqualTo(39);
@@ -79,28 +79,29 @@ class NormalizeIT extends AbstractRefactoringsITTestBase {
 	void shouldNormalize() {
 
 		Normalize normalize = Normalize.asBoolean("watched", Arrays.asList("ja", "y", "Y"),
-			Collections.singletonList("n"));
+				Collections.singletonList("n"));
 
-		try (Session session = driver.session()) {
-			RefactoringContext refactoringContext = new DefaultRefactoringContext(driver::session);
+		try (Session session = this.driver.session()) {
+			RefactoringContext refactoringContext = new DefaultRefactoringContext(this.driver::session);
 			Counters counters = normalize.apply(refactoringContext);
 
 			assertThat(counters.propertiesSet()).isEqualTo(5);
 			List<Boolean> watched = session.run(
-				"MATCH (m:Movie) WHERE m.title =~ 'The Matrix.*' RETURN m.watched AS v UNION ALL MATCH (:Person {name: 'Emil Eifrem'}) -[r:ACTED_IN]->() RETURN r.watched AS v"
-			).list(r -> {
-				Value value = r.get(0);
-				if (value.isNull()) {
-					return null;
-				}
-				return value.asBoolean();
-			});
-			assertThat(watched)
-				.hasSize(5)
-				.containsOnly(false, true, null);
+					"MATCH (m:Movie) WHERE m.title =~ 'The Matrix.*' RETURN m.watched AS v UNION ALL MATCH (:Person {name: 'Emil Eifrem'}) -[r:ACTED_IN]->() RETURN r.watched AS v")
+				.list(r -> {
+					Value value = r.get(0);
+					if (value.isNull()) {
+						return null;
+					}
+					return value.asBoolean();
+				});
+			assertThat(watched).hasSize(5).containsOnly(false, true, null);
 
-			assertThat(session.run("MATCH (m:Movie {title: 'The Matrix Resurrections'}) RETURN m.watched").single().get(0)
-					.asBoolean()).isFalse();
+			assertThat(session.run("MATCH (m:Movie {title: 'The Matrix Resurrections'}) RETURN m.watched")
+				.single()
+				.get(0)
+				.asBoolean()).isFalse();
 		}
 	}
+
 }

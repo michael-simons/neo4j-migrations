@@ -15,12 +15,14 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.impl;
 
-import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
-
 import java.util.Optional;
 
+import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
+
 /**
- * Default implementation to be passed to the renderer
+ * Default implementation to be passed to the renderer.
+ *
+ * @author Michael J. Simons
  */
 final class XMLRenderingOptionsImpl implements RenderConfig.XMLRenderingOptions {
 
@@ -38,16 +40,17 @@ final class XMLRenderingOptionsImpl implements RenderConfig.XMLRenderingOptions 
 
 	@Override
 	public boolean withApply() {
-		return withApply;
+		return this.withApply;
 	}
 
 	@Override
 	public boolean withReset() {
-		return withReset;
+		return this.withReset;
 	}
 
 	@Override
 	public Optional<String> optionalHeader() {
-		return Optional.ofNullable(header);
+		return Optional.ofNullable(this.header);
 	}
+
 }

@@ -18,12 +18,12 @@ package ac.simons.neo4j.migrations.springframework.boot.autoconfigure.test_migra
 import java.util.Map;
 import java.util.Objects;
 
-import org.neo4j.driver.Session;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
+import org.neo4j.driver.Session;
+
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * Example for a Spring based Java migration.
@@ -41,8 +41,10 @@ public class V0003__AFreshSpringMigration implements JavaBasedMigration {
 	public void apply(MigrationContext context) {
 		try (Session session = context.getSession()) {
 
-			var property = Objects.requireNonNull(environment.getProperty("spring.application.name"));
-			session.run("CREATE (onA:WALL{graffito: 'Spring is in the air', appName: $appName})", Map.of("appName", property));
+			var property = Objects.requireNonNull(this.environment.getProperty("spring.application.name"));
+			session.run("CREATE (onA:WALL{graffito: 'Spring is in the air', appName: $appName})",
+					Map.of("appName", property));
 		}
 	}
+
 }

@@ -24,14 +24,22 @@ import javax.lang.model.util.Elements;
 /**
  * Value holder of SDN6 types.
  *
+ * @param node corresponding field in the class
+ * @param nodeValue corresponding field in the class
+ * @param nodeLabels corresponding field in the class
+ * @param relationshipProperties corresponding field in the class
+ * @param nodePrimaryLabel corresponding field in the class
+ * @param id corresponding field in the class
+ * @param generatedValue corresponding field in the class
+ * @param commonsId corresponding field in the class
+ * @param property corresponding field in the class
+ * @param transientProperty corresponding field in the class
  * @author Michael J. Simons
- * @soundtrack Motörhead - Iron Fist
  * @since 1.15.0
  */
-record ElementsSDN6(
-	TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels, TypeElement relationshipProperties,
-	ExecutableElement nodePrimaryLabel, TypeElement id, TypeElement generatedValue,
-	TypeElement commonsId, TypeElement property, TypeElement transientProperty) {
+record ElementsSDN6(TypeElement node, ExecutableElement nodeValue, ExecutableElement nodeLabels,
+		TypeElement relationshipProperties, ExecutableElement nodePrimaryLabel, TypeElement id,
+		TypeElement generatedValue, TypeElement commonsId, TypeElement property, TypeElement transientProperty) {
 
 	static Optional<ElementsSDN6> of(Elements elements) {
 		TypeElement sdn6Node = elements.getTypeElement(FullyQualifiedNames.SDN6_NODE);
@@ -50,6 +58,7 @@ record ElementsSDN6(
 		TypeElement commonsId = elements.getTypeElement(FullyQualifiedNames.COMMONS_ID);
 		TypeElement transientProperty = elements.getTypeElement(FullyQualifiedNames.COMMONS_TRANSIENT);
 
-		return Optional.of(new ElementsSDN6(sdn6Node, sdn6NodeValue, sdn6NodeLabels, sdn6Relationship, sdn6NodePrimaryLabel, sdn6Id, sdn6GeneratedValue, commonsId, sdn6Property, transientProperty));
+		return Optional.of(new ElementsSDN6(sdn6Node, sdn6NodeValue, sdn6NodeLabels, sdn6Relationship,
+				sdn6NodePrimaryLabel, sdn6Id, sdn6GeneratedValue, commonsId, sdn6Property, transientProperty));
 	}
 }

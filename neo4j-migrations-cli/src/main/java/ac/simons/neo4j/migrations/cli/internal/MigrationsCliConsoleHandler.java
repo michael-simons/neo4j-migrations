@@ -44,4 +44,5 @@ public final class MigrationsCliConsoleHandler extends StreamHandler {
 	public synchronized void close() {
 		flush();
 	}
+
 }

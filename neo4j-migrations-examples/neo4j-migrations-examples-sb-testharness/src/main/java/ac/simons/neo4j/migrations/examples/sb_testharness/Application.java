@@ -18,8 +18,11 @@ package ac.simons.neo4j.migrations.examples.sb_testharness;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
+ * Default Spring Boot application.
+ *
  * @author Michael J. Simons
  */
 @SpringBootApplication
 public class Application {
+
 }

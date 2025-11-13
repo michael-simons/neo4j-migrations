@@ -15,40 +15,36 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
+import java.net.URL;
+import java.util.logging.Level;
+
 import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
-import java.net.URL;
-import java.util.logging.Level;
-
 /**
- * Applies an explicit lists of migrations
+ * Applies an explicit lists of migrations.
  *
  * @author Michael J. Simons
  * @since 1.13.0
  */
-@Command(name = "run", description = "Resolves the specified migrations and applies them. Does not record any metadata.")
+@Command(name = "run",
+		description = "Resolves the specified migrations and applies them. Does not record any metadata.")
 final class RunCommand extends ConnectedCommand {
 
 	@ParentCommand
 	private MigrationsCli parent;
 
-	@Option(
-		names = { "--migration" },
-		description = "Migration to run. Repeat for multiple migrations.",
-		required = true,
-		split = ",",
-		arity = "1..*"
-	)
+	@Option(names = { "--migration" }, description = "Migration to run. Repeat for multiple migrations.",
+			required = true, split = ",", arity = "1..*")
 	private URL[] migrationsToRun = new URL[0];
 
 	@Override
 	public MigrationsCli getParent() {
 
-		return parent;
+		return this.parent;
 	}
 
 	@Override
@@ -59,9 +55,9 @@ final class RunCommand extends ConnectedCommand {
 	@Override
 	Integer withMigrations(Migrations migrations) {
 
-		int cnt = migrations.apply(migrationsToRun);
+		int cnt = migrations.apply(this.migrationsToRun);
 		MigrationsCli.LOGGER.log(Level.INFO, "Applied {0} migration(s).", cnt);
 		return CommandLine.ExitCode.OK;
 	}
-}
 
+}

@@ -18,18 +18,17 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 import java.util.UUID;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Index;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Property;
-
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
+import org.neo4j.ogm.annotation.NodeEntity;
+import org.neo4j.ogm.annotation.Property;
 
 /**
  * @author Michael J. Simons
  */
 @NodeEntity("CBOGM")
-@Unique(properties = {"a", "b", "c"})
-@Index(properties = {"a", "b"})
+@Unique(properties = { "a", "b", "c" })
+@Index(properties = { "a", "b" })
 public class CoffeeBeanOGM {
 
 	@Unique
@@ -41,7 +40,8 @@ public class CoffeeBeanOGM {
 	@Index(indexType = Index.Type.TEXT)
 	public String text;
 
-	@Index(indexType = Index.Type.FULLTEXT, options = @Index.Option(key = "indexConfig", value = "+{ `fulltext.analyzer`:\"whitespace\" }"))
+	@Index(indexType = Index.Type.FULLTEXT,
+			options = @Index.Option(key = "indexConfig", value = "+{ `fulltext.analyzer`:\"whitespace\" }"))
 	public String textB;
 
 	@Required(property = "theName")
@@ -59,4 +59,5 @@ public class CoffeeBeanOGM {
 	public String b;
 
 	public String d;
+
 }

@@ -15,14 +15,13 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.catalog.Catalog;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.function.UnaryOperator;
 
+import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.BookmarkManager;
 import org.neo4j.driver.BookmarkManagerConfig;
@@ -40,8 +39,8 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
 
 /**
- * Default implementation of the {@link MigrationContext}, including the logic of wrapping driver and blocking sessions
- * into proxy objects taking care of bookmarks.
+ * Default implementation of the {@link MigrationContext}, including the logic of wrapping
+ * driver and blocking sessions into proxy objects taking care of bookmarks.
  *
  * @author Michael J. Simons
  * @since 1.3.0
@@ -49,15 +48,8 @@ import org.neo4j.driver.summary.ServerInfo;
 final class DefaultMigrationContext implements MigrationContext {
 
 	private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
-	private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
-	private static Method findWithImpersonatedUser() {
-		try {
-			return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
-		} catch (NoSuchMethodException e) {
-			return null; // This is fine
-		}
-	}
+	private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
 	private final MigrationsConfig config;
 
@@ -65,53 +57,36 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	private final Driver driver;
 
+	private final VersionedCatalog catalog;
+
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
 	private volatile ConnectionDetails connectionDetails;
-
-	private final VersionedCatalog catalog;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
 		if (config.getOptionalImpersonatedUser().isPresent() && WITH_IMPERSONATED_USER == null) {
 			throw new IllegalArgumentException(
-				"User impersonation requires a driver that supports `withImpersonatedUser`.");
+					"User impersonation requires a driver that supports `withImpersonatedUser`.");
 		}
 
 		this.config = config;
 		this.bookmarkManager = BookmarkManagers.defaultManager(BookmarkManagerConfig.builder().build());
-		this.driver = (Driver) Proxy.newProxyInstance(this.getClass().getClassLoader(),
-			new Class<?>[] { Driver.class }, new DriverProxy(bookmarkManager, driver));
-		this.applySchemaDatabase = this.config.getOptionalSchemaDatabase().map(schemaDatabase ->
-			(UnaryOperator<SessionConfig.Builder>) builder -> builder.withDatabase(schemaDatabase)
-		).orElseGet(UnaryOperator::identity);
+		this.driver = (Driver) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class<?>[] { Driver.class },
+				new DriverProxy(this.bookmarkManager, driver));
+		this.applySchemaDatabase = this.config.getOptionalSchemaDatabase()
+			.map(schemaDatabase -> (UnaryOperator<SessionConfig.Builder>) builder -> builder
+				.withDatabase(schemaDatabase))
+			.orElseGet(UnaryOperator::identity);
 		this.catalog = new DefaultCatalog(config.getVersionComparator());
 	}
 
-	@Override
-	public MigrationsConfig getConfig() {
-		return config;
-	}
-
-	@Override
-	public Driver getDriver() {
-		return driver;
-	}
-
-	@Override
-	public SessionConfig getSessionConfig() {
-		return getSessionConfig(UnaryOperator.identity());
-	}
-
-	@Override
-	public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
-
-		SessionConfig.Builder builder = SessionConfig.builder()
-			.withDefaultAccessMode(AccessMode.WRITE)
-			.withBookmarkManager(bookmarkManager);
-		this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
-		this.config.getOptionalImpersonatedUser().ifPresent(user -> setWithImpersonatedUser(builder, user));
-
-		return configCustomizer.apply(builder).build();
+	private static Method findWithImpersonatedUser() {
+		try {
+			return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
+		}
+		catch (NoSuchMethodException ex) {
+			return null; // This is fine
+		}
 	}
 
 	static void setWithImpersonatedUser(SessionConfig.Builder builder, String user) {
@@ -120,8 +95,9 @@ final class DefaultMigrationContext implements MigrationContext {
 			// this method has been checked.
 			// noinspection ConstantConditions
 			WITH_IMPERSONATED_USER.invoke(builder, user);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			throw new MigrationsException("Could not impersonate a user on the driver level", e);
+		}
+		catch (IllegalAccessException | InvocationTargetException ex) {
+			throw new MigrationsException("Could not impersonate a user on the driver level", ex);
 		}
 	}
 
@@ -138,8 +114,35 @@ final class DefaultMigrationContext implements MigrationContext {
 	}
 
 	@Override
+	public MigrationsConfig getConfig() {
+		return this.config;
+	}
+
+	@Override
+	public Driver getDriver() {
+		return this.driver;
+	}
+
+	@Override
+	public SessionConfig getSessionConfig() {
+		return getSessionConfig(UnaryOperator.identity());
+	}
+
+	@Override
+	public SessionConfig getSessionConfig(UnaryOperator<SessionConfig.Builder> configCustomizer) {
+
+		SessionConfig.Builder builder = SessionConfig.builder()
+			.withDefaultAccessMode(AccessMode.WRITE)
+			.withBookmarkManager(this.bookmarkManager);
+		this.config.getOptionalDatabase().ifPresent(builder::withDatabase);
+		this.config.getOptionalImpersonatedUser().ifPresent(user -> setWithImpersonatedUser(builder, user));
+
+		return configCustomizer.apply(builder).build();
+	}
+
+	@Override
 	public Session getSchemaSession() {
-		return getDriver().session(getSessionConfig(applySchemaDatabase));
+		return getDriver().session(getSessionConfig(this.applySchemaDatabase));
 	}
 
 	@Override
@@ -160,33 +163,23 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	@Override
 	public Catalog getCatalog() {
-		return catalog;
+		return this.catalog;
 	}
 
 	private boolean hasDbmsProcedures() {
 
 		try (Session session = this.getSchemaSession()) {
 			ResultSummary consume = session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)").consume();
-			return consume.notifications().stream().map(Notification::code)
+			return consume.notifications()
+				.stream()
+				.map(Notification::code)
 				.noneMatch(Neo4jCodes.FEATURE_DEPRECATION_WARNING::equals);
-		} catch (ClientException e) {
-			if (Neo4jCodes.PROCEDURE_NOT_FOUND.equals(e.code())) {
+		}
+		catch (ClientException ex) {
+			if (Neo4jCodes.PROCEDURE_NOT_FOUND.equals(ex.code())) {
 				return false;
 			}
-			throw e;
-		}
-	}
-
-	record ExtendedResultSummary(
-		boolean showCurrentUserExists,
-		String version,
-		String edition,
-		ServerInfo server,
-		DatabaseInfo database
-	) {
-		ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition,
-			ResultSummary actualSummary) {
-			this(showCurrentUserExists, version, edition, actualSummary.server(), actualSummary.database());
+			throw ex;
 		}
 	}
 
@@ -196,13 +189,12 @@ final class DefaultMigrationContext implements MigrationContext {
 		if (hasDbmsProcedures()) {
 			extendedResultSummaryTransactionWork = tx -> {
 				Result result = tx.run("""
-					CALL dbms.procedures() YIELD name
-					WHERE name = 'dbms.showCurrentUser'
-					WITH count(*) > 0 AS showCurrentUserExists
-					CALL dbms.components() YIELD name, versions, edition
-					WHERE name = 'Neo4j Kernel'
-					RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition"""
-				);
+						CALL dbms.procedures() YIELD name
+						WHERE name = 'dbms.showCurrentUser'
+						WITH count(*) > 0 AS showCurrentUserExists
+						CALL dbms.components() YIELD name, versions, edition
+						WHERE name = 'Neo4j Kernel'
+						RETURN showCurrentUserExists, 'Neo4j/' + versions[0] AS version, edition""");
 				Record singleResultRecord = result.single();
 				boolean showCurrentUserExists = singleResultRecord.get("showCurrentUserExists").asBoolean();
 				String version = singleResultRecord.get("version").asString();
@@ -210,14 +202,18 @@ final class DefaultMigrationContext implements MigrationContext {
 				ResultSummary summary = result.consume();
 				return new ExtendedResultSummary(showCurrentUserExists, version, edition, summary);
 			};
-		} else {
+		}
+		else {
 			extendedResultSummaryTransactionWork = tx -> {
-				boolean showCurrentUserExists = tx.run("SHOW PROCEDURES YIELD name WHERE name = 'dbms.showCurrentUser' RETURN count(*)").single().get(0).asInt() == 1;
+				boolean showCurrentUserExists = tx
+					.run("SHOW PROCEDURES YIELD name WHERE name = 'dbms.showCurrentUser' RETURN count(*)")
+					.single()
+					.get(0)
+					.asInt() == 1;
 				Result result = tx.run("""
-					CALL dbms.components() YIELD name, versions, edition
-					WHERE name = 'Neo4j Kernel'
-					RETURN 'Neo4j/' + versions[0] AS version, edition"""
-				);
+						CALL dbms.components() YIELD name, versions, edition
+						WHERE name = 'Neo4j Kernel'
+						RETURN 'Neo4j/' + versions[0] AS version, edition""");
 				Record singleResultRecord = result.single();
 				String version = singleResultRecord.get("version").asString();
 				String edition = singleResultRecord.get("edition").asString();
@@ -230,31 +226,43 @@ final class DefaultMigrationContext implements MigrationContext {
 
 			ExtendedResultSummary databaseInformation = session.executeRead(extendedResultSummaryTransactionWork);
 
-			// Auth maybe disabled. In such cases, we cannot get the current user. This is usually the case if the method
+			// Auth maybe disabled. In such cases, we cannot get the current user. This is
+			// usually the case if the method
 			// used here does not exist.
 			String username = "anonymous";
 			if (databaseInformation.showCurrentUserExists) {
-				username = session.executeRead(tx ->
-					tx.run("CALL dbms.showCurrentUser() YIELD username RETURN username").single().get("username").asString()
-				);
+				username = session
+					.executeRead(tx -> tx.run("CALL dbms.showCurrentUser() YIELD username RETURN username")
+						.single()
+						.get("username")
+						.asString());
 			}
 
 			ServerInfo serverInfo = databaseInformation.server;
-			String schemaDatabase = databaseInformation.database == null ? null : databaseInformation.database.name();
+			String schemaDatabase = (databaseInformation.database != null) ? databaseInformation.database.name() : null;
 			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
-			return ConnectionDetails.of(serverInfo.address(), databaseInformation.version,
-					databaseInformation.edition, username, targetDatabase,
-					schemaDatabase);
+			return ConnectionDetails.of(serverInfo.address(), databaseInformation.version, databaseInformation.edition,
+					username, targetDatabase, schemaDatabase);
+		}
+	}
+
+	record ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition, ServerInfo server,
+			DatabaseInfo database) {
+		ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition,
+				ResultSummary actualSummary) {
+			this(showCurrentUserExists, version, edition, actualSummary.server(), actualSummary.database());
 		}
 	}
 
 	/**
-	 * This proxy catches all calls to {@link Driver#session()} and {@link Driver#session(SessionConfig)} and
-	 * makes sure that a session config with the current set of bookmarks is used correctly.
+	 * This proxy catches all calls to {@link Driver#session()} and
+	 * {@link Driver#session(SessionConfig)} and makes sure that a session config with the
+	 * current set of bookmarks is used correctly.
 	 */
 	static class DriverProxy implements InvocationHandler {
 
 		private final BookmarkManager bookmarkManager;
+
 		private final Driver target;
 
 		DriverProxy(BookmarkManager bookmarkManager, Driver target) {
@@ -270,24 +278,29 @@ final class DefaultMigrationContext implements MigrationContext {
 					SessionConfig sessionConfig;
 					if (args.length == 0) {
 						// There is no session config
-						sessionConfig = SessionConfig.builder().withBookmarkManager(bookmarkManager).build();
-					} else {
+						sessionConfig = SessionConfig.builder().withBookmarkManager(this.bookmarkManager).build();
+					}
+					else {
 						SessionConfig existingConfig = (SessionConfig) args[0];
 						if (existingConfig.bookmarkManager().isPresent()) {
 							sessionConfig = existingConfig;
-						} else {
-							sessionConfig = copyIntoBuilder(existingConfig)
-								.withBookmarkManager(bookmarkManager)
+						}
+						else {
+							sessionConfig = copyIntoBuilder(existingConfig).withBookmarkManager(this.bookmarkManager)
 								.build();
 						}
 					}
-					return target.session(sessionConfig);
-				} else {
-					return method.invoke(target, args);
+					return this.target.session(sessionConfig);
 				}
-			} catch (InvocationTargetException ite) {
+				else {
+					return method.invoke(this.target, args);
+				}
+			}
+			catch (InvocationTargetException ite) {
 				throw ite.getCause();
 			}
 		}
+
 	}
+
 }

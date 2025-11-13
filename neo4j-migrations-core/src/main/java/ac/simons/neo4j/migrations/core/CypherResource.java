@@ -22,14 +22,12 @@ import java.util.List;
  * Abstraction over Cypher resources.
  *
  * @author Michael J. Simons
- * @soundtrack Koljah - Aber der Abgrund
  * @since 1.8.0
  */
 public sealed interface CypherResource permits DefaultCypherResource {
 
 	/**
 	 * Creates a new resource for the given URL.
-	 *
 	 * @param context the context in which this resource was discovered
 	 * @return a new Cypher resource
 	 */
@@ -38,24 +36,54 @@ public sealed interface CypherResource permits DefaultCypherResource {
 		var autocrlf = context.getConfig().isAutocrlf();
 		var useFlywayCompatibleChecksums = context.getConfig().isUseFlywayCompatibleChecksums();
 
-		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf, useFlywayCompatibleChecksums,
-			context::openStream);
+		return new DefaultCypherResource(ResourceContext.generateIdentifierOf(url), autocrlf,
+				useFlywayCompatibleChecksums, context::openStream);
 	}
 
 	/**
-	 * Starts building a Cypher resource from the given content
-	 *
-	 * @param content The string containing cypher
+	 * Starts building a Cypher resource from the given content.
+	 * @param content the string containing cypher
 	 * @return first step of building the resource
 	 * @since 1.8.0
 	 */
 	static WithContent withContent(String content) {
-		return identifier -> new DefaultCypherResource(identifier, Defaults.AUTOCRLF, Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS,
-			() -> new ByteArrayInputStream(content.getBytes(Defaults.CYPHER_SCRIPT_ENCODING)));
+		return identifier -> new DefaultCypherResource(identifier, Defaults.AUTOCRLF,
+				Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS,
+				() -> new ByteArrayInputStream(content.getBytes(Defaults.CYPHER_SCRIPT_ENCODING)));
 	}
 
 	/**
-	 * Terminal step of building a resource
+	 * The identifier for this resource must be parsable into a {@link MigrationVersion},
+	 * see {@link MigrationVersion#canParse(String)}.
+	 * @return an identifier for this resource
+	 */
+	String getIdentifier();
+
+	/**
+	 * {@return the checksum of this resource}
+	 */
+	String getChecksum();
+
+	/**
+	 * Returns all statements that are not single line comments. The list of statements
+	 * might contain {@code :use database} statements, which neo4j-migrations (browser and
+	 * cypher-shell) can deal with but the pure driver can't.
+	 * <p>
+	 * The returned list will never include single line comments, but the statements
+	 * themselves might contain comments.
+	 * @return a list of executable statements
+	 */
+	List<String> getExecutableStatements();
+
+	/**
+	 * Returns a list of surely identifiable single line comments, either "standalone" or
+	 * before a valid cypher statement.
+	 * @return a list of surely identifiable single line comments
+	 */
+	List<String> getSingleLineComments();
+
+	/**
+	 * Terminal step of building a resource.
 	 *
 	 * @since 1.8.0
 	 */
@@ -63,37 +91,11 @@ public sealed interface CypherResource permits DefaultCypherResource {
 
 		/**
 		 * Adds an identifier to the content and builds the resource.
-		 *
 		 * @param identifier the identifier to use
 		 * @return a new Cypher resource
 		 */
 		CypherResource identifiedBy(String identifier);
+
 	}
 
-	/**
-	 * The identifier for this resource must be parsable into a {@link MigrationVersion}, see {@link MigrationVersion#canParse(String)}.
-	 *
-	 * @return An identifier for this resource
-	 */
-	String getIdentifier();
-
-	/**
-	 * {@return The checksum of this resource}
-	 */
-	String getChecksum();
-
-	/**
-	 * Returns all statements that are not single line comments. The list of statements might contain {@code :use database}
-	 * statements, which neo4j-migrations (browser and cypher-shell) can deal with but the pure driver can't.
-	 * <p>
-	 * The returned list will never include single line comments, but the statements themselves might contain comments.
-	 *
-	 * @return A list of executable statements
-	 */
-	List<String> getExecutableStatements();
-
-	/**
-	 * {@return A list of surely identifiable single line comments, either "standalone" or before a valid cypher statement}
-	 */
-	List<String> getSingleLineComments();
 }

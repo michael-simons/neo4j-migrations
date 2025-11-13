@@ -15,17 +15,18 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+
 /**
  * The phase in the lifecycle of a migrations flow in which a {@link Callback} is invoked.
  * <p>
- * This enum might become public as soon as neo4j-migrations supports Java-based callbacks, too.
+ * This enum might become public as soon as neo4j-migrations supports Java-based
+ * callbacks, too.
  *
  * @author Michael J. Simons
  * @since 1.2.2
@@ -33,9 +34,9 @@ import java.util.stream.Collectors;
 enum LifecyclePhase {
 
 	/**
-	 * Callbacks in that phase are only called once and are also the only ones that are called with the schema database
-	 * and not the target database, so they won't require the target database to be present. Also, no user impersonation
-	 * will be performed.
+	 * Callbacks in that phase are only called once and are also the only ones that are
+	 * called with the schema database and not the target database, so they won't require
+	 * the target database to be present. Also, no user impersonation will be performed.
 	 */
 	BEFORE_FIRST_USE,
 
@@ -58,35 +59,33 @@ enum LifecyclePhase {
 	AFTER_CLEAN,
 
 	/**
-	 * Before Validate runs
+	 * Before Validate runs.
 	 */
 	BEFORE_VALIDATE,
 	/**
-	 * After Validate runs
+	 * After Validate runs.
 	 */
 	AFTER_VALIDATE,
 
 	/**
-	 * Before Info runs
+	 * Before Info runs.
 	 */
 	BEFORE_INFO,
 	/**
-	 * After Info runs
+	 * After Info runs.
 	 */
 	AFTER_INFO;
 
-	private static final EnumSet<LifecyclePhase> ALL_VALUES = EnumSet.allOf(LifecyclePhase.class);
-
 	static final Pattern LIFECYCLE_PATTERN;
+
+	private static final EnumSet<LifecyclePhase> ALL_VALUES = EnumSet.allOf(LifecyclePhase.class);
 
 	static {
 
-		String group1 = ALL_VALUES.stream()
-			.map(LifecyclePhase::toCamelCase)
-			.collect(Collectors.joining("|", "(", ")"));
+		String group1 = ALL_VALUES.stream().map(LifecyclePhase::toCamelCase).collect(Collectors.joining("|", "(", ")"));
 
-		LIFECYCLE_PATTERN = Pattern.compile(
-			group1 + "(?:__([\\w ]+))?(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
+		LIFECYCLE_PATTERN = Pattern
+			.compile(group1 + "(?:__([\\w ]+))?(?:\\." + Defaults.CYPHER_SCRIPT_EXTENSION + ")?");
 	}
 
 	static boolean canParse(String pathOrUrl) {
@@ -108,4 +107,5 @@ enum LifecyclePhase {
 	String readable() {
 		return name().toLowerCase(Locale.ENGLISH).replace("_", " ");
 	}
+
 }

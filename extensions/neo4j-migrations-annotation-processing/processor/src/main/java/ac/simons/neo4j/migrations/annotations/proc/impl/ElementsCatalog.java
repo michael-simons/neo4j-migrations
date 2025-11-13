@@ -23,15 +23,14 @@ import javax.lang.model.util.Elements;
 /**
  * Value holder of catalog types.
  *
+ * @param required flag if a catalog is required
+ * @param unique flag if the type element must be unique
+ * @param uniqueWrapper any wrapper on the unique item
+ * @param index the index of the entry
  * @author Michael J. Simons
- * @soundtrack Metallica - ...And Justice For All
  * @since 1.15.0
  */
-record ElementsCatalog(
-	TypeElement required,
-	TypeElement unique,
-	TypeElement uniqueWrapper,
-	TypeElement index) {
+record ElementsCatalog(TypeElement required, TypeElement unique, TypeElement uniqueWrapper, TypeElement index) {
 
 	static Optional<ElementsCatalog> of(Elements elements) {
 		TypeElement catalogRequired = elements.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);

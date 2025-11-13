@@ -18,14 +18,13 @@ package ac.simons.neo4j.migrations.annotations.proc.ogm_movies;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.GeneratedValue;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Michael J. Simons
@@ -33,7 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @RelationshipEntity("ACTED_IN")
 public final class Actor {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	@JsonIgnore
 	private Long id;
 
@@ -43,14 +43,16 @@ public final class Actor {
 	@JsonIgnore
 	private Person person;
 
-	@EndNode private Movie movie;
+	@EndNode
+	private Movie movie;
 
 	@JsonProperty
 	public String getName() {
-		return person.getName();
+		return this.person.getName();
 	}
 
 	public List<String> getRoles() {
-		return Collections.unmodifiableList(roles);
+		return Collections.unmodifiableList(this.roles);
 	}
+
 }

@@ -16,14 +16,16 @@
 package ac.simons.neo4j.migrations.annotations.proc;
 
 /**
- * Represents a relationship type
+ * Represents a relationship type.
+ *
  * @author Michael J. Simons
  * @since 1.11.0
  */
 public interface RelationshipType extends ElementType<RelationshipType> {
 
 	/**
-	 * @return the single schema name.
+	 * {@return the single schema name}
 	 */
 	SchemaName getName();
+
 }

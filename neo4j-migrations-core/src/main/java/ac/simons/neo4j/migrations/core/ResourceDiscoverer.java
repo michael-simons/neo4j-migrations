@@ -39,11 +39,24 @@ import java.util.regex.Matcher;
 /**
  * Factory providing different {@link Discoverer} implementations.
  *
+ * @param <T> the concrete type to be instantiated with a discovered resource
  * @author Michael J. Simons
- * @param <T> The concrete type to be instantiated with a discovered resource
  * @since 1.2.2
  */
 final class ResourceDiscoverer<T> implements Discoverer<T> {
+
+	private final ClasspathResourceScanner scanner;
+
+	private final Predicate<String> resourceFilter;
+
+	private final Function<ResourceContext, Collection<T>> mapper;
+
+	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter,
+			Function<ResourceContext, Collection<T>> mapper) {
+		this.scanner = scanner;
+		this.resourceFilter = resourceFilter;
+		this.mapper = mapper;
+	}
 
 	static Discoverer<Migration> forMigrations(ClasspathResourceScanner resourceScanner) {
 
@@ -69,28 +82,17 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 	static ResourceDiscoverer<Callback> forCallbacks(ClasspathResourceScanner resourceScanner) {
 		Predicate<String> filter = LifecyclePhase::canParse;
 		filter = filter.and(fullPath -> {
-				final int lastSlashIdx = fullPath.lastIndexOf('/');
-				final int lastDotIdx = fullPath.lastIndexOf('.');
-				return lastDotIdx > lastSlashIdx && fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
+			final int lastSlashIdx = fullPath.lastIndexOf('/');
+			final int lastDotIdx = fullPath.lastIndexOf('.');
+			return lastDotIdx > lastSlashIdx
+					&& fullPath.substring(lastDotIdx + 1).equalsIgnoreCase(Defaults.CYPHER_SCRIPT_EXTENSION);
 		});
 		return new ResourceDiscoverer<>(resourceScanner, filter,
-			ctx -> Collections.singletonList(new CypherBasedCallback(ctx)));
-	}
-
-	private final ClasspathResourceScanner scanner;
-
-	private final Predicate<String> resourceFilter;
-
-	private final Function<ResourceContext, Collection<T>> mapper;
-
-	private ResourceDiscoverer(ClasspathResourceScanner scanner, Predicate<String> resourceFilter, Function<ResourceContext, Collection<T>> mapper) {
-		this.scanner = scanner;
-		this.resourceFilter = resourceFilter;
-		this.mapper = mapper;
+				ctx -> Collections.singletonList(new CypherBasedCallback(ctx)));
 	}
 
 	/**
-	 * @return All Cypher-based migrations. Empty list if no package to scan is configured.
+	 * {@return all Cypher-based migrations or an empty list}
 	 */
 	@Override
 	public Collection<T> discover(MigrationContext context) {
@@ -106,7 +108,8 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 			Location location = Location.of(prefixAndLocation);
 			if (location.getType() == Location.LocationType.CLASSPATH) {
 				classpathLocations.add(location.getName());
-			} else if (location.getType() == Location.LocationType.FILESYSTEM) {
+			}
+			else if (location.getType() == Location.LocationType.FILESYSTEM) {
 				filesystemLocations.add(location.toUri());
 			}
 		}
@@ -127,9 +130,9 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 
 		return this.scanner.scan(classpathLocations)
 			.stream()
-			.filter(r -> resourceFilter.test(r.getPath()))
+			.filter(r -> this.resourceFilter.test(r.getPath()))
 			.map(resource -> ResourceContext.of(resource, config))
-			.map(mapper)
+			.map(this.mapper)
 			.flatMap(Collection::stream)
 			.toList();
 	}
@@ -151,23 +154,26 @@ final class ResourceDiscoverer<T> implements Discoverer<T> {
 				continue;
 			}
 			try {
-				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
-					@Override
-					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-						String fullPath = file.toString();
-						if (attrs.isRegularFile() && resourceFilter.test(fullPath)) {
-							ResourceContext context = ResourceContext.of(file.toFile().toURI().toURL(), config);
-							resources.addAll(mapper.apply(context));
-							return FileVisitResult.CONTINUE;
-						}
-						return super.visitFile(file, attrs);
-					}
-				});
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
+				Files.walkFileTree(path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+						new SimpleFileVisitor<>() {
+							@Override
+							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+								String fullPath = file.toString();
+								if (attrs.isRegularFile() && ResourceDiscoverer.this.resourceFilter.test(fullPath)) {
+									ResourceContext context = ResourceContext.of(file.toFile().toURI().toURL(), config);
+									resources.addAll(ResourceDiscoverer.this.mapper.apply(context));
+									return FileVisitResult.CONTINUE;
+								}
+								return super.visitFile(file, attrs);
+							}
+						});
+			}
+			catch (IOException ex) {
+				throw new UncheckedIOException(ex);
 			}
 		}
 
 		return resources;
 	}
+
 }

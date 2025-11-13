@@ -19,12 +19,13 @@ import ac.simons.neo4j.migrations.annotations.proc.ElementType;
 import ac.simons.neo4j.migrations.annotations.proc.PropertyType;
 
 /**
+ * Default {@link PropertyType} implementation.
+ *
+ * @param <T> the type of the property
  * @author Michael J. Simons
- * @soundtrack Ralf "Ralle" Petersen -  Album wird aus Hack gemacht 2016
- * @param <T> The type of the property
  * @since 1.11.0
  */
-@SuppressWarnings({"squid:S6206", "ClassCanBeRecord"}) // No, but thanks
+@SuppressWarnings({ "squid:S6206", "ClassCanBeRecord" }) // No, but thanks
 final class DefaultPropertyType<T extends ElementType<T>> implements PropertyType<T> {
 
 	private final T owner;
@@ -45,4 +46,5 @@ final class DefaultPropertyType<T extends ElementType<T>> implements PropertyTyp
 	public String getName() {
 		return this.name;
 	}
+
 }

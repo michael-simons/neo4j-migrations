@@ -22,14 +22,15 @@ import java.util.Collections;
  * The empty catalog.
  *
  * @author Michael J. Simons
- * @soundtrack Carcass - Surgical Steel
  * @since 1.7.0
  */
 enum EmptyCatalog implements Catalog {
+
 	INSTANCE;
 
 	@Override
 	public Collection<CatalogItem<?>> getItems() {
 		return Collections.emptyList();
 	}
+
 }

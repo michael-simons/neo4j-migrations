@@ -22,10 +22,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Container for the repeatable {@link UniqueProperties} annotation. In modern Java you will probably never use this directly.
+ * Container for the repeatable {@link UniqueProperties} annotation. In modern Java you
+ * will probably never use this directly.
  *
  * @author Michael J. Simons
- * @soundtrack Juse Ju - Millennium
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
@@ -33,7 +33,8 @@ import java.lang.annotation.Target;
 public @interface UniqueProperties {
 
 	/**
-	 * @return the actual values
+	 * {@return the actual values}
 	 */
 	Unique[] value();
+
 }

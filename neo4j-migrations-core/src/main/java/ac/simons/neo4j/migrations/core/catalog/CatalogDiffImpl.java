@@ -20,8 +20,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
+ * The current implementation of {@link CatalogDiff}.
+ *
  * @author Michael J. Simons
- * @soundtrack Pet Shop Boys - Fundamental
  * @since 1.7.0
  */
 final class CatalogDiffImpl implements CatalogDiff {
@@ -40,24 +41,26 @@ final class CatalogDiffImpl implements CatalogDiff {
 		this(Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 	}
 
-	CatalogDiffImpl(Set<CatalogItem<?>> itemsOnlyInLeft, Set<CatalogItem<?>> itemsOnlyInRight, Set<CatalogItem<?>> equivalentItems) {
+	CatalogDiffImpl(Set<CatalogItem<?>> itemsOnlyInLeft, Set<CatalogItem<?>> itemsOnlyInRight,
+			Set<CatalogItem<?>> equivalentItems) {
 
 		this.itemsOnlyInLeft = itemsOnlyInLeft;
 		this.itemsOnlyInRight = itemsOnlyInRight;
 		this.equivalentItems = equivalentItems;
 
 		this.identical = itemsOnlyInLeft.isEmpty() && itemsOnlyInRight.isEmpty();
-		this.equivalent = identical || (this.equivalentItems.containsAll(itemsOnlyInLeft) && this.equivalentItems.containsAll(itemsOnlyInRight));
+		this.equivalent = this.identical || (this.equivalentItems.containsAll(itemsOnlyInLeft)
+				&& this.equivalentItems.containsAll(itemsOnlyInRight));
 	}
 
 	@Override
 	public boolean identical() {
-		return identical;
+		return this.identical;
 	}
 
 	@Override
 	public boolean equivalent() {
-		return equivalent;
+		return this.equivalent;
 	}
 
 	@Override
@@ -74,4 +77,5 @@ final class CatalogDiffImpl implements CatalogDiff {
 	public Collection<CatalogItem<?>> getEquivalentItems() {
 		return Collections.unmodifiableCollection(this.equivalentItems);
 	}
+
 }

@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,6 +26,8 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -45,7 +45,7 @@ class DefaultMigrationContextIT {
 
 			Config config = Config.builder().withLogging(Logging.none()).build();
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
+					AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
 				DefaultMigrationContext ctx = new DefaultMigrationContext(MigrationsConfig.defaultConfig(), driver);
 				ConnectionDetails connectionDetails = ctx.getConnectionDetails();
@@ -55,10 +55,9 @@ class DefaultMigrationContextIT {
 	}
 
 	private Neo4jContainer getNeo4j(String tag) {
-		Neo4jContainer neo4j = new Neo4jContainer(tag)
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-			.withReuse(true);
+		Neo4jContainer neo4j = new Neo4jContainer(tag).withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes").withReuse(true);
 		neo4j.start();
 		return neo4j;
 	}
+
 }

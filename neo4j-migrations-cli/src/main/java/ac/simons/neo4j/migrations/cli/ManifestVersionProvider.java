@@ -19,12 +19,12 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import picocli.CommandLine.IVersionProvider;
 
 /**
- * Version provider modelled after the official example
- * <a href="https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java">here</a>
- * Implementation has been moved to the core module, see {@literal ac.simons.neo4j.migrations.core.ProductionVersion}.
+ * Version provider modelled after the official example <a href=
+ * "https://github.com/remkop/picocli/blob/master/picocli-examples/src/main/java/picocli/examples/VersionProviderDemo2.java">here</a>
+ * Implementation has been moved to the core module, see
+ * {@literal ac.simons.neo4j.migrations.core.ProductionVersion}.
  *
  * @author Michael J. Simons
- * @soundtrack Phil Collins - ...But Seriously
  * @since 0.0.5
  */
 final class ManifestVersionProvider implements IVersionProvider {
@@ -33,4 +33,5 @@ final class ManifestVersionProvider implements IVersionProvider {
 	public String[] getVersion() {
 		return new String[] { Migrations.getUserAgent() };
 	}
+
 }

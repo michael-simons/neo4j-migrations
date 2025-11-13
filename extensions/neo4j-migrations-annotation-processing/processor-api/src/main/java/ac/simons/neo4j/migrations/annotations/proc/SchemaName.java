@@ -19,13 +19,13 @@ package ac.simons.neo4j.migrations.annotations.proc;
  * Schema element describing a graph.
  *
  * @author Michael J. Simons
- * @soundtrack Moonbootica - ...And Then We Started To Dance
  * @since 1.11.0
  */
 public interface SchemaName {
 
 	/**
-	 * @return the {@link String} value
+	 * {@return the actual value}
 	 */
 	String getValue();
+
 }

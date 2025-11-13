@@ -31,6 +31,9 @@ final class ProductVersion {
 
 	private static volatile String value;
 
+	private ProductVersion() {
+	}
+
 	static String getValue() {
 
 		String computedVersion = value;
@@ -57,7 +60,8 @@ final class ProductVersion {
 					return get(attr, "Implementation-Version").toString();
 				}
 			}
-		} catch (IOException ex) {
+		}
+		catch (IOException ex) {
 			throw new MigrationsException("Unable to read from neo4j-migrations-core manifest.");
 		}
 
@@ -73,6 +77,4 @@ final class ProductVersion {
 		return attributes.get(new Attributes.Name(key));
 	}
 
-	private ProductVersion() {
-	}
 }

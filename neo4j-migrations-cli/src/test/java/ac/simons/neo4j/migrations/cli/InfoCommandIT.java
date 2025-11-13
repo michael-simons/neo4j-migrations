@@ -15,12 +15,8 @@
  */
 package ac.simons.neo4j.migrations.cli;
 
-import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.neo4j.driver.AuthTokens;
@@ -28,6 +24,9 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
+
+import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -44,9 +43,9 @@ class InfoCommandIT {
 	@Test
 	void shouldLog() throws Exception {
 
-		neo4j.start();
-		try (var driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-			AuthTokens.basic("neo4j", neo4j.getAdminPassword()))) {
+		this.neo4j.start();
+		try (var driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()))) {
 
 			try (Session session = driver.session()) {
 				session.run("MATCH (n) DETACH DELETE n").consume();
@@ -59,9 +58,8 @@ class InfoCommandIT {
 				cmd.withMigrations(migrations);
 				System.out.flush();
 			});
-			assertThat(result)
-				.containsPattern(".+Neo4j/([3-5]|20\\d{2}\\.\\d{2}).+")
-				.contains("No migrations found");
+			assertThat(result).containsPattern(".+Neo4j/([3-5]|20\\d{2}\\.\\d{2}).+").contains("No migrations found");
 		}
 	}
+
 }

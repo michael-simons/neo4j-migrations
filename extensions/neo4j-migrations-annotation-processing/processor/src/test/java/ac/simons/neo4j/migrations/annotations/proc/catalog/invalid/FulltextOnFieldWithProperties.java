@@ -22,6 +22,7 @@ import ac.simons.neo4j.migrations.annotations.catalog.Index;
  */
 public class FulltextOnFieldWithProperties {
 
-	@Index(properties = {"a", "b"})
+	@Index(properties = { "a", "b" })
 	public String name;
+
 }

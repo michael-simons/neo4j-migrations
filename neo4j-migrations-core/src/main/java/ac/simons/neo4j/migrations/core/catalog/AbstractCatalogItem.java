@@ -15,9 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
-import ac.simons.neo4j.migrations.core.internal.Strings;
-import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -29,6 +26,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ac.simons.neo4j.migrations.core.internal.Strings;
+import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -37,43 +36,18 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
+ * Abstract base class for catalog items.
+ *
+ * @param <T> type of the concreate item
  * @author Michael J. Simons
  * @since 1.7.0
  */
 abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements CatalogItem<T> {
 
 	/**
-	 * Reads an optional {@code options} column from a row and formats it as a map that is renderable as Cypher.
-	 *
-	 * @param row Row returned from {@code SHOW INDEXES} or {@code SHOW CONSTRAINTS}
-	 * @return An optional options value.
+	 * Any additional options to be passed to the item. Might be {@literal null}.
 	 */
-	static Optional<String> resolveOptions(MapAccessor row) {
-		if (!row.containsKey("options")) {
-			return Optional.empty();
-		}
-
-		Value options = row.get("options");
-		if (options.isNull() || options.isEmpty()) {
-			return Optional.empty();
-		}
-		return Optional.of(renderMap(options));
-	}
-
-	private static String renderMap(Value value) {
-		if (TypeSystem.getDefault().MAP().isTypeOf(value)) {
-			Map<String, Value> map = value.asMap(Function.identity());
-			return map.entrySet()
-				.stream()
-				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
-				.collect(Collectors.joining(", ", "{", "}"));
-		} else if (TypeSystem.getDefault().LIST().isTypeOf(value)) {
-			List<Value> list = value.asList(Function.identity());
-			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
-		} else {
-			return value.toString();
-		}
-	}
+	protected final String options;
 
 	/**
 	 * The unique name of this item.
@@ -96,18 +70,13 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	private final String identifier;
 
 	/**
-	 * The set of properties to be included in the item. Not all Neo4j versions support more than one property
-	 * for some or all given constraint or index types.
+	 * The set of properties to be included in the item. Not all Neo4j versions support
+	 * more than one property for some or all given constraint or index types.
 	 */
 	private final Set<String> properties;
 
-	/**
-	 * Any additional options to be passed to the item. Might be {@literal null}.
-	 */
-	protected final String options;
-
 	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier,
-		Collection<String> properties, String options) {
+			Collection<String> properties, String options) {
 
 		if (properties.isEmpty() && type != Index.Type.LOOKUP) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
@@ -121,18 +90,104 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 
 		if (Strings.isBlank(name)) {
 			this.name = Name.generate(this.getClass(), type, targetEntityType, identifier, properties, options);
-		} else {
+		}
+		else {
 			this.name = Name.of(name);
 		}
 	}
 
+	/**
+	 * Reads an optional {@code options} column from a row and formats it as a map that is
+	 * renderable as Cypher.
+	 * @param row row returned from {@code sHOW INDEXES} or {@code SHOW CONSTRAINTS}
+	 * @return an optional options value
+	 */
+	static Optional<String> resolveOptions(MapAccessor row) {
+		if (!row.containsKey("options")) {
+			return Optional.empty();
+		}
+
+		Value options = row.get("options");
+		if (options.isNull() || options.isEmpty()) {
+			return Optional.empty();
+		}
+		return Optional.of(renderMap(options));
+	}
+
+	private static String renderMap(Value value) {
+		if (TypeSystem.getDefault().MAP().isTypeOf(value)) {
+			Map<String, Value> map = value.asMap(Function.identity());
+			return map.entrySet()
+				.stream()
+				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
+				.collect(Collectors.joining(", ", "{", "}"));
+		}
+		else if (TypeSystem.getDefault().LIST().isTypeOf(value)) {
+			List<Value> list = value.asList(Function.identity());
+			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
+		}
+		else {
+			return value.toString();
+		}
+	}
+
+	/**
+	 * Extracts the target of the given item.
+	 * @param element the element to extract the target from
+	 * @return a target
+	 */
+	static Target extractTarget(Element element) {
+
+		NodeList labelOrType = element.getElementsByTagName(XMLSchemaConstants.LABEL);
+		TargetEntityType targetEntityType;
+		if (labelOrType.getLength() == 0) {
+			labelOrType = element.getElementsByTagName(XMLSchemaConstants.TYPE);
+			targetEntityType = TargetEntityType.RELATIONSHIP;
+		}
+		else {
+			targetEntityType = TargetEntityType.NODE;
+		}
+		return new Target(labelOrType.item(0).getTextContent(), targetEntityType);
+	}
+
+	/**
+	 * Extracts the properties from the element into a set, guaranteeing order.
+	 * @param element the element to extract properties from
+	 * @return a sorted set
+	 */
+	static Set<String> extractProperties(Element element) {
+		NodeList propertyNodes = ((Element) element.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0))
+			.getElementsByTagName(XMLSchemaConstants.PROPERTY);
+		Set<String> properties = new LinkedHashSet<>();
+		for (int i = 0; i < propertyNodes.getLength(); ++i) {
+			properties.add(propertyNodes.item(i).getTextContent());
+		}
+		return properties;
+	}
+
+	/**
+	 * Extracts options child elements from the given element.
+	 * @param constraintElement the element to extract options from
+	 * @return optional options
+	 */
+	static String extractOptions(Element constraintElement) {
+		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
+		String options = null;
+		if (optionsElement.getLength() == 1) {
+			options = Arrays.stream(optionsElement.item(0).getTextContent().split("\r?\n"))
+				.map(String::trim)
+				.collect(Collectors.joining("\n"));
+		}
+		return options;
+	}
+
 	@Override
 	public final Name getName() {
-		return name;
+		return this.name;
 	}
 
 	boolean hasName() {
-		return !(name instanceof GeneratedName);
+		return !(this.name instanceof GeneratedName);
 	}
 
 	@Override
@@ -140,32 +195,29 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		return this.type;
 	}
 
-	/**
-	 * @return The target entity of this item.
-	 */
+	@Override
 	public TargetEntityType getTargetEntityType() {
-		return targetEntityType;
+		return this.targetEntityType;
 	}
 
 	/**
-	 * {@return Identifier of this item to be used in create statements}
+	 * {@return the identifier of this item to be used in create statements}
 	 */
-	public String getIdentifier() {
-		return identifier;
+	String getIdentifier() {
+		return this.identifier;
 	}
 
-	/**
-	 * {@return Set of properties to be included with the item}
-	 */
+	@Override
 	public Set<String> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	/**
-	 * {@return Optional options to be passed down during creation of the item}
+	 * {@return the optional options to be passed down during creation of the item}
 	 */
+	@Override
 	public Optional<String> getOptionalOptions() {
-		return Strings.optionalOf(options);
+		return Strings.optionalOf(this.options);
 	}
 
 	@Override
@@ -182,61 +234,8 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 			return false;
 		}
 		AbstractCatalogItem<?> that = (AbstractCatalogItem<?>) o;
-		return getName().equals(that.getName()) && getOptionalOptions().equals(that.getOptionalOptions()) && isEquivalentTo(that);
-	}
-
-	record Target(String identifier, TargetEntityType targetEntityType) {
-	}
-
-	/**
-	 * Extracts the target of the given item
-	 * @param element The element to extract the target from
-	 * @return A target
-	 */
-	static Target extractTarget(Element element) {
-
-		NodeList labelOrType = element.getElementsByTagName(XMLSchemaConstants.LABEL);
-		TargetEntityType targetEntityType;
-		if (labelOrType.getLength() == 0) {
-			labelOrType = element.getElementsByTagName(XMLSchemaConstants.TYPE);
-			targetEntityType = TargetEntityType.RELATIONSHIP;
-		} else {
-			targetEntityType = TargetEntityType.NODE;
-		}
-		return new Target(labelOrType.item(0).getTextContent(), targetEntityType);
-	}
-
-	/**
-	 * Extracts the properties from the element into a set, guaranteeing order.
-	 *
-	 * @param element The element to extract properties from
-	 * @return a sorted set
-	 */
-	static Set<String> extractProperties(Element element) {
-		NodeList propertyNodes = ((Element) element
-			.getElementsByTagName(XMLSchemaConstants.PROPERTIES).item(0)).getElementsByTagName(
-			XMLSchemaConstants.PROPERTY);
-		Set<String> properties = new LinkedHashSet<>();
-		for (int i = 0; i < propertyNodes.getLength(); ++i) {
-			properties.add(propertyNodes.item(i).getTextContent());
-		}
-		return properties;
-	}
-
-	/**
-	 * Extracts options child elements from the given element
-	 *
-	 * @param constraintElement The element to extract options from
-	 * @return optional options
-	 */
-	static String extractOptions(Element constraintElement) {
-		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
-		String options = null;
-		if (optionsElement.getLength() == 1) {
-			options = Arrays.stream(optionsElement.item(0).getTextContent()
-				.split("\r?\n")).map(String::trim).collect(Collectors.joining("\n"));
-		}
-		return options;
+		return getName().equals(that.getName()) && getOptionalOptions().equals(that.getOptionalOptions())
+				&& isEquivalentTo(that);
 	}
 
 	final Element toXML(Document document) {
@@ -245,11 +244,15 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		if (this instanceof Constraint) {
 			elementName = XMLSchemaConstants.CONSTRAINT;
 			labelOrTypeContent = getIdentifier();
-		} else if (this instanceof Index index) {
+		}
+		else if (this instanceof Index index) {
 			elementName = XMLSchemaConstants.INDEX;
 			labelOrTypeContent = index.getDeconstructedIdentifiers()
-				.stream().map(s -> s.replace("|", "\\|")).collect(Collectors.joining("|"));
-		} else {
+				.stream()
+				.map(s -> s.replace("|", "\\|"))
+				.collect(Collectors.joining("|"));
+		}
+		else {
 			throw new IllegalStateException("Unsupported subclass " + this.getClass());
 		}
 		Element element = document.createElement(elementName);
@@ -260,7 +263,8 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		Element labelOrType;
 		if (getTargetEntityType() == TargetEntityType.NODE) {
 			labelOrType = document.createElement(XMLSchemaConstants.LABEL);
-		} else {
+		}
+		else {
 			labelOrType = document.createElement(XMLSchemaConstants.TYPE);
 		}
 		labelOrType.setTextContent(labelOrTypeContent);
@@ -289,6 +293,10 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	@Override
 	public int hashCode() {
 		return Objects.hash(getName(), getType(), getTargetEntityType(), getIdentifier(), getProperties(),
-			getOptionalOptions());
+				getOptionalOptions());
 	}
+
+	record Target(String identifier, TargetEntityType targetEntityType) {
+	}
+
 }

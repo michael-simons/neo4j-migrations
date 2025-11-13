@@ -15,11 +15,11 @@
  */
 package ac.simons.neo4j.migrations.annotations.proc.catalog.valid_rels;
 
+import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
-
-import ac.simons.neo4j.migrations.annotations.catalog.Required;
 
 /**
  * @author Michael J. Simons
@@ -33,4 +33,5 @@ public final class OGMRelProps {
 
 	@Required
 	private String x;
+
 }

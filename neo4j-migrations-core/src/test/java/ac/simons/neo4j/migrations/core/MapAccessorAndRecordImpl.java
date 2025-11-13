@@ -46,27 +46,27 @@ public final class MapAccessorAndRecordImpl implements MapAccessor, Record {
 
 	@Override
 	public List<String> keys() {
-		return new ArrayList<>(content.keySet());
+		return new ArrayList<>(this.content.keySet());
 	}
 
 	@Override
 	public boolean containsKey(String key) {
-		return content.containsKey(key);
+		return this.content.containsKey(key);
 	}
 
 	@Override
 	public Value get(String key) {
-		return content.getOrDefault(key, Values.NULL);
+		return this.content.getOrDefault(key, Values.NULL);
 	}
 
 	@Override
 	public int size() {
-		return content.size();
+		return this.content.size();
 	}
 
 	@Override
 	public List<Value> values() {
-		return new ArrayList<>(content.values());
+		return new ArrayList<>(this.content.values());
 	}
 
 	@Override
@@ -86,18 +86,20 @@ public final class MapAccessorAndRecordImpl implements MapAccessor, Record {
 
 	@Override
 	public <T> Iterable<T> values(Function<Value, T> mapFunction) {
-		return content.values().stream().map(mapFunction).toList();
+		return this.content.values().stream().map(mapFunction).toList();
 	}
 
 	@Override
 	public Map<String, Object> asMap() {
-		return content.entrySet().stream()
+		return this.content.entrySet()
+			.stream()
 			.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asObject()));
 	}
 
 	@Override
 	public <T> Map<String, T> asMap(Function<Value, T> mapFunction) {
-		return content.entrySet().stream()
+		return this.content.entrySet()
+			.stream()
 			.collect(Collectors.toMap(Map.Entry::getKey, e -> mapFunction.apply(e.getValue())));
 	}
 
@@ -185,4 +187,5 @@ public final class MapAccessorAndRecordImpl implements MapAccessor, Record {
 	public double get(String key, double defaultValue) {
 		throw new UnsupportedOperationException();
 	}
+
 }

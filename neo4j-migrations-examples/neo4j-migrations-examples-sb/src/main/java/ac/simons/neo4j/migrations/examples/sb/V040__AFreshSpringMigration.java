@@ -15,13 +15,14 @@
  */
 package ac.simons.neo4j.migrations.examples.sb;
 
-import org.springframework.stereotype.Component;
-
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 
+import org.springframework.stereotype.Component;
+
 /**
  * An example that migrations might also be Spring components.
+ *
  * @author Michael J. Simons
  */
 @Component
@@ -35,6 +36,7 @@ public class V040__AFreshSpringMigration implements JavaBasedMigration {
 
 	@Override
 	public void apply(MigrationContext context) {
-		personRepository.save(new Person("Kasper was here"));
+		this.personRepository.save(new Person("Kasper was here"));
 	}
+
 }

@@ -15,8 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -28,7 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
+
 /**
+ * A precondition preventing unwanted Neo4j versions.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 1.5.0
@@ -36,28 +38,31 @@ import java.util.stream.Collectors;
 final class VersionPrecondition extends AbstractPrecondition implements Precondition {
 
 	private static final String MMP_PATTERN = "\\d++(\\.\\d++)*+";
-	private static final Pattern CONDITION_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is *+(?<versions>" + MMP_PATTERN + "[\\w\\s.,]*+)?.*+$");
-	private static final Pattern CONDITION_RANGE_PATTERN = Pattern.compile("(?i)^ *+// *+(?:assume|assert) that version is (lt|ge) (?<versions>" + MMP_PATTERN + ").*+$");
+
+	private static final Pattern CONDITION_PATTERN = Pattern
+		.compile("(?i)^ *+// *+(?:assume|assert) that version is *+(?<versions>" + MMP_PATTERN + "[\\w\\s.,]*+)?.*+$");
+
+	private static final Pattern CONDITION_RANGE_PATTERN = Pattern
+		.compile("(?i)^ *+// *+(?:assume|assert) that version is (lt|ge) (?<versions>" + MMP_PATTERN + ").*+$");
+
 	private static final Pattern VERSION_SUB_PATTERN = Pattern.compile(MMP_PATTERN);
 
-	/**
-	 * How to match versions
-	 */
-	enum Mode {
-		/** Everything lower than the given single pattern */
-		LT,
-		/** Everything higher than the given single pattern. */
-		GE,
-		/** Exact */
-		EXACT
+	private final Mode mode;
+
+	private final Set<String> versions;
+
+	private VersionPrecondition(Type type, final Mode mode, Set<String> versions) {
+		super(type);
+		this.mode = mode;
+		this.versions = versions;
 	}
 
 	/**
-	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so, tries to create a factory for
-	 * a corresponding precondition.
-	 *
-	 * @param hint The complete hint
-	 * @return A factory for a precondition or an empty optional if this factory doesn't match the hint
+	 * Checks if the {@code hint} is matched by the {@link #CONDITION_PATTERN} and if so,
+	 * tries to create a factory for a corresponding precondition.
+	 * @param hint the complete hint
+	 * @return a factory for a precondition or an empty optional if this factory doesn't
+	 * match the hint
 	 */
 	static Optional<Function<Type, Precondition>> tryToParse(String hint) {
 
@@ -65,7 +70,8 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 		Mode mode;
 		if (matcher.matches()) {
 			mode = Mode.valueOf(matcher.group(1).toUpperCase(Locale.ROOT));
-		} else {
+		}
+		else {
 			matcher = CONDITION_PATTERN.matcher(hint);
 			if (!matcher.find()) {
 				return Optional.empty();
@@ -86,46 +92,51 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 				formattedVersions.add("Neo4j/" + version);
 			}
 			return Optional.of(type -> new VersionPrecondition(type, mode, formattedVersions));
-		} catch (NullPointerException | IllegalArgumentException e) {
-			throw new IllegalArgumentException(
-					String.format(
-							"Wrong version precondition %s. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.",
-							Precondition.formattedHint(hint)));
 		}
-	}
-
-	private final Mode mode;
-	private final Set<String> versions;
-
-	private VersionPrecondition(Type type, final Mode mode, Set<String> versions) {
-		super(type);
-		this.mode = mode;
-		this.versions = versions;
+		catch (NullPointerException | IllegalArgumentException ex) {
+			throw new IllegalArgumentException(String.format(
+					"Wrong version precondition %s. Usage: `<assume|assert> that version is <versions>`. With <versions> being a comma separated list of major.minor.patch versions.",
+					Precondition.formattedHint(hint)));
+		}
 	}
 
 	@Override
 	public boolean isMet(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
-		if (mode == Mode.EXACT) {
-			return versions.stream().anyMatch(serverVersion::startsWith);
-		} else {
-			return versions.stream().findFirst().map(version -> {
+		if (this.mode == Mode.EXACT) {
+			return this.versions.stream().anyMatch(serverVersion::startsWith);
+		}
+		else {
+			return this.versions.stream().findFirst().map(version -> {
 				int result = new Neo4jVersionComparator().compare(serverVersion, version);
-				return (mode == Mode.LT) == (result < 0);
+				return (this.mode == Mode.LT) == (result < 0);
 			}).orElse(false);
 		}
 	}
 
 	Collection<String> getVersions() {
-		return Collections.unmodifiableCollection(versions);
+		return Collections.unmodifiableCollection(this.versions);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("// %s that version is %s%s",
-			getType().keyword(),
-			mode == Mode.EXACT ? "" : mode.name().toLowerCase(Locale.ROOT) + " ",
-			versions.stream().map(s -> s.replace("Neo4j/", "")).collect(
-				Collectors.joining(", ")).trim());
+		return String.format("// %s that version is %s%s", getType().keyword(),
+				(this.mode == Mode.EXACT) ? "" : (this.mode.name().toLowerCase(Locale.ROOT) + " "),
+				this.versions.stream().map(s -> s.replace("Neo4j/", "")).collect(Collectors.joining(", ")).trim());
 	}
+
+	/**
+	 * How to match versions.
+	 */
+	enum Mode {
+
+		/** Everything lower than the given single pattern. */
+		LT,
+		/** Everything higher than the given single pattern. */
+		GE,
+		/** Exact. */
+		EXACT
+
+	}
+
 }

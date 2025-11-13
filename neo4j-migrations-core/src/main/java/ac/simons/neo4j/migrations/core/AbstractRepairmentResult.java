@@ -18,13 +18,14 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 /**
- * Contains shared state for repair results (deleting migrations is considered a repairing attempt as well).
+ * Contains shared state for repair results (deleting migrations is considered a repairing
+ * attempt as well).
  *
  * @author Michael J. Simons
  * @since 2.2.0
  */
 abstract sealed class AbstractRepairmentResult implements DatabaseOperationResult
-	permits DeleteResult, RepairmentResult {
+		permits DeleteResult, RepairmentResult {
 
 	private final String affectedDatabase;
 
@@ -38,7 +39,8 @@ abstract sealed class AbstractRepairmentResult implements DatabaseOperationResul
 
 	private final long propertiesSet;
 
-	AbstractRepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
+	AbstractRepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
+			long relationshipsCreated, long propertiesSet) {
 		this.affectedDatabase = affectedDatabase;
 		this.nodesDeleted = nodesDeleted;
 		this.nodesCreated = nodesCreated;
@@ -47,48 +49,49 @@ abstract sealed class AbstractRepairmentResult implements DatabaseOperationResul
 		this.propertiesSet = propertiesSet;
 	}
 
+	static String toString(MigrationVersion version) {
+
+		return version.getValue() + version.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
+	}
+
 	@Override
 	public Optional<String> getAffectedDatabase() {
-		return Optional.ofNullable(affectedDatabase);
+		return Optional.ofNullable(this.affectedDatabase);
 	}
 
 	/**
 	 * {@return how many nodes have been deleted}
 	 */
-	public long getNodesDeleted() {
-		return nodesDeleted;
+	long getNodesDeleted() {
+		return this.nodesDeleted;
 	}
 
 	/**
 	 * {@return how many nodes have been created}
 	 */
-	public long getNodesCreated() {
-		return nodesCreated;
+	long getNodesCreated() {
+		return this.nodesCreated;
 	}
 
 	/**
 	 * {@return how many relationships have been deleted}
 	 */
-	public long getRelationshipsDeleted() {
-		return relationshipsDeleted;
+	long getRelationshipsDeleted() {
+		return this.relationshipsDeleted;
 	}
 
 	/**
 	 * {@return how many relationships have been created}
 	 */
-	public long getRelationshipsCreated() {
-		return relationshipsCreated;
+	long getRelationshipsCreated() {
+		return this.relationshipsCreated;
 	}
 
 	/**
 	 * {@return the number of properties set}
 	 */
-	public long getPropertiesSet() {
-		return propertiesSet;
+	long getPropertiesSet() {
+		return this.propertiesSet;
 	}
 
-	static String toString(MigrationVersion version) {
-
-		return version.getValue() + version.getOptionalDescription().map(d -> String.format(" (\"%s\")", d)).orElse("");
-	}
 }

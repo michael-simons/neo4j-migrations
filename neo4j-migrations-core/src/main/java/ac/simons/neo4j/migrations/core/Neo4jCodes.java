@@ -15,16 +15,12 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * A set of internal Neo4j codes we rely on in several occasions.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - Die Reaktion - The Last Jazz, Vol. II
  * @since 1.7.0
  */
 final class Neo4jCodes {
@@ -34,12 +30,14 @@ final class Neo4jCodes {
 	static final String CONSTRAINT_DROP_FAILED = "Neo.DatabaseError.Schema.ConstraintDropFailed";
 
 	/**
-	 * Used in [3.5, 4.4] when a constraint without a name is defined twice and the 2nd one is equivalent
+	 * Used in [3.5, 4.4] when a constraint without a name is defined twice and the 2nd
+	 * one is equivalent.
 	 */
 	static final String EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS = "Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists";
 
 	/**
-	 * Used in [4,4, x] when a constraint with a name is semantically equivalent to a constraint defined without a name
+	 * Used in [4,4, x] when a constraint with a name is semantically equivalent to a
+	 * constraint defined without a name.
 	 */
 	static final String CONSTRAINT_ALREADY_EXISTS = "Neo.ClientError.Schema.ConstraintAlreadyExists";
 
@@ -53,8 +51,8 @@ final class Neo4jCodes {
 	 */
 	static final String PROCEDURE_NOT_FOUND = "Neo.ClientError.Procedure.ProcedureNotFound";
 
-	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Collections.unmodifiableSet(new HashSet<>(
-		Arrays.asList(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS, CONSTRAINT_ALREADY_EXISTS)));
+	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Set.of(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS,
+			CONSTRAINT_ALREADY_EXISTS);
 
 	/**
 	 * Used when the creation of a constraint fails.
@@ -63,4 +61,5 @@ final class Neo4jCodes {
 
 	private Neo4jCodes() {
 	}
+
 }

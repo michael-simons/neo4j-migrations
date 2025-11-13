@@ -23,16 +23,17 @@ import ac.simons.neo4j.migrations.core.MigrationContext;
  *
  * @author Michael J. Simons
  */
-public class V001__SlowMigration implements JavaBasedMigration {
+public final class V001__SlowMigration implements JavaBasedMigration {
 
 	@SuppressWarnings("squid:S2925")
 	@Override
 	public void apply(MigrationContext context) {
 		try {
 			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		}
+		catch (InterruptedException ex) {
+			ex.printStackTrace();
 		}
 	}
-}
 
+}

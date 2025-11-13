@@ -24,7 +24,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.exceptions.ClientException;
 import org.testcontainers.neo4j.Neo4jContainer;
 
@@ -45,7 +44,7 @@ class UnsupportedTargetsIT {
 			.withReuse(true);
 		neo4jWithoutMultiDB.start();
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver localDriver = GraphDatabase.driver(neo4jWithoutMultiDB.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4jWithoutMultiDB.getAdminPassword()), config)) {
 
@@ -73,7 +72,7 @@ class UnsupportedTargetsIT {
 			.withReuse(true);
 		neo4j43.start();
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver localDriver = GraphDatabase.driver(neo4j43.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j43.getAdminPassword()), config)) {
 

@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.examples.sb;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.MigrationVersion;
@@ -29,7 +28,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +85,8 @@ class ApplicationIT {
 
 		assertThat(p.exitValue()).isZero();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword()),
-				Config.builder().withLogging(Logging.console(Level.OFF)).build()); Session session = driver.session()) {
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), Config.builder().build());
+				Session session = driver.session()) {
 			long cnt = session.executeRead(tx -> tx.run("MATCH (n:SomeNode) RETURN count(n)").single().get(0).asLong());
 			assertThat(cnt).isEqualTo(2L);
 

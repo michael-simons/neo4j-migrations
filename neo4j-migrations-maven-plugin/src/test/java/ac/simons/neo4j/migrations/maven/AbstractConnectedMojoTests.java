@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.internal.logging.ConsoleLogging;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -141,7 +140,6 @@ public class AbstractConnectedMojoTests {
 	public void createDriverConfigShouldSetCorrectValues() {
 
 		Config config = AbstractConnectedMojo.createDriverConfig();
-		assertThat(config.logging()).isInstanceOf(ConsoleLogging.class);
 		assertThat(config.userAgent()).startsWith("neo4j-migrations/");
 	}
 

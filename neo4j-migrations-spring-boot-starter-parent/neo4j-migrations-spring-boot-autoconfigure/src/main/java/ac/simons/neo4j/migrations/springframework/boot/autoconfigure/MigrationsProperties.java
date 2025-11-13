@@ -72,8 +72,8 @@ public class MigrationsProperties {
 	private String database;
 
 	/**
-	 * The database that should be used for storing informations about migrations (Neo4j
-	 * EE 4.0+ only). Leave {@literal null} for using the default database.
+	 * The database that should be used for storing information about migrations (Neo4j EE
+	 * 4.0+ only). Leave {@literal null} for using the default database.
 	 */
 	private String schemaDatabase;
 

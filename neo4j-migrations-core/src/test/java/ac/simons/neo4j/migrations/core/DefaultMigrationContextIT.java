@@ -23,7 +23,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
 
@@ -43,7 +42,7 @@ class DefaultMigrationContextIT {
 
 		try (Neo4jContainer neo4j = getNeo4j(version.asTag())) {
 
-			Config config = Config.builder().withLogging(Logging.none()).build();
+			Config config = Config.builder().build();
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 					AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -55,6 +54,7 @@ class DefaultMigrationContextIT {
 	}
 
 	private Neo4jContainer getNeo4j(String tag) {
+		@SuppressWarnings("resource")
 		Neo4jContainer neo4j = new Neo4jContainer(tag).withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes").withReuse(true);
 		neo4j.start();
 		return neo4j;

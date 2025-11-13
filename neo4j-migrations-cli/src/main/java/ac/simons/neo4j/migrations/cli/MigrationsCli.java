@@ -56,7 +56,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import picocli.AutoComplete.GenerateCompletion;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -83,8 +82,8 @@ public final class MigrationsCli implements Runnable {
 	static final String OPTION_ADDRESS = "-a";
 	static final String OPTION_USERNAME = "-u";
 
-	@SuppressWarnings("squid:S2068") // This is not a password, this is the option to
-										// specify one.
+	// This is not a password, this is the option to specify one.
+	@SuppressWarnings("squid:S2068")
 	static final String OPTION_PASSWORD = "-p";
 
 	private static final String OPTION_NAME_MAX_CONNECTION_POOL_SIZE = "--max-connection-pool-size";
@@ -408,7 +407,6 @@ public final class MigrationsCli implements Runnable {
 		return Config.builder()
 			.withMaxConnectionPoolSize(this.maxConnectionPoolSize)
 			.withUserAgent(Migrations.getUserAgent())
-			.withLogging(Logging.console(Level.SEVERE))
 			.build();
 	}
 

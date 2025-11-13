@@ -21,7 +21,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -57,7 +56,7 @@ class PreconditionsIT {
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -88,7 +87,7 @@ class PreconditionsIT {
 			.withReuse(true);
 		neo4j.start();
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 
@@ -113,7 +112,7 @@ class PreconditionsIT {
 			.withReuse(true);
 		neo4j.start();
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
 

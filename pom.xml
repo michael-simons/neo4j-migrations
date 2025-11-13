@@ -156,7 +156,7 @@
 		<mockito.version>5.2.0</mockito.version>
 		<moditect-maven-plugin.version>1.3.0.Final</moditect-maven-plugin.version>
 		<native.maven.plugin.version>0.11.2</native.maven.plugin.version>
-		<neo4j-java-driver.version>5.28.9</neo4j-java-driver.version>
+		<neo4j-java-driver.version>6.0.1</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>2.19.2</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.0</neo4j-ogm.version>
 		<neo4j.image>neo4j:2025.08</neo4j.image>
@@ -167,7 +167,7 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>5.7.1</quarkus-neo4j.version>
+		<quarkus-neo4j.version>6.0.1</quarkus-neo4j.version>
 		<quarkus.version>3.29.2</quarkus.version>
 		<slf4j.version>1.7.36</slf4j.version>
 		<!--
@@ -177,8 +177,8 @@
 		<slf4jv2.version>2.0.4</slf4jv2.version>
 		<sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
-		<spring-boot.version>3.5.7</spring-boot.version>
-		<spring-data-neo4j.version>7.5.4</spring-data-neo4j.version>
+		<spring-boot.version>4.0.0-RC2</spring-boot.version>
+		<spring-data-neo4j.version>8.0.0-RC2</spring-data-neo4j.version>
 		<spring-javaformat.version>0.0.47</spring-javaformat.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>2.0.1</testcontainers.version>

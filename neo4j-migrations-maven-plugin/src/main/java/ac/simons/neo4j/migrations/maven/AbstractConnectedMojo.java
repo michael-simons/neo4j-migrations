@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.maven;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +38,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
@@ -170,14 +170,6 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	 */
 	private String target;
 
-	static Config createDriverConfig() {
-
-		return Config.builder()
-			.withLogging(Logging.console(Level.SEVERE))
-			.withUserAgent(Migrations.getUserAgent())
-			.build();
-	}
-
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -242,6 +234,18 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 			}
 		}
 		return driver;
+	}
+
+	static Config createDriverConfig() {
+
+		var logger = Logger.getLogger("org.neo4j.driver");
+		logger.addHandler(new ConsoleHandler());
+		var lvl = Level.SEVERE;
+		logger.setLevel(lvl);
+		for (var handler : logger.getHandlers()) {
+			handler.setLevel(lvl);
+		}
+		return Config.builder().withUserAgent(Migrations.getUserAgent()).build();
 	}
 
 }

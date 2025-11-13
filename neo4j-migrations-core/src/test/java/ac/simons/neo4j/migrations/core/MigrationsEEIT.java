@@ -46,7 +46,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.exceptions.FatalDiscoveryException;
@@ -100,7 +99,7 @@ class MigrationsEEIT {
 	@BeforeAll
 	static void initDriver() {
 
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
 			Stream.of("migrationTest", "schemaDatabase", "anotherTarget", "db1")

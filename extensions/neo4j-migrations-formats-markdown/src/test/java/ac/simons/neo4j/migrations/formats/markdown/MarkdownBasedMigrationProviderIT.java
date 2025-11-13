@@ -30,7 +30,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
@@ -50,7 +49,7 @@ class MarkdownBasedMigrationProviderIT {
 
 	@BeforeAll
 	void initDriver() {
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 
 		this.neo4j.start();
 		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),

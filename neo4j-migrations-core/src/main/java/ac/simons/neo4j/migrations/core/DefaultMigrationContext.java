@@ -166,6 +166,10 @@ final class DefaultMigrationContext implements MigrationContext {
 		return this.catalog;
 	}
 
+	// We cannot jump on GQL codes here easily, given we want to keep support for 4.4 and
+	// older
+	// servers. They don't have those error codes, and the method would just blow up.
+	@SuppressWarnings("deprecation")
 	private boolean hasDbmsProcedures() {
 
 		try (Session session = this.getSchemaSession()) {

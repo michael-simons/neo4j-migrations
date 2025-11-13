@@ -35,9 +35,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.neo4j.Neo4jDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.data.neo4j.autoconfigure.DataNeo4jAutoConfiguration;
+import org.springframework.boot.neo4j.autoconfigure.Neo4jAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -52,7 +52,7 @@ import org.springframework.core.io.ResourceLoader;
 @ConditionalOnClass(Migrations.class)
 @ConditionalOnBean(Driver.class)
 @AutoConfigureAfter({ Neo4jAutoConfiguration.class })
-@AutoConfigureBefore({ Neo4jDataAutoConfiguration.class })
+@AutoConfigureBefore({ DataNeo4jAutoConfiguration.class })
 @EnableConfigurationProperties({ MigrationsProperties.class })
 public class MigrationsAutoConfiguration {
 

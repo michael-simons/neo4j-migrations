@@ -28,7 +28,6 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.exceptions.Neo4jException;
@@ -131,7 +130,7 @@ abstract class TestBase {
 
 	@BeforeAll
 	void initDriver() {
-		Config config = Config.builder().withLogging(Logging.none()).build();
+		Config config = Config.builder().build();
 
 		this.neo4j.start();
 		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),

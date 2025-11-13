@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/michael-simons/neo4j-migrations#readme",
   "devDependencies": {
-    "antora": "~3.1"
+    "antora": "^3.1.14"
   }
 }

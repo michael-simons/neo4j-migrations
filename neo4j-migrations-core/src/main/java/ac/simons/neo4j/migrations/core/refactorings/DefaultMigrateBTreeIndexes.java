@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -99,8 +99,8 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		this.dropOldIndexes = dropOldIndexes;
 		this.suffix = ((suffix != null) && !suffix.trim().isEmpty()) ? suffix.trim() : DEFAULT_SUFFIX;
 		this.typeMapping = (typeMapping != null) ? new HashMap<>(typeMapping) : Collections.emptyMap();
-		this.excludes = (excludes != null) ? new LinkedHashSet<>(excludes) : Set.of();
-		this.includes = (includes != null) ? new LinkedHashSet<>(includes) : Set.of();
+		this.excludes = (excludes != null) ? new HashSet<>(excludes) : Set.of();
+		this.includes = (includes != null) ? new HashSet<>(includes) : Set.of();
 
 		this.featureSet = QueryRunner.defaultFeatureSet().withRequiredVersion("4.4");
 		this.createConfigConstraint = RenderConfig.create()

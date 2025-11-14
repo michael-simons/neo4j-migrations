@@ -190,6 +190,8 @@ class DefaultNormalizeTests {
 		assertThat(query.parameters().get("nullValue").asBoolean()).isTrue();
 	}
 
+	// Sonar, are you drunk?! Both collections are used
+	@SuppressWarnings("squid:S4030")
 	@Test
 	void shouldThrowOnContradictingValues() {
 
@@ -203,9 +205,10 @@ class DefaultNormalizeTests {
 			.withMessage("Both true and false values contain `Y`");
 	}
 
+	// Sonar, are you drunk?! Both collections are used
+	@SuppressWarnings("squid:S4030")
 	@Test
 	void shouldThrowOnContradictingValuesWithNulls() {
-
 		List<Object> trueValues = new ArrayList<>();
 		trueValues.add("not null");
 		trueValues.add(null);

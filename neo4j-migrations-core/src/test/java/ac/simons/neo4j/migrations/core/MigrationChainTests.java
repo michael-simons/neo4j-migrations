@@ -85,12 +85,16 @@ class MigrationChainTests {
 
 		MigrationChain chain = new DefaultMigrationChain(CONNECTION_DETAILS,
 				Map.of(MigrationVersion.withValue("1"), ChainToolTests.pendingMigration("1", "C1")));
-		assertThat(chain.prettyPrint()).isEqualTo("\n" + "j@aura (hidden)\n" + "\n"
-				+ "+---------+---------------+--------+--------------+----+----------------+---------+----------+\n"
-				+ "| Version | Description   | Type   | Installed on | by | Execution time | State   | Source   |\n"
-				+ "+---------+---------------+--------+--------------+----+----------------+---------+----------+\n"
-				+ "| 1       | a description | CYPHER |              |    |                | PENDING | 1.cypher |\n"
-				+ "+---------+---------------+--------+--------------+----+----------------+---------+----------+\n");
+		assertThat(chain.prettyPrint()).isEqualTo("""
+
+				j@aura (hidden)
+
+				+---------+---------------+--------+--------------+----+----------------+---------+----------+
+				| Version | Description   | Type   | Installed on | by | Execution time | State   | Source   |
+				+---------+---------------+--------+--------------+----+----------------+---------+----------+
+				| 1       | a description | CYPHER |              |    |                | PENDING | 1.cypher |
+				+---------+---------------+--------+--------------+----+----------------+---------+----------+
+				""");
 	}
 
 	@Nested

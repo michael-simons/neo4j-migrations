@@ -154,8 +154,13 @@ class XMLParsingTests {
 	void indexShouldParseMultilabelFulltextIndex() throws ParserConfigurationException, IOException, SAXException {
 
 		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
-		String xml = "<index name=\"title_index\" type=\"fulltext\">\n" + "    <label>Book|Buch|Wurst\\|Salat</label>\n"
-				+ "    <properties>\n" + "        <property>title</property>\n" + "    </properties>\n" + "</index>";
+		String xml = """
+				<index name="title_index" type="fulltext">
+				    <label>Book|Buch|Wurst\\|Salat</label>
+				    <properties>
+				        <property>title</property>
+				    </properties>
+				</index>""";
 		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 		Element indexElement = document.getDocumentElement();
 		Index index = Index.parse(indexElement);
@@ -167,8 +172,13 @@ class XMLParsingTests {
 	void indexShouldNotParseMultilabelPropertyIndex() throws ParserConfigurationException, IOException, SAXException {
 
 		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
-		String xml = "<index name=\"title_index\">\n" + "    <label>Book|Buch|Wurst\\|Salat</label>\n"
-				+ "    <properties>\n" + "        <property>title</property>\n" + "    </properties>\n" + "</index>";
+		String xml = """
+				<index name="title_index">
+				    <label>Book|Buch|Wurst\\|Salat</label>
+				    <properties>
+				        <property>title</property>
+				    </properties>
+				</index>""";
 		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 		Element indexElement = document.getDocumentElement();
 		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(indexElement))
@@ -180,9 +190,14 @@ class XMLParsingTests {
 			throws ParserConfigurationException, IOException, SAXException {
 
 		DocumentBuilder documentBuilder = DOCUMENT_BUILDER_FACTORY.get().newDocumentBuilder();
-		String xml = "<index name=\"title_index\" type=\"text\">\n" + "    <label>Person</label>\n"
-				+ "    <properties>\n" + "        <property>firstname</property>\n"
-				+ "        <property>lastname</property>\n" + "    </properties>\n" + "</index>";
+		String xml = """
+				<index name="title_index" type="text">
+				    <label>Person</label>
+				    <properties>
+				        <property>firstname</property>
+				        <property>lastname</property>
+				    </properties>
+				</index>""";
 		Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 		Element indexElement = document.getDocumentElement();
 		assertThatIllegalArgumentException().isThrownBy(() -> Index.parse(indexElement))

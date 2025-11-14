@@ -179,16 +179,18 @@ class MigrationsConfigTests {
 		}
 
 		@Override
-		public void publish(LogRecord record) {
-			this.logMessages.add(this.formatter.formatMessage(record));
+		public void publish(LogRecord logRecord) {
+			this.logMessages.add(this.formatter.formatMessage(logRecord));
 		}
 
 		@Override
 		public void flush() {
+			// Nothing to flush
 		}
 
 		@Override
-		public void close() throws SecurityException {
+		public void close() {
+			// Nothing to close
 		}
 
 	}

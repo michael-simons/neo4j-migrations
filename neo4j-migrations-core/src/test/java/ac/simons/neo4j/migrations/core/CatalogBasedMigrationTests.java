@@ -215,7 +215,7 @@ class CatalogBasedMigrationTests {
 			Objects.requireNonNull(url);
 			Document document = CatalogBasedMigration.parseDocument(ResourceContext.of(url));
 			assertThat(CatalogBasedMigration.parseOperations(document, MigrationVersion.baseline()))
-				.filteredOn(op -> op instanceof DefaultRefactorOperation)
+				.filteredOn(DefaultRefactorOperation.class::isInstance)
 				.map(DefaultRefactorOperation.class::cast)
 				.map(op -> op.refactoring)
 				.containsExactly(Merge.nodes("MATCH (n:Foo) RETURN n"),

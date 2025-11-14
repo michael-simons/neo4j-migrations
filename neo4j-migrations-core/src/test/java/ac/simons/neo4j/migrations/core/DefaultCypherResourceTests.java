@@ -77,8 +77,10 @@ class DefaultCypherResourceTests {
 			.of(DefaultCypherResourceTests.class.getResource("/parsing/multiple_comments_one_command.cypher")));
 
 		assertThat(cypherResource.getStatements()).hasSize(1);
-		assertThat(cypherResource.getExecutableStatements())
-			.containsExactly("// Line 1\n" + "// Line 2\n" + "RETURN TRUE");
+		assertThat(cypherResource.getExecutableStatements()).containsExactly("""
+				// Line 1
+				// Line 2
+				RETURN TRUE""");
 		assertThat(cypherResource.getSingleLineComments()).containsExactly("// Line 1", "// Line 2");
 	}
 
@@ -295,8 +297,11 @@ class DefaultCypherResourceTests {
 			.of(DefaultCypherResourceTests.class.getResource("/parsing/with_use_statements_wrong.cypher")));
 
 		assertThatExceptionOfType(MigrationsException.class).isThrownBy(cypherResource::getExecutableStatements)
-			.withMessage("Can't switch database inside a statement, offending statement:\n" + "MATCH (n)\n"
-					+ ":use something\n" + "DETACH DELETE n");
+			.withMessage("""
+					Can't switch database inside a statement, offending statement:
+					MATCH (n)
+					:use something
+					DETACH DELETE n""");
 	}
 
 	@ParameterizedTest

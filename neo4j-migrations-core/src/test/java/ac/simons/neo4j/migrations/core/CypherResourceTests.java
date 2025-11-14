@@ -35,8 +35,11 @@ class CypherResourceTests {
 	@Test
 	void builderWithContentShouldWork() {
 
-		String content = "" + "MATCH (n) RETURN count(n) AS n;\n" + "MATCH (n) RETURN count(n) AS n;\n"
-				+ "MATCH (n) RETURN count(n) AS n;\n";
+		String content = """
+				MATCH (n) RETURN count(n) AS n;
+				MATCH (n) RETURN count(n) AS n;
+				MATCH (n) RETURN count(n) AS n;
+				""";
 
 		CypherResource resource = CypherResource.withContent(content).identifiedBy("x");
 

@@ -316,9 +316,9 @@ class MigrationsEEIT {
 		Constraint constraint = Constraint.forNode("Book").named("x").unique("isbn");
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		ConnectionDetails connectionDetails;
-		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", neo4j.getAdminPassword())); Session session = driver.session()) {
-			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), driver);
+		try (Driver localDriver = GraphDatabase.driver(neo4j.getBoltUrl(),
+				AuthTokens.basic("neo4j", neo4j.getAdminPassword())); Session session = localDriver.session()) {
+			Migrations migrations = new Migrations(MigrationsConfig.defaultConfig(), localDriver);
 			connectionDetails = migrations.getConnectionDetails();
 			RenderConfig cfg = RenderConfig.create()
 				.forVersionAndEdition(connectionDetails.getServerVersion(), connectionDetails.getServerEdition());

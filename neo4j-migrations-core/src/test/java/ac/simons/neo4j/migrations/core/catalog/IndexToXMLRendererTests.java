@@ -32,63 +32,93 @@ import static org.assertj.core.api.Assertions.assertThat;
 class IndexToXMLRendererTests {
 
 	static Stream<Arguments> shouldRenderIndexToXML() {
-		return Stream.of(
-				Arguments.of(
-						Named.of("node property index",
-								new Index("name", Index.Type.PROPERTY, TargetEntityType.NODE,
-										Collections.singleton("Book"), Collections.singleton("isbn"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"property\">\n" + "    <label>Book</label>\n"
-								+ "    <properties>\n" + "        <property>isbn</property>\n" + "    </properties>\n"
-								+ "</index>"),
-				Arguments.of(
-						Named.of("multiple node property indexes",
-								new Index("name", Index.Type.PROPERTY, TargetEntityType.NODE,
-										Collections.singleton("Book"), Arrays.asList("isbn", "title"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"property\">\n" + "    <label>Book</label>\n"
-								+ "    <properties>\n" + "        <property>isbn</property>\n"
-								+ "        <property>title</property>\n" + "    </properties>\n" + "</index>"),
-				Arguments.of(
-						Named.of("relationship property index",
-								new Index("name", Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
-										Collections.singleton("READS"), Collections.singleton("property"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"property\">\n" + "    <type>READS</type>\n"
-								+ "    <properties>\n" + "        <property>property</property>\n"
-								+ "    </properties>\n" + "</index>"),
-				Arguments.of(
-						Named.of("multiple relationship property indexes",
-								new Index("name", Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
-										Collections.singleton("READS"), Arrays.asList("property1", "property2"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"property\">\n" + "    <type>READS</type>\n"
-								+ "    <properties>\n" + "        <property>property1</property>\n"
-								+ "        <property>property2</property>\n" + "    </properties>\n" + "</index>"),
-				Arguments.of(
-						Named.of("node fulltext index",
-								new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE,
-										Collections.singleton("Book"), Arrays.asList("property1", "property2"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"fulltext\">\n" + "    <label>Book</label>\n"
-								+ "    <properties>\n" + "        <property>property1</property>\n"
-								+ "        <property>property2</property>\n" + "    </properties>\n" + "</index>"),
-				Arguments.of(
-						Named.of("piped labels",
-								new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE,
-										Collections.singleton("Bo|ok"), Arrays.asList("property1", "property2"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"fulltext\">\n" + "    <label>Bo\\|ok</label>\n"
-								+ "    <properties>\n" + "        <property>property1</property>\n"
-								+ "        <property>property2</property>\n" + "    </properties>\n" + "</index>"),
-				Arguments.of(
-						Named.of("multiple labels",
-								new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE, Arrays.asList("Bo", "ok"),
-										Arrays.asList("property1", "property2"))),
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-								+ "<index name=\"name\" type=\"fulltext\">\n" + "    <label>Bo|ok</label>\n"
-								+ "    <properties>\n" + "        <property>property1</property>\n"
-								+ "        <property>property2</property>\n" + "    </properties>\n" + "</index>"));
+		return Stream
+			.of(Arguments
+				.of(Named.of("node property index",
+						new Index("name", Index.Type.PROPERTY, TargetEntityType.NODE, Collections.singleton("Book"),
+								Collections.singleton("isbn"))),
+						"""
+								<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+								<index name="name" type="property">
+								    <label>Book</label>
+								    <properties>
+								        <property>isbn</property>
+								    </properties>
+								</index>"""),
+					Arguments.of(Named.of("multiple node property indexes", new Index("name", Index.Type.PROPERTY,
+							TargetEntityType.NODE, Collections.singleton("Book"), Arrays.asList("isbn", "title"))), """
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="property">
+									    <label>Book</label>
+									    <properties>
+									        <property>isbn</property>
+									        <property>title</property>
+									    </properties>
+									</index>"""),
+					Arguments.of(Named.of("relationship property index",
+							new Index("name", Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
+									Collections.singleton("READS"), Collections.singleton("property"))),
+							"""
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="property">
+									    <type>READS</type>
+									    <properties>
+									        <property>property</property>
+									    </properties>
+									</index>"""),
+					Arguments.of(
+							Named.of("multiple relationship property indexes",
+									new Index("name", Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
+											Collections.singleton("READS"), Arrays.asList("property1", "property2"))),
+							"""
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="property">
+									    <type>READS</type>
+									    <properties>
+									        <property>property1</property>
+									        <property>property2</property>
+									    </properties>
+									</index>"""),
+					Arguments.of(
+							Named.of("node fulltext index",
+									new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE,
+											Collections.singleton("Book"), Arrays.asList("property1", "property2"))),
+							"""
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="fulltext">
+									    <label>Book</label>
+									    <properties>
+									        <property>property1</property>
+									        <property>property2</property>
+									    </properties>
+									</index>"""),
+					Arguments.of(
+							Named.of("piped labels",
+									new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE,
+											Collections.singleton("Bo|ok"), Arrays.asList("property1", "property2"))),
+							"""
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="fulltext">
+									    <label>Bo\\|ok</label>
+									    <properties>
+									        <property>property1</property>
+									        <property>property2</property>
+									    </properties>
+									</index>"""),
+					Arguments.of(
+							Named
+								.of("multiple labels",
+										new Index("name", Index.Type.FULLTEXT, TargetEntityType.NODE,
+												Arrays.asList("Bo", "ok"), Arrays.asList("property1", "property2"))),
+							"""
+									<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+									<index name="name" type="fulltext">
+									    <label>Bo|ok</label>
+									    <properties>
+									        <property>property1</property>
+									        <property>property2</property>
+									    </properties>
+									</index>"""));
 	}
 
 	@ParameterizedTest(name = "{0}")

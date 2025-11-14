@@ -398,8 +398,6 @@ class CatalogGeneratingProcessorTests {
 
 	static class TestGenerator implements ConstraintNameGenerator {
 
-		private final Map<String, String> options;
-
 		@SuppressWarnings("RedundantModifier")
 		public TestGenerator() {
 			this(Map.of());
@@ -408,7 +406,6 @@ class CatalogGeneratingProcessorTests {
 
 		@SuppressWarnings("RedundantModifier")
 		public TestGenerator(Map<String, String> options) {
-			this.options = options;
 			if ("n/a".equals(options.getOrDefault("foo", "n/a"))) {
 				throw new IllegalStateException("Options not set");
 			}

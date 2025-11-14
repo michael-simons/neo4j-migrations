@@ -340,8 +340,10 @@ class IndexToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@MethodSource
-	void shouldRenderSimpleIndexCreation(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
+	@MethodSource("shouldRenderSimpleIndexCreation")
+	@MethodSource("shouldRenderIdempotentNamedIndexDrop")
+	@MethodSource("shouldRenderUnnamedIndexDrop")
+	void shouldRenderSimpleIndexesProper(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
 			boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
@@ -353,8 +355,10 @@ class IndexToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@MethodSource
-	void shouldRenderSimpleCompositeIndexCreation(String serverVersion, boolean named, Neo4jEdition edition,
+	@MethodSource("shouldRenderSimpleCompositeIndexCreation")
+	@MethodSource("shouldRenderIdempotentIndexCreation")
+	@MethodSource("shouldRenderUnnamedCompositeIndexDrop")
+	void shouldRenderCompositeIndexesProper(String serverVersion, boolean named, Neo4jEdition edition,
 			Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
@@ -401,19 +405,6 @@ class IndexToCypherRendererTests {
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderIdempotentIndexCreation(String serverVersion, boolean named, Neo4jEdition edition,
-			Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.NODE,
-				Collections.singleton("Person"), Arrays.asList("age", "country"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
 	void shouldFailOnIdempotentIndexCreation(String serverVersion, boolean named, Neo4jEdition edition,
 			Operator operator, boolean idempotent) {
 
@@ -424,32 +415,6 @@ class IndexToCypherRendererTests {
 		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
 		assertThatIllegalArgumentException().isThrownBy(() -> renderer.render(index, renderConfig))
 			.withMessageStartingWith("The given index cannot be rendered in an idempotent fashion");
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderUnnamedIndexDrop(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
-			boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.NODE,
-				Collections.singleton("Person"), Collections.singleton("firstname"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderUnnamedCompositeIndexDrop(String serverVersion, boolean named, Neo4jEdition edition,
-			Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.NODE,
-				Collections.singleton("Person"), Arrays.asList("age", "country"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
 	}
 
 	// Even though this is just a long existing deprecation,
@@ -495,19 +460,6 @@ class IndexToCypherRendererTests {
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderIdempotentNamedIndexDrop(String serverVersion, boolean named, Neo4jEdition edition,
-			Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.NODE,
-				Collections.singleton("Person"), Collections.singleton("firstname"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
 	void shouldFailOnRenderIdempotentNamedIndexDrop(String serverVersion, boolean named, Neo4jEdition edition,
 			Operator operator, boolean idempotent) {
 
@@ -521,8 +473,10 @@ class IndexToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@MethodSource
-	void shouldRenderRelationshipIndexCreate(String serverVersion, boolean named, Neo4jEdition edition,
+	@MethodSource("shouldRenderRelationshipIndexCreate")
+	@MethodSource("shouldRenderRelationshipIdempotentIndexCreate")
+	@MethodSource("shouldRenderRelationshipIndexDrop")
+	void shouldRenderRelationshipIndexesProper(String serverVersion, boolean named, Neo4jEdition edition,
 			Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
@@ -548,34 +502,8 @@ class IndexToCypherRendererTests {
 
 	@ParameterizedTest
 	@MethodSource
-	void shouldRenderRelationshipIdempotentIndexCreate(String serverVersion, boolean named, Neo4jEdition edition,
-			Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
-				Collections.singleton("TYPE_NAME"), Collections.singleton("propertyName"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
 	void shouldRenderRelationshipIdempotentCompositeIndexCreate(String serverVersion, boolean named,
 			Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
-				Collections.singleton("TYPE_NAME"), Arrays.asList("propertyName_1", "propertyName_2"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderRelationshipIndexDrop(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
-			boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
 		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
@@ -628,36 +556,11 @@ class IndexToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@MethodSource
-	void shouldRenderFulltextIndexCreate(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
+	@MethodSource("shouldRenderFulltextIndexDrop")
+	@MethodSource("shouldRenderFulltextIndexIdempotentCreate")
+	@MethodSource("shouldRenderFulltextIndexCreate")
+	void shouldRenderFullTextIndexesProper(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
 			boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = Index.forNode("Movie", "Book")
-			.named(named ? "index_name" : null)
-			.fulltext("title", "description");
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderFulltextIndexDrop(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
-			boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.FULLTEXT, TargetEntityType.NODE,
-				Arrays.asList("Movie", "Book"), Arrays.asList("title", "description"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderFulltextIndexIdempotentCreate(String serverVersion, boolean named, Neo4jEdition edition,
-			Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
 		Index index = new Index(named ? "index_name" : null, Index.Type.FULLTEXT, TargetEntityType.NODE,

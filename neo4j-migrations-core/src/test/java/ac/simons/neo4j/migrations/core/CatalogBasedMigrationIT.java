@@ -255,7 +255,7 @@ class CatalogBasedMigrationIT {
 			boolean createDefaultConstraints) throws IOException {
 		String theVersion = (versionValue != null) ? versionValue : version.toString();
 		Neo4jContainer neo4j = new Neo4jContainer(
-				String.format("neo4j:%s" + (enterprise ? "-enterprise" : ""), theVersion))
+				String.format("neo4j:%s%s", theVersion, (enterprise ? "-enterprise" : "")))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(version.hasIdempotentOperations());
 		neo4j.start();

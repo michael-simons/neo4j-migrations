@@ -53,21 +53,35 @@ class CatalogRendererTests {
 	void shouldRenderCatalogAsXml() {
 
 		Renderer<Catalog> renderer = Renderer.get(Renderer.Format.XML, Catalog.class);
-		assertThat(renderer.render(CATALOG, RenderConfig.defaultConfig())).isEqualTo(""
-				+ "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-				+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n" + "    <catalog>\n"
-				+ "        <indexes>\n" + "            <index name=\"person_name\" type=\"property\">\n"
-				+ "                <label>Person</label>\n" + "                <properties>\n"
-				+ "                    <property>name</property>\n" + "                </properties>\n"
-				+ "            </index>\n" + "        </indexes>\n" + "        <constraints>\n"
-				+ "            <constraint name=\"book_id_unique\" type=\"unique\">\n"
-				+ "                <label>Book</label>\n" + "                <properties>\n"
-				+ "                    <property>id</property>\n" + "                </properties>\n"
-				+ "            </constraint>\n" + "            <constraint name=\"book_isbn_exists\" type=\"exists\">\n"
-				+ "                <label>Book</label>\n" + "                <properties>\n"
-				+ "                    <property>isbn</property>\n" + "                </properties>\n"
-				+ "            </constraint>\n" + "        </constraints>\n" + "    </catalog>\n" + "</migration>\n"
-				+ "");
+		assertThat(renderer.render(CATALOG, RenderConfig.defaultConfig())).isEqualTo("""
+				<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+				<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+				    <catalog>
+				        <indexes>
+				            <index name="person_name" type="property">
+				                <label>Person</label>
+				                <properties>
+				                    <property>name</property>
+				                </properties>
+				            </index>
+				        </indexes>
+				        <constraints>
+				            <constraint name="book_id_unique" type="unique">
+				                <label>Book</label>
+				                <properties>
+				                    <property>id</property>
+				                </properties>
+				            </constraint>
+				            <constraint name="book_isbn_exists" type="exists">
+				                <label>Book</label>
+				                <properties>
+				                    <property>isbn</property>
+				                </properties>
+				            </constraint>
+				        </constraints>
+				    </catalog>
+				</migration>
+				""");
 	}
 
 	@Test
@@ -80,10 +94,15 @@ class CatalogRendererTests {
 				public boolean withReset() {
 					return true;
 				}
-			})))).isEqualTo("" + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-					+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
-					+ "    <catalog reset=\"true\">\n" + "        <indexes/>\n" + "        <constraints/>\n"
-					+ "    </catalog>\n" + "</migration>\n" + "");
+			})))).isEqualTo("""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+					    <catalog reset="true">
+					        <indexes/>
+					        <constraints/>
+					    </catalog>
+					</migration>
+					""");
 	}
 
 	@Test
@@ -96,10 +115,16 @@ class CatalogRendererTests {
 				public boolean withApply() {
 					return true;
 				}
-			})))).isEqualTo("" + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-					+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n" + "    <catalog>\n"
-					+ "        <indexes/>\n" + "        <constraints/>\n" + "    </catalog>\n" + "    <apply/>\n"
-					+ "</migration>\n" + "");
+			})))).isEqualTo("""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+					    <catalog>
+					        <indexes/>
+					        <constraints/>
+					    </catalog>
+					    <apply/>
+					</migration>
+					""");
 	}
 
 	@Test
@@ -112,10 +137,16 @@ class CatalogRendererTests {
 				public Optional<String> optionalHeader() {
 					return Optional.of("I was there.");
 				}
-			})))).isEqualTo("" + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-					+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n"
-					+ "    <!-- I was there. -->\n" + "    <catalog>\n" + "        <indexes/>\n"
-					+ "        <constraints/>\n" + "    </catalog>\n" + "</migration>\n" + "");
+			})))).isEqualTo("""
+					<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+					<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+					    <!-- I was there. -->
+					    <catalog>
+					        <indexes/>
+					        <constraints/>
+					    </catalog>
+					</migration>
+					""");
 	}
 
 	@Test
@@ -124,10 +155,15 @@ class CatalogRendererTests {
 		Catalog c = Catalog.of(Collections.singletonList(
 				new AbstractCatalogItem<>("Unknown", Index.Type.LOOKUP, TargetEntityType.NODE, "a", List.of(), null) {
 				}));
-		assertThat(renderer.render(c, RenderConfig.defaultConfig()))
-			.isEqualTo("" + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
-					+ "<migration xmlns=\"https://michael-simons.github.io/neo4j-migrations\">\n" + "    <catalog>\n"
-					+ "        <indexes/>\n" + "        <constraints/>\n" + "    </catalog>\n" + "</migration>\n" + "");
+		assertThat(renderer.render(c, RenderConfig.defaultConfig())).isEqualTo("""
+				<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+				<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+				    <catalog>
+				        <indexes/>
+				        <constraints/>
+				    </catalog>
+				</migration>
+				""");
 	}
 
 	@ParameterizedTest

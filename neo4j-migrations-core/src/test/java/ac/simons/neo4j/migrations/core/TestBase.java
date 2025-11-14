@@ -115,6 +115,7 @@ abstract class TestBase {
 				.isNotZero();
 		}
 		catch (Neo4jException ex) {
+			// Ignoring any failure due to known-existing constraints
 		}
 	}
 
@@ -125,6 +126,7 @@ abstract class TestBase {
 			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
 		}
 		catch (Neo4jException ex) {
+			// Ignoring any failure due to known-existing indexes
 		}
 	}
 

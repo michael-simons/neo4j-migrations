@@ -18,7 +18,6 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -47,11 +46,11 @@ class IterableMigrationsTests {
 		return Stream.concat(Stream.of(firstVersion), Stream.of(moreVersions))
 			.map(v -> MigrationVersion.parse(v + "__na"))
 			.map(v -> {
-				var m = mock(JavaBasedMigration.class);
+				Migration m = mock(JavaBasedMigration.class);
 				given(m.getVersion()).willReturn(v);
 				return m;
 			})
-			.collect(Collectors.toUnmodifiableList());
+			.toList();
 	}
 
 	static Stream<Arguments> stopVersions() {

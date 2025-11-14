@@ -50,12 +50,10 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 		assertThat(counters.typesAdded()).isZero();
 		assertThat(counters.typesRemoved()).isZero();
 
-		List<String> labels = session
-			.run("" + "MATCH (n) UNWIND labels(n) AS label\n" + "WITH label ORDER BY label ASC\n"
-					+ "RETURN collect(distinct label) AS labels")
-			.single()
-			.get("labels")
-			.asList(Value::asString);
+		List<String> labels = session.run("""
+				MATCH (n) UNWIND labels(n) AS label
+				WITH label ORDER BY label ASC
+				RETURN collect(distinct label) AS labels""").single().get("labels").asList(Value::asString);
 		assertThat(labels).containsExactlyInAnyOrder("Person", newName);
 	}
 
@@ -67,12 +65,10 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 		assertThat(counters.typesAdded()).isZero();
 		assertThat(counters.typesRemoved()).isZero();
 
-		List<String> labels = session
-			.run("" + "MATCH (n) UNWIND labels(n) AS label\n" + "WITH label ORDER BY label ASC\n"
-					+ "RETURN collect(distinct label) AS labels")
-			.single()
-			.get("labels")
-			.asList(Value::asString);
+		List<String> labels = session.run("""
+				MATCH (n) UNWIND labels(n) AS label
+				WITH label ORDER BY label ASC
+				RETURN collect(distinct label) AS labels""").single().get("labels").asList(Value::asString);
 		assertThat(labels).containsExactly("Film", "Movie", "Person");
 	}
 
@@ -164,10 +160,11 @@ class RenameIT extends AbstractRefactoringsITTestBase {
 			counters = rename.apply(refactoringContext);
 			assertThat(counters.propertiesSet()).isZero();
 
-			List<String> properties = session
-				.run("" + "MATCH (n:Movie)\n" + "WITH keys(n) as properties\n" + "UNWIND properties as property\n"
-						+ "RETURN distinct property ORDER BY property")
-				.list(r -> r.get("property").asString());
+			List<String> properties = session.run("""
+					MATCH (n:Movie)
+					WITH keys(n) as properties
+					UNWIND properties as property
+					RETURN distinct property ORDER BY property""").list(r -> r.get("property").asString());
 			assertThat(properties).containsExactly("released", "tagline", "title", "veröffentlicht im Jahr");
 		}
 	}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@Grab('org.neo4j.driver:neo4j-java-driver:4.4.1')
+@Grab('org.neo4j.driver:neo4j-java-driver:5.28.10')
 
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver

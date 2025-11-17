@@ -79,25 +79,10 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	public void render(Constraint constraint, RenderConfig config, OutputStream target) throws IOException {
 
 		Neo4jVersion version = config.getVersion();
-		if (config.isIdempotent() && !version.hasIdempotentOperations() && !config.isIgnoreName()) {
-			throw new IllegalArgumentException(String
-				.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version));
-		}
 
-		if (constraint.getProperties().size() > 1) {
-			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(constraint.getType())) {
-				throw new IllegalArgumentException("Only unique and node key constraints support multiple properties.");
-			}
-
-			if (config.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
-				throw new IllegalArgumentException("Constraints require exactly one property prior to Neo4j 4.4.");
-			}
-		}
-
-		if (!constraint.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
-			throw new IllegalArgumentException(
-					"The constraint can only be rendered in the given context when having a name.");
-		}
+		assertIdempotencySupport(config, version);
+		assertMultiplePropertiesSupport(constraint, config);
+		assertNameOnIdempotentDrop(constraint, config);
 
 		Writer w = new BufferedWriter(new OutputStreamWriter(target, StandardCharsets.UTF_8));
 		if (config.getOperator() == Operator.DROP && config.getVersion() != Neo4jVersion.V3_5 && constraint.hasName()
@@ -122,6 +107,32 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 		CypherRenderingUtils.renderOptions(constraint, config, w);
 		w.flush();
+	}
+
+	private static void assertNameOnIdempotentDrop(Constraint constraint, RenderConfig config) {
+		if (!constraint.hasName() && config.isIdempotent() && config.getOperator() == Operator.DROP) {
+			throw new IllegalArgumentException(
+					"The constraint can only be rendered in the given context when having a name.");
+		}
+	}
+
+	private static void assertIdempotencySupport(RenderConfig config, Neo4jVersion version) {
+		if (config.isIdempotent() && !version.hasIdempotentOperations() && !config.isIgnoreName()) {
+			throw new IllegalArgumentException(String
+				.format("The given constraint cannot be rendered in an idempotent fashion on Neo4j %s.", version));
+		}
+	}
+
+	private static void assertMultiplePropertiesSupport(Constraint constraint, RenderConfig config) {
+		if (constraint.getProperties().size() > 1) {
+			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(constraint.getType())) {
+				throw new IllegalArgumentException("Only unique and node key constraints support multiple properties.");
+			}
+
+			if (config.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
+				throw new IllegalArgumentException("Constraints require exactly one property prior to Neo4j 4.4.");
+			}
+		}
 	}
 
 	private String renderNodeKey(Constraint constraint, RenderConfig config) {

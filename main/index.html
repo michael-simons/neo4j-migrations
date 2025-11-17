@@ -4197,6 +4197,8 @@ to the target entity. This attribute defines the type of the element (such as un
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">rename.relationshipProperty</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">addSurrogateKeyTo.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
           <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">addSurrogateKeyTo.relationships</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">listToVectorOn.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
+          <span class="tag">&lt;xs:enumeration</span> <span class="attribute-name">value</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">listToVectorOn.relationships</span><span class="delimiter">&quot;</span></span><span class="tag">/&gt;</span>
         <span class="tag">&lt;/xs:restriction&gt;</span>
       <span class="tag">&lt;/xs:simpleType&gt;</span>
     <span class="tag">&lt;/xs:attribute&gt;</span>
@@ -4748,6 +4750,77 @@ The normalizing refactoring requires at least Neo4j 4.1, running it with batches
 </div>
 </div>
 <div class="sect3">
+<h4 id="convertinglistofnumberstovectortypes"><a class="anchor" href="#convertinglistofnumberstovectortypes"></a>Converting list of numbers to Vector types</h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This refactoring requires a database that supports <code>CYPHER 25</code> and native vector types. As of writing all enterprise edition of Neo4j &gt;= Neo4j 2025.10 are applicable.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Neo4j 2025.10 introduced the <a href="https://neo4j.com/docs/cypher-manual/current/values-and-types/vector/">Vector Types</a>.
+Prior to that type, <code>db.create.setNodeVectorProperty</code> and <code>db.create.setRelationshipVectorProperty</code> would create properties of type <code>LIST&lt;FLOAT NOT NULL&gt; NOT NULL</code>.
+While these properties are still supported in current vector indexes, you might want to migrate them to <code>VECTOR&lt;FLOAT NOT NULL&gt;(n) NOT NULL</code> where <code>n</code> is the size of the vector.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>listToVectorOn.nodes</code> and <code>listToVectorOn.relationships</code> for that.
+This refactoring allows basically for the same customization as <code>AddSurrogateKey</code> above and can be used either via an XML based catalog or programmatically.</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 48. Change all <code>embedding</code> properties on Nodes labelled <code>Movie</code> to a <code>VECTOR</code></div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">listToVectorOn.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;parameters&gt;</span>
+        <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">labels</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;value&gt;</span>Movie<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The refactoring assumes a property name of <code>embedding</code> by default, which of course can be configured, too:</p>
+</div>
+<div class="listingblock">
+<div class="title">Listing 49. Change all <code>einbettung</code> properties on Nodes labelled <code>Movie</code> to a <code>VECTOR</code></div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">listToVectorOn.nodes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;parameters&gt;</span>
+        <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">labels</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;value&gt;</span>Movie<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;/parameter&gt;</span>
+        <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">property</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>einbettung<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following example works on relationships and uses Cypher <code>INTEGER32</code> type for the vector. Be aware that your data must fit that datatype, otherwise the DBMS will error out:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">listToVectorOn.relationships</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+    <span class="tag">&lt;parameters&gt;</span>
+        <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">type</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
+            <span class="tag">&lt;value&gt;</span>ACTED_IN<span class="tag">&lt;/value&gt;</span>
+        <span class="tag">&lt;/parameter&gt;</span>
+        <span class="tag">&lt;parameter</span> <span class="attribute-name">name</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">elementType</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>INTEGER32<span class="tag">&lt;/parameter&gt;</span>
+    <span class="tag">&lt;/parameters&gt;</span>
+<span class="tag">&lt;/refactor&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The algorith will only work on entities that have a property with the given name and the type <code>LIST&lt;FLOAT NOT NULL&gt; NOT NULL</code> and not touch anything else.
+Feel free to use a custom query for matching entities.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="migratingbtreeindexestofutureindexes"><a class="anchor" href="#migratingbtreeindexestofutureindexes"></a>Migrating BTREE indexes to "future" indexes</h4>
 <div class="paragraph">
 <p>Neo4j 4.4 introduces <a href="https://neo4j.com/docs/cypher-manual/current/indexes-for-search-performance/#indexes-future-indexes">future indexes</a>, <code>RANGE</code> and <code>POINT</code> which replace the well known <code>BTREE</code> indexes of Neo4j 4.x. These new indexes are available from Neo4j 4.4 onwards but will not participate in any query planing in Neo4j 4.4. They exist merely for migration purposes in Neo4j 4.4: Neo4j 5.0 does not support <code>BTREE</code> indexes at all. This means a database that contains <code>BTREE</code> indexes <em>cannot</em> be upgraded to Neo4j 5.0. Existing <code>BTREE</code> indexes need to be dropped prior to attempting the upgrade. The class <code>ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes</code> has been created for this purpose. It allows creation of matching new indexes and optionally dropping the indexes that are no longer supported in Neo4j 5.0 and higher prior to upgrading the store.</p>
@@ -4758,7 +4831,7 @@ The normalizing refactoring requires at least Neo4j 4.1, running it with batches
 <div class="sect4">
 <h5 id="preparinganupgradetoneo4j5.0bycreatingfutureindexesinparallel"><a class="anchor" href="#preparinganupgradetoneo4j5.0bycreatingfutureindexesinparallel"></a>Preparing an upgrade to Neo4j 5.0 by creating future indexes in parallel</h5>
 <div class="listingblock">
-<div class="title">Listing 48. Creating future indexes in parallel to old indexes</div>
+<div class="title">Listing 50. Creating future indexes in parallel to old indexes</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">migrate.createFutureIndexes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;parameters&gt;</span> <i class="conum" data-value="1"></i><b>(1)</b>
@@ -4813,7 +4886,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <p>The advantage of this approach is the fact that it won&#8217;t need additional manual work before doing a store upgrade. However, the store upgrade should follow closely after dropping the old indexes and creating the replacement indexes as the latter won&#8217;t participate in planning at all prior to the actual upgrade to Neo4j 5.0 or higher.</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 49. Replacing <code>BTREE</code> indexes with future indexes</div>
+<div class="title">Listing 51. Replacing <code>BTREE</code> indexes with future indexes</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;refactor</span> <span class="attribute-name">type</span>=<span class="string"><span class="delimiter">&quot;</span><span class="content">migrate.replaceBTreeIndexes</span><span class="delimiter">&quot;</span></span><span class="tag">&gt;</span>
     <span class="tag">&lt;parameters&gt;</span>
@@ -4856,7 +4929,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <p>The annotation processor is available under the following coordinates:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 50. Annotation processor as Maven dependency</div>
+<div class="title">Listing 52. Annotation processor as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -4869,7 +4942,7 @@ The type mappings are not consulted when migrating constraint-backing indexes.</
 <p>It has no dependencies apart from Neo4j-Migrations itself (neither SDN6 nor Neo4j-OGM), so it is safe to use it either directly as dependency so that it will be picked up by all recent Java compilers or as dedicated processor for the compiler:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 51. Annotation processor configured as processor for the compiler plugin inside a Maven pom</div>
+<div class="title">Listing 53. Annotation processor configured as processor for the compiler plugin inside a Maven pom</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
@@ -4919,7 +4992,7 @@ All implementations must provide a default, publicly accessible constructor or -
 <p>Taking the above configuration of the processor one exemplary way to take this further is this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 52. Adding generated migrations to the actual target dir</div>
+<div class="title">Listing 54. Adding generated migrations to the actual target dir</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
@@ -4992,7 +5065,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <p>We offer a set of additional annotations - <code>@Unique</code>, <code>@Required</code> and <code>@Fulltext</code> that can be used standalone or together with SDN6 <em>or</em> OGM to specify constraints on classes. Please check the JavaDoc of those annotations about their usage. The module as shown below has no dependencies, neither on Neo4j-Migrations, nor SDN6 or OGM. While it works excellent with SDN6 for specifying additional information, all annotations offer a way to define labels and relationship types.</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 53. Annotation processor as Maven dependency</div>
+<div class="title">Listing 55. Annotation processor as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -5061,7 +5134,7 @@ Our recommended approach is to use <code>javac</code> directly and script it&#82
 <p>You need at least <code>neo4j-ogm-core</code> as dependency for processing Neo4j-OGM entities and most likely all libraries that you are used in addition to OGM annotations in those entities. The following statement generates <code>V01__Create_OGM_schema.xml</code> in a directory <code>output</code>. It only does annotation processing:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 54. Generating a catalog from Neo4j-OGM entities</div>
+<div class="title">Listing 56. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
 -processorpath neo4j-migrations-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-3.0.0-SNAPSHOT.jar \
@@ -5078,7 +5151,7 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <p>The only difference here is that you must use SDN 6.0+ and its dependencies as a dependencies to JavaC:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 55. Generating a catalog from Neo4j-OGM entities</div>
+<div class="title">Listing 57. Generating a catalog from Neo4j-OGM entities</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
 -processorpath neo4j-migrations-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-3.0.0-SNAPSHOT.jar \
@@ -5095,7 +5168,7 @@ extensions/neo4j-migrations-annotation-processing/processor/src/test/java/ac/sim
 <p>No additional jars apart from the dedicated annotations are necessary</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 56. Generating a catalog from plain annotated classes</div>
+<div class="title">Listing 58. Generating a catalog from plain annotated classes</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="bash">javac -proc:only \
 -processorpath neo4j-migrations-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-api-3.0.0-SNAPSHOT.jar:neo4j-migrations-annotation-processor-3.0.0-SNAPSHOT.jar \
@@ -5142,7 +5215,7 @@ To enable that feature, configure the processor with <code>-Aorg.neo4j.migration
 <p>What we can do for you is check-summing CSV data on HTTP urls for you. What you need to do is make them available to both Neo4j and this tool and provide a query to deal with them. Our tooling brings it together. Essentially, you want to inherit from <code>ac.simons.neo4j.migrations.formats.csv.AbstractLoadCSVMigration</code> like this:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 57. R050__LoadBookData.java</div>
+<div class="title">Listing 59. R050__LoadBookData.java</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">import</span> <span class="include">java.net.URI</span>;
 
@@ -5349,7 +5422,7 @@ AsciiDoctor file basically behaves as a container for many migrations.</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 58. AsciiDoctor extension as Maven dependency</div>
+<div class="title">Listing 60. AsciiDoctor extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -5362,7 +5435,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 59. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 61. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-adoc:3.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -5441,7 +5514,7 @@ and valid inline Cypher content. The block definition looks like this:</p>
 dependency:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 60. Markdown extension as Maven dependency</div>
+<div class="title">Listing 62. Markdown extension as Maven dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span>eu.michael-simons.neo4j<span class="tag">&lt;/groupId&gt;</span>
@@ -5454,7 +5527,7 @@ dependency:</p>
 <p>Or in case you fancy Gradle:</p>
 </div>
 <div class="listingblock">
-<div class="title">Listing 61. AsciiDoctor extension as Gradle dependency</div>
+<div class="title">Listing 63. AsciiDoctor extension as Gradle dependency</div>
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
     implementation <span class="string"><span class="delimiter">'</span><span class="content">eu.michael-simons.neo4j:neo4j-migrations-formats-markdown:3.0.0-SNAPSHOT</span><span class="delimiter">'</span></span>
@@ -5511,7 +5584,7 @@ Database: neo4j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-17 17:13:21 UTC
+Last updated 2025-11-17 20:56:29 UTC
 </div>
 </div>
 </body>

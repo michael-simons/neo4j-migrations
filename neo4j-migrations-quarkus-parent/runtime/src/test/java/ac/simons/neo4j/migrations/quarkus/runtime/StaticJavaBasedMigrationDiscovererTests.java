@@ -35,6 +35,7 @@ class StaticJavaBasedMigrationDiscovererTests {
 
 			@Override
 			public void apply(MigrationContext context) {
+				// Class needed for its own sake, not for the implementation.
 			}
 
 		}

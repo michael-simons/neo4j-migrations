@@ -444,8 +444,8 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		return Stream.empty();
 	}
 
-	@SuppressWarnings({ "squid:S6204", "squid:S1452" }) // toList vs Collectors.collect,
-														// generic wildcard
+	// toList vs Collectors.collect and generic wildcard
+	@SuppressWarnings({ "squid:S6204", "squid:S1452" })
 	private CatalogItem<?> processCatalogAnnotation0(Element enclosingElement, Element annotatedElement,
 			AnnotationMirror annotation, Mode mode, Target target, List<SchemaName> identifiersOfEnclosingElement,
 			Set<SchemaName> existingIdentifiers) {
@@ -464,17 +464,9 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		AnnotationValue annotationValueType = Attributes.get(annotationType, Attributes.TYPE)
 			.map(attributes::get)
 			.orElse(null);
-		if (annotationValueLabel != null && annotationValueType != null) {
-			this.messager.printMessage(Diagnostic.Kind.ERROR, "Ambiguous annotation " + annotation, annotatedElement);
-		}
-		else if (target == Target.REL && annotationValueLabel != null) {
-			this.messager.printMessage(Diagnostic.Kind.ERROR, "Overwriting explicit type with a label is not supported",
-					annotatedElement);
-		}
-		else if (target == Target.NODE && annotationValueType != null) {
-			this.messager.printMessage(Diagnostic.Kind.ERROR, "Overwriting explicit label with a type is not supported",
-					annotatedElement);
-		}
+
+		assertNonAmbiguousTargets(annotatedElement, annotation, target, annotationValueLabel, annotationValueType);
+
 		AnnotationValue annotationValue = (target == Target.REL) ? annotationValueType : annotationValueLabel;
 		List<SchemaName> labelsUsed = mergeIdentifier(enclosingElement, mode, target, identifiersOfEnclosingElement,
 				existingIdentifiers, annotationValue);
@@ -532,6 +524,21 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 		}
 
 		return null;
+	}
+
+	private void assertNonAmbiguousTargets(Element annotatedElement, AnnotationMirror annotation, Target target,
+			AnnotationValue annotationValueLabel, AnnotationValue annotationValueType) {
+		if (annotationValueLabel != null && annotationValueType != null) {
+			this.messager.printMessage(Diagnostic.Kind.ERROR, "Ambiguous annotation " + annotation, annotatedElement);
+		}
+		else if (target == Target.REL && annotationValueLabel != null) {
+			this.messager.printMessage(Diagnostic.Kind.ERROR, "Overwriting explicit type with a label is not supported",
+					annotatedElement);
+		}
+		else if (target == Target.NODE && annotationValueType != null) {
+			this.messager.printMessage(Diagnostic.Kind.ERROR, "Overwriting explicit label with a type is not supported",
+					annotatedElement);
+		}
 	}
 
 	private String extractOption(AnnotationMirror annotation) {

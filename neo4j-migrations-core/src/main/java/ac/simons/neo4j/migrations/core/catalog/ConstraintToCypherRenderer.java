@@ -55,6 +55,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private static final String KEYWORD_ASSERT = "ASSERT";
 
+	private static final String FMT_CONSTRAINT_EDITION_MISMATCH = "This constraint cannot be created with %s edition.";
+
 	private static String renderProperties(Neo4jVersion version, String prefix, Constraint item) {
 		return renderProperties(version, prefix, item, true);
 	}
@@ -125,8 +127,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderNodeKey(Constraint constraint, RenderConfig config) {
 
 		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
-			throw new IllegalStateException(
-					String.format("This constraint cannot be created with %s edition.", config.getEdition()));
+			throw new IllegalStateException(String.format(FMT_CONSTRAINT_EDITION_MISMATCH, config.getEdition()));
 		}
 
 		Neo4jVersion version = config.getVersion();
@@ -155,8 +156,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderPropertyExists(Constraint item, RenderConfig config) {
 
 		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
-			throw new IllegalStateException(
-					String.format("This constraint cannot be created with %s edition.", config.getEdition()));
+			throw new IllegalStateException(String.format(FMT_CONSTRAINT_EDITION_MISMATCH, config.getEdition()));
 		}
 
 		if (item.getTargetEntityType() == TargetEntityType.NODE) {
@@ -211,8 +211,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 	private String renderPropertyType(Constraint item, RenderConfig config) {
 
 		if (config.getOperator() == Operator.CREATE && config.getEdition() != Neo4jEdition.ENTERPRISE) {
-			throw new IllegalStateException(
-					String.format("This constraint cannot be created with %s edition.", config.getEdition()));
+			throw new IllegalStateException(String.format(FMT_CONSTRAINT_EDITION_MISMATCH, config.getEdition()));
 		}
 
 		if (item.getTargetEntityType() == TargetEntityType.NODE) {

@@ -243,6 +243,8 @@ public final class MigrationsConfig {
 	 * {@return the list of additional options to use when rendering constraints}
 	 * @since 2.8.2
 	 */
+	// wild card on purpose, dear sonar
+	@SuppressWarnings({ "squid:S1452" })
 	public List<? extends RenderConfig.AdditionalRenderingOptions> getConstraintRenderingOptions() {
 		return List.copyOf(this.constraintOptions);
 	}

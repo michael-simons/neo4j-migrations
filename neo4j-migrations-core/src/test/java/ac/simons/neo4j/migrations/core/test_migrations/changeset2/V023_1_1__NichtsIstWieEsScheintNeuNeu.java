@@ -25,6 +25,7 @@ public class V023_1_1__NichtsIstWieEsScheintNeuNeu implements JavaBasedMigration
 
 	@Override
 	public void apply(MigrationContext context) {
+		// Class needed for its own sake, not for the implementation.
 	}
 
 }

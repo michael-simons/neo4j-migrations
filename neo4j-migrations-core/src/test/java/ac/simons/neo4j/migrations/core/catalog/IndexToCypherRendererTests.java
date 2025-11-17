@@ -343,6 +343,7 @@ class IndexToCypherRendererTests {
 	@MethodSource("shouldRenderSimpleIndexCreation")
 	@MethodSource("shouldRenderIdempotentNamedIndexDrop")
 	@MethodSource("shouldRenderUnnamedIndexDrop")
+	@MethodSource("shouldRenderNamedIndexDrop")
 	void shouldRenderSimpleIndexesProper(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
 			boolean idempotent, String expected) {
 
@@ -433,19 +434,6 @@ class IndexToCypherRendererTests {
 			.withMessageStartingWith("Dropping an unnamed index is not supported on Neo4j");
 	}
 
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderNamedIndexDrop(String serverVersion, boolean named, Neo4jEdition edition, Operator operator,
-			boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.NODE,
-				Collections.singleton("Person"), Collections.singleton("firstname"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
 	@Test
 	void shouldNotIncludeIndexTypeOnDrop() {
 
@@ -488,22 +476,10 @@ class IndexToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@MethodSource
-	void shouldRenderRelationshipCompositeIndexCreate(String serverVersion, boolean named, Neo4jEdition edition,
+	@MethodSource("shouldRenderRelationshipCompositeIndexCreate")
+	@MethodSource("shouldRenderRelationshipIdempotentCompositeIndexCreate")
+	void shouldRenderRelationshipCompositeIndexesProper(String serverVersion, boolean named, Neo4jEdition edition,
 			Operator operator, boolean idempotent, String expected) {
-
-		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
-		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,
-				Collections.singleton("TYPE_NAME"), Arrays.asList("propertyName_1", "propertyName_2"));
-
-		Renderer<Index> renderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
-		assertThat(renderer.render(index, renderConfig)).isEqualTo(expected);
-	}
-
-	@ParameterizedTest
-	@MethodSource
-	void shouldRenderRelationshipIdempotentCompositeIndexCreate(String serverVersion, boolean named,
-			Neo4jEdition edition, Operator operator, boolean idempotent, String expected) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
 		Index index = new Index(named ? "index_name" : null, Index.Type.PROPERTY, TargetEntityType.RELATIONSHIP,

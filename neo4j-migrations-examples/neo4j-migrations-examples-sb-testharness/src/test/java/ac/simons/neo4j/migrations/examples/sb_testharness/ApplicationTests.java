@@ -15,9 +15,13 @@
  */
 package ac.simons.neo4j.migrations.examples.sb_testharness;
 
+import ac.simons.neo4j.migrations.springframework.boot.autoconfigure.MigrationsProperties;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -26,7 +30,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 class ApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void contextLoads(@Autowired MigrationsProperties migrationsProperties) {
+		assertThat(migrationsProperties.isEnabled()).isFalse();
 	}
 
 }

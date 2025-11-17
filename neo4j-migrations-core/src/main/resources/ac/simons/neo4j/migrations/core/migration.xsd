@@ -63,6 +63,8 @@
 					<xs:enumeration value="rename.relationshipProperty"/>
 					<xs:enumeration value="addSurrogateKeyTo.nodes"/>
 					<xs:enumeration value="addSurrogateKeyTo.relationships"/>
+					<xs:enumeration value="listToVectorOn.nodes"/>
+					<xs:enumeration value="listToVectorOn.relationships"/>
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:attribute>

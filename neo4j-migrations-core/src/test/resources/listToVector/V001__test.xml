@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+
+
+	<refactor type="listToVectorOn.nodes">
+		<parameters>
+			<parameter name="labels">
+				<value>Test</value>
+			</parameter>
+			<parameter name="batchSize">23</parameter>
+			<parameter name="property">e</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="listToVectorOn.nodes">
+		<parameters>
+			<parameter name="labels">
+				<value>AnotherNode</value>
+			</parameter>
+			<parameter name="elementType">INTEGER8</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="listToVectorOn.nodes">
+		<parameters>
+			<parameter name="customQuery">MATCH (x:AnotherNode) WHERE x.e IS NOT NULL RETURN x</parameter>
+			<parameter name="property">e</parameter>
+			<parameter name="elementType">FLOAT32</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="listToVectorOn.relationships">
+		<parameters>
+			<parameter name="type">
+				<value>FOO</value>
+			</parameter>
+			<parameter name="batchSize">23</parameter>
+			<parameter name="property">e</parameter>
+		</parameters>
+	</refactor>
+
+	<refactor type="listToVectorOn.relationships">
+		<parameters>
+			<parameter name="customQuery">MATCH (x:AnotherNode)-[r]->() RETURN r</parameter>
+			<parameter name="property">e</parameter>
+			<parameter name="elementType">FLOAT32</parameter>
+		</parameters>
+	</refactor>
+
+</migration>

@@ -49,6 +49,10 @@ import org.w3c.dom.NodeList;
  */
 final class CatalogBasedRefactorings {
 
+	private static final String PARAMETER_NAME_CUSTOM_QUERY = "customQuery";
+
+	private static final String PARAMETER_NAME_PROPERTY = "property";
+
 	private CatalogBasedRefactorings() {
 	}
 
@@ -87,7 +91,7 @@ final class CatalogBasedRefactorings {
 		NodeList parameterList = findParameterList(node).orElseThrow(
 				() -> createException(node, type, "The addSurrogateKey refactoring requires several parameters"));
 
-		Optional<String> optionalCustomQuery = findParameter(node, "customQuery", parameterList);
+		Optional<String> optionalCustomQuery = findParameter(node, PARAMETER_NAME_CUSTOM_QUERY, parameterList);
 		AtomicReference<AddSurrogateKey> refactoring = new AtomicReference<>();
 		if ("nodes".equals(op)) {
 			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty))
@@ -117,7 +121,8 @@ final class CatalogBasedRefactorings {
 		}
 
 		refactoring.updateAndGet(
-				r -> findParameter(node, "property", parameterList).map(p -> r.withProperty(p.trim())).orElse(r));
+				r -> findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
+					.orElse(r));
 		refactoring.updateAndGet(
 				r -> findParameter(node, "generatorFunction", parameterList).map(p -> r.withGeneratorFunction(p.trim()))
 					.orElse(r));
@@ -131,7 +136,7 @@ final class CatalogBasedRefactorings {
 		NodeList parameterList = findParameterList(node)
 			.orElseThrow(() -> createException(node, type, "The listToVector refactoring requires several parameters"));
 
-		Optional<String> optionalCustomQuery = findParameter(node, "customQuery", parameterList);
+		Optional<String> optionalCustomQuery = findParameter(node, PARAMETER_NAME_CUSTOM_QUERY, parameterList);
 		AtomicReference<ListToVector> refactoring = new AtomicReference<>();
 		if ("nodes".equals(op)) {
 			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty))
@@ -162,7 +167,8 @@ final class CatalogBasedRefactorings {
 		}
 
 		refactoring.updateAndGet(
-				r -> findParameter(node, "property", parameterList).map(p -> r.withProperty(p.trim())).orElse(r));
+				r -> findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
+					.orElse(r));
 		refactoring.updateAndGet(r -> findParameter(node, "elementType", parameterList)
 			.map(p -> r.withElementType(ListToVector.ElementType.valueOf(p.trim().toUpperCase(Locale.ROOT))))
 			.orElse(r));
@@ -211,7 +217,7 @@ final class CatalogBasedRefactorings {
 		NodeList parameterList = findParameterList(node).orElseThrow(() -> createException(node, type,
 				"The normalizeAsBoolean refactoring requires `property`, `trueValues` and `falseValues` parameters"));
 
-		String property = findParameter(node, "property", parameterList)
+		String property = findParameter(node, PARAMETER_NAME_PROPERTY, parameterList)
 			.orElseThrow(() -> createException(node, type, "No `property` parameter"));
 
 		Collection<String> rawTrueValues = findParameterValues(parameterList, "trueValues")
@@ -251,7 +257,7 @@ final class CatalogBasedRefactorings {
 						nfe);
 			}
 		}
-		Optional<String> customQuery = findParameter(node, "customQuery", parameterList);
+		Optional<String> customQuery = findParameter(node, PARAMETER_NAME_CUSTOM_QUERY, parameterList);
 		if (customQuery.isPresent()) {
 			result = result.withCustomQuery(customQuery.get());
 		}

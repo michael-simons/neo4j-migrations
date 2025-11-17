@@ -88,7 +88,7 @@ class ListToVectorIT {
 	void shouldRefactorFromCatalog() {
 
 		var migrations = new Migrations(MigrationsConfig.builder().build(), this.driver);
-		var f = migrations.apply(ListToVectorIT.class.getResource("/listToVector/V001__test.xml"));
+		migrations.apply(ListToVectorIT.class.getResource("/listToVector/V001__test.xml"));
 
 		try (var session = this.driver.session()) {
 			List<String> result;

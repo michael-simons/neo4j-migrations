@@ -37,7 +37,7 @@
 
 	<properties>
 		<commons-io.version>2.21.0</commons-io.version>
-		<commons-lang3.version>3.19.0</commons-lang3.version>
+		<commons-lang3.version>3.20.0</commons-lang3.version>
 		<covered-ratio-complexity>0.2</covered-ratio-complexity>
 		<covered-ratio-instructions>0.2</covered-ratio-instructions>
 		<ivy.version>2.5.3</ivy.version>

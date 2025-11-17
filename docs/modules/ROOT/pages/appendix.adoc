@@ -373,6 +373,61 @@ var addSurrogateKey = AddSurrogateKey.toNodes("Movie")
   .withGeneratorFunction("id(%s)");
 ----
 
+=== Converting list of numbers to Vector types
+
+NOTE: This refactoring requires a database that supports `CYPHER 25` and native vector types. As of writing all enterprise edition of Neo4j >= Neo4j 2025.10 are applicable.
+
+Neo4j 2025.10 introduced the https://neo4j.com/docs/cypher-manual/current/values-and-types/vector/[Vector Types].
+Prior to that type, `db.create.setNodeVectorProperty` and `db.create.setRelationshipVectorProperty` would create properties of type `LIST<FLOAT NOT NULL> NOT NULL`.
+While these properties are still supported in current vector indexes, you might want to migrate them to `VECTOR<FLOAT NOT NULL>(n) NOT NULL` where `n` is the size of the vector.
+
+Use `listToVectorOn.nodes` and `listToVectorOn.relationships` for that.
+This refactoring allows basically for the same customization as `AddSurrogateKey` above and can be used either via an XML based catalog or programmatically.
+
+.Change all `embedding` properties on Nodes labelled `Movie` to a `VECTOR`
+[source,xml]
+----
+<refactor type="listToVectorOn.nodes">
+    <parameters>
+        <parameter name="labels">
+            <value>Movie</value>
+        </parameter>
+    </parameters>
+</refactor>
+----
+
+The refactoring assumes a property name of `embedding` by default, which of course can be configured, too:
+
+.Change all `einbettung` properties on Nodes labelled `Movie` to a `VECTOR`
+[source,xml]
+----
+<refactor type="listToVectorOn.nodes">
+    <parameters>
+        <parameter name="labels">
+            <value>Movie</value>
+        </parameter>
+        <parameter name="property">einbettung</parameter>
+    </parameters>
+</refactor>
+----
+
+The following example works on relationships and uses Cypher `INTEGER32` type for the vector. Be aware that your data must fit that datatype, otherwise the DBMS will error out:
+
+[source,xml]
+----
+<refactor type="listToVectorOn.relationships">
+    <parameters>
+        <parameter name="type">
+            <value>ACTED_IN</value>
+        </parameter>
+        <parameter name="elementType">INTEGER32</parameter>
+    </parameters>
+</refactor>
+----
+
+The algorith will only work on entities that have a property with the given name and the type `LIST<FLOAT NOT NULL> NOT NULL` and not touch anything else.
+Feel free to use a custom query for matching entities.
+
 === Migrating BTREE indexes to "future" indexes
 
 Neo4j 4.4 introduces https://neo4j.com/docs/cypher-manual/current/indexes-for-search-performance/#indexes-future-indexes[future indexes], `RANGE` and `POINT` which replace the well known `BTREE` indexes of Neo4j 4.x. These new indexes are available from Neo4j 4.4 onwards but will not participate in any query planing in Neo4j 4.4. They exist merely for migration purposes in Neo4j 4.4: Neo4j 5.0 does not support `BTREE` indexes at all. This means a database that contains `BTREE` indexes _cannot_ be upgraded to Neo4j 5.0. Existing `BTREE` indexes need to be dropped prior to attempting the upgrade. The class `ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes` has been created for this purpose. It allows creation of matching new indexes and optionally dropping the indexes that are no longer supported in Neo4j 5.0 and higher prior to upgrading the store.

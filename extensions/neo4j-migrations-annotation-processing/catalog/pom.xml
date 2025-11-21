@@ -22,17 +22,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-annotation-processing</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-annotation-catalog</artifactId>
 
 	<name>Neo4j Migrations (Catalog Annotations)</name>
 	<description>A set of annotations reassembling what is possible within a migrations catalog.</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.annotations.catalog</java-module-name>

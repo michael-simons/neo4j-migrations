@@ -21,17 +21,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-examples</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-cluster-tests</artifactId>
 
 	<name>Examples (Tests against a Neo4j Cluster)</name>
 	<description>Tests that bring up a Neo4j Causal Cluster</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<dependencies>
 		<dependency>

@@ -22,17 +22,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-quarkus-parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-quarkus-integration-tests</artifactId>
 
 	<name>Neo4j Migrations (Quarkus Integration Tests)</name>
 	<description>Integration tests for the Quarkus integration of Neo4j Migrations.</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.quarkus.tests</java-module-name>

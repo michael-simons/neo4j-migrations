@@ -22,17 +22,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-annotation-processing</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-annotation-processor-api</artifactId>
 
 	<name>Neo4j Migrations (Annotation Processor Api)</name>
 	<description>Infrastructure that can be used to change functionality of the processor</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.annotations.proc</java-module-name>

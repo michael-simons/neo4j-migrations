@@ -22,17 +22,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-examples</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-examples-sb-testharness</artifactId>
 
 	<name>Examples (Spring Boot Integration with Test-Harness)</name>
 	<description>Example using an embedded Database as target for migrations.</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb_testharness</java-module-name>

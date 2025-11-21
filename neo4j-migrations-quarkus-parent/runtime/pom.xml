@@ -22,17 +22,13 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-quarkus-parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-quarkus</artifactId>
 
 	<name>Neo4j Migrations (Quarkus)</name>
 	<description>Quarkus integration for Neo4j Migrations.</description>
-
-	<scm>
-		<tag>3.0.0</tag>
-	</scm>
 
 	<properties>
 		<!-- Will be tested during deployment, not gonna write bean testers for it -->

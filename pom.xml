@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>3.0.0</version>
+	<version>3.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -79,7 +79,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</connection>
 		<developerConnection>scm:git:git@github.com:michael-simons/neo4j-migrations.git</developerConnection>
-		<tag>3.0.0</tag>
+		<tag>HEAD</tag>
 		<url>https://github.com/michael-simons/neo4j-migrations</url>
 	</scm>
 
@@ -157,7 +157,7 @@
 		<moditect-maven-plugin.version>1.3.0.Final</moditect-maven-plugin.version>
 		<native.maven.plugin.version>0.11.3</native.maven.plugin.version>
 		<neo4j-java-driver.version>6.0.2</neo4j-java-driver.version>
-		<neo4j-migrations.previous.version>2.19.2</neo4j-migrations.previous.version>
+		<neo4j-migrations.previous.version>3.0.0</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.0</neo4j-ogm.version>
 		<neo4j.image>neo4j:2025.10.1</neo4j.image>
 		<objenesis.version>3.4</objenesis.version>

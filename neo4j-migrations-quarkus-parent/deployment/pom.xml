@@ -22,13 +22,17 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-quarkus-parent</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.0</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-quarkus-deployment</artifactId>
 
 	<name>Neo4j Migrations (Quarkus Deployment)</name>
 	<description>Deployment steps for the Quarkus integration of Neo4j Migrations.</description>
+
+	<scm>
+		<tag>3.0.0</tag>
+	</scm>
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.quarkus.deployment</java-module-name>

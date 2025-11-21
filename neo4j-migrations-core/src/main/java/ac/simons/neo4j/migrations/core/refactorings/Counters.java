@@ -124,6 +124,7 @@ public sealed interface Counters permits DefaultCounters, Counters.Empty {
 	/**
 	 * An empty instance.
 	 */
+	@SuppressWarnings("squid:S6548")
 	enum Empty implements Counters {
 
 		/**

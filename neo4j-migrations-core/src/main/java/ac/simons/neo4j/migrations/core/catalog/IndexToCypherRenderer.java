@@ -38,6 +38,7 @@ import ac.simons.neo4j.migrations.core.Neo4jVersion;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("squid:S6548")
 enum IndexToCypherRenderer implements Renderer<Index> {
 
 	INSTANCE;

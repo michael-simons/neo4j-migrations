@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("squid:S6548")
 enum CatalogToCypherRenderer implements Renderer<Catalog> {
 
 	INSTANCE;

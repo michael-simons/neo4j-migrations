@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
  * @author Michael J. Simons
  * @since 1.2.0
  */
+@SuppressWarnings("squid:S6548")
 public enum Messages {
 
 	/**

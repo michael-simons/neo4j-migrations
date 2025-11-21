@@ -24,6 +24,7 @@ import java.util.Collections;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("squid:S6548")
 enum EmptyCatalog implements Catalog {
 
 	INSTANCE;

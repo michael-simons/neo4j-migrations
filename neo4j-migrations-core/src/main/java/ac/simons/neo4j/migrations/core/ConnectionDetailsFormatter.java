@@ -24,6 +24,7 @@ import java.util.Optional;
  * @author Michael J. Simons
  * @since 1.12.0
  */
+@SuppressWarnings("squid:S6548")
 enum ConnectionDetailsFormatter {
 
 	INSTANCE;

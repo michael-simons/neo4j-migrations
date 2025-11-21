@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
  *
  * @author Gerrit Meier
  */
+@SuppressWarnings("squid:S6548")
 enum IndexToXMLRenderer implements Renderer<Index> {
 
 	INSTANCE;

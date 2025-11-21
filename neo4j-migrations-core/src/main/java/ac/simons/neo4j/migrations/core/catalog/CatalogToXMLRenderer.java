@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("squid:S6548")
 enum CatalogToXMLRenderer implements Renderer<Catalog> {
 
 	INSTANCE;

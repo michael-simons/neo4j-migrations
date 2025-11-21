@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
  * @author Michael J. Simons
  * @since 1.7.0
  */
+@SuppressWarnings("squid:S6548")
 enum ConstraintToXMLRenderer implements Renderer<Constraint> {
 
 	INSTANCE;

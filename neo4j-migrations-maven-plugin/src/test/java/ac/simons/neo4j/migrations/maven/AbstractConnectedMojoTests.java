@@ -27,11 +27,13 @@ import ac.simons.neo4j.migrations.core.Migration;
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
-import org.apache.maven.plugin.testing.MojoRule;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.maven.api.plugin.testing.InjectMojo;
+import org.apache.maven.api.plugin.testing.MojoExtension;
+import org.apache.maven.api.plugin.testing.MojoTest;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -41,20 +43,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Michael J. Simons
  */
+@MojoTest
 public class AbstractConnectedMojoTests {
 
 	private static String origUserName;
 
-	@Rule
-	public MojoRule rule = new MojoRule();
-
-	@BeforeClass
+	@BeforeAll
 	public static void setFixedSysUser() {
 		origUserName = System.getProperty("user.name");
 		System.setProperty("user.name", "testor");
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void restoreSysUSer() {
 		if (origUserName != null && !origUserName.trim().isEmpty()) {
 			System.setProperty("user.name", origUserName);
@@ -62,38 +62,37 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test
-	public void defaultValuesShouldBeCorrect() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/project-to-test/pom.xml")
+	public void defaultValuesShouldBeCorrect(InfoMojo infoMojo) throws Exception {
 
-		File pom = new File("target/test-classes/project-to-test/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
-
-		URI address = (URI) this.rule.getVariableValueFromObject(infoMojo, "address");
+		URI address = (URI) MojoExtension.getVariableValueFromObject(infoMojo, "address");
 		assertThat(address).isEqualTo(URI.create("bolt://localhost:7687"));
 
-		String user = (String) this.rule.getVariableValueFromObject(infoMojo, "user");
+		String user = (String) MojoExtension.getVariableValueFromObject(infoMojo, "user");
 		assertThat(user).isEqualTo("neo4j");
 
-		String password = (String) this.rule.getVariableValueFromObject(infoMojo, "password");
+		String password = (String) MojoExtension.getVariableValueFromObject(infoMojo, "password");
 		assertThat(password).isNull();
 
-		String[] packagesToScan = (String[]) this.rule.getVariableValueFromObject(infoMojo, "packagesToScan");
+		String[] packagesToScan = (String[]) MojoExtension.getVariableValueFromObject(infoMojo, "packagesToScan");
 		assertThat(packagesToScan).isEqualTo(new String[0]);
 
-		String[] locationsToScan = (String[]) this.rule.getVariableValueFromObject(infoMojo, "locationsToScan");
+		String[] locationsToScan = (String[]) MojoExtension.getVariableValueFromObject(infoMojo, "locationsToScan");
 		Pattern expectedLocationsToScan = Pattern.compile("file:///?.*[\\\\/]target[\\\\/]classes/neo4j/migrations/?");
+		for (var s : locationsToScan) {
+			System.out.println(s);
+		}
+		System.out.println("sssss");
 		assertThat(expectedLocationsToScan.matcher(locationsToScan[0]).matches()).isTrue();
 
-		TransactionMode transactionMode = (TransactionMode) this.rule.getVariableValueFromObject(infoMojo,
+		TransactionMode transactionMode = (TransactionMode) MojoExtension.getVariableValueFromObject(infoMojo,
 				"transactionMode");
 		assertThat(transactionMode).isEqualTo(TransactionMode.PER_MIGRATION);
 
-		String database = (String) this.rule.getVariableValueFromObject(infoMojo, "database");
+		String database = (String) MojoExtension.getVariableValueFromObject(infoMojo, "database");
 		assertThat(database).isNull();
 
-		boolean verbose = (boolean) this.rule.getVariableValueFromObject(infoMojo, "verbose");
+		boolean verbose = (boolean) MojoExtension.getVariableValueFromObject(infoMojo, "verbose");
 		assertThat(verbose).isFalse();
 
 		MigrationsConfig config = infoMojo.getConfig();
@@ -114,25 +113,17 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test
-	public void shouldConfigureImpersonatedUser() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void shouldConfigureImpersonatedUser(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getOptionalImpersonatedUser()).isEqualTo(Optional.of("someoneElse"));
 		assertThat(infoMojo.getConfig().getLocationsToScan()[0]).isEqualTo("classpath:/wontwork");
 	}
 
 	@Test
-	public void shouldConfigureSchemaDatabase() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void shouldConfigureSchemaDatabase(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getOptionalSchemaDatabase()).isEqualTo(Optional.of("anotherDatabase"));
 	}
 
@@ -144,90 +135,58 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test // GH-1213
-	public void outOfOrderShouldNotBeAllowedByDefault() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void outOfOrderShouldNotBeAllowedByDefault(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isFalse();
 	}
 
 	@Test // GH-1213
-	public void outOfOrderShouldBeConfigurable() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/out-of-order/pom.xml")
+	public void outOfOrderShouldBeConfigurable(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/out-of-order/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isTrue();
 	}
 
 	@Test
-	public void useFlywayCompatibleChecksumsShouldBeDisabled() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void useFlywayCompatibleChecksumsShouldBeDisabled(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isFalse();
 	}
 
 	@Test
-	public void useFlywayCompatibleChecksumsShouldBeEnabled() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/out-of-order/pom.xml")
+	public void useFlywayCompatibleChecksumsShouldBeEnabled(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/out-of-order/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isTrue();
 	}
 
 	@Test // GH-1536
-	public void targetShouldBeNullByDefault() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void targetShouldBeNullByDefault(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getTarget()).isNull();
 	}
 
 	@Test // GH-1536
-	public void targetShouldBeApplied() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/target/pom.xml")
+	public void targetShouldBeApplied(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/target/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getTarget()).isEqualTo("next");
 	}
 
 	@Test
-	public void cypherVersionShouldHaveDefault() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	public void cypherVersionShouldHaveDefault(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/with-imp-and-schema/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
 	}
 
 	@Test
-	public void cypherVersionShouldBeApplied() throws Exception {
+	@InjectMojo(goal ="info", pom = "target/test-classes/cypher-version/pom.xml")
+	public void cypherVersionShouldBeApplied(InfoMojo infoMojo) {
 
-		File pom = new File("target/test-classes/cypher-version/");
-		assertThat(pom).isNotNull().exists();
-
-		InfoMojo infoMojo = (InfoMojo) this.rule.lookupConfiguredMojo(pom, "info");
-		assertThat(infoMojo).isNotNull();
 		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);
 	}
 

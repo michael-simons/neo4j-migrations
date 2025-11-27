@@ -17,7 +17,7 @@ package ac.simons.neo4j.migrations.maven;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.RepairmentResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemErr;
 import static org.assertj.core.api.Assertions.assertThat;

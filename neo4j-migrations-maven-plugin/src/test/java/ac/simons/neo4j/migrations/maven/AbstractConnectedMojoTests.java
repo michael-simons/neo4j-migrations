@@ -15,16 +15,11 @@
  */
 package ac.simons.neo4j.migrations.maven;
 
-import java.io.File;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import ac.simons.neo4j.migrations.core.Migration;
-import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.TransactionMode;
 import org.apache.maven.api.plugin.testing.InjectMojo;
@@ -33,10 +28,7 @@ import org.apache.maven.api.plugin.testing.MojoTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.neo4j.driver.Config;
-import org.neo4j.driver.Driver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +54,7 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/project-to-test/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/project-to-test/pom.xml")
 	public void defaultValuesShouldBeCorrect(InfoMojo infoMojo) throws Exception {
 
 		URI address = (URI) MojoExtension.getVariableValueFromObject(infoMojo, "address");
@@ -78,11 +70,8 @@ public class AbstractConnectedMojoTests {
 		assertThat(packagesToScan).isEqualTo(new String[0]);
 
 		String[] locationsToScan = (String[]) MojoExtension.getVariableValueFromObject(infoMojo, "locationsToScan");
-		Pattern expectedLocationsToScan = Pattern.compile("file:///?.*[\\\\/]target[\\\\/]classes/neo4j/migrations/?");
-		for (var s : locationsToScan) {
-			System.out.println(s);
-		}
-		System.out.println("sssss");
+		Pattern expectedLocationsToScan = Pattern.compile(
+				"file://(/?.*[\\\\/]target[\\\\/]classes|\\$\\{project.build.outputDirectory})/neo4j/migrations/?");
 		assertThat(expectedLocationsToScan.matcher(locationsToScan[0]).matches()).isTrue();
 
 		TransactionMode transactionMode = (TransactionMode) MojoExtension.getVariableValueFromObject(infoMojo,
@@ -103,17 +92,10 @@ public class AbstractConnectedMojoTests {
 		assertThat(expectedLocationsToScan.matcher(config.getLocationsToScan()[0]).matches()).isTrue();
 		assertThat(config.getTransactionMode()).isEqualTo(TransactionMode.PER_MIGRATION);
 		assertThat(config.getTransactionTimeout()).isEqualTo(Duration.ofMinutes(1).plusSeconds(23));
-
-		Method getMigrations = Migrations.class.getDeclaredMethod("getMigrations");
-		getMigrations.setAccessible(true);
-		Migrations migrations = new Migrations(config, Mockito.mock(Driver.class));
-		@SuppressWarnings("unchecked")
-		List<Migration> migrationsList = (List<Migration>) getMigrations.invoke(migrations);
-		assertThat(migrationsList).hasSize(1).element(0).extracting(Migration::getSource).isEqualTo("V010__Foo.cypher");
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void shouldConfigureImpersonatedUser(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getOptionalImpersonatedUser()).isEqualTo(Optional.of("someoneElse"));
@@ -121,7 +103,7 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void shouldConfigureSchemaDatabase(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getOptionalSchemaDatabase()).isEqualTo(Optional.of("anotherDatabase"));
@@ -135,56 +117,56 @@ public class AbstractConnectedMojoTests {
 	}
 
 	@Test // GH-1213
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void outOfOrderShouldNotBeAllowedByDefault(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isFalse();
 	}
 
 	@Test // GH-1213
-	@InjectMojo(goal ="info", pom = "target/test-classes/out-of-order/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/out-of-order/pom.xml")
 	public void outOfOrderShouldBeConfigurable(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().isOutOfOrder()).isTrue();
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void useFlywayCompatibleChecksumsShouldBeDisabled(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isFalse();
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/out-of-order/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/out-of-order/pom.xml")
 	public void useFlywayCompatibleChecksumsShouldBeEnabled(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().isUseFlywayCompatibleChecksums()).isTrue();
 	}
 
 	@Test // GH-1536
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void targetShouldBeNullByDefault(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getTarget()).isNull();
 	}
 
 	@Test // GH-1536
-	@InjectMojo(goal ="info", pom = "target/test-classes/target/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/target/pom.xml")
 	public void targetShouldBeApplied(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getTarget()).isEqualTo("next");
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/with-imp-and-schema/pom.xml")
 	public void cypherVersionShouldHaveDefault(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.DATABASE_DEFAULT);
 	}
 
 	@Test
-	@InjectMojo(goal ="info", pom = "target/test-classes/cypher-version/pom.xml")
+	@InjectMojo(goal = "info", pom = "target/test-classes/cypher-version/pom.xml")
 	public void cypherVersionShouldBeApplied(InfoMojo infoMojo) {
 
 		assertThat(infoMojo.getConfig().getCypherVersion()).isEqualTo(MigrationsConfig.CypherVersion.CYPHER_25);

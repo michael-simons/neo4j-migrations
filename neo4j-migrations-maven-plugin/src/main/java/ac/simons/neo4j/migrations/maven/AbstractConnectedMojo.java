@@ -168,6 +168,7 @@ abstract class AbstractConnectedMojo extends AbstractMojo {
 	 *
 	 * @since 2.15.0
 	 */
+	@Parameter
 	private String target;
 
 	@Override

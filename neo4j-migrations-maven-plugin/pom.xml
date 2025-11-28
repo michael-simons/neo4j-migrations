@@ -44,7 +44,7 @@
 		<java-module-name>ac.simons.neo4j.migrations.maven</java-module-name>
 		<junit.version>4.13.2</junit.version>
 		<maven-plugin-annotations.version>3.15.2</maven-plugin-annotations.version>
-		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
+		<maven-plugin-testing-harness.version>3.4.0</maven-plugin-testing-harness.version>
 		<plexus-classworlds.version>2.9.0</plexus-classworlds.version>
 		<plexus-component-annotations.version>2.2.0</plexus-component-annotations.version>
 		<plexus-utils.version>4.0.2</plexus-utils.version>
@@ -136,11 +136,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-compat</artifactId>
 			<version>${maven.version}</version>
@@ -160,6 +155,11 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-xml</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

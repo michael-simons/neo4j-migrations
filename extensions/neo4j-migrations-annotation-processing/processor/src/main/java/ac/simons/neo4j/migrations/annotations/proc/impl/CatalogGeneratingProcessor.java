@@ -95,7 +95,7 @@ import ac.simons.neo4j.migrations.core.catalog.Renderer;
 @SupportedAnnotationTypes({ FullyQualifiedNames.SDN6_NODE, FullyQualifiedNames.OGM_NODE,
 		FullyQualifiedNames.OGM_RELATIONSHIP_ENTITY, FullyQualifiedNames.CATALOG_REQUIRED,
 		FullyQualifiedNames.CATALOG_UNIQUE, FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES,
-		FullyQualifiedNames.CATALOG_INDEX })
+		FullyQualifiedNames.CATALOG_INDEX, FullyQualifiedNames.CATALOG_INDEXES })
 @SupportedOptions({ CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CATALOG,
 		CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_CONSTRAINTS,
 		CatalogGeneratingProcessor.OPTION_NAME_GENERATOR_INDEXES,
@@ -328,10 +328,12 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 						existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
-		for (Element element : roundEnv.getElementsAnnotatedWith(this.catalog.index())) {
+		for (Element element : roundEnv.getElementsAnnotatedWithAny(this.catalog.index(),
+				this.catalog.indexWrapper())) {
 			Element enclosingElement = enclosingOrSelf.apply(element);
 			items.computeIfAbsent(enclosingElement, ignored -> new LinkedHashSet<>())
-				.addAll(processCatalogAnnotation(enclosingElement, element, this.catalog.index(), null,
+				.addAll(processCatalogAnnotation(enclosingElement, element, this.catalog.index(),
+						this.catalog.indexWrapper(),
 						existingLabelsAndTypes.computeIfAbsent(enclosingElement, ignore -> new HashSet<>())));
 		}
 
@@ -345,6 +347,7 @@ public final class CatalogGeneratingProcessor extends AbstractProcessor {
 
 	private boolean isCatalogAnnotated(Element annotationType) {
 		return annotationType.equals(this.catalog.unique()) || annotationType.equals(this.catalog.uniqueWrapper())
+				|| annotationType.equals(this.catalog.index()) || annotationType.equals(this.catalog.indexWrapper())
 				|| annotationType.equals(this.catalog.required());
 	}
 

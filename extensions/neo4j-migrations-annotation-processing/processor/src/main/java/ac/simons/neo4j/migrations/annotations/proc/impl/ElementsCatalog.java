@@ -27,10 +27,12 @@ import javax.lang.model.util.Elements;
  * @param unique flag if the type element must be unique
  * @param uniqueWrapper any wrapper on the unique item
  * @param index the index of the entry
+ * @param indexWrapper any wrapper on the index items
  * @author Michael J. Simons
  * @since 1.15.0
  */
-record ElementsCatalog(TypeElement required, TypeElement unique, TypeElement uniqueWrapper, TypeElement index) {
+record ElementsCatalog(TypeElement required, TypeElement unique, TypeElement uniqueWrapper, TypeElement index,
+		TypeElement indexWrapper) {
 
 	static Optional<ElementsCatalog> of(Elements elements) {
 		TypeElement catalogRequired = elements.getTypeElement(FullyQualifiedNames.CATALOG_REQUIRED);
@@ -40,7 +42,9 @@ record ElementsCatalog(TypeElement required, TypeElement unique, TypeElement uni
 		TypeElement catalogUnique = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE);
 		TypeElement catalogUniqueWrapper = elements.getTypeElement(FullyQualifiedNames.CATALOG_UNIQUE_PROPERTIES);
 		TypeElement catalogIndex = elements.getTypeElement(FullyQualifiedNames.CATALOG_INDEX);
+		TypeElement catalogIndexWrapper = elements.getTypeElement(FullyQualifiedNames.CATALOG_INDEXES);
 
-		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper, catalogIndex));
+		return Optional.of(new ElementsCatalog(catalogRequired, catalogUnique, catalogUniqueWrapper, catalogIndex,
+				catalogIndexWrapper));
 	}
 }

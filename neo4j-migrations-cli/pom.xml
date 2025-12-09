@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-parent</artifactId>
-		<version>3.0.1-SNAPSHOT</version>
+		<version>3.1.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-cli</artifactId>

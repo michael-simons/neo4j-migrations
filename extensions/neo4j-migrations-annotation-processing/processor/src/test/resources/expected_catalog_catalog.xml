@@ -23,6 +23,20 @@
 				</properties>
 				<options>indexConfig: +{ `fulltext.analyzer`:"whitespace" }</options>
 			</index>
+			<index name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultipleindexes_uuid_property" type="property">
+				<label>CoffeeBeanMultipleIndexes</label>
+				<properties>
+					<property>uuid</property>
+				</properties>
+			</index>
+			<index name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultipleindexes_a_b_c_property" type="property">
+				<label>CoffeeBeanMultipleIndexes</label>
+				<properties>
+					<property>a</property>
+					<property>b</property>
+					<property>c</property>
+				</properties>
+			</index>
 		</indexes>
 		<constraints>
 			<constraint name="ac_simons_neo4j_migrations_annotations_proc_catalog_valid_coffeebeanmultiple1_unique_unique" type="unique">

@@ -21,6 +21,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * A wrapper for multiple {@link Index @Index} annotations.
+ *
+ * @author Michael J. Simons
+ * @since 3.1.0
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target({ ElementType.TYPE })
 @Documented

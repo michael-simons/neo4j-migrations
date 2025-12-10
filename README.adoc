@@ -6,7 +6,7 @@ Michael Simons <michael.simons@neo4j.com>
 :source-highlighter: coderay
 :icons: font
 // tag::properties[]
-:fullVersion: 3.0.0
+:fullVersion: 3.1.0
 :groupId: eu.michael-simons.neo4j
 :artifactIdMavenPlugin: neo4j-migrations-maven-plugin
 :artifactIdSpringBoot: neo4j-migrations-spring-boot-starter

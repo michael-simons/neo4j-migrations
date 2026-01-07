@@ -50,6 +50,13 @@ public sealed interface ListToVector extends CustomizableRefactoring<ListToVecto
 	 */
 	String DEFAULT_PROPERTY_NAME = "embedding";
 
+	/**
+	 * Creates a refactoring replacing all lists with vectors on nodes with the given
+	 * label.
+	 * @param primaryLabel one required label
+	 * @param additionalLabels more optional labels
+	 * @return the refactoring ready to use
+	 */
 	static ListToVector onNodes(String primaryLabel, String... additionalLabels) {
 		List<String> labels = new ArrayList<>();
 		labels.add(Objects.requireNonNull(primaryLabel, "Primary label is required"));
@@ -59,15 +66,33 @@ public sealed interface ListToVector extends CustomizableRefactoring<ListToVecto
 		return new DefaultListToVector(Target.NODE, labels, null, null, null, null);
 	}
 
+	/**
+	 * Creates a refactoring replacing all lists with vectors on relationships with the
+	 * given type.
+	 * @param type required type
+	 * @return the refactoring ready to use
+	 */
 	static ListToVector onRelationships(String type) {
 		return new DefaultListToVector(Target.RELATIONSHIP, List.of(Objects.requireNonNull(type, "Type is required")),
 				null, null, null, null);
 	}
 
+	/**
+	 * Creates a refactoring replacing all lists with vectors on nodes matching the given
+	 * query.
+	 * @param query the query used to match nodes
+	 * @return the refactoring ready to use
+	 */
 	static ListToVector onNodesMatching(String query) {
 		return new DefaultListToVector(Target.NODE, null, null, query, null, null);
 	}
 
+	/**
+	 * Creates a refactoring replacing all lists with vectors on relationships matching
+	 * the given query.
+	 * @param query the query used to match relationships
+	 * @return the refactoring ready to use
+	 */
 	static ListToVector onRelationshipsMatching(String query) {
 		return new DefaultListToVector(Target.RELATIONSHIP, null, null, query, null, null);
 	}

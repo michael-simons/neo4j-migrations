@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -102,7 +103,12 @@ class ConstraintsIT {
 	void dropAllConstraints(Driver driver) {
 
 		try (Session session = driver.session()) {
-			List<Record> constraints = session.run("call db.constraints()").list(Function.identity());
+
+			var migrationsConfig = MigrationsConfig.defaultConfig();
+			var ctx = new DefaultMigrationContext(migrationsConfig, driver);
+			var neo4jVersion = Neo4jVersion.of(ctx.getConnectionDetails().getServerVersion());
+
+			List<Record> constraints = session.run(neo4jVersion.getShowConstraints()).list(Function.identity());
 			for (Record constraint : constraints) {
 				if (constraint.containsKey("name")) {
 					try {
@@ -121,9 +127,10 @@ class ConstraintsIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void shouldCreateConstraints(SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		final String s0 = "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE";
-		final String s1 = "CREATE CONSTRAINT ON ( person:Person ) ASSERT person.name IS UNIQUE";
-		final String s2 = "CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE";
+		var constraints = new String[] { "CREATE CONSTRAINT $name ON ( book:Book ) ASSERT book.isbn IS UNIQUE",
+				"CREATE CONSTRAINT ON ( person:Person ) ASSERT person.name IS UNIQUE",
+				"CREATE CONSTRAINT ON ( movie:Movie ) ASSERT movie.title IS UNIQUE", };
+		var args = new String[] { "AAA", "BBB", null };
 
 		Neo4jContainer neo4j = getNeo4j(version.asTag());
 		Config config = Config.builder().build();
@@ -135,22 +142,17 @@ class ConstraintsIT {
 
 			Supplier<String> errorMessage = () -> "oops";
 			ConnectionDetails cd = ctx.getConnectionDetails();
+			boolean is35 = Neo4jVersion.V3_5 == version.value;
+
 			try (Session session = ctx.getSession()) {
-				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s0, "AAA", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s1, "BBB", errorMessage)).isOne();
-				assertThat(HBD.silentCreateConstraintOrIndex(cd, session, s2, null, errorMessage)).isOne();
+				for (int i = 0; i < constraints.length; ++i) {
+					assertThat(HBD.silentCreateConstraintOrIndex(cd, session, constraints[i], args[i], errorMessage))
+						.isOne();
+				}
 			}
 
-			boolean is35 = Neo4jVersion.V3_5 == version.value;
-			String[] descriptions = Stream.of(s0, s1, s2).map(s -> {
-				String result = s.replace("CREATE ", "").replace("$name ", "");
-				return is35 ? result : result.replaceAll("ASSERT (.+\\..+) IS", "ASSERT ($1) IS");
-			}).toArray(String[]::new);
 			try (Session session = ctx.getSession()) {
-				List<Record> result = session.run("call db.constraints()").list(Function.identity());
-
-				assertThat(result.stream().map(r -> r.get("description").asString()))
-					.containsExactlyInAnyOrder(descriptions);
+				List<Record> result = session.run(version.value.getShowConstraints()).list(Function.identity());
 
 				Stream<String> names = result.stream().map(r -> r.get("name").asString(null));
 				if (is35) {
@@ -218,10 +220,11 @@ class ConstraintsIT {
 			ConnectionDetails cd = ctx.getConnectionDetails();
 			try (Session session = ctx.getSession()) {
 
-				int created = session.run("CREATE CONSTRAINT X ON (book:Book) ASSERT book.isbn IS UNIQUE")
-					.consume()
-					.counters()
-					.constraintsAdded();
+				var query = "CREATE CONSTRAINT X ON (book:Book) ASSERT book.isbn IS UNIQUE";
+				if (is5OrHigher(version.value)) {
+					query = query.replace(" ON ", " FOR ").replace(" ASSERT ", " REQUIRE ");
+				}
+				int created = session.run(query).consume().counters().constraintsAdded();
 				assertThat(created).isOne();
 
 				assertThatExceptionOfType(MigrationsException.class)
@@ -230,6 +233,10 @@ class ConstraintsIT {
 					.matches(HBD::constraintWithNameAlreadyExists);
 			}
 		}
+	}
+
+	static boolean is5OrHigher(Neo4jVersion version) {
+		return EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST).contains(version);
 	}
 
 	SummaryCounters executeAndConsume(Session session, String statement) {

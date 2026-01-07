@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -56,7 +57,9 @@ final class HBD {
 
 		String finalStatement;
 		String replacement = "";
-		if (is4xSeries(connectionDetails) && name != null && !name.trim().isEmpty()) {
+		if ((is4xSeries(connectionDetails) || EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST)
+			.contains(Neo4jVersion.of(connectionDetails.getServerVersion()))) && name != null
+				&& !name.trim().isEmpty()) {
 			replacement = name.trim() + " ";
 		}
 		finalStatement = statement.replace("$name ", replacement);
@@ -65,7 +68,14 @@ final class HBD {
 			return session.executeWrite(tx -> tx.run(finalStatement).consume().counters().constraintsAdded());
 		}
 		catch (Neo4jException ex) {
-
+			if (Neo4jCodes.SYNTAX_ERROR.equals(ex.code())
+					&& ex.getMessage().startsWith("Invalid constraint syntax, ON and ASSERT should not be used")) {
+				// This should by all means not happen, since this method is used outside
+				// testing only with proper rendered constraints
+				return silentCreateConstraintOrIndex(connectionDetails, session,
+						statement.replaceAll("(?i) ON ", " FOR ").replaceAll("(?i) ASSERT ", " REQUIRE "), name,
+						failureMessage);
+			}
 			if (!Neo4jCodes.CODES_FOR_EXISTING_CONSTRAINT.contains(ex.code())) {
 				throw new MigrationsException(failureMessage.get(), ex);
 			}
@@ -78,7 +88,9 @@ final class HBD {
 			String name) {
 
 		String finalStatement;
-		if (is4xSeries(connectionDetails) && name != null && !name.trim().isEmpty()) {
+		if ((is4xSeries(connectionDetails) || EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST)
+			.contains(Neo4jVersion.of(connectionDetails.getServerVersion()))) && name != null
+				&& !name.trim().isEmpty()) {
 			finalStatement = "DROP CONSTRAINT " + name.trim();
 		}
 		else {

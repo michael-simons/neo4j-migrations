@@ -141,7 +141,7 @@ public enum Neo4jVersion {
 		else if (value.startsWith("4.4")) {
 			return V4_4;
 		}
-		else if (value.startsWith("5.")) {
+		else if (value.startsWith("5")) {
 			return V5;
 		}
 		else {
@@ -164,8 +164,8 @@ public enum Neo4jVersion {
 	/**
 	 * {@return true if this version has idempotent operations}
 	 */
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer
-														// readability
+	// That might be, but I prefer readability
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean hasIdempotentOperations() {
 		return WITH_IDEM_POTENCY.contains(this);
 	}
@@ -173,8 +173,8 @@ public enum Neo4jVersion {
 	/**
 	 * {@return true if this version has text indexes}
 	 */
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted") // That might be, but I prefer
-														// readability
+	// That might be, but I prefer readability
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean hasTextIndexes() {
 		return WITH_TEXT_INDEXES.contains(this);
 	}

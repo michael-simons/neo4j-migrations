@@ -54,6 +54,8 @@ final class Neo4jCodes {
 	static final Set<String> CODES_FOR_EXISTING_CONSTRAINT = Set.of(EQUIVALENT_SCHEMA_RULE_ALREADY_EXISTS,
 			CONSTRAINT_ALREADY_EXISTS);
 
+	static final String SYNTAX_ERROR = "Neo.ClientError.Statement.SyntaxError";
+
 	/**
 	 * Used when the creation of a constraint fails.
 	 */

@@ -162,6 +162,13 @@ public enum Neo4jVersion {
 	}
 
 	/**
+	 * {@return true if this is a version greater or equal to 5}
+	 */
+	public boolean is5OrHigher() {
+		return EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST).contains(this);
+	}
+
+	/**
 	 * {@return true if this version has idempotent operations}
 	 */
 	// That might be, but I prefer readability

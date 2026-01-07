@@ -82,16 +82,16 @@ class CatalogBasedMigrationIT {
 				false);
 
 		// Unclosed on purpose, otherwise reuse is without use.
-		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, true);
+		Neo4jContainer neo4j = getNeo4j(version.getNeo4jVersion(), version.enterprise, true);
 		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config); Session session = driver.session()) {
 			Catalog catalog;
-			if (version.value == Neo4jVersion.V4_2) {
-				catalog = session.executeWrite(tx -> DatabaseCatalog.of(version.value, tx, true));
+			if (version.getNeo4jVersion() == Neo4jVersion.V4_2) {
+				catalog = session.executeWrite(tx -> DatabaseCatalog.of(version.getNeo4jVersion(), tx, true));
 			}
 			else {
-				catalog = session.executeRead(tx -> DatabaseCatalog.of(version.value, tx, true));
+				catalog = session.executeRead(tx -> DatabaseCatalog.of(version.getNeo4jVersion(), tx, true));
 			}
 			assertThat(catalog.getItems()).isNotEmpty();
 			assertThat(catalog.getItems()).allMatch(expectedCatalog::containsEquivalentItem);
@@ -107,7 +107,7 @@ class CatalogBasedMigrationIT {
 	@ArgumentsSource(SkipArm64IncompatibleConfiguration.VersionProvider.class)
 	void verificationShouldFailHard(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, true);
+		Neo4jContainer neo4j = getNeo4j(version.getNeo4jVersion(), version.enterprise, true);
 		Config config = Config.builder().build();
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 				AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config)) {
@@ -131,7 +131,7 @@ class CatalogBasedMigrationIT {
 	@MethodSource
 	void shouldApplyResources(SkipArm64IncompatibleConfiguration.VersionUnderTest version) throws IOException {
 
-		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, false);
+		Neo4jContainer neo4j = getNeo4j(version.getNeo4jVersion(), version.enterprise, false);
 		Config config = Config.builder().build();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
@@ -162,7 +162,7 @@ class CatalogBasedMigrationIT {
 	void catalogBasedMigrationShouldWork(SkipArm64IncompatibleConfiguration.VersionUnderTest version)
 			throws IOException {
 
-		Neo4jContainer neo4j = getNeo4j(version.value, version.enterprise, false);
+		Neo4jContainer neo4j = getNeo4j(version.getNeo4jVersion(), version.enterprise, false);
 		Config config = Config.builder().build();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
@@ -176,7 +176,7 @@ class CatalogBasedMigrationIT {
 			migrations = new Migrations(
 					MigrationsConfig.builder().withLocationsToScan("classpath:catalogbased/actual-migrations").build(),
 					driver);
-			if (version.value == Neo4jVersion.V3_5) {
+			if (version.getNeo4jVersion() == Neo4jVersion.V3_5) {
 				// We don't have constraint names, so the last verification will fail as
 				// it doesn't allow equivalency
 				assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply)
@@ -189,11 +189,11 @@ class CatalogBasedMigrationIT {
 				try (Session session = driver.session()) { // The last migration should
 															// clean everything not from
 															// Neo4j-Migrations itself
-					assertThat(session.run(version.value.getShowConstraints()).list())
+					assertThat(session.run(version.getNeo4jVersion().getShowConstraints()).list())
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
 
-					assertThat(session.run(version.value.getShowIndexes()).list())
+					assertThat(session.run(version.getNeo4jVersion().getShowIndexes()).list())
 						.filteredOn(r -> !"LOOKUP".equals(r.get("type", "UNKNOWN")))
 						.map(r -> r.get("name").asString())
 						.allMatch(s -> s.contains("__Neo4jMigration"));
@@ -204,7 +204,7 @@ class CatalogBasedMigrationIT {
 					.isEqualTo("Doctor Sleep");
 				MigrationChain migrationChain = migrations.info();
 				if (migrationChain.isApplied("45")) {
-					List<Node> books = session.run("MATCH (b:Book) RETURN b ORDER BY b.name ASC")
+					List<Node> books = session.run("MATCH (b:Book) RETURN b ORDER BY b.title ASC")
 						.list(r -> r.get("b").asNode());
 					assertThat(books).hasSize(2).satisfies(n -> {
 						assertThat(n.get("title").asString()).isEqualTo("Doctor Sleep");

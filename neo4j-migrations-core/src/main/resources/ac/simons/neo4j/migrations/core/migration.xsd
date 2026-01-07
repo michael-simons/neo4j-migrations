@@ -190,6 +190,7 @@
 					<xs:simpleType>
 						<xs:restriction base="xs:string">
 							<xs:enumeration value="unique"/>
+							<xs:enumeration value="unique_relationship_property"/>
 							<xs:enumeration value="exists"/>
 							<xs:enumeration value="key"/>
 							<xs:enumeration value="property_type" />

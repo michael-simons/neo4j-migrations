@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
@@ -232,6 +233,24 @@ class ConstraintTests {
 	}
 
 	@ParameterizedTest
+	@ValueSource(strings = { "RELATIONSHIP_UNIQUENESS", "RELATIONSHIP_PROPERTY_UNIQUENESS" })
+	void shouldParseRelUniquePropertyConstraint(String type) {
+
+		var constraint = Constraint.parse(new MapAccessorAndRecordImpl(Map.of("entityType",
+				Values.value("RELATIONSHIP"), "name", Values.value("whatever"), "labelsOrTypes",
+				Values.value(List.of("WHATEVER")), "type", Values.value(type), "properties", Values.value(List.of("p")),
+				"propertyType", Values.NULL, "createStatement",
+				Values.value("CREATE CONSTRAINT `whatever` FOR ()-[r:`WHATEVER`]-() REQUIRE (r.`p`) IS UNIQUE"))));
+
+		assertThat(constraint.getName()).extracting(Name::getValue).isEqualTo("whatever");
+		assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE_RELATIONSHIP_PROPERTY);
+		assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
+		assertThat(constraint.getIdentifier()).isEqualTo("WHATEVER");
+		assertThat(constraint.getProperties()).containsExactly("p");
+		assertThat(constraint.getPropertyType()).isNull();
+	}
+
+	@ParameterizedTest
 	@MethodSource
 	void shouldParseNodeKeyConstraint(String name, String description) {
 
@@ -317,11 +336,13 @@ class ConstraintTests {
 	class Builder {
 
 		@ParameterizedTest
-		@EnumSource(Constraint.Type.class)
+		@EnumSource(value = Constraint.Type.class, mode = EnumSource.Mode.EXCLUDE,
+				names = "UNIQUE_RELATIONSHIP_PROPERTY")
 		void nodeConstraintBuilderShouldWork(Constraint.Type type) {
 
 			Constraint constraint = switch (type) {
 				case UNIQUE -> Constraint.forNode("Book").named("foo").unique("bar");
+				case UNIQUE_RELATIONSHIP_PROPERTY -> throw new UnsupportedOperationException();
 				case EXISTS -> Constraint.forNode("Book").named("foo").exists("bar");
 				case KEY -> Constraint.forNode("Book").named("foo").key("bar");
 				case PROPERTY_TYPE -> Constraint.forNode("Book").named("foo").type("bar", PropertyType.INTEGER);
@@ -335,6 +356,21 @@ class ConstraintTests {
 			if (type == Constraint.Type.PROPERTY_TYPE) {
 				assertThat(constraint.getPropertyType()).isEqualTo(PropertyType.INTEGER);
 			}
+			else {
+				assertThat(constraint.getPropertyType()).isNull();
+			}
+		}
+
+		@Test
+		void relConstraintBuilderShouldWork() {
+
+			var constraint = Constraint.forRelationship("Book").named("foo").unique("bar");
+			assertThat(constraint.getIdentifier()).isEqualTo("Book");
+			assertThat(constraint.getTargetEntityType()).isEqualTo(TargetEntityType.RELATIONSHIP);
+			assertThat(constraint.getProperties()).containsExactly("bar");
+			assertThat(constraint.getType()).isEqualTo(Constraint.Type.UNIQUE_RELATIONSHIP_PROPERTY);
+			assertThat(constraint.getName()).isEqualTo(Name.of("foo"));
+			assertThat(constraint.getPropertyType()).isNull();
 		}
 
 	}

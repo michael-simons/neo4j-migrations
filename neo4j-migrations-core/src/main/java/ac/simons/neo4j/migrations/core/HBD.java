@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.EnumSet;
 import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -57,9 +56,8 @@ final class HBD {
 
 		String finalStatement;
 		String replacement = "";
-		if ((is4xSeries(connectionDetails) || EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST)
-			.contains(Neo4jVersion.of(connectionDetails.getServerVersion()))) && name != null
-				&& !name.trim().isEmpty()) {
+		if ((is4xSeries(connectionDetails) || Neo4jVersion.of(connectionDetails.getServerVersion()).is5OrHigher())
+				&& name != null && !name.trim().isEmpty()) {
 			replacement = name.trim() + " ";
 		}
 		finalStatement = statement.replace("$name ", replacement);
@@ -88,9 +86,8 @@ final class HBD {
 			String name) {
 
 		String finalStatement;
-		if ((is4xSeries(connectionDetails) || EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST)
-			.contains(Neo4jVersion.of(connectionDetails.getServerVersion()))) && name != null
-				&& !name.trim().isEmpty()) {
+		if ((is4xSeries(connectionDetails) || Neo4jVersion.of(connectionDetails.getServerVersion()).is5OrHigher())
+				&& name != null && !name.trim().isEmpty()) {
 			finalStatement = "DROP CONSTRAINT " + name.trim();
 		}
 		else {

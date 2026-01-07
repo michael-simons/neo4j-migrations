@@ -46,7 +46,7 @@ class EnterpriseRequiredDetectionIT {
 	void shouldFailAsGracefullyAsItGetsWhenEditionMismatch(
 			SkipArm64IncompatibleConfiguration.VersionUnderTest version) {
 
-		Neo4jContainer neo4j = new Neo4jContainer(String.format("neo4j:%s", version.value.toString()))
+		Neo4jContainer neo4j = new Neo4jContainer(String.format("neo4j:%s", version.getNeo4jVersion().toString()))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 			.withReuse(true);
 		neo4j.start();
@@ -57,7 +57,7 @@ class EnterpriseRequiredDetectionIT {
 		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
 		// Force the renderer to enterprise
 		RenderConfig cfg = RenderConfig.create()
-			.forVersionAndEdition(version.value, Neo4jEdition.ENTERPRISE)
+			.forVersionAndEdition(version.getNeo4jVersion(), Neo4jEdition.ENTERPRISE)
 			.ignoreName();
 
 		try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),

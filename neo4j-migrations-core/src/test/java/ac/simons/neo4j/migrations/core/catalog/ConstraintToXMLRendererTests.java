@@ -66,6 +66,17 @@ class ConstraintToXMLRendererTests {
 								        <property>isbn</property>
 								    </properties>
 								</constraint>"""),
+				Arguments.of(Named.of("rel property is unique",
+						new Constraint("name", Constraint.Type.UNIQUE_RELATIONSHIP_PROPERTY,
+								TargetEntityType.RELATIONSHIP, "ACTED_IN", List.of("role"), "", null)),
+						"""
+								<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+								<constraint name="name" type="unique_relationship_property">
+								    <type>ACTED_IN</type>
+								    <properties>
+								        <property>role</property>
+								    </properties>
+								</constraint>"""),
 				Arguments.of(Named.of("node key",
 						new Constraint("name", Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 								List.of("firstname", "surname"), "", null)),

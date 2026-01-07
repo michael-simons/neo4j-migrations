@@ -32,6 +32,18 @@
 					<property>isbn</property>
 				</properties>
 			</constraint>
+			<constraint name="unique_role" type="unique_relationship_property">
+				<type>ACTED_IN</type>
+				<properties>
+					<property>role</property>
+				</properties>
+			</constraint>
+			<constraint name="prop_type" type="property_type">
+				<type>ACTED_IN</type>
+				<properties>
+					<property type="LOCAL DATETIME">xyz</property>
+				</properties>
+			</constraint>
 			<constraint name="exists_isbn" type="exists">
 				<label>Book</label>
 				<properties>

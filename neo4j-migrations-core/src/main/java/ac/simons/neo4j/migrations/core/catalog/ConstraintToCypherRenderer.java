@@ -98,6 +98,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		else {
 			switch (constraint.getType()) {
 				case UNIQUE -> w.write(renderUniqueConstraint(constraint, config));
+				case UNIQUE_RELATIONSHIP_PROPERTY ->
+					w.write(renderUniqueRelationshipPropertyConstraint(constraint, config));
 				case EXISTS -> w.write(renderPropertyExists(constraint, config));
 				case KEY -> w.write(renderNodeKey(constraint, config));
 				case PROPERTY_TYPE -> w.write(renderPropertyType(constraint, config));
@@ -130,7 +132,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 				throw new IllegalArgumentException("Only unique and node key constraints support multiple properties.");
 			}
 
-			if (config.isVersionPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
+			if (config.getVersion().isPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
 				throw new IllegalArgumentException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
@@ -281,6 +283,41 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 			String verb = (operator == Operator.CREATE) ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
 			// We just assume the newest
 			return String.format("%s %#s %s%s (n:%s) %s %s IS %s", operator, item, config.ifNotExistsOrEmpty(),
+					adjective, identifier, verb, properties, type);
+		}
+	}
+
+	private String renderUniqueRelationshipPropertyConstraint(Constraint constraint, RenderConfig config) {
+
+		if (constraint.getProperties().size() > 1 && config.getVersion().isPriorTo44()) {
+			throw new IllegalArgumentException("Composite unique constraints are not supported prior to Neo4j/4.4.");
+		}
+		else if (!config.getVersion().is5OrHigher()) {
+			throw new IllegalArgumentException(
+					"Unique property constraints on relationships require Neo4j/5.7 or higher.");
+		}
+
+		Neo4jVersion version = config.getVersion();
+
+		Formattable item = formattableItem(constraint, config);
+		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
+		String properties = renderProperties(version, "r", constraint);
+		Constraint.Type type = Constraint.Type.UNIQUE;
+		Operator operator = config.getOperator();
+
+		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
+			return String.format("%s %#s ON ()-[r:%s]-() ASSERT %s IS %s", operator, item, identifier, properties,
+					type);
+		}
+		else if (RANGE_41_TO_43.contains(version)) {
+			return String.format("%s %#s %sON ()-[r:%s]-() ASSERT %s IS %s", operator, item,
+					config.ifNotExistsOrEmpty(), identifier, properties, type);
+		}
+		else {
+			String adjective = (operator == Operator.CREATE) ? "FOR" : "ON";
+			String verb = (operator == Operator.CREATE) ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
+			// We just assume the newest
+			return String.format("%s %#s %s%s ()-[r:%s]-() %s %s IS %s", operator, item, config.ifNotExistsOrEmpty(),
 					adjective, identifier, verb, properties, type);
 		}
 	}

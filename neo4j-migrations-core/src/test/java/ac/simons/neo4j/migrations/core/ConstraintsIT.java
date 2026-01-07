@@ -15,7 +15,6 @@
  */
 package ac.simons.neo4j.migrations.core;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -142,7 +141,7 @@ class ConstraintsIT {
 
 			Supplier<String> errorMessage = () -> "oops";
 			ConnectionDetails cd = ctx.getConnectionDetails();
-			boolean is35 = Neo4jVersion.V3_5 == version.value;
+			boolean is35 = Neo4jVersion.V3_5 == version.getNeo4jVersion();
 
 			try (Session session = ctx.getSession()) {
 				for (int i = 0; i < constraints.length; ++i) {
@@ -152,7 +151,8 @@ class ConstraintsIT {
 			}
 
 			try (Session session = ctx.getSession()) {
-				List<Record> result = session.run(version.value.getShowConstraints()).list(Function.identity());
+				List<Record> result = session.run(version.getNeo4jVersion().getShowConstraints())
+					.list(Function.identity());
 
 				Stream<String> names = result.stream().map(r -> r.get("name").asString(null));
 				if (is35) {
@@ -191,7 +191,7 @@ class ConstraintsIT {
 
 			int dropped;
 			try (Session session = ctx.getSession()) {
-				if (Neo4jVersion.V3_5 == version.value) {
+				if (Neo4jVersion.V3_5 == version.getNeo4jVersion()) {
 					dropped = HBD.silentDropConstraint(cd, session,
 							"DROP CONSTRAINT ON ( n:Book ) ASSERT n.isbn IS UNIQUE", "AAA");
 				}
@@ -221,7 +221,7 @@ class ConstraintsIT {
 			try (Session session = ctx.getSession()) {
 
 				var query = "CREATE CONSTRAINT X ON (book:Book) ASSERT book.isbn IS UNIQUE";
-				if (is5OrHigher(version.value)) {
+				if (version.getNeo4jVersion().is5OrHigher()) {
 					query = query.replace(" ON ", " FOR ").replace(" ASSERT ", " REQUIRE ");
 				}
 				int created = session.run(query).consume().counters().constraintsAdded();
@@ -233,10 +233,6 @@ class ConstraintsIT {
 					.matches(HBD::constraintWithNameAlreadyExists);
 			}
 		}
-	}
-
-	static boolean is5OrHigher(Neo4jVersion version) {
-		return EnumSet.of(Neo4jVersion.V5, Neo4jVersion.LATEST).contains(version);
 	}
 
 	SummaryCounters executeAndConsume(Session session, String statement) {
@@ -260,7 +256,7 @@ class ConstraintsIT {
 			try (Session session = new DefaultMigrationContext(migrationsConfig, driver).getSchemaSession()) {
 
 				session.run("CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})");
-				if (Neo4jVersion.V4_3 == version.value) {
+				if (Neo4jVersion.V4_3 == version.getNeo4jVersion()) {
 					assertThat(executeAndConsume(session,
 							"CREATE (:__Neo4jMigration {version: '1', migrationTarget: 'x'})")
 						.nodesCreated()).isOne();

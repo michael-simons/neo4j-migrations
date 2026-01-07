@@ -69,7 +69,7 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 			versionsToCheck = SUPPORTED_VERSIONS_COMMUNITY;
 		}
 
-		return versionsToCheck.stream().map(Neo4jVersion::of).noneMatch(argument.value::equals);
+		return versionsToCheck.stream().map(Neo4jVersion::of).noneMatch(argument.getNeo4jVersion()::equals);
 	}
 
 	@Override
@@ -147,22 +147,31 @@ final class SkipArm64IncompatibleConfiguration implements InvocationInterceptor 
 	 */
 	public static class VersionUnderTest {
 
-		final Neo4jVersion value;
+		private final String neo4jVersion;
 
 		final boolean enterprise;
 
 		VersionUnderTest(Neo4jVersion value, boolean enterprise) {
-			this.value = value;
+			this.neo4jVersion = value.toString();
+			this.enterprise = enterprise;
+		}
+
+		VersionUnderTest(String neo4jVersion, boolean enterprise) {
+			this.neo4jVersion = neo4jVersion;
 			this.enterprise = enterprise;
 		}
 
 		public String asTag() {
-			return String.format("neo4j:%s%s", this.value.toString(), this.enterprise ? "-enterprise" : "");
+			return String.format("neo4j:%s%s", this.neo4jVersion, this.enterprise ? "-enterprise" : "");
 		}
 
 		@Override
 		public String toString() {
-			return this.value.toString() + (this.enterprise ? " (enterprise)" : "");
+			return this.neo4jVersion + (this.enterprise ? " (enterprise)" : "");
+		}
+
+		public Neo4jVersion getNeo4jVersion() {
+			return Neo4jVersion.of(this.neo4jVersion);
 		}
 
 	}

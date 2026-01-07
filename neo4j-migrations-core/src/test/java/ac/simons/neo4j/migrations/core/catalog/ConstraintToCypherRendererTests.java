@@ -392,6 +392,35 @@ class ConstraintToCypherRendererTests {
 		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
 	}
 
+	static Stream<Arguments> shouldRenderRelationshipUniquePropertyConstraint() {
+		return Stream.of(
+				Arguments.of("5.7", Neo4jEdition.UNDEFINED, Operator.CREATE, true,
+						"CREATE CONSTRAINT whatever IF NOT EXISTS FOR ()-[r:WHATEVER]-() REQUIRE r.p IS UNIQUE"),
+				Arguments.of("2025.11.2", Neo4jEdition.UNDEFINED, Operator.CREATE, true,
+						"CREATE CONSTRAINT whatever IF NOT EXISTS FOR ()-[r:WHATEVER]-() REQUIRE r.p IS UNIQUE"),
+				Arguments.of("5.7", Neo4jEdition.UNDEFINED, Operator.CREATE, false,
+						"CREATE CONSTRAINT whatever FOR ()-[r:WHATEVER]-() REQUIRE r.p IS UNIQUE"),
+				Arguments.of("2025.11.2", Neo4jEdition.UNDEFINED, Operator.CREATE, false,
+						"CREATE CONSTRAINT whatever FOR ()-[r:WHATEVER]-() REQUIRE r.p IS UNIQUE"),
+				Arguments.of("5.7", Neo4jEdition.UNDEFINED, Operator.DROP, true, "DROP CONSTRAINT whatever IF EXISTS"),
+				Arguments.of("2025.11.2", Neo4jEdition.UNDEFINED, Operator.DROP, true,
+						"DROP CONSTRAINT whatever IF EXISTS"),
+				Arguments.of("5.7", Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT whatever"),
+				Arguments.of("2025.11.2", Neo4jEdition.UNDEFINED, Operator.DROP, false, "DROP CONSTRAINT whatever"));
+	}
+
+	@ParameterizedTest
+	@MethodSource
+	void shouldRenderRelationshipUniquePropertyConstraint(String serverVersion, Neo4jEdition edition, Operator operator,
+			boolean idempotent, String expected) {
+
+		var constraint = Constraint.forRelationship("WHATEVER").named("whatever").unique("p");
+		Renderer<Constraint> renderer = Renderer.get(Renderer.Format.CYPHER, Constraint.class);
+
+		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.of(serverVersion), edition, operator, idempotent);
+		assertThat(renderer.render(constraint, renderConfig)).isEqualTo(expected);
+	}
+
 	@ParameterizedTest
 	@ValueSource(strings = { "3.5", "4.0" })
 	void shouldNotDoIdempotencyOnOldVersions(String version) {

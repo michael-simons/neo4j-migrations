@@ -127,10 +127,6 @@ public final class RenderConfig {
 		return this.idempotent;
 	}
 
-	boolean isVersionPriorTo44() {
-		return getVersion().isPriorTo44();
-	}
-
 	boolean isIgnoreName() {
 		return this.ignoreName;
 	}

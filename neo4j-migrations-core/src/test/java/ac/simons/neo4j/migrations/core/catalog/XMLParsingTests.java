@@ -93,11 +93,13 @@ class XMLParsingTests {
 		Catalog catalog = load(TestResources.class.getResource("/catalogbased/parsing/full-example.xml"), true);
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance).map(Constraint.class::cast))
 			.extracting(Constraint::getName)
-			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"), Name.of("xyz"));
+			.containsExactlyInAnyOrder(Name.of("unique_isbn"), Name.of("exists_isbn"), Name.of("xyz"),
+					Name.of("unique_role"), Name.of("prop_type"));
 
 		assertThat(catalog.getItems().stream().filter(Constraint.class::isInstance).map(Constraint.class::cast))
 			.extracting(Constraint::getType)
-			.containsExactlyInAnyOrder(Constraint.Type.UNIQUE, Constraint.Type.EXISTS, Constraint.Type.PROPERTY_TYPE);
+			.contains(Constraint.Type.UNIQUE, Constraint.Type.EXISTS, Constraint.Type.PROPERTY_TYPE,
+					Constraint.Type.UNIQUE_RELATIONSHIP_PROPERTY);
 
 		assertThat(catalog.getItems()
 			.stream()

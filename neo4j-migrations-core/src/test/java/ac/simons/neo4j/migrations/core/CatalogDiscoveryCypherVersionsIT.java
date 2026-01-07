@@ -82,6 +82,7 @@ class CatalogDiscoveryCypherVersionsIT {
 	void dropConstraints() {
 		try (var session = this.driver.session()) {
 			session.run("DROP CONSTRAINT constraint_name1 IF EXISTS");
+			session.run("DROP CONSTRAINT constraint_name2 IF EXISTS");
 		}
 	}
 
@@ -96,7 +97,7 @@ class CatalogDiscoveryCypherVersionsIT {
 
 		migrations.apply();
 		info = migrations.info();
-		assertThat(info.getLastAppliedVersion()).map(MigrationVersion::getValue).hasValue("0001");
+		assertThat(info.getLastAppliedVersion()).map(MigrationVersion::getValue).hasValue("0002");
 	}
 
 	@Test
@@ -119,13 +120,12 @@ class CatalogDiscoveryCypherVersionsIT {
 		migrations.clean(true);
 		migrations.apply();
 		var info = migrations.info();
-		assertThat(info.getLastAppliedVersion()).map(MigrationVersion::getValue).hasValue("0001");
+		assertThat(info.getLastAppliedVersion()).map(MigrationVersion::getValue).hasValue("0002");
 
 		var catalog = migrations.getDatabaseCatalog();
 
 		assertThat(catalog.getItems().stream().map(CatalogItem::getName))
-			.containsExactlyInAnyOrder(Name.of("constraint_name1"));
-
+			.containsExactlyInAnyOrder(Name.of("constraint_name1"), Name.of("constraint_name2"));
 	}
 
 }

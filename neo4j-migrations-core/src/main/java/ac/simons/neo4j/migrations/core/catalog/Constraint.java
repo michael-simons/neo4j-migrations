@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core.catalog;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -138,6 +139,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			case "NODE_PROPERTY_EXISTENCE", "RELATIONSHIP_PROPERTY_EXISTENCE" -> Type.EXISTS;
 			case "NODE_PROPERTY_TYPE", "RELATIONSHIP_PROPERTY_TYPE" -> Type.PROPERTY_TYPE;
 			case "UNIQUENESS", "NODE_PROPERTY_UNIQUENESS" -> Type.UNIQUE;
+			case "RELATIONSHIP_UNIQUENESS", "RELATIONSHIP_PROPERTY_UNIQUENESS" -> Type.UNIQUE_RELATIONSHIP_PROPERTY;
 			default -> throw new IllegalArgumentException("Unsupported constraint type %s for %s"
 				.formatted(row.get(XMLSchemaConstants.TYPE).asString(), nameValue.asString()));
 		};
@@ -188,7 +190,8 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		}
 		String options = extractOptions(constraintElement);
 
-		if (target.targetEntityType() == TargetEntityType.RELATIONSHIP && type != Type.EXISTS) {
+		if (target.targetEntityType() == TargetEntityType.RELATIONSHIP
+				&& !EnumSet.of(Type.EXISTS, Type.UNIQUE_RELATIONSHIP_PROPERTY, Type.PROPERTY_TYPE).contains(type)) {
 			throw new IllegalArgumentException("Only existential constraints are supported for relationships");
 		}
 		return new Constraint(name, type, target.targetEntityType(), target.identifier(), properties, options,
@@ -309,9 +312,14 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	public enum Type implements ItemType {
 
 		/**
-		 * Unique constraints.
+		 * Unique node property constraints.
 		 */
 		UNIQUE,
+		/**
+		 * Unique relationship property constraints.
+		 * @since 3.2.0
+		 */
+		UNIQUE_RELATIONSHIP_PROPERTY,
 		/**
 		 * Existential constraints.
 		 */
@@ -382,19 +390,19 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 		 */
 		Constraint type(String property, PropertyType type);
 
-	}
-
-	/**
-	 * Allows to specify the type of the constraint.
-	 */
-	public interface ConstraintsForNodes extends CommonConstraints {
-
 		/**
 		 * Creates a unique constraint for the given property.
 		 * @param properties the property that should be unique
 		 * @return the new constraint
 		 */
 		Constraint unique(String... properties);
+
+	}
+
+	/**
+	 * Allows to specify the type of the constraint.
+	 */
+	public interface ConstraintsForNodes extends CommonConstraints {
 
 		/**
 		 * Creates a key constraint for the given property.
@@ -428,8 +436,12 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		@Override
 		public Constraint unique(String... properties) {
-			return new Constraint(this.name, Type.UNIQUE, this.targetEntityType, this.identifier,
-					Arrays.asList(properties), null);
+			var type = switch (this.targetEntityType) {
+				case NODE -> Type.UNIQUE;
+				case RELATIONSHIP -> Type.UNIQUE_RELATIONSHIP_PROPERTY;
+			};
+			return new Constraint(this.name, type, this.targetEntityType, this.identifier, Arrays.asList(properties),
+					null);
 		}
 
 		@Override

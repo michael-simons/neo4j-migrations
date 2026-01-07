@@ -137,8 +137,9 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 			case "NODE_KEY" -> Type.KEY;
 			case "NODE_PROPERTY_EXISTENCE", "RELATIONSHIP_PROPERTY_EXISTENCE" -> Type.EXISTS;
 			case "NODE_PROPERTY_TYPE", "RELATIONSHIP_PROPERTY_TYPE" -> Type.PROPERTY_TYPE;
-			case "UNIQUENESS" -> Type.UNIQUE;
-			default -> throw new IllegalArgumentException("Unsupported constraint type " + nameValue.asString());
+			case "UNIQUENESS", "NODE_PROPERTY_UNIQUENESS" -> Type.UNIQUE;
+			default -> throw new IllegalArgumentException("Unsupported constraint type %s for %s"
+				.formatted(row.get(XMLSchemaConstants.TYPE).asString(), nameValue.asString()));
 		};
 
 		TargetEntityType targetEntityType = TargetEntityType.valueOf(row.get("entityType").asString());
@@ -155,7 +156,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	}
 
 	/**
-	 * Creates a constraint from a xml definition.
+	 * Creates a constraint from an XML definition.
 	 * @param constraintElement as defined in {@code migration.xsd}.
 	 * @return the new constraint if the element as parseable
 	 */

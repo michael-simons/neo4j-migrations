@@ -31,7 +31,7 @@ Neo4j-Migrations is a proud member of the https://neo4j.com/labs/[Neo4j-Labs] an
 image:https://github.com/michael-simons/neo4j-migrations/workflows/build/badge.svg[link=https://github.com/michael-simons/neo4j-migrations/actions] 
 image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons.neo4j%3Aneo4j-migrations-parent&metric=coverage[link=https://sonarcloud.io/summary/new_code?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent]
 image:https://sonarcloud.io/api/project_badges/measure?project=eu.michael-simons.neo4j%3Aneo4j-migrations-parent&metric=alert_status[link=https://sonarcloud.io/dashboard?id=eu.michael-simons.neo4j%3Aneo4j-migrations-parent]
-image:https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://maven-badges.herokuapp.com/maven-central/eu.michael-simons.neo4j/neo4j-migrations]
+image:https://maven-badges.sml.io/maven-central/eu.michael-simons.neo4j/neo4j-migrations/badge.svg[link=https://mvnrepository.com/artifact/eu.michael-simons.neo4j/neo4j-migrations]
 
 == Introduction
 

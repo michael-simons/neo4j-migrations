@@ -182,6 +182,7 @@
 		<spring-javaformat.version>0.0.47</spring-javaformat.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>2.0.3</testcontainers.version>
+		<versions-maven-plugin.version>2.19.1</versions-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -483,6 +484,26 @@
 					<groupId>io.spring.javaformat</groupId>
 					<artifactId>spring-javaformat-maven-plugin</artifactId>
 					<version>${spring-javaformat.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>${versions-maven-plugin.version}</version>
+					<configuration>
+						<generateBackupPoms>false</generateBackupPoms>
+						<ruleSet>
+							<ignoreVersions>
+								<ignoreVersion>
+									<type>regex</type>
+									<version>(?i)(.+-SNAPSHOT|.+-M\d+|.+-?RC\d+|.+CR\d+)</version>
+								</ignoreVersion>
+								<ignoreVersion>
+									<type>regex</type>
+									<version>.+-(alpha|beta).+</version>
+								</ignoreVersion>
+							</ignoreVersions>
+						</ruleSet>
+					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>

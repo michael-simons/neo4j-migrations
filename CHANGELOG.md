@@ -1,3 +1,160 @@
+# 3.2.0
+
+No breaking changes, just new features. We bumped the minor version to reflect the added enum value `ac.simons.neo4j.migrations.core.catalog.Constraint.Type#UNIQUE_RELATIONSHIP_PROPERTY`.
+
+## 🚀 Features
+- 902d5bc feat: Add support for unique relationship properties for catalog based operations.
+
+## 🐛 Bug Fixes
+- cf44ce3 fix: Make the constraint relatated test run on 5x and higher proper.
+
+## 🔄️ Refactorings
+- a125f74 refactor: Use only one testcontainer version (latest).
+
+## 📝 Documentation
+- ff578dc docs: Document factory methods on `ListToVector`.
+
+## 🧰 Tasks
+- e037814 chore: Adapt to new URL for Maven badges.
+
+## 🛠 Build
+- a562689 build: Update versions.
+- 56f116f build: Configure versions plugin.
+- 2d01a4d build: Update to JBang 0.135.
+
+
+# 3.1.1
+
+## 🚀 Features
+- 5132d68 fix: Add support for Cypher 25 `NODE_PROPERTY_UNIQUENESS` type that is reported instead of `UNIQUENESS` for unique node properties.
+
+## 🧰 Tasks
+- 0f126cf chore: Extend license header to 2026.
+
+## 🧹 Housekeeping
+- 40dd774 Bump com.puppycrawl.tools:checkstyle from 12.3.0 to 13.0.0 (#1864)
+- 0250ba7 Bump quarkus.version from 3.30.3 to 3.30.5 (#1863)
+- 1decda2 Bump org.testcontainers:testcontainers-bom from 2.0.2 to 2.0.3 (#1862)
+- c493927 Bump io.netty:netty-bom from 4.1.129.Final to 4.1.130.Final (#1860)
+- e7e2b21 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.0 to 0.25.1 (#1859)
+- 94b2730 Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.1 to 2025.2.2 (#1858)
+- 1ab27ab Bump org.codehaus.mojo:exec-maven-plugin from 3.6.2 to 3.6.3 (#1857)
+- 10e2ec4 Bump byte-buddy.version from 1.18.2 to 1.18.3 (#1856)
+- f8972ca Bump spring-boot.version from 4.0.0 to 4.0.1 (#1855)
+- 7f616c8 Bump io.netty:netty-bom from 4.1.128.Final to 4.1.129.Final (#1853)
+- d89a85d Bump com.puppycrawl.tools:checkstyle from 12.2.0 to 12.3.0 (#1854)
+- eb38a35 Bump org.apache.maven.plugins:maven-release-plugin from 3.3.0 to 3.3.1 (#1852)
+- b552423 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 8.0.0 to 8.0.1 (#1851)
+- 813a0ad Bump quarkus.version from 3.30.2 to 3.30.3 (#1850)
+
+
+# 3.1.0
+
+No breaking changes, just a nice, new feature (see below). Thanks @shanon84.
+
+## 🚀 Features
+- 5e3e5f5 feat: Add wrapper for `@Index` so that multiple indexes can be defined on a type. (#1849)
+
+## 🔄️ Refactorings
+- f0f5968 refactor: Suppress warnings about using enums as singletons.
+
+## 🧹 Housekeeping
+- a13bde7 Upgrade to Quarkus Neo4j 6.1.1.
+- 08e75ed Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 5.3.0.6276 to 5.5.0.6356 (#1848)
+- e8c71ed Bump neo4j-ogm.version from 5.0.0 to 5.0.1 (#1847)
+- f24593e build(deps-dev): Bump org.checkerframework:checker-qual from 3.52.0 to 3.52.1 (#1846)
+- ce61b02 Bump quarkus.version from 3.30.1 to 3.30.2 (#1845)
+- 08c4f95 Bump org.apache.maven.plugins:maven-release-plugin from 3.2.0 to 3.3.0 (#1844)
+- 8b220f7 Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.0 to 2025.2.1 (#1843)
+- d418cf4 Bump quarkus.version from 3.30.0 to 3.30.1 (#1834)
+- c77a87f Bump org.apache.maven.plugins:maven-source-plugin from 3.3.1 to 3.4.0 (#1835)
+- d753119 Bump org.asciidoctor:asciidoctorj-diagram from 3.0.1 to 3.1.0 (#1836)
+- 48f952f Bump org.apache.maven.plugins:maven-assembly-plugin from 3.7.1 to 3.8.0 (#1837)
+- 278eb38 Bump org.apache.maven.plugins:maven-resources-plugin from 3.3.1 to 3.4.0 (#1838)
+- 707baaf Bump com.puppycrawl.tools:checkstyle from 12.1.2 to 12.2.0 (#1839)
+- 819cab8 Bump byte-buddy.version from 1.18.1 to 1.18.2 (#1840)
+- 1d36fea build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.44.0 to 2.45.0 (#1841)
+- 77812ea build(deps-dev): Bump org.apache.maven.plugin-testing:maven-plugin-testing-harness from 3.3.0 to 3.4.0 (#1831)
+- 3bc30bf Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.24.2 to 0.25.0 (#1833)
+- 1fae033 Bump io.fabric8:docker-maven-plugin from 0.47.0 to 0.48.0 (#1832)
+
+
+# 3.0.0
+
+The Spring Boot integration requires Spring Boot 4.0.0. If you want to use Spring Boot 3.x and earlier, please stick on the 2.x line of Neo4j-Migrations.
+
+## 🚀 Features
+- b0de84b feat: Add new refactoring `listToVector` that allows transforming list of numbers into Neo4j native vectors. (#1830)
+- 4bc03cb feat(Quarkus): Expose existing JsonRpc endpoints for the DevMCP server, too
+
+## 🐛 Bug Fixes
+- 701be54 fix: Fix invalid method name in the Neo4jMigrations widget.
+
+## 🔄️ Refactorings
+- 45b625e refactor: Do some relaxing polishing.
+- b8d0387 refactor: Do some warm-up polishing and house-keeping.
+- b778e45 refactor: Do some relaxing polishing and house-keeping.
+- 77edd1c refactor: Restore previous behaviour of storing excludes into a `HashSet`.
+- 47ee939 refactor: Introduce Spring-Java format and align this project with my other projects, automating the formatter away.
+- 4db5959 refactor: Improve some JavaDocs.
+- 0c5719f refactor: Prepare version 3.0.0, remove deprecations and change default order to `SEMANTIC`.
+
+## 📝 Documentation
+- d8c39da docs: Update local changelog.
+- 3d28eab docs: Update local changelog.
+
+## 🧹 Housekeeping
+- af49d6c Upgrade to Spring Boot 4.0.0 and Spring Data Neo4j 8.0.0.
+- 70a11e9 Upgrade to Quarkus 3.30.0 and Quarkus Neo4j 6.1.0.
+- fc7bb86 Upgrade Neo4j Driver to 6.0.2.
+- 1b7c93d Upgrade default Neo4j image to 2025.10.1
+- abb52a0 Bump org.apache.commons:commons-lang3 from 3.19.0 to 3.20.0 (#1829)
+- 86d3303 Bump org.graalvm.buildtools:native-maven-plugin from 0.11.2 to 0.11.3 (#1828)
+- 8fbdf29 Bump byte-buddy.version from 1.17.8 to 1.18.1 (#1827)
+- 99c02a1 Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 5.2.0.4988 to 5.3.0.6276 (#1826)
+- 2c96ee8 Bump org.testcontainers:testcontainers-bom from 2.0.1 to 2.0.2 (#1825)
+- b05b1e5 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.43.0 to 2.44.0 (#1824)
+- 7cd2a22 Bump com.puppycrawl.tools:checkstyle from 12.1.1 to 12.1.2 (#1823)
+- 709eb1c Bump org.apache.maven.plugin-tools:maven-plugin-annotations from 3.15.1 to 3.15.2 (#1822)
+- 7bb1663 Bump org.apache.maven.plugins:maven-jar-plugin from 3.4.2 to 3.5.0 (#1821)
+- 4947322 Bump quarkus.version from 3.29.2 to 3.29.3 (#1820)
+- 8787779 Update driver in Maven plugin test preparation script.
+- 7e3b088 Upgrade Neo4j Driver 6.x, latest Quarkus integration and Spring Boot 4.0.RC2, Data 8.0.0-RC2.
+- 7cf0ef4 build(deps-dev): Bump org.checkerframework:checker-qual from 3.51.1 to 3.52.0 (#1818)
+- 4fe6550 Bump commons-io:commons-io from 2.20.0 to 2.21.0 (#1817)
+- 5117378 Bump org.graalvm.buildtools:native-maven-plugin from 0.11.1 to 0.11.2 (#1816)
+- 04f298e Bump org.apache.maven.plugins:maven-release-plugin from 3.1.1 to 3.2.0 (#1815)
+- 311d849 Bump quarkus.version from 3.29.0 to 3.29.2 (#1814)
+- 307cf7b Bump org.asciidoctor:asciidoctorj from 3.0.0 to 3.0.1 (#1813)
+- 1b03976 Bump org.apache.maven.plugins:maven-plugin-plugin from 3.15.1 to 3.15.2 (#1812)
+- cb63c24 Bump com.puppycrawl.tools:checkstyle from 11.1.0 to 12.1.1 (#1811)
+- fcb9344 Bump io.fabric8:docker-maven-plugin from 0.46.0 to 0.47.0 (#1805)
+- 0f4d6c9 Bump quarkus.version from 3.28.2 to 3.29.0 (#1809)
+- 6d5724f Bump io.netty:netty-bom from 4.1.127.Final to 4.1.128.Final (#1808)
+- 9cd76de Bump org.junit:junit-bom from 6.0.0 to 6.0.1 (#1807)
+- b3cd89d Bump spring-boot.version from 3.5.6 to 3.5.7 (#1806)
+- 693a91f Bump io.github.classgraph:classgraph from 4.8.180 to 4.8.184 (#1804)
+- 03f700e Bump byte-buddy.version from 1.17.7 to 1.17.8 (#1803)
+- 35c3e7c Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.0.3 to 2025.2.0 (#1802)
+- 8fbd2a5 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.42.0 to 2.43.0 (#1801)
+- 0f4aed8 Bump jacoco-maven-plugin.version from 0.8.13 to 0.8.14 (#1800)
+- 6ff30b5 Upgrade testcontainers.version to 2.0.1
+- b98bc96 Bump neo4j-ogm.version from 4.0.20 to 5.0.0 (#1787)
+- 66475f4 Bump org.junit:junit-bom from 5.13.4 to 6.0.0 (#1790)
+- 18456a8 Bump quarkus.version from 3.28.1 to 3.28.2 (#1792)
+- c5a9061 Bump net.java.dev.jna:jna from 5.18.0 to 5.18.1 (#1793)
+- 2383580 build(deps-dev): Bump org.checkerframework:checker-qual from 3.51.0 to 3.51.1 (#1794)
+- 8c590b7 Bump org.commonmark:commonmark from 0.26.0 to 0.27.0 (#1796)
+- 566bbd8 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.23.1 to 0.24.2 (#1797)
+- 14db242 Bump org.codehaus.mojo:exec-maven-plugin from 3.5.1 to 3.6.2 (#1798)
+
+## 🛠 Build
+- 57d67c6 build: Avoid failing on invalid JVM flags until the Maven enforcer plugin can scream about an unsupported Java version.
+- 524a2a8 build: Make Grape use https for Maven central.
+- 50eee65 build(docs): Upgrade Antorra to 3.1.14.
+- 47e2865 build: Upgrade build pipelines to Java 25.
+
+
 # 2.20.1
 
 ## 🐛 Bug Fixes

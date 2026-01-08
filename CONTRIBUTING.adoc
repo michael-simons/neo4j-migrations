@@ -43,11 +43,6 @@ We use https://github.com/spring-io/spring-javaformat[spring-javaformat] to form
 
 TIP: The Spring Developers write: "The source formatter does not fundamentally change your code. For example, it will not change the order of import statements. It is effectively limited to adding or removing whitespace and line feeds."
 This means the following checkstyle check might still fail.
-Some common errors:
-+
-Static imports, import `javax.*` and `java.*` before others
-+
-Static imports are helpful, yes, but when working with 2 builders in the same project (here jOOQ and Cypher-DSL), they can be quite confusing.
 
 There are plugins for https://github.com/spring-io/spring-javaformat#eclipse[Eclipse] and https://github.com/spring-io/spring-javaformat#intellij-idea[IntelliJ IDEA] and the Checkstyle settings https://github.com/spring-io/spring-javaformat#checkstyle-idea-plugin[can be imported as well].
 We took those "as is" and just disabled the lambda check (requiring even single parameters to have parenthesis).
@@ -166,23 +161,6 @@ Open file:///path/to/neo4j-migrations/target/antora/index.html in a browser to v
 
 === Need to raise an issue?
 
-Where you raise an issue depends largely on the nature of the problem.
-
-Firstly, if you are an Enterprise customer, you might want to head over
-to our http://support.neo4j.com/[Customer Support Portal].
-
-There are plenty of public channels available too, though. If you simply
-want to get started or have a question on how to use a particular
-feature, ask a question in https://community.neo4j.com/[Neo4j Online
-Community]. If you think you might have hit a bug in our software (it
-happens occasionally!) or you have specific feature request then use the
-issue feature on the relevant GitHub repository. Check first though as
-someone else may have already raised something similar.
-
-http://stackoverflow.com/questions/tagged/neo4j[StackOverflow] also
-hosts a ton of questions and might already have a discussion around your
-problem. Make sure you have a look there too.
-
 Include as much information as you can in any request you make:
 
 * Which versions of our products are you using?
@@ -213,22 +191,4 @@ change a feature, please do reach out to us on one of the available channels, pr
 https://github.com/neo4j-contrib/cypher-dsl/issues/new[new issue] first in which we can discuss the proposed changes.
 
 We can't guarantee that we'll accept pull requests and may ask you to
-make some changes before they go in. Occasionally, we might also have
-logistical, commercial, or legal reasons why we can't accept your work,
-but we'll try to find an alternative way for you to contribute in that
-case. Remember that many community members have become regular
-contributors and some are now even Neo employees!
-
-=== Further reading
-
-If you want to find out more about how you can contribute, head over to
-our website for http://neo4j.com/developer/contributing-code/[more
-information].
-
-== Got an idea for a new project?
-
-If you have an idea for a new tool or library, start by talking to other
-people in the community. Chances are that someone has a similar idea or
-may have already started working on it. The best software comes from
-getting like minds together to solve a problem. And we'll do our best to
-help you promote and co-ordinate your Neo ecosystem projects.
+make some changes before they go in.

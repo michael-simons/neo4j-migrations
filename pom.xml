@@ -93,7 +93,7 @@
 
 	<properties>
 		<aggregate.report.dir>neo4j-migrations-test-results/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
-		<apiguardian.version>1.1.1</apiguardian.version>
+		<apiguardian.version>1.1.2</apiguardian.version>
 		<appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
 		<archunit.version>1.4.1</archunit.version>
 		<artifactsDir>neo4j-migrations-cli/target</artifactsDir>
@@ -103,8 +103,8 @@
 		<assertj.version>3.27.6</assertj.version>
 		<build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 		<byte-buddy.version>1.18.3</byte-buddy.version>
-		<central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
-		<checker-qual.version>3.52.1</checker-qual.version>
+		<central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
+		<checker-qual.version>3.53.0</checker-qual.version>
 		<checkstyle.version>13.0.0</checkstyle.version>
 		<classgraph.version>4.8.184</classgraph.version>
 		<compile-testing.version>0.23.0</compile-testing.version>
@@ -125,14 +125,14 @@
 		<jreleaser-maven-plugin.version>1.16.0</jreleaser-maven-plugin.version>
 		<jspecify.version>1.0.0</jspecify.version>
 		<!-- to be overridden in submodules -->
-		<junit.jupiter.version>6.0.1</junit.jupiter.version>
+		<junit.jupiter.version>6.0.2</junit.jupiter.version>
 		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
 		<maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
 		<maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+		<maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
@@ -144,7 +144,7 @@
 		<maven-release-plugin.version>3.3.1</maven-release-plugin.version>
 		<maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
 		<maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
-		<maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+		<maven-site-plugin.version>3.21.0</maven-site-plugin.version>
 		<maven-source-plugin.version>3.4.0</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
 		<maven.compiler.debug>true</maven.compiler.debug>
@@ -159,7 +159,8 @@
 		<neo4j-java-driver.version>6.0.2</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>3.1.1</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.1</neo4j-ogm.version>
-		<neo4j.image>neo4j:2025.11.2</neo4j.image>
+		<neo4j.image>neo4j:${neo4j.version}</neo4j.image>
+		<neo4j.version>2025.11.2</neo4j.version>
 		<objenesis.version>3.4</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
 		<picocli.version>4.7.7</picocli.version>
@@ -169,7 +170,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<quarkus-neo4j.version>6.2.0</quarkus-neo4j.version>
 		<quarkus.version>3.30.5</quarkus.version>
-		<slf4j.version>1.7.36</slf4j.version>
+		<slf4j.version>2.0.17</slf4j.version>
 		<!--
 		 I am not in the mood for _yet_ another player in the Neo4j-Java-Driver 5.x, Spring Boot 3, Quarkus Future battle of version fu
 		 and just keep the trusted 1.7.x version managed above and overwrite where necessary.
@@ -182,7 +183,7 @@
 		<spring-javaformat.version>0.0.47</spring-javaformat.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
 		<testcontainers.version>2.0.3</testcontainers.version>
-		<versions-maven-plugin.version>2.19.1</versions-maven-plugin.version>
+		<versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -763,6 +764,11 @@
 							<type>LICENSE_NAME</type>
 							<rule>APPROVE</rule>
 							<value>MIT License</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>MIT</value>
 						</dependencyPolicy>
 						<dependencyPolicy>
 							<type>LICENSE_NAME</type>

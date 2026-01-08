@@ -32,9 +32,6 @@
 
 	<properties>
 		<java-module-name>ac.simons.neo4j.migrations.examples.sb_testharness</java-module-name>
-		<neo4j.version>5.18.0</neo4j.version>
-		<!-- As Spring Boot uses 2.x these days and Neo4j is on 1.7. raising the bar to 2 will effectively disable Neo4j logging, no impl will be found -->
-		<slf4j.version>${slf4jv2.version}</slf4j.version>
 		<sonar.coverage.jacoco.xmlReportPaths>${basedir}/../../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 

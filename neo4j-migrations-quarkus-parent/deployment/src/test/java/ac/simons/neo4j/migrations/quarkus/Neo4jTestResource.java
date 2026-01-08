@@ -18,7 +18,7 @@ package ac.simons.neo4j.migrations.quarkus;
 import java.util.Map;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 /**
  * Must be public for the quarkus test class loader.
@@ -27,7 +27,7 @@ import org.testcontainers.containers.Neo4jContainer;
  */
 public class Neo4jTestResource implements QuarkusTestResourceLifecycleManager {
 
-	private final Neo4jContainer<?> neo4j = new Neo4jContainer<>(System.getProperty("migrations.default-neo4j-image"));
+	private final Neo4jContainer neo4j = new Neo4jContainer(System.getProperty("migrations.default-neo4j-image"));
 
 	@Override
 	public Map<String, String> start() {

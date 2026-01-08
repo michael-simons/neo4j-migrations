@@ -44,6 +44,12 @@
 		<dependency>
 			<groupId>io.quarkiverse.neo4j</groupId>
 			<artifactId>quarkus-neo4j-deployment</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testcontainers</groupId>
+					<artifactId>neo4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.quarkus</groupId>
@@ -85,6 +91,11 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-neo4j</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -89,9 +89,10 @@ class MigrationsEEIT {
 		SIMPLE_CONSOLE_HANDLER.setLevel(Level.FINE);
 		SIMPLE_CONSOLE_HANDLER.setFormatter(new Formatter() {
 			@Override
-			public String format(LogRecord record) {
-				return Instant.ofEpochMilli(record.getMillis()) + ": "
-						+ MessageFormat.format(record.getMessage(), record.getParameters()) + System.lineSeparator();
+			public String format(LogRecord logRecord) {
+				return Instant.ofEpochMilli(logRecord.getMillis()) + ": "
+						+ MessageFormat.format(logRecord.getMessage(), logRecord.getParameters())
+						+ System.lineSeparator();
 			}
 		});
 	}

@@ -159,7 +159,7 @@
 		<neo4j-java-driver.version>6.0.2</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>3.1.1</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.1</neo4j-ogm.version>
-		<neo4j.image>neo4j:2025.10.1</neo4j.image>
+		<neo4j.image>neo4j:2025.11.2</neo4j.image>
 		<objenesis.version>3.4</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
 		<picocli.version>4.7.7</picocli.version>

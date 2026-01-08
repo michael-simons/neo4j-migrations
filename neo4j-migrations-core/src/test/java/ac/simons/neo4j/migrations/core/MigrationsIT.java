@@ -996,6 +996,7 @@ class MigrationsIT extends TestBase {
 	}
 
 	@ParameterizedTest // GH-1582
+	@SuppressWarnings("squid:S2925")
 	@MethodSource
 	void lockSkippingShouldWork(Consumer<Migrations> hard, Consumer<Migrations> soft) {
 		var migrations = new Migrations(

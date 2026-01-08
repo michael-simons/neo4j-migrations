@@ -40,7 +40,7 @@ public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 			return dockerImageName;
 		}
 		if (versionPart.startsWith("LATEST")) {
-			return DockerImageName.parse(dockerImageName.getRepository() + ":" + versionPart.replace("LATEST", "5"));
+			return DockerImageName.parse(dockerImageName.getRepository() + ":" + versionPart.replace("LATEST", "2025"));
 		}
 
 		String dockerArchitecture = DockerClientFactory.instance().getInfo().getArchitecture();

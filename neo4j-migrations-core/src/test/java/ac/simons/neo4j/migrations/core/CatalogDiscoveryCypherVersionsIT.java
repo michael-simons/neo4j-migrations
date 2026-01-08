@@ -63,11 +63,10 @@ class CatalogDiscoveryCypherVersionsIT {
 
 	@BeforeAll
 	void initDriver() {
-		Config config = Config.builder().build();
 
 		this.neo4j.start();
 		this.driver = GraphDatabase.driver(this.neo4j.getBoltUrl(),
-				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), config);
+				AuthTokens.basic("neo4j", this.neo4j.getAdminPassword()), Config.builder().build());
 	}
 
 	@BeforeEach // Need to be BeforeEach because parameter is injected late

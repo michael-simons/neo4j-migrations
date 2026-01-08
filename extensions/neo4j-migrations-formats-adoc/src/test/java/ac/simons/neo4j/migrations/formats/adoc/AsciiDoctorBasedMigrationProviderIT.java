@@ -32,7 +32,6 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.exceptions.Neo4jException;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.neo4j.Neo4jContainer;
 
@@ -49,20 +48,9 @@ class AsciiDoctorBasedMigrationProviderIT {
 
 	Driver driver;
 
-	static void dropConstraint(Driver driver, String constraint) {
+	static void dropSchemaItem(Driver driver, String dropCommand) {
 		try (Session session = driver.session()) {
-			assertThat(session.executeWrite(t -> t.run(constraint).consume()).counters().constraintsRemoved())
-				.isNotZero();
-		}
-		catch (Neo4jException ignored) {
-		}
-	}
-
-	static void dropIndex(Driver driver, String index) {
-		try (Session session = driver.session()) {
-			assertThat(session.executeWrite(t -> t.run(index).consume()).counters().indexesRemoved()).isNotZero();
-		}
-		catch (Neo4jException ignored) {
+			session.executeWriteWithoutResult(t -> t.run(dropCommand));
 		}
 	}
 
@@ -81,14 +69,16 @@ class AsciiDoctorBasedMigrationProviderIT {
 		List<String> indexesToBeDropped;
 		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
-			constraintsToBeDropped = session.run("SHOW CONSTRAINTS YIELD name RETURN 'DROP CONSTRAINT ' + name as cmd")
+			constraintsToBeDropped = session
+				.run("SHOW CONSTRAINTS YIELD name RETURN 'DROP CONSTRAINT ' + name + ' IF EXISTS' as cmd")
 				.list(r -> r.get("cmd").asString());
-			indexesToBeDropped = session.run("SHOW INDEXES YIELD name RETURN 'DROP INDEX ' + name as cmd")
+			indexesToBeDropped = session
+				.run("SHOW INDEXES YIELD name RETURN 'DROP INDEX ' + name + ' IF EXISTS' as cmd")
 				.list(r -> r.get("cmd").asString());
 		}
 
-		constraintsToBeDropped.forEach(cmd -> dropConstraint(this.driver, cmd));
-		indexesToBeDropped.forEach(cmd -> dropIndex(this.driver, cmd));
+		constraintsToBeDropped.forEach(cmd -> dropSchemaItem(this.driver, cmd));
+		indexesToBeDropped.forEach(cmd -> dropSchemaItem(this.driver, cmd));
 	}
 
 	@AfterAll

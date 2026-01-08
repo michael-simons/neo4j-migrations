@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
 
+import static ac.simons.neo4j.migrations.core.catalog.Constraint.Type;
+
 /**
  * Renders constraints (supported operators are {@link Operator#CREATE} and
  * {@link Operator#DROP}) as Cypher.
@@ -91,7 +93,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 			w.write(String.format("DROP %#s%s", new FormattableCatalogItem(constraint, config.getVersion()),
 					config.ifNotExistsOrEmpty()));
 		}
-		else if (config.getOperator() == Operator.DROP && constraint.getType() == Constraint.Type.PROPERTY_TYPE
+		else if (config.getOperator() == Operator.DROP && constraint.getType() == Type.PROPERTY_TYPE
 				&& (!constraint.hasName() || config.isIgnoreName())) {
 			throw new IllegalArgumentException("Property type constraints can only be dropped via name.");
 		}
@@ -128,11 +130,11 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private static void assertMultiplePropertiesSupport(Constraint constraint, RenderConfig config) {
 		if (constraint.getProperties().size() > 1) {
-			if (!EnumSet.of(Constraint.Type.UNIQUE, Constraint.Type.KEY).contains(constraint.getType())) {
+			if (!EnumSet.of(Type.UNIQUE, Type.KEY).contains(constraint.getType())) {
 				throw new IllegalArgumentException("Only unique and node key constraints support multiple properties.");
 			}
 
-			if (config.getVersion().isPriorTo44() && constraint.getType() != Constraint.Type.KEY) {
+			if (config.getVersion().isPriorTo44() && constraint.getType() != Type.KEY) {
 				throw new IllegalArgumentException("Constraints require exactly one property prior to Neo4j 4.4.");
 			}
 		}
@@ -244,6 +246,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		return renderPropertyType(constraint, config, "n", "(%s:%s)");
 	}
 
+	// About String.format with the template fragment. Illogical my ass, Sonar.
+	@SuppressWarnings("squid:S3457")
 	private String renderPropertyType(Constraint constraint, RenderConfig config, String variable,
 			String templateFragment) {
 
@@ -268,7 +272,7 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		Formattable item = formattableItem(constraint, config);
 		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
 		String properties = renderProperties(version, "n", constraint);
-		Constraint.Type type = constraint.getType();
+		Type type = constraint.getType();
 		Operator operator = config.getOperator();
 
 		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
@@ -289,37 +293,22 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 
 	private String renderUniqueRelationshipPropertyConstraint(Constraint constraint, RenderConfig config) {
 
-		if (constraint.getProperties().size() > 1 && config.getVersion().isPriorTo44()) {
-			throw new IllegalArgumentException("Composite unique constraints are not supported prior to Neo4j/4.4.");
-		}
-		else if (!config.getVersion().is5OrHigher()) {
+		var neo4jVersion = config.getVersion();
+		if (!neo4jVersion.is5OrHigher()) {
 			throw new IllegalArgumentException(
 					"Unique property constraints on relationships require Neo4j/5.7 or higher.");
 		}
 
-		Neo4jVersion version = config.getVersion();
+		var item = formattableItem(constraint, config);
+		var identifier = neo4jVersion.sanitizeSchemaName(constraint.getIdentifier());
+		var properties = renderProperties(neo4jVersion, "r", constraint);
+		var type = Type.UNIQUE;
+		var operator = config.getOperator();
 
-		Formattable item = formattableItem(constraint, config);
-		String identifier = version.sanitizeSchemaName(constraint.getIdentifier());
-		String properties = renderProperties(version, "r", constraint);
-		Constraint.Type type = Constraint.Type.UNIQUE;
-		Operator operator = config.getOperator();
-
-		if (version == Neo4jVersion.V3_5 || version == Neo4jVersion.V4_0) {
-			return String.format("%s %#s ON ()-[r:%s]-() ASSERT %s IS %s", operator, item, identifier, properties,
-					type);
-		}
-		else if (RANGE_41_TO_43.contains(version)) {
-			return String.format("%s %#s %sON ()-[r:%s]-() ASSERT %s IS %s", operator, item,
-					config.ifNotExistsOrEmpty(), identifier, properties, type);
-		}
-		else {
-			String adjective = (operator == Operator.CREATE) ? "FOR" : "ON";
-			String verb = (operator == Operator.CREATE) ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
-			// We just assume the newest
-			return String.format("%s %#s %s%s ()-[r:%s]-() %s %s IS %s", operator, item, config.ifNotExistsOrEmpty(),
-					adjective, identifier, verb, properties, type);
-		}
+		var adjective = (operator == Operator.CREATE) ? "FOR" : "ON";
+		var verb = (operator == Operator.CREATE) ? KEYWORD_REQUIRE : KEYWORD_ASSERT;
+		return String.format("%s %#s %s%s ()-[r:%s]-() %s %s IS %s", operator, item, config.ifNotExistsOrEmpty(),
+				adjective, identifier, verb, properties, type);
 	}
 
 	Formattable formattableItem(Constraint item, RenderConfig config) {

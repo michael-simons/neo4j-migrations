@@ -248,12 +248,7 @@ class CatalogBasedMigrationIT {
 
 	private Neo4jContainer getNeo4j(Neo4jVersion version, boolean enterprise, boolean createDefaultConstraints)
 			throws IOException {
-		return getNeo4j(version, null, enterprise, createDefaultConstraints);
-	}
-
-	private Neo4jContainer getNeo4j(Neo4jVersion version, String versionValue, boolean enterprise,
-			boolean createDefaultConstraints) throws IOException {
-		String theVersion = (versionValue != null) ? versionValue : version.toString();
+		String theVersion = version.toString();
 		Neo4jContainer neo4j = new Neo4jContainer(
 				String.format("neo4j:%s%s", theVersion, (enterprise ? "-enterprise" : "")))
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
@@ -261,8 +256,8 @@ class CatalogBasedMigrationIT {
 		neo4j.start();
 
 		// We might reuse the containers from which we can easily drop the constraints
-		// again
-		// without using our own mechanism which would defeat the purpose of testing it
+		// again without using our own mechanism which would defeat the purpose of testing
+		// it
 		if (version.hasIdempotentOperations()) {
 			try (Driver driver = GraphDatabase.driver(neo4j.getBoltUrl(),
 					AuthTokens.basic("neo4j", neo4j.getAdminPassword()), ConstraintsIT.NO_DRIVER_LOGGING_CONFIG);

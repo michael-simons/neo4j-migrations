@@ -110,12 +110,9 @@ class ConstraintsIT {
 			List<Record> constraints = session.run(neo4jVersion.getShowConstraints()).list(Function.identity());
 			for (Record constraint : constraints) {
 				if (constraint.containsKey("name")) {
-					try {
-						session.run("DROP constraint " + constraint.get("name").asString());
-						continue;
-					}
-					catch (Exception ignored) {
-					}
+					session.run("DROP constraint " + constraint.get("name").asString());
+					continue;
+
 				}
 				session.run("DROP " + constraint.get("description").asString());
 			}

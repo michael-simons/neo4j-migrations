@@ -201,16 +201,9 @@ class PreconditionTests {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = "// Hello, not a precondition")
+	@ValueSource(strings = { "// Hello, not a precondition", "// assume die welt ist schlecht", "// assert nix" })
 	void shouldIgnoreThingsThatAreNoPrecondition(String value) {
 
-		Optional<Precondition> precondition = Precondition.parse(value);
-		assertThat(precondition).isEmpty();
-	}
-
-	@ParameterizedTest
-	@ValueSource(strings = { "// assume die welt ist schlecht", "// assert nix" })
-	void shouldIgnoreCommentsStartingWithAssumeOrAssert(String value) {
 		Optional<Precondition> precondition = Precondition.parse(value);
 		assertThat(precondition).isEmpty();
 	}

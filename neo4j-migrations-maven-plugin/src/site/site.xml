@@ -25,4 +25,9 @@
 		</menu>
 		<menu ref="reports"/>
 	</body>
+	<skin>
+		<groupId>org.apache.maven.skins</groupId>
+		<artifactId>maven-fluido-skin</artifactId>
+		<version>2.1.0</version>
+	</skin>
 </project>

@@ -6,17 +6,7 @@
 //DEPS org.assertj:assertj-core:3.27.4
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import module java.base;
 
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
@@ -29,14 +19,16 @@ public class test_native_cli {
 
 	public static void main(String... a) throws Exception {
 
-		var imagePattern = Pattern.compile("\\s+<neo4j\\.image>(.+)</neo4j\\.image>");
+		var versionPattern = Pattern.compile("\\s+<neo4j\\.version>(.+)</neo4j\\.version>");
 		var imageName = Files.readAllLines(Paths.get("./pom.xml"))
 			.stream()
-			.map(imagePattern::matcher)
+			.map(versionPattern::matcher)
 			.filter(Matcher::matches)
 			.map(m -> m.group(1))
 			.findFirst()
-			.orElse("neo4j:4:4");
+			.or(() -> Optional.of("5.26"))
+			.map("neo4j:"::concat)
+			.orElseThrow();
 
 		var executable = Paths.get("./neo4j-migrations-cli/target/neo4j-migrations").toAbsolutePath().normalize().toString();
 		var location1 = Paths.get("./neo4j-migrations-test-resources/src/main/resources/some/changeset").toAbsolutePath().normalize().toUri().toString();

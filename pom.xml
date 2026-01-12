@@ -169,7 +169,7 @@
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<quarkus-neo4j.version>6.2.0</quarkus-neo4j.version>
-		<quarkus.version>3.30.5</quarkus.version>
+		<quarkus.version>3.30.6</quarkus.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<!--
 		 I am not in the mood for _yet_ another player in the Neo4j-Java-Driver 5.x, Spring Boot 3, Quarkus Future battle of version fu

@@ -155,7 +155,7 @@
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.2.0</mockito.version>
 		<moditect-maven-plugin.version>1.3.0.Final</moditect-maven-plugin.version>
-		<native.maven.plugin.version>0.11.3</native.maven.plugin.version>
+		<native.maven.plugin.version>0.11.4</native.maven.plugin.version>
 		<neo4j-java-driver.version>6.0.2</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>3.2.0</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.2</neo4j-ogm.version>

@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>eu.michael-simons.neo4j</groupId>
 		<artifactId>neo4j-migrations-spring-boot-starter-parent</artifactId>
-		<version>3.2.1-SNAPSHOT</version>
+		<version>3.2.1</version>
 	</parent>
 
 	<artifactId>neo4j-migrations-spring-boot-autoconfigure</artifactId>

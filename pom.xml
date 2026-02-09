@@ -112,7 +112,7 @@
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
 		<cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
 		<cypher-dsl.version>2025.2.3</cypher-dsl.version>
-		<docker-maven-plugin.version>0.48.0</docker-maven-plugin.version>
+		<docker-maven-plugin.version>0.48.1</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.46.0</error_prone_annotations.version>
 		<exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>

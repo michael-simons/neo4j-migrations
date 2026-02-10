@@ -168,7 +168,7 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>6.2.0</quarkus-neo4j.version>
+		<quarkus-neo4j.version>6.3.0</quarkus-neo4j.version>
 		<quarkus.version>3.31.1</quarkus.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<!--

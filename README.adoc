@@ -63,8 +63,8 @@ the following coordinates:
 * Quarkus extension: `{groupId}:{artifactIdQuarkus}:{fullVersion}`
 * Maven-Plugin: `{groupId}:{artifactIdMavenPlugin}:{fullVersion}`
 
-The quickest way to use the CLI is https://www.jbang.dev[JBang]. With JBang installed, just enter `jbang neo4j-migrations@neo4j --help` to get started.
-Other options include Homebrew and Zip bundles. Please checkout the full list of https://michael-simons.github.io/neo4j-migrations/current/#download[download options].
+Binaries of Neo4j-Migration are available via https://sdkman.io/sdks/neo4jmigrations/[SDKMAN!], https://github.com/michael-simons/homebrew-neo4j-migrations[Homebrew].
+Other options includes the (sometimes dated) Neo4j https://www.jbang.dev[JBang] catalog and Zip bundles via GitHub. Please check out the full list of https://michael-simons.github.io/neo4j-migrations/current/#download[download options].
 
 == Compatibility
 

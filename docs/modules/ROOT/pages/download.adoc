@@ -55,11 +55,13 @@ Get this version here:
 curl -LO {url-gh-releases}/download/{fullVersion}/neo4j-migrations-{fullVersion}.zip
 ----
 
-TIP: The architecture independent version can be used via Neo4js official https://www.jbang.dev[JBang] catalog:
+TIP: The architecture independent version can be used via Neo4js https://www.jbang.dev[JBang] catalog:
      +
      With JBang installed, run `jbang neo4j-migrations@neo4j --help` for printing our usage information.
      +
      The catalog offers a couple of other scripts as well, check them out with `jbang catalog list neo4j`.
+     +
+     We cannot update the catalog automatically, so sometimes it may is behind a version or two. Also, once you used the runner, JBang might never update it's local cache anynore. Use `jbang cache clear --all` to force that.
 
 [[download_core]]
 == Core API

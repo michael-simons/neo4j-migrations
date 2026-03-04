@@ -125,7 +125,7 @@
 		<jreleaser-maven-plugin.version>1.16.0</jreleaser-maven-plugin.version>
 		<jspecify.version>1.0.0</jspecify.version>
 		<!-- to be overridden in submodules -->
-		<junit.jupiter.version>6.0.2</junit.jupiter.version>
+		<junit.jupiter.version>6.0.3</junit.jupiter.version>
 		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
 		<maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>

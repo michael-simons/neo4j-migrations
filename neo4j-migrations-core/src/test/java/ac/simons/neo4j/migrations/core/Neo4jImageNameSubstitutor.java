@@ -28,7 +28,7 @@ import org.testcontainers.utility.ImageNameSubstitutor;
  */
 public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 
-	private final Set<String> OFFICIALLY_SUPPORTED_ON_ARM = Set.of("4.4", "5", "2025");
+	private final Set<String> OFFICIALLY_SUPPORTED_ON_ARM = Set.of("4.4", "5", "2025", "2026");
 
 	@Override
 	public DockerImageName apply(DockerImageName dockerImageName) {
@@ -40,7 +40,7 @@ public final class Neo4jImageNameSubstitutor extends ImageNameSubstitutor {
 			return dockerImageName;
 		}
 		if (versionPart.startsWith("LATEST")) {
-			return DockerImageName.parse(dockerImageName.getRepository() + ":" + versionPart.replace("LATEST", "2025"));
+			return DockerImageName.parse(dockerImageName.getRepository() + ":" + versionPart.replace("LATEST", "2026"));
 		}
 
 		String dockerArchitecture = DockerClientFactory.instance().getInfo().getArchitecture();

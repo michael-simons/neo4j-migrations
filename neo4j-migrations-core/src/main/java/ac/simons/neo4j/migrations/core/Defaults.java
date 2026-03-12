@@ -147,6 +147,14 @@ public final class Defaults {
 	public static final String CYPHER_VERSION_VALUE = "DATABASE_DEFAULT";
 
 	/**
+	 * The prefix used for environment variables that define placeholders. An environment
+	 * variable named {@code NM_PLACEHOLDERS_MyKey} will create a placeholder named
+	 * {@code MyKey}.
+	 * @since 3.3.0
+	 */
+	public static final String ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS = "NM_PLACEHOLDERS_";
+
+	/**
 	 * Default packages to scan.
 	 */
 	static final List<String> PACKAGES_TO_SCAN = Collections.emptyList();

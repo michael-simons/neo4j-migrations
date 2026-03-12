@@ -87,6 +87,7 @@ public class MigrationsRecorder {
 			.withFlywayCompatibleChecksums(runtimeProperties.useFlywayCompatibleChecksums())
 			.withTarget(runtimeProperties.target().orElse(null))
 			.withCypherVersion(runtimeProperties.cypherVersion())
+			.withPlaceholders(runtimeProperties.placeholders())
 			.build();
 
 		return new RuntimeValue<>(config);

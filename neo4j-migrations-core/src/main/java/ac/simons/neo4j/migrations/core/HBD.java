@@ -16,6 +16,7 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -66,8 +67,10 @@ final class HBD {
 			return session.executeWrite(tx -> tx.run(finalStatement).consume().counters().constraintsAdded());
 		}
 		catch (Neo4jException ex) {
+			var expectedMessages = Set.of("Invalid constraint syntax, ON and ASSERT should not be used",
+					"Invalid input 'ON'", "Invalid input '(': expected 'IF NOT EXISTS' or 'FOR'");
 			if (Neo4jCodes.SYNTAX_ERROR.equals(ex.code())
-					&& ex.getMessage().startsWith("Invalid constraint syntax, ON and ASSERT should not be used")) {
+					&& expectedMessages.stream().anyMatch(m -> ex.getMessage().startsWith(m))) {
 				// This should by all means not happen, since this method is used outside
 				// testing only with proper rendered constraints
 				return silentCreateConstraintOrIndex(connectionDetails, session,

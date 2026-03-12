@@ -18,8 +18,10 @@ package ac.simons.neo4j.migrations.core;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -86,6 +88,8 @@ public final class MigrationsConfig {
 
 	private final CypherVersion cypherVersion;
 
+	private final Map<String, String> placeholders;
+
 	private MigrationsConfig(Builder builder) {
 
 		this.packagesToScan = (builder.packagesToScan != null) ? builder.packagesToScan
@@ -116,6 +120,18 @@ public final class MigrationsConfig {
 			this.target = builder.target;
 		}
 		this.cypherVersion = (builder.cypherVersion != null) ? builder.cypherVersion : Defaults.CYPHER_VERSION;
+
+		var length = Defaults.ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS.length();
+		Map<String, String> mergedPlaceholders = new HashMap<>();
+		System.getenv().forEach((key, value) -> {
+			if (key.startsWith(Defaults.ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS)) {
+				mergedPlaceholders.put(key.substring(length), value.trim());
+			}
+		});
+		if (builder.placeholders != null) {
+			mergedPlaceholders.putAll(builder.placeholders);
+		}
+		this.placeholders = Map.copyOf(mergedPlaceholders);
 	}
 
 	/**
@@ -295,6 +311,18 @@ public final class MigrationsConfig {
 	}
 
 	/**
+	 * {@return an unmodifiable map of placeholders to be replaced in Cypher scripts}
+	 * Placeholders are resolved from programmatic configuration and from environment
+	 * variables with the prefix
+	 * {@value Defaults#ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS}. Programmatic values
+	 * take precedence over environment variables.
+	 * @since 3.3.0
+	 */
+	public Map<String, String> getPlaceholders() {
+		return this.placeholders;
+	}
+
+	/**
 	 * Helper method to pretty print this configuration into a logger (on level
 	 * {@literal INFO} respectively {@literal WARNING}.
 	 * @param logger the logger to print to
@@ -319,6 +347,9 @@ public final class MigrationsConfig {
 			if (this.getPackagesToScan().length > 0) {
 				logger.log(Level.INFO, "Will scan for Java-based migrations in \"{0}\"",
 						String.join("", this.getPackagesToScan()));
+			}
+			if (!this.getPlaceholders().isEmpty()) {
+				logger.log(Level.INFO, "Using {0} placeholder(s)", this.getPlaceholders().size());
 			}
 		}
 	}
@@ -501,6 +532,8 @@ public final class MigrationsConfig {
 		private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
 
 		private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;
+
+		private Map<String, String> placeholders;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when
@@ -771,6 +804,21 @@ public final class MigrationsConfig {
 		 */
 		public Builder withCypherVersion(CypherVersion newCypherVersion) {
 			this.cypherVersion = newCypherVersion;
+			return this;
+		}
+
+		/**
+		 * Configures placeholders that will be resolved in Cypher scripts using the
+		 * syntax {@code ${nm:key}}. Programmatic placeholders take precedence over
+		 * placeholders defined via environment variables with the prefix
+		 * {@value Defaults#ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS}.
+		 * @param newPlaceholders a map of placeholder names to their values, may be
+		 * {@literal null} to use only environment variable-based placeholders
+		 * @return the builder for further customization
+		 * @since 3.3.0
+		 */
+		public Builder withPlaceholders(Map<String, String> newPlaceholders) {
+			this.placeholders = (newPlaceholders != null) ? Map.copyOf(newPlaceholders) : null;
 			return this;
 		}
 

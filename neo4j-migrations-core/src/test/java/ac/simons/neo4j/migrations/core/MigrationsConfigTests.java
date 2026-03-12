@@ -16,7 +16,9 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -37,6 +39,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Michael J. Simons
  */
 class MigrationsConfigTests {
+
+	static Map<String, String> envPlaceholders() {
+		var length = Defaults.ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS.length();
+		Map<String, String> result = new HashMap<>();
+		System.getenv().forEach((key, value) -> {
+			if (key.startsWith(Defaults.ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS)) {
+				result.put(key.substring(length), value.trim());
+			}
+		});
+		return result;
+	}
 
 	static Stream<Arguments> shouldConfigureCypherVersion() {
 		return Stream.of(Arguments.of(null, Defaults.CYPHER_VERSION),
@@ -96,9 +109,12 @@ class MigrationsConfigTests {
 		logger.addHandler(logCollector);
 
 		config.logTo(logger, true);
-		assertThat(logCollector.logMessages).containsExactly(
-				"Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
-				"Statements will be applied in one transaction per migration");
+		var expected = new ArrayList<>(List.of("Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
+				"Statements will be applied in one transaction per migration"));
+		if (!config.getPlaceholders().isEmpty()) {
+			expected.add("Using " + config.getPlaceholders().size() + " placeholder(s)");
+		}
+		assertThat(logCollector.logMessages).containsExactlyElementsOf(expected);
 	}
 
 	@ParameterizedTest
@@ -125,8 +141,12 @@ class MigrationsConfigTests {
 		logger.addHandler(logCollector);
 
 		config.logTo(logger, true);
-		assertThat(logCollector.logMessages)
-			.containsExactly("Cannot find migrations as neither locations nor packages to scan are configured!");
+		var expected = new ArrayList<>(
+				List.of("Cannot find migrations as neither locations nor packages to scan are configured!"));
+		if (!config.getPlaceholders().isEmpty()) {
+			expected.add("Using " + config.getPlaceholders().size() + " placeholder(s)");
+		}
+		assertThat(logCollector.logMessages).containsExactlyElementsOf(expected);
 	}
 
 	@Test
@@ -162,10 +182,14 @@ class MigrationsConfigTests {
 		logger.addHandler(logCollector);
 
 		config.logTo(logger, true);
-		assertThat(logCollector.logMessages).containsExactly("Migrations will be applied to database \"x\"",
+		var expected = new ArrayList<>(List.of("Migrations will be applied to database \"x\"",
 				"Will search for Cypher scripts in \"classpath:neo4j/migrations\"",
 				"Statements will be applied in separate transactions",
-				"Will scan for Java-based migrations in \"a.b.c\"");
+				"Will scan for Java-based migrations in \"a.b.c\""));
+		if (!config.getPlaceholders().isEmpty()) {
+			expected.add("Using " + config.getPlaceholders().size() + " placeholder(s)");
+		}
+		assertThat(logCollector.logMessages).containsExactlyElementsOf(expected);
 	}
 
 	static class LogCollector extends Handler {
@@ -191,6 +215,33 @@ class MigrationsConfigTests {
 		@Override
 		public void close() {
 			// Nothing to close
+		}
+
+	}
+
+	@Nested
+	class Placeholders {
+
+		@Test
+		void shouldBeEmptyByDefault() {
+
+			assertThat(MigrationsConfig.builder().build().getPlaceholders())
+				.containsExactlyEntriesOf(envPlaceholders());
+		}
+
+		@Test
+		void shouldBeConfigurable() {
+
+			Map<String, String> placeholders = Map.of("key1", "value1", "key2", "value2");
+			MigrationsConfig config = MigrationsConfig.builder().withPlaceholders(placeholders).build();
+			assertThat(config.getPlaceholders()).containsAllEntriesOf(placeholders);
+		}
+
+		@Test
+		void nullShouldBeAllowed() {
+
+			MigrationsConfig config = MigrationsConfig.builder().withPlaceholders(null).build();
+			assertThat(config.getPlaceholders()).isNotNull();
 		}
 
 	}

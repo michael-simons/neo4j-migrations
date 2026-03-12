@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>3.2.2-SNAPSHOT</version>
+	<version>3.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -915,6 +915,9 @@
 						<migrations.default-neo4j-image>${neo4j.image}</migrations.default-neo4j-image>
 						<migrations.test-only-latest-neo4j>${migrations.test-only-latest-neo4j}</migrations.test-only-latest-neo4j>
 					</systemPropertyVariables>
+					<environmentVariables>
+						<NM_PLACEHOLDERS_anotherLabel>Another test node</NM_PLACEHOLDERS_anotherLabel>
+					</environmentVariables>
 				</configuration>
 				<executions>
 					<execution>

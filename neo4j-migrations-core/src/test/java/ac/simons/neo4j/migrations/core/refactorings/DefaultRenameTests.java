@@ -103,7 +103,8 @@ class DefaultRenameTests {
 
 		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, this.elementExtractor))
 			.extracting(Query::text)
-			.isEqualTo("MATCH (a)-[old:ACTED_IN]->(b) CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new+=old DELETE old");
+			.isEqualTo(
+					"MATCH (a)-[old:ACTED_IN]->(b) CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new = properties(old) DELETE old");
 	}
 
 	@Test
@@ -114,7 +115,7 @@ class DefaultRenameTests {
 		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, this.elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo(
-					"CALL { MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new+=old DELETE old");
+					"CALL { MATCH (n:Movie) <-[r:ACTED_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CREATE (a)-[new:HAT_GESPIELT_IN]->(b) SET new = properties(old) DELETE old");
 	}
 
 	@Test
@@ -124,7 +125,7 @@ class DefaultRenameTests {
 		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, this.elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo(
-					"MATCH (a)-[old:HAT_GESPIELT_IN]->(b) CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF 42 ROWS");
+					"MATCH (a)-[old:HAT_GESPIELT_IN]->(b) CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new = properties(old) DELETE old } IN TRANSACTIONS OF 42 ROWS");
 	}
 
 	@Test
@@ -136,7 +137,7 @@ class DefaultRenameTests {
 		assertThat(rename.generateQuery(Neo4jVersion.LATEST::sanitizeSchemaName, this.elementExtractor))
 			.extracting(Query::text)
 			.isEqualTo(
-					"CALL { MATCH (n:Movie) <-[r:HAT_GESPIELT_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF 42 ROWS");
+					"CALL { MATCH (n:Movie) <-[r:HAT_GESPIELT_IN] -() WHERE n.title =~ '.*Matrix.*' RETURN r AS n } WITH n AS old, startNode(n) AS a, endNode(n) AS b CALL { WITH old, a, b CREATE (a)-[new:ACTED_IN]->(b) SET new = properties(old) DELETE old } IN TRANSACTIONS OF 42 ROWS");
 	}
 
 	@Test

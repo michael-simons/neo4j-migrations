@@ -142,8 +142,8 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 		 * Targets types.
 		 */
 		TYPE("MATCH (a)-[old:%1$s]->(b)", "CALL { %4$s } WITH %5$s AS old, startNode(%5$s) AS a, endNode(%5$s) AS b",
-				"CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old",
-				"CALL { WITH old, a, b CREATE (a)-[new:%2$s]->(b) SET new+=old DELETE old } IN TRANSACTIONS OF %3$d ROWS"),
+				"CREATE (a)-[new:%2$s]->(b) SET new = properties(old) DELETE old",
+				"CALL { WITH old, a, b CREATE (a)-[new:%2$s]->(b) SET new = properties(old) DELETE old } IN TRANSACTIONS OF %3$d ROWS"),
 		/**
 		 * Targets node properties.
 		 */

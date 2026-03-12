@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
@@ -96,6 +97,14 @@ final class DefaultCypherResource implements CypherResource {
 
 	private static final Pattern USING_PERIODIC_PATTERN = Pattern
 		.compile("(?ims)(?<!`)(([^`\\s*]|^)\\s*+USING\\s+PERIODIC\\s+COMMIT\\s+)(?!`)");
+
+	/**
+	 * Pattern for matching placeholders in the form {@code ${nm:key}}. Placeholder names
+	 * are restricted to alphanumeric characters, underscores, hyphens and dots. The
+	 * character class is intentionally specific to prevent unexpected matches and
+	 * guarantee linear matching time regardless of input.
+	 */
+	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{nm:([a-zA-Z0-9_.-]+)}");
 
 	/**
 	 * The identifier of this resource.
@@ -189,7 +198,12 @@ final class DefaultCypherResource implements CypherResource {
 	static void executeIn(CypherResource cypherResource, MigrationContext context,
 			UnaryOperator<SessionConfig.Builder> sessionCustomizer) {
 
-		List<DatabaseAndStatements> statementsByDatabase = groupStatements(cypherResource.getExecutableStatements());
+		List<String> executableStatements = cypherResource.getExecutableStatements();
+		Map<String, String> placeholders = context.getConfig().getPlaceholders();
+		if (!placeholders.isEmpty()) {
+			executableStatements = resolvePlaceholders(executableStatements, placeholders);
+		}
+		List<DatabaseAndStatements> statementsByDatabase = groupStatements(executableStatements);
 
 		statementsByDatabase.forEach(databaseAndStatements -> {
 
@@ -199,9 +213,9 @@ final class DefaultCypherResource implements CypherResource {
 
 			try (Session session = context.getDriver().session(context.getSessionConfig(finalSessionCustomizer))) {
 
-				List<String> executableStatements = databaseAndStatements.statements();
+				List<String> statementsForDatabase = databaseAndStatements.statements();
 
-				var statementsNeedingImplicitTransactions = executableStatements.stream()
+				var statementsNeedingImplicitTransactions = statementsForDatabase.stream()
 					.filter(statement -> getTransactionMode(statement) == TransactionMode.IMPLICIT)
 					.collect(Collectors.toSet());
 
@@ -217,7 +231,7 @@ final class DefaultCypherResource implements CypherResource {
 					LOGGER.log(Level.FINE, "Executing statements contained in script \"{0}\" in separate transactions",
 							cypherResource.getIdentifier());
 					numberOfStatements = executeInSeparateTransactions(session, transactionConfig,
-							context.getConfig().getCypherVersion(), executableStatements,
+							context.getConfig().getCypherVersion(), statementsForDatabase,
 							statementsNeedingImplicitTransactions);
 
 				}
@@ -228,7 +242,7 @@ final class DefaultCypherResource implements CypherResource {
 					Counters c = Counters.empty();
 					numberOfStatements = session.executeWrite(t -> {
 						int cnt = 0;
-						for (String statement : executableStatements) {
+						for (String statement : statementsForDatabase) {
 							c.add(run(context.getConfig().getCypherVersion(), t, statement));
 							++cnt;
 						}
@@ -321,6 +335,32 @@ final class DefaultCypherResource implements CypherResource {
 		}
 		result.add(new DatabaseAndStatements(current, sublist));
 		return result;
+	}
+
+	static List<String> resolvePlaceholders(List<String> statements, Map<String, String> placeholders) {
+		return statements.stream().map(statement -> resolvePlaceholders(statement, placeholders)).toList();
+	}
+
+	static String resolvePlaceholders(String statement, Map<String, String> placeholders) {
+		var matcher = PLACEHOLDER_PATTERN.matcher(statement);
+		if (!matcher.find()) {
+			return statement;
+		}
+		var sb = new StringBuilder();
+		do {
+			String key = matcher.group(1);
+			String value = placeholders.get(key);
+			if (value == null) {
+				throw new MigrationsException(
+						"""
+								No value configured for placeholder "${nm:%s}". Please configure it via MigrationsConfig.builder().withPlaceholders() or via the environment variable "%s%s"."""
+							.formatted(key, Defaults.ENVIRONMENT_VARIABLE_PREFIX_PLACEHOLDERS, key));
+			}
+			matcher.appendReplacement(sb, Matcher.quoteReplacement(value));
+		}
+		while (matcher.find());
+		matcher.appendTail(sb);
+		return sb.toString();
 	}
 
 	static Counters run(CypherVersion cypherVersion, SimpleQueryRunner runner, String statement) {

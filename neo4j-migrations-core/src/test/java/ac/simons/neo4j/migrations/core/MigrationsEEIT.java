@@ -559,6 +559,7 @@ class MigrationsEEIT {
 		Migrations migrations;
 		migrations = new Migrations(MigrationsConfig.builder()
 			.withLocationsToScan("classpath:my/awesome/migrations", "classpath:some/changeset")
+			.withPlaceholders(Map.of("testLabel", "whatever"))
 			.build(), driver);
 
 		Catalog localCatalog = migrations.getLocalCatalog();
@@ -592,7 +593,7 @@ class MigrationsEEIT {
 					"MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums).containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555",
-					"2663714411", "2581374719", "200310393", "949907516", "949907516", "2884945437", "1491717096",
+					"2663714411", "2581374719", "200310393", "949907516", "949907516", "1411768091", "1491717096",
 					"454777450", "1584443618");
 		}
 	}

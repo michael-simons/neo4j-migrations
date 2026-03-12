@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -849,6 +850,7 @@ class MigrationsIT extends TestBase {
 			.withTransactionMode(transactionMode)
 			.withCypherVersion(cypherVersion)
 			.withLocationsToScan("classpath:my/awesome/migrations", "classpath:some/changeset")
+			.withPlaceholders(Map.of("testLabel", "TestNode"))
 			.build(), this.driver);
 
 		Catalog localCatalog = migrations.getLocalCatalog();
@@ -878,11 +880,17 @@ class MigrationsIT extends TestBase {
 					""";
 			assertThat(prop).isEqualTo(value);
 
+			long testNodeCount = session.run("MATCH (s:TestNode) RETURN count(s)").single().get(0).asLong();
+			assertThat(testNodeCount).isOne();
+
+			testNodeCount = session.run("MATCH (s:`Another test node`) RETURN count(s)").single().get(0).asLong();
+			assertThat(testNodeCount).isOne();
+
 			List<String> checksums = session.run(
 					"MATCH (m:__Neo4jMigration) RETURN m.checksum AS checksum ORDER BY CASE WHEN m.version = 'BASELINE' THEN '0000' ELSE m.version END ASC")
 				.list(r -> r.get("checksum").asString(null));
 			assertThat(checksums).containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555",
-					"2663714411", "2581374719", "200310393", "949907516", "949907516", "2884945437", "1491717096",
+					"2663714411", "2581374719", "200310393", "949907516", "949907516", "1411768091", "1491717096",
 					isModernNeo4j(migrations.getConnectionDetails()) ? "454777450" : "227047158");
 		}
 	}

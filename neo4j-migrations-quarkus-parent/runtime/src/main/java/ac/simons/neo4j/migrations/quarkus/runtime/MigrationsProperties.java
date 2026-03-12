@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.quarkus.runtime;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.Defaults;
@@ -176,5 +177,14 @@ public interface MigrationsProperties {
 	 */
 	@WithDefault(Defaults.CYPHER_VERSION_VALUE)
 	CypherVersion cypherVersion();
+
+	/**
+	 * A map of placeholders to be replaced in Cypher scripts using the syntax
+	 * {@code ${nm:key}}. Programmatic placeholders take precedence over placeholders
+	 * defined via environment variables with the prefix {@code NM_PLACEHOLDERS_}.
+	 * @return the configured placeholders
+	 * @since 3.3.0
+	 */
+	Map<String, String> placeholders();
 
 }

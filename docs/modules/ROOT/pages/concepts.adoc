@@ -194,6 +194,37 @@ configure Neo4j-Migrations to use `TransactionMode#PER_STATEMENT` (see <<concept
 This is slightly more error-prone, as it will most likely leave your database in an inconsistent state if one statement fails, since everything
 before has already been committed.
 
+==== Placeholders
+
+Cypher-based migrations support placeholders that are resolved at execution time.
+Placeholders use the syntax `${nm:key}` and are replaced with concrete values before statements are sent to the database.
+Checksums are computed on the original script content, so placeholder resolution does not affect migration integrity.
+
+.A migration script using placeholders
+[source,cypher]
+----
+CREATE (n:`${nm:nodeLabel}` {env: '${nm:environment}'})
+RETURN n;
+----
+
+Placeholders can be configured programmatically:
+
+[source,java]
+----
+MigrationsConfig config = MigrationsConfig.builder()
+    .withPlaceholders(Map.of(
+        "nodeLabel", "MyNode",
+        "environment", "production"
+    )).build();
+----
+
+They can also be defined via environment variables using the prefix `NM_PLACEHOLDERS_`.
+For example, setting `NM_PLACEHOLDERS_nodeLabel=MyNode` defines a placeholder named `nodeLabel` with the value `MyNode`.
+Programmatic placeholders take precedence over environment variables.
+
+Placeholder names may contain letters, digits, underscores, dots, and hyphens (`[a-zA-Z0-9_.-]+`).
+An error is raised if a script contains placeholders that cannot be resolved.
+
 [[concepts_migrations_catalog-based]]
 === Based on a catalog
 

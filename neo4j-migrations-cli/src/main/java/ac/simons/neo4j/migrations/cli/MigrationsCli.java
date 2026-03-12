@@ -191,6 +191,10 @@ public final class MigrationsCli implements Runnable {
 			defaultValue = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS_VALUE)
 	private boolean useFlywayCompatibleChecksums;
 
+	@Option(names = { "--placeholder" },
+			description = "Placeholders to be replaced in Cypher scripts using the syntax ${nm:key}. Repeat for multiple placeholders.")
+	private Map<String, String> placeholders;
+
 	@Spec
 	private CommandSpec commandSpec;
 
@@ -298,6 +302,7 @@ public final class MigrationsCli implements Runnable {
 			.withFlywayCompatibleChecksums(this.useFlywayCompatibleChecksums)
 			.withTarget(this.target)
 			.withCypherVersion(this.cypherVersion)
+			.withPlaceholders(this.placeholders)
 			.build();
 
 		if (!forceSilence) {

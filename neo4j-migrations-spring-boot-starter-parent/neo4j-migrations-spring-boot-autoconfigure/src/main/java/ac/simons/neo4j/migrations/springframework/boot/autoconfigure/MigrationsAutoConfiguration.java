@@ -103,7 +103,8 @@ public class MigrationsAutoConfiguration {
 			.withOutOfOrderAllowed(migrationsProperties.isOutOfOrder())
 			.withFlywayCompatibleChecksums(migrationsProperties.isUseFlywayCompatibleChecksums())
 			.withTarget(migrationsProperties.getTarget())
-			.withCypherVersion(migrationsProperties.getCypherVersion());
+			.withCypherVersion(migrationsProperties.getCypherVersion())
+			.withPlaceholders(migrationsProperties.getPlaceholders());
 		configBuilderCustomizers.orderedStream().forEach(customizer -> customizer.customize(builder));
 		return builder.build();
 	}

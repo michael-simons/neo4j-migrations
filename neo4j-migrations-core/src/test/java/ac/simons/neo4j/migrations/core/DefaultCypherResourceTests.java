@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import ac.simons.neo4j.migrations.test_resources.TestResources;
@@ -367,6 +368,89 @@ class DefaultCypherResourceTests {
 
 		assertThatExceptionOfType(MigrationsException.class)
 			.isThrownBy(() -> DefaultCypherResource.getTransactionMode(query));
+	}
+
+	@Test
+	void shouldResolvePlaceholders() {
+		Map<String, String> placeholders = Map.of("MyLabel", "Person", "propName", "name");
+		String statement = "CREATE (n:`${nm:MyLabel}` {`${nm:propName}`: 'test'}) RETURN n";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("CREATE (n:`Person` {`name`: 'test'}) RETURN n");
+	}
+
+	@Test
+	void shouldResolveMultiplePlaceholdersInSameStatement() {
+		Map<String, String> placeholders = Map.of("a", "1", "b", "2", "c", "3");
+		String statement = "RETURN '${nm:a}', '${nm:b}', '${nm:c}'";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("RETURN '1', '2', '3'");
+	}
+
+	@Test
+	void shouldReturnStatementUnchangedWhenNoPlaceholders() {
+		Map<String, String> placeholders = Map.of("key", "value");
+		String statement = "MATCH (n) RETURN n";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("MATCH (n) RETURN n");
+	}
+
+	@Test
+	void shouldThrowOnUnresolvedPlaceholder() {
+		Map<String, String> placeholders = Map.of("defined", "value");
+		String statement = "CREATE (n:`${nm:undefined}`) RETURN n";
+		assertThatExceptionOfType(MigrationsException.class)
+			.isThrownBy(() -> DefaultCypherResource.resolvePlaceholders(statement, placeholders))
+			.withMessageContaining("No value configured for placeholder \"${nm:undefined}\"");
+	}
+
+	@Test
+	void shouldResolveListOfStatements() {
+		Map<String, String> placeholders = Map.of("label", "Person");
+		List<String> statements = List.of("CREATE (n:`${nm:label}`) RETURN n", "MATCH (n:`${nm:label}`) RETURN n");
+		List<String> resolved = DefaultCypherResource.resolvePlaceholders(statements, placeholders);
+		assertThat(resolved).containsExactly("CREATE (n:`Person`) RETURN n", "MATCH (n:`Person`) RETURN n");
+	}
+
+	@Test
+	void shouldHandleSpecialReplacementCharacters() {
+		Map<String, String> placeholders = Map.of("val", "$1 backref");
+		String statement = "RETURN '${nm:val}'";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("RETURN '$1 backref'");
+	}
+
+	@Test
+	void placeholderNamesMustNotContainClosingBrace() {
+		Map<String, String> placeholders = Map.of("foo", "bar");
+		// ${nm:foo}bar} should resolve ${nm:foo} and leave bar} as literal text
+		String statement = "RETURN '${nm:foo}bar}'";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("RETURN 'barbar}'");
+	}
+
+	@Test
+	void shouldIgnorePlaceholderLikePatternWithInvalidName() {
+		Map<String, String> placeholders = Map.of("key", "value");
+		// Spaces, special characters etc. in the name should not be recognized
+		String statement = "RETURN '${nm:invalid name}', '${nm:also!invalid}', '${nm:key}'";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("RETURN '${nm:invalid name}', '${nm:also!invalid}', 'value'");
+	}
+
+	@Test
+	void shouldResolvePlaceholderNamesWithDotsHyphensAndUnderscores() {
+		Map<String, String> placeholders = Map.of("my.label", "Person", "env-name", "prod", "db_host", "localhost");
+		String statement = "CREATE (n:`${nm:my.label}` {env: '${nm:env-name}', host: '${nm:db_host}'}) RETURN n";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("CREATE (n:`Person` {env: 'prod', host: 'localhost'}) RETURN n");
+	}
+
+	@Test
+	void emptyPlaceholderNameShouldNotMatch() {
+		Map<String, String> placeholders = Map.of("key", "value");
+		String statement = "RETURN '${nm:}'";
+		String resolved = DefaultCypherResource.resolvePlaceholders(statement, placeholders);
+		assertThat(resolved).isEqualTo("RETURN '${nm:}'");
 	}
 
 }

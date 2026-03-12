@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import java.nio.charset.Charset;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import ac.simons.neo4j.migrations.core.Defaults;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
@@ -167,6 +169,15 @@ public class MigrationsProperties {
 	 * @since 2.15.0
 	 */
 	private String target;
+
+	/**
+	 * A map of placeholders to be replaced in Cypher scripts using the syntax
+	 * {@code ${nm:key}}. Programmatic placeholders take precedence over placeholders
+	 * defined via environment variables with the prefix {@code NM_PLACEHOLDERS_}.
+	 *
+	 * @since 3.3.0
+	 */
+	private Map<String, String> placeholders = new HashMap<>();
 
 	/**
 	 * {@return wether migrations are enabled or not}
@@ -454,6 +465,21 @@ public class MigrationsProperties {
 	 */
 	public void setCypherVersion(CypherVersion cypherVersion) {
 		this.cypherVersion = cypherVersion;
+	}
+
+	/**
+	 * {@return the configured placeholders}
+	 */
+	public Map<String, String> getPlaceholders() {
+		return this.placeholders;
+	}
+
+	/**
+	 * Configures the placeholders to use when resolving Cypher scripts.
+	 * @param placeholders a new value for {@link #placeholders}
+	 */
+	public void setPlaceholders(Map<String, String> placeholders) {
+		this.placeholders = placeholders;
 	}
 
 }

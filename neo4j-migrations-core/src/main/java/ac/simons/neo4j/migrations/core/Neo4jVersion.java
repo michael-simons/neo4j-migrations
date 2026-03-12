@@ -67,7 +67,7 @@ public enum Neo4jVersion {
 	/**
 	 * Constant when we assume the latest version.
 	 */
-	LATEST;
+	LATEST(false, "CYPHER 5 " + Neo4jVersion.NEW_SHOW_CONSTRAINTS, "CYPHER 5 " + Neo4jVersion.NEW_SHOW_INDEXES);
 
 	private static final String OLD_SHOW_CONSTRAINTS = "CALL db.constraints()";
 

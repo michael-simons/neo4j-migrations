@@ -114,8 +114,10 @@ final class MigrationsLock {
 				// the generated name anymore, so here's to that…
 				if (ex.getCause() instanceof Neo4jException n
 						&& "Neo.ClientError.Statement.SyntaxError".equals(n.code())) {
-					var name = session.executeRead(tx -> tx.run(
-							"SHOW CONSTRAINTS YIELD * WHERE type = $type AND entityType = $entityType AND properties = $properties RETURN name",
+					Neo4jVersion neo4jVersion = Neo4jVersion.of(cd.getServerVersion());
+					var name = session.executeRead(tx -> tx.run(((neo4jVersion != Neo4jVersion.LATEST) ? ""
+							: "CYPHER 5 ")
+							+ "SHOW CONSTRAINTS YIELD * WHERE type = $type AND entityType = $entityType AND properties = $properties RETURN name",
 							Map.of("type", translation.get(constraint.getType()), "entityType",
 									constraint.getTargetEntityType().name(), "properties", constraint.getProperties()))
 						.single()

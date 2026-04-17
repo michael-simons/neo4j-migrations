@@ -17,10 +17,13 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * A migrations version.
@@ -44,7 +47,7 @@ public final class MigrationVersion {
 
 	private final String value;
 
-	private final String description;
+	@Nullable private final String description;
 
 	/**
 	 * A flag indicating that this version can be safely repeated, even on checksum
@@ -53,7 +56,7 @@ public final class MigrationVersion {
 	 */
 	private final boolean repeatable;
 
-	private MigrationVersion(String value, String description, boolean repeatable) {
+	private MigrationVersion(String value, @Nullable String description, boolean repeatable) {
 		this.value = value;
 		this.description = description;
 		this.repeatable = repeatable;
@@ -101,14 +104,14 @@ public final class MigrationVersion {
 	 * @return an optional version to stop migrating at
 	 * @since 2.15.0
 	 */
-	static Optional<StopVersion> findTargetVersion(MigrationChain chain, String value) {
+	static Optional<StopVersion> findTargetVersion(MigrationChain chain, @Nullable String value) {
 
 		if (value == null) {
 			return Optional.empty();
 		}
 
 		try {
-			var upperCaseValue = value.trim().toUpperCase();
+			var upperCaseValue = value.trim().toUpperCase(Locale.ROOT);
 			boolean optional;
 			if (!upperCaseValue.endsWith("?")) {
 				optional = false;
@@ -164,7 +167,7 @@ public final class MigrationVersion {
 		return withValueAndDescription(value, null, repeatable);
 	}
 
-	static MigrationVersion withValueAndDescription(String value, String description, boolean repeatable) {
+	static MigrationVersion withValueAndDescription(String value, @Nullable String description, boolean repeatable) {
 
 		if (BASELINE_VALUE.equals(value)) {
 			return MigrationVersion.baseline();

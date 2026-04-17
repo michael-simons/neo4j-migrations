@@ -20,8 +20,10 @@ import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
@@ -39,18 +41,18 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 
 	private final MigrationType type;
 
-	private final String checksum;
+	@Nullable private final String checksum;
 
 	private final String version;
 
-	private final String description;
+	@Nullable private final String description;
 
 	private final String source;
 
-	private final InstallationInfo installationInfo;
+	@Nullable private final InstallationInfo installationInfo;
 
-	private DefaultMigrationChainElement(MigrationState state, MigrationType type, String checksum, String version,
-			String description, String source, InstallationInfo installationInfo) {
+	private DefaultMigrationChainElement(MigrationState state, MigrationType type, @Nullable String checksum,
+			String version, @Nullable String description, String source, @Nullable InstallationInfo installationInfo) {
 		this.state = state;
 		this.type = type;
 		this.checksum = checksum;
@@ -78,10 +80,16 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 			.plusNanos(storedExecutionTime.nanoseconds());
 
 		return new DefaultMigrationChainElement(MigrationState.APPLIED,
-				MigrationType.valueOf((String) properties.get("type")),
+				MigrationType.valueOf((String) getNullSafeProperty(properties, "type")),
 				migrationProperties.get("checksum").asString((String) properties.get("checksum")),
-				(String) properties.get("version"), (String) properties.get("description"),
-				(String) properties.get("source"), new InstallationInfo(installedOn, installedBy, executionTime));
+				(String) getNullSafeProperty(properties, "version"), (String) properties.get("description"),
+				(String) getNullSafeProperty(properties, "source"),
+				new InstallationInfo(installedOn, installedBy, executionTime));
+	}
+
+	private static Object getNullSafeProperty(Map<String, Object> properties, String name) {
+		return Objects.requireNonNull(properties.get(name),
+				() -> "Invalid migration node, no '%s' property".formatted(name));
 	}
 
 	static MigrationChain.Element pendingElement(Migration pendingMigration) {

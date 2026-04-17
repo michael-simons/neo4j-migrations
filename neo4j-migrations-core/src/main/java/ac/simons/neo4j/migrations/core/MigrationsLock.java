@@ -101,7 +101,7 @@ final class MigrationsLock {
 		var translation = Map.of(Constraint.Type.UNIQUE, "UNIQUENESS", Constraint.Type.KEY, "NODE_KEY");
 
 		String cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig);
-		Integer constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);
+		var constraintsDropped = HBD.silentDropConstraint(cd, session, cypher, null);
 		if (constraintsDropped == 0) {
 			// Enforce unnamed
 			cypher = CONSTRAINT_RENDERER.render(constraint, dropConfig.ignoreName());

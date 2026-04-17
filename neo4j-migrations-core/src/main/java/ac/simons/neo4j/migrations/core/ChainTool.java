@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -32,6 +33,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
 
@@ -72,7 +74,7 @@ final class ChainTool {
 		this.currentElements = currentChain.getElements().stream().collect(collector);
 	}
 
-	static Query generateMigrationDeletionQuery(String migrationTarget, MigrationVersion version) {
+	static Query generateMigrationDeletionQuery(@Nullable String migrationTarget, MigrationVersion version) {
 
 		var cypher = """
 				MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
@@ -112,7 +114,7 @@ final class ChainTool {
 		return result;
 	}
 
-	private List<Query> fixChecksums(String migrationTarget) {
+	private List<Query> fixChecksums(@Nullable String migrationTarget) {
 
 		var cypher = """
 				MATCH (m:__Neo4jMigration {version: $version, checksum: $oldChecksum})
@@ -133,14 +135,14 @@ final class ChainTool {
 			.toList();
 	}
 
-	private List<Query> deleteLocallyMissingMigrations(String migrationTarget) {
+	private List<Query> deleteLocallyMissingMigrations(@Nullable String migrationTarget) {
 
 		return findMissingSourceElements().stream()
 			.map(version -> generateMigrationDeletionQuery(migrationTarget, version))
 			.toList();
 	}
 
-	private List<Query> insertRemoteMissingMigrations(String migrationTarget, Optional<String> installedBy) {
+	private List<Query> insertRemoteMissingMigrations(@Nullable String migrationTarget, Optional<String> installedBy) {
 
 		var cypher = """
 				MATCH (pm:__Neo4jMigration {version: $previousVersion}) - [pr:MIGRATED_TO] -> (nm:__Neo4jMigration)
@@ -203,8 +205,9 @@ final class ChainTool {
 		sharedKeys.retainAll(this.currentElements.keySet());
 		return sharedKeys.stream()
 			.collect(Collectors.toMap(Function.identity(),
-					k -> new Pair(this.newElements.get(k), this.currentElements.get(k)), throwingMerger(),
-					() -> new TreeMap<>(this.versionComparator)));
+					k -> new Pair(Objects.requireNonNull(this.newElements.get(k)),
+							Objects.requireNonNull(this.currentElements.get(k))),
+					throwingMerger(), () -> new TreeMap<>(this.versionComparator)));
 	}
 
 	private Set<MigrationVersion> findMissingSourceElements() {

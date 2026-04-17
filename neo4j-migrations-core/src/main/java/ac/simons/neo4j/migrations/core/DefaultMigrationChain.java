@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Only implementation of a {@link MigrationChain}.
  *
@@ -43,7 +45,7 @@ final class DefaultMigrationChain implements MigrationChain {
 	}
 
 	@Override
-	public String getServerVersion() {
+	@Nullable public String getServerVersion() {
 		return this.connectionDetailsDelegate.getServerVersion();
 	}
 

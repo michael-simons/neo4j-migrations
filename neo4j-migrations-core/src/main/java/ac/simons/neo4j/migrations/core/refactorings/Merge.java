@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Refactoring that allows merging of entities.
  *
@@ -98,8 +100,8 @@ public sealed interface Merge extends Refactoring permits DefaultMerge {
 			return this.pattern;
 		}
 
-		Object apply(List<Object> values) {
-			if (values.isEmpty()) {
+		@Nullable Object apply(@Nullable List<Object> values) {
+			if (values == null || values.isEmpty()) {
 				return null;
 			}
 			return switch (this.strategy) {
@@ -111,13 +113,9 @@ public sealed interface Merge extends Refactoring permits DefaultMerge {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
+			if (!(o instanceof PropertyMergePolicy that)) {
 				return false;
 			}
-			PropertyMergePolicy that = (PropertyMergePolicy) o;
 			return this.pattern.pattern().equals(that.pattern.pattern()) && this.strategy == that.strategy;
 		}
 

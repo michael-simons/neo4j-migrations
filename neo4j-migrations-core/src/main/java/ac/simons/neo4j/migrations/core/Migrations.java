@@ -43,6 +43,7 @@ import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
@@ -96,10 +97,10 @@ public final class Migrations {
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
 
 	@SuppressWarnings("squid:S3077")
-	private volatile List<Migration> resolvedMigrations;
+	@Nullable private volatile List<Migration> resolvedMigrations;
 
 	@SuppressWarnings("squid:S3077")
-	private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
+	@Nullable private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
 
 	/**
 	 * Creates a {@link Migrations migrations instance} ready to used with the given
@@ -726,8 +727,8 @@ public final class Migrations {
 		}, null, null, true);
 	}
 
-	private <T> T executeWithinLock(Supplier<T> executable, LifecyclePhase before, LifecyclePhase after,
-			boolean doLock) {
+	private <T> T executeWithinLock(Supplier<T> executable, @Nullable LifecyclePhase before,
+			@Nullable LifecyclePhase after, boolean doLock) {
 
 		this.driver.verifyConnectivity();
 
@@ -764,7 +765,7 @@ public final class Migrations {
 	 * Invokes callbacks.
 	 * @param phase can be {@literal null}, no callback will be involved then
 	 */
-	private void invokeCallbacks(LifecyclePhase phase) {
+	private void invokeCallbacks(@Nullable LifecyclePhase phase) {
 
 		if (phase == null) {
 			return;

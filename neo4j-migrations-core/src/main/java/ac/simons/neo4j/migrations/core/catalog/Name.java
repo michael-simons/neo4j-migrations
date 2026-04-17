@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The unique id of an {@link CatalogItem item}.
@@ -33,7 +34,7 @@ public sealed interface Name permits AbstractName {
 	 * @param value the value of the name
 	 * @return a name
 	 */
-	static Name of(String value) {
+	static Name of(@Nullable String value) {
 		return (value != null) ? new DefaultName(value) : DefaultName.EMPTY;
 	}
 
@@ -50,7 +51,7 @@ public sealed interface Name permits AbstractName {
 	 * @return a generated name
 	 */
 	static Name generate(Class<?> classType, ItemType itemType, TargetEntityType targetEntityType, String identifier,
-			Collection<String> properties, String options) {
+			Collection<String> properties, @Nullable String options) {
 
 		String src = String.format("{type=%s, targetEntity=%s, identifier='%s', properties='%s'%s}", itemType,
 				targetEntityType, identifier, String.join(",", properties),
@@ -65,6 +66,6 @@ public sealed interface Name permits AbstractName {
 	/**
 	 * {@return the {@link String string representation} of this instance}
 	 */
-	String getValue();
+	@Nullable String getValue();
 
 }

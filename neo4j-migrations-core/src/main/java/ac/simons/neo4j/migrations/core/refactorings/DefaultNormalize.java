@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Values;
 
@@ -46,8 +47,8 @@ final class DefaultNormalize extends AbstractCustomizableRefactoring implements 
 		this(property, trueValues, falseValues, null, null);
 	}
 
-	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues, String customQuery,
-			Integer batchSize) {
+	private DefaultNormalize(String property, List<Object> trueValues, List<Object> falseValues,
+			@Nullable String customQuery, @Nullable Integer batchSize) {
 		super(customQuery, batchSize);
 
 		boolean nullIsTrue = trueValues.stream().anyMatch(DefaultNormalize::isNull);

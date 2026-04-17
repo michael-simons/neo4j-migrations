@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -47,7 +48,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	/**
 	 * Any additional options to be passed to the item. Might be {@literal null}.
 	 */
-	protected final String options;
+	@Nullable protected final String options;
 
 	/**
 	 * The unique name of this item.
@@ -75,8 +76,8 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	 */
 	private final Set<String> properties;
 
-	AbstractCatalogItem(String name, T type, TargetEntityType targetEntityType, String identifier,
-			Collection<String> properties, String options) {
+	AbstractCatalogItem(@Nullable String name, T type, TargetEntityType targetEntityType, String identifier,
+			Collection<String> properties, @Nullable String options) {
 
 		if (properties.isEmpty() && type != Index.Type.LOOKUP) {
 			throw new IllegalArgumentException("Constraints or indices require one or more properties.");
@@ -170,7 +171,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	 * @param constraintElement the element to extract options from
 	 * @return optional options
 	 */
-	static String extractOptions(Element constraintElement) {
+	@Nullable static String extractOptions(Element constraintElement) {
 		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
 		String options = null;
 		if (optionsElement.getLength() == 1) {
@@ -230,10 +231,9 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		if (this == o) {
 			return true;
 		}
-		if (o == null || getClass() != o.getClass()) {
+		if (!(o instanceof AbstractCatalogItem<?> that)) {
 			return false;
 		}
-		AbstractCatalogItem<?> that = (AbstractCatalogItem<?>) o;
 		return getName().equals(that.getName()) && getOptionalOptions().equals(that.getOptionalOptions())
 				&& isEquivalentTo(that);
 	}
@@ -275,7 +275,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 			Element newElement = document.createElement(XMLSchemaConstants.PROPERTY);
 			newElement.setTextContent(propertyValue);
 			if (this instanceof Constraint constraint && constraint.getType() == Constraint.Type.PROPERTY_TYPE) {
-				newElement.setAttribute("type", constraint.getPropertyType().getName());
+				newElement.setAttribute("type", Objects.requireNonNull(constraint.getPropertyType()).getName());
 			}
 			propertiesParentElement.appendChild(newElement);
 		}

@@ -84,7 +84,7 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 			rawVersions = rawVersions.replace("or", ",");
 
 			Set<String> formattedVersions = new TreeSet<>();
-			for (String rawVersion : rawVersions.split(",")) {
+			for (String rawVersion : rawVersions.split(",", -1)) {
 				String version = rawVersion.trim();
 				if (!VERSION_SUB_PATTERN.matcher(version).matches()) {
 					throw new IllegalArgumentException();
@@ -104,7 +104,7 @@ final class VersionPrecondition extends AbstractPrecondition implements Precondi
 	public boolean isMet(MigrationContext migrationContext) {
 		String serverVersion = migrationContext.getConnectionDetails().getServerVersion();
 		if (this.mode == Mode.EXACT) {
-			return this.versions.stream().anyMatch(serverVersion::startsWith);
+			return serverVersion != null && this.versions.stream().anyMatch(serverVersion::startsWith);
 		}
 		else {
 			return this.versions.stream().findFirst().map(version -> {

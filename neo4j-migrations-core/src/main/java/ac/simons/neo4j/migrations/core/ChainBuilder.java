@@ -58,11 +58,12 @@ final class ChainBuilder {
 			return true;
 		}
 
-		if (!(newMigration instanceof MigrationWithPreconditions) || !expectedChecksum.isPresent()) {
+		if (!(newMigration instanceof MigrationWithPreconditions migrationWithPreconditions)
+				|| expectedChecksum.isEmpty()) {
 			return false;
 		}
 
-		return ((MigrationWithPreconditions) newMigration).getAlternativeChecksums().contains(expectedChecksum.get());
+		return migrationWithPreconditions.getAlternativeChecksums().contains(expectedChecksum.get());
 	}
 
 	/**
@@ -97,8 +98,8 @@ final class ChainBuilder {
 		return new DefaultMigrationChain(context.getConnectionDetails(), elements);
 	}
 
-	@SuppressWarnings("squid:S3776") // Yep, this is a complex validation, but it still
-										// fits on one screen
+	// Yep, this is a complex validation, but it still fits on one screen
+	@SuppressWarnings("squid:S3776")
 	private Map<MigrationVersion, Element> buildChain0(MigrationContext context, List<Migration> discoveredMigrations,
 			boolean detailedCauses, ChainBuilderMode mode) {
 

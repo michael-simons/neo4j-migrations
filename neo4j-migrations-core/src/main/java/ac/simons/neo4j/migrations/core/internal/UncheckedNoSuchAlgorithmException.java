@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.internal;
 
+import java.io.Serial;
+
 /**
  * Unchecked analogue to {@link java.io.UncheckedIOException}.
  *
@@ -23,6 +25,7 @@ package ac.simons.neo4j.migrations.core.internal;
  */
 public final class UncheckedNoSuchAlgorithmException extends RuntimeException {
 
+	@Serial
 	private static final long serialVersionUID = 6879942930900663370L;
 
 	UncheckedNoSuchAlgorithmException(Throwable cause) {

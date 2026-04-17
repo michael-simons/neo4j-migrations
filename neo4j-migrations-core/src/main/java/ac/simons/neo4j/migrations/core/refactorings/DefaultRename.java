@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 
 /**
@@ -51,7 +52,8 @@ final class DefaultRename extends AbstractCustomizableRefactoring implements Ren
 		this(targetEntityType, oldValue, newValue, null, null);
 	}
 
-	private DefaultRename(Target target, String oldValue, String newValue, String customQuery, Integer batchSize) {
+	private DefaultRename(Target target, String oldValue, String newValue, @Nullable String customQuery,
+			@Nullable Integer batchSize) {
 		super(customQuery, batchSize);
 
 		this.target = target;

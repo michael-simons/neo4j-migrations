@@ -3,4 +3,7 @@
  * accessible when this project is used on the Java Module Path and are not subject to
  * semantic versioning.
  */
+@NullUnmarked
 package ac.simons.neo4j.migrations.core.internal;
+
+import org.jspecify.annotations.NullUnmarked;

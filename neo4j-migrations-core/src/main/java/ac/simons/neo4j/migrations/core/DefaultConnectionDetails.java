@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.core;
 import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@link ConnectionDetails}.
@@ -35,12 +36,12 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	private final String username;
 
-	private final String databaseName;
+	@Nullable private final String databaseName;
 
-	private final String schemaDatabaseName;
+	@Nullable private final String schemaDatabaseName;
 
 	DefaultConnectionDetails(String serverAddress, String serverVersion, String edition, String username,
-			String databaseName, String schemaDatabaseName) {
+			@Nullable String databaseName, @Nullable String schemaDatabaseName) {
 		this.serverAddress = serverAddress;
 		this.serverVersion = serverVersion;
 		this.edition = Strings.capitalize(edition);

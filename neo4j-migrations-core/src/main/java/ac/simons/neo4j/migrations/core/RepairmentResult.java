@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A {@link RepairmentResult} will be available after a successful attempt of repairing a
  * database. An attempt is considered successful no repairing was necessary or all errors
@@ -27,17 +29,17 @@ public final class RepairmentResult extends AbstractRepairmentResult {
 
 	private final Outcome outcome;
 
-	private RepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
-			long relationshipsCreated, long propertiesSet, Outcome outcome) {
+	private RepairmentResult(@Nullable String affectedDatabase, long nodesDeleted, long nodesCreated,
+			long relationshipsDeleted, long relationshipsCreated, long propertiesSet, Outcome outcome) {
 		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.outcome = outcome;
 	}
 
-	static RepairmentResult unnecessary(String affectedDatabase) {
+	static RepairmentResult unnecessary(@Nullable String affectedDatabase) {
 		return new RepairmentResult(affectedDatabase, 0, 0, 0, 0, 0, Outcome.NO_REPAIRMENT_NECESSARY);
 	}
 
-	static RepairmentResult repaired(String affectedDatabase, long nodesDeleted, long nodesCreated,
+	static RepairmentResult repaired(@Nullable String affectedDatabase, long nodesDeleted, long nodesCreated,
 			long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
 		return new RepairmentResult(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted,
 				relationshipsCreated, propertiesSet, Outcome.REPAIRED);

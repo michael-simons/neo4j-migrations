@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default catalog implementation.
@@ -63,9 +64,8 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	public void addAll(MigrationVersion version, Catalog other, boolean reset) {
 
 		WriteLock lock = this.locks.writeLock();
+		lock.lock();
 		try {
-			lock.lock();
-
 			if (reset) {
 				if (this.oldVersions.containsKey(version)) {
 					throw new IllegalArgumentException(
@@ -102,8 +102,8 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	private <T> T withReadLockGet(Supplier<T> s) {
 
 		ReadLock lock = this.locks.readLock();
+		lock.lock();
 		try {
-			lock.lock();
 			return s.get();
 		}
 		finally {
@@ -141,7 +141,11 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version) {
+	public Optional<CatalogItem<?>> getItemPriorTo(@Nullable Name name, @Nullable MigrationVersion version) {
+
+		if (version == null) {
+			return Optional.empty();
+		}
 
 		return withReadLockGet(() -> {
 			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = this.oldVersions.ceilingEntry(version);
@@ -171,7 +175,11 @@ class DefaultCatalog implements WriteableCatalog, VersionedCatalog {
 	}
 
 	@Override
-	public Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version) {
+	public Optional<CatalogItem<?>> getItem(@Nullable Name name, @Nullable MigrationVersion version) {
+
+		if (version == null) {
+			return Optional.empty();
+		}
 
 		return withReadLockGet(() -> {
 			Map.Entry<MigrationVersion, VersionedCatalog> oldEntry = this.oldVersions.higherEntry(version);

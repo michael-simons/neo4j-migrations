@@ -67,6 +67,7 @@ import ac.simons.neo4j.migrations.core.internal.ThrowingErrorHandler;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.Neo4jException;
@@ -627,9 +628,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	interface VersionSpecificOperation extends Operation {
 
 		/**
-		 * {@return the version at which this operation has been defined}
+		 * Returns the version at which this operation has been defined or {@literal null}
+		 * when backed by a local item.
+		 * @return an optional migration version
 		 */
-		MigrationVersion definedAt();
+		@Nullable MigrationVersion definedAt();
 
 	}
 
@@ -764,11 +767,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	private static class DefaultOperationBuilder<T extends Operation> implements OperationBuilder<T>, VerifyBuilder {
 
-		private final Operator operator;
+		@Nullable private final Operator operator;
 
-		private Name reference;
+		@Nullable private Name reference;
 
-		private CatalogItem<?> item;
+		@Nullable private CatalogItem<?> item;
 
 		private boolean idempotent;
 
@@ -778,7 +781,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		private boolean includingOptions = false;
 
-		DefaultOperationBuilder(final Operator operator) {
+		DefaultOperationBuilder(@Nullable final Operator operator) {
 			this.operator = operator;
 		}
 
@@ -866,16 +869,16 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	private abstract static class AbstractItemBasedOperation
 			implements VersionSpecificOperation, ItemSpecificOperation {
 
-		protected final MigrationVersion definedAt;
+		@Nullable protected final MigrationVersion definedAt;
 
-		protected final Name reference;
+		@Nullable protected final Name reference;
 
-		protected final CatalogItem<?> localItem;
+		@Nullable protected final CatalogItem<?> localItem;
 
 		protected final boolean idempotent;
 
-		AbstractItemBasedOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> localItem,
-				boolean idempotent) {
+		AbstractItemBasedOperation(@Nullable MigrationVersion definedAt, @Nullable Name reference,
+				@Nullable CatalogItem<?> localItem, boolean idempotent) {
 
 			if (definedAt == null && localItem == null) {
 				throw new IllegalArgumentException("Without a version, a concrete, local item is required.");
@@ -890,11 +893,12 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 			this.idempotent = idempotent;
 		}
 
-		@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want
-											// here
+		// Generic items, this is exactly what we want here
+		// DataFlow / NullAway: When we end up orElseThrow,
+		// preconditions have been asserted via constructor
+		@SuppressWarnings({ "squid:S1452", "NullAway", "DataFlowIssue" })
 		CatalogItem<?> getRequiredItem(VersionedCatalog catalog) {
 
-			// I want Java9+ and better optionals, so that I can or them
 			if (this.localItem != null) {
 				return this.localItem;
 			}
@@ -906,7 +910,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 		}
 
 		@Override
-		public MigrationVersion definedAt() {
+		@Nullable public MigrationVersion definedAt() {
 			return this.definedAt;
 		}
 
@@ -927,7 +931,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	 */
 	static final class DefaultCreateOperation extends AbstractItemBasedOperation implements CreateOperation {
 
-		DefaultCreateOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> item, boolean idempotent) {
+		DefaultCreateOperation(@Nullable MigrationVersion definedAt, @Nullable Name reference,
+				@Nullable CatalogItem<?> item, boolean idempotent) {
 			super(definedAt, reference, item, idempotent);
 		}
 
@@ -986,7 +991,8 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	 */
 	static final class DefaultDropOperation extends AbstractItemBasedOperation implements DropOperation {
 
-		DefaultDropOperation(MigrationVersion definedAt, Name reference, CatalogItem<?> item, boolean idempotent) {
+		DefaultDropOperation(@Nullable MigrationVersion definedAt, @Nullable Name reference,
+				@Nullable CatalogItem<?> item, boolean idempotent) {
 			super(definedAt, reference, item, idempotent);
 		}
 

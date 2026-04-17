@@ -36,6 +36,7 @@ import ac.simons.neo4j.migrations.core.catalog.Constraint;
 import ac.simons.neo4j.migrations.core.catalog.Index;
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Value;
@@ -93,8 +94,9 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 		this(false, null, null, null, null);
 	}
 
-	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, String suffix, Map<String, Index.Type> typeMapping,
-			Collection<String> excludes, Collection<String> includes) {
+	DefaultMigrateBTreeIndexes(boolean dropOldIndexes, @Nullable String suffix,
+			@Nullable Map<String, Index.Type> typeMapping, @Nullable Collection<String> excludes,
+			@Nullable Collection<String> includes) {
 
 		this.dropOldIndexes = dropOldIndexes;
 		this.suffix = ((suffix != null) && !suffix.trim().isEmpty()) ? suffix.trim() : DEFAULT_SUFFIX;
@@ -275,7 +277,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	}
 
 	@Override
-	public MigrateBTreeIndexes withExcludes(Collection<String> newExcludes) {
+	public MigrateBTreeIndexes withExcludes(@Nullable Collection<String> newExcludes) {
 		if (Objects.equals(this.excludes, newExcludes)
 				|| ((newExcludes == null || newExcludes.isEmpty()) && this.excludes.isEmpty())) {
 			return this;
@@ -286,7 +288,7 @@ final class DefaultMigrateBTreeIndexes implements MigrateBTreeIndexes {
 	}
 
 	@Override
-	public MigrateBTreeIndexes withIncludes(Collection<String> newIncludes) {
+	public MigrateBTreeIndexes withIncludes(@Nullable Collection<String> newIncludes) {
 		if (Objects.equals(this.includes, newIncludes)
 				|| ((newIncludes == null || newIncludes.isEmpty()) && this.includes.isEmpty())) {
 			return this;

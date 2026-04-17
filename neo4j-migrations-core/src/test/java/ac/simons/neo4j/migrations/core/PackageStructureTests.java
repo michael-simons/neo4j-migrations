@@ -75,15 +75,13 @@ class PackageStructureTests {
 			.resideInAPackage("..internal..")
 			.should()
 			.dependOnClassesThat(resideOutsideOfPackages("..internal", "java..", "javax..", "org.xml..", "org.w3c..",
-					"org.neo4j.cypherdsl.support.schema_name.." // That will be shaded
-																// anyway into the same
-																// internal package
-			).and(areNotPrimitives()));
+					"org.neo4j.cypherdsl.support.schema_name..", "org.jspecify.annotations..")
+				.and(areNotPrimitives()));
 		rule.check(this.coreClasses);
 	}
 
 	DescribedPredicate<JavaClass> areNotPrimitives() {
-		return not(new DescribedPredicate<JavaClass>("Should be a primitive") {
+		return not(new DescribedPredicate<>("Should be a primitive") {
 			@Override
 			public boolean test(JavaClass input) {
 				return input.isPrimitive() || (input.isArray() && input.getBaseComponentType().isPrimitive());

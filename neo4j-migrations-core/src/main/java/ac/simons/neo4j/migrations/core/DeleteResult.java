@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A {@link DeleteResult} will be created after using
  * {@link Migrations#delete(MigrationVersion)} for deleting one single migration. It
@@ -28,10 +30,10 @@ import java.util.Optional;
  */
 public final class DeleteResult extends AbstractRepairmentResult {
 
-	private final MigrationVersion version;
+	@Nullable private final MigrationVersion version;
 
-	DeleteResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
-			long relationshipsCreated, long propertiesSet, MigrationVersion version) {
+	DeleteResult(@Nullable String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
+			long relationshipsCreated, long propertiesSet, @Nullable MigrationVersion version) {
 		super(affectedDatabase, nodesDeleted, nodesCreated, relationshipsDeleted, relationshipsCreated, propertiesSet);
 		this.version = version;
 	}
@@ -51,6 +53,7 @@ public final class DeleteResult extends AbstractRepairmentResult {
 	}
 
 	@Override
+	@SuppressWarnings({ "NullAway", "DataFlowIssue" })
 	public String prettyPrint() {
 
 		if (!isDatabaseChanged()) {

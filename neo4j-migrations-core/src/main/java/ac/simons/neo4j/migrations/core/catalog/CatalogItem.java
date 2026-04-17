@@ -18,6 +18,8 @@ package ac.simons.neo4j.migrations.core.catalog;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * An item in the catalog (of either a single migration or the whole context with the
  * merged catalog).
@@ -59,7 +61,7 @@ public sealed interface CatalogItem<T extends ItemType> permits AbstractCatalogI
 	 * @return a (potentially) new item
 	 * @since 1.13.0
 	 */
-	default CatalogItem<T> withName(String name) {
+	default CatalogItem<T> withName(@Nullable String name) {
 		throw new UnsupportedOperationException();
 	}
 

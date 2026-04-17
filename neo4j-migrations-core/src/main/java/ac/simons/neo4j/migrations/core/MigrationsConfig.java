@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.internal.Strings;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.DatabaseInfo;
@@ -50,14 +51,14 @@ public final class MigrationsConfig {
 	/**
 	 * The database to migrate.
 	 */
-	private final String database;
+	private final @Nullable String database;
 
 	/**
 	 * The database to store the schema in.
 	 */
-	private final String schemaDatabase;
+	private final @Nullable String schemaDatabase;
 
-	private final String impersonatedUser;
+	private final @Nullable String impersonatedUser;
 
 	private final String installedBy;
 
@@ -72,17 +73,17 @@ public final class MigrationsConfig {
 	/**
 	 * A configurable delay that will be applied in between applying two migrations.
 	 */
-	private final Duration delayBetweenMigrations;
+	private final @Nullable Duration delayBetweenMigrations;
 
 	private final List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions;
 
 	private final VersionSortOrder versionSortOrder;
 
-	private final Duration transactionTimeout;
+	private final @Nullable Duration transactionTimeout;
 
 	private final boolean outOfOrder;
 
-	private final String target;
+	private final @Nullable String target;
 
 	private final boolean useFlywayCompatibleChecksums;
 
@@ -268,10 +269,10 @@ public final class MigrationsConfig {
 	/**
 	 * Returns the transaction timeout, <code>null</code> indicates all transactions will
 	 * use the drivers default timeout.
-	 * @return the transaction tineout
+	 * @return the transaction timeout
 	 * @since 2.13.0
 	 */
-	public Duration getTransactionTimeout() {
+	public @Nullable Duration getTransactionTimeout() {
 		return this.transactionTimeout;
 	}
 
@@ -290,7 +291,7 @@ public final class MigrationsConfig {
 	 * {@return a valid target version or one of three dedicated values}
 	 * @since 2.15.0
 	 */
-	public String getTarget() {
+	public @Nullable String getTarget() {
 		return this.target;
 	}
 
@@ -495,52 +496,51 @@ public final class MigrationsConfig {
 	 */
 	public static final class Builder {
 
-		private String[] packagesToScan;
+		private String @Nullable [] packagesToScan;
 
-		private String[] locationsToScan;
+		private String @Nullable [] locationsToScan;
 
-		private TransactionMode transactionMode;
+		private @Nullable TransactionMode transactionMode;
 
-		private String database;
+		private @Nullable String database;
 
-		private String impersonatedUser;
+		private @Nullable String impersonatedUser;
 
-		private String installedBy;
+		private @Nullable String installedBy;
 
 		private boolean validateOnMigrate = Defaults.VALIDATE_ON_MIGRATE;
 
 		private boolean autocrlf = Defaults.AUTOCRLF;
 
-		private String schemaDatabase;
+		private @Nullable String schemaDatabase;
 
-		private Discoverer<JavaBasedMigration> migrationClassesDiscoverer;
+		private @Nullable Discoverer<JavaBasedMigration> migrationClassesDiscoverer;
 
-		private ClasspathResourceScanner resourceScanner;
+		private @Nullable ClasspathResourceScanner resourceScanner;
 
-		private Duration delayBetweenMigrations;
+		private @Nullable Duration delayBetweenMigrations;
 
 		private List<? extends RenderConfig.AdditionalRenderingOptions> constraintOptions = List.of();
 
 		private VersionSortOrder versionSortOrder = Defaults.VERSION_SORT_ORDER;
 
-		private Duration transactionTimeout;
+		private @Nullable Duration transactionTimeout;
 
 		private boolean outOfOrder = Defaults.OUT_OF_ORDER;
 
-		private String target;
+		private @Nullable String target;
 
 		private boolean useFlywayCompatibleChecksums = Defaults.USE_FLYWAY_COMPATIBLE_CHECKSUMS;
 
-		private CypherVersion cypherVersion = Defaults.CYPHER_VERSION;
+		private @Nullable CypherVersion cypherVersion = Defaults.CYPHER_VERSION;
 
-		private Map<String, String> placeholders;
+		private @Nullable Map<String, String> placeholders;
 
 		private Builder() {
 			// The explicit constructor has been added to avoid warnings when
-			// Neo4j-Migrations
-			// is used on the module path. JMS will complain about Builder being exported
-			// with
-			// a public visible, implicit constructor.
+			// Neo4j-Migrations is used on the module path. JMS will complain
+			// about Builder being exported with a public visible,
+			// implicit constructor.
 		}
 
 		/**
@@ -611,7 +611,7 @@ public final class MigrationsConfig {
 		 * the ones available locally and is on by default. It can be turned off by using
 		 * a configuration with {@link MigrationsConfig#isValidateOnMigrate()} to
 		 * {@literal false}.
-		 * @param newValidateOnMigrate the new value for {@code validateOnMigrate}.
+		 * @param newValidateOnMigrate the new value for <code>validateOnMigrate</code>
 		 * @return the builder for further customization
 		 * @since 0.2.1
 		 */
@@ -802,7 +802,7 @@ public final class MigrationsConfig {
 		 * @return the builder for further customization
 		 * @since 2.19.0
 		 */
-		public Builder withCypherVersion(CypherVersion newCypherVersion) {
+		public Builder withCypherVersion(@Nullable CypherVersion newCypherVersion) {
 			this.cypherVersion = newCypherVersion;
 			return this;
 		}
@@ -817,7 +817,7 @@ public final class MigrationsConfig {
 		 * @return the builder for further customization
 		 * @since 3.3.0
 		 */
-		public Builder withPlaceholders(Map<String, String> newPlaceholders) {
+		public Builder withPlaceholders(@Nullable Map<String, String> newPlaceholders) {
 			this.placeholders = (newPlaceholders != null) ? Map.copyOf(newPlaceholders) : null;
 			return this;
 		}

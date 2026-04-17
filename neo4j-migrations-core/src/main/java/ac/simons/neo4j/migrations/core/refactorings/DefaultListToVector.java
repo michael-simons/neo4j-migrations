@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 
 final class DefaultListToVector extends AbstractCustomizableRefactoring implements ListToVector {
@@ -39,8 +40,8 @@ final class DefaultListToVector extends AbstractCustomizableRefactoring implemen
 
 	private final QueryRunner.FeatureSet featureSet;
 
-	DefaultListToVector(Target target, Collection<String> identifiers, String property, String customQuery,
-			Integer batchSize, ElementType elementType) {
+	DefaultListToVector(Target target, @Nullable Collection<String> identifiers, @Nullable String property,
+			@Nullable String customQuery, @Nullable Integer batchSize, @Nullable ElementType elementType) {
 		super(customQuery, batchSize);
 		this.target = Objects.requireNonNull(target);
 		this.identifiers = (identifiers != null)

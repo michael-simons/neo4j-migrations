@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Renders indexes (supported operators are {@link Operator#CREATE} and
@@ -53,7 +54,10 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 	private static final Pattern UNESCAPED_QUOTE = Pattern.compile("(?<!\\\\)'");
 
-	private static final UnaryOperator<String> TO_LITERAL = v -> {
+	private static final UnaryOperator<@Nullable String> TO_LITERAL = v -> {
+		if (v == null) {
+			return "NULL";
+		}
 		String result = UNESCAPED_QUOTE.matcher(v.replace(ESCAPED_UNICODE_QUOTE, "'")).replaceAll("\\\\'");
 		return "'" + result + "'";
 	};
@@ -154,8 +158,8 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 		}
 	}
 
-	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version, String indexName,
-			String identifier) {
+	private String renderCreateFulltext(Index index, RenderConfig config, Neo4jVersion version,
+			@Nullable String indexName, String identifier) {
 
 		String safeName;
 		if (RANGE_35_TO_42.contains(version)) {

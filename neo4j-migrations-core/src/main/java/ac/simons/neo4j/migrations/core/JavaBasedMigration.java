@@ -69,6 +69,7 @@ public non-sealed interface JavaBasedMigration extends Migration {
 	 * @return {@literal true} if this is a repeatable migration
 	 * @since 2.0.0
 	 */
+	@Override
 	default boolean isRepeatable() {
 		return getVersion().isRepeatable();
 	}

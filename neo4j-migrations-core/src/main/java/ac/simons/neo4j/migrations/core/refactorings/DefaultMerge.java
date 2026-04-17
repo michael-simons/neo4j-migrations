@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
@@ -98,12 +99,13 @@ final class DefaultMerge implements Merge {
 			return Optional.empty();
 		}
 		// using insertion order for maps so that query generation is deterministic
-		Map<String, Object> combinedProperties = new LinkedHashMap<>(rows.size());
+		Map<String, @Nullable Object> combinedProperties = new LinkedHashMap<>(rows.size());
 		for (Map<String, ?> row : rows) {
 			for (Map.Entry<String, ?> entry : row.entrySet()) {
 				@SuppressWarnings("unchecked")
 				Map<String, Object> property = (Map<String, Object>) entry.getValue();
-				String propertyName = (String) property.get("key");
+				String propertyName = Objects.requireNonNull((String) property.get("key"),
+						"Property to merge on must be defined");
 				@SuppressWarnings("unchecked")
 				List<Object> aggregatedPropertyValues = (List<Object>) property.get("values");
 				Object value = findPolicy(policies, propertyName)
@@ -176,7 +178,7 @@ final class DefaultMerge implements Merge {
 	}
 
 	private static Optional<Query> generateNodeDeletion(Ids ids) {
-		return Optional.of(new Query(("MATCH (n) WHERE elementId(n) IN $ids DETACH DELETE n"),
+		return Optional.of(new Query("MATCH (n) WHERE elementId(n) IN $ids DETACH DELETE n",
 				Collections.singletonMap("ids", ids.tail)));
 	}
 
@@ -231,7 +233,7 @@ final class DefaultMerge implements Merge {
 		return Objects.hash(this.query, this.mergePolicies);
 	}
 
-	private record Ids(List<String> value, String first, List<String> tail) {
+	private record Ids(List<String> value, @Nullable String first, List<String> tail) {
 
 		static Ids of(List<String> ids) {
 			if (ids.isEmpty()) {

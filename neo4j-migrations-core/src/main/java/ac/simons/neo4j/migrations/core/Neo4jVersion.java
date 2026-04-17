@@ -21,6 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 
 /**
@@ -117,7 +118,7 @@ public enum Neo4jVersion {
 	 * @param version a version string
 	 * @return a version
 	 */
-	public static Neo4jVersion of(String version) {
+	public static Neo4jVersion of(@Nullable String version) {
 
 		String value = (version != null) ? version.replaceFirst("(?i)Neo4j[/:]", "") : null;
 		if (value == null) {
@@ -244,7 +245,7 @@ public enum Neo4jVersion {
 		if (this == LATEST || this == UNDEFINED) {
 			return -1;
 		}
-		String[] parts = this.name().split("_");
+		String[] parts = this.name().split("_", -1);
 		if (parts.length != 2) {
 			return -1;
 		}
@@ -254,12 +255,12 @@ public enum Neo4jVersion {
 	/**
 	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a
 	 * valid Cypher identifier, fitting the given version.
-	 * @param potentiallyNonIdentifier a value to escape, must not be {@literal null} or
-	 * blank
+	 * @param potentiallyNonIdentifier a value to escape; the same value will be returned
+	 * if {@literal null} or empty
 	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
-	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+	@Nullable public String sanitizeSchemaName(@Nullable String potentiallyNonIdentifier) {
 
 		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.isEmpty()) {
 			return potentiallyNonIdentifier;

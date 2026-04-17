@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import ac.simons.neo4j.migrations.core.catalog.Index;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Migrates existing B-tree indexes and constraints backed by such indexes to Neo4j 5.0+
@@ -61,7 +62,7 @@ public sealed interface MigrateBTreeIndexes extends Refactoring permits DefaultM
 	 * @param suffix the suffix to use
 	 * @return the refactoring ready to use
 	 */
-	static MigrateBTreeIndexes createFutureIndexes(String suffix) {
+	static MigrateBTreeIndexes createFutureIndexes(@Nullable String suffix) {
 		return new DefaultMigrateBTreeIndexes(false, suffix, Collections.emptyMap(), Collections.emptyList(),
 				Collections.emptyList());
 	}
@@ -91,7 +92,7 @@ public sealed interface MigrateBTreeIndexes extends Refactoring permits DefaultM
 	 * @param excludes indexes and constraints to ignore
 	 * @return the refactoring ready to use
 	 */
-	MigrateBTreeIndexes withExcludes(Collection<String> excludes);
+	MigrateBTreeIndexes withExcludes(@Nullable Collection<String> excludes);
 
 	/**
 	 * Configures an include list. An empty or {@literal null} value disables the
@@ -100,6 +101,6 @@ public sealed interface MigrateBTreeIndexes extends Refactoring permits DefaultM
 	 * @param newIncludes new includes
 	 * @return the refactoring ready to use
 	 */
-	MigrateBTreeIndexes withIncludes(Collection<String> newIncludes);
+	MigrateBTreeIndexes withIncludes(@Nullable Collection<String> newIncludes);
 
 }

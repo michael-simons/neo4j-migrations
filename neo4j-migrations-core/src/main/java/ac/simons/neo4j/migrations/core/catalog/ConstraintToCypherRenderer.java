@@ -23,6 +23,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.Formattable;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -258,7 +259,8 @@ enum ConstraintToCypherRenderer implements Renderer<Constraint> {
 		String properties = renderProperties(version, variable, constraint);
 
 		return String.format("CREATE %#s %sFOR " + templateFragment + " REQUIRE %s IS :: %s", item,
-				config.ifNotExistsOrEmpty(), variable, identifier, properties, constraint.getPropertyType().getName());
+				config.ifNotExistsOrEmpty(), variable, identifier, properties,
+				Objects.requireNonNull(constraint.getPropertyType()).getName());
 	}
 
 	private String renderUniqueConstraint(Constraint constraint, RenderConfig config) {

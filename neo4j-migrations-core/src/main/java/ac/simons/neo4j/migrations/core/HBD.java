@@ -16,12 +16,14 @@
 package ac.simons.neo4j.migrations.core;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import ac.simons.neo4j.migrations.core.internal.Neo4jVersionComparator;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.Neo4jException;
@@ -53,7 +55,7 @@ final class HBD {
 	}
 
 	static Integer silentCreateConstraintOrIndex(ConnectionDetails connectionDetails, Session session, String statement,
-			String name, Supplier<String> failureMessage) {
+			@Nullable String name, Supplier<String> failureMessage) {
 
 		String finalStatement;
 		String replacement = "";
@@ -69,7 +71,7 @@ final class HBD {
 		catch (Neo4jException ex) {
 			var expectedMessages = Set.of("Invalid constraint syntax, ON and ASSERT should not be used",
 					"Invalid input 'ON'", "Invalid input '(': expected 'IF NOT EXISTS' or 'FOR'");
-			if (Neo4jCodes.SYNTAX_ERROR.equals(ex.code())
+			if (Neo4jCodes.SYNTAX_ERROR.equals(ex.code()) && ex.getMessage() != null
 					&& expectedMessages.stream().anyMatch(m -> ex.getMessage().startsWith(m))) {
 				// This should by all means not happen, since this method is used outside
 				// testing only with proper rendered constraints
@@ -86,7 +88,7 @@ final class HBD {
 	}
 
 	static Integer silentDropConstraint(ConnectionDetails connectionDetails, Session session, String statement,
-			String name) {
+			@Nullable String name) {
 
 		String finalStatement;
 		if ((is4xSeries(connectionDetails) || Neo4jVersion.of(connectionDetails.getServerVersion()).is5OrHigher())
@@ -144,7 +146,7 @@ final class HBD {
 			return false;
 		}
 
-		return e.getMessage()
+		return Objects.requireNonNullElse(e.getMessage(), "")
 			.toLowerCase(Locale.ROOT)
 			.contains("constraint requires Neo4j Enterprise Edition".toLowerCase(Locale.ROOT));
 	}

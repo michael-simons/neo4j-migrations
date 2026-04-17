@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
@@ -44,6 +45,7 @@ import java.util.zip.CRC32;
 import ac.simons.neo4j.migrations.core.MigrationsConfig.CypherVersion;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.refactorings.Counters;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.SimpleQueryRunner;
@@ -128,9 +130,9 @@ final class DefaultCypherResource implements CypherResource {
 	 * locking into an unmodifiable list, see {@link #readStatements()}.
 	 */
 	@SuppressWarnings("squid:S3077")
-	private volatile List<String> statements;
+	@Nullable private volatile List<String> statements;
 
-	private volatile String checksum;
+	@Nullable private volatile String checksum;
 
 	DefaultCypherResource(String identifier, boolean autocrlf, boolean useFlywayCompatibleChecksums,
 			Supplier<InputStream> inputStreamSupplier) {
@@ -142,7 +144,7 @@ final class DefaultCypherResource implements CypherResource {
 	}
 
 	private static String filterBomFromString(String s) {
-		if (s == null || s.isEmpty()) {
+		if (s.isEmpty()) {
 			return s;
 		}
 
@@ -175,7 +177,7 @@ final class DefaultCypherResource implements CypherResource {
 		}
 		boolean notAComment;
 		Stream.Builder<String> builder = Stream.builder();
-		for (String line : statement.split(Strings.LINE_DELIMITER)) {
+		for (String line : statement.split(Strings.LINE_DELIMITER, -1)) {
 			line = line.trim();
 			notAComment = !line.startsWith(Strings.CYPHER_SINGLE_LINE_COMMENT);
 			if (notAComment) {
@@ -412,7 +414,8 @@ final class DefaultCypherResource implements CypherResource {
 	private String flywayCompatChecksum() {
 		final CRC32 crc32 = new CRC32();
 
-		try (var bufferedReader = new BufferedReader(new InputStreamReader(this.inputStreamSupplier.get()), 4096)) {
+		try (var bufferedReader = new BufferedReader(
+				new InputStreamReader(this.inputStreamSupplier.get(), StandardCharsets.UTF_8), 4096)) {
 			String line = bufferedReader.readLine();
 
 			if (line != null) {
@@ -428,7 +431,7 @@ final class DefaultCypherResource implements CypherResource {
 					"Unable to calculate checksum of " + this.identifier + "\r\n" + ex.getMessage(), ex);
 		}
 		// Yeah, this is fucked up, but flyway does that too…
-		return Integer.toString((int) (crc32.getValue()));
+		return Integer.toString((int) crc32.getValue());
 	}
 
 	/**
@@ -443,8 +446,13 @@ final class DefaultCypherResource implements CypherResource {
 	 * @param filter a filter to apply when selecting the statements
 	 * @return a filtered list of statements
 	 */
-	List<String> getStatements(Predicate<String> filter) {
+	List<String> getStatements(@Nullable Predicate<String> filter) {
 
+		List<String> availableStatements = getStatements0();
+		return (filter != null) ? availableStatements.stream().filter(filter).toList() : availableStatements;
+	}
+
+	private List<String> getStatements0() {
 		List<String> availableStatements = this.statements;
 		if (availableStatements == null) {
 			synchronized (this) {
@@ -455,7 +463,7 @@ final class DefaultCypherResource implements CypherResource {
 				}
 			}
 		}
-		return (filter != null) ? availableStatements.stream().filter(filter).toList() : availableStatements;
+		return Objects.requireNonNull(availableStatements, "Statements could not be initialized");
 	}
 
 	/**

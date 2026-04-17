@@ -21,8 +21,8 @@ import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 
 /**
- * A simplification over a standard {@see org.neo4j.driver.QueryRunner}. This query runner
- * here is also autocloseable and can and should be treated as such.
+ * A simplification over a standard see {@link org.neo4j.driver.QueryRunner}. This query
+ * runner here is also autocloseable and can and should be treated as such.
  *
  * @author Michael J. Simons
  * @since 1.10.0

@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * The result of the {@link Migrations#validate} operation.
  *
@@ -36,7 +38,7 @@ public final class ValidationResult implements DatabaseOperationResult {
 	private static final Set<Outcome> NEEDS_REPAIR = EnumSet.of(Outcome.INCOMPLETE_MIGRATIONS,
 			Outcome.DIFFERENT_CONTENT, Outcome.UNDEFINED);
 
-	private final String affectedDatabase;
+	@Nullable private final String affectedDatabase;
 
 	private final Outcome outcome;
 

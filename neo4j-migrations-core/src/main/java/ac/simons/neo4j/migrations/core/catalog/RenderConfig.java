@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.Neo4jEdition;
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contextual information passed to renderers.
@@ -41,7 +42,7 @@ public final class RenderConfig {
 	 */
 	private final Neo4jEdition edition;
 
-	private final Operator operator;
+	@Nullable private final Operator operator;
 
 	private final boolean idempotent;
 
@@ -63,12 +64,13 @@ public final class RenderConfig {
 	 */
 	private final boolean useExplicitPropertyIndexType;
 
-	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent) {
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, @Nullable Operator operator, boolean idempotent) {
 		this(version, edition, operator, idempotent, false, null);
 	}
 
-	RenderConfig(Neo4jVersion version, Neo4jEdition edition, Operator operator, boolean idempotent, boolean ignoreName,
-			@SuppressWarnings("squid:S1874") List<AdditionalRenderingOptions> additionalOptions) {
+	RenderConfig(Neo4jVersion version, Neo4jEdition edition, @Nullable Operator operator, boolean idempotent,
+			boolean ignoreName,
+			@SuppressWarnings("squid:S1874") @Nullable List<AdditionalRenderingOptions> additionalOptions) {
 		this.version = version;
 		this.edition = edition;
 		this.operator = operator;
@@ -119,7 +121,7 @@ public final class RenderConfig {
 		return this.edition;
 	}
 
-	Operator getOperator() {
+	@Nullable Operator getOperator() {
 		return this.operator;
 	}
 
@@ -303,7 +305,7 @@ public final class RenderConfig {
 		 * {@code UNDEFINED}
 		 * @return a config accommodating the given version and edition
 		 */
-		default RenderConfig forVersionAndEdition(String version, String edition) {
+		default RenderConfig forVersionAndEdition(@Nullable String version, String edition) {
 			return forVersionAndEdition(Neo4jVersion.of(version), Neo4jEdition.of(edition));
 		}
 

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A cypher script based migration.
@@ -40,7 +41,7 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 	private List<String> alternativeChecksums = Collections.emptyList();
 
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance
-	private volatile Optional<String> checksumOfNonePreconditions;
+	@Nullable private volatile Optional<String> checksumOfNonePreconditions;
 
 	CypherBasedMigration(ResourceContext context) {
 		super(CypherResource.of(context));
@@ -62,28 +63,25 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 				}
 			}
 		}
-		return availableChecksum;
+		return Objects.requireNonNull(availableChecksum, "Checksums could not be initialized");
 	}
 
 	private Optional<String> computeChecksumWithoutPreconditions() {
 
 		// On JDK17 there can be only one, but alas, we aren't there yet.
-		if (!(this.cypherResource instanceof DefaultCypherResource)) {
+		if (!(this.cypherResource instanceof DefaultCypherResource defaultCypherResource)) {
 			return Optional.empty();
 		}
-		List<String> statements = ((DefaultCypherResource) this.cypherResource).getStatements()
-			.stream()
-			.map(statement -> {
-				String quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)
-					.filter(c -> Precondition.parse(c).isPresent())
-					.map(String::trim)
-					.map(Pattern::quote)
-					.collect(Collectors.joining("|"));
+		List<String> statements = defaultCypherResource.getStatements().stream().map(statement -> {
+			String quotedPatterns = DefaultCypherResource.getSingleLineComments(statement)
+				.filter(c -> Precondition.parse(c).isPresent())
+				.map(String::trim)
+				.map(Pattern::quote)
+				.collect(Collectors.joining("|"));
 
-				return quotedPatterns.isEmpty() ? statement
-						: statement.replaceAll("(" + quotedPatterns + ")" + Strings.LINE_DELIMITER, "");
-			})
-			.toList();
+			return quotedPatterns.isEmpty() ? statement
+					: statement.replaceAll("(" + quotedPatterns + ")" + Strings.LINE_DELIMITER, "");
+		}).toList();
 		return Optional.of(DefaultCypherResource.computeChecksum(statements));
 	}
 

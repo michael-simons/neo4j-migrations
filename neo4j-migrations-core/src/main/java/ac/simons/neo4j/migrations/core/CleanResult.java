@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Result of a clean operation. The result is immutable.
  *
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public final class CleanResult implements DatabaseOperationResult {
 
-	private final String affectedDatabase;
+	@Nullable private final String affectedDatabase;
 
 	private final List<String> chainsDeleted;
 

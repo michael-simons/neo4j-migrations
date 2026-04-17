@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner;
 import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
@@ -53,13 +54,13 @@ final class DefaultRefactoringContext implements RefactoringContext {
 
 	private final Supplier<Session> sessionSupplier;
 
-	private volatile Neo4jVersion version;
+	@Nullable private volatile Neo4jVersion version;
 
 	DefaultRefactoringContext(Supplier<Session> sessionSupplier) {
 		this(sessionSupplier, null);
 	}
 
-	DefaultRefactoringContext(Supplier<Session> sessionSupplier, Neo4jVersion neo4jVersion) {
+	DefaultRefactoringContext(Supplier<Session> sessionSupplier, @Nullable Neo4jVersion neo4jVersion) {
 		this.sessionSupplier = sessionSupplier;
 		this.version = neo4jVersion;
 	}
@@ -75,8 +76,8 @@ final class DefaultRefactoringContext implements RefactoringContext {
 			return false;
 		}
 
-		Predicate<String> nullOrBlank = s -> s == null || s.trim().isEmpty();
-		Predicate<String> isExactlyDetails = s -> details.asString().equals(s);
+		Predicate<@Nullable String> nullOrBlank = s -> s == null || s.trim().isEmpty();
+		Predicate<@Nullable String> isExactlyDetails = s -> details.asString().equals(s);
 
 		return plan.identifiers().stream().filter(nullOrBlank.negate().and(isExactlyDetails)).count() == 1L;
 	}
@@ -152,7 +153,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 		try (Session session = this.sessionSupplier.get()) {
 			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query)).consume());
 			Plan root = resultSummary.plan();
-			if (isProduceResultOperator(root) && hasSingleElement(root)) {
+			if (isProduceResultOperator(root) && hasSingleElement(root) && root.arguments().containsKey(KEY_DETAILS)) {
 				return Optional.of(root.arguments().get(KEY_DETAILS).asString());
 			}
 		}
@@ -161,7 +162,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 	}
 
 	@Override
-	public String sanitizeSchemaName(String potentiallyNonIdentifier) {
+	@Nullable public String sanitizeSchemaName(String potentiallyNonIdentifier) {
 		return this.getVersion().sanitizeSchemaName(potentiallyNonIdentifier);
 	}
 
@@ -169,7 +170,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 
 		private final Session session;
 
-		private final Transaction transaction;
+		@Nullable private final Transaction transaction;
 
 		private final UnaryOperator<Query> filter;
 

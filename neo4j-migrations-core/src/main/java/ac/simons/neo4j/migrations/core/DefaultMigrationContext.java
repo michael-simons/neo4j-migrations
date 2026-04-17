@@ -19,9 +19,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.BookmarkManager;
 import org.neo4j.driver.BookmarkManagerConfig;
@@ -47,7 +49,7 @@ import org.neo4j.driver.summary.ServerInfo;
  */
 final class DefaultMigrationContext implements MigrationContext {
 
-	private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
+	@Nullable private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
 
 	private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
@@ -59,8 +61,8 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	private final VersionedCatalog catalog;
 
-	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.s
-	private volatile ConnectionDetails connectionDetails;
+	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.
+	@Nullable private volatile ConnectionDetails connectionDetails;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
@@ -80,7 +82,7 @@ final class DefaultMigrationContext implements MigrationContext {
 		this.catalog = new DefaultCatalog(config.getVersionComparator());
 	}
 
-	private static Method findWithImpersonatedUser() {
+	@Nullable private static Method findWithImpersonatedUser() {
 		try {
 			return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
 		}
@@ -91,10 +93,7 @@ final class DefaultMigrationContext implements MigrationContext {
 
 	static void setWithImpersonatedUser(SessionConfig.Builder builder, String user) {
 		try {
-			// This is fine, when an impersonated user is present, the availability of
-			// this method has been checked.
-			// noinspection ConstantConditions
-			WITH_IMPERSONATED_USER.invoke(builder, user);
+			Objects.requireNonNull(WITH_IMPERSONATED_USER).invoke(builder, user);
 		}
 		catch (IllegalAccessException | InvocationTargetException ex) {
 			throw new MigrationsException("Could not impersonate a user on the driver level", ex);
@@ -251,7 +250,7 @@ final class DefaultMigrationContext implements MigrationContext {
 	}
 
 	record ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition, ServerInfo server,
-			DatabaseInfo database) {
+			@Nullable DatabaseInfo database) {
 		ExtendedResultSummary(boolean showCurrentUserExists, String version, String edition,
 				ResultSummary actualSummary) {
 			this(showCurrentUserExists, version, edition, actualSummary.server(), actualSummary.database());

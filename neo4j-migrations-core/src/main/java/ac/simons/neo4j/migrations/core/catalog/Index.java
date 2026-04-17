@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.w3c.dom.Element;
@@ -80,13 +81,13 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 	private final Set<String> deconstructedIdentifiers;
 
-	Index(String name, Type type, TargetEntityType targetEntityType, Collection<String> deconstructedIdentifiers,
-			Collection<String> properties) {
+	Index(@Nullable String name, Type type, TargetEntityType targetEntityType,
+			Collection<String> deconstructedIdentifiers, Collection<String> properties) {
 		this(name, type, targetEntityType, deconstructedIdentifiers, properties, null);
 	}
 
-	Index(String name, Type type, TargetEntityType targetEntityType, Collection<String> deconstructedIdentifiers,
-			Collection<String> properties, String options) {
+	Index(@Nullable String name, Type type, TargetEntityType targetEntityType,
+			Collection<String> deconstructedIdentifiers, Collection<String> properties, @Nullable String options) {
 		super(name, type, targetEntityType, join(deconstructedIdentifiers), properties, options);
 		if (deconstructedIdentifiers.size() > 1 && type != Type.FULLTEXT) {
 			throw new IllegalArgumentException(
@@ -226,7 +227,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 	}
 
 	@Override
-	public Index withName(String newName) {
+	public Index withName(@Nullable String newName) {
 
 		if (Objects.equals(super.getName().getValue(), newName)) {
 			return this;
@@ -432,7 +433,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		private final String[] identifiers;
 
-		private String name;
+		@Nullable private String name;
 
 		private DefaultBuilder(TargetEntityType targetEntity, String[] identifiers) {
 			this.targetEntity = targetEntity;

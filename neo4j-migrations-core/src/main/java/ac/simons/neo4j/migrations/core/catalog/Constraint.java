@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
@@ -62,27 +63,27 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
 			XMLSchemaConstants.TYPE, "entityType", "labelsOrTypes", XMLSchemaConstants.PROPERTIES)));
 
-	private final PropertyType propertyType;
+	@Nullable private final PropertyType propertyType;
 
 	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties,
 			PropertyType propertyType) {
 		this(null, type, targetEntityType, identifier, properties, null, propertyType);
 	}
 
-	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier,
-			Collection<String> properties, PropertyType propertyType) {
+	Constraint(@Nullable String name, Type type, TargetEntityType targetEntityType, String identifier,
+			Collection<String> properties, @Nullable PropertyType propertyType) {
 		this(name, type, targetEntityType, identifier, properties, null, propertyType);
 	}
 
-	Constraint(String name, Type type, TargetEntityType targetEntityType, String identifier,
-			Collection<String> properties, String options, PropertyType propertyType) {
+	Constraint(@Nullable String name, Type type, TargetEntityType targetEntityType, String identifier,
+			Collection<String> properties, @Nullable String options, @Nullable PropertyType propertyType) {
 		super(name, type, targetEntityType, identifier, properties, options);
 
 		if (type == Type.KEY && getTargetEntityType() != TargetEntityType.NODE) {
 			throw new IllegalArgumentException("Key constraints are only supported for nodes, not for relationships.");
 		}
 
-		if (propertyType != null && type != Type.PROPERTY_TYPE) {
+		if (type != Type.PROPERTY_TYPE && propertyType != null) {
 			throw new IllegalArgumentException("A property type can only be used with a property type constraint.");
 		}
 		if (type == Type.PROPERTY_TYPE && propertyType == null) {
@@ -204,7 +205,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	 * @param name an optional name, might be {@literal null}
 	 * @return the new constraint if the description is parseable
 	 */
-	private static Constraint parse(String description, String name) {
+	private static Constraint parse(String description, @Nullable String name) {
 
 		for (PatternHolder patternHolder : new PatternHolder[] { PATTERN_NODE_PROPERTY_IS_UNIQUE,
 				PATTERN_NODE_PROPERTY_EXISTS, PATTERN_NODE_KEY, PATTERN_REL_PROPERTY_EXISTS }) {
@@ -247,7 +248,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 	@Override
 	@SuppressWarnings("HiddenField")
-	public Constraint withName(String name) {
+	public Constraint withName(@Nullable String name) {
 
 		if (Objects.equals(super.getName().getValue(), name)) {
 			return this;
@@ -260,7 +261,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	/**
 	 * {@return the data type of the property being constrained}
 	 */
-	public PropertyType getPropertyType() {
+	@Nullable public PropertyType getPropertyType() {
 		return this.propertyType;
 	}
 
@@ -420,7 +421,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		private final String identifier;
 
-		private String name;
+		@Nullable private String name;
 
 		private DefaultBuilder(TargetEntityType targetEntityType, String identifier) {
 			this.targetEntityType = targetEntityType;

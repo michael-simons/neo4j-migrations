@@ -37,6 +37,7 @@ import ac.simons.neo4j.migrations.core.refactorings.MigrateBTreeIndexes;
 import ac.simons.neo4j.migrations.core.refactorings.Normalize;
 import ac.simons.neo4j.migrations.core.refactorings.Refactoring;
 import ac.simons.neo4j.migrations.core.refactorings.Rename;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -92,7 +93,7 @@ final class CatalogBasedRefactorings {
 				() -> createException(node, type, "The addSurrogateKey refactoring requires several parameters"));
 
 		Optional<String> optionalCustomQuery = findParameter(node, PARAMETER_NAME_CUSTOM_QUERY, parameterList);
-		AtomicReference<AddSurrogateKey> refactoring = new AtomicReference<>();
+		AtomicReference<@Nullable AddSurrogateKey> refactoring = new AtomicReference<>();
 		if ("nodes".equals(op)) {
 			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty))
 				.ifPresentOrElse(labels -> refactoring.set(AddSurrogateKey.toNodes(labels.get(0),
@@ -120,24 +121,28 @@ final class CatalogBasedRefactorings {
 			throw createException(node, type, String.format("`%s` is not a valid rename operation", op));
 		}
 
-		refactoring.updateAndGet(
-				r -> findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
-					.orElse(r));
-		refactoring.updateAndGet(
-				r -> findParameter(node, "generatorFunction", parameterList).map(p -> r.withGeneratorFunction(p.trim()))
-					.orElse(r));
+		refactoring.updateAndGet(r -> (r != null)
+				? findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
+					.orElse(r)
+				: null);
+		refactoring.updateAndGet(r -> (r != null)
+				? findParameter(node, "generatorFunction", parameterList).map(p -> r.withGeneratorFunction(p.trim()))
+					.orElse(r)
+				: null);
 
-		return customize(refactoring.get(), node, type, parameterList);
+		return customize(Objects.requireNonNull(refactoring.get(), "Could not determine refactoring"), node, type,
+				parameterList);
 	}
 
+	@SuppressWarnings("squid:S3776")
 	private static ListToVector listToVector(Node node, String type) {
-		String op = type.split("\\.")[1];
+		String op = type.split("\\.", -1)[1];
 
 		NodeList parameterList = findParameterList(node)
 			.orElseThrow(() -> createException(node, type, "The listToVector refactoring requires several parameters"));
 
 		Optional<String> optionalCustomQuery = findParameter(node, PARAMETER_NAME_CUSTOM_QUERY, parameterList);
-		AtomicReference<ListToVector> refactoring = new AtomicReference<>();
+		AtomicReference<@Nullable ListToVector> refactoring = new AtomicReference<>();
 		if ("nodes".equals(op)) {
 			findParameterValues(parameterList, "labels").filter(Predicate.not(List::isEmpty))
 				.ifPresentOrElse(labels -> refactoring
@@ -166,14 +171,16 @@ final class CatalogBasedRefactorings {
 			throw createException(node, type, String.format("`%s` is not a valid listToVector operation", op));
 		}
 
-		refactoring.updateAndGet(
-				r -> findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
-					.orElse(r));
+		refactoring.updateAndGet(r -> (r != null)
+				? findParameter(node, PARAMETER_NAME_PROPERTY, parameterList).map(p -> r.withProperty(p.trim()))
+					.orElse(r)
+				: null);
 		refactoring.updateAndGet(r -> findParameter(node, "elementType", parameterList)
-			.map(p -> r.withElementType(ListToVector.ElementType.valueOf(p.trim().toUpperCase(Locale.ROOT))))
+			.map(p -> (r != null)
+					? r.withElementType(ListToVector.ElementType.valueOf(p.trim().toUpperCase(Locale.ROOT))) : null)
 			.orElse(r));
 
-		return customize(refactoring.get(), node, type, parameterList);
+		return customize(Objects.requireNonNull(refactoring.get()), node, type, parameterList);
 	}
 
 	private static Refactoring createMigrateBtreeIndexes(Node node, boolean drop) {
@@ -288,7 +295,7 @@ final class CatalogBasedRefactorings {
 	}
 
 	private static Refactoring createRename(Node node, String type) {
-		String op = type.split("\\.")[1];
+		String op = type.split("\\.", -1)[1];
 
 		NodeList parameterList = findParameterList(node).orElseThrow(
 				() -> createException(node, type, "The rename refactoring requires `from` and `to` parameters"));
@@ -318,14 +325,13 @@ final class CatalogBasedRefactorings {
 		return customize(rename, node, type, parameterList);
 	}
 
-	private static IllegalArgumentException createException(Node node, String type, String optionalMessage) {
+	private static IllegalArgumentException createException(Node node, String type, @Nullable String optionalMessage) {
 		return createException(node, type, optionalMessage, null);
 	}
 
-	private static IllegalArgumentException createException(Node node, String type, String optionalMessage,
-			Exception cause) {
-		String typeAsAttribute = (type == null || type.trim().isEmpty()) ? ""
-				: String.format(" type=\"%s\"", type.trim());
+	private static IllegalArgumentException createException(Node node, String type, @Nullable String optionalMessage,
+			@Nullable Exception cause) {
+		String typeAsAttribute = type.trim().isEmpty() ? "" : String.format(" type=\"%s\"", type.trim());
 		String suffix = (optionalMessage != null) ? (": " + optionalMessage) : "";
 		return new IllegalArgumentException(String.format("Cannot parse <%s%s /> into a supported refactoring%s",
 				node.getNodeName(), typeAsAttribute, suffix), cause);
@@ -361,7 +367,8 @@ final class CatalogBasedRefactorings {
 		return Optional.empty();
 	}
 
-	private static Optional<String> findParameter(Node refactoring, String name, NodeList optionalParameters) {
+	private static Optional<String> findParameter(Node refactoring, String name,
+			@Nullable NodeList optionalParameters) {
 
 		return Optional.ofNullable(optionalParameters)
 			.or(() -> findParameterList(refactoring))

@@ -21,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.SessionConfig;
 
@@ -38,7 +39,7 @@ final class CypherBasedCallback implements Callback {
 
 	private final LifecyclePhase phase;
 
-	private final String description;
+	@Nullable private final String description;
 
 	CypherBasedCallback(ResourceContext context) {
 

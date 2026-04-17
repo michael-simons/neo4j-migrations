@@ -18,8 +18,11 @@ package ac.simons.neo4j.migrations.core;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class to retrieve the version of the core module aka the product version.
@@ -29,7 +32,7 @@ import java.util.jar.Manifest;
  */
 final class ProductVersion {
 
-	private static volatile String value;
+	@Nullable private static volatile String value;
 
 	private ProductVersion() {
 	}
@@ -46,7 +49,7 @@ final class ProductVersion {
 				}
 			}
 		}
-		return computedVersion;
+		return Objects.requireNonNull(computedVersion, "Product version could not be initialized");
 	}
 
 	private static String getVersionImpl() {
@@ -57,7 +60,7 @@ final class ProductVersion {
 				Manifest manifest = new Manifest(url.openStream());
 				if (isApplicableManifest(manifest)) {
 					Attributes attr = manifest.getMainAttributes();
-					return get(attr, "Implementation-Version").toString();
+					return Objects.requireNonNull(get(attr, "Implementation-Version")).toString();
 				}
 			}
 		}
@@ -73,7 +76,7 @@ final class ProductVersion {
 		return "neo4j-migrations".equals(get(attributes, "Artifact-Id"));
 	}
 
-	private static Object get(Attributes attributes, String key) {
+	@Nullable private static Object get(Attributes attributes, String key) {
 		return attributes.get(new Attributes.Name(key));
 	}
 

@@ -19,10 +19,12 @@ import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.refactorings.QueryRunner.FeatureSet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper around access to a Neo4j database. It requires an implementation of a
- * simplified {@see org.neo4j.driver.QueryRunner} based on official Neo4j driver types.
+ * simplified see {@link org.neo4j.driver.QueryRunner} based on official Neo4j driver
+ * types.
  *
  * @author Michael J. Simons
  * @since 1.10.0
@@ -59,7 +61,7 @@ public interface RefactoringContext {
 	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
-	default String sanitizeSchemaName(String potentiallyNonIdentifier) {
+	@Nullable default String sanitizeSchemaName(String potentiallyNonIdentifier) {
 
 		return Neo4jVersion.LATEST.sanitizeSchemaName(potentiallyNonIdentifier);
 	}

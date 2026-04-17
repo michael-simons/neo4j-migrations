@@ -21,6 +21,7 @@ import java.util.Optional;
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
 import ac.simons.neo4j.migrations.core.catalog.CatalogItem;
 import ac.simons.neo4j.migrations.core.catalog.Name;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An extended catalog keeping track of items as defined by {@link CatalogBasedMigration
@@ -65,7 +66,7 @@ public interface VersionedCatalog extends Catalog {
 	 * @return an optional item as defined prior to the introduction of {@literal version}
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
-	Optional<CatalogItem<?>> getItemPriorTo(Name name, MigrationVersion version);
+	Optional<CatalogItem<?>> getItemPriorTo(@Nullable Name name, @Nullable MigrationVersion version);
 
 	/**
 	 * A list of all items up to and including a given version.
@@ -83,6 +84,6 @@ public interface VersionedCatalog extends Catalog {
 	 * @return an optional item as defined with to the introduction of {@literal version}
 	 */
 	@SuppressWarnings("squid:S1452") // Generic items, this is exactly what we want here
-	Optional<CatalogItem<?>> getItem(Name name, MigrationVersion version);
+	Optional<CatalogItem<?>> getItem(@Nullable Name name, @Nullable MigrationVersion version);
 
 }

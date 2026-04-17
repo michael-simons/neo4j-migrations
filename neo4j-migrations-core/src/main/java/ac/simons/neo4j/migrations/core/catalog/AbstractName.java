@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core.catalog;
 
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Value holder for a names value. Default and generated names are different classes on
  * purpose, even though they could be the same one, with the generator on the interface.
@@ -29,26 +31,22 @@ abstract non-sealed class AbstractName implements Name {
 	/**
 	 * Value of this name, might be {@literal null} or blank.
 	 */
-	private final String value;
+	@Nullable private final String value;
 
-	AbstractName(String value) {
+	AbstractName(@Nullable String value) {
 		this.value = value;
 	}
 
 	@Override
-	public String getValue() {
+	@Nullable public String getValue() {
 		return this.value;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
+		if (!(o instanceof AbstractName that)) {
 			return false;
 		}
-		AbstractName that = (AbstractName) o;
 		return Objects.equals(this.value, that.value);
 	}
 
@@ -59,7 +57,7 @@ abstract non-sealed class AbstractName implements Name {
 
 	@Override
 	public String toString() {
-		return this.value;
+		return Objects.requireNonNull(this.value, super::toString);
 	}
 
 }

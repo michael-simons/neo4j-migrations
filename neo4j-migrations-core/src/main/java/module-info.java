@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.jspecify.annotations.NullMarked;
+
 /**
  * Neo4j-Migrations core module.
  * @author Michael J. Simons
  * @since 2.0.0
  */
 @SuppressWarnings("requires-automatic")
+@NullMarked
 module ac.simons.neo4j.migrations.core {
 
 	requires io.github.classgraph;
@@ -29,6 +33,9 @@ module ac.simons.neo4j.migrations.core {
 	requires transitive java.xml;
 
 	requires transitive org.neo4j.driver;
+	requires transitive org.jspecify;
+	requires io.netty.common;
+	requires java.sql;
 
 	exports ac.simons.neo4j.migrations.core;
 	exports ac.simons.neo4j.migrations.core.catalog;

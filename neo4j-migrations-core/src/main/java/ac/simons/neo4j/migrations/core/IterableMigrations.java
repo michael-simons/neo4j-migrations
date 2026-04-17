@@ -23,6 +23,7 @@ import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
 import ac.simons.neo4j.migrations.core.MigrationVersion.StopVersion;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A helper class that can be used to delay the iteration of migrations by a configurable
@@ -37,9 +38,10 @@ final class IterableMigrations implements Iterable<Migration> {
 
 	private final List<Migration> migrations;
 
-	private final MigrationVersion optionalStop;
+	@Nullable private final MigrationVersion optionalStop;
 
-	private IterableMigrations(MigrationsConfig config, List<Migration> migrations, MigrationVersion optionalStop) {
+	private IterableMigrations(MigrationsConfig config, List<Migration> migrations,
+			@Nullable MigrationVersion optionalStop) {
 		this.config = config;
 		this.migrations = migrations;
 		this.optionalStop = optionalStop;
@@ -49,7 +51,8 @@ final class IterableMigrations implements Iterable<Migration> {
 		return of(config, migrations, null);
 	}
 
-	static IterableMigrations of(MigrationsConfig config, List<Migration> migrations, StopVersion stopVersion) {
+	static IterableMigrations of(MigrationsConfig config, List<Migration> migrations,
+			@Nullable StopVersion stopVersion) {
 		MigrationVersion optionalStop;
 		if (stopVersion == null) {
 			optionalStop = null;
@@ -78,16 +81,16 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		private final Iterator<Migration> delegate;
 
-		private final Duration optionalDelay;
+		@Nullable private final Duration optionalDelay;
 
 		private final Comparator<MigrationVersion> comparator;
 
-		private final MigrationVersion optionalStop;
+		@Nullable private final MigrationVersion optionalStop;
 
-		private Migration next;
+		@Nullable private Migration next;
 
-		DelayingIterator(Iterator<Migration> delegate, Duration optionalDelay, Comparator<MigrationVersion> comparator,
-				MigrationVersion optionalStop) {
+		DelayingIterator(Iterator<Migration> delegate, @Nullable Duration optionalDelay,
+				Comparator<MigrationVersion> comparator, @Nullable MigrationVersion optionalStop) {
 			this.delegate = delegate;
 			this.optionalDelay = optionalDelay;
 			this.comparator = comparator;

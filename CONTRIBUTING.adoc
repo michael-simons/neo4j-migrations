@@ -54,6 +54,10 @@ Please add yourself as an `@author` to the `.java` files you added or that modif
 
 WARNING: As of writing a loose list of how things needs to be run, not exhaustive.
 
+=== JSpecify and `NULL` checking
+
+The Maven build runs by default with Error Prone and NullAway enabled. IntelliJ and other IDEs might have problems with that. To help them, you can disable the `nullAway` profile in their corresponding Maven settings.
+
 === Producing native binaries
 
 NOTE: Native binaries for Windows, Unix and macOS are supplied since 0.3.1 at https://github.com/michael-simons/neo4j-migrations/releases[the releases page].

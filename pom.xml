@@ -21,7 +21,7 @@
 
 	<groupId>eu.michael-simons.neo4j</groupId>
 	<artifactId>neo4j-migrations-parent</artifactId>
-	<version>3.3.2-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Neo4j Migrations</name>
@@ -115,6 +115,7 @@
 		<docker-maven-plugin.version>0.48.1</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>
 		<error_prone_annotations.version>2.49.0</error_prone_annotations.version>
+		<errorprone.version>2.49.0</errorprone.version>
 		<exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
 		<flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
 		<guava.version>33.5.0-jre</guava.version>
@@ -161,6 +162,7 @@
 		<neo4j-ogm.version>5.0.5</neo4j-ogm.version>
 		<neo4j.image>neo4j:${neo4j.version}</neo4j.image>
 		<neo4j.version>2026.03.1</neo4j.version>
+		<nullaway.version>0.13.2</nullaway.version>
 		<objenesis.version>3.5</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
 		<picocli.version>4.7.7</picocli.version>
@@ -435,7 +437,7 @@
 							<configuration>
 								<forceLegacyJavacApi>true</forceLegacyJavacApi>
 								<showWarnings>true</showWarnings>
-								<compilerArgs>
+								<compilerArgs combine.self="override">
 									<arg>-Xlint:all,-options,-path,-processing,-classfile,-exports,-missing-explicit-ctor</arg>
 									<arg>-Werror</arg>
 									<arg>-parameters</arg>
@@ -754,6 +756,11 @@
 							<type>LICENSE_NAME</type>
 							<rule>APPROVE</rule>
 							<value>The Apache Software License, version 2.0</value>
+						</dependencyPolicy>
+						<dependencyPolicy>
+							<type>LICENSE_NAME</type>
+							<rule>APPROVE</rule>
+							<value>The Apache License, Version 2.0</value>
 						</dependencyPolicy>
 						<dependencyPolicy>
 							<type>LICENSE_NAME</type>
@@ -1208,6 +1215,41 @@
 			<properties>
 				<asciidoctor.skip>true</asciidoctor.skip>
 			</properties>
+		</profile>
+		<profile>
+			<id>nullAway</id>
+			<activation>
+				<property>
+					<name>!disableNullAway</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<compilerArgs combine.self="append">
+								<arg>-XDcompilePolicy=simple</arg>
+								<arg>--should-stop=ifError=FLOW</arg>
+								<arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:NullAway:ERROR -XepOpt:NullAway:OnlyNullMarked=true</arg>
+							</compilerArgs>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>com.google.errorprone</groupId>
+									<artifactId>error_prone_core</artifactId>
+									<version>${errorprone.version}</version>
+								</path>
+								<path>
+									<groupId>com.uber.nullaway</groupId>
+									<artifactId>nullaway</artifactId>
+									<version>${nullaway.version}</version>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 		<?SORTPOM IGNORE?>
 		<profile>

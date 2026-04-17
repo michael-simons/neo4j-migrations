@@ -26,6 +26,7 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Query;
 
 /**
@@ -56,8 +57,8 @@ final class DefaultAddSurrogateKey extends AbstractCustomizableRefactoring imple
 		this(target, null, property, generator, customQuery, null);
 	}
 
-	private DefaultAddSurrogateKey(Target target, Collection<String> identifiers, String property, String generator,
-			String customQuery, Integer batchSize) {
+	private DefaultAddSurrogateKey(Target target, @Nullable Collection<String> identifiers, String property,
+			String generator, @Nullable String customQuery, @Nullable Integer batchSize) {
 		super(customQuery, batchSize);
 
 		this.target = target;

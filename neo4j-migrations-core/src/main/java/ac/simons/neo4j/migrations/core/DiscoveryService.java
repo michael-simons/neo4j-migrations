@@ -104,11 +104,11 @@ final class DiscoveryService {
 		});
 
 		migrations.forEach(m -> {
-			if (migrationsAndPreconditions.get(m).isEmpty()) {
+			if (!migrationsAndPreconditions.containsKey(m) || migrationsAndPreconditions.get(m).isEmpty()) {
 				return;
 			}
 			List<String> alternativeChecksums = migrations.stream()
-				.filter(o -> o != m && o.getSource().equals(m.getSource())
+				.filter(o -> o != m && o.getSource().equals(m.getSource()) && migrationsAndPreconditions.containsKey(o)
 						&& !migrationsAndPreconditions.get(o).isEmpty())
 				.flatMap(o -> {
 					Stream<String> checksum = o.getChecksum().stream();
@@ -122,7 +122,7 @@ final class DiscoveryService {
 	boolean hasUnmetPreconditions(Map<Migration, List<Precondition>> migrationsAndPreconditions, Migration migration,
 			MigrationContext context) {
 
-		if (!(migration instanceof MigrationWithPreconditions)) {
+		if (!(migration instanceof MigrationWithPreconditions && migrationsAndPreconditions.containsKey(migration))) {
 			return false;
 		}
 

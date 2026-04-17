@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Provides detailed information about the connection being used when invoking any method
  * that talks to the database.
@@ -38,7 +40,7 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 	 * @since 2.3.0
 	 */
 	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName,
-			String optionalDatabaseName, String optionalSchemaDatabaseName) {
+			@Nullable String optionalDatabaseName, @Nullable String optionalSchemaDatabaseName) {
 		return new DefaultConnectionDetails(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName,
 				optionalSchemaDatabaseName);
 	}
@@ -51,7 +53,7 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 	/**
 	 * {@return the Neo4j version the server is running}
 	 */
-	String getServerVersion();
+	@Nullable String getServerVersion();
 
 	/**
 	 * {@return the Neo4j edition the server is running}

@@ -17,6 +17,8 @@ package ac.simons.neo4j.migrations.core;
 
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Contains shared state for repair results (deleting migrations is considered a repairing
  * attempt as well).
@@ -27,7 +29,7 @@ import java.util.Optional;
 abstract sealed class AbstractRepairmentResult implements DatabaseOperationResult
 		permits DeleteResult, RepairmentResult {
 
-	private final String affectedDatabase;
+	@Nullable private final String affectedDatabase;
 
 	private final long nodesDeleted;
 
@@ -39,8 +41,8 @@ abstract sealed class AbstractRepairmentResult implements DatabaseOperationResul
 
 	private final long propertiesSet;
 
-	AbstractRepairmentResult(String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
-			long relationshipsCreated, long propertiesSet) {
+	AbstractRepairmentResult(@Nullable String affectedDatabase, long nodesDeleted, long nodesCreated,
+			long relationshipsDeleted, long relationshipsCreated, long propertiesSet) {
 		this.affectedDatabase = affectedDatabase;
 		this.nodesDeleted = nodesDeleted;
 		this.nodesCreated = nodesCreated;

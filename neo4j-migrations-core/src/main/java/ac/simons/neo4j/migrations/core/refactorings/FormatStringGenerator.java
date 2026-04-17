@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.refactorings;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Generates format strings for refactorings, depending on targets and / or custom
  * queries.
@@ -28,7 +30,7 @@ interface FormatStringGenerator {
 	 */
 	Fragments getFragments();
 
-	default String generateFormatString(String customQuery, Integer batchSize) {
+	default String generateFormatString(@Nullable String customQuery, @Nullable Integer batchSize) {
 		Fragments fragments = getFragments();
 
 		String ptSource;

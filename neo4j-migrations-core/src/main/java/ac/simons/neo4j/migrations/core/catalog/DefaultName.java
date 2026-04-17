@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core.catalog;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Default implementation of a {@link Name}.
  *
@@ -25,7 +27,7 @@ final class DefaultName extends AbstractName {
 
 	static final DefaultName EMPTY = new DefaultName(null);
 
-	DefaultName(String value) {
+	DefaultName(@Nullable String value) {
 		super(value);
 	}
 

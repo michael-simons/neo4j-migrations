@@ -162,7 +162,7 @@
 		<neo4j-ogm.version>5.0.5</neo4j-ogm.version>
 		<neo4j.image>neo4j:${neo4j.version}</neo4j.image>
 		<neo4j.version>2026.03.1</neo4j.version>
-		<nullaway.version>0.13.2</nullaway.version>
+		<nullaway.version>0.13.3</nullaway.version>
 		<objenesis.version>3.5</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
 		<picocli.version>4.7.7</picocli.version>

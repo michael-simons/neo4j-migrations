@@ -16,7 +16,7 @@
 package ac.simons.neo4j.migrations.quarkus;
 
 import ac.simons.neo4j.migrations.core.Migrations;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.WithTestResource;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WithDefaultLocationIT {
 
 	@RegisterExtension
-	static QuarkusUnitTest test = new QuarkusUnitTest().withConfigurationResource("application.properties")
+	static QuarkusExtensionTest test = new QuarkusExtensionTest().withConfigurationResource("application.properties")
 		.withApplicationRoot(archive -> {
 			archive.addAsResource("neo4j/migrations");
 			archive.addAsResource("neo4j/secondary-migrations");

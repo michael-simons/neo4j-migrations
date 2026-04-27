@@ -22,7 +22,7 @@ import java.util.Optional;
 
 import ac.simons.neo4j.migrations.core.MigrationChain;
 import ac.simons.neo4j.migrations.core.Migrations;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.WithTestResource;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
@@ -54,7 +54,7 @@ class WithDifferentLocationIT {
 	}
 
 	@RegisterExtension
-	static QuarkusUnitTest test = new QuarkusUnitTest().withConfigurationResource("application.properties")
+	static QuarkusExtensionTest test = new QuarkusExtensionTest().withConfigurationResource("application.properties")
 		.overrideConfigKey("org.neo4j.migrations.locations-to-scan", "classpath:neo4j/secondary-migrations")
 		.overrideConfigKey("org.neo4j.migrations.external-locations", p.getParent().toUri().toString())
 		.withApplicationRoot(archive -> {

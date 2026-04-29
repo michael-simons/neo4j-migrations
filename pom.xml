@@ -137,7 +137,7 @@
 		<maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
-		<maven-invoker-plugin.version>3.9.1</maven-invoker-plugin.version>
+		<maven-invoker-plugin.version>3.10.0</maven-invoker-plugin.version>
 		<maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
 		<maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
@@ -156,13 +156,13 @@
 		<migrations.test-only-latest-neo4j>false</migrations.test-only-latest-neo4j>
 		<mockito.version>5.2.0</mockito.version>
 		<moditect-maven-plugin.version>1.3.0.Final</moditect-maven-plugin.version>
-		<native.maven.plugin.version>1.0.0</native.maven.plugin.version>
+		<native.maven.plugin.version>1.1.0</native.maven.plugin.version>
 		<neo4j-java-driver.version>6.0.5</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>4.0.0</neo4j-migrations.previous.version>
 		<neo4j-ogm.version>5.0.5</neo4j-ogm.version>
 		<neo4j.image>neo4j:${neo4j.version}</neo4j.image>
 		<neo4j.version>2026.03.1</neo4j.version>
-		<nullaway.version>0.13.3</nullaway.version>
+		<nullaway.version>0.13.4</nullaway.version>
 		<objenesis.version>3.5</objenesis.version>
 		<os-maven-plugin.version>1.7.1</os-maven-plugin.version>
 		<picocli.version>4.7.7</picocli.version>
@@ -170,16 +170,16 @@
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<quarkus-neo4j.version>6.5.0</quarkus-neo4j.version>
+		<quarkus-neo4j.version>6.5.1</quarkus-neo4j.version>
 		<quarkus.version>3.35.0</quarkus.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
-		<spring-boot.version>4.0.5</spring-boot.version>
+		<spring-boot.version>4.0.6</spring-boot.version>
 		<spring-data-neo4j.version>8.0.5</spring-data-neo4j.version>
 		<spring-javaformat.version>0.0.47</spring-javaformat.version>
 		<system-lambda.version>1.2.1</system-lambda.version>
-		<testcontainers.version>2.0.4</testcontainers.version>
+		<testcontainers.version>2.0.5</testcontainers.version>
 		<versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
 	</properties>
 

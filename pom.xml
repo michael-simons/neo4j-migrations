@@ -489,6 +489,9 @@
 					<version>${versions-maven-plugin.version}</version>
 					<configuration>
 						<generateBackupPoms>false</generateBackupPoms>
+						<excludes>
+							<exclude>org.codehaus.plexus:plexus-classworlds</exclude>
+						</excludes>
 						<ruleSet>
 							<ignoreVersions>
 								<ignoreVersion>

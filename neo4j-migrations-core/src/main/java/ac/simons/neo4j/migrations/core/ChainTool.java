@@ -123,7 +123,7 @@ final class ChainTool {
 						""",
 						Values.parameters("migrationTarget", migrationTarget))
 				.stream()
-				.map(record -> MigrationVersion.withValue(record.get("version").asString()))
+				.map(row -> MigrationVersion.withValue(row.get("version").asString()))
 				.sorted(config.getVersionComparator())
 				.toList();
 			result.addAll(deleteDuplicateVersions(Neo4jVersion.of(context.getConnectionDetails().getServerVersion()),

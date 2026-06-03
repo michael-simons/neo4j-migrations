@@ -146,7 +146,6 @@ public final class Migrations {
 
 		// Composite unique constraints are not supported here
 		if (!HBD.is44OrHigher(context.getConnectionDetails())) {
-			System.out.println("out");
 			return;
 		}
 
@@ -157,7 +156,6 @@ public final class Migrations {
 				.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 
 			var stmt = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(UNIQUE_VERSION, createConfig);
-			System.out.println(stmt);
 			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null,
 					() -> "Could not create unique constraint for targeted migrations.");
 

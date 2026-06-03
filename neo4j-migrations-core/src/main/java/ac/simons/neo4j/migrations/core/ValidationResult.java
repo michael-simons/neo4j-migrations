@@ -128,7 +128,15 @@ public final class ValidationResult implements DatabaseOperationResult {
 		 * Some migrations have been changed since they have been applied to the target
 		 * database or their version doesn't fit anymore. The database must be repaired.
 		 */
-		DIFFERENT_CONTENT
+		DIFFERENT_CONTENT,
+
+		/**
+		 * A version number is used more than once. This can only happen when schema
+		 * database and migration database are the same (no property migrationTarget
+		 * recorded, unique_version___Neo4jMigration won't apply).
+		 * @since 4.1.0
+		 */
+		DUPLICATE_VERSION
 
 	}
 

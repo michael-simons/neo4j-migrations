@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,6 +62,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.types.Node;
 import org.testcontainers.neo4j.Neo4jContainer;
@@ -1352,6 +1354,50 @@ class MigrationsIT extends TestBase {
 
 	@Nested
 	class Repairing {
+
+		@Test
+		void shouldFixDuplicates() {
+
+			// Note: Those migrations must not have a property `migrationTarget`,
+			// otherwise unique_version___Neo4jMigration
+			// will catch those and prevent the invalid database state.
+			try (var session = MigrationsIT.this.driver.session()) {
+				session
+					.run("""
+							CREATE (:`__Neo4jMigration` {version:"BASELINE"})
+							-[:MIGRATED_TO {connectedAs:"neo4j",at:$when,in:$duration,by:"msimons"}]->
+							     (:`__Neo4jMigration` {checksum:"1100083332",description:"delete old data",source:"V0001__delete_old_data.cypher",type:"CYPHER",version:"0001"})
+							-[:MIGRATED_TO {connectedAs:"deleted1",at:$when,in:$duration,by:"msimons"}]->
+							     (:`__Neo4jMigration` {checksum:"1100083332",description:"delete old data",source:"V0001__delete_old_data_a.cypher",type:"CYPHER",version:"0001"})
+							-[:MIGRATED_TO {connectedAs:"deleted2",at:$when,in:$duration,by:"msimons"}]->
+							     (:`__Neo4jMigration` {checksum:"1100083332",description:"delete old data",source:"V0001__delete_old_data_b.cypher",type:"CYPHER",version:"0001"})
+							-[:MIGRATED_TO {connectedAs:"neo4j",at:$when,in:$duration,by:"msimons"}]->
+							     (:`__Neo4jMigration` {checksum:"3226785110",description:"create new data",source:"V0002__create_new_data.cypher",type:"CYPHER",version:"0002"})
+							 -[:MIGRATED_TO {connectedAs:"deleted2",at:$when,in:$duration,by:"msimons"}]->
+							     (:`__Neo4jMigration` {checksum:"3226785110",description:"create new data",source:"V0002__create_new_data_a.cypher",type:"CYPHER",version:"0002"})
+							""",
+							Values.parameters("when", ZonedDateTime.now(), "duration", Duration.ofSeconds(23)))
+					.consume();
+			}
+
+			var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(),
+					MigrationsIT.this.driver);
+			var result = migrations.repair();
+			assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.REPAIRED);
+			assertThat(result.getNodesDeleted()).isEqualTo(3);
+			assertThat(result.getRelationshipsDeleted()).isEqualTo(4);
+			assertThat(result.getRelationshipsCreated()).isEqualTo(1);
+			var validationResult = migrations.validate();
+			assertThat(validationResult.getOutcome()).isEqualTo(ValidationResult.Outcome.VALID);
+
+			var currentChain = migrations.info();
+			assertThat(currentChain.getElements()).map(MigrationChain.Element::getInstalledBy)
+				.map(Optional::orElseThrow)
+				.containsOnly("msimons/neo4j");
+
+			assertThat(currentChain.getElements()).map(MigrationChain.Element::getSource)
+				.containsOnly("V0001__delete_old_data.cypher", "V0002__create_new_data.cypher");
+		}
 
 		@Test
 		void shouldCreateAProperChain(@TempDir File dir) throws IOException {

@@ -146,6 +146,7 @@ public final class Migrations {
 
 		// Composite unique constraints are not supported here
 		if (!HBD.is44OrHigher(context.getConnectionDetails())) {
+			System.out.println("out");
 			return;
 		}
 
@@ -156,6 +157,7 @@ public final class Migrations {
 				.forVersionAndEdition(cd.getServerVersion(), cd.getServerEdition());
 
 			var stmt = Renderer.get(Renderer.Format.CYPHER, Constraint.class).render(UNIQUE_VERSION, createConfig);
+			System.out.println(stmt);
 			HBD.silentCreateConstraintOrIndex(context.getConnectionDetails(), session, stmt, null,
 					() -> "Could not create unique constraint for targeted migrations.");
 
@@ -671,9 +673,9 @@ public final class Migrations {
 
 	private ValidationResult validate0() {
 
-		List<Migration> migrations = this.getMigrations();
 		Optional<String> targetDatabase = this.config.getOptionalSchemaDatabase();
 		try {
+			List<Migration> migrations = this.getMigrations();
 			MigrationChain migrationChain = new ChainBuilder(true).buildChain(this.context, migrations, true,
 					ChainBuilderMode.COMPARE);
 			int numberOfAppliedMigrations = (int) migrationChain.getElements()
@@ -689,8 +691,11 @@ public final class Migrations {
 			}
 			return new ValidationResult(targetDatabase, Outcome.UNDEFINED, Collections.emptyList());
 		}
+		catch (DuplicateMigrationsException ex) {
+			return new ValidationResult(targetDatabase, Outcome.DUPLICATE_VERSION, List.of(ex.getMessage()));
+		}
 		catch (MigrationsException ex) {
-			List<String> warnings = Collections.singletonList(ex.getMessage());
+			List<String> warnings = List.of(ex.getMessage());
 			if (ex.getCause() instanceof IndexOutOfBoundsException) {
 				return new ValidationResult(targetDatabase, Outcome.INCOMPLETE_MIGRATIONS, warnings);
 			}

@@ -108,10 +108,61 @@ final class ChainTool {
 
 		var migrationTarget = config.getMigrationTargetIn(context).orElse(null);
 
-		List<Query> result = new ArrayList<>(fixChecksums(migrationTarget));
+		List<Query> result = new ArrayList<>();
+		// we could determine them in the query itself, but we cannot easily generate the
+		// same order of versions
+		// inside the database that we provide via lexicographic or semantic ordering
+		try (var session = context.getSchemaSession()) {
+			var duplicateVersions = session
+				.run("""
+						MATCH (n:__Neo4jMigration WHERE coalesce(n.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>'))
+						WITH n.version AS version, n.migrationTarget AS migrationTarget, count(*) AS cnt
+						ORDER BY n.version
+						WHERE cnt > 1
+						RETURN version AS version
+						""",
+						Values.parameters("migrationTarget", migrationTarget))
+				.stream()
+				.map(record -> MigrationVersion.withValue(record.get("version").asString()))
+				.sorted(config.getVersionComparator())
+				.toList();
+			result.addAll(deleteDuplicateVersions(Neo4jVersion.of(context.getConnectionDetails().getServerVersion()),
+					migrationTarget, duplicateVersions));
+		}
+
+		result.addAll(fixChecksums(migrationTarget));
 		result.addAll(deleteLocallyMissingMigrations(migrationTarget));
 		result.addAll(insertRemoteMissingMigrations(migrationTarget, config.getOptionalInstalledBy()));
 		return result;
+	}
+
+	private List<Query> deleteDuplicateVersions(Neo4jVersion neo4jVersion, @Nullable String migrationTarget,
+			List<MigrationVersion> duplicateVersions) {
+
+		var cypher = """
+				MATCH (n:__Neo4jMigration WHERE n.version = $version AND coalesce(n.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>'))
+				OPTIONAL MATCH (predecessor:__Neo4jMigration)-[inRel:MIGRATED_TO]->(n)
+				WITH n,
+				     inRel.at AS inAt,
+				     CASE WHEN predecessor IS NOT NULL AND predecessor.version <> $version
+				          THEN 0 ELSE 1 END AS canonicalRank
+				ORDER BY canonicalRank ASC, inAt ASC, %s(n) ASC
+				WITH collect(DISTINCT n) AS nodes
+				WITH nodes[0] AS keeper, nodes[1..] AS dups
+				OPTIONAL MATCH (lastDup)-[afterRel:MIGRATED_TO]->(after:__Neo4jMigration)
+				WHERE lastDup IN dups AND after <> keeper AND NOT after IN dups
+				WITH keeper, dups, after, properties(afterRel) AS afterProps
+				FOREACH (_ IN CASE WHEN after IS NOT NULL THEN [1] ELSE [] END |
+				  MERGE (keeper)-[bridge:MIGRATED_TO]->(after) ON CREATE SET bridge = afterProps
+				)
+				WITH dups
+				UNWIND dups AS dup DETACH DELETE dup"""
+			.formatted(neo4jVersion.is5OrHigher() ? "elementId" : "id");
+
+		return duplicateVersions.stream()
+			.map(version -> new Query(cypher,
+					Values.parameters("version", version.getValue(), "migrationTarget", migrationTarget)))
+			.toList();
 	}
 
 	private List<Query> fixChecksums(@Nullable String migrationTarget) {

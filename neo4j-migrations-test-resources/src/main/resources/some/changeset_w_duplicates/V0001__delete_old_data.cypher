@@ -1,0 +1,1 @@
+MATCH (n:BrokenData) DETACH DELETE n;

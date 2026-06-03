@@ -218,9 +218,15 @@ final class ChainBuilder {
 								|| end.get("type").asString().equals("DELETE")) {
 							return;
 						}
-						Element chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);
-						chain.put(MigrationVersion.withValue(chainElement.getVersion(),
-								end.get("repeatable").asBoolean(false)), chainElement);
+						var chainElement = DefaultMigrationChainElement.appliedElement(segment, repetitions);
+						var version = MigrationVersion.withValue(chainElement.getVersion(),
+								end.get("repeatable").asBoolean(false));
+						var existing = chain.get(version);
+						if (existing != null && this.alwaysVerify) {
+							throw new DuplicateMigrationsException(version,
+									List.of(existing.getSource(), chainElement.getSource()));
+						}
+						chain.put(version, chainElement);
 					});
 				}
 				return chain;

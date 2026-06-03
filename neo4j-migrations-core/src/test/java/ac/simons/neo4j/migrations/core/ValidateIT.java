@@ -97,6 +97,45 @@ class ValidateIT extends TestBase {
 	}
 
 	@Test
+	void duplicateLocalVersion() {
+		var migrations = new Migrations(
+				MigrationsConfig.builder().withLocationsToScan("/some/changeset_w_duplicates").build(), this.driver);
+		var result = migrations.validate();
+		assertThat(result.getOutcome()).isEqualTo(ValidationResult.Outcome.DUPLICATE_VERSION);
+		assertThat(result.getWarnings()).containsExactly(
+				"Duplicate version '0001' (V0001__delete_old_data.cypher, V0001__delete_old_data2.cypher)");
+	}
+
+	@Test
+	void duplicateRemoteVersion() {
+
+		// Note: Those migrations must not have a property `migrationTarget`, otherwise
+		// unique_version___Neo4jMigration
+		// will catch those and prevent the invalid database state.
+		try (var session = this.driver.session()) {
+			session
+				.run("""
+						CREATE (:`__Neo4jMigration` {version:"BASELINE"})
+						-[:MIGRATED_TO {connectedAs:"neo4j",at:$when,in:$duration,by:"msimons"}]->
+						     (:`__Neo4jMigration` {checksum:"1100083332",description:"delete old data",source:"V0001__delete_old_data_a.cypher",type:"CYPHER",version:"0001"})
+						-[:MIGRATED_TO {connectedAs:"neo4j",at:$when,in:$duration,by:"msimons"}]->
+						     (:`__Neo4jMigration` {checksum:"1100083332",description:"delete old data",source:"V0001__delete_old_data_b.cypher",type:"CYPHER",version:"0001"})
+						-[:MIGRATED_TO {connectedAs:"neo4j",at:$when,in:$duration,by:"msimons"}]->
+						     (:`__Neo4jMigration` {checksum:"3226785110",description:"create new data",source:"V0002__create_new_data.cypher",type:"CYPHER",version:"0002"})
+						""",
+						Values.parameters("when", ZonedDateTime.now(), "duration", Duration.ofSeconds(23)))
+				.consume();
+		}
+
+		var migrations = new Migrations(MigrationsConfig.builder().withLocationsToScan("/some/changeset").build(),
+				this.driver);
+		var result = migrations.validate();
+		assertThat(result.getOutcome()).isEqualTo(ValidationResult.Outcome.DUPLICATE_VERSION);
+		assertThat(result.getWarnings()).containsExactly(
+				"Duplicate version '0001' (V0001__delete_old_data_a.cypher, V0001__delete_old_data_b.cypher)");
+	}
+
+	@Test
 	void wrongChecksum() {
 
 		try (Session session = this.driver.session()) {

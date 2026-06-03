@@ -41,12 +41,19 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -107,6 +114,25 @@ final class ChainToolTests {
 		given(pathSegment.end()).willReturn(targetMigration);
 		given(pathSegment.relationship()).willReturn(relationship);
 		return DefaultMigrationChainElement.appliedElement(pathSegment, List.of());
+	}
+
+	MigrationContext mockContext(MigrationsConfig config) {
+
+		var driver = mock(Driver.class);
+		var result = mock(Result.class);
+		given(result.consume()).willReturn(mock(ResultSummary.class));
+		var session = mock(Session.class);
+		given(session.run(anyString(), any(Value.class))).willReturn(result);
+		given(session.run(anyString())).willReturn(result);
+		given(driver.session(any(SessionConfig.class))).willReturn(session);
+
+		var context = mock(MigrationContext.class);
+		given(context.getDriver()).willReturn(driver);
+		given(context.getConfig()).willReturn(config);
+		given(context.getConnectionDetails())
+			.willReturn(ConnectionDetails.of("n/a", "2026.05.0", "Enterprise", "msimons", null, null));
+		given(context.getSchemaSession()).willReturn(session);
+		return context;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -248,7 +274,7 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			var queries = chainTool.repair(config, mockContext(config));
 			assertThat(queries).hasSize(2).satisfies(q -> {
 				assertThat(q.parameters().get("version").asString()).isEqualTo("01");
 				assertThat(q.parameters().get("newChecksum").asString()).isEqualTo("E_1vNew");
@@ -272,10 +298,10 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
-			assertThat(queries).hasSize(1).first().satisfies(q -> {
-				assertThat(q.parameters().get("version").asString()).isEqualTo("03");
-			});
+			var queries = chainTool.repair(config, mockContext(config));
+			assertThat(queries).hasSize(1)
+				.first()
+				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("03"));
 		}
 
 	}
@@ -295,7 +321,7 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			var queries = chainTool.repair(config, mockContext(config));
 
 			assertThat(queries).hasSize(2)
 				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("01"), Index.atIndex(0))
@@ -317,7 +343,7 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			var queries = chainTool.repair(config, mockContext(config));
 
 			assertThat(queries).hasSize(2)
 				.satisfies(q -> assertThat(q.parameters().get("version").asString()).isEqualTo("02"), Index.atIndex(0))
@@ -339,7 +365,7 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			var queries = chainTool.repair(config, mockContext(config));
 
 			assertThat(queries).isEmpty();
 		}
@@ -358,7 +384,7 @@ final class ChainToolTests {
 			var chainTool = new ChainTool(MigrationsConfig.defaultConfig().getVersionComparator(), List.of(), source,
 					target);
 			var config = MigrationsConfig.defaultConfig();
-			var queries = chainTool.repair(config, new DefaultMigrationContext(config, mock(Driver.class)));
+			var queries = chainTool.repair(config, mockContext(config));
 
 			assertThat(queries).hasSize(1)
 				.first()

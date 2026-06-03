@@ -89,8 +89,7 @@ final class DiscoveryService {
 			List<Migration> v = entry.getValue();
 			if (v.size() > 1) {
 				MigrationVersion k = entry.getKey();
-				String sources = v.stream().map(Migration::getSource).sorted().collect(Collectors.joining(", "));
-				throw new MigrationsException("Duplicate version '" + k.getValue() + "' (" + sources + ")");
+				throw new DuplicateMigrationsException(k, v.stream().map(Migration::getSource).sorted().toList());
 			}
 		}
 		return List.copyOf(migrations);

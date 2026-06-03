@@ -25,7 +25,7 @@ import java.util.function.Supplier;
  * @author Michael J. Simons
  * @since 0.0.1
  */
-public final class MigrationsException extends RuntimeException {
+public sealed class MigrationsException extends RuntimeException permits DuplicateMigrationsException {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

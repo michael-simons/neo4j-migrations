@@ -24,6 +24,7 @@ import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * @author Michael J. Simons
+ * @author Vladas Diržys
  */
 class ExceptionHandlingTests {
 
@@ -69,14 +71,34 @@ class ExceptionHandlingTests {
 				}
 			};
 
+			// GH-2003: A constraint creation failure on existing data is a
+			// DatabaseException,
+			// not a ClientException. Its code and message must still be reported.
+			ConnectedCommand cmd3 = new ConnectedCommand() {
+				@Override
+				MigrationsCli getParent() {
+					return cli;
+				}
+
+				@Override
+				Integer withMigrations(Migrations migrations) {
+					throw new MigrationsException("Could not apply migration: 5.",
+							new DatabaseException("Neo.DatabaseError.Schema.ConstraintCreationFailed",
+									"Unable to create Constraint( ... ): existing data is not unique."));
+				}
+			};
+
 			cmd.call();
 			cmd2.call();
+			cmd3.call();
 			System.out.flush();
 		});
 
 		assertThat(result).isEqualTo("Oh wie schade." + System.lineSeparator()
 				+ "Could not apply migration: 0020 (\"Create unique movie title\")." + System.lineSeparator()
-				+ "\tNeo4j.YouMessedUp: This was not valid." + System.lineSeparator());
+				+ "\tNeo4j.YouMessedUp: This was not valid." + System.lineSeparator() + "Could not apply migration: 5."
+				+ System.lineSeparator() + "\tNeo.DatabaseError.Schema.ConstraintCreationFailed: "
+				+ "Unable to create Constraint( ... ): existing data is not unique." + System.lineSeparator());
 	}
 
 }

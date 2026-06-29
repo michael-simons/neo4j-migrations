@@ -152,8 +152,9 @@ final class DefaultRefactoringContext implements RefactoringContext {
 
 		try (Session session = this.sessionSupplier.get()) {
 			ResultSummary resultSummary = session.executeRead(tx -> tx.run(new Query("EXPLAIN " + query)).consume());
-			Plan root = resultSummary.plan();
-			if (isProduceResultOperator(root) && hasSingleElement(root) && root.arguments().containsKey(KEY_DETAILS)) {
+			Plan root = resultSummary.queryPlan().orElse(null);
+			if (root != null && isProduceResultOperator(root) && hasSingleElement(root)
+					&& root.arguments().containsKey(KEY_DETAILS)) {
 				return Optional.of(root.arguments().get(KEY_DETAILS).asString());
 			}
 		}

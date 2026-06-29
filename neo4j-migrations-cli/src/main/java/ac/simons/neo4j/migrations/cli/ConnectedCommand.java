@@ -25,8 +25,8 @@ import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import org.neo4j.driver.AuthToken;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.AuthenticationException;
-import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.FatalDiscoveryException;
+import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import picocli.CommandLine;
 
@@ -34,6 +34,7 @@ import picocli.CommandLine;
  * Base class for a connected command.
  *
  * @author Michael J. Simons
+ * @author Vladas Diržys
  * @since 0.0.5
  */
 abstract class ConnectedCommand implements Callable<Integer> {
@@ -92,9 +93,9 @@ abstract class ConnectedCommand implements Callable<Integer> {
 		}
 		catch (MigrationsException ex) {
 			Throwable cause = ex.getCause();
-			if (cause instanceof ClientException ce) {
+			if (cause instanceof Neo4jException ne) {
 				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}{1}\t{2}: {3}",
-						new Object[] { ex.getMessage(), System.lineSeparator(), ce.code(), cause.getMessage() });
+						new Object[] { ex.getMessage(), System.lineSeparator(), ne.code(), cause.getMessage() });
 			}
 			else if (isCatalogException(cause)) {
 				MigrationsCli.LOGGER.log(Level.SEVERE, "{0}: {1}",

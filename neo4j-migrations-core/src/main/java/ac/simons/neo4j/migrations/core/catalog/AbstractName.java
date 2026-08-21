@@ -31,7 +31,7 @@ abstract non-sealed class AbstractName implements Name {
 	/**
 	 * Value of this name, might be {@literal null} or blank.
 	 */
-	@Nullable private final String value;
+	private final @Nullable String value;
 
 	AbstractName(@Nullable String value) {
 		this.value = value;

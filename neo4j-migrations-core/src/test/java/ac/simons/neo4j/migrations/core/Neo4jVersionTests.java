@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,14 +56,13 @@ class Neo4jVersionTests {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5", "UNDEFINED", "LATEST" },
-			mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V5", "UNDEFINED", "LATEST" }, mode = Mode.EXCLUDE)
 	void shouldIdentifyMajorVersion4(Neo4jVersion version) {
 		assertThat(version.getMajorVersion()).isEqualTo(4);
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V5", "UNDEFINED", "LATEST" }, mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V5", "UNDEFINED", "LATEST" }, mode = Mode.EXCLUDE)
 	void shouldParseMinor(Neo4jVersion version) {
 
 		assertThat(version.getMinorVersion()).isNotNegative();
@@ -98,15 +98,13 @@ class Neo4jVersionTests {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V4_0", "V4_1", "UNDEFINED" },
-			mode = EnumSource.Mode.INCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V4_0", "V4_1", "UNDEFINED" }, mode = Mode.INCLUDE)
 	void oldVersionsShouldNotSupportOptions(Neo4jVersion version) {
 		assertThat(version.supportsSchemaOptions()).isFalse();
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V4_0", "V4_1", "UNDEFINED" },
-			mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jVersion.class, names = { "V3_5", "V4_0", "V4_1", "UNDEFINED" }, mode = Mode.EXCLUDE)
 	void newVersionsShouldSupportOptions(Neo4jVersion version) {
 		assertThat(version.supportsSchemaOptions()).isTrue();
 	}

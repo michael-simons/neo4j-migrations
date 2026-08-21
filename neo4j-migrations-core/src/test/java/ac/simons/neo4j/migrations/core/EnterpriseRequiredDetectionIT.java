@@ -20,6 +20,7 @@ import ac.simons.neo4j.migrations.core.catalog.RenderConfig;
 import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Very specific tests for detecting capabilities and error conditions.
  */
 @Testcontainers(disabledWithoutDocker = true)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class EnterpriseRequiredDetectionIT {
 

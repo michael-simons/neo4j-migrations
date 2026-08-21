@@ -35,21 +35,21 @@ abstract class AbstractCustomizableRefactoring {
 	 * labels or types should be renamed. This query must return rows with one single
 	 * element per row. This is checked upon before executing.
 	 */
-	@Nullable protected final String customQuery;
+	protected final @Nullable String customQuery;
 
 	/**
 	 * The batch size to perform renaming. If {@literal null}, no batching is attempted
 	 * and the refactoring will use one a transactional function when applied. Setting
 	 * this to a value different from {@literal null} also requires Neo4j >= 4.4
 	 */
-	@Nullable protected final Integer batchSize;
+	protected final @Nullable Integer batchSize;
 
 	protected AbstractCustomizableRefactoring(@Nullable String customQuery, @Nullable Integer batchSize) {
 		this.customQuery = customQuery;
 		this.batchSize = batchSize;
 	}
 
-	@Nullable protected final String filterCustomQuery(@Nullable String newCustomQuery) {
+	protected final @Nullable String filterCustomQuery(@Nullable String newCustomQuery) {
 		return Optional.ofNullable(newCustomQuery).map(String::trim).filter(s -> !s.isEmpty()).orElse(null);
 	}
 

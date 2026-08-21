@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 abstract sealed class AbstractRepairmentResult implements DatabaseOperationResult
 		permits DeleteResult, RepairmentResult {
 
-	@Nullable private final String affectedDatabase;
+	private final @Nullable String affectedDatabase;
 
 	private final long nodesDeleted;
 

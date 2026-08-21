@@ -55,6 +55,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -199,7 +200,7 @@ class CatalogBasedMigrationTests {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class RefactoringParsing {
 
 		Document errorSource;
@@ -365,7 +366,7 @@ class CatalogBasedMigrationTests {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class Operations {
 
 		@Test
@@ -495,7 +496,7 @@ class CatalogBasedMigrationTests {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class Verifies extends MockHolder {
 
 		@ParameterizedTest
@@ -635,7 +636,7 @@ class CatalogBasedMigrationTests {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class Applies extends MockHolder {
 
 		@Test
@@ -741,7 +742,7 @@ class CatalogBasedMigrationTests {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class CreateAndDrop extends MockHolder {
 
 		@SuppressWarnings("unused")

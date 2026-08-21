@@ -36,9 +36,9 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	private final String username;
 
-	@Nullable private final String databaseName;
+	private final @Nullable String databaseName;
 
-	@Nullable private final String schemaDatabaseName;
+	private final @Nullable String schemaDatabaseName;
 
 	DefaultConnectionDetails(String serverAddress, String serverVersion, String edition, String username,
 			@Nullable String databaseName, @Nullable String schemaDatabaseName) {

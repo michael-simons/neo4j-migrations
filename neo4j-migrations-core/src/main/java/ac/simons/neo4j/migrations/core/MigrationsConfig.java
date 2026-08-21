@@ -138,7 +138,6 @@ public final class MigrationsConfig {
 	/**
 	 * Start building a new configuration.
 	 * @return the entry point for creating a new configuration.
-	 * @since 0.0.1
 	 */
 	public static Builder builder() {
 

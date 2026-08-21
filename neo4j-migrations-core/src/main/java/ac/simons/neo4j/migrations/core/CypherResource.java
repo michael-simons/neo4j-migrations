@@ -44,7 +44,6 @@ public sealed interface CypherResource permits DefaultCypherResource {
 	 * Starts building a Cypher resource from the given content.
 	 * @param content the string containing cypher
 	 * @return first step of building the resource
-	 * @since 1.8.0
 	 */
 	static WithContent withContent(String content) {
 		return identifier -> new DefaultCypherResource(identifier, Defaults.AUTOCRLF,
@@ -84,8 +83,6 @@ public sealed interface CypherResource permits DefaultCypherResource {
 
 	/**
 	 * Terminal step of building a resource.
-	 *
-	 * @since 1.8.0
 	 */
 	interface WithContent {
 

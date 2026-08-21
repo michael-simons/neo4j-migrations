@@ -38,7 +38,7 @@ final class IterableMigrations implements Iterable<Migration> {
 
 	private final List<Migration> migrations;
 
-	@Nullable private final MigrationVersion optionalStop;
+	private final @Nullable MigrationVersion optionalStop;
 
 	private IterableMigrations(MigrationsConfig config, List<Migration> migrations,
 			@Nullable MigrationVersion optionalStop) {
@@ -81,13 +81,13 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		private final Iterator<Migration> delegate;
 
-		@Nullable private final Duration optionalDelay;
+		private final @Nullable Duration optionalDelay;
 
 		private final Comparator<MigrationVersion> comparator;
 
-		@Nullable private final MigrationVersion optionalStop;
+		private final @Nullable MigrationVersion optionalStop;
 
-		@Nullable private Migration next;
+		private @Nullable Migration next;
 
 		DelayingIterator(Iterator<Migration> delegate, @Nullable Duration optionalDelay,
 				Comparator<MigrationVersion> comparator, @Nullable MigrationVersion optionalStop) {

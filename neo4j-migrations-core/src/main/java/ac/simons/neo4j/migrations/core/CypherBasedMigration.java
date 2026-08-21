@@ -40,8 +40,9 @@ final class CypherBasedMigration extends AbstractCypherBasedMigration implements
 	 */
 	private List<String> alternativeChecksums = Collections.emptyList();
 
-	@SuppressWarnings("squid:S3077") // This will always be an immutable instance
-	@Nullable private volatile Optional<String> checksumOfNonePreconditions;
+	@SuppressWarnings({ "squid:S3077", "OptionalUsedAsFieldOrParameterType" })
+	// This will always be an immutable instance
+	private volatile @Nullable Optional<String> checksumOfNonePreconditions;
 
 	CypherBasedMigration(ResourceContext context) {
 		super(CypherResource.of(context));

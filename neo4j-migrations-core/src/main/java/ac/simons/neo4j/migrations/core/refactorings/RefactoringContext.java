@@ -61,7 +61,7 @@ public interface RefactoringContext {
 	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
-	@Nullable default String sanitizeSchemaName(String potentiallyNonIdentifier) {
+	default @Nullable String sanitizeSchemaName(String potentiallyNonIdentifier) {
 
 		return Neo4jVersion.LATEST.sanitizeSchemaName(potentiallyNonIdentifier);
 	}

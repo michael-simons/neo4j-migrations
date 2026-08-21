@@ -54,7 +54,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 
 	private final Supplier<Session> sessionSupplier;
 
-	@Nullable private volatile Neo4jVersion version;
+	private volatile @Nullable Neo4jVersion version;
 
 	DefaultRefactoringContext(Supplier<Session> sessionSupplier) {
 		this(sessionSupplier, null);
@@ -171,7 +171,7 @@ final class DefaultRefactoringContext implements RefactoringContext {
 
 		private final Session session;
 
-		@Nullable private final Transaction transaction;
+		private final @Nullable Transaction transaction;
 
 		private final UnaryOperator<Query> filter;
 

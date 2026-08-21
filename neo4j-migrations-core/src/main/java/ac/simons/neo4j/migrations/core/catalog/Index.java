@@ -433,7 +433,7 @@ public final class Index extends AbstractCatalogItem<Index.Type> {
 
 		private final String[] identifiers;
 
-		@Nullable private String name;
+		private @Nullable String name;
 
 		private DefaultBuilder(TargetEntityType targetEntity, String[] identifiers) {
 			this.targetEntity = targetEntity;

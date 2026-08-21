@@ -32,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class ProductVersion {
 
-	@Nullable private static volatile String value;
+	private static volatile @Nullable String value;
 
 	private ProductVersion() {
 	}
@@ -76,7 +76,7 @@ final class ProductVersion {
 		return "neo4j-migrations".equals(get(attributes, "Artifact-Id"));
 	}
 
-	@Nullable private static Object get(Attributes attributes, String key) {
+	private static @Nullable Object get(Attributes attributes, String key) {
 		return attributes.get(new Attributes.Name(key));
 	}
 

@@ -130,9 +130,9 @@ final class DefaultCypherResource implements CypherResource {
 	 * locking into an unmodifiable list, see {@link #readStatements()}.
 	 */
 	@SuppressWarnings("squid:S3077")
-	@Nullable private volatile List<String> statements;
+	private volatile @Nullable List<String> statements;
 
-	@Nullable private volatile String checksum;
+	private volatile @Nullable String checksum;
 
 	DefaultCypherResource(String identifier, boolean autocrlf, boolean useFlywayCompatibleChecksums,
 			Supplier<InputStream> inputStreamSupplier) {

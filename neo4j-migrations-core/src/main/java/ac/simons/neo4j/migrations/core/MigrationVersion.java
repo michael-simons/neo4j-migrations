@@ -47,7 +47,7 @@ public final class MigrationVersion {
 
 	private final String value;
 
-	@Nullable private final String description;
+	private final @Nullable String description;
 
 	/**
 	 * A flag indicating that this version can be safely repeated, even on checksum

@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class CleanResult implements DatabaseOperationResult {
 
-	@Nullable private final String affectedDatabase;
+	private final @Nullable String affectedDatabase;
 
 	private final List<String> chainsDeleted;
 

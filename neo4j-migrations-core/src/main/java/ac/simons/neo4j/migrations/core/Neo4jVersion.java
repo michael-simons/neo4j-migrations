@@ -260,7 +260,7 @@ public enum Neo4jVersion {
 	 * @return the sanitized and quoted value or the same value if no change is necessary.
 	 * @since 1.11.0
 	 */
-	@Nullable public String sanitizeSchemaName(@Nullable String potentiallyNonIdentifier) {
+	public @Nullable String sanitizeSchemaName(@Nullable String potentiallyNonIdentifier) {
 
 		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.isEmpty()) {
 			return potentiallyNonIdentifier;

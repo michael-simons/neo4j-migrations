@@ -33,6 +33,7 @@ import ac.simons.neo4j.migrations.core.catalog.Renderer;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -56,7 +57,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(SkipArm64IncompatibleConfiguration.class)
 class CatalogBasedMigrationIT {
 

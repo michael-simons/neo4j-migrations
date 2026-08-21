@@ -63,7 +63,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	private static final Set<String> REQUIRED_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name",
 			XMLSchemaConstants.TYPE, "entityType", "labelsOrTypes", XMLSchemaConstants.PROPERTIES)));
 
-	@Nullable private final PropertyType propertyType;
+	private final @Nullable PropertyType propertyType;
 
 	Constraint(Type type, TargetEntityType targetEntityType, String identifier, Collection<String> properties,
 			PropertyType propertyType) {
@@ -261,7 +261,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 	/**
 	 * {@return the data type of the property being constrained}
 	 */
-	@Nullable public PropertyType getPropertyType() {
+	public @Nullable PropertyType getPropertyType() {
 		return this.propertyType;
 	}
 
@@ -421,7 +421,7 @@ public final class Constraint extends AbstractCatalogItem<Constraint.Type> {
 
 		private final String identifier;
 
-		@Nullable private String name;
+		private @Nullable String name;
 
 		private DefaultBuilder(TargetEntityType targetEntityType, String identifier) {
 			this.targetEntityType = targetEntityType;

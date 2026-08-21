@@ -48,7 +48,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	/**
 	 * Any additional options to be passed to the item. Might be {@literal null}.
 	 */
-	@Nullable protected final String options;
+	protected final @Nullable String options;
 
 	/**
 	 * The unique name of this item.
@@ -171,7 +171,7 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 	 * @param constraintElement the element to extract options from
 	 * @return optional options
 	 */
-	@Nullable static String extractOptions(Element constraintElement) {
+	static @Nullable String extractOptions(Element constraintElement) {
 		NodeList optionsElement = constraintElement.getElementsByTagName(XMLSchemaConstants.OPTIONS);
 		String options = null;
 		if (optionsElement.getLength() == 1) {

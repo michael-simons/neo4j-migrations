@@ -767,11 +767,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 	private static class DefaultOperationBuilder<T extends Operation> implements OperationBuilder<T>, VerifyBuilder {
 
-		@Nullable private final Operator operator;
+		private final @Nullable Operator operator;
 
-		@Nullable private Name reference;
+		private @Nullable Name reference;
 
-		@Nullable private CatalogItem<?> item;
+		private @Nullable CatalogItem<?> item;
 
 		private boolean idempotent;
 
@@ -781,7 +781,7 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		private boolean includingOptions = false;
 
-		DefaultOperationBuilder(@Nullable final Operator operator) {
+		DefaultOperationBuilder(final @Nullable Operator operator) {
 			this.operator = operator;
 		}
 
@@ -869,11 +869,11 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 	private abstract static class AbstractItemBasedOperation
 			implements VersionSpecificOperation, ItemSpecificOperation {
 
-		@Nullable protected final MigrationVersion definedAt;
+		protected final @Nullable MigrationVersion definedAt;
 
-		@Nullable protected final Name reference;
+		protected final @Nullable Name reference;
 
-		@Nullable protected final CatalogItem<?> localItem;
+		protected final @Nullable CatalogItem<?> localItem;
 
 		protected final boolean idempotent;
 

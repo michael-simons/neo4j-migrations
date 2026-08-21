@@ -97,10 +97,10 @@ public final class Migrations {
 	private final AtomicBoolean beforeFirstUseHasBeenCalled = new AtomicBoolean(false);
 
 	@SuppressWarnings("squid:S3077")
-	@Nullable private volatile List<Migration> resolvedMigrations;
+	private volatile @Nullable List<Migration> resolvedMigrations;
 
 	@SuppressWarnings("squid:S3077")
-	@Nullable private volatile Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
+	private volatile @Nullable Map<LifecyclePhase, List<Callback>> resolvedCallbacks;
 
 	/**
 	 * Creates a {@link Migrations migrations instance} ready to used with the given
@@ -317,7 +317,6 @@ public final class Migrations {
 	 * @return the last applied migration (if any)
 	 * @throws ServiceUnavailableException in case the driver is not connected
 	 * @throws MigrationsException for everything caused by failing migrations
-	 * @since 0.0.1
 	 * @see #apply(boolean)
 	 */
 	public Optional<MigrationVersion> apply() {

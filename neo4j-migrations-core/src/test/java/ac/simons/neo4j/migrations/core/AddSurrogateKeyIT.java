@@ -21,6 +21,7 @@ import ac.simons.neo4j.migrations.core.refactorings.RefactoringContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.neo4j.driver.Session;
 
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Michael J. Simons
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 class AddSurrogateKeyIT extends AbstractRefactoringsITTestBase {
 
 	@BeforeEach

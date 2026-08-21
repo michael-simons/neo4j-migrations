@@ -53,6 +53,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1035,7 +1036,7 @@ class MigrationsIT extends TestBase {
 	}
 
 	@Nested
-	@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+	@TestInstance(Lifecycle.PER_CLASS)
 	class OrderingAndStopping {
 
 		static final String FIND_NODES_QUERY = "MATCH (n:OOO) RETURN n ORDER BY n.created_on";

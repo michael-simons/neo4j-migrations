@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  */
 public final class DeleteResult extends AbstractRepairmentResult {
 
-	@Nullable private final MigrationVersion version;
+	private final @Nullable MigrationVersion version;
 
 	DeleteResult(@Nullable String affectedDatabase, long nodesDeleted, long nodesCreated, long relationshipsDeleted,
 			long relationshipsCreated, long propertiesSet, @Nullable MigrationVersion version) {

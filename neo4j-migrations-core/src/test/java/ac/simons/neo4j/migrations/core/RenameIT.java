@@ -23,6 +23,7 @@ import ac.simons.neo4j.migrations.core.refactorings.Rename;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -34,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Michael J. Simons
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 class RenameIT extends AbstractRefactoringsITTestBase {
 
 	private static void assertThatAllLabelsHaveBeenRenamed(Session session, Counters counters) {

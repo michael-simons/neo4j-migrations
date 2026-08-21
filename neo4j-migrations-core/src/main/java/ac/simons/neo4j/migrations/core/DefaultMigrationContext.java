@@ -49,7 +49,7 @@ import org.neo4j.driver.summary.ServerInfo;
  */
 final class DefaultMigrationContext implements MigrationContext {
 
-	@Nullable private static final Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
+	private static final @Nullable Method WITH_IMPERSONATED_USER = findWithImpersonatedUser();
 
 	private final UnaryOperator<SessionConfig.Builder> applySchemaDatabase;
 
@@ -62,7 +62,7 @@ final class DefaultMigrationContext implements MigrationContext {
 	private final VersionedCatalog catalog;
 
 	@SuppressWarnings("squid:S3077") // This will always be an immutable instance.
-	@Nullable private volatile ConnectionDetails connectionDetails;
+	private volatile @Nullable ConnectionDetails connectionDetails;
 
 	DefaultMigrationContext(MigrationsConfig config, Driver driver) {
 
@@ -82,7 +82,7 @@ final class DefaultMigrationContext implements MigrationContext {
 		this.catalog = new DefaultCatalog(config.getVersionComparator());
 	}
 
-	@Nullable private static Method findWithImpersonatedUser() {
+	private static @Nullable Method findWithImpersonatedUser() {
 		try {
 			return SessionConfig.Builder.class.getMethod("withImpersonatedUser", String.class);
 		}

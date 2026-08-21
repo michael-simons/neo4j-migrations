@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -44,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Michael J. Simons
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 class DefaultMigrateBTreeIndexesIT {
 
 	private static final String QUERY_GET_OLD_CONSTRAINTS = "SHOW CONSTRAINTS YIELD name, options WHERE name =~ 'm_.*' AND options['indexProvider'] = 'native-btree-1.0'";

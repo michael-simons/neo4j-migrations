@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.Parameter;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Michael J. Simons
  */
 @Testcontainers(disabledWithoutDocker = true)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 @ParameterizedClass
 @ValueSource(strings = { "CYPHER 5", "CYPHER 25" })
 class CatalogDiscoveryCypherVersionsIT {

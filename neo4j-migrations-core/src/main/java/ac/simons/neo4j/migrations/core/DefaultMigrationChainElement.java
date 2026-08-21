@@ -41,15 +41,15 @@ final class DefaultMigrationChainElement implements MigrationChain.Element {
 
 	private final MigrationType type;
 
-	@Nullable private final String checksum;
+	private final @Nullable String checksum;
 
 	private final String version;
 
-	@Nullable private final String description;
+	private final @Nullable String description;
 
 	private final String source;
 
-	@Nullable private final InstallationInfo installationInfo;
+	private final @Nullable InstallationInfo installationInfo;
 
 	private DefaultMigrationChainElement(MigrationState state, MigrationType type, @Nullable String checksum,
 			String version, @Nullable String description, String source, @Nullable InstallationInfo installationInfo) {

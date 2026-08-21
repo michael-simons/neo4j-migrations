@@ -28,6 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -366,8 +367,7 @@ class ConstraintToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY", "PROPERTY_TYPE" },
-			mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Constraint.Type.class, names = { "UNIQUE", "KEY", "PROPERTY_TYPE" }, mode = Mode.EXCLUDE)
 	void multiplePropertiesAreOnlySupportedWithUniqueConstraints(Constraint.Type type) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V4_4, Neo4jEdition.ENTERPRISE, Operator.CREATE,
@@ -436,7 +436,7 @@ class ConstraintToCypherRendererTests {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Neo4jEdition.class, names = "ENTERPRISE", mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = Neo4jEdition.class, names = "ENTERPRISE", mode = Mode.EXCLUDE)
 	void nodePropertyExistenceConstraintShouldRequireEE(Neo4jEdition edition) {
 
 		RenderConfig renderConfig = new RenderConfig(Neo4jVersion.V3_5, edition, Operator.CREATE, false);

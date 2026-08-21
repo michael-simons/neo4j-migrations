@@ -39,7 +39,7 @@ final class CypherBasedCallback implements Callback {
 
 	private final LifecyclePhase phase;
 
-	@Nullable private final String description;
+	private final @Nullable String description;
 
 	CypherBasedCallback(ResourceContext context) {
 

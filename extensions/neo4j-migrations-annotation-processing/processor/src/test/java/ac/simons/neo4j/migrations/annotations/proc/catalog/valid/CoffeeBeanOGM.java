@@ -18,6 +18,7 @@ package ac.simons.neo4j.migrations.annotations.proc.catalog.valid;
 import java.util.UUID;
 
 import ac.simons.neo4j.migrations.annotations.catalog.Index;
+import ac.simons.neo4j.migrations.annotations.catalog.Index.Type;
 import ac.simons.neo4j.migrations.annotations.catalog.Required;
 import ac.simons.neo4j.migrations.annotations.catalog.Unique;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -37,10 +38,10 @@ public class CoffeeBeanOGM {
 	@Required
 	public String name;
 
-	@Index(indexType = Index.Type.TEXT)
+	@Index(indexType = Type.TEXT)
 	public String text;
 
-	@Index(indexType = Index.Type.FULLTEXT,
+	@Index(indexType = Type.FULLTEXT,
 			options = @Index.Option(key = "indexConfig", value = "+{ `fulltext.analyzer`:\"whitespace\" }"))
 	public String textB;
 

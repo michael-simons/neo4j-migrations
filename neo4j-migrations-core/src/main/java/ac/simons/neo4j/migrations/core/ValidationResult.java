@@ -38,7 +38,7 @@ public final class ValidationResult implements DatabaseOperationResult {
 	private static final Set<Outcome> NEEDS_REPAIR = EnumSet.of(Outcome.INCOMPLETE_MIGRATIONS,
 			Outcome.DIFFERENT_CONTENT, Outcome.UNDEFINED);
 
-	@Nullable private final String affectedDatabase;
+	private final @Nullable String affectedDatabase;
 
 	private final Outcome outcome;
 

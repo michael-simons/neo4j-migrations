@@ -42,7 +42,7 @@ public final class RenderConfig {
 	 */
 	private final Neo4jEdition edition;
 
-	@Nullable private final Operator operator;
+	private final @Nullable Operator operator;
 
 	private final boolean idempotent;
 

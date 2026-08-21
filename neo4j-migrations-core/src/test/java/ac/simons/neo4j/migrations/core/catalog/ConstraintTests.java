@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Value;
@@ -336,8 +337,7 @@ class ConstraintTests {
 	class Builder {
 
 		@ParameterizedTest
-		@EnumSource(value = Constraint.Type.class, mode = EnumSource.Mode.EXCLUDE,
-				names = "UNIQUE_RELATIONSHIP_PROPERTY")
+		@EnumSource(value = Constraint.Type.class, mode = Mode.EXCLUDE, names = "UNIQUE_RELATIONSHIP_PROPERTY")
 		void nodeConstraintBuilderShouldWork(Constraint.Type type) {
 
 			Constraint constraint = switch (type) {

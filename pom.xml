@@ -110,7 +110,7 @@
 		<compile-testing.version>0.23.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
-		<cyclonedx-maven-plugin.version>2.9.2</cyclonedx-maven-plugin.version>
+		<cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version>
 		<cypher-dsl.version>2025.3.0</cypher-dsl.version>
 		<docker-maven-plugin.version>0.48.1</docker-maven-plugin.version>
 		<docsImagesDir>${basedir}/docs/modules/ROOT/images</docsImagesDir>

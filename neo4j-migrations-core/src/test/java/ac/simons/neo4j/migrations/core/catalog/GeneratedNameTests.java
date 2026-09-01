@@ -34,7 +34,7 @@ class GeneratedNameTests {
 		Assertions.assertThat(name)
 			.isInstanceOf(GeneratedName.class)
 			.extracting(Name::getValue)
-			.isEqualTo("Constraint_4006808BBCCF49878FDFA78BF2148FAD");
+			.isEqualTo("Constraint_91673100795D03E06A91B660E8F998E7189F9EFBA89F055F581DC8E6E902384D");
 
 		Constraint constraint2 = new Constraint(Constraint.Type.KEY, TargetEntityType.NODE, "Person",
 				Arrays.asList("firstname", "surname"), null);

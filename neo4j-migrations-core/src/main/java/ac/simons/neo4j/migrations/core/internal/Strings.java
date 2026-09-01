@@ -47,11 +47,10 @@ public final class Strings {
 	/**
 	 * Function for creating an MD5 representation of a byte array.
 	 */
-	public static final UnaryOperator<byte[]> MD5 = bytes -> {
+	public static final UnaryOperator<byte[]> DIGEST = bytes -> {
 		try {
-			@SuppressWarnings("squid:S4790") // Definitely not at risk here.
-			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			return md5.digest(bytes);
+			var digest = MessageDigest.getInstance("SHA-256");
+			return digest.digest(bytes);
 		}
 		catch (NoSuchAlgorithmException ex) {
 			throw new UncheckedNoSuchAlgorithmException(ex);

@@ -58,7 +58,7 @@ public sealed interface Name permits AbstractName {
 				(options != null) ? (", options='" + options + '\'') : "");
 
 		String value = String.format("%s_%s", classType.getSimpleName(),
-				Strings.MD5.andThen(Strings.BASE64_ENCODING).apply(src.getBytes(StandardCharsets.UTF_8)));
+				Strings.DIGEST.andThen(Strings.BASE64_ENCODING).apply(src.getBytes(StandardCharsets.UTF_8)));
 
 		return new GeneratedName(value);
 	}

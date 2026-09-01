@@ -15,6 +15,8 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -40,6 +42,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.neo4j.driver.AuthTokens;
@@ -57,6 +60,7 @@ import org.testcontainers.neo4j.Neo4jContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * Tests that made only sense in Neo4j Enterprise Edition.
@@ -103,7 +107,7 @@ class MigrationsEEIT {
 		Config config = Config.builder().build();
 		driver = GraphDatabase.driver(neo4j.getBoltUrl(), AuthTokens.basic("neo4j", neo4j.getAdminPassword()), config);
 		try (Session session = driver.session(SessionConfig.forDatabase("system"))) {
-			Stream.of("migrationTest", "schemaDatabase", "anotherTarget", "db1")
+			Stream.of("migrationTest", "schemaDatabase", "anotherTarget", "db1", "repairTarget")
 				.map(database -> Collections.<String, Object>singletonMap("database", database))
 				.forEach(params -> session.run("CREATE DATABASE $database", params).consume());
 		}
@@ -358,16 +362,7 @@ class MigrationsEEIT {
 		migrationTestSameSchema.apply();
 
 		Map<String, Integer> allLengths = TestBase.allLengthOfMigrations(driver, "migrationTest");
-		assertThat(allLengths).containsOnly(new AbstractMap.SimpleEntry<>("<default>", 2)); // There
-																							// is
-																							// none,
-																							// since
-																							// it
-																							// maybe
-																							// from
-																							// an
-																							// old
-																							// migration
+		assertThat(allLengths).containsOnly(new AbstractMap.SimpleEntry<>("<default>", 2));
 
 		Stream.of("migrationTest").forEach(databaseName -> {
 			try (Session session = driver.session(SessionConfig.forDatabase(databaseName))) {
@@ -595,6 +590,56 @@ class MigrationsEEIT {
 			assertThat(checksums).containsExactly(null, "1100083332", "3226785110", "1236540472", "18064555",
 					"2663714411", "2581374719", "200310393", "949907516", "949907516", "1411768091", "1491717096",
 					"454777450", "1584443618");
+		}
+	}
+
+	@Test
+	void shouldFixChangedChecksums(@TempDir File dir) throws IOException {
+
+		var location = "file:" + dir.getAbsolutePath();
+		var configuration = MigrationsConfig.builder()
+			.withLocationsToScan(location)
+			.withDatabase("repairTarget")
+			.withSchemaDatabase("schemaDatabase")
+			.build();
+
+		var migrations = new Migrations(configuration, driver);
+
+		MigrationsIT.createMigrationFiles(4, 10, dir);
+
+		migrations.apply();
+		assertTargetIsSet();
+
+		MigrationsIT.createMigrationFiles(1, 0, dir);
+
+		migrations.clearCache();
+		assertThatExceptionOfType(MigrationsException.class).isThrownBy(migrations::apply);
+
+		var result = migrations.repair();
+		assertThat(result.getOutcome()).isEqualTo(RepairmentResult.Outcome.REPAIRED);
+		assertThat(result.getNodesDeleted()).isZero();
+		assertThat(result.getNodesCreated()).isOne();
+		assertThat(result.getRelationshipsDeleted()).isOne();
+		assertThat(result.getRelationshipsCreated()).isEqualTo(2L);
+		assertThat(result.getPropertiesSet()).isEqualTo(16L);
+
+		assertThatNoException().isThrownBy(migrations::apply);
+		assertThat(migrations.validate().isValid()).isTrue();
+
+		var newChain = new Migrations(configuration, driver).info();
+		assertThat(newChain.getElements()).map(MigrationChain.Element::getVersion)
+			.containsExactly("1", "11", "12", "13", "14");
+		assertTargetIsSet();
+	}
+
+	private static void assertTargetIsSet() {
+		try (var session = driver.session(SessionConfig.forDatabase("schemaDatabase"))) {
+			var targets = session.run("MATCH (n:__Neo4jMigration) RETURN n.migrationTarget AS t")
+				.stream()
+				.map(r -> r.get("t").asString())
+				.distinct()
+				.toList();
+			assertThat(targets).containsExactlyInAnyOrder("repairtarget");
 		}
 	}
 

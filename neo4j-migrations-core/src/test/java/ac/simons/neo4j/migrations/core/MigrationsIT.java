@@ -82,7 +82,7 @@ class MigrationsIT extends TestBase {
 		return createMigrationFiles(n, 0, dir);
 	}
 
-	private static List<File> createMigrationFiles(int n, int offset, File dir) throws IOException {
+	static List<File> createMigrationFiles(int n, int offset, File dir) throws IOException {
 		return createMigrationFiles(n, offset, dir, false);
 	}
 

@@ -202,7 +202,8 @@ final class ChainTool {
 				CREATE (im:__Neo4jMigration {version: $version})
 				CREATE (pm)-[nl:MIGRATED_TO {at: datetime({timezone: 'UTC'}), in: duration( {milliseconds: 0} ), by: $installedBy, connectedAs: $neo4jUser}]-> (im)
 				CREATE (im)-[nr:MIGRATED_TO]->(nm)
-				SET im = $insertedMigration,  nr = properties(pr)
+				SET im = $insertedMigration, im.migrationTarget = $migrationTarget,
+				    nr = properties(pr)
 				DELETE pr
 				RETURN *
 				""";

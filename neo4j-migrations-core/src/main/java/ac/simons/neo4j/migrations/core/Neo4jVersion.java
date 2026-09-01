@@ -261,6 +261,19 @@ public enum Neo4jVersion {
 	 * @since 1.11.0
 	 */
 	public @Nullable String sanitizeSchemaName(@Nullable String potentiallyNonIdentifier) {
+		return sanitizeSchemaName(potentiallyNonIdentifier, false);
+	}
+
+	/**
+	 * Escapes the string {@literal potentiallyNonIdentifier} in all cases when it's not a
+	 * valid Cypher identifier, fitting the given version.
+	 * @param potentiallyNonIdentifier a value to escape; the same value will be returned
+	 * if {@literal null} or empty
+	 * @param alwaysEscape set to {@literal true} for always escaping names
+	 * @return the sanitized and potentially quoted value
+	 * @since 4.1.4
+	 */
+	public @Nullable String sanitizeSchemaName(@Nullable String potentiallyNonIdentifier, boolean alwaysEscape) {
 
 		if (potentiallyNonIdentifier == null || potentiallyNonIdentifier.isEmpty()) {
 			return potentiallyNonIdentifier;
@@ -275,7 +288,7 @@ public enum Neo4jVersion {
 		}
 		int minor = getMinorVersion();
 
-		return SchemaNames.sanitize(potentiallyNonIdentifier, false, major, minor)
+		return SchemaNames.sanitize(potentiallyNonIdentifier, alwaysEscape, major, minor)
 			.orElseThrow(NoSuchElementException::new);
 	}
 

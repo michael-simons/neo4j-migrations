@@ -253,7 +253,11 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 			return item.getProperties().stream().map(TO_LITERAL).collect(Collectors.joining(", "));
 		}
 
-		return item.getProperties().stream().map(v -> prefix + ".`" + v + "`").collect(Collectors.joining(", "));
+		var version = config.getVersion();
+		return item.getProperties()
+			.stream()
+			.map(v -> "%s.%s".formatted(prefix, version.sanitizeSchemaName(v, true)))
+			.collect(Collectors.joining(", "));
 	}
 
 	Formattable formattablePropertyIndexItem(Index item, RenderConfig config) {

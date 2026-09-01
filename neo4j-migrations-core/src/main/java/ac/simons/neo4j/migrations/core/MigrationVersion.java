@@ -272,9 +272,12 @@ public final class MigrationVersion {
 				return 1;
 			}
 
-			var lhs = Arrays.stream(o1.value.split("\\.")).map(Long::parseLong).toArray(Long[]::new);
-			var rhs = Arrays.stream(o2.value.split("\\.")).map(Long::parseLong).toArray(Long[]::new);
-			var max = Math.min(lhs.length, rhs.length);
+			var lhs = Arrays.stream(o1.value.split("\\.")).mapToLong(Long::parseLong).toArray();
+			var rhs = Arrays.stream(o2.value.split("\\.")).mapToLong(Long::parseLong).toArray();
+			var max = Math.max(lhs.length, rhs.length);
+
+			lhs = fill(lhs, max);
+			rhs = fill(rhs, max);
 
 			int i = 0;
 			while (i < max) {
@@ -284,14 +287,14 @@ public final class MigrationVersion {
 				}
 				++i;
 			}
-
-			if (lhs.length < rhs.length) {
-				return (rhs[i] == 0) ? 0 : -1;
-			}
-			else if (lhs.length > rhs.length) {
-				return (lhs[i] == 0) ? 0 : 1;
-			}
 			return 0;
+		}
+
+		static long[] fill(long[] in, int num) {
+			if (in.length == num) {
+				return in;
+			}
+			return Arrays.copyOf(in, num);
 		}
 
 	}

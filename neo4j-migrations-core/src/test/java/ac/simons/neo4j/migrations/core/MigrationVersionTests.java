@@ -179,6 +179,20 @@ class MigrationVersionTests {
 		assertThat(hlp).containsExactly(v2, v1, v4, v5a);
 	}
 
+	@Test
+	void differentNumberOfDigits2() {
+
+		var comparator = MigrationVersion.getComparator(MigrationsConfig.VersionSortOrder.SEMANTIC);
+		var v1a = MigrationVersion.parse("V1__x");
+		var v1b = MigrationVersion.parse("V1_0_0__x");
+		var v2 = MigrationVersion.parse("V1_0_5__y");
+
+		var hlp = new TreeSet<>(comparator);
+		hlp.addAll(List.of(v1a, v2));
+		assertThat(hlp).containsExactly(v1a, v2);
+		assertThat(hlp).containsExactly(v1b, v2);
+	}
+
 	@ParameterizedTest // GH-1536
 	@MethodSource("allTargetVersions")
 	void shouldFindTargetVersionEmptyChain(String version) {

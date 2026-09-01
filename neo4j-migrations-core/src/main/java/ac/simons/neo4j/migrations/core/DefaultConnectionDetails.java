@@ -40,14 +40,17 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 
 	private final @Nullable String schemaDatabaseName;
 
+	private final String defaultDatabaseName;
+
 	DefaultConnectionDetails(String serverAddress, String serverVersion, String edition, String username,
-			@Nullable String databaseName, @Nullable String schemaDatabaseName) {
+			@Nullable String databaseName, @Nullable String schemaDatabaseName, String defaultDatabaseName) {
 		this.serverAddress = serverAddress;
 		this.serverVersion = serverVersion;
 		this.edition = Strings.capitalize(edition);
 		this.username = username;
 		this.databaseName = databaseName;
 		this.schemaDatabaseName = schemaDatabaseName;
+		this.defaultDatabaseName = defaultDatabaseName;
 	}
 
 	@Override
@@ -78,6 +81,11 @@ final class DefaultConnectionDetails implements ConnectionDetails {
 	@Override
 	public Optional<String> getOptionalSchemaDatabaseName() {
 		return Optional.ofNullable(this.schemaDatabaseName);
+	}
+
+	@Override
+	public String getDefaultDatabaseName() {
+		return this.defaultDatabaseName;
 	}
 
 }

@@ -73,9 +73,9 @@ final class MigrationsLock {
 			.getOptionalDatabase()
 			.map(v -> v.toLowerCase(Locale.ROOT))
 			// Prior to 1.1, Migrations would use "John Doe" by default, so if someone
-			// used explicitly "neo4j" as database
-			// name, the lock wouldn't work. Therefore, we must translate this here.
-
+			// used explicitly "neo4j" as database name, the lock wouldn't work.
+			// Therefore, we must translate this here.
+			//
 			// "John Doe" will be unique and not clash with any existing database name,
 			// see
 			// - Length must be between 3 and 63 characters.
@@ -84,7 +84,7 @@ final class MigrationsLock {
 			// dots or dashes; [a..z][0..9].
 			// From
 			// https://neo4j.com/docs/operations-manual/current/manage-databases/configuration/
-			.filter(v -> !v.equals("neo4j"))
+			.filter(v -> !v.equals(context.getConnectionDetails().getDefaultDatabaseName()))
 			.orElse(DEFAULT_NAME_OF_LOCK);
 	}
 

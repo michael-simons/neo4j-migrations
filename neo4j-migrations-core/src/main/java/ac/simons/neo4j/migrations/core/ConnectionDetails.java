@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.core;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
@@ -41,8 +42,27 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 	 */
 	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName,
 			@Nullable String optionalDatabaseName, @Nullable String optionalSchemaDatabaseName) {
+		return of(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName,
+				optionalSchemaDatabaseName, null);
+	}
+
+	/**
+	 * Creates an instance of {@link ConnectionDetails}. Can be useful for testing.
+	 * @param serverAddress the address of the server used
+	 * @param serverVersion the neo4j version the server is running
+	 * @param serverEdition the neo4j edition the server is running
+	 * @param userName the neo4j user that ran the migrations
+	 * @param optionalDatabaseName the database if applicable (Neo4j 4.0 and up)
+	 * @param optionalSchemaDatabaseName the database if applicable (Neo4j 4.0 and up)
+	 * @param defaultDatabaseName the default database name
+	 * @return a new, unmodifiable instance
+	 * @since 4.2.0
+	 */
+	static ConnectionDetails of(String serverAddress, String serverVersion, String serverEdition, String userName,
+			@Nullable String optionalDatabaseName, @Nullable String optionalSchemaDatabaseName,
+			@Nullable String defaultDatabaseName) {
 		return new DefaultConnectionDetails(serverAddress, serverVersion, serverEdition, userName, optionalDatabaseName,
-				optionalSchemaDatabaseName);
+				optionalSchemaDatabaseName, Objects.requireNonNullElse(defaultDatabaseName, "neo4j"));
 	}
 
 	/**
@@ -75,5 +95,11 @@ public sealed interface ConnectionDetails permits MigrationChain, DefaultConnect
 	 * {@return the database if applicable (Neo4j 4.0 and up)}
 	 */
 	Optional<String> getOptionalSchemaDatabaseName();
+
+	/**
+	 * {@return the name of the default database}
+	 * @since 4.2.0
+	 */
+	String getDefaultDatabaseName();
 
 }

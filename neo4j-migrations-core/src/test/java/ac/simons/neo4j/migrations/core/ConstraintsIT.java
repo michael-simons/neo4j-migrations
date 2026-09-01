@@ -67,11 +67,11 @@ class ConstraintsIT {
 			N/A, false""")
 	void shouldDetectCorrectVersion(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null, "neo4j");
 		assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
 
 		for (String edition : new String[] { "Community", "Enterprise" }) {
-			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null, "neo4j");
 			assertThat(HBD.is4xSeries(cd)).isEqualTo(expected);
 		}
 	}
@@ -91,11 +91,11 @@ class ConstraintsIT {
 			N/A, false""")
 	void shouldDetect44OrHigher(String v, boolean expected) {
 
-		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null);
+		ConnectionDetails cd = new DefaultConnectionDetails(null, v, null, null, null, null, "neo4j");
 		assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
 
 		for (String edition : new String[] { "Community", "Enterprise" }) {
-			cd = new DefaultConnectionDetails(null, v, edition, null, null, null);
+			cd = new DefaultConnectionDetails(null, v, edition, null, null, null, "neo4j");
 			assertThat(HBD.is44OrHigher(cd)).isEqualTo(expected);
 		}
 	}

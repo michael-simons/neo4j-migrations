@@ -183,7 +183,8 @@ class MigrationVersionTests {
 	@MethodSource("allTargetVersions")
 	void shouldFindTargetVersionEmptyChain(String version) {
 
-		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var chain = MigrationChain
+			.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null, "neo4j"));
 		var stopVersion = MigrationVersion.findTargetVersion(chain, version);
 		assertThat(stopVersion).isEmpty();
 	}
@@ -203,8 +204,8 @@ class MigrationVersionTests {
 	@MethodSource
 	void shouldFindSpecial(MigrationVersion.TargetVersion targetVersion, String expected) {
 
-		var chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null),
-				makeChain());
+		var chain = new DefaultMigrationChain(
+				new DefaultConnectionDetails("aura", "hidden", null, "j", null, null, "neo4j"), makeChain());
 		var stopVersion = MigrationVersion.findTargetVersion(chain, targetVersion.name());
 		assertThat(stopVersion).hasValueSatisfying(v -> {
 			assertThat(v.version().getValue()).isEqualTo(expected);
@@ -215,8 +216,8 @@ class MigrationVersionTests {
 	@Test
 	void shouldFindLatest() {
 
-		var chain = new DefaultMigrationChain(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null),
-				makeChain());
+		var chain = new DefaultMigrationChain(
+				new DefaultConnectionDetails("aura", "hidden", null, "j", null, null, "neo4j"), makeChain());
 		var stopVersion = MigrationVersion.findTargetVersion(chain, MigrationVersion.TargetVersion.LATEST.name());
 		assertThat(stopVersion).hasValueSatisfying(v -> {
 			assertThat(v.version().getValue()).isEqualTo("5");
@@ -227,7 +228,8 @@ class MigrationVersionTests {
 	@Test // GH-1536
 	void findTargetVersionMustNotFailOnNull() {
 
-		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var chain = MigrationChain
+			.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null, "neo4j"));
 		var stopVersion = MigrationVersion.findTargetVersion(chain, null);
 		assertThat(stopVersion).isEmpty();
 	}
@@ -236,7 +238,8 @@ class MigrationVersionTests {
 	@MethodSource("specificVersions")
 	void findSpecificTargetMustNotFailWithEmptyChain(String version, boolean optional) {
 
-		var chain = MigrationChain.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null));
+		var chain = MigrationChain
+			.empty(new DefaultConnectionDetails("aura", "hidden", null, "j", null, null, "neo4j"));
 		var stopVersion = MigrationVersion.findTargetVersion(chain, version);
 		assertThat(stopVersion).hasValueSatisfying(v -> {
 			assertThat(v.version().getValue()).isEqualTo("04.2");

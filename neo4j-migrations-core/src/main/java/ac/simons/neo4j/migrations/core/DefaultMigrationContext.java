@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import ac.simons.neo4j.migrations.core.catalog.Catalog;
@@ -241,11 +242,28 @@ final class DefaultMigrationContext implements MigrationContext {
 						.asString());
 			}
 
+			var version = Neo4jVersion.of(databaseInformation.version).getMajorVersion();
+			var query = switch (version) {
+				case 3 -> "RETURN 'neo4j' AS value";
+				case 4 -> "CALL dbms.listConfig() YIELD name, value WHERE name = 'dbms.default_database' RETURN value";
+				default -> "SHOW DATABASES YIELD name, default WHERE default = true RETURN name AS value";
+			};
+
+			Optional<String> defaultDatabaseName = Optional.empty();
+			try {
+				defaultDatabaseName = session.executeRead(tx -> tx.run(query).list())
+					.stream()
+					.findFirst()
+					.map(r -> r.get("value").asString());
+			}
+			catch (Exception ignored) {
+			}
+
 			ServerInfo serverInfo = databaseInformation.server;
 			String schemaDatabase = (databaseInformation.database != null) ? databaseInformation.database.name() : null;
 			String targetDatabase = getConfig().getMigrationTargetIn(this).orElse(schemaDatabase);
 			return ConnectionDetails.of(serverInfo.address(), databaseInformation.version, databaseInformation.edition,
-					username, targetDatabase, schemaDatabase);
+					username, targetDatabase, schemaDatabase, defaultDatabaseName.orElse("neo4j"));
 		}
 	}
 

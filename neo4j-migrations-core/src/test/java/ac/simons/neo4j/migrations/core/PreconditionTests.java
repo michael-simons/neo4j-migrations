@@ -175,7 +175,7 @@ class PreconditionTests {
 
 			@Override
 			public ConnectionDetails getConnectionDetails() {
-				return new DefaultConnectionDetails(null, "Neo4j/4.4", null, null, null, null);
+				return new DefaultConnectionDetails(null, "Neo4j/4.4", null, null, null, null, "neo4j");
 			}
 
 			@Override
@@ -212,7 +212,7 @@ class PreconditionTests {
 	@CsvSource({ "community, COMMUNITY", "enterprise, ENTERPRISE", ", UNDEFINED", "special, UNDEFINED" })
 	void editionShouldBeDetectable(String value, String edition) {
 		assertThat(EditionPrecondition
-			.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null)))
+			.getEdition(new DefaultConnectionDetails(null, "Neo4j/4711", value, null, null, null, "neo4j")))
 			.isEqualTo(Neo4jEdition.valueOf(edition));
 	}
 

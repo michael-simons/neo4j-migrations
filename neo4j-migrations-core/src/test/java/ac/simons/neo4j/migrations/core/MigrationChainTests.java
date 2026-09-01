@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MigrationChainTests {
 
 	static final ConnectionDetails CONNECTION_DETAILS = new DefaultConnectionDetails("aura", "hidden", null, "j", null,
-			null);
+			null, "neo4j");
 
 	@Test
 	void shouldIncludeConnectionInfo() {
@@ -51,7 +51,7 @@ class MigrationChainTests {
 	void shouldPrintDatabase() {
 
 		MigrationChain chain = new DefaultMigrationChain(
-				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", null), Collections.emptyMap());
+				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", null, "neo4j"), Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("Database: a");
 	}
 
@@ -59,7 +59,8 @@ class MigrationChainTests {
 	void shouldPrintEdition() {
 
 		MigrationChain chain = new DefaultMigrationChain(
-				new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null), Collections.emptyMap());
+				new DefaultConnectionDetails("aura", "6.66", "Special", "j", "a", null, "neo4j"),
+				Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("j@aura (6.66 Special Edition)");
 	}
 
@@ -67,7 +68,7 @@ class MigrationChainTests {
 	void shouldPrintSchemaDatabase() {
 
 		MigrationChain chain = new DefaultMigrationChain(
-				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "b"), Collections.emptyMap());
+				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "b", "neo4j"), Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("Database: a").contains("Schema database: b");
 	}
 
@@ -75,7 +76,7 @@ class MigrationChainTests {
 	void shouldNotPrintSameSchemaDatabase() {
 
 		MigrationChain chain = new DefaultMigrationChain(
-				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "a"), Collections.emptyMap());
+				new DefaultConnectionDetails("aura", "hidden", null, "j", "a", "a", "neo4j"), Collections.emptyMap());
 		assertThat(chain.prettyPrint()).contains("Database: a").doesNotContain("Schema database: a");
 	}
 

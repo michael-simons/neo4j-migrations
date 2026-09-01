@@ -46,7 +46,7 @@ class DiscoveryServiceTests {
 			.withLocationsToScan("classpath:/my/awesome/migrations")
 			.build(), mock(Driver.class)));
 
-		doReturn(new DefaultConnectionDetails(null, "5.9", null, null, null, null)).when(context)
+		doReturn(new DefaultConnectionDetails(null, "5.9", null, null, null, null, "neo4j")).when(context)
 			.getConnectionDetails();
 
 		List<Migration> migrations = new DiscoveryService().findMigrations(context);

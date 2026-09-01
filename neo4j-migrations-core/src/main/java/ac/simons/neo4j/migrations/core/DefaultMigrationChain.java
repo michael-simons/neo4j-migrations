@@ -70,6 +70,11 @@ final class DefaultMigrationChain implements MigrationChain {
 	}
 
 	@Override
+	public String getDefaultDatabaseName() {
+		return this.connectionDetailsDelegate.getDefaultDatabaseName();
+	}
+
+	@Override
 	public boolean isApplied(String version) {
 		Element element = this.elements.get(MigrationVersion.withValue(version));
 		return element != null && element.getState() == MigrationState.APPLIED;

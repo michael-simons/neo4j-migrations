@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.core;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 
 import ac.simons.neo4j.migrations.core.DefaultMigrationContext.ExtendedResultSummary;
 import org.junit.jupiter.api.Test;
@@ -25,8 +26,10 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;
@@ -63,7 +66,9 @@ class DefaultMigrationContextTests {
 		Session session = mock(Session.class);
 		given(session.run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)"))
 			.willThrow(new ClientException(Neo4jCodes.PROCEDURE_NOT_FOUND, "n/a"));
-		given(session.executeRead(any())).willReturn(extendedResultSummary);
+		var record = mock(Record.class);
+		given(record.get("value")).willReturn(Values.value("foobar"));
+		given(session.executeRead(any())).willReturn(extendedResultSummary, List.of(record));
 
 		Driver driver = mock(Driver.class);
 		given(driver.session()).willReturn(session);
@@ -71,6 +76,7 @@ class DefaultMigrationContextTests {
 
 		DefaultMigrationContext ctx = new DefaultMigrationContext(config, driver);
 		assertThatNoException().isThrownBy(ctx::getConnectionDetails);
+		assertThat(ctx.getConnectionDetails().getDefaultDatabaseName()).isEqualTo("foobar");
 
 		verify(session).run("EXPLAIN CALL dbms.procedures() YIELD name RETURN count(*)");
 	}

@@ -82,7 +82,7 @@ final class ChainToolTests {
 	private static final Element A_3 = appliedMigration("03", "x");
 
 	private static final ConnectionDetails DEFAULT_CONNECTION_DETAILS = new DefaultConnectionDetails("n/a", "n/a",
-			"n/a", "n/a", "n/a", "n/a");
+			"n/a", "n/a", "n/a", "n/a", "neo4j");
 
 	static MigrationChain.Element pendingMigration(String version, String checksum) {
 		var migration = mock(AbstractCypherBasedMigration.class);
@@ -130,7 +130,7 @@ final class ChainToolTests {
 		given(context.getDriver()).willReturn(driver);
 		given(context.getConfig()).willReturn(config);
 		given(context.getConnectionDetails())
-			.willReturn(ConnectionDetails.of("n/a", "2026.05.0", "Enterprise", "msimons", null, null));
+			.willReturn(ConnectionDetails.of("n/a", "2026.05.0", "Enterprise", "msimons", null, null, "neo4j"));
 		given(context.getSchemaSession()).willReturn(session);
 		return context;
 	}

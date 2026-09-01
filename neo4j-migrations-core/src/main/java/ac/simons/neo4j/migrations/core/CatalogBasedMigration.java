@@ -119,6 +119,16 @@ final class CatalogBasedMigration implements MigrationWithPreconditions {
 
 		DOCUMENT_BUILDER_FACTORY = ThreadLocal.withInitial(() -> {
 			DocumentBuilderFactory value = DocumentBuilderFactory.newInstance();
+			try {
+				value.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				value.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			}
+			catch (ParserConfigurationException ex) {
+				throw new MigrationsException("Could not harden the XML parser", ex);
+			}
+			value.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			value.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			value.setXIncludeAware(false);
 			value.setSchema(MIGRATION_SCHEMA);
 			value.setExpandEntityReferences(false);
 			value.setNamespaceAware(true);

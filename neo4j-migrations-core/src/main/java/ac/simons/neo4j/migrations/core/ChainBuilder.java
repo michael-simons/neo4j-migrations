@@ -199,6 +199,7 @@ final class ChainBuilder {
 				WHERE coalesce(b.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>') AND NOT (l)-[:MIGRATED_TO]->(:__Neo4jMigration)
 				WITH p
 				OPTIONAL MATCH (n:__Neo4jMigration) - [r:REPEATED] -> (n)
+				WHERE n IN nodes(p)
 				WITH p, r order by r.at DESC
 				RETURN p, collect(r) AS repetitions
 				""";

@@ -78,8 +78,8 @@ final class ChainTool {
 
 		var cypher = """
 				MATCH (p)-[l:MIGRATED_TO]->(m:__Neo4jMigration {version: $version})
-				OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
 				WHERE coalesce(m.migrationTarget, '<default>') = coalesce($migrationTarget,'<default>')
+				OPTIONAL MATCH (m)-[r:MIGRATED_TO]->(n:__Neo4jMigration)
 				WITH p, l, m, r, n
 				FOREACH (i in CASE WHEN n IS NOT NULL THEN [1] ELSE [] END |
 				  CREATE (p)-[nl:MIGRATED_TO]->(n)

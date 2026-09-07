@@ -17,18 +17,21 @@ package ac.simons.neo4j.migrations.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.cli.internal.ImageInfo;
@@ -36,6 +39,8 @@ import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -373,6 +378,27 @@ class MigrationsCliTests {
 			Optional<Properties> optionalProperties = MigrationsCli.loadProperties(nm.toAbsolutePath().toString());
 			assertThat(optionalProperties).isPresent()
 				.hasValueSatisfying(p -> assertThat(p).containsEntry("location", "a,b,c"));
+		}
+
+		@TempDir
+		static Path tempDir;
+
+		static boolean posixIsSupported() {
+			return FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+		}
+
+		@Test
+		@EnabledIf("posixIsSupported")
+		void shouldNotCreateWorldReadableFile() throws IOException {
+			MigrationsCli cli = new MigrationsCli();
+
+			CommandLine commandLine = new CommandLine(cli);
+			commandLine.parseArgs("--package", "a", "--package", "b", "--password", "1234");
+			var fileName = tempDir.resolve("%s.properties".formatted(UUID.randomUUID())).toAbsolutePath().toString();
+			cli.storeProperties(fileName);
+			var file = Path.of(fileName);
+			var perms = Files.getPosixFilePermissions(file);
+			assertThat(perms).isEqualTo(PosixFilePermissions.fromString("rw-------"));
 		}
 
 	}

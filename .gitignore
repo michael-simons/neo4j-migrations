@@ -34,3 +34,6 @@ build/
 dependency-reduced-pom.xml
 .flattened-pom.xml
 \.*.swp
+
+### Misc ###
+neo4j-migrations-cli/.gitignore

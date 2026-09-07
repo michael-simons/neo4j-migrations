@@ -17,6 +17,7 @@ package ac.simons.neo4j.migrations.cli;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Callable;
 
 import ac.simons.neo4j.migrations.core.Defaults;
@@ -43,7 +44,13 @@ final class InitCommand implements Callable<Integer> {
 			Files.createDirectories(Paths.get(Defaults.LOCATIONS_TO_SCAN_WITHOUT_PREFIX));
 		}
 
-		this.parent.storeProperties(MigrationsCli.MIGRATIONS_PROPERTIES_FILENAME);
+		var path = this.parent.storeProperties(MigrationsCli.MIGRATIONS_PROPERTIES_FILENAME);
+		var gitignore = path.getParent().resolve(".gitignore");
+		var lineToWrite = path.getFileName().toString();
+		if (!Files.exists(gitignore) || !Files.readAllLines(gitignore).contains(lineToWrite)) {
+			Files.writeString(gitignore, "%s%n".formatted(lineToWrite), StandardOpenOption.CREATE,
+					StandardOpenOption.APPEND);
+		}
 		return CommandLine.ExitCode.OK;
 	}
 

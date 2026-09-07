@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -432,9 +433,27 @@ public final class MigrationsCli implements Runnable {
 		return properties;
 	}
 
-	void storeProperties(String filename) {
+	Path storeProperties(String filename) {
 
 		Path path = Paths.get(filename);
+
+		var permissions = PosixFilePermissions.fromString("rw-------");
+		try {
+			if (Files.exists(path)) {
+				Files.setPosixFilePermissions(path, permissions);
+			}
+			else {
+				Files.createFile(path, PosixFilePermissions.asFileAttribute(permissions));
+			}
+		}
+		catch (UnsupportedOperationException ex) {
+			LOGGER.log(Level.WARNING,
+					"Cannot set permissions on %s to 'rw-------'".formatted(path.toAbsolutePath().toString()));
+		}
+		catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+
 		try (OutputStream out = new BufferedOutputStream(
 				Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
 			toProperties().store(out, null);
@@ -442,6 +461,8 @@ public final class MigrationsCli implements Runnable {
 		catch (IOException ex) {
 			LOGGER.log(Level.SEVERE, "{0} is not writable.", path.toAbsolutePath());
 		}
+
+		return path.toAbsolutePath();
 	}
 
 }

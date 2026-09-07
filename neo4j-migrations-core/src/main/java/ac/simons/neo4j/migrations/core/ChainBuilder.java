@@ -177,7 +177,11 @@ final class ChainBuilder {
 	private int getNumberOfAppliedMigrations(MigrationContext context) {
 		var query = """
 				MATCH (n:__Neo4jMigration)
-				WHERE n.version <> 'BASELINE' AND coalesce(n.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>')
+				WHERE n.version <> 'BASELINE'
+				  AND n.version IS NOT NULL
+				  AND coalesce(n.flyway_failed, false) = false
+				  AND coalesce(n.type, '') <> 'DELETE'
+				  AND coalesce(n.migrationTarget,'<default>') = coalesce($migrationTarget,'<default>')
 				RETURN count(n)
 				""";
 

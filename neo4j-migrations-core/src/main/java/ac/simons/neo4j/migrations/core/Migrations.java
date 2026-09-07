@@ -936,21 +936,23 @@ public final class Migrations {
 		}
 
 		try (Session session = this.context.getSchemaSession()) {
-			var optionalReplacedMigration = session.executeWrite(uow);
-			Consumer<ReplacedMigration> rewire = replacedMigration -> session.executeWriteWithoutResult(t -> {
-				var query = """
-						MATCH ()-[oldRel]->(oldEnd)
-						WHERE id(oldRel) = $oldRelId
-						MATCH (inserted) WHERE id(inserted) = $insertedId
-						MERGE (inserted) -[r:MIGRATED_TO]-> (oldEnd)
-						SET r = properties(oldRel)
-						DELETE (oldRel)
-						""";
-				var parameter = Map.<String, Object>of(OLD_REL_ID, replacedMigration.oldRelId(), INSERTED_ID,
-						replacedMigration.newMigrationNodeId());
-				t.run(query, parameter).consume();
+			session.executeWriteWithoutResult(t -> {
+				Optional<ReplacedMigration> optionalReplacedMigration = uow.execute(t);
+				Consumer<ReplacedMigration> rewire = replacedMigration -> {
+					var query = """
+							MATCH ()-[oldRel]->(oldEnd)
+							WHERE id(oldRel) = $oldRelId
+							MATCH (inserted) WHERE id(inserted) = $insertedId
+							MERGE (inserted) -[r:MIGRATED_TO]-> (oldEnd)
+							SET r = properties(oldRel)
+							DELETE (oldRel)
+							""";
+					var parameter = Map.<String, Object>of(OLD_REL_ID, replacedMigration.oldRelId(), INSERTED_ID,
+							replacedMigration.newMigrationNodeId());
+					t.run(query, parameter).consume();
+				};
+				optionalReplacedMigration.ifPresent(rewire);
 			});
-			optionalReplacedMigration.ifPresent(rewire);
 		}
 
 		return appliedMigration.getVersion();

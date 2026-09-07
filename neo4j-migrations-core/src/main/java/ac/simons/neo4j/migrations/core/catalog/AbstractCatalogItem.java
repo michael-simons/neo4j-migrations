@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ac.simons.neo4j.migrations.core.Neo4jVersion;
 import ac.simons.neo4j.migrations.core.internal.Strings;
 import ac.simons.neo4j.migrations.core.internal.XMLSchemaConstants;
 import org.jspecify.annotations.Nullable;
@@ -112,20 +113,21 @@ abstract non-sealed class AbstractCatalogItem<T extends ItemType> implements Cat
 		if (options.isNull() || options.isEmpty()) {
 			return Optional.empty();
 		}
-		return Optional.of(renderMap(options));
+		return Optional.of(renderMap(Neo4jVersion.UNDEFINED, options));
 	}
 
-	private static String renderMap(Value value) {
+	private static String renderMap(Neo4jVersion version, Value value) {
 		if (TypeSystem.getDefault().MAP().isTypeOf(value)) {
 			Map<String, Value> map = value.asMap(Function.identity());
 			return map.entrySet()
 				.stream()
-				.map(e -> String.format("`%s`: %s", e.getKey(), renderMap(e.getValue())))
+				.map(e -> String.format("%s: %s", version.sanitizeSchemaName(e.getKey(), true),
+						renderMap(version, e.getValue())))
 				.collect(Collectors.joining(", ", "{", "}"));
 		}
 		else if (TypeSystem.getDefault().LIST().isTypeOf(value)) {
 			List<Value> list = value.asList(Function.identity());
-			return list.stream().map(AbstractCatalogItem::renderMap).collect(Collectors.joining(", ", "[", "]"));
+			return list.stream().map(v -> renderMap(version, v)).collect(Collectors.joining(", ", "[", "]"));
 		}
 		else {
 			return value.toString();

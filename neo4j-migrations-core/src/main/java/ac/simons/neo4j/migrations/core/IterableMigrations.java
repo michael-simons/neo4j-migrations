@@ -89,35 +89,39 @@ final class IterableMigrations implements Iterable<Migration> {
 
 		private @Nullable Migration next;
 
+		private boolean afterFirst;
+
 		DelayingIterator(Iterator<Migration> delegate, @Nullable Duration optionalDelay,
 				Comparator<MigrationVersion> comparator, @Nullable MigrationVersion optionalStop) {
 			this.delegate = delegate;
 			this.optionalDelay = optionalDelay;
 			this.comparator = comparator;
 			this.optionalStop = optionalStop;
+			this.next = advance();
+		}
+
+		private @Nullable Migration advance() {
+			if (!this.delegate.hasNext()) {
+				return null;
+			}
+			var candidate = this.delegate.next();
+			return (this.optionalStop == null
+					|| this.comparator.compare(candidate.getVersion(), this.optionalStop) <= 0) ? candidate : null;
 		}
 
 		@Override
 		public boolean hasNext() {
-			var hasNext = this.delegate.hasNext();
-			if (hasNext) {
-				this.next = this.delegate.next();
-				hasNext = this.optionalStop == null
-						|| this.comparator.compare(this.next.getVersion(), this.optionalStop) <= 0;
-			}
-			else {
-				this.next = null;
-			}
-			return hasNext;
+			return this.next != null;
 		}
 
 		@Override
 		public Migration next() throws NoSuchElementException {
-			if (this.next == null) {
+			var current = this.next;
+			if (current == null) {
 				throw new NoSuchElementException();
 			}
-
-			if (this.optionalDelay != null) {
+			this.next = advance();
+			if (this.optionalDelay != null && this.afterFirst) {
 				try {
 					Thread.sleep(this.optionalDelay.toMillis());
 				}
@@ -125,7 +129,8 @@ final class IterableMigrations implements Iterable<Migration> {
 					Thread.currentThread().interrupt();
 				}
 			}
-			return this.next;
+			this.afterFirst = true;
+			return current;
 		}
 
 	}

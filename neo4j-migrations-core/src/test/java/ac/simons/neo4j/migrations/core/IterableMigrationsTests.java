@@ -128,4 +128,24 @@ class IterableMigrationsTests {
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(it::next);
 	}
 
+	@Test
+	void shouldNotAdvanceOnHasNext() {
+
+		var migrations = mockMigrations("V10", "R20", "V30");
+		var config = MigrationsConfig.builder()
+			.withVersionSortOrder(MigrationsConfig.VersionSortOrder.SEMANTIC)
+			.build();
+
+		var it = IterableMigrations.of(config, migrations).iterator();
+
+		assertThat(it.hasNext()).isTrue();
+		assertThat(it.hasNext()).isTrue();
+
+		assertThat(it.next().getVersion().getValue()).isEqualTo("10");
+		assertThat(it.next().getVersion().getValue()).isEqualTo("20");
+		assertThat(it.next().getVersion().getValue()).isEqualTo("30");
+
+		assertThat(it.hasNext()).isFalse();
+	}
+
 }

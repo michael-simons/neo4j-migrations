@@ -333,10 +333,26 @@ class IndexToCypherRendererTests {
 
 		cypher = indexRenderer.render(index, create);
 		assertThat(cypher)
-			.isEqualTo("CALL db.index.fulltext.createNodeIndex('das\\' ist` \\'ein \\'test',['Book'],['isbn'])");
+			.isEqualTo("CALL db.index.fulltext.createNodeIndex('das\\' ist` \\'ein \\\\\\'test',['Book'],['isbn'])");
 
 		cypher = indexRenderer.render(index, drop);
-		assertThat(cypher).isEqualTo("CALL db.index.fulltext.drop('das\\' ist` \\'ein \\'test')");
+		assertThat(cypher).isEqualTo("CALL db.index.fulltext.drop('das\\' ist` \\'ein \\\\\\'test')");
+	}
+
+	@Test
+	void trailingBackslash() {
+
+		var indexRenderer = Renderer.get(Renderer.Format.CYPHER, Index.class);
+		var index = Index.forNode("Book").named("das' ist` \\u0027ein \\'test\\").fulltext("isbn");
+
+		var create = RenderConfig.create().forVersionAndEdition("4.2", "ENTERPRISE");
+		var drop = RenderConfig.drop().forVersionAndEdition("4.2", "ENTERPRISE");
+
+		assertThat(indexRenderer.render(index, create)).isEqualTo(
+				"CALL db.index.fulltext.createNodeIndex('das\\' ist` \\'ein \\\\\\'test\\\\',['Book'],['isbn'])");
+
+		assertThat(indexRenderer.render(index, drop))
+			.isEqualTo("CALL db.index.fulltext.drop('das\\' ist` \\'ein \\\\\\'test\\\\')");
 	}
 
 	@ParameterizedTest

@@ -25,7 +25,6 @@ import java.util.EnumSet;
 import java.util.Formattable;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ac.simons.neo4j.migrations.core.Neo4jVersion;
@@ -52,14 +51,20 @@ enum IndexToCypherRenderer implements Renderer<Index> {
 
 	private static final String ESCAPED_UNICODE_QUOTE = "\\u0027";
 
-	private static final Pattern UNESCAPED_QUOTE = Pattern.compile("(?<!\\\\)'");
+	private static final String ONE_BACKSLASH = "\\";
+
+	private static final String TWO_BACKSLASH = ONE_BACKSLASH.repeat(2);
+
+	private static final String SINGLE_QUOTE = "'";
 
 	private static final UnaryOperator<@Nullable String> TO_LITERAL = v -> {
 		if (v == null) {
 			return "NULL";
 		}
-		String result = UNESCAPED_QUOTE.matcher(v.replace(ESCAPED_UNICODE_QUOTE, "'")).replaceAll("\\\\'");
-		return "'" + result + "'";
+		var result = v.replace(ESCAPED_UNICODE_QUOTE, SINGLE_QUOTE)
+			.replace(ONE_BACKSLASH, TWO_BACKSLASH)
+			.replace(SINGLE_QUOTE, ONE_BACKSLASH + SINGLE_QUOTE);
+		return SINGLE_QUOTE + result + SINGLE_QUOTE;
 	};
 
 	private static String renderDropFulltext(Index index, RenderConfig config, Neo4jVersion version) {

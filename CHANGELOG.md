@@ -1,3 +1,285 @@
+# 4.1.3
+
+## 🧰 Tasks
+- 80ffa32 chore: Pin all actions (including officials) to their current sha.
+
+## 🧹 Housekeeping
+- 8b0ee7b Bump neo4j-ogm.version from 5.0.7 to 5.0.8
+- de0c352 Bump Quarkus to 3.38.2 and Quarkus-Neo4j to 6.7.1
+- 4c961a3 Bump checkstyle to 14.0.0 and Spring JavaFormat to 0.0.48
+- d0c7327 Bump org.codehaus.mojo:flatten-maven-plugin from 1.7.3 to 1.8.0 (#2028)
+- e2f7681 build(deps-dev): Bump com.mycila:license-maven-plugin from 5.0.0 to 5.1.1 (#2030)
+- ca9621c Bump org.apache.maven.plugins:maven-jar-plugin from 3.5.0 to 3.5.1 (#2033)
+- b488033 Bump io.github.classgraph:classgraph from 4.8.184 to 4.8.186 (#2034)
+- e0e157e Bump org.cyclonedx:cyclonedx-maven-plugin from 2.9.2 to 2.9.3 (#2035)
+- 9f60363 Bump org.jspecify:jspecify from 1.0.0 to 1.0.1 (#2036)
+- b420828 Bump io.netty:netty-bom from 4.1.136.Final to 4.1.137.Final (#2037)
+- 87156c0 Bump org.graalvm.buildtools:native-maven-plugin from 1.1.5 to 1.1.8 (#2038)
+- 13b7f46 build(deps-dev): Bump brace-expansion from 1.1.12 to 1.1.16 in /etc/antora (#2027)
+- fab07a0 Bump quarkus.version from 3.37.2 to 3.37.3 (#2023)
+- e45f5bd Bump org.apache.ivy:ivy from 2.5.3 to 2.6.0 (#2026)
+- a89813f Bump org.graalvm.buildtools:native-maven-plugin from 1.1.4 to 1.1.5 (#2025)
+- c250b6a Bump com.uber.nullaway:nullaway from 0.13.7 to 0.13.8 (#2024)
+- 5c82421 Bump org.graalvm.buildtools:native-maven-plugin from 1.1.3 to 1.1.4 (#2017)
+- 65af1e3 Bump quarkus.version from 3.37.1 to 3.37.2 (#2018)
+- 26e23a8 Bump io.netty:netty-bom from 4.1.135.Final to 4.1.136.Final (#2019)
+- 5cef8c5 Bump org.neo4j.test:neo4j-harness from 2026.05.0 to 2026.06.0 (#2020)
+- ee1e15c Bump com.puppycrawl.tools:checkstyle from 13.7.0 to 13.8.0 (#2021)
+- aa13c2b Bump org.junit:junit-bom from 6.1.1 to 6.1.2 (#2022)
+- be6bf48 Bump byte-buddy.version from 1.18.10-jdk5 to 1.18.11-jdk5 (#2014)
+- 3ccab3e Bump quarkus.version from 3.37.0 to 3.37.1 (#2015)
+- a3d3ac6 build(deps-dev): Bump org.checkerframework:checker-qual from 4.2.0 to 4.2.1 (#2016)
+
+
+# 4.1.2
+
+## 🐛 Bug Fixes
+- f0d7072 fix: Report Neo4j error code and message for DatabaseException, not just ClientException. (#2004)
+
+## 📝 Documentation
+- c0370b4 docs: add vladas as a contributor for ideas, and code (#2013)
+
+## 🧰 Tasks
+- aaca72d chore: Fix deprecation warning in driver usage.
+
+## 🧹 Housekeeping
+- b5590bc Bump quarkus.version from 3.36.2 to 3.37.0 (#2008)
+- 7f1add0 Bump com.puppycrawl.tools:checkstyle from 13.6.0 to 13.7.0 (#2005)
+- f2c305e Bump com.uber.nullaway:nullaway from 0.13.6 to 0.13.7 (#2006)
+- 980879b Bump org.commonmark:commonmark from 0.28.0 to 0.29.0 (#2007)
+- a1ca673 Bump org.graalvm.buildtools:native-maven-plugin from 1.1.1 to 1.1.3 (#2009)
+- d5096fc Bump quarkus-neo4j.version from 6.6.1 to 6.7.0 (#2010)
+- 2ade0ac Bump com.google.errorprone:error_prone_core from 2.49.0 to 2.50.0 (#2011)
+- 4fec027 Bump org.junit:junit-bom from 6.1.0 to 6.1.1 (#2012
+
+## Contributors
+We'd like to thank the following people for their contributions:
+
+- @Vladas
+
+
+# 4.1.1
+
+## 📝 Documentation
+- e6c15c4 docs: Improve readme.
+
+## 🧹 Housekeeping
+- 39c67c0 build(deps-dev): Bump org.checkerframework:checker-qual from 4.1.0 to 4.2.0 (#1994)
+- 95e2290 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 8.0.5 to 8.1.0 (#1998)
+- 66251f0 Bump byte-buddy.version from 1.18.8-jdk5 to 1.18.10-jdk5 (#1991)
+- ac0d822 Bump jacoco-maven-plugin.version from 0.8.14 to 0.8.15 (#1992)
+- d8967f5 Bump io.netty:netty-bom from 4.1.134.Final to 4.1.135.Final (#1993)
+- 824ce21 Bump com.uber.nullaway:nullaway from 0.13.4 to 0.13.6 (#1995)
+- 7a4b1de Bump net.java.dev.jna:jna from 5.18.1 to 5.19.1 (#1999)
+- a82e184 Bump quarkus.version from 3.36.0 to 3.36.2 (#2000)
+- 2fef640 Bump spring-boot.version from 4.0.6 to 4.1.0 (#2001)
+- b1e9fae Bump com.puppycrawl.tools:checkstyle from 13.5.0 to 13.6.0 (#2002)
+
+
+# 4.1.0
+
+No breaking changes, but the bugfix and enhancement required a new enum value for a better validation result, hence the version bump. Thanks @buianhtai for the good bug report and suggestion for the Cypher repair query.
+
+## 🐛 Bug Fixes
+- a436b4d fix: Validate uniqueness of versions during discovery and within applied migrations. (#1990)
+
+## 📝 Documentation
+- 617c044 docs: add buianhtai as a contributor for bug, and code (#1989)
+
+## 🧰 Tasks
+- 9ed06fe chore: Delete superflous file.
+
+## 🧹 Housekeeping
+- b93a859 Bump org.neo4j.test:neo4j-harness from 2026.04.0 to 2026.05.0 (#1987)
+- d143e8a Bump com.puppycrawl.tools:checkstyle from 13.4.2 to 13.5.0 (#1986)
+- 6fcc553 Bump org.graalvm.buildtools:native-maven-plugin from 1.1.0 to 1.1.1 (#1985)
+- 6913e18 Bump org.apache.maven.plugins:maven-surefire-plugin from 3.5.5 to 3.5.6 (#1984)
+- 9828b22 build(deps-dev): Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.7 to 0.26.1 (#1983)
+- 598f880 Bump org.sonarsource.scanner.maven:sonar-maven-plugin from 5.6.0.6792 to 5.7.0.6970 (#1982)
+- c45c2c7 Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.5.5 to 3.5.6 (#1981)
+- 6e20f70 Bump quarkus.version from 3.35.3 to 3.36.0 (#1979)
+- 4981a0a Bump io.netty:netty-bom from 4.1.133.Final to 4.1.134.Final (#1978)
+
+
+# 4.0.2
+
+## 🐛 Bug Fixes
+- 1ec36dd docs: Fix Maven badge.
+
+## 🧹 Housekeeping
+- c1e8cb9 Bump quarkus-neo4j.version from 6.6.0 to 6.6.1
+- a72f5d4 Bump quarkus.version from 3.35.2 to 3.35.3 (#1976)
+- abed939 Bump org.codehaus.plexus:plexus-classworlds from 2.9.0 to 2.11.0 (#1977)
+- 5592886 build(deps-dev): Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.6 to 0.25.7 (#1973)
+- 3b59bc1 Bump quarkus.version from 3.35.0 to 3.35.2 (#1974)
+- 8306fcd Bump io.netty:netty-bom from 4.1.132.Final to 4.1.133.Final (#1975)
+
+## 🛠 Build
+- 0de14ab build: Update more dependencies.
+- 87babff build: Exclude plexus-classworlds from automatic dependency upgrades.
+
+---
+- a35bd73 Revert "build: Exclude plexus-classworlds from automatic dependency upgrades."
+- e472760 Update dependencies.
+
+
+# 4.0.1
+
+## 🧹 Housekeeping
+- 7f58a4a Bump quarkus-neo4j.version from 6.5.1 to 6.6.0
+- 77a8fc9 Bump org.neo4j.test:neo4j-harness from 2026.03.1 to 2026.04.0 (#1965)
+- b161258 Bump quarkus.version from 3.34.5 to 3.35.0 (#1958)
+- 49dbf23 Bump com.uber.nullaway:nullaway from 0.13.3 to 0.13.4 (#1963)
+- 72d2d2f Bump quarkus-neo4j.version from 6.5.0 to 6.5.1 (#1962)
+- 13f4295 Bump spring-boot.version from 4.0.5 to 4.0.6 (#1961)
+- 241e035 Bump org.testcontainers:testcontainers-bom from 2.0.4 to 2.0.5 (#1959)
+- d140495 Bump org.apache.maven.plugins:maven-invoker-plugin from 3.9.1 to 3.10.0 (#1964)
+- 9f3f675 Bump commons-io:commons-io from 2.21.0 to 2.22.0 (#1966)
+- 78214d3 Bump org.graalvm.buildtools:native-maven-plugin from 1.0.0 to 1.1.0 (#1960)
+- f31d72c Bump quarkus.version from 3.34.3 to 3.34.5 (#1953)
+- 2fa8e15 Bump com.uber.nullaway:nullaway from 0.13.2 to 0.13.3 (#1954)
+- 422695c build(deps-dev): Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.5 to 0.25.6 (#1955)
+- b288658 build(deps-dev): Bump com.tngtech.archunit:archunit from 1.4.1 to 1.4.2 (#1956)
+
+## 🛠 Build
+- 5bf3a42 build: Remove unused slf4j2.version properties.
+- 48d99ae build: Remove unused Testcontainers cloud settings.
+
+
+# 4.0.0
+
+We added [JSpecify](https://jspecify.dev) towards the Core Module (via the Java `ac.simons.neo4j.migrations.core` of course, as we are big proponents of the module system), and do check and validate the full build with ErrorProne / NullAway. The core is `@NullMarked` and we actually needed to add only a few more checks.
+
+Since JSpecify annotations are runtime retention, this is a binary API incompatible change for languages like Kotlin, that express `@Nullable` types as different types than `@NonNull` types and we incremented the major version. Except that, no further breaking changes.
+
+## 🚀 Features
+- 7950eeb feat: Enhance the Neo4j-Migrations core module so that it uses and exposes JSpecify annotations. (#1951)
+
+## 🧹 Housekeeping
+- 816f946 Update Neo4j Java Driver to 6.0.5.
+- a3b7e8c Update Spring Data Neo4j to 8.0.5.
+- d3859fc Update managed Guava version.
+- 0eaab60 Revert "Bump org.codehaus.plexus:plexus-classworlds from 2.9.0 to 2.10.0 (#1940)"
+- a8193a8 Bump byte-buddy.version from 1.18.7-jdk5 to 1.18.8-jdk5 (#1942)
+- 08aa41c Bump org.graalvm.buildtools:native-maven-plugin from 0.11.5 to 1.0.0 (#1943)
+- ff7d2d0 Bump org.commonmark:commonmark from 0.27.1 to 0.28.0 (#1945)
+- 9ff8887 Bump quarkus.version from 3.34.1 to 3.34.3 (#1947)
+- 74f6b34 Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.5 to 2025.2.6 (#1941)
+- 9f4c013 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.48.0 to 2.49.0 (#1948)
+- 8e5be25 Bump org.codehaus.plexus:plexus-classworlds from 2.9.0 to 2.10.0 (#1940)
+- 9452c46 Bump org.neo4j.test:neo4j-harness from 2026.02.3 to 2026.03.1 (#1944)
+- 3d7533b build(deps-dev): Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.4 to 0.25.5 (#1949)
+- 7cf1530 build(deps-dev): Bump org.checkerframework:checker-qual from 3.54.0 to 4.0.0 (#1950)
+
+
+# 3.3.1
+
+## 🧹 Housekeeping
+- a72bcec Bump neo4j-ogm.version from 5.0.4 to 5.0.5
+- 6965b92 Bump quarkus-neo4j.version from 6.4.1 to 6.5.0
+- cbb6944 Bump org.codehaus.plexus:plexus-utils from 4.0.2 to 4.0.3 in /neo4j-migrations-maven-plugin (#1932)
+- 4aecfa8 Bump com.puppycrawl.tools:checkstyle from 13.3.0 to 13.4.0 (#1934)
+- 1048c20 Bump picomatch in /etc/antora (#1929)
+- d4bf77b build(deps-dev): Bump convict from 6.2.4 to 6.2.5 in /etc/antora (#1930)
+- 7096722 build(deps-dev): Bump handlebars from 4.7.8 to 4.7.9 in /etc/antora (#1931)
+- a68d471 Bump spring-boot.version from 4.0.3 to 4.0.5 (#1933)
+- c8db19e Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.4 to 2025.2.5 (#1927)
+- fe1e698 Bump quarkus.version from 3.32.3 to 3.34.1 (#1935)
+- 4d90e85 Bump org.testcontainers:testcontainers-bom from 2.0.3 to 2.0.4 (#1926)
+- 98c1d44 Bump io.netty:netty-bom from 4.1.131.Final to 4.1.132.Final (#1936)
+- 40b60ba Bump org.asciidoctor:asciidoctorj-diagram from 3.2.0 to 3.2.1 (#1924)
+- c97061b Bump org.neo4j.test:neo4j-harness from 2026.02.2 to 2026.02.3 (#1928)
+- f2b846c Bump org.neo4j.driver:neo4j-java-driver from 6.0.3 to 6.0.4 (#1937)
+- 53c9998 Bump quarkus-neo4j.version from 6.3.1 to 6.4.1 (#1922)
+- 3d8649f Bump quarkus.version from 3.32.2 to 3.32.3 (#1921)
+- 1a16065 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 8.0.3 to 8.0.4 (#1920)
+
+## 🛠 Build
+- d328331 build: Use new JUnit quarkus artifacts.
+
+
+# 3.3.0
+
+## 🚀 Features
+- ba132fb feat: Add placeholder support for Cypher script migrations. (#1918)
+
+## 🐛 Bug Fixes
+- 70e1219 refactor: Prefix constraint and index discovery with `CYPHER 5` on latest always.
+
+## 🔄️ Refactorings
+- 589a0df refactor: Adapt to changes in Cypher 25 in 2025.06
+
+## 📝 Documentation
+- c3516e1 docs: add guy-keller as a contributor for ideas (#1919)
+- 8f88082 docs: Improve documentation about downloading binaries.
+
+## 🧹 Housekeeping
+- 8b4f2c1 Bump org.apache.maven.plugins:maven-shade-plugin from 3.6.1 to 3.6.2 (#1913)
+- a19aef8 Bump com.puppycrawl.tools:checkstyle from 13.2.0 to 13.3.0 (#1917)
+- 67f6d0b Bump org.asciidoctor:asciidoctorj-diagram from 3.1.0 to 3.2.0 (#1916)
+- 09cdec6 Bump org.graalvm.buildtools:native-maven-plugin from 0.11.4 to 0.11.5 (#1915)
+- 0fd6e26 Bump org.apache.maven.plugins:maven-surefire-plugin from 3.5.4 to 3.5.5 (#1914)
+- 6cff9af build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.47.0 to 2.48.0 (#1912)
+- 593f432 Bump quarkus.version from 3.32.0 to 3.32.2 (#1911)
+- 269c613 Bump org.apache.maven.plugins:maven-resources-plugin from 3.4.0 to 3.5.0 (#1910)
+- 9580637 Bump byte-buddy.version from 1.18.5 to 1.18.7 (#1909)
+- 19bd595 Bump org.apache.maven.plugins:maven-failsafe-plugin from 3.5.4 to 3.5.5 (#1908)
+- 227d7f2 Bump quarkus-neo4j.version from 6.3.0 to 6.3.1 (#1904)
+- 7a27059 Bump org.neo4j.test:neo4j-harness from 2026.01.3 to 2026.01.4 (#1900)
+- fbb1443 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 8.0.2 to 8.0.3 (#1899)
+- 37d0d2b Bump byte-buddy.version from 1.18.4 to 1.18.5 (#1898)
+- 69c1503 Bump org.junit:junit-bom from 6.0.2 to 6.0.3 (#1897)
+- c73d02d build(deps-dev): Bump minimatch from 3.1.2 to 3.1.5 in /etc/antora (#1907)
+- 266873f Bump spring-boot.version from 4.0.2 to 4.0.3 (#1906)
+- 11e121f Bump org.neo4j.driver:neo4j-java-driver from 6.0.2 to 6.0.3 (#1905)
+- b3f62b3 Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.3 to 2025.2.4 (#1903)
+- 0a1b6bf Bump quarkus.version from 3.31.2 to 3.32.0 (#1902)
+- 94ae47f Bump neo4j-ogm.version from 5.0.2 to 5.0.3 (#1901)
+- 1094d10 Bump quarkus.version from 3.31.1 to 3.31.2 (#1888)
+- cf339e1 Bump com.puppycrawl.tools:checkstyle from 13.1.0 to 13.2.0 (#1887)
+- becbc64 build(deps-dev): Bump org.apache.maven.plugin-testing:maven-plugin-testing-harness from 3.5.0 to 3.5.1 (#1894)
+- e277995 Bump quarkus-neo4j.version from 6.2.0 to 6.3.0 (#1893)
+- 6af7159 Bump io.fabric8:docker-maven-plugin from 0.48.0 to 0.48.1 (#1892)
+- 7407cbd Bump org.neo4j.test:neo4j-harness from 2025.12.1 to 2026.01.3 (#1891)
+- e97a72a Bump io.netty:netty-bom from 4.1.130.Final to 4.1.131.Final (#1890)
+- a27e330 build(deps-dev): Bump org.checkerframework:checker-qual from 3.53.0 to 3.53.1 (#1889)
+- 65e3fdb build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.46.0 to 2.47.0 (#1886)
+
+## 🛠 Build
+- 2f007b6 build: Update dependencies of testscript.
+
+
+# 3.2.1
+
+## 🐛 Bug Fixes
+- 2e7c9aa fix: Configure a skin for the plugin site.
+- 95262fb fix: Adapt native image testing to changes in the `pom.xml`.
+
+## 📝 Documentation
+- 8b90a7c docs: Update local changelog and improve contributing.
+
+## 🧹 Housekeeping
+- 2a3c855 Bump org.graalvm.buildtools:native-maven-plugin from 0.11.3 to 0.11.4 (#1881)
+- ff321ed Bump org.assertj:assertj-core from 3.27.6 to 3.27.7 (#1880)
+- 9b7926e Bump com.puppycrawl.tools:checkstyle from 13.0.0 to 13.1.0 (#1885)
+- 5c49c77 Bump org.apache.maven.plugins:maven-compiler-plugin from 3.14.1 to 3.15.0 (#1884)
+- dbc3120 Bump quarkus.version from 3.30.6 to 3.31.1 (#1883)
+- 39575e7 Bump spring-boot.version from 4.0.1 to 4.0.2 (#1882)
+- 2aaa558 Bump org.objenesis:objenesis from 3.4 to 3.5 (#1879)
+- 82ab954 Bump org.commonmark:commonmark from 0.27.0 to 0.27.1 (#1877)
+- 81160bf Bump org.neo4j:neo4j-cypher-dsl-bom from 2025.2.2 to 2025.2.3 (#1876)
+- 2a7c524 Bump neo4j-ogm.version from 5.0.1 to 5.0.2 (#1875)
+- 9bf1af4 build(deps-dev): Bump org.codehaus.mojo:versions-maven-plugin from 2.20.1 to 2.21.0 (#1872)
+- 679a036 build(deps-dev): Bump org.springframework.data:spring-data-neo4j from 8.0.1 to 8.0.2 (#1874)
+- c9079b3 build(deps-dev): Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.3 to 0.25.4 (#1873)
+- e4b3864 Bump byte-buddy.version from 1.18.3 to 1.18.4 (#1871)
+- a702935 Bump org.neo4j.test:neo4j-harness from 2025.11.2 to 2025.12.1 (#1870)
+- ae816f0 Bump quarkus.version from 3.30.5 to 3.30.6 (#1866)
+- 6739588 build(deps-dev): Bump com.google.errorprone:error_prone_annotations from 2.45.0 to 2.46.0 (#1868)
+- 630cc91 Bump com.github.siom79.japicmp:japicmp-maven-plugin from 0.25.1 to 0.25.3 (#1867)
+- 259afc2 build(deps-dev): Bump org.apache.maven.plugin-testing:maven-plugin-testing-harness from 3.4.0 to 3.5.0 (#1865)
+
+
 # 3.2.0
 
 No breaking changes, just new features. We bumped the minor version to reflect the added enum value `ac.simons.neo4j.migrations.core.catalog.Constraint.Type#UNIQUE_RELATIONSHIP_PROPERTY`.

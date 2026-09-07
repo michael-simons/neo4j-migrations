@@ -549,11 +549,12 @@ class MigrationsCliTests {
 			assertAuthToken(authToken, "Geheim");
 		}
 
-		@Test
-		void shouldUseFile() throws Exception {
+		@ParameterizedTest
+		@ValueSource(strings = { "Vertraulich", "Vertraulich\n" })
+		void shouldUseFile(String in) throws Exception {
 
 			Path passwordfile = Files.createTempFile("passwordfile", "");
-			Files.writeString(passwordfile, "Vertraulich");
+			Files.writeString(passwordfile, in);
 
 			MigrationsCli cli = new MigrationsCli();
 			setUserName(cli);

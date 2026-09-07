@@ -349,6 +349,7 @@ public final class MigrationsCli implements Runnable {
 		}
 
 		return resolvedPassword.filter(Predicate.not(String::isBlank))
+			.map(String::trim)
 			.map(s -> AuthTokens.basic(this.user, s))
 			.or(this::getOptionalBearerToken)
 			.or(this::getOptionalCustomToken)

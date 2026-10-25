@@ -43,11 +43,11 @@ final class MigrationChainFormat {
 
 		// Compute column widths
 		int[] columnWidths = new int[table.size()];
-		int columnm = 0;
+		int columnIndex = 0;
 		for (Map.Entry<String, List<String>> entry : table.entrySet()) {
 			String k = entry.getKey();
 			List<String> v = entry.getValue();
-			columnWidths[columnm++] = Math.max(k.length(),
+			columnWidths[columnIndex++] = Math.max(k.length(),
 					v.stream().map(String::length).max(Integer::compareTo).orElse(0));
 		}
 		String[] columnFormats = Arrays.stream(columnWidths).mapToObj(w -> "| %-" + w + "s ").toArray(String[]::new);
@@ -58,20 +58,20 @@ final class MigrationChainFormat {
 		// Build rows
 		Map<Integer, StringBuilder> rows = new TreeMap<>();
 		int numRows = chain.getElements().size();
-		columnm = 0;
+		columnIndex = 0;
 		for (List<String> v : table.values()) {
 			for (int i = 0; i < numRows; ++i) {
 				StringBuilder row = rows.computeIfAbsent(i, k -> new StringBuilder());
-				row.append(String.format(columnFormats[columnm], v.get(i)));
+				row.append(String.format(columnFormats[columnIndex], v.get(i)));
 			}
-			++columnm;
+			++columnIndex;
 		}
 
 		// Stitch everything together
 		target.append(separator);
-		columnm = 0;
+		columnIndex = 0;
 		for (String column : table.keySet()) {
-			target.append(String.format(columnFormats[columnm++], column));
+			target.append(String.format(columnFormats[columnIndex++], column));
 		}
 		target.append("|").append(LS).append(separator);
 		rows.values().forEach(row -> target.append(row).append("|").append(LS));
@@ -115,11 +115,9 @@ final class MigrationChainFormat {
 	private static String buildSeparator(int[] columnWidhts) {
 
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < columnWidhts.length; ++i) {
+		for (int columnWidth : columnWidhts) {
 			sb.append("+");
-			for (int j = 0; j < columnWidhts[i] + 2; ++j) {
-				sb.append("-");
-			}
+			sb.append("-".repeat(Math.max(0, columnWidth + 2)));
 		}
 		return sb.append("+").append(LS).toString();
 	}

@@ -36,8 +36,10 @@ final class DefaultClasspathResourceScanner implements ClasspathResourceScanner 
 	public List<URL> scan(List<String> locations) {
 
 		String[] paths = locations.toArray(new String[0]);
-		try (ScanResult scanResult = new ClassGraph().acceptPaths(paths).scan();
-				ResourceList allResources = scanResult.getAllResources().nonClassFilesOnly()) {
+		try (ScanResult scanResult = new ClassGraph().enableClasspath()
+			.enableNonSystemModules()
+			.acceptPaths(paths)
+			.scan(); ResourceList allResources = scanResult.getAllResources().nonClassFilesOnly()) {
 			return allResources.stream().map(Resource::getURL).toList();
 		}
 	}

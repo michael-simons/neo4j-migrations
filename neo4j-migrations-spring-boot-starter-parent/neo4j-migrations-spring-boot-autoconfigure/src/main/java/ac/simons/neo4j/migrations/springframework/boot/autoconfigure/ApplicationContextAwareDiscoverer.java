@@ -15,6 +15,7 @@
  */
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +26,6 @@ import ac.simons.neo4j.migrations.core.JavaBasedMigration;
 import ac.simons.neo4j.migrations.core.MigrationContext;
 import ac.simons.neo4j.migrations.core.MigrationsException;
 import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -41,11 +41,8 @@ final class ApplicationContextAwareDiscoverer implements Discoverer<JavaBasedMig
 
 	private final ObjectProvider<JavaBasedMigration> javaBasedMigrations;
 
-	private final ClassLoader classLoader;
-
-	ApplicationContextAwareDiscoverer(ObjectProvider<JavaBasedMigration> javaBasedMigrations, ClassLoader classLoader) {
+	ApplicationContextAwareDiscoverer(ObjectProvider<JavaBasedMigration> javaBasedMigrations) {
 		this.javaBasedMigrations = javaBasedMigrations;
-		this.classLoader = classLoader;
 	}
 
 	@Override
@@ -61,43 +58,28 @@ final class ApplicationContextAwareDiscoverer implements Discoverer<JavaBasedMig
 
 		// If configured, use the same algorithm as the default scanner
 		if (config.getPackagesToScan().length != 0) {
-			try (ScanResult scanResult = new ClassGraph().enableClasspath()
-				.enableNonSystemModules()
-				.enableClassInfo()
-				.ignoreClassVisibility()
+			try (ScanResult scanResult = new ClassGraph().enableAllInfo()
 				.acceptPackages(config.getPackagesToScan())
 				.enableExternalClasses()
 				.scan()) {
 
-				scanResult.getAllClassesImplementing(JavaBasedMigration.class)
-					.getStandardClasses()
-					.filter(ci -> !ci.isAbstract())
+				scanResult.getClassesImplementing(JavaBasedMigration.class.getName())
+					.loadClasses(JavaBasedMigration.class)
 					.stream()
-					.map(this::loadClass)
-					.filter(c -> !loadedClasses.contains(c))
-					.map(ApplicationContextAwareDiscoverer::instantiate)
+					.filter(c -> !(Modifier.isAbstract(c.getModifiers()) || loadedClasses.contains(c)))
+					.map(c -> {
+						try {
+							return JavaBasedMigration.getDefaultConstructorFor(c).newInstance();
+						}
+						catch (Exception ex) {
+							throw new MigrationsException("Could not instantiate migration " + c.getName(), ex);
+						}
+					})
 					.forEach(result::add);
+
 			}
 		}
 		return List.copyOf(result);
-	}
-
-	private Class<? extends JavaBasedMigration> loadClass(ClassInfo classInfo) {
-		try {
-			return Class.forName(classInfo.getName(), false, this.classLoader).asSubclass(JavaBasedMigration.class);
-		}
-		catch (Exception ex) {
-			throw new MigrationsException("Could not load migration " + classInfo.getName(), ex);
-		}
-	}
-
-	private static JavaBasedMigration instantiate(Class<? extends JavaBasedMigration> type) {
-		try {
-			return JavaBasedMigration.getDefaultConstructorFor(type).newInstance();
-		}
-		catch (Exception ex) {
-			throw new MigrationsException("Could not instantiate migration " + type.getName(), ex);
-		}
 	}
 
 }

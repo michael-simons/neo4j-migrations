@@ -16,7 +16,6 @@
 package ac.simons.neo4j.migrations.springframework.boot.autoconfigure;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 import ac.simons.neo4j.migrations.core.Discoverer;
 import ac.simons.neo4j.migrations.core.JavaBasedMigration;
@@ -39,7 +38,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.data.neo4j.autoconfigure.DataNeo4jAutoConfiguration;
 import org.springframework.boot.neo4j.autoconfigure.Neo4jAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -130,11 +128,9 @@ public class MigrationsAutoConfiguration {
 	@ConditionalOnMissingBean({ Discoverer.class })
 	@ConditionalOnProperty(prefix = "org.neo4j.migrations", name = "enabled", matchIfMissing = true)
 	Discoverer<JavaBasedMigration> applicationContextAwareDiscoverer(
-			ObjectProvider<JavaBasedMigration> javaBasedMigrations, ApplicationContext applicationContext) {
+			ObjectProvider<JavaBasedMigration> javaBasedMigrations) {
 
-		var classLoader = Objects.requireNonNullElseGet(applicationContext.getClassLoader(),
-				ApplicationContextAwareDiscoverer.class::getClassLoader);
-		return new ApplicationContextAwareDiscoverer(javaBasedMigrations, classLoader);
+		return new ApplicationContextAwareDiscoverer(javaBasedMigrations);
 	}
 
 }

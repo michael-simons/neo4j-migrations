@@ -106,7 +106,7 @@
 		<central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
 		<checker-qual.version>4.2.3</checker-qual.version>
 		<checkstyle.version>14.4.0</checkstyle.version>
-		<classgraph.version>5.0.1</classgraph.version>
+		<classgraph.version>4.8.195</classgraph.version>
 		<compile-testing.version>0.23.0</compile-testing.version>
 		<covered-ratio-complexity>0.5</covered-ratio-complexity>
 		<covered-ratio-instructions>0.5</covered-ratio-instructions>
@@ -159,7 +159,7 @@
 		<native.maven.plugin.version>1.1.11</native.maven.plugin.version>
 		<neo4j-java-driver.version>6.2.1</neo4j-java-driver.version>
 		<neo4j-migrations.previous.version>4.3.0</neo4j-migrations.previous.version>
-		<neo4j-ogm.version>5.1.0</neo4j-ogm.version>
+		<neo4j-ogm.version>5.0.10</neo4j-ogm.version>
 		<neo4j.image>neo4j:${neo4j.version}</neo4j.image>
 		<neo4j.version>2026.07.1</neo4j.version>
 		<nullaway.version>0.14.1</nullaway.version>
@@ -171,7 +171,7 @@
 		<project.build.docs.branch>main</project.build.docs.branch>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<quarkus-neo4j.version>6.7.2</quarkus-neo4j.version>
-		<quarkus.version>3.40.1.2</quarkus.version>
+		<quarkus.version>3.40.1.1</quarkus.version>
 		<slf4j.version>2.0.18</slf4j.version>
 		<sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
